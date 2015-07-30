@@ -1,131 +1,295 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix wall/piston command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix wall/piston command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID wall/piston face ... keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>wall/piston = style name of this fix command 
-
-<LI>face = <I>zlo</I> 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>pos</I> or <I>vel</I> or <I>ramp</I> or <I>units</I>  
-
-<PRE>  <I>pos</I> args = z
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix wall/piston command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-wall-piston-command">
+<span id="index-0"></span><h1>fix wall/piston command<a class="headerlink" href="#fix-wall-piston-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID wall/piston face ... keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>wall/piston = style name of this fix command</li>
+<li>face = <em>zlo</em></li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>pos</em> or <em>vel</em> or <em>ramp</em> or <em>units</em></li>
+</ul>
+<pre class="literal-block">
+<em>pos</em> args = z
     z = z coordinate at which the piston begins (distance units)
-  <I>vel</I> args = vz
+  <em>vel</em> args = vz
     vz = final velocity of the piston (velocity units)
-  <I>ramp</I> = use a linear velocity ramp from 0 to vz
-  <I>temp</I> args = target damp seed extent
+  <em>ramp</em> = use a linear velocity ramp from 0 to vz
+  <em>temp</em> args = target damp seed extent
     target = target velocity for region immediately ahead of the piston
     damp = damping paramter (time units)
     seed = random number seed for langevin kicks
     extent = extent of thermostated region (distance units)
-  <I>units</I> value = <I>lattice</I> or <I>box</I>
-    <I>lattice</I> = the wall position is defined in lattice units
-    <I>box</I> = the wall position is defined in simulation box units 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix xwalls all wall/piston zlo
+  <em>units</em> value = <em>lattice</em> or <em>box</em>
+    <em>lattice</em> = the wall position is defined in lattice units
+    <em>box</em> = the wall position is defined in simulation box units
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix xwalls all wall/piston zlo
 fix walls all wall/piston zlo pos 1.0 vel 10.0 units box
-fix top all wall/piston zlo vel 10.0 ramp 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Bound the simulation with a moving wall which reflect particles in the
+fix top all wall/piston zlo vel 10.0 ramp
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Bound the simulation with a moving wall which reflect particles in the
 specified group and drive the system with an effective infinite-mass
-piston capable of driving shock waves.
-</P>
-<P>A momentum mirror technique is used, which means that if an atom (or
+piston capable of driving shock waves.</p>
+<p>A momentum mirror technique is used, which means that if an atom (or
 the wall) moves such that an atom is outside the wall on a timestep by
-a distance delta (e.g. due to <A HREF = "fix_nve.html">fix nve</A>), then it is put
+a distance delta (e.g. due to <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>), then it is put
 back inside the face by the same delta, and the velocity relative to
 the moving wall is flipped in z.  For instance, a stationary particle
 hit with a piston wall with velocity vz, will end the timestep with a
-velocity of 2*vz.
-</P>
-<P>Currently the <I>face</I> keyword can only be <I>zlo</I>.  This creates a piston
+velocity of 2*vz.</p>
+<p>Currently the <em>face</em> keyword can only be <em>zlo</em>.  This creates a piston
 moving in the positive z direction.  Particles with z coordinate less
 than the wall position are reflected to a z coordinate greater than
 the wall position.  If the piston velocity is vpz and the particle
 velocity before reflection is vzi, the particle velocity after
-reflection is -vzi + 2*vpz.
-</P>
-<P>The initial position of the wall can be specified by the <I>pos</I> keyword.
-</P>
-<P>The final velocity of the wall can be specified by the <I>vel</I> keyword
-</P>
-<P>The <I>ramp</I> keyword will cause the wall/piston to adjust the velocity
-linearly from zero velocity to <I>vel</I> over the course of the run. If
-the <I>ramp</I> keyword is omitted then the wall/piston moves at a constant
-velocity defined by <I>vel</I>.
-</P>
-<P>The <I>temp</I> keyword will cause the region immediately in front of the
+reflection is -vzi + 2*vpz.</p>
+<p>The initial position of the wall can be specified by the <em>pos</em> keyword.</p>
+<p>The final velocity of the wall can be specified by the <em>vel</em> keyword</p>
+<p>The <em>ramp</em> keyword will cause the wall/piston to adjust the velocity
+linearly from zero velocity to <em>vel</em> over the course of the run. If
+the <em>ramp</em> keyword is omitted then the wall/piston moves at a constant
+velocity defined by <em>vel</em>.</p>
+<p>The <em>temp</em> keyword will cause the region immediately in front of the
 wall/piston to be thermostated with a Langevin thermostat.  This
 region moves with the piston.  The damping and kicking are measured in
 the reference frame of the piston.  So, a temperature of zero would
 mean all particles were moving at exactly the speed of the
-wall/piston.
-</P>
-<P>The <I>units</I> keyword determines the meaning of the distance units used
-to define a wall position, but only when a numeric constant is used.
-</P>
-<P>A <I>box</I> value selects standard distance units as defined by the
-<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
-A <I>lattice</I> value means the distance units are in lattice spacings.
-The <A HREF = "lattice.html">lattice</A> command must have been previously used to
-define the lattice spacings.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+wall/piston.</p>
+<p>The <em>units</em> keyword determines the meaning of the distance units used
+to define a wall position, but only when a numeric constant is used.</p>
+<p>A <em>box</em> value selects standard distance units as defined by the
+<a class="reference internal" href="units.html"><em>units</em></a> command, e.g. Angstroms for units = real or metal.
+A <em>lattice</em> value means the distance units are in lattice spacings.
+The <a class="reference internal" href="lattice.html"><em>lattice</em></a> command must have been previously used to
+define the lattice spacings.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howoto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>The face that has the wall/piston must be boundary type 's' 
-(shrink-wrapped). The opposing face can be 
-any boundary type other than periodic.
-</P>
-<P>A wall/piston should not be used with rigid bodies such as those
-defined by a "fix rigid" command.  This is because the wall/piston
-displaces atoms directly rather than exerting a force on them.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_wall.html">fix wall/reflect</A> command, <A HREF = "fix_append_atoms.html">fix
-append/atoms</A> command
-</P>
-<P><B>Default:</B>
-</P>
-<P>The keyword defaults are pos = 0, vel = 0, units = lattice.
-</P>
-</HTML>
+by this fix for access by various <span class="xref std std-ref">output commands</span>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.
+This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix style is part of the SHOCK package.  It is only enabled if
+LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>The face that has the wall/piston must be boundary type &#8216;s&#8217;
+(shrink-wrapped). The opposing face can be
+any boundary type other than periodic.</p>
+<p>A wall/piston should not be used with rigid bodies such as those
+defined by a &#8220;fix rigid&#8221; command.  This is because the wall/piston
+displaces atoms directly rather than exerting a force on them.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_wall.html"><em>fix wall/reflect</em></a> command, <a class="reference internal" href="fix_append_atoms.html"><em>fix append/atoms</em></a> command</p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are pos = 0, vel = 0, units = lattice.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

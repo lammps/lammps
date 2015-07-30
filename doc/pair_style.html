@@ -1,234 +1,404 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style style args 
-</PRE>
-<UL><LI>style = one of the styles from the list below
-<LI>args = arguments used by a particular style 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style lj/cut 2.5
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-command">
+<span id="index-0"></span><h1>pair_style command<a class="headerlink" href="#pair-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = one of the styles from the list below</li>
+<li>args = arguments used by a particular style</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut 2.5
 pair_style eam/alloy
 pair_style hybrid lj/charmm/coul/long 10.0 eam
 pair_style table linear 1000
-pair_style none 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set the formula(s) LAMMPS uses to compute pairwise interactions.  In
+pair_style none
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set the formula(s) LAMMPS uses to compute pairwise interactions.  In
 LAMMPS, pair potentials are defined between pairs of atoms that are
 within a cutoff distance and the set of active interactions typically
-changes over time.  See the <A HREF = "bond_style.html">bond_style</A> command to
+changes over time.  See the <a class="reference internal" href="bond_style.html"><em>bond_style</em></a> command to
 define potentials between pairs of bonded atoms, which typically
-remain in place for the duration of a simulation.
-</P>
-<P>In LAMMPS, pairwise force fields encompass a variety of interactions,
+remain in place for the duration of a simulation.</p>
+<p>In LAMMPS, pairwise force fields encompass a variety of interactions,
 some of which include many-body effects, e.g. EAM, Stillinger-Weber,
-Tersoff, REBO potentials.  They are still classified as "pairwise"
+Tersoff, REBO potentials.  They are still classified as &#8220;pairwise&#8221;
 potentials because the set of interacting atoms changes with time
 (unlike molecular bonds) and thus a neighbor list is used to find
-nearby interacting atoms.
-</P>
-<P>Hybrid models where specified pairs of atom types interact via
-different pair potentials can be setup using the <I>hybrid</I> pair style.
-</P>
-<P>The coefficients associated with a pair style are typically set for
+nearby interacting atoms.</p>
+<p>Hybrid models where specified pairs of atom types interact via
+different pair potentials can be setup using the <em>hybrid</em> pair style.</p>
+<p>The coefficients associated with a pair style are typically set for
 each pair of atom types, and are specified by the
-<A HREF = "pair_coeff.html">pair_coeff</A> command or read from a file by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> command sets options for mixing of
+<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command or read from a file by the
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> command sets options for mixing of
 type I-J interaction coefficients and adding energy offsets or tail
 corrections to Lennard-Jones potentials.  Details on these options as
 they pertain to individual potentials are described on the doc page
 for the potential.  Likewise, info on whether the potential
-information is stored in a <A HREF = "write_restart.html">restart file</A> is listed
-on the potential doc page.
-</P>
-<P>In the formulas listed for each pair style, <I>E</I> is the energy of a
-pairwise interaction between two atoms separated by a distance <I>r</I>.
+information is stored in a <a class="reference internal" href="write_restart.html"><em>restart file</em></a> is listed
+on the potential doc page.</p>
+<p>In the formulas listed for each pair style, <em>E</em> is the energy of a
+pairwise interaction between two atoms separated by a distance <em>r</em>.
 The force between the atoms is the negative derivative of this
-expression.
-</P>
-<P>If the pair_style command has a cutoff argument, it sets global
+expression.</p>
+<p>If the pair_style command has a cutoff argument, it sets global
 cutoffs for all pairs of atom types.  The distance(s) can be smaller
-or larger than the dimensions of the simulation box.
-</P>
-<P>Typically, the global cutoff value can be overridden for a specific
-pair of atom types by the <A HREF = "pair_coeff.html">pair_coeff</A> command.  The
+or larger than the dimensions of the simulation box.</p>
+<p>Typically, the global cutoff value can be overridden for a specific
+pair of atom types by the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.  The
 pair style settings (including global cutoffs) can be changed by a
 subsequent pair_style command using the same style.  This will reset
 the cutoffs for all atom type pairs, including those previously set
-explicitly by a <A HREF = "pair_coeff.html">pair_coeff</A> command.  The exceptions
-to this are that pair_style <I>table</I> and <I>hybrid</I> settings cannot be
+explicitly by a <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.  The exceptions
+to this are that pair_style <em>table</em> and <em>hybrid</em> settings cannot be
 reset.  A new pair_style command for these styles will wipe out all
-previously specified pair_coeff values.
-</P>
-<HR>
-
-<P>Here is an alphabetic list of pair styles defined in LAMMPS.  They are
-also given in more compact form in the pair section of <A HREF = "Section_commands.html#cmd_5">this
-page</A>.
-</P>
-<P>Click on the style to display the formula it computes, arguments
+previously specified pair_coeff values.</p>
+<hr class="docutils" />
+<p>Here is an alphabetic list of pair styles defined in LAMMPS.  They are
+also given in more compact form in the pair section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<p>Click on the style to display the formula it computes, arguments
 specified in the pair_style command, and coefficients specified by the
-associated <A HREF = "pair_coeff.html">pair_coeff</A> command.
-</P>
-<P>There are also additional pair styles (not listed here) submitted by
+associated <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.</p>
+<p>There are also additional pair styles (not listed here) submitted by
 users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the pair
-section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<P>There are also additional accelerated pair styles (not listed here)
+section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<p>There are also additional accelerated pair styles (not listed here)
 included in the LAMMPS distribution for faster performance on CPUs and
 GPUs.  The list of these with links to the individual styles are given
-in the pair section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<UL><LI><A HREF = "pair_none.html">pair_style none</A> - turn off pairwise interactions
-<LI><A HREF = "pair_hybrid.html">pair_style hybrid</A> - multiple styles of pairwise interactions
-<LI><A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> - multiple styles of superposed pairwise interactions 
-</UL>
-<UL><LI><A HREF = "pair_adp.html">pair_style adp</A> - angular dependent potential (ADP) of Mishin
-<LI><A HREF = "pair_airebo.html">pair_style airebo</A> - AIREBO potential of Stuart
-<LI><A HREF = "pair_beck.html">pair_style beck</A> - Beck potential
-<LI><A HREF = "pair_body.html">pair_style body</A> - interactions between body particles
-<LI><A HREF = "pair_bop.html">pair_style bop</A> - BOP potential of Pettifor
-<LI><A HREF = "pair_born.html">pair_style born</A> - Born-Mayer-Huggins potential
-<LI><A HREF = "pair_born.html">pair_style born/coul/long</A> - Born-Mayer-Huggins with long-range Coulombics
-<LI><A HREF = "pair_born.html">pair_style born/coul/long/cs</A> - Born-Mayer-Huggins with long-range Coulombics and core/shell
-<LI><A HREF = "pair_born.html">pair_style born/coul/msm</A> - Born-Mayer-Huggins with long-range MSM Coulombics
-<LI><A HREF = "pair_born.html">pair_style born/coul/wolf</A> - Born-Mayer-Huggins with Coulombics via Wolf potential
-<LI><A HREF = "pair_brownian.html">pair_style brownian</A> - Brownian potential for Fast Lubrication Dynamics
-<LI><A HREF = "pair_brownian.html">pair_style brownian/poly</A> - Brownian potential for Fast Lubrication Dynamics with polydispersity
-<LI><A HREF = "pair_buck.html">pair_style buck</A> - Buckingham potential
-<LI><A HREF = "pair_buck.html">pair_style buck/coul/cut</A> - Buckingham with cutoff Coulomb
-<LI><A HREF = "pair_buck.html">pair_style buck/coul/long</A> - Buckingham with long-range Coulombics
-<LI><A HREF = "pair_buck.html">pair_style buck/coul/long/cs</A> - Buckingham with long-range Coulombics and core/shell
-<LI><A HREF = "pair_buck.html">pair_style buck/coul/msm</A> - Buckingham long-range MSM Coulombics
-<LI><A HREF = "pair_buck_long.html">pair_style buck/long/coul/long</A> - long-range Buckingham with long-range Coulombics
-<LI><A HREF = "pair_colloid.html">pair_style colloid</A> - integrated colloidal potential
-<LI><A HREF = "pair_comb.html">pair_style comb</A> - charge-optimized many-body (COMB) potential
-<LI><A HREF = "pair_comb.html">pair_style comb3</A> - charge-optimized many-body (COMB3) potential
-<LI><A HREF = "pair_coul.html">pair_style coul/cut</A> - cutoff Coulombic potential
-<LI><A HREF = "pair_coul.html">pair_style coul/debye</A> - cutoff Coulombic potential with Debye screening
-<LI><A HREF = "pair_coul.html">pair_style coul/dsf</A> - Coulombics via damped shifted forces
-<LI><A HREF = "pair_coul.html">pair_style coul/long</A> - long-range Coulombic potential
-<LI><A HREF = "pair_coul.html">pair_style coul/long/cs</A> - long-range Coulombic potential and core/shell
-<LI><A HREF = "pair_coul.html">pair_style coul/msm</A> - long-range MSM Coulombics
-<LI><A HREF = "pair_coul_streitz.html">pair_style coul/msm</A> - Coulombics via Streitz/Mintmire Slater orbitals
-<LI><A HREF = "pair_coul.html">pair_style coul/wolf</A> - Coulombics via Wolf potential
-<LI><A HREF = "pair_dpd.html">pair_style dpd</A> - dissipative particle dynamics (DPD)
-<LI><A HREF = "pair_dpd.html">pair_style dpd/tstat</A> - DPD thermostatting
-<LI><A HREF = "pair_dsmc.html">pair_style dsmc</A> - Direct Simulation Monte Carlo (DSMC)
-<LI><A HREF = "pair_eam.html">pair_style eam</A> - embedded atom method (EAM)
-<LI><A HREF = "pair_eam.html">pair_style eam/alloy</A> - alloy EAM
-<LI><A HREF = "pair_eam.html">pair_style eam/fs</A> - Finnis-Sinclair EAM
-<LI><A HREF = "pair_eim.html">pair_style eim</A> - embedded ion method (EIM)
-<LI><A HREF = "pair_gauss.html">pair_style gauss</A> - Gaussian potential
-<LI><A HREF = "pair_gayberne.html">pair_style gayberne</A> - Gay-Berne ellipsoidal potential
-<LI><A HREF = "pair_gran.html">pair_style gran/hertz/history</A> - granular potential with Hertzian interactions
-<LI><A HREF = "pair_gran.html">pair_style gran/hooke</A> - granular potential with history effects
-<LI><A HREF = "pair_gran.html">pair_style gran/hooke/history</A> - granular potential without history effects
-<LI><A HREF = "pair_hbond_dreiding.html">pair_style hbond/dreiding/lj</A> - DREIDING hydrogen bonding LJ potential
-<LI><A HREF = "pair_hbond_dreiding.html">pair_style hbond/dreiding/morse</A> - DREIDING hydrogen bonding Morse potential
-<LI><A HREF = "pair_kim.html">pair_style kim</A> - interface to potentials provided by KIM project
-<LI><A HREF = "pair_lcbop.html">pair_style lcbop</A> - long-range bond-order potential (LCBOP)
-<LI><A HREF = "pair_line_lj.html">pair_style line/lj</A> - LJ potential between line segments
-<LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm</A> - CHARMM potential with cutoff Coulomb
-<LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm/implicit</A> - CHARMM for implicit solvent
-<LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/long</A> - CHARMM with long-range Coulomb
-<LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/msm</A> - CHARMM with long-range MSM Coulombics
-<LI><A HREF = "pair_class2.html">pair_style lj/class2</A> - COMPASS (class 2) force field with no Coulomb
-<LI><A HREF = "pair_class2.html">pair_style lj/class2/coul/cut</A> - COMPASS with cutoff Coulomb
-<LI><A HREF = "pair_class2.html">pair_style lj/class2/coul/long</A> - COMPASS with long-range Coulomb
-<LI><A HREF = "pair_lj.html">pair_style lj/cut</A> - cutoff Lennard-Jones potential with no Coulomb
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/cut</A> - LJ with cutoff Coulomb
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/debye</A> - LJ with Debye screening added to Coulomb
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/dsf</A> - LJ with Coulombics via damped shifted forces
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/long</A> - LJ with long-range Coulombics
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/msm</A> - LJ with long-range MSM Coulombics
-<LI><A HREF = "pair_dipole.html">pair_style lj/cut/dipole/cut</A> - point dipoles with cutoff
-<LI><A HREF = "pair_dipole.html">pair_style lj/cut/dipole/long</A> - point dipoles with long-range Ewald
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/tip4p/cut</A> - LJ with cutoff Coulomb for TIP4P water
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/tip4p/long</A> - LJ with long-range Coulomb for TIP4P water
-<LI><A HREF = "pair_lj_expand.html">pair_style lj/expand</A> - Lennard-Jones for variable size particles
-<LI><A HREF = "pair_gromacs.html">pair_style lj/gromacs</A> - GROMACS-style Lennard-Jones potential
-<LI><A HREF = "pair_gromacs.html">pair_style lj/gromacs/coul/gromacs</A> - GROMACS-style LJ and Coulombic potential
-<LI><A HREF = "pair_lj_long.html">pair_style lj/long/coul/long</A> - long-range LJ and long-range Coulombics
-<LI><A HREF = "pair_dipole.html">pair_style lj/long/dipole/long</A> - long-range LJ and long-range point dipoles
-<LI><A HREF = "pair_lj_long.html">pair_style lj/long/tip4p/long</A> - long-range LJ and long-range Coulomb for TIP4P water
-<LI><A HREF = "pair_lj_smooth.html">pair_style lj/smooth</A> - smoothed Lennard-Jones potential
-<LI><A HREF = "pair_lj_smooth_linear.html">pair_style lj/smooth/linear</A> - linear smoothed Lennard-Jones potential
-<LI><A HREF = "pair_lj96.html">pair_style lj96/cut</A> - Lennard-Jones 9/6 potential
-<LI><A HREF = "pair_lubricate.html">pair_style lubricate</A> - hydrodynamic lubrication forces
-<LI><A HREF = "pair_lubricate.html">pair_style lubricate/poly</A> - hydrodynamic lubrication forces with polydispersity
-<LI><A HREF = "pair_lubricateU.html">pair_style lubricateU</A> - hydrodynamic lubrication forces for Fast Lubrication Dynamics
-<LI><A HREF = "pair_lubricateU.html">pair_style lubricateU/poly</A> - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
-<LI><A HREF = "pair_meam.html">pair_style meam</A> - modified embedded atom method (MEAM)
-<LI><A HREF = "pair_mie.html">pair_style mie/cut</A> - Mie potential
-<LI><A HREF = "pair_morse.html">pair_style morse</A> - Morse potential
-<LI><A HREF = "pair_nb3b_harmonic.html">pair_style nb3b/harmonic</A> - nonbonded 3-body harmonic potential
-<LI><A HREF = "pair_nm.html">pair_style nm/cut</A> - N-M potential
-<LI><A HREF = "pair_nm.html">pair_style nm/cut/coul/cut</A> - N-M potential with cutoff Coulomb
-<LI><A HREF = "pair_nm.html">pair_style nm/cut/coul/long</A> - N-M potential with long-range Coulombics
-<LI><A HREF = "pair_peri.html">pair_style peri/eps</A> - peridynamic EPS potential
-<LI><A HREF = "pair_peri.html">pair_style peri/lps</A> - peridynamic LPS potential
-<LI><A HREF = "pair_peri.html">pair_style peri/pmb</A> - peridynamic PMB potential
-<LI><A HREF = "pair_peri.html">pair_style peri/ves</A> - peridynamic VES potential
-<LI><A HREF = "pair_polymorphic.html">pair_style polymorphic</A> - polymorphic 3-body potential
-<LI><A HREF = "pair_reax.html">pair_style reax</A> - ReaxFF potential
-<LI><A HREF = "pair_airebo.html">pair_style rebo</A> - 2nd generation REBO potential of Brenner
-<LI><A HREF = "pair_resquared.html">pair_style resquared</A> - Everaers RE-Squared ellipsoidal potential
-<LI><A HREF = "pair_snap.html">pair_style snap</A> - SNAP quantum-accurate potential
-<LI><A HREF = "pair_soft.html">pair_style soft</A> - Soft (cosine) potential
-<LI><A HREF = "pair_sw.html">pair_style sw</A> - Stillinger-Weber 3-body potential
-<LI><A HREF = "pair_table.html">pair_style table</A> - tabulated pair potential
-<LI><A HREF = "pair_tersoff.html">pair_style tersoff</A> - Tersoff 3-body potential
-<LI><A HREF = "pair_tersoff_mod.html">pair_style tersoff/mod</A> - modified Tersoff 3-body potential
-<LI><A HREF = "pair_tersoff_zbl.html">pair_style tersoff/zbl</A> - Tersoff/ZBL 3-body potential
-<LI><A HREF = "pair_coul.html">pair_style tip4p/cut</A> - Coulomb for TIP4P water w/out LJ
-<LI><A HREF = "pair_coul.html">pair_style tip4p/long</A> - long-range Coulombics for TIP4P water w/out LJ
-<LI><A HREF = "pair_tri_lj.html">pair_style tri/lj</A> - LJ potential between triangles
-<LI><A HREF = "pair_yukawa.html">pair_style yukawa</A> - Yukawa potential
-<LI><A HREF = "pair_yukawa_colloid.html">pair_style yukawa/colloid</A> - screened Yukawa potential for finite-size particles
-<LI><A HREF = "pair_zbl.html">pair_style zbl</A> - Ziegler-Biersack-Littmark potential 
-</UL>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>This command must be used before any coefficients are set by the
-<A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "read_data.html">read_data</A>, or
-<A HREF = "read_restart.html">read_restart</A> commands.
-</P>
-<P>Some pair styles are part of specific packages.  They are only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info on packages.
+in the pair section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<ul class="simple">
+<li><a class="reference internal" href="pair_none.html"><em>pair_style none</em></a> - turn off pairwise interactions</li>
+<li><a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> - multiple styles of pairwise interactions</li>
+<li><a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a> - multiple styles of superposed pairwise interactions</li>
+<li><a class="reference internal" href="pair_adp.html"><em>pair_style adp</em></a> - angular dependent potential (ADP) of Mishin</li>
+<li><a class="reference internal" href="pair_airebo.html"><em>pair_style airebo</em></a> - AIREBO potential of Stuart</li>
+<li><a class="reference internal" href="pair_beck.html"><em>pair_style beck</em></a> - Beck potential</li>
+<li><a class="reference internal" href="pair_body.html"><em>pair_style body</em></a> - interactions between body particles</li>
+<li><a class="reference internal" href="pair_bop.html"><em>pair_style bop</em></a> - BOP potential of Pettifor</li>
+<li><a class="reference internal" href="pair_born.html"><em>pair_style born</em></a> - Born-Mayer-Huggins potential</li>
+<li><a class="reference internal" href="pair_born.html"><em>pair_style born/coul/long</em></a> - Born-Mayer-Huggins with long-range Coulombics</li>
+<li><a class="reference internal" href="pair_born.html"><em>pair_style born/coul/long/cs</em></a> - Born-Mayer-Huggins with long-range Coulombics and core/shell</li>
+<li><a class="reference internal" href="pair_born.html"><em>pair_style born/coul/msm</em></a> - Born-Mayer-Huggins with long-range MSM Coulombics</li>
+<li><a class="reference internal" href="pair_born.html"><em>pair_style born/coul/wolf</em></a> - Born-Mayer-Huggins with Coulombics via Wolf potential</li>
+<li><a class="reference internal" href="pair_brownian.html"><em>pair_style brownian</em></a> - Brownian potential for Fast Lubrication Dynamics</li>
+<li><a class="reference internal" href="pair_brownian.html"><em>pair_style brownian/poly</em></a> - Brownian potential for Fast Lubrication Dynamics with polydispersity</li>
+<li><a class="reference internal" href="pair_buck.html"><em>pair_style buck</em></a> - Buckingham potential</li>
+<li><a class="reference internal" href="pair_buck.html"><em>pair_style buck/coul/cut</em></a> - Buckingham with cutoff Coulomb</li>
+<li><a class="reference internal" href="pair_buck.html"><em>pair_style buck/coul/long</em></a> - Buckingham with long-range Coulombics</li>
+<li><a class="reference internal" href="pair_buck.html"><em>pair_style buck/coul/long/cs</em></a> - Buckingham with long-range Coulombics and core/shell</li>
+<li><a class="reference internal" href="pair_buck.html"><em>pair_style buck/coul/msm</em></a> - Buckingham long-range MSM Coulombics</li>
+<li><a class="reference internal" href="pair_buck_long.html"><em>pair_style buck/long/coul/long</em></a> - long-range Buckingham with long-range Coulombics</li>
+<li><a class="reference internal" href="pair_colloid.html"><em>pair_style colloid</em></a> - integrated colloidal potential</li>
+<li><a class="reference internal" href="pair_comb.html"><em>pair_style comb</em></a> - charge-optimized many-body (COMB) potential</li>
+<li><a class="reference internal" href="pair_comb.html"><em>pair_style comb3</em></a> - charge-optimized many-body (COMB3) potential</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/cut</em></a> - cutoff Coulombic potential</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/debye</em></a> - cutoff Coulombic potential with Debye screening</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/dsf</em></a> - Coulombics via damped shifted forces</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/long</em></a> - long-range Coulombic potential</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/long/cs</em></a> - long-range Coulombic potential and core/shell</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/msm</em></a> - long-range MSM Coulombics</li>
+<li><code class="xref doc docutils literal"><span class="pre">pair_style</span> <span class="pre">coul/msm</span></code> - Coulombics via Streitz/Mintmire Slater orbitals</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/wolf</em></a> - Coulombics via Wolf potential</li>
+<li><a class="reference internal" href="pair_dpd.html"><em>pair_style dpd</em></a> - dissipative particle dynamics (DPD)</li>
+<li><a class="reference internal" href="pair_dpd.html"><em>pair_style dpd/tstat</em></a> - DPD thermostatting</li>
+<li><a class="reference internal" href="pair_dsmc.html"><em>pair_style dsmc</em></a> - Direct Simulation Monte Carlo (DSMC)</li>
+<li><a class="reference internal" href="pair_eam.html"><em>pair_style eam</em></a> - embedded atom method (EAM)</li>
+<li><a class="reference internal" href="pair_eam.html"><em>pair_style eam/alloy</em></a> - alloy EAM</li>
+<li><a class="reference internal" href="pair_eam.html"><em>pair_style eam/fs</em></a> - Finnis-Sinclair EAM</li>
+<li><a class="reference internal" href="pair_eim.html"><em>pair_style eim</em></a> - embedded ion method (EIM)</li>
+<li><a class="reference internal" href="pair_gauss.html"><em>pair_style gauss</em></a> - Gaussian potential</li>
+<li><a class="reference internal" href="pair_gayberne.html"><em>pair_style gayberne</em></a> - Gay-Berne ellipsoidal potential</li>
+<li><a class="reference internal" href="pair_gran.html"><em>pair_style gran/hertz/history</em></a> - granular potential with Hertzian interactions</li>
+<li><a class="reference internal" href="pair_gran.html"><em>pair_style gran/hooke</em></a> - granular potential with history effects</li>
+<li><a class="reference internal" href="pair_gran.html"><em>pair_style gran/hooke/history</em></a> - granular potential without history effects</li>
+<li><a class="reference internal" href="pair_hbond_dreiding.html"><em>pair_style hbond/dreiding/lj</em></a> - DREIDING hydrogen bonding LJ potential</li>
+<li><a class="reference internal" href="pair_hbond_dreiding.html"><em>pair_style hbond/dreiding/morse</em></a> - DREIDING hydrogen bonding Morse potential</li>
+<li><a class="reference internal" href="pair_kim.html"><em>pair_style kim</em></a> - interface to potentials provided by KIM project</li>
+<li><a class="reference internal" href="pair_lcbop.html"><em>pair_style lcbop</em></a> - long-range bond-order potential (LCBOP)</li>
+<li><a class="reference internal" href="pair_line_lj.html"><em>pair_style line/lj</em></a> - LJ potential between line segments</li>
+<li><a class="reference internal" href="pair_charmm.html"><em>pair_style lj/charmm/coul/charmm</em></a> - CHARMM potential with cutoff Coulomb</li>
+<li><a class="reference internal" href="pair_charmm.html"><em>pair_style lj/charmm/coul/charmm/implicit</em></a> - CHARMM for implicit solvent</li>
+<li><a class="reference internal" href="pair_charmm.html"><em>pair_style lj/charmm/coul/long</em></a> - CHARMM with long-range Coulomb</li>
+<li><a class="reference internal" href="pair_charmm.html"><em>pair_style lj/charmm/coul/msm</em></a> - CHARMM with long-range MSM Coulombics</li>
+<li><a class="reference internal" href="pair_class2.html"><em>pair_style lj/class2</em></a> - COMPASS (class 2) force field with no Coulomb</li>
+<li><a class="reference internal" href="pair_class2.html"><em>pair_style lj/class2/coul/cut</em></a> - COMPASS with cutoff Coulomb</li>
+<li><a class="reference internal" href="pair_class2.html"><em>pair_style lj/class2/coul/long</em></a> - COMPASS with long-range Coulomb</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut</em></a> - cutoff Lennard-Jones potential with no Coulomb</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/cut</em></a> - LJ with cutoff Coulomb</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/debye</em></a> - LJ with Debye screening added to Coulomb</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/dsf</em></a> - LJ with Coulombics via damped shifted forces</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/long</em></a> - LJ with long-range Coulombics</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/msm</em></a> - LJ with long-range MSM Coulombics</li>
+<li><a class="reference internal" href="pair_dipole.html"><em>pair_style lj/cut/dipole/cut</em></a> - point dipoles with cutoff</li>
+<li><a class="reference internal" href="pair_dipole.html"><em>pair_style lj/cut/dipole/long</em></a> - point dipoles with long-range Ewald</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/tip4p/cut</em></a> - LJ with cutoff Coulomb for TIP4P water</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/tip4p/long</em></a> - LJ with long-range Coulomb for TIP4P water</li>
+<li><a class="reference internal" href="pair_lj_expand.html"><em>pair_style lj/expand</em></a> - Lennard-Jones for variable size particles</li>
+<li><a class="reference internal" href="pair_gromacs.html"><em>pair_style lj/gromacs</em></a> - GROMACS-style Lennard-Jones potential</li>
+<li><a class="reference internal" href="pair_gromacs.html"><em>pair_style lj/gromacs/coul/gromacs</em></a> - GROMACS-style LJ and Coulombic potential</li>
+<li><a class="reference internal" href="pair_lj_long.html"><em>pair_style lj/long/coul/long</em></a> - long-range LJ and long-range Coulombics</li>
+<li><a class="reference internal" href="pair_dipole.html"><em>pair_style lj/long/dipole/long</em></a> - long-range LJ and long-range point dipoles</li>
+<li><a class="reference internal" href="pair_lj_long.html"><em>pair_style lj/long/tip4p/long</em></a> - long-range LJ and long-range Coulomb for TIP4P water</li>
+<li><a class="reference internal" href="pair_lj_smooth.html"><em>pair_style lj/smooth</em></a> - smoothed Lennard-Jones potential</li>
+<li><a class="reference internal" href="pair_lj_smooth_linear.html"><em>pair_style lj/smooth/linear</em></a> - linear smoothed Lennard-Jones potential</li>
+<li><a class="reference internal" href="pair_lj96.html"><em>pair_style lj96/cut</em></a> - Lennard-Jones 9/6 potential</li>
+<li><a class="reference internal" href="pair_lubricate.html"><em>pair_style lubricate</em></a> - hydrodynamic lubrication forces</li>
+<li><a class="reference internal" href="pair_lubricate.html"><em>pair_style lubricate/poly</em></a> - hydrodynamic lubrication forces with polydispersity</li>
+<li><a class="reference internal" href="pair_lubricateU.html"><em>pair_style lubricateU</em></a> - hydrodynamic lubrication forces for Fast Lubrication Dynamics</li>
+<li><a class="reference internal" href="pair_lubricateU.html"><em>pair_style lubricateU/poly</em></a> - hydrodynamic lubrication forces for Fast Lubrication with polydispersity</li>
+<li><a class="reference internal" href="pair_meam.html"><em>pair_style meam</em></a> - modified embedded atom method (MEAM)</li>
+<li><a class="reference internal" href="pair_mie.html"><em>pair_style mie/cut</em></a> - Mie potential</li>
+<li><a class="reference internal" href="pair_morse.html"><em>pair_style morse</em></a> - Morse potential</li>
+<li><a class="reference internal" href="pair_nb3b_harmonic.html"><em>pair_style nb3b/harmonic</em></a> - nonbonded 3-body harmonic potential</li>
+<li><a class="reference internal" href="pair_nm.html"><em>pair_style nm/cut</em></a> - N-M potential</li>
+<li><a class="reference internal" href="pair_nm.html"><em>pair_style nm/cut/coul/cut</em></a> - N-M potential with cutoff Coulomb</li>
+<li><a class="reference internal" href="pair_nm.html"><em>pair_style nm/cut/coul/long</em></a> - N-M potential with long-range Coulombics</li>
+<li><a class="reference internal" href="pair_peri.html"><em>pair_style peri/eps</em></a> - peridynamic EPS potential</li>
+<li><a class="reference internal" href="pair_peri.html"><em>pair_style peri/lps</em></a> - peridynamic LPS potential</li>
+<li><a class="reference internal" href="pair_peri.html"><em>pair_style peri/pmb</em></a> - peridynamic PMB potential</li>
+<li><a class="reference internal" href="pair_peri.html"><em>pair_style peri/ves</em></a> - peridynamic VES potential</li>
+<li><a class="reference internal" href="pair_polymorphic.html"><em>pair_style polymorphic</em></a> - polymorphic 3-body potential</li>
+<li><a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> - ReaxFF potential</li>
+<li><a class="reference internal" href="pair_airebo.html"><em>pair_style rebo</em></a> - 2nd generation REBO potential of Brenner</li>
+<li><a class="reference internal" href="pair_resquared.html"><em>pair_style resquared</em></a> - Everaers RE-Squared ellipsoidal potential</li>
+<li><a class="reference internal" href="pair_snap.html"><em>pair_style snap</em></a> - SNAP quantum-accurate potential</li>
+<li><a class="reference internal" href="pair_soft.html"><em>pair_style soft</em></a> - Soft (cosine) potential</li>
+<li><a class="reference internal" href="pair_sw.html"><em>pair_style sw</em></a> - Stillinger-Weber 3-body potential</li>
+<li><a class="reference internal" href="pair_table.html"><em>pair_style table</em></a> - tabulated pair potential</li>
+<li><a class="reference internal" href="pair_tersoff.html"><em>pair_style tersoff</em></a> - Tersoff 3-body potential</li>
+<li><a class="reference internal" href="pair_tersoff_mod.html"><em>pair_style tersoff/mod</em></a> - modified Tersoff 3-body potential</li>
+<li><a class="reference internal" href="pair_tersoff_zbl.html"><em>pair_style tersoff/zbl</em></a> - Tersoff/ZBL 3-body potential</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style tip4p/cut</em></a> - Coulomb for TIP4P water w/out LJ</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style tip4p/long</em></a> - long-range Coulombics for TIP4P water w/out LJ</li>
+<li><a class="reference internal" href="pair_tri_lj.html"><em>pair_style tri/lj</em></a> - LJ potential between triangles</li>
+<li><a class="reference internal" href="pair_yukawa.html"><em>pair_style yukawa</em></a> - Yukawa potential</li>
+<li><a class="reference internal" href="pair_yukawa_colloid.html"><em>pair_style yukawa/colloid</em></a> - screened Yukawa potential for finite-size particles</li>
+<li><a class="reference internal" href="pair_zbl.html"><em>pair_style zbl</em></a> - Ziegler-Biersack-Littmark potential</li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command must be used before any coefficients are set by the
+<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, <a class="reference internal" href="read_data.html"><em>read_data</em></a>, or
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> commands.</p>
+<p>Some pair styles are part of specific packages.  They are only enabled
+if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info on packages.
 The doc pages for individual pair potentials tell if it is part of a
-package.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "read_data.html">read_data</A>,
-<A HREF = "pair_modify.html">pair_modify</A>, <A HREF = "kspace_style.html">kspace_style</A>,
-<A HREF = "dielectric.html">dielectric</A>, <A HREF = "pair_write.html">pair_write</A>
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>pair_style none 
-</PRE>
-</HTML>
+package.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, <a class="reference internal" href="read_data.html"><em>read_data</em></a>,
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>, <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a>,
+<a class="reference internal" href="dielectric.html"><em>dielectric</em></a>, <a class="reference internal" href="pair_write.html"><em>pair_write</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style none
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

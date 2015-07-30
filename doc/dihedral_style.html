@@ -1,121 +1,296 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dihedral_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>dihedral_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>dihedral_style style 
-</PRE>
-<UL><LI>style = <I>none</I> or <I>hybrid</I> or <I>charmm</I> or <I>class2</I> or <I>harmonic</I> or <I>helix</I> or         <I>multi/harmonic</I> or <I>opls</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>dihedral_style harmonic
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>dihedral_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="dihedral-style-command">
+<span id="index-0"></span><h1>dihedral_style command<a class="headerlink" href="#dihedral-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dihedral_style style
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>none</em> or <em>hybrid</em> or <em>charmm</em> or <em>class2</em> or <em>harmonic</em> or <em>helix</em> or         <em>multi/harmonic</em> or <em>opls</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dihedral_style harmonic
 dihedral_style multi/harmonic
-dihedral_style hybrid harmonic charmm 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set the formula(s) LAMMPS uses to compute dihedral interactions
+dihedral_style hybrid harmonic charmm
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set the formula(s) LAMMPS uses to compute dihedral interactions
 between quadruplets of atoms, which remain in force for the duration
 of the simulation.  The list of dihedral quadruplets is read in by a
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A> command
-from a data or restart file.
-</P>
-<P>Hybrid models where dihedrals are computed using different dihedral
-potentials can be setup using the <I>hybrid</I> dihedral style.
-</P>
-<P>The coefficients associated with a dihedral style can be specified in
-a data or restart file or via the <A HREF = "dihedral_coeff.html">dihedral_coeff</A>
-command.
-</P>
-<P>All dihedral potentials store their coefficient data in binary restart
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command
+from a data or restart file.</p>
+<p>Hybrid models where dihedrals are computed using different dihedral
+potentials can be setup using the <em>hybrid</em> dihedral style.</p>
+<p>The coefficients associated with a dihedral style can be specified in
+a data or restart file or via the <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a>
+command.</p>
+<p>All dihedral potentials store their coefficient data in binary restart
 files which means dihedral_style and
-<A HREF = "dihedral_coeff.html">dihedral_coeff</A> commands do not need to be
+<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> commands do not need to be
 re-specified in an input script that restarts a simulation.  See the
-<A HREF = "read_restart.html">read_restart</A> command for details on how to do
-this.  The one exception is that dihedral_style <I>hybrid</I> only stores
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for details on how to do
+this.  The one exception is that dihedral_style <em>hybrid</em> only stores
 the list of sub-styles in the restart file; dihedral coefficients need
-to be re-specified.
-</P>
-<P>IMPORTANT NOTE: When both a dihedral and pair style is defined, the
-<A HREF = "special_bonds.html">special_bonds</A> command often needs to be used to
+to be re-specified.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When both a dihedral and pair style is defined, the
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
-exist between 4 bonded atoms.
-</P>
-<P>In the formulas listed for each dihedral style, <I>phi</I> is the torsional
+exist between 4 bonded atoms.</p>
+</div>
+<p>In the formulas listed for each dihedral style, <em>phi</em> is the torsional
 angle defined by the quadruplet of atoms.  This angle has a sign
-convention as shown in this diagram:
-</P>
-<CENTER><IMG SRC = "Eqs/dihedral_sign.jpg">
-</CENTER>
-<P>where the I,J,K,L ordering of the 4 atoms that define the dihedral
-is from left to right.
-</P>
-<P>This sign convention effects several of the dihedral styles listed
+convention as shown in this diagram:</p>
+<img alt="_images/dihedral_sign.jpg" class="align-center" src="_images/dihedral_sign.jpg" />
+<p>where the I,J,K,L ordering of the 4 atoms that define the dihedral
+is from left to right.</p>
+<p>This sign convention effects several of the dihedral styles listed
 below (e.g. charmm, helix) in the sense that the energy formula
 depends on the sign of phi, which may be reflected in the value of the
-coefficients you specify.
-</P>
-<P>IMPORTANT NOTE: When comparing the formulas and coefficients for
+coefficients you specify.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When comparing the formulas and coefficients for
 various LAMMPS dihedral styles with dihedral equations defined by
 other force fields, note that some force field implementations
-divide/multiply the energy prefactor <I>K</I> by the multiple number of
+divide/multiply the energy prefactor <em>K</em> by the multiple number of
 torsions that contain the J-K bond in an I-J-K-L torsion.  LAMMPS does
 not do this, i.e. the listed dihedral equation applies to each
-individual dihedral.  Thus you need to define <I>K</I> appropriately via
-the <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command to account for this
-difference if necessary.
-</P>
-<HR>
-
-<P>Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
+individual dihedral.  Thus you need to define <em>K</em> appropriately via
+the <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command to account for this
+difference if necessary.</p>
+</div>
+<hr class="docutils" />
+<p>Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
-specified by the associated <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command.
-</P>
-<P>Note that there are also additional dihedral styles submitted by users
+specified by the associated <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command.</p>
+<p>Note that there are also additional dihedral styles submitted by users
 which are included in the LAMMPS distribution.  The list of these with
 links to the individual styles are given in the dihedral section of
-<A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<UL><LI><A HREF = "dihedral_none.html">dihedral_style none</A> - turn off dihedral interactions
-<LI><A HREF = "dihedral_hybrid.html">dihedral_style hybrid</A> - define multiple styles of dihedral interactions 
-</UL>
-<UL><LI><A HREF = "dihedral_charmm.html">dihedral_style charmm</A> - CHARMM dihedral
-<LI><A HREF = "dihedral_class2.html">dihedral_style class2</A> - COMPASS (class 2) dihedral
-<LI><A HREF = "dihedral_harmonic.html">dihedral_style harmonic</A> - harmonic dihedral
-<LI><A HREF = "dihedral_helix.html">dihedral_style helix</A> - helix dihedral
-<LI><A HREF = "dihedral_multi_harmonic.html">dihedral_style multi/harmonic</A> - multi-harmonic dihedral
-<LI><A HREF = "dihedral_opls.html">dihedral_style opls</A> - OPLS dihedral 
-</UL>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>Dihedral styles can only be set for atom styles that allow dihedrals
-to be defined.
-</P>
-<P>Most dihedral styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info on packages.
+<a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<ul class="simple">
+<li><a class="reference internal" href="dihedral_none.html"><em>dihedral_style none</em></a> - turn off dihedral interactions</li>
+<li><a class="reference internal" href="dihedral_hybrid.html"><em>dihedral_style hybrid</em></a> - define multiple styles of dihedral interactions</li>
+<li><a class="reference internal" href="dihedral_charmm.html"><em>dihedral_style charmm</em></a> - CHARMM dihedral</li>
+<li><a class="reference internal" href="dihedral_class2.html"><em>dihedral_style class2</em></a> - COMPASS (class 2) dihedral</li>
+<li><a class="reference internal" href="dihedral_harmonic.html"><em>dihedral_style harmonic</em></a> - harmonic dihedral</li>
+<li><a class="reference internal" href="dihedral_helix.html"><em>dihedral_style helix</em></a> - helix dihedral</li>
+<li><a class="reference internal" href="dihedral_multi_harmonic.html"><em>dihedral_style multi/harmonic</em></a> - multi-harmonic dihedral</li>
+<li><a class="reference internal" href="dihedral_opls.html"><em>dihedral_style opls</em></a> - OPLS dihedral</li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Dihedral styles can only be set for atom styles that allow dihedrals
+to be defined.</p>
+<p>Most dihedral styles are part of the MOLECULE package.  They are only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info on packages.
 The doc pages for individual dihedral potentials tell if it is part of
-a package.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>dihedral_style none
-</P>
-</HTML>
+a package.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>dihedral_style none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

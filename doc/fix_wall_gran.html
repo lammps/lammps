@@ -1,84 +1,193 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix wall/gran command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix wall/gran command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID wall/gran Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>wall/gran = style name of this fix command 
-
-<LI>Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below) 
-
-<LI>Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below) 
-
-<LI>gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below) 
-
-<LI>gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) 
-
-<LI>xmu = static yield criterion (unitless value between 0.0 and 1.0e4) 
-
-<LI>dampflag = 0 or 1 if tangential damping force is excluded or included 
-
-<LI>wallstyle = <I>xplane</I> or <I>yplane</I> or <I>zplane</I> or <I>zcylinder</I> 
-
-<LI>args = list of arguments for a particular style 
-
-<PRE>  <I>xplane</I> or <I>yplane</I> or <I>zplane</I> args = lo hi
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix wall/gran command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-wall-gran-command">
+<span id="index-0"></span><h1>fix wall/gran command<a class="headerlink" href="#fix-wall-gran-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID wall/gran Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>wall/gran = style name of this fix command</li>
+<li>Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)</li>
+<li>Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)</li>
+<li>gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)</li>
+<li>gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)</li>
+<li>xmu = static yield criterion (unitless value between 0.0 and 1.0e4)</li>
+<li>dampflag = 0 or 1 if tangential damping force is excluded or included</li>
+<li>wallstyle = <em>xplane</em> or <em>yplane</em> or <em>zplane</em> or <em>zcylinder</em></li>
+<li>args = list of arguments for a particular style</li>
+</ul>
+<pre class="literal-block">
+<em>xplane</em> or <em>yplane</em> or <em>zplane</em> args = lo hi
     lo,hi = position of lower and upper plane (distance units), either can be NULL)
-  <I>zcylinder</I> args = radius
-    radius = cylinder radius (distance units) 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended to args 
-
-<LI>keyword = <I>wiggle</I> or <I>shear</I> 
-
-<PRE>  <I>wiggle</I> values = dim amplitude period
-    dim = <I>x</I> or <I>y</I> or <I>z</I>
+  <em>zcylinder</em> args = radius
+    radius = cylinder radius (distance units)
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended to args</li>
+<li>keyword = <em>wiggle</em> or <em>shear</em></li>
+</ul>
+<pre class="literal-block">
+<em>wiggle</em> values = dim amplitude period
+    dim = <em>x</em> or <em>y</em> or <em>z</em>
     amplitude = size of oscillation (distance units)
     period = time of oscillation (time units)
-  <I>shear</I> values = dim vshear
-    dim = <I>x</I> or <I>y</I> or <I>z</I>
-    vshear = magnitude of shear velocity (velocity units) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 
-fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL 
-fix 2 all wall/gran 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Bound the simulation domain of a granular system with a frictional
+  <em>shear</em> values = dim vshear
+    dim = <em>x</em> or <em>y</em> or <em>z</em>
+    vshear = magnitude of shear velocity (velocity units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
+fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
+fix 2 all wall/gran 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Bound the simulation domain of a granular system with a frictional
 wall.  All particles in the group interact with the wall when they are
-close enough to touch it.
-</P>
-<P>The first set of parameters (Kn, Kt, gamma_n, gamma_t, xmu, and
+close enough to touch it.</p>
+<p>The first set of parameters (Kn, Kt, gamma_n, gamma_t, xmu, and
 dampflag) have the same meaning as those specified with the
-<A HREF = "pair_gran.html">pair_style granular</A> force fields.  This means a NULL
+<a class="reference internal" href="pair_gran.html"><em>pair_style granular</em></a> force fields.  This means a NULL
 can be used for either Kt or gamma_t as described on that page.  If a
 NULL is used for Kt, then a default value is used where Kt = 2/7 Kn.
 If a NULL is used for gamma_t, then a default value is used where
-gamma_t = 1/2 gamma_n.
-</P>
-<P>The nature of the wall/particle interactions are determined by which
-pair_style is used in your input script: <I>hooke</I>, <I>hooke/history</I>, or
-<I>hertz/history</I>.  The equation for the force between the wall and
+gamma_t = 1/2 gamma_n.</p>
+<p>The nature of the wall/particle interactions are determined by which
+pair_style is used in your input script: <em>hooke</em>, <em>hooke/history</em>, or
+<em>hertz/history</em>.  The equation for the force between the wall and
 particles touching it is the same as the corresponding equation on the
-<A HREF = "pair_gran.html">pair_style granular</A> doc page, in the limit of one of
+<a class="reference internal" href="pair_gran.html"><em>pair_style granular</em></a> doc page, in the limit of one of
 the two particles going to infinite radius and mass (flat wall).
 I.e. delta = radius - r = overlap of particle with wall, m_eff = mass
 of particle, and sqrt(RiRj/Ri+Rj) becomes sqrt(radius of particle).
@@ -87,10 +196,10 @@ doc page.  The meaning of xmu and dampflag are also as described on
 that page.  Note that you can choose different values for these 6
 wall/particle coefficients than for particle/particle interactions, if
 you wish your wall to interact differently with the particles, e.g. if
-the wall is a different material.
-</P>
-<P>IMPORTANT NOTE: As discussed on the doc page for <A HREF = "pair_gran.html">pair_style
-granular</A>, versions of LAMMPS before 9Jan09 used a
+the wall is a different material.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As discussed on the doc page for <a class="reference internal" href="pair_gran.html"><em>pair_style granular</em></a>, versions of LAMMPS before 9Jan09 used a
 different equation for Hertzian interactions.  This means Hertizian
 wall/particle interactions have also changed.  They now include a
 sqrt(radius) term which was not present before.  Also the previous
@@ -101,76 +210,131 @@ appropriately in the current code to reproduce the results of a
 prevoius Hertzian monodisperse calculation.  For example, for the
 common case of a monodisperse system with particles of diameter 1, Kn,
 Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
-previously.
-</P>
-<P>The <I>wallstyle</I> can be planar or cylindrical.  The 3 planar options
+previously.</p>
+</div>
+<p>The <em>wallstyle</em> can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by
-<I>lo</I> and <I>hi</I>.  Either of the values can be specified as NULL if a
-single wall is desired.  For a <I>zcylinder</I> wallstyle, the cylinder's
-axis is at x = y = 0.0, and the radius of the cylinder is specified.
-</P>
-<P>Optionally, the wall can be moving, if the <I>wiggle</I> or <I>shear</I>
-keywords are appended.  Both keywords cannot be used together.
-</P>
-<P>For the <I>wiggle</I> keyword, the wall oscillates sinusoidally, similar to
+<em>lo</em> and <em>hi</em>.  Either of the values can be specified as NULL if a
+single wall is desired.  For a <em>zcylinder</em> wallstyle, the cylinder&#8217;s
+axis is at x = y = 0.0, and the radius of the cylinder is specified.</p>
+<p>Optionally, the wall can be moving, if the <em>wiggle</em> or <em>shear</em>
+keywords are appended.  Both keywords cannot be used together.</p>
+<p>For the <em>wiggle</em> keyword, the wall oscillates sinusoidally, similar to
 the oscillations of particles which can be specified by the
-<A HREF = "fix_move.html">fix_move</A> command.  This is useful in packing
-simulations of granular particles.  The arguments to the <I>wiggle</I>
-keyword specify a dimension for the motion, as well as it's
-<I>amplitude</I> and <I>period</I>.  Note that if the dimension is in the plane
+<a class="reference internal" href="fix_move.html"><em>fix_move</em></a> command.  This is useful in packing
+simulations of granular particles.  The arguments to the <em>wiggle</em>
+keyword specify a dimension for the motion, as well as it&#8217;s
+<em>amplitude</em> and <em>period</em>.  Note that if the dimension is in the plane
 of the wall, this is effectively a shearing motion.  If the dimension
 is perpendicular to the wall, it is more of a shaking motion.  A
-<I>zcylinder</I> wall can only be wiggled in the z dimension.
-</P>
-<P>Each timestep, the position of a wiggled wall in the appropriate <I>dim</I>
-is set according to this equation:
-</P>
-<PRE>position = coord + A - A cos (omega * delta) 
-</PRE>
-<P>where <I>coord</I> is the specified initial position of the wall, <I>A</I> is
-the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the time
+<em>zcylinder</em> wall can only be wiggled in the z dimension.</p>
+<p>Each timestep, the position of a wiggled wall in the appropriate <em>dim</em>
+is set according to this equation:</p>
+<div class="highlight-python"><div class="highlight"><pre>position = coord + A - A cos (omega * delta)
+</pre></div>
+</div>
+<p>where <em>coord</em> is the specified initial position of the wall, <em>A</em> is
+the <em>amplitude</em>, <em>omega</em> is 2 PI / <em>period</em>, and <em>delta</em> is the time
 elapsed since the fix was specified.  The velocity of the wall is set
-to the derivative of this expression.
-</P>
-<P>For the <I>shear</I> keyword, the wall moves continuously in the specified
-dimension with velocity <I>vshear</I>.  The dimension must be tangential to
-walls with a planar <I>wallstyle</I>, e.g. in the <I>y</I> or <I>z</I> directions for
-an <I>xplane</I> wall.  For <I>zcylinder</I> walls, a dimension of <I>z</I> means the
-cylinder is moving in the z-direction along it's axis.  A dimension of
-<I>x</I> or <I>y</I> means the cylinder is spinning around the z-axis, either in
-the clockwise direction for <I>vshear</I> > 0 or counter-clockwise for
-<I>vshear</I> < 0.  In this case, <I>vshear</I> is the tangential velocity of
-the wall at whatever <I>radius</I> has been defined.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>This fix writes the shear friction state of atoms interacting with the
-wall to <A HREF = "restart.html">binary restart files</A>, so that a simulation can
-continue correctly if granular potentials with shear "history" effects
-are being used.  See the <A HREF = "read_restart.html">read_restart</A> command for
+to the derivative of this expression.</p>
+<p>For the <em>shear</em> keyword, the wall moves continuously in the specified
+dimension with velocity <em>vshear</em>.  The dimension must be tangential to
+walls with a planar <em>wallstyle</em>, e.g. in the <em>y</em> or <em>z</em> directions for
+an <em>xplane</em> wall.  For <em>zcylinder</em> walls, a dimension of <em>z</em> means the
+cylinder is moving in the z-direction along it&#8217;s axis.  A dimension of
+<em>x</em> or <em>y</em> means the cylinder is spinning around the z-axis, either in
+the clockwise direction for <em>vshear</em> &gt; 0 or counter-clockwise for
+<em>vshear</em> &lt; 0.  In this case, <em>vshear</em> is the tangential velocity of
+the wall at whatever <em>radius</em> has been defined.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>This fix writes the shear friction state of atoms interacting with the
+wall to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so that a simulation can
+continue correctly if granular potentials with shear &#8220;history&#8221; effects
+are being used.  See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for
 info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
-</P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+uninterrupted fashion.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  No
-parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>Any dimension (xyz) that has a granular wall must be non-periodic.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_move.html">fix_move</A>, <A HREF = "pair_gran.html">pair_style granular</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No
+parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the GRANULAR package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>Any dimension (xyz) that has a granular wall must be non-periodic.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_move.html"><em>fix_move</em></a>, <a class="reference internal" href="pair_gran.html"><em>pair_style granular</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

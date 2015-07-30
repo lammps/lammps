@@ -1,131 +1,304 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>write_data command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>write_data command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>write_data file keyword value ... 
-</PRE>
-<UL><LI>file = name of data file to write out 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>pair</I> or <I>nocoeff</I> 
-
-<PRE>  <I>nocoeff</I> = do not write out force field info
-  <I>pair</I> value = <I>ii</I> or <I>ij</I>
-    <I>ii</I> = write one line of pair coefficient info per atom type
-    <I>ij</I> = write one line of pair coefficient info per IJ atom type pair 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>write_data data.polymer
-write_data data.* 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Write a data file in text format of the current state of the
-simulation.  Data files can be read by the <A HREF = "read_data.html">read data</A>
-command to begin a simulation.  The <A HREF = "read_data.html">read_data</A> command
-also describes their format.
-</P>
-<P>Similar to <A HREF = "dump.html">dump</A> files, the data filename can contain a "*"
-wild-card character.  The "*" is replaced with the current timestep
-value.
-</P>
-<P>IMPORTANT NOTE: The write-data command is not yet fully implemented in
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>write_data command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="write-data-command">
+<span id="index-0"></span><h1>write_data command<a class="headerlink" href="#write-data-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>write_data file keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>file = name of data file to write out</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>pair</em> or <em>nocoeff</em></li>
+</ul>
+<pre class="literal-block">
+<em>nocoeff</em> = do not write out force field info
+  <em>pair</em> value = <em>ii</em> or <em>ij</em>
+    <em>ii</em> = write one line of pair coefficient info per atom type
+    <em>ij</em> = write one line of pair coefficient info per IJ atom type pair
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>write_data data.polymer
+write_data data.*
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Write a data file in text format of the current state of the
+simulation.  Data files can be read by the <a class="reference internal" href="read_data.html"><em>read data</em></a>
+command to begin a simulation.  The <a class="reference internal" href="read_data.html"><em>read_data</em></a> command
+also describes their format.</p>
+<p>Similar to <a class="reference internal" href="dump.html"><em>dump</em></a> files, the data filename can contain a &#8220;*&#8221;
+wild-card character.  The &#8220;*&#8221; is replaced with the current timestep
+value.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The write-data command is not yet fully implemented in
 two respects.  First, most pair styles do not yet write their
 coefficient information into the data file.  This means you will need
 to specify that information in your input script that reads the data
-file, via the <A HREF = "pair_coeff.html">pair_coeff</A> command.  Second, a few of
-the <A HREF = "atom_style.html">atom styles</A> (body, ellipsoid, line, tri) that
-store auxiliary "bonus" information about aspherical particles, do not
+file, via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.  Second, a few of
+the <a class="reference internal" href="atom_style.html"><em>atom styles</em></a> (body, ellipsoid, line, tri) that
+store auxiliary &#8220;bonus&#8221; information about aspherical particles, do not
 yet write the bonus info into the data file.  Both these
-functionalities will be added to the write_data command later.
-</P>
-<P>Because a data file is in text format, if you use a data file written
+functionalities will be added to the write_data command later.</p>
+</div>
+<p>Because a data file is in text format, if you use a data file written
 out by this command to restart a simulation, the initial state of the
 new run will be slightly different than the final state of the old run
 (when the file was written) which was represented internally by LAMMPS
 in binary format.  A new simulation which reads the data file will
 thus typically diverge from a simulation that continued in the
-original input script.
-</P>
-<P>If you want to do more exact restarts, using binary files, see the
-<A HREF = "restart.html">restart</A>, <A HREF = "write_restart.html">write_restart</A>, and
-<A HREF = "read_restart.html">read_restart</A> commands.  You can also convert
+original input script.</p>
+<p>If you want to do more exact restarts, using binary files, see the
+<a class="reference internal" href="restart.html"><em>restart</em></a>, <a class="reference internal" href="write_restart.html"><em>write_restart</em></a>, and
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> commands.  You can also convert
 binary restart files to text data files, after a simulation has run,
-using the <A HREF = "Section_start.html#start_7">-r command-line switch</A>.
-</P>
-<P>IMPORTANT NOTE: Only limited information about a simulation is stored
+using the <a class="reference internal" href="Section_start.html#start-7"><span>-r command-line switch</span></a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Only limited information about a simulation is stored
 in a data file.  For example, no information about atom
-<A HREF = "group.html">groups</A> and <A HREF = "fix.html">fixes</A> are stored.  <A HREF = "read_restart.html">Binary restart
-files</A> store more information.
-</P>
-<P>Bond interactions (angle, etc) that have been turned off by the <A HREF = "fix_shake.html">fix
-shake</A> or <A HREF = "delete_bonds.html">delete_bonds</A> command will
+<a class="reference internal" href="group.html"><em>groups</em></a> and <a class="reference internal" href="fix.html"><em>fixes</em></a> are stored.  <a class="reference internal" href="read_restart.html"><em>Binary restart files</em></a> store more information.</p>
+</div>
+<p>Bond interactions (angle, etc) that have been turned off by the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> or <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a> command will
 be written to a data file as if they are turned on.  This means they
 will need to be turned off again in a new run after the data file is
-read.
-</P>
-<P>Bonds that are broken (e.g. by a bond-breaking potential) are not
+read.</p>
+<p>Bonds that are broken (e.g. by a bond-breaking potential) are not
 written to the data file.  Thus these bonds will not exist when the
-data file is read.
-</P>
-<HR>
-
-<P>The <I>nocoeff</I> keyword requests that no force field parameters should
+data file is read.</p>
+<hr class="docutils" />
+<p>The <em>nocoeff</em> keyword requests that no force field parameters should
 be written to the data file. This can be very helpful, if one wants
 to make significant changes to the force field or if the parameters
-are read in separately anyway, e.g. from an include file.
-</P>
-<P>The <I>pair</I> keyword lets you specify in what format the pair
+are read in separately anyway, e.g. from an include file.</p>
+<p>The <em>pair</em> keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value
-is specified as <I>ii</I>, then one line per atom type is written, to
+is specified as <em>ii</em>, then one line per atom type is written, to
 specify the coefficients for each of the I=J interactions.  This means
 that no cross-interactions for I != J will be specified in the data
 file and the pair style will apply its mixing rule, as documented on
-individual <A HREF = "pair_style.html">pair_style</A> doc pages.  Of course this
+individual <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> doc pages.  Of course this
 behavior can be overridden in the input script after reading the data
-file, by specifying additional <A HREF = "pair_coeff.html">pair_coeff</A> commands
-for any desired I,J pairs.
-</P>
-<P>If the value is specified as <I>ij</I>, then one line of coefficients is
-written for all I,J pairs where I <= J.  These coefficients will
+file, by specifying additional <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> commands
+for any desired I,J pairs.</p>
+<p>If the value is specified as <em>ij</em>, then one line of coefficients is
+written for all I,J pairs where I &lt;= J.  These coefficients will
 include any specific settings made in the input script up to that
 point.  The presence of these I != J coefficients in the data file
 will effectively turn off the default mixing rule for the pair style.
 Again, the coefficient values in the data file can can be overridden
 in the input script after reading the data file, by specifying
-additional <A HREF = "pair_coeff.html">pair_coeff</A> commands for any desired I,J
-pairs.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>This command requires inter-processor communication to migrate atoms
+additional <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> commands for any desired I,J
+pairs.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command requires inter-processor communication to migrate atoms
 before the data file is written.  This means that your system must be
 ready to perform a simulation before using this command (force fields
-setup, atom masses initialized, etc).
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "read_data.html">read_data</A>, <A HREF = "write_restart.html">write_restart</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are pair = ii.
-</P>
-</HTML>
+setup, atom masses initialized, etc).</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="write_restart.html"><em>write_restart</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are pair = ii.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

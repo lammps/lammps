@@ -1,215 +1,385 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>run command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>run command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>run N keyword values ... 
-</PRE>
-<UL><LI>N = # of timesteps 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>upto</I> or <I>start</I> or <I>stop</I> or <I>pre</I> or <I>post</I> or <I>every</I> 
-
-<PRE>  <I>upto</I> value = none
-  <I>start</I> value = N1
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>run command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="run-command">
+<span id="index-0"></span><h1>run command<a class="headerlink" href="#run-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>run N keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>N = # of timesteps</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>upto</em> or <em>start</em> or <em>stop</em> or <em>pre</em> or <em>post</em> or <em>every</em></li>
+</ul>
+<pre class="literal-block">
+<em>upto</em> value = none
+  <em>start</em> value = N1
     N1 = timestep at which 1st run started
-  <I>stop</I> value = N2
+  <em>stop</em> value = N2
     N2 = timestep at which last run will end
-  <I>pre</I> value = <I>no</I> or <I>yes</I>
-  <I>post</I> value = <I>no</I> or <I>yes</I> 
-  <I>every</I> values = M c1 c2 ...
+  <em>pre</em> value = <em>no</em> or <em>yes</em>
+  <em>post</em> value = <em>no</em> or <em>yes</em>
+  <em>every</em> values = M c1 c2 ...
     M = break the run into M-timestep segments and invoke one or more commands between each segment
     c1,c2,...,cN = one or more LAMMPS commands, each enclosed in quotes
-    c1 = NULL means no command will be invoked 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>run 10000
+    c1 = NULL means no command will be invoked
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>run 10000
 run 1000000 upto
 run 100 start 0 stop 1000
 run 1000 pre no post yes
-run 100000 start 0 stop 1000000 every 1000 "print 'Protein Rg = $r'"
-run 100000 every 1000 NULL 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Run or continue dynamics for a specified number of timesteps.
-</P>
-<P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, N refers to outer
-loop (largest) timesteps.
-</P>
-<P>A value of N = 0 is acceptable; only the thermodynamics of the system
-are computed and printed without taking a timestep.
-</P>
-<P>The <I>upto</I> keyword means to perform a run starting at the current
+run 100000 start 0 stop 1000000 every 1000 &quot;print &#39;Protein Rg = $r&#39;&quot;
+run 100000 every 1000 NULL
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Run or continue dynamics for a specified number of timesteps.</p>
+<p>When the <a class="reference internal" href="run_style.html"><em>run style</em></a> is <em>respa</em>, N refers to outer
+loop (largest) timesteps.</p>
+<p>A value of N = 0 is acceptable; only the thermodynamics of the system
+are computed and printed without taking a timestep.</p>
+<p>The <em>upto</em> keyword means to perform a run starting at the current
 timestep up to the specified timestep.  E.g. if the current timestep
-is 10,000 and "run 100000 upto" is used, then an additional 90,000
+is 10,000 and &#8220;run 100000 upto&#8221; is used, then an additional 90,000
 timesteps will be run.  This can be useful for very long runs on a
 machine that allocates chunks of time and terminate your job when time
 is exceeded.  If you need to restart your script multiple times
 (reading in the last restart file), you can keep restarting your
 script with the same run command until the simulation finally
-completes.
-</P>
-<P>The <I>start</I> or <I>stop</I> keywords can be used if multiple runs are being
-performed and you want a <A HREF = "fix.html">fix</A> command that changes some
+completes.</p>
+<p>The <em>start</em> or <em>stop</em> keywords can be used if multiple runs are being
+performed and you want a <a class="reference internal" href="fix.html"><em>fix</em></a> command that changes some
 value over time (e.g. temperature) to make the change across the
 entire set of runs and not just a single run.  See the doc page for
-individual fixes to see which ones can be used with the <I>start/stop</I>
-keywords.
-</P>
-<P>For example, consider this fix followed by 10 run commands:
-</P>
-<PRE>fix	     1 all nvt 200.0 300.0 1.0
-run	     1000 start 0 stop 10000
-run	     1000 start 0 stop 10000
+individual fixes to see which ones can be used with the <em>start/stop</em>
+keywords.</p>
+<p>For example, consider this fix followed by 10 run commands:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix       1 all nvt 200.0 300.0 1.0
+run       1000 start 0 stop 10000
+run       1000 start 0 stop 10000
 ...
-run	     1000 start 0 stop 10000 
-</PRE>
-<P>The NVT fix ramps the target temperature from 200.0 to 300.0 during a
+run       1000 start 0 stop 10000
+</pre></div>
+</div>
+<p>The NVT fix ramps the target temperature from 200.0 to 300.0 during a
 run.  If the run commands did not have the start/stop keywords (just
-"run 1000"), then the temperature would ramp from 200.0 to 300.0
+&#8220;run 1000&#8221;), then the temperature would ramp from 200.0 to 300.0
 during the 1000 steps of each run.  With the start/stop keywords, the
-ramping takes place over the 10000 steps of all runs together.
-</P>
-<P>The <I>pre</I> and <I>post</I> keywords can be used to streamline the setup,
+ramping takes place over the 10000 steps of all runs together.</p>
+<p>The <em>pre</em> and <em>post</em> keywords can be used to streamline the setup,
 clean-up, and associated output to the screen that happens before and
 after a run.  This can be useful if you wish to do many short runs in
 succession (e.g. LAMMPS is being called as a library which is doing
-other computations between successive short LAMMPS runs).
-</P>
-<P>By default (pre and post = yes), LAMMPS creates neighbor lists,
+other computations between successive short LAMMPS runs).</p>
+<p>By default (pre and post = yes), LAMMPS creates neighbor lists,
 computes forces, and imposes fix constraints before every run.  And
 after every run it gathers and prints timings statistics.  If a run is
 just a continuation of a previous run (i.e. no settings are changed),
 the initial computation is not necessary; the old neighbor list is
-still valid as are the forces.  So if <I>pre</I> is specified as "no" then
+still valid as are the forces.  So if <em>pre</em> is specified as &#8220;no&#8221; then
 the initial setup is skipped, except for printing thermodynamic info.
-Note that if <I>pre</I> is set to "no" for the very 1st run LAMMPS
+Note that if <em>pre</em> is set to &#8220;no&#8221; for the very 1st run LAMMPS
 performs, then it is overridden, since the initial setup computations
-must be done.
-</P>
-<P>IMPORTANT NOTE: If your input script changes the system between 2
+must be done.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If your input script changes the system between 2
 runs, then the initial setup must be performed to insure the change is
 recognized by all parts of the code that are affected.  Examples are
-adding a <A HREF = "fix.html">fix</A> or <A HREF = "dump.html">dump</A> or <A HREF = "compute.html">compute</A>,
-changing a <A HREF = "neigh_modify.html">neighbor</A> list parameter, or writing
+adding a <a class="reference internal" href="fix.html"><em>fix</em></a> or <a class="reference internal" href="dump.html"><em>dump</em></a> or <a class="reference internal" href="compute.html"><em>compute</em></a>,
+changing a <a class="reference internal" href="neigh_modify.html"><em>neighbor</em></a> list parameter, or writing
 restart file which can migrate atoms between processors.  LAMMPS has
 no easy way to check if this has happened, but it is an error to use
-the <I>pre no</I> option in this case.
-</P>
-<P>If <I>post</I> is specified as "no", the full timing summary is skipped;
-only a one-line summary timing is printed.
-</P>
-<P>The <I>every</I> keyword provides a means of breaking a LAMMPS run into a
+the <em>pre no</em> option in this case.</p>
+</div>
+<p>If <em>post</em> is specified as &#8220;no&#8221;, the full timing summary is skipped;
+only a one-line summary timing is printed.</p>
+<p>The <em>every</em> keyword provides a means of breaking a LAMMPS run into a
 series of shorter runs.  Optionally, one or more LAMMPS commands (c1,
 c2, ..., cN) will be executed in between the short runs.  If used, the
-<I>every</I> keyword must be the last keyword, since it has a variable
+<em>every</em> keyword must be the last keyword, since it has a variable
 number of arguments.  Each of the trailing arguments is a single
 LAMMPS command, and each command should be enclosed in quotes, so that
 the entire command will be treated as a single argument.  This will
 also prevent any variables in the command from being evaluated until
 it is executed multiple times during the run.  Note that if a command
-itself needs one of its arguments quoted (e.g. the <A HREF = "print.html">print</A>
+itself needs one of its arguments quoted (e.g. the <a class="reference internal" href="print.html"><em>print</em></a>
 command), then you can use a combination of single and double quotes,
-as in the example above or below.
-</P>
-<P>The <I>every</I> keyword is a means to avoid listing a long series of runs
+as in the example above or below.</p>
+<p>The <em>every</em> keyword is a means to avoid listing a long series of runs
 and interleaving commands in your input script.  For example, a
-<A HREF = "print.html">print</A> command could be invoked or a <A HREF = "fix.html">fix</A> could
+<a class="reference internal" href="print.html"><em>print</em></a> command could be invoked or a <a class="reference internal" href="fix.html"><em>fix</em></a> could
 be redefined, e.g. to reset a thermostat temperature.  Or this could
 be useful for invoking a command you have added to LAMMPS that wraps
 some other code (e.g. as a library) to perform a computation
-periodically during a long LAMMPS run.  See <A HREF = "Section_modify.html">this
-section</A> of the documentation for info about how
-to add new commands to LAMMPS.  See <A HREF = "Section_howto.html#howto_10">this
-section</A> of the documentation for ideas
-about how to couple LAMMPS to other codes.
-</P>
-<P>With the <I>every</I> option, N total steps are simulated, in shorter runs
+periodically during a long LAMMPS run.  See <a class="reference internal" href="Section_modify.html"><em>this section</em></a> of the documentation for info about how
+to add new commands to LAMMPS.  See <a class="reference internal" href="Section_howto.html#howto-10"><span>this section</span></a> of the documentation for ideas
+about how to couple LAMMPS to other codes.</p>
+<p>With the <em>every</em> option, N total steps are simulated, in shorter runs
 of M steps each.  After each M-length run, the specified commands are
 invoked.  If only a single command is specified as NULL, then no
-command is invoked.  Thus these lines:
-</P>
-<PRE>variable q equal x[100]
-run 6000 every 2000 "print 'Coord = $q'" 
-</PRE>
-<P>are the equivalent of:
-</P>
-<PRE>variable q equal x[100]
+command is invoked.  Thus these lines:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable q equal x[100]
+run 6000 every 2000 &quot;print &#39;Coord = $q&#39;&quot;
+</pre></div>
+</div>
+<p>are the equivalent of:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable q equal x[100]
 run 2000
-print "Coord = $q"
+print &quot;Coord = $q&quot;
 run 2000
-print "Coord = $q"
+print &quot;Coord = $q&quot;
 run 2000
-print "Coord = $q" 
-</PRE>
-<P>which does 3 runs of 2000 steps and prints the x-coordinate of a
-particular atom between runs.  Note that the variable "$q" will
-be evaluated afresh each time the print command is executed.
-</P>
-<P>Note that by using the line continuation character "&", the run every
+print &quot;Coord = $q&quot;
+</pre></div>
+</div>
+<p>which does 3 runs of 2000 steps and prints the x-coordinate of a
+particular atom between runs.  Note that the variable &#8220;$q&#8221; will
+be evaluated afresh each time the print command is executed.</p>
+<p>Note that by using the line continuation character &#8220;&amp;&#8221;, the run every
 command can be spread across many lines, though it is still a single
-command:
-</P>
-<PRE>run 100000 every 1000 &
-  "print 'Minimum value = $a'" &
-  "print 'Maximum value = $b'" &
-  "print 'Temp = $c'" &
-  "print 'Press = $d'" 
-</PRE>
-<P>If the <I>pre</I> and <I>post</I> options are set to "no" when used with the
-<I>every</I> keyword, then the 1st run will do the full setup and the last
+command:</p>
+<div class="highlight-python"><div class="highlight"><pre>run 100000 every 1000 &amp;
+  &quot;print &#39;Minimum value = $a&#39;&quot; &amp;
+  &quot;print &#39;Maximum value = $b&#39;&quot; &amp;
+  &quot;print &#39;Temp = $c&#39;&quot; &amp;
+  &quot;print &#39;Press = $d&#39;&quot;
+</pre></div>
+</div>
+<p>If the <em>pre</em> and <em>post</em> options are set to &#8220;no&#8221; when used with the
+<em>every</em> keyword, then the 1st run will do the full setup and the last
 run will print the full timing summary, but these operations will be
-skipped for intermediate runs.
-</P>
-<P>IMPORTANT NOTE: You might hope to specify a command that exits the run
-by jumping out of the loop, e.g.
-</P>
-<PRE>variable t equal temp
-run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'" 
-</PRE>
-<P>Unfortunately this will not currently work.  The run command simply
+skipped for intermediate runs.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">You might hope to specify a command that exits the run
+by jumping out of the loop, e.g.</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>variable t equal temp
+run 10000 every 100 &quot;if &#39;$t &lt; 300.0&#39; then &#39;jump SELF afterrun&#39;&quot;
+</pre></div>
+</div>
+<p>Unfortunately this will not currently work.  The run command simply
 executes each command one at a time each time it pauses, then
 continues the run.  You can replace the jump command with a simple
-<A HREF = "quit.html">quit</A> command and cause LAMMPS to exit during the
-middle of a run when the condition is met.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>When not using the <I>upto</I> keyword, the number of specified timesteps N
+<a class="reference internal" href="quit.html"><em>quit</em></a> command and cause LAMMPS to exit during the
+middle of a run when the condition is met.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>When not using the <em>upto</em> keyword, the number of specified timesteps N
 must fit in a signed 32-bit integer, so you are limited to slightly
-more than 2 billion steps (2^31) in a single run.  When using <I>upto</I>,
+more than 2 billion steps (2^31) in a single run.  When using <em>upto</em>,
 N can be larger than a signed 32-bit integer, however the difference
 between N and the current timestep must still be no larger than
-2^31 steps.  
-</P>
-<P>However, with or without the <I>upto</I> keyword, you can perform
+2^31 steps.</p>
+<p>However, with or without the <em>upto</em> keyword, you can perform
 successive runs to run a simulation for any number of steps (ok, up to
 2^63 total steps).  I.e. the timestep counter within LAMMPS is a
-64-bit signed integer.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "minimize.html">minimize</A>, <A HREF = "run_style.html">run_style</A>,
-<A HREF = "temper.html">temper</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are start = the current timestep, stop = current
-timestep + N, pre = yes, and post = yes.
-</P>
-</HTML>
+64-bit signed integer.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="minimize.html"><em>minimize</em></a>, <a class="reference internal" href="run_style.html"><em>run_style</em></a>,
+<a class="reference internal" href="temper.html"><em>temper</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are start = the current timestep, stop = current
+timestep + N, pre = yes, and post = yes.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

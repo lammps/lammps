@@ -318,9 +318,9 @@ referenced by the user for each subsequent fix gcmc command.
 
 [Related commands:]
 
-"fix_atom_swap"_fix_atom_swap.html,
-"fix_nvt"_fix_nvt.html, "neighbor"_neighbor.html, 
-"fix_deposit"_fix_deposit.html, "fix_evaporate"_fix_evaporate.html,
+"fix atom/swap"_fix_atom_swap.html,
+"fix nvt"_fix_nvt.html, "neighbor"_neighbor.html, 
+"fix deposit"_fix_deposit.html, "fix evaporate"_fix_evaporate.html,
 "delete_atoms"_delete_atoms.html
 
 [Default:]

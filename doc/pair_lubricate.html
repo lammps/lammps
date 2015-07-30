@@ -1,239 +1,379 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style lubricate command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style lubricate command 
-</H3>
-<H3>pair_style lubricate/omp command 
-</H3>
-<H3>pair_style lubricate/poly command 
-</H3>
-<H3>pair_style lubricate/poly/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style style mu flaglog flagfld cutinner cutoff flagHI flagVF 
-</PRE>
-<UL><LI>style = <I>lubricate</I> or <I>lubricate/poly</I>
-<LI>mu = dynamic viscosity (dynamic viscosity units)
-<LI>flaglog = 0/1 to exclude/include log terms in the lubrication approximation
-<LI>flagfld = 0/1 to exclude/include Fast Lubrication Dynamics (FLD) effects
-<LI>cutinner = inner cutoff distance (distance units)
-<LI>cutoff = outer cutoff for interactions (distance units)
-<LI>flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions
-<LI>flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms 
-</UL>
-<P><B>Examples:</B> (all assume radius = 1)
-</P>
-<PRE>pair_style lubricate 1.5 1 1 2.01 2.5
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style lubricate command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-lubricate-command">
+<span id="index-0"></span><h1>pair_style lubricate command<a class="headerlink" href="#pair-style-lubricate-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lubricate-omp-command">
+<h1>pair_style lubricate/omp command<a class="headerlink" href="#pair-style-lubricate-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lubricate-poly-command">
+<h1>pair_style lubricate/poly command<a class="headerlink" href="#pair-style-lubricate-poly-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lubricate-poly-omp-command">
+<h1>pair_style lubricate/poly/omp command<a class="headerlink" href="#pair-style-lubricate-poly-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style style mu flaglog flagfld cutinner cutoff flagHI flagVF
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>lubricate</em> or <em>lubricate/poly</em></li>
+<li>mu = dynamic viscosity (dynamic viscosity units)</li>
+<li>flaglog = 0/1 to exclude/include log terms in the lubrication approximation</li>
+<li>flagfld = 0/1 to exclude/include Fast Lubrication Dynamics (FLD) effects</li>
+<li>cutinner = inner cutoff distance (distance units)</li>
+<li>cutoff = outer cutoff for interactions (distance units)</li>
+<li>flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions</li>
+<li>flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms</li>
+</ul>
+<p><strong>Examples:</strong> (all assume radius = 1)</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lubricate 1.5 1 1 2.01 2.5
 pair_coeff 1 1 2.05 2.8
-pair_coeff * * 
-</PRE>
-<PRE>pair_style lubricate 1.5 1 1 2.01 2.5
+pair_coeff * *
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lubricate 1.5 1 1 2.01 2.5
 pair_coeff * *
 variable mu equal ramp(1,2)
-fix 1 all adapt 1 pair lubricate mu * * v_mu 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Styles <I>lubricate</I> and <I>lubricate/poly</I> compute hydrodynamic
+fix 1 all adapt 1 pair lubricate mu * * v_mu
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Styles <em>lubricate</em> and <em>lubricate/poly</em> compute hydrodynamic
 interactions between mono-disperse spherical particles in a pairwise
 fashion.  The interactions have 2 components.  The first is
-Ball-Melrose lubrication terms via the formulas in <A HREF = "#Ball">(Ball and
-Melrose)</A>
-</P>
-<CENTER><IMG SRC = "Eqs/pair_lubricate.jpg">
-</CENTER>
-<P>which represents the dissipation W between two nearby particles due to
+Ball-Melrose lubrication terms via the formulas in <a class="reference internal" href="pair_lubricateU.html#ball"><span>(Ball and Melrose)</span></a></p>
+<img alt="_images/pair_lubricate.jpg" class="align-center" src="_images/pair_lubricate.jpg" />
+<p>which represents the dissipation W between two nearby particles due to
 their relative velocities in the presence of a background solvent with
-viscosity <I>mu</I>.  Note that this is dynamic viscosity which has units of
-mass/distance/time, not kinematic viscosity.
-</P>
-<P>The Asq (squeeze) term is the strongest and is included if <I>flagHI</I> is
+viscosity <em>mu</em>.  Note that this is dynamic viscosity which has units of
+mass/distance/time, not kinematic viscosity.</p>
+<p>The Asq (squeeze) term is the strongest and is included if <em>flagHI</em> is
 set to 1 (default). It scales as 1/gap where gap is the separation
 between the surfaces of the 2 particles. The Ash (shear) and Apu
-(pump) terms are only included if <I>flaglog</I> is set to 1. They are the
+(pump) terms are only included if <em>flaglog</em> is set to 1. They are the
 next strongest interactions, and the only other singular interaction,
-and scale as log(gap). Note that <I>flaglog</I> = 1 and <I>flagHI</I> = 0 is
-invalid, and will result in a warning message, after which <I>flagHI</I> will
+and scale as log(gap). Note that <em>flaglog</em> = 1 and <em>flagHI</em> = 0 is
+invalid, and will result in a warning message, after which <em>flagHI</em> will
 be set to 1. The Atw (twist) term is currently not included. It is
-typically a very small contribution to the lubrication forces.
-</P>
-<P>The <I>flagHI</I> and <I>flagVF</I> settings are optional.  Neither should be
-used, or both must be defined.
-</P>
-<P><I>Cutinner</I> sets the minimum center-to-center separation that will be
-used in calculations irrespective of the actual separation.  <I>Cutoff</I>
+typically a very small contribution to the lubrication forces.</p>
+<p>The <em>flagHI</em> and <em>flagVF</em> settings are optional.  Neither should be
+used, or both must be defined.</p>
+<p><em>Cutinner</em> sets the minimum center-to-center separation that will be
+used in calculations irrespective of the actual separation.  <em>Cutoff</em>
 is the maximum center-to-center separation at which an interaction is
-computed.  Using a <I>cutoff</I> less than 3 radii is recommended if
-<I>flaglog</I> is set to 1.
-</P>
-<P>The other component is due to the Fast Lubrication Dynamics (FLD)
-approximation, described in <A HREF = "#Kumar">(Kumar)</A>, which can be
-represented by the following equation
-</P>
-<CENTER><IMG SRC = "Eqs/fld.jpg">
-</CENTER>
-<P>where U represents the velocities and angular velocities of the
-particles, U^<I>infty</I> represents the velocity and the angular velocity
-of the undisturbed fluid, and E^<I>infty</I> represents the rate of strain
-tensor of the undisturbed fluid with viscosity <I>mu</I>. Again, note that
+computed.  Using a <em>cutoff</em> less than 3 radii is recommended if
+<em>flaglog</em> is set to 1.</p>
+<p>The other component is due to the Fast Lubrication Dynamics (FLD)
+approximation, described in <a class="reference internal" href="pair_lubricateU.html#kumar"><span>(Kumar)</span></a>, which can be
+represented by the following equation</p>
+<img alt="_images/fld.jpg" class="align-center" src="_images/fld.jpg" />
+<p>where U represents the velocities and angular velocities of the
+particles, U^*infty* represents the velocity and the angular velocity
+of the undisturbed fluid, and E^*infty* represents the rate of strain
+tensor of the undisturbed fluid with viscosity <em>mu</em>. Again, note that
 this is dynamic viscosity which has units of mass/distance/time, not
 kinematic viscosity. Volume fraction corrections to R_FU are included
-as long as <I>flagVF</I> is set to 1 (default).
-</P>
-<P>IMPORTANT NOTE: When using the FLD terms, these pair styles are
+as long as <em>flagVF</em> is set to 1 (default).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When using the FLD terms, these pair styles are
 designed to be used with explicit time integration and a
-correspondingly small timestep.  Thus either <A HREF = "fix_nve_sphere.html">fix
-nve/sphere</A> or <A HREF = "fix_nve_asphere.html">fix
-nve/asphere</A> should be used for time integration.
-To perform implicit FLD, see the <A HREF = "pair_lubricateU.html">pair_style
-lubricateU</A> command.
-</P>
-<P>Style <I>lubricate</I> requires monodisperse spherical particles; style
-<I>lubricate/poly</I> allows for polydisperse spherical particles.
-</P>
-<P>The viscosity <I>mu</I> can be varied in a time-dependent manner over the
+correspondingly small timestep.  Thus either <a class="reference internal" href="fix_nve_sphere.html"><em>fix nve/sphere</em></a> or <a class="reference internal" href="fix_nve_asphere.html"><em>fix nve/asphere</em></a> should be used for time integration.
+To perform implicit FLD, see the <a class="reference internal" href="pair_lubricateU.html"><em>pair_style lubricateU</em></a> command.</p>
+</div>
+<p>Style <em>lubricate</em> requires monodisperse spherical particles; style
+<em>lubricate/poly</em> allows for polydisperse spherical particles.</p>
+<p>The viscosity <em>mu</em> can be varied in a time-dependent manner over the
 course of a simluation, in which case in which case the pair_style
-setting for <I>mu</I> will be overridden.  See the <A HREF = "fix_adapt.html">fix adapt</A>
-command for details.
-</P>
-<P>If the suspension is sheared via the <A HREF = "fix_deform.html">fix deform</A>
+setting for <em>mu</em> will be overridden.  See the <a class="reference internal" href="fix_adapt.html"><em>fix adapt</em></a>
+command for details.</p>
+<p>If the suspension is sheared via the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a>
 command then the pair style uses the shear rate to adjust the
 hydrodynamic interactions accordingly. Volume changes due to fix
 deform are accounted for when computing the volume fraction
-corrections to R_FU.
-</P>
-<P>When computing the volume fraction corrections to R_FU, the presence
+corrections to R_FU.</p>
+<p>When computing the volume fraction corrections to R_FU, the presence
 of walls (whether moving or stationary) will affect the volume
 fraction available to colloidal particles. This is currently accounted
-for with the following types of walls: <A HREF = "fix_wall.html">wall/lj93</A>,
-<A HREF = "fix_wall.html">wall/lj126</A>, <A HREF = "fix_wall.html">wall/colloid</A>, and
-<A HREF = "fix_wall.html">wall/harmonic</A>.  For these wall styles, the correct
+for with the following types of walls: <a class="reference internal" href="fix_wall.html"><em>wall/lj93</em></a>,
+<a class="reference internal" href="fix_wall.html"><em>wall/lj126</em></a>, <a class="reference internal" href="fix_wall.html"><em>wall/colloid</em></a>, and
+<a class="reference internal" href="fix_wall.html"><em>wall/harmonic</em></a>.  For these wall styles, the correct
 volume fraction will be used when walls do not coincide with the box
 boundary, as well as when walls move and thereby cause a change in the
 volume fraction. Other wall styles will still work, but they will
 result in the volume fraction being computed based on the box
-boundaries.
-</P>
-<P>Since lubrication forces are dissipative, it is usually desirable to
+boundaries.</p>
+<p>Since lubrication forces are dissipative, it is usually desirable to
 thermostat the system at a constant temperature. If Brownian motion
 (at a constant temperature) is desired, it can be set using the
-<A HREF = "pair_brownian.html">pair_style brownian</A> command. These pair styles
-and the brownian style should use consistent parameters for <I>mu</I>,
-<I>flaglog</I>, <I>flagfld</I>, <I>cutinner</I>, <I>cutoff</I>, <I>flagHI</I> and <I>flagVF</I>.
-</P>
-<HR>
-
-<P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+<a class="reference internal" href="pair_brownian.html"><em>pair_style brownian</em></a> command. These pair styles
+and the brownian style should use consistent parameters for <em>mu</em>,
+<em>flaglog</em>, <em>flagfld</em>, <em>cutinner</em>, <em>cutoff</em>, <em>flagHI</em> and <em>flagVF</em>.</p>
+<hr class="docutils" />
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
 above, or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands, or by mixing as described below:
-</P>
-<UL><LI>cutinner (distance units)
-<LI>cutoff (distance units) 
-</UL>
-<P>The two coefficients are optional.  If neither is specified, the two
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands, or by mixing as described below:</p>
+<ul class="simple">
+<li>cutinner (distance units)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The two coefficients are optional.  If neither is specified, the two
 cutoffs specified in the pair_style command are used.  Otherwise both
-must be specified.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+must be specified.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">this section</A> of
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>this section</em></a> of
 the manual.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+produce the same results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
-instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>For atom type pairs I,J and I != J, the two cutoff distances for this
-pair style can be mixed.  The default mix value is <I>geometric</I>.  See
-the "pair_modify" command for details.
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-shift option for the energy of the pair interaction.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
-for this pair style.
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>this section</em></a> of the manual for more
+instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, the two cutoff distances for this
+pair style can be mixed.  The default mix value is <em>geometric</em>.  See
+the &#8220;pair_modify&#8221; command for details.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+shift option for the energy of the pair interaction.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> table option is not relevant
+for this pair style.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 tail option for adding long-range tail corrections to energy and
-pressure.
-</P>
-<P>This pair style writes its information to <A HREF = "restart.html">binary restart
-files</A>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>These styles are part of the FLD package.  They are only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>Only spherical monodisperse particles are allowed for pair_style
-lubricate.
-</P>
-<P>Only spherical particles are allowed for pair_style lubricate/poly.
-</P>
-<P>These pair styles will not restart exactly when using the
-<A HREF = "read_restart.html">read_restart</A> command, though they should provide
+pressure.</p>
+<p>This pair style writes its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>These styles are part of the FLD package.  They are only enabled if
+LAMMPS was built with that package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
+<p>Only spherical monodisperse particles are allowed for pair_style
+lubricate.</p>
+<p>Only spherical particles are allowed for pair_style lubricate/poly.</p>
+<p>These pair styles will not restart exactly when using the
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command, though they should provide
 statistically similar results.  This is because the forces they
 compute depend on atom velocities.  See the
-<A HREF = "read_restart.html">read_restart</A> command for more details.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_lubricateU.html">pair_style
-lubricateU</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The default settings for the optional args are flagHI = 1 and flagVF =
-1.
-</P>
-<HR>
-
-<A NAME = "Ball"></A>
-
-<P><B>(Ball)</B> Ball and Melrose, Physica A, 247, 444-472 (1997).
-</P>
-<A NAME = "Kumar"></A>
-
-<P><B>(Kumar)</B> Kumar and Higdon, Phys Rev E, 82, 051401 (2010).  See also
-his thesis for more details: A. Kumar, "Microscale Dynamics in
-Suspensions of Non-spherical Particles", Thesis, University of
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for more details.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, <a class="reference internal" href="pair_lubricateU.html"><em>pair_style lubricateU</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default settings for the optional args are flagHI = 1 and flagVF =
+1.</p>
+<hr class="docutils" />
+<p id="ball"><strong>(Ball)</strong> Ball and Melrose, Physica A, 247, 444-472 (1997).</p>
+<p id="kumar"><strong>(Kumar)</strong> Kumar and Higdon, Phys Rev E, 82, 051401 (2010).  See also
+his thesis for more details: A. Kumar, &#8220;Microscale Dynamics in
+Suspensions of Non-spherical Particles&#8221;, Thesis, University of
 Illinois Urbana-Champaign,
-(2010). (<A HREF = "https://www.ideals.illinois.edu/handle/2142/16032">https://www.ideals.illinois.edu/handle/2142/16032</A>)
-</P>
-</HTML>
+(2010). (<a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/16032">https://www.ideals.illinois.edu/handle/2142/16032</a>)</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

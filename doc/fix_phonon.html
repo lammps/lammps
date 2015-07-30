@@ -1,221 +1,353 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix phonon command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix phonon command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>phonon = style name of this fix command 
-
-<LI>N = measure the Green's function every this many timesteps 
-
-<LI>Noutput = output the dynamical matrix every this many measurements 
-
-<LI>Nwait = wait this many timesteps before measuring 
-
-<LI>map_file = <I>file</I> or <I>GAMMA</I> 
-
-<PRE>  <I>file</I> is the file that contains the mapping info between atom ID and the lattice indices. 
-</PRE>
-<PRE>  <I>GAMMA</I> flags to treate the whole simulation box as a unit cell, so that the mapping
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix phonon command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-phonon-command">
+<span id="index-0"></span><h1>fix phonon command<a class="headerlink" href="#fix-phonon-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>phonon = style name of this fix command</li>
+<li>N = measure the Green&#8217;s function every this many timesteps</li>
+<li>Noutput = output the dynamical matrix every this many measurements</li>
+<li>Nwait = wait this many timesteps before measuring</li>
+<li>map_file = <em>file</em> or <em>GAMMA</em></li>
+</ul>
+<pre class="literal-block">
+<em>file</em> is the file that contains the mapping info between atom ID and the lattice indices.
+</pre>
+<pre class="literal-block">
+<em>GAMMA</em> flags to treate the whole simulation box as a unit cell, so that the mapping
   info can be generated internally. In this case, dynamical matrix at only the gamma-point
-  will/can be evaluated. 
-</PRE>
-<LI>prefix = prefix for output files 
-
-<LI>one or none keyword/value pairs may be appended 
-
-<LI>keyword = <I>sysdim</I> or <I>nasr</I> 
-
-<PRE>  <I>sysdim</I> value = d
+  will/can be evaluated.
+</pre>
+<ul class="simple">
+<li>prefix = prefix for output files</li>
+<li>one or none keyword/value pairs may be appended</li>
+<li>keyword = <em>sysdim</em> or <em>nasr</em></li>
+</ul>
+<pre class="literal-block">
+<em>sysdim</em> value = d
     d = dimension of the system, usually the same as the MD model dimension
-  <I>nasr</I> value = n
-    n = number of iterations to enforce the acoustic sum rule 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all phonon 20 5000 200000 map.in LJ1D sysdim 1
+  <em>nasr</em> value = n
+    n = number of iterations to enforce the acoustic sum rule
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all phonon 20 5000 200000 map.in LJ1D sysdim 1
 fix 1 all phonon 20 5000 200000 map.in EAM3D
-fix 1 all phonon 10 5000 500000 GAMMA EAM0D nasr 100 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Calculate the dynamical matrix from molecular dynamics simulations
-based on fluctuation-dissipation theory for a group of atoms.
-</P>
-<P>Consider a crystal with <I>N</I> unit cells in three dimensions labelled <I>l
-= (l<sub>1</sub>,l<sub>2</sub>,l<sub>3</sub>)</I> where <I>l<sub>i</sub></I>
+fix 1 all phonon 10 5000 500000 GAMMA EAM0D nasr 100
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Calculate the dynamical matrix from molecular dynamics simulations
+based on fluctuation-dissipation theory for a group of atoms.</p>
+<p>Consider a crystal with <em>N</em> unit cells in three dimensions labelled <em>l
+= (l&lt;sub&gt;1&lt;/sub&gt;,l&lt;sub&gt;2&lt;/sub&gt;,l&lt;sub&gt;3&lt;/sub&gt;)</em> where <em>l&lt;sub&gt;i&lt;/sub&gt;</em>
 are integers.  Each unit cell is defined by three linearly independent
-vectors <B>a</B><sub>1</sub>, <B>a</B><sub>2</sub>, <B>a</B><sub>3</sub> forming a
-parallelipiped, containing <I>K</I> basis atoms labelled <I>k</I>.
-</P>
-<P>Based on fluctuation-dissipation theory, the force constant
+vectors <a href="#id1"><span class="problematic" id="id2">**</span></a>a**&lt;sub&gt;1&lt;/sub&gt;, <a href="#id3"><span class="problematic" id="id4">**</span></a>a**&lt;sub&gt;2&lt;/sub&gt;, <a href="#id5"><span class="problematic" id="id6">**</span></a>a**&lt;sub&gt;3&lt;/sub&gt; forming a
+parallelipiped, containing <em>K</em> basis atoms labelled <em>k</em>.</p>
+<p>Based on fluctuation-dissipation theory, the force constant
 coefficients of the system in reciprocal space are given by
-(<A HREF = "#Campana">Campa&ntilde;&aacute;</A> , <A HREF = "#Kong">Kong</A>)
-<center><b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
-k<sub>B</sub>T
-<b>G</b><sup>-1</sup><sub>k&alpha;,k'&beta;</sub>(<b>q</b>),</center>
-</P>
-<P>where <B>G</B> is the Green's functions coefficients given by
-</P>
+(<a class="reference internal" href="#campana"><span>Campa&amp;ntilde;&amp;aacute;</span></a> , <a class="reference internal" href="#kong"><span>Kong</span></a>)
+&lt;center&gt;&lt;b&gt;&amp;Phi;&lt;/b&gt;&lt;sub&gt;k&amp;alpha;,k&#8217;&amp;beta;&lt;/sub&gt;(&lt;b&gt;q&lt;/b&gt;) =
+k&lt;sub&gt;B&lt;/sub&gt;T
+&lt;b&gt;G&lt;/b&gt;&lt;sup&gt;-1&lt;/sup&gt;&lt;sub&gt;k&amp;alpha;,k&#8217;&amp;beta;&lt;/sub&gt;(&lt;b&gt;q&lt;/b&gt;),&lt;/center&gt;</p>
+<p>where <strong>G</strong> is the Green&#8217;s functions coefficients given by</p>
 <center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
-<<b>u</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>u</b><sub>k'&beta;</sub><sup>*</sup>(<b>q</b>)>,</center>
-
-<P>where <...> denotes the ensemble average, and
-<center><B>u</B><sub>k&alpha;</sub>(<b>q</b>) = &sum;<sub>l</sub>
-<b>u</b><sub>lk&alpha;</sub> exp(i<B>qr</B><sub>l</sub>)</center>
-</P>
-<P>is the &alpha; component of the atomic displacement for the <I>k</I>th atom
-in the unit cell in reciprocal space at <B>q</B>. In practice, the Green's
+<<b>u</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>u</b><sub>k'&beta;</sub><sup>*</sup>(<b>q</b>)>,</center><p>where &lt;...&gt; denotes the ensemble average, and
+&lt;center&gt;**u**&lt;sub&gt;k&amp;alpha;&lt;/sub&gt;(&lt;b&gt;q&lt;/b&gt;) = &amp;sum;&lt;sub&gt;l&lt;/sub&gt;
+&lt;b&gt;u&lt;/b&gt;&lt;sub&gt;lk&amp;alpha;&lt;/sub&gt; exp(i**qr**&lt;sub&gt;l&lt;/sub&gt;)&lt;/center&gt;</p>
+<p>is the &amp;alpha; component of the atomic displacement for the <em>k*th atom
+in the unit cell in reciprocal space at **q*</em>. In practice, the Green&#8217;s
 functions coefficients can also be measured according to the following
-formula,
-</P>
+formula,</p>
 <center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
 <<b>R</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>R</b><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>)>
 - <<b>R</b>><sub>k&alpha;</sub>(<b>q</b>)&#149;<<b>R</b>><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>),
-</center>
-
-<P>where <B>R</B> is the instantaneous positions of atoms, and <<B>R</B>> is the
+</center><p>where <strong>R</strong> is the instantaneous positions of atoms, and &lt;<strong>R</strong>&gt; is the
 averaged atomic positions. It gives essentially the same results as
-the displacement method and is easier to implement in an MD code.
-</P>
-<P>Once the force constant matrix is known, the dynamical matrix <B>D</B> can
-then be obtained by
-</P>
-<center><b>D</b><sub>k&alpha;, k'&beta;</sub>(<b>q</b>) = (m<sub>k</sub>m<sub>k'</sub>)<sup>-1/2</sup> <b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>)</center>
-
-<P>whose eigenvalues are exactly the phonon frequencies at <B>q</B>.
-</P>
-<P>This fix uses positions of atoms in the specified group and calculates
+the displacement method and is easier to implement in an MD code.</p>
+<p>Once the force constant matrix is known, the dynamical matrix <strong>D</strong> can
+then be obtained by</p>
+<center><b>D</b><sub>k&alpha;, k'&beta;</sub>(<b>q</b>) = (m<sub>k</sub>m<sub>k'</sub>)<sup>-1/2</sup> <b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>)</center><p>whose eigenvalues are exactly the phonon frequencies at <strong>q</strong>.</p>
+<p>This fix uses positions of atoms in the specified group and calculates
 two-point correlations.  To achieve this. the positions of the atoms
-are examined every <I>Nevery</I> steps and are Fourier-transformed into
+are examined every <em>Nevery</em> steps and are Fourier-transformed into
 reciprocal space, where the averaging process and correlation
-computation is then done.  After every <I>Noutput</I> measurements, the
-matrix <B>G</B>(<B>q</B>) is calculated and inverted to obtain the elastic
+computation is then done.  After every <em>Noutput</em> measurements, the
+matrix <strong>G**(**q</strong>) is calculated and inverted to obtain the elastic
 stiffness coefficients.  The dynamical matrices are then constructed
-and written to <I>prefix</I>.bin.timestep files in binary format and to the
-file <I>prefix</I>.log for each wavevector <B>q</B>.
-</P>
-<P>A detailed description of this method can be found in
-(<A HREF = "#Kong2011">Kong2011</A>).
-</P>
-<P>The <I>sysdim</I> keyword is optional.  If specified with a value smaller
+and written to <em>prefix</em>.bin.timestep files in binary format and to the
+file <em>prefix</em>.log for each wavevector <strong>q</strong>.</p>
+<p>A detailed description of this method can be found in
+(<a class="reference internal" href="#kong2011"><span>Kong2011</span></a>).</p>
+<p>The <em>sysdim</em> keyword is optional.  If specified with a value smaller
 than the dimensionality of the LAMMPS simulation, its value is used
 for the dynamical matrix calculation.  For example, using LAMMPS ot
 model a 2D or 3D system, the phonon dispersion of a 1D atomic chain
-can be computed using <I>sysdim</I> = 1.
-</P>
-<P>The <I>nasr</I> keyword is optional.  An iterative procedure is employed to
-enforce the acoustic sum rule on &Phi; at &Gamma;, and the number
-provided by keyword <I>nasr</I> gives the total number of iterations. For a
-system whose unit cell has only one atom, <I>nasr</I> = 1 is sufficient;
-for other systems, <I>nasr</I> = 10 is typically sufficient.
-</P>
-<P>The <I>map_file</I> contains the mapping information between the lattice
+can be computed using <em>sysdim</em> = 1.</p>
+<p>The <em>nasr</em> keyword is optional.  An iterative procedure is employed to
+enforce the acoustic sum rule on &amp;Phi; at &amp;Gamma;, and the number
+provided by keyword <em>nasr</em> gives the total number of iterations. For a
+system whose unit cell has only one atom, <em>nasr</em> = 1 is sufficient;
+for other systems, <em>nasr</em> = 10 is typically sufficient.</p>
+<p>The <em>map_file</em> contains the mapping information between the lattice
 indices and the atom IDs, which tells the code which atom sits at
 which lattice point; the lattice indices start from 0. An auxiliary
-code, <A HREF = "http://code.google.com/p/latgen">latgen</A>, can be employed to
-generate the compatible map file for various crystals.
-</P>
-<P>In case one simulates an aperiodic system, where the whole simulation box
-is treated as a unit cell, one can set <I>map_file</I> as <I>GAMMA</I>, so that the mapping
+code, <a class="reference external" href="http://code.google.com/p/latgen">latgen</a>, can be employed to
+generate the compatible map file for various crystals.</p>
+<p>In case one simulates an aperiodic system, where the whole simulation box
+is treated as a unit cell, one can set <em>map_file</em> as <em>GAMMA</em>, so that the mapping
 info will be generated internally and a file is not needed. In this case, the
 dynamical matrix at only the gamma-point will/can be evaluated. Please keep in
 mind that fix-phonon is designed for cyrstals, it will be inefficient and
-even degrade the performance of lammps in case the unit cell is too large.
-</P>
-<P>The calculated dynamical matrix elements are written out in
-<A HREF = "units.html">energy/distance^2/mass</A> units.  The coordinates for <I>q</I>
+even degrade the performance of lammps in case the unit cell is too large.</p>
+<p>The calculated dynamical matrix elements are written out in
+<a class="reference internal" href="units.html"><em>energy/distance^2/mass</em></a> units.  The coordinates for <em>q</em>
 points in the log file is in the units of the basis vectors of the
-corresponding reciprocal lattice.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>. 
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+corresponding reciprocal lattice.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>temp</em> option is supported by this
 fix. You can use it to change the temperature compute from thermo_temp
-to the one that reflects the true temperature of atoms in the group.
-</P>
-<P>No global scalar or vector or per-atom quantities are stored by this
-fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
-</P>
-<P>Instead, this fix outputs its initialization information (including
+to the one that reflects the true temperature of atoms in the group.</p>
+<p>No global scalar or vector or per-atom quantities are stored by this
+fix for access by various <span class="xref std std-ref">output commands</span>.</p>
+<p>Instead, this fix outputs its initialization information (including
 mapping information) and the calculated dynamical matrices to the file
-<I>prefix</I>.log, with the specified <I>prefix</I>.  The dynamical matrices are
-also written to files <I>prefix</I>.bin.timestep in binary format.  These
+<em>prefix</em>.log, with the specified <em>prefix</em>.  The dynamical matrices are
+also written to files <em>prefix</em>.bin.timestep in binary format.  These
 can be read by the post-processing tool in tools/phonon to compute the
-phonon density of states and/or phonon dispersion curves.
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords
-of the <A HREF = "run.html">run</A> command.
-</P>
-<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix assumes a crystalline system with periodical lattice. The
+phonon density of states and/or phonon dispersion curves.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords
+of the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix assumes a crystalline system with periodical lattice. The
 temperature of the system should not exceed the melting temperature to
-keep the system in its solid state.
-</P>
-<P>This fix is part of the USER-PHONON package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>This fix requires LAMMPS be built with an FFT library.  See the
-<A HREF = "Section_start.html#start_2">Making LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute_msd.html">compute msd</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are sysdim = the same dimemsion as specified by
-the <A HREF = "dimension">dimension</A> command, and nasr = 20.
-</P>
-<HR>
+keep the system in its solid state.</p>
+<p>This fix is part of the USER-PHONON package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This fix requires LAMMPS be built with an FFT library.  See the
+<a class="reference internal" href="Section_start.html#start-2"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_msd.html"><em>compute msd</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are sysdim = the same dimemsion as specified by
+the <a class="reference external" href="dimension">dimension</a> command, and nasr = 20.</p>
+<hr class="docutils" />
+<p id="campana"><strong>(Campa&amp;ntilde;&amp;aacute;)</strong> C. Campa&amp;ntilde;&amp;aacute; and
+M. H. M&amp;uuml;ser, <em>Practical Green&#8217;s function approach to the
+simulation of elastic semi-infinite solids</em>, <a class="reference external" href="http://dx.doi.org/10.1103/PhysRevB.74.075420">Phys. Rev. B [74], 075420 (2006)</a></p>
+<p id="kong"><strong>(Kong)</strong> L.T. Kong, G. Bartels, C. Campa&amp;ntilde;&amp;aacute;,
+C. Denniston, and Martin H. M&amp;uuml;ser, <em>Implementation of Green&#8217;s
+function molecular dynamics: An extension to LAMMPS</em>, <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2008.12.035">Computer Physics Communications [180](6):1004-1010 (2009).</a></p>
+<p>L.T. Kong, C. Denniston, and Martin H. M&amp;uuml;ser,
+<em>An improved version of the Green&#8217;s function molecular dynamics
+method</em>, <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2010.10.006">Computer Physics Communications [182](2):540-541 (2011).</a></p>
+<p id="kong2011"><strong>(Kong2011)</strong> L.T. Kong, <em>Phonon dispersion measured directly from
+molecular dynamics simulations</em>, <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2011.04.019">Computer Physics Communications [182](10):2201-2207, (2011).</a></p>
+</div>
+</div>
 
-<A NAME = "Campana"></A>
 
-<P><B>(Campa&ntilde;&aacute;)</B> C. Campa&ntilde;&aacute; and
-M. H. M&uuml;ser, <I>Practical Green's function approach to the
-simulation of elastic semi-infinite solids</I>, <A HREF = "http://dx.doi.org/10.1103/PhysRevB.74.075420">Phys. Rev. B [74],
-075420 (2006)</A>
-</P>
-<A NAME = "Kong"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Kong)</B> L.T. Kong, G. Bartels, C. Campa&ntilde;&aacute;,
-C. Denniston, and Martin H. M&uuml;ser, <I>Implementation of Green's
-function molecular dynamics: An extension to LAMMPS</I>, <A HREF = "http://dx.doi.org/10.1016/j.cpc.2008.12.035">Computer
-Physics Communications [180](6):1004-1010
-(2009).</A>
-</P>
-<P>L.T. Kong, C. Denniston, and Martin H. M&uuml;ser,
-<I>An improved version of the Green's function molecular dynamics
-method</I>, <A HREF = "http://dx.doi.org/10.1016/j.cpc.2010.10.006">Computer Physics Communications [182](2):540-541
-(2011).</A>
-</P>
-<A NAME = "Kong2011"></A>
+  <hr/>
 
-<P><B>(Kong2011)</B> L.T. Kong, <I>Phonon dispersion measured directly from
-molecular dynamics simulations</I>, <A HREF = "http://dx.doi.org/10.1016/j.cpc.2011.04.019">Computer Physics Communications
-[182](10):2201-2207,
-(2011).</A>
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

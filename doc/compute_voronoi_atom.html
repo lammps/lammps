@@ -1,98 +1,208 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute voronoi/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute voronoi/atom command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID voronoi/atom keyword arg ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>voronoi/atom = style name of this compute command 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>only_group</I> or <I>surface</I> or <I>radius</I> or <I>edge_histo</I> or <I>edge_threshold</I> or <I>face_threshold</I> 
-
-<PRE>  <I>only_group</I> = no arg
-  <I>occupation</I> = no arg
-  <I>surface</I> arg = sgroup-ID
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute voronoi/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-voronoi-atom-command">
+<span id="index-0"></span><h1>compute voronoi/atom command<a class="headerlink" href="#compute-voronoi-atom-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID voronoi/atom keyword arg ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>voronoi/atom = style name of this compute command</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>only_group</em> or <em>surface</em> or <em>radius</em> or <em>edge_histo</em> or <em>edge_threshold</em> or <em>face_threshold</em></li>
+</ul>
+<pre class="literal-block">
+<em>only_group</em> = no arg
+  <em>occupation</em> = no arg
+  <em>surface</em> arg = sgroup-ID
     sgroup-ID = compute the dividing surface between group-ID and sgroup-ID
       this keyword adds a third column to the compute output
-  <I>radius</I> arg = v_r
+  <em>radius</em> arg = v_r
     v_r = radius atom style variable for a poly-disperse Voronoi tessellation
-  <I>edge_histo</I> arg = maxedge
-    maxedge = maximum number of Voronoi cell edges to be accounted in the histogram 
-  <I>edge_threshold</I> arg = minlength
+  <em>edge_histo</em> arg = maxedge
+    maxedge = maximum number of Voronoi cell edges to be accounted in the histogram
+  <em>edge_threshold</em> arg = minlength
     minlength = minimum length for an edge to be counted
-  <I>face_threshold</I> arg = minarea
-    minarea = minimum area for a face to be counted 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all voronoi/atom
+  <em>face_threshold</em> arg = minarea
+    minarea = minimum area for a face to be counted
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all voronoi/atom
 compute 2 precipitate voronoi/atom surface matrix
-compute 3b precipitate voronoi/atom radius v_r 
-compute 4 solute voronoi/atom only_group 
-</PRE>
-<PRE>compute 5 defects voronoi/atom occupation 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates the Voronoi tessellation of the
+compute 3b precipitate voronoi/atom radius v_r
+compute 4 solute voronoi/atom only_group
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>compute 5 defects voronoi/atom occupation
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates the Voronoi tessellation of the
 atoms in the simulation box.  The tessellation is calculated using all
 atoms in the simulation, but non-zero values are only stored for atoms
-in the group.
-</P>
-<P>By default two quantities per atom are calculated by this compute.
+in the group.</p>
+<p>By default two quantities per atom are calculated by this compute.
 The first is the volume of the Voronoi cell around each atom.  Any
-point in an atom's Voronoi cell is closer to that atom than any other.
+point in an atom&#8217;s Voronoi cell is closer to that atom than any other.
 The second is the number of faces of the Voronoi cell, which is also
-the number of nearest neighbors of the atom in the middle of the cell.
-</P>
-<HR>
-
-<P>If the <I>only_group</I> keyword is specified the tessellation is performed
+the number of nearest neighbors of the atom in the middle of the cell.</p>
+<hr class="docutils" />
+<p>If the <em>only_group</em> keyword is specified the tessellation is performed
 only with respect to the atoms contained in the compute group. This is
 equivalent to deleting all atoms not contained in the group prior to
-evaluating the tessellation.
-</P>
-<P>If the <I>surface</I> keyword is specified a third quantity per atom is
-computed: the Voronoi cell surface of the given atom. <I>surface</I> takes
-a group ID as an argument. If a group other than <I>all</I> is specified,
+evaluating the tessellation.</p>
+<p>If the <em>surface</em> keyword is specified a third quantity per atom is
+computed: the Voronoi cell surface of the given atom. <em>surface</em> takes
+a group ID as an argument. If a group other than <em>all</em> is specified,
 only the Voronoi cell facets facing a neighbor atom from the specified
-group are counted towards the surface area.
-</P>
-<P>In the example above, a precipitate embedded in a matrix, only atoms
+group are counted towards the surface area.</p>
+<p>In the example above, a precipitate embedded in a matrix, only atoms
 at the surface of the precipitate will have non-zero surface area, and
 only the outward facing facets of the Voronoi cells are counted (the
 hull of the precipitate). The total surface area of the precipitate
-can be obtained by running a "reduce sum" compute on c_2[3]
-</P>
-<P>If the <I>radius</I> keyword is specified with an atom style variable as
+can be obtained by running a &#8220;reduce sum&#8221; compute on c_2[3]</p>
+<p>If the <em>radius</em> keyword is specified with an atom style variable as
 the argument, a poly-disperse Voronoi tessellation is
-performed. Examples for radius variables are
-</P>
-<PRE>variable r1 atom (type==1)*0.1+(type==2)*0.4
+performed. Examples for radius variables are</p>
+<div class="highlight-python"><div class="highlight"><pre>variable r1 atom (type==1)*0.1+(type==2)*0.4
 compute radius all property/atom radius
-variable r2 atom c_radius 
-</PRE>
-<P>Here v_r1 specifies a per-type radius of 0.1 units for type 1 atoms
+variable r2 atom c_radius
+</pre></div>
+</div>
+<p>Here v_r1 specifies a per-type radius of 0.1 units for type 1 atoms
 and 0.4 units for type 2 atoms, and v_r2 accesses the radius property
-present in atom_style sphere for granular models.
-</P>
-<P>The <I>edge_histo</I> keyword activates the compilation of a histogram of
+present in atom_style sphere for granular models.</p>
+<p>The <em>edge_histo</em> keyword activates the compilation of a histogram of
 number of edges on the faces of the Voronoi cells in the compute
 group. The argument maxedge of the this keyword is the largest number
 of edges on a single Voronoi cell face expected to occur in the
@@ -100,15 +210,13 @@ sample. This keyword adds the generation of a global vector with
 maxedge+1 entries. The last entry in the vector contains the number of
 faces with with more than maxedge edges. Since the polygon with the
 smallest amount of edges is a triangle, entries 1 and 2 of the vector
-will always be zero.
-</P>
-<P>The <I>edge_threshold</I> and <I>face_threshold</I> keywords allow the
+will always be zero.</p>
+<p>The <em>edge_threshold</em> and <em>face_threshold</em> keywords allow the
 suppression of edges below a given minimum length and faces below a
 given minimum area. Ultra short edges and ultra small faces can occur
 as artifacts of the Voronoi tessellation. These keywords will affect
-the neighbor count and edge histogram outputs.
-</P>
-<P>If the <I>occupation</I> keyword is specified the tessellation is only
+the neighbor count and edge histogram outputs.</p>
+<p>If the <em>occupation</em> keyword is specified the tessellation is only
 performed for the first invocation of the compute and then stored.
 For all following invocations of the compute the number of atoms in
 each Voronoi cell in the stored tessellation is counted. In this mode
@@ -122,19 +230,15 @@ one can be any positive integer including zero, while column two
 values will always be greater than zero. Column one data can be used
 to locate vacancies (the coordinates are given by the atom coordinates
 at the time step when the compute was first invoked), while column two
-data can be used to identify interstitial atoms.
-</P>
-<HR>
-
-<P>The Voronoi calculation is performed by the freely available <A HREF = "http://math.lbl.gov/voro++">Voro++
-package</A>, written by Chris Rycroft at UC Berkeley and LBL,
+data can be used to identify interstitial atoms.</p>
+<hr class="docutils" />
+<p>The Voronoi calculation is performed by the freely available <a class="reference external" href="http://math.lbl.gov/voro++">Voro++ package</a>, written by Chris Rycroft at UC Berkeley and LBL,
 which must be installed on your system when building LAMMPS for use
 with this compute.  See instructions on obtaining and installing the
-Voro++ software in the src/VORONOI/README file.
-</P>
-
-
-<P>IMPORTANT NOTE: The calculation of Voronoi volumes is performed by
+Voro++ software in the src/VORONOI/README file.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The calculation of Voronoi volumes is performed by
 each processor for the atoms it owns, and includes the effect of ghost
 atoms stored by the processor.  This assumes that the Voronoi cells of
 owned atoms are not affected by atoms beyond the ghost atom cut-off
@@ -142,42 +246,103 @@ distance.  This is usually a good assumption for liquid and solid
 systems, but may lead to underestimation of Voronoi volumes in low
 density systems.  By default, the set of ghost atoms stored by each
 processor is determined by the cutoff used for
-<A HREF = "pair_style.html">pair_style</A> interactions.  The cutoff can be set
-explicitly via the <A HREF = "comm_modify.html">comm_modify cutoff</A> command.
-</P>
-<P>IMPORTANT NOTE: The Voro++ package performs its calculation in 3d.
+<a class="reference internal" href="pair_style.html"><em>pair_style</em></a> interactions.  The cutoff can be set
+explicitly via the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The Voro++ package performs its calculation in 3d.
 This should still work for a 2d LAMMPS simulation, to effectively
-compute Voronoi "areas", so long as the z-dimension of the box is
+compute Voronoi &#8220;areas&#8221;, so long as the z-dimension of the box is
 roughly the same (or smaller) compared to the separation of the atoms.
 Typical values for the z box dimensions in a 2d LAMMPS model are -0.5
-to 0.5, which satisfies the criterion for most <A HREF = "units.html">units</A>
+to 0.5, which satisfies the criterion for most <a class="reference internal" href="units.html"><em>units</em></a>
 systems.  Note that you define the z extent of the simulation box for
-2d simulations when using the <A HREF = "create_box.html">create_box</A> or
-<A HREF = "read_data.html">read_data</A> commands.
-</P>
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a per-atom array with 2 columns. In regular
-dynamic tessellation mode the first column is the Voronoi volume, the 
-second is the neighbor count, as described above (read above for the 
-output data in case the <I>occupation</I> keyword is specified). 
+2d simulations when using the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.</p>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a per-atom array with 2 columns. In regular
+dynamic tessellation mode the first column is the Voronoi volume, the
+second is the neighbor count, as described above (read above for the
+output data in case the <em>occupation</em> keyword is specified).
 These values can be accessed by any command that
-uses per-atom values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
-15</A> for an overview of LAMMPS output
-options.
-</P>
-<P>The Voronoi cell volume will be in distance <A HREF = "units.html">units</A> cubed.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This compute is part of the VORONOI package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "dump.html">dump custom</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+uses per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The Voronoi cell volume will be in distance <a class="reference internal" href="units.html"><em>units</em></a> cubed.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the VORONOI package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dump.html"><em>dump custom</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

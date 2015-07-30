@@ -1,171 +1,329 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix msst command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3> fix msst command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID msst dir shockvel keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>msst = style name of this fix 
-
-<LI>dir = <I>x</I> or <I>y</I> or <I>z</I> 
-
-<LI>shockvel = shock velocity (strictly positive, distance/time units) 
-
-<LI>zero or more keyword value pairs may be appended 
-
-<LI>keyword = <I>q</I> or <I>mu</I> or <I>p0</I> or <I>v0</I> or <I>e0</I> or <I>tscale</I> 
-
-<PRE>  <I>q</I> value = cell mass-like parameter (mass^2/distance^4 units)
-  <I>mu</I> value = artificial viscosity (mass/length/time units)
-  <I>p0</I> value = initial pressure in the shock equations (pressure units)
-  <I>v0</I> value = initial simulation cell volume in the shock equations (distance^3 units)  
-  <I>e0</I> value = initial total energy (energy units)
-  <I>tscale</I> value = reduction in initial temperature (unitless fraction between 0.0 and 1.0) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all msst y 100.0 q 1.0e5 mu 1.0e5
-fix 2 all msst z 50.0 q 1.0e4 mu 1.0e4  v0 4.3419e+03 p0 3.7797e+03 e0 -9.72360e+02 tscale 0.01 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command performs the Multi-Scale Shock Technique (MSST)
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix msst command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-msst-command">
+<span id="index-0"></span><h1>fix msst command<a class="headerlink" href="#fix-msst-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID msst dir shockvel keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>msst = style name of this fix</li>
+<li>dir = <em>x</em> or <em>y</em> or <em>z</em></li>
+<li>shockvel = shock velocity (strictly positive, distance/time units)</li>
+<li>zero or more keyword value pairs may be appended</li>
+<li>keyword = <em>q</em> or <em>mu</em> or <em>p0</em> or <em>v0</em> or <em>e0</em> or <em>tscale</em></li>
+</ul>
+<pre class="literal-block">
+<em>q</em> value = cell mass-like parameter (mass^2/distance^4 units)
+  <em>mu</em> value = artificial viscosity (mass/length/time units)
+  <em>p0</em> value = initial pressure in the shock equations (pressure units)
+  <em>v0</em> value = initial simulation cell volume in the shock equations (distance^3 units)
+  <em>e0</em> value = initial total energy (energy units)
+  <em>tscale</em> value = reduction in initial temperature (unitless fraction between 0.0 and 1.0)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all msst y 100.0 q 1.0e5 mu 1.0e5
+fix 2 all msst z 50.0 q 1.0e4 mu 1.0e4  v0 4.3419e+03 p0 3.7797e+03 e0 -9.72360e+02 tscale 0.01
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command performs the Multi-Scale Shock Technique (MSST)
 integration to update positions and velocities each timestep to mimic
-a compressive shock wave passing over the system. See <A HREF = "#Reed">(Reed)</A>
+a compressive shock wave passing over the system. See <a class="reference internal" href="#reed"><span>(Reed)</span></a>
 for a detailed description of this method.  The MSST varies the cell
 volume and temperature in such a way as to restrain the system to the
 shock Hugoniot and the Rayleigh line. These restraints correspond to
 the macroscopic conservation laws dictated by a shock
-front. <I>shockvel</I> determines the steady shock velocity that will be
-simulated.
-</P>
-<P>To perform a simulation, choose a value of <I>q</I> that provides volume
+front. <em>shockvel</em> determines the steady shock velocity that will be
+simulated.</p>
+<p>To perform a simulation, choose a value of <em>q</em> that provides volume
 compression on the timescale of 100 fs to 1 ps.  If the volume is not
 compressing, either the shock speed is chosen to be below the material
-sound speed or <I>p0</I> has been chosen inaccurately.  Volume compression
-at the start can be sped up by using a non-zero value of <I>tscale</I>. Use
-the smallest value of <I>tscale</I> that results in compression.
-</P>
-<P>Under some special high-symmetry conditions, the pressure (volume)
+sound speed or <em>p0</em> has been chosen inaccurately.  Volume compression
+at the start can be sped up by using a non-zero value of <em>tscale</em>. Use
+the smallest value of <em>tscale</em> that results in compression.</p>
+<p>Under some special high-symmetry conditions, the pressure (volume)
 and/or temperature of the system may oscillate for many cycles even
-with an appropriate choice of mass-like parameter <I>q</I>. Such
+with an appropriate choice of mass-like parameter <em>q</em>. Such
 oscillations have physical significance in some cases.  The optional
-<I>mu</I> keyword adds an artificial viscosity that helps break the system
+<em>mu</em> keyword adds an artificial viscosity that helps break the system
 symmetry to equilibrate to the shock Hugoniot and Rayleigh line more
-rapidly in such cases.
-</P>
-<P><I>tscale</I> is a factor between 0 and 1 that determines what fraction of
+rapidly in such cases.</p>
+<p><em>tscale</em> is a factor between 0 and 1 that determines what fraction of
 thermal kinetic energy is converted to compressive strain kinetic
 energy at the start of the simulation.  Setting this parameter to a
 non-zero value may assist in compression at the start of simulations
-where it is slow to occur.
-</P>
-<P>If keywords <I>e0</I>, <I>p0</I>,or <I>v0</I> are not supplied, these quantities will
+where it is slow to occur.</p>
+<p>If keywords <em>e0</em>, <em>p0</em>,or <em>v0</em> are not supplied, these quantities will
 be calculated on the first step, after the energy specified by
-<I>tscale</I> is removed.  The value of <I>e0</I> is not used in the dynamical
-equations, but is used in calculating the deviation from the Hugoniot.
-</P>
-<P>Values of shockvel less than a critical value determined by the
+<em>tscale</em> is removed.  The value of <em>e0</em> is not used in the dynamical
+equations, but is used in calculating the deviation from the Hugoniot.</p>
+<p>Values of shockvel less than a critical value determined by the
 material response will not have compressive solutions. This will be
-reflected in lack of significant change of the volume in the MSST.
-</P>
-<P>For all pressure styles, the simulation box stays orthogonal in shape.
+reflected in lack of significant change of the volume in the MSST.</p>
+<p>For all pressure styles, the simulation box stays orthogonal in shape.
 Parrinello-Rahman boundary conditions (tilted box) are supported by
-LAMMPS, but are not implemented for MSST.
-</P>
-<P>This fix computes a temperature and pressure each timestep. To do
-this, the fix creates its own computes of style "temp" and "pressure",
-as if these commands had been issued:
-</P>
-<PRE>compute fix-ID_temp group-ID temp 
-compute fix-ID_press group-ID pressure fix-ID_temp 
-</PRE>
-<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
-pressure</A> commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
-+ underscore + "press".  The group for the new computes is "all".
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>This fix writes the state of all internal variables to <A HREF = "restart.html">binary restart
-files</A>.  See the <A HREF = "read_restart.html">read_restart</A> command
+LAMMPS, but are not implemented for MSST.</p>
+<p>This fix computes a temperature and pressure each timestep. To do
+this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
+as if these commands had been issued:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> and <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
++ underscore + &#8220;press&#8221;.  The group for the new computes is &#8220;all&#8221;.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>This fix writes the state of all internal variables to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
-</P>
-<P>The progress of the MSST can be monitored by printing the global
-scalar and global vector quantities computed by the fix.
-</P>
-<P>The scalar is the cumulative energy change due to the fix. This is
+uninterrupted fashion.</p>
+<p>The progress of the MSST can be monitored by printing the global
+scalar and global vector quantities computed by the fix.</p>
+<p>The scalar is the cumulative energy change due to the fix. This is
 also the energy added to the potential energy by the
-<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> command.  With this command, the
-thermo keyword <I>etotal</I> prints the conserved quantity of the MSST
+<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> command.  With this command, the
+thermo keyword <em>etotal</em> prints the conserved quantity of the MSST
 dynamic equations. This can be used to test if the MD timestep is
 sufficiently small for accurate integration of the dynamic
-equations. See also <A HREF = "thermo_style.html">thermo_style</A> command.
-</P>
-<P>The global vector contains four values in this order:
-</P>
-<P>[<I>dhugoniot</I>, <I>drayleigh</I>, <I>lagrangian_speed</I>, <I>lagrangian_position</I>]
-</P>
-<OL><LI><I>dhugoniot</I> is the departure from the Hugoniot (temperature units). 
-<LI><I>drayleigh</I> is the departure from the Rayleigh line (pressure units). 
-<LI><I>lagrangian_speed</I> is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
-<LI><I>lagrangian_position</I> is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front. 
-</OL>
-<P>To print these quantities to the log file with descriptive column
-headers, the following LAMMPS commands are suggested:
-</P>
-<PRE>fix		 msst all msst z 
+equations. See also <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command.</p>
+<p>The global vector contains four values in this order:</p>
+<p>[<em>dhugoniot</em>, <em>drayleigh</em>, <em>lagrangian_speed</em>, <em>lagrangian_position</em>]</p>
+<ol class="arabic simple">
+<li><em>dhugoniot</em> is the departure from the Hugoniot (temperature units).</li>
+<li><em>drayleigh</em> is the departure from the Rayleigh line (pressure units).</li>
+<li><em>lagrangian_speed</em> is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).</li>
+<li><em>lagrangian_position</em> is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front.</li>
+</ol>
+<p>To print these quantities to the log file with descriptive column
+headers, the following LAMMPS commands are suggested:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix           msst all msst z
 fix_modify       msst energy yes
 variable dhug    equal f_msst[1]
 variable dray    equal f_msst[2]
 variable lgr_vel equal f_msst[3]
 variable lgr_pos equal f_msst[4]
-thermo_style     custom step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos f_msst 
-</PRE>
-<P>These fixes compute a global scalar and a global vector of 4
-quantities, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  The scalar values calculated
-by this fix are "extensive"; the vector values are "intensive".
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>All cell dimensions must be periodic. This fix can not be used with a
+thermo_style     custom step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
+</pre></div>
+</div>
+<p>These fixes compute a global scalar and a global vector of 4
+quantities, which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar values calculated
+by this fix are &#8220;extensive&#8221;; the vector values are &#8220;intensive&#8221;.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix style is part of the SHOCK package.  It is only enabled if
+LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The MSST fix has been tested only for the group-ID
-all.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_nphug.html">fix nphug</A>, <A HREF = "fix_deform.html">fix deform</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The keyword defaults are q = 10, mu = 0, tscale = 0.01. p0, v0, and e0
-are calculated on the first step.
-</P>
-<HR>
+all.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_nphug.html"><em>fix nphug</em></a>, <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are q = 10, mu = 0, tscale = 0.01. p0, v0, and e0
+are calculated on the first step.</p>
+<hr class="docutils" />
+<p id="reed"><strong>(Reed)</strong> Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503 (2003).</p>
+</div>
+</div>
 
-<A NAME = "Reed"></A>
 
-<P><B>(Reed)</B> Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503 (2003).
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

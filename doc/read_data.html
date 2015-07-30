@@ -1,110 +1,219 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>read_data command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>read_data command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>read_data file keyword args ... 
-</PRE>
-<UL><LI>file = name of data file to read in 
-
-<LI>zero or more keyword/arg pairs may be appended 
-
-<LI>keyword = <I>add</I> or <I>offset</I> or <I>shift</I> or <I>extra/atom/types</I> or <I>extra/bond/types</I> or <I>extra/angle/types</I> or <I>extra/dihedral/types</I> or <I>extra/improper/types</I> or <I>group</I> or <I>fix</I> 
-
-<PRE>  <I>add</I> arg = <I>append</I> or <I>Nstart</I> or <I>merge</I>
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>read_data command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="read-data-command">
+<span id="index-0"></span><h1>read_data command<a class="headerlink" href="#read-data-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>read_data file keyword args ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>file = name of data file to read in</li>
+<li>zero or more keyword/arg pairs may be appended</li>
+<li>keyword = <em>add</em> or <em>offset</em> or <em>shift</em> or <em>extra/atom/types</em> or <em>extra/bond/types</em> or <em>extra/angle/types</em> or <em>extra/dihedral/types</em> or <em>extra/improper/types</em> or <em>group</em> or <em>fix</em></li>
+</ul>
+<pre class="literal-block">
+<em>add</em> arg = <em>append</em> or <em>Nstart</em> or <em>merge</em>
     append = add new atoms with IDs appended to current IDs
     Nstart = add new atoms with IDs starting with Nstart
     merge = add new atoms with their IDs unchanged
-  <I>offset</I> args = toff boff aoff doff ioff
+  <em>offset</em> args = toff boff aoff doff ioff
     toff = offset to add to atom types
     boff = offset to add to bond types
     aoff = offset to add to angle types
     doff = offset to add to dihedral types
     ioff = offset to add to improper types
-  <I>shift</I> args = Sx Sy Sz
+  <em>shift</em> args = Sx Sy Sz
     Sx,Sy,Sz = distance to shift atoms when adding to system (distance units)
-  <I>extra/atom/types</I> arg = # of extra atom types
-  <I>extra/bond/types</I> arg = # of extra bond types
-  <I>extra/angle/types</I> arg = # of extra angle types
-  <I>extra/dihedral/types</I> arg = # of extra dihedral types
-  <I>extra/improper/types</I> arg = # of extra improper types
-  <I>group</I> args = groupID
+  <em>extra/atom/types</em> arg = # of extra atom types
+  <em>extra/bond/types</em> arg = # of extra bond types
+  <em>extra/angle/types</em> arg = # of extra angle types
+  <em>extra/dihedral/types</em> arg = # of extra dihedral types
+  <em>extra/improper/types</em> arg = # of extra improper types
+  <em>group</em> args = groupID
     groupID = add atoms in data file to this group
-  <I>fix</I> args = fix-ID header-string section-string
+  <em>fix</em> args = fix-ID header-string section-string
     fix-ID = ID of fix to process header lines and sections of data file
     header-string = header lines containing this string will be passed to fix
-    section-string = section names with this string will be passed to fix 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>read_data data.lj
+    section-string = section names with this string will be passed to fix
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>read_data data.lj
 read_data ../run7/data.polymer.gz
-read_data data.protein fix mycmap crossterm CMAP 
+read_data data.protein fix mycmap crossterm CMAP
 read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
-read_data data.water add merge 1 group solvent 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Read in a data file containing information LAMMPS needs to run a
+read_data data.water add merge 1 group solvent
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Read in a data file containing information LAMMPS needs to run a
 simulation.  The file can be ASCII text or a gzipped text file
 (detected by a .gz suffix).  This is one of 3 ways to specify initial
-atom coordinates; see the <A HREF = "read_restart.html">read_restart</A> and
-<A HREF = "create_atoms.html">create_atoms</A> commands for alternative methods.
-Also see the explanation of the <A HREF = "Section_start.html#start_7">-restart command-line
-switch</A> which can convert a restart file to
-a data file.
-</P>
-<P>This command can be used multiple times to add new atoms and their
-properties to an existing system by using the <I>add</I>, <I>offset</I>, and
-<I>shift</I> keywords.  See more details below, which includes the use case
-for the <I>extra</I> keywords.
-</P>
-<P>The <I>group</I> keyword adds all the atoms in the data file to the
+atom coordinates; see the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> and
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> commands for alternative methods.
+Also see the explanation of the <a class="reference internal" href="Section_start.html#start-7"><span>-restart command-line switch</span></a> which can convert a restart file to
+a data file.</p>
+<p>This command can be used multiple times to add new atoms and their
+properties to an existing system by using the <em>add</em>, <em>offset</em>, and
+<em>shift</em> keywords.  See more details below, which includes the use case
+for the <em>extra</em> keywords.</p>
+<p>The <em>group</em> keyword adds all the atoms in the data file to the
 specified group-ID.  The group will be created if it does not already
 exist.  This is useful if you are reading multiple data files and wish
 to put sets of atoms into different groups so they can be operated on
 later.  E.g. a group of added atoms can be moved to new positions via
-the <A HREF = "displace_atoms.html">displace_atoms</A> command.  Note that atoms
-read from the data file are also always added to the "all" group.  The
-<A HREF = "group.html">group</A> command discusses atom groups, as used in LAMMPS.
-</P>
-<P>The use of the <I>fix</I> keyword is discussed below.
-</P>
-<HR>
-
-<P><B>Reading multiple data files</B>
-</P>
-<P>The read_data command can be used multiple times with the same or
+the <a class="reference internal" href="displace_atoms.html"><em>displace_atoms</em></a> command.  Note that atoms
+read from the data file are also always added to the &#8220;all&#8221; group.  The
+<a class="reference internal" href="group.html"><em>group</em></a> command discusses atom groups, as used in LAMMPS.</p>
+<p>The use of the <em>fix</em> keyword is discussed below.</p>
+<hr class="docutils" />
+<p><strong>Reading multiple data files</strong></p>
+<p>The read_data command can be used multiple times with the same or
 different data files to build up a complex system from components
 contained in individual data files.  For example one data file could
 contain fluid in a confined domain; a second could contain wall atoms,
 and the second file could be read a third time to create a wall on the
 other side of the fluid.  The third set of atoms could be rotated to
-an opposing direction using the <A HREF = "displace_atoms.html">displace_atoms</A>
-command, after the third read_data command is used.
-</P>
-<P>The <I>add</I>, <I>offset</I>, <I>shift</I>, <I>extra</I>, and <I>group</I> keywords are
-useful in this context.
-</P>
-<P>If a simulation box does not yet exist, the <I>add</I> keyword
+an opposing direction using the <a class="reference internal" href="displace_atoms.html"><em>displace_atoms</em></a>
+command, after the third read_data command is used.</p>
+<p>The <em>add</em>, <em>offset</em>, <em>shift</em>, <em>extra</em>, and <em>group</em> keywords are
+useful in this context.</p>
+<p>If a simulation box does not yet exist, the <em>add</em> keyword
 cannot be used; the read_data command is being used for the first
 time.  If a simulation box does exist, due to using the
-<A HREF = "create_box.html">create_box</A> command, or a previous read_data command,
-then the <I>add</I> keyword must be used.
-</P>
-<P>IMPORTANT NOTE: The simulation box size (xlo to xhi, ylo to yhi, zlo
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> command, or a previous read_data command,
+then the <em>add</em> keyword must be used.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The simulation box size (xlo to xhi, ylo to yhi, zlo
 to zhi) in the new data file will be merged with the existing
 simulation box to create a large enough box in each dimension to
 contain both the existing and new atoms.  Each box dimension never
@@ -113,29 +222,27 @@ grows. Care must be used if you are growing the existing simulation
 box in a periodic dimension.  If there are existing atoms with bonds
 that straddle that periodic boundary, then the atoms may become far
 apart if the box size grows.  This will separate the atoms in the
-bond, which can lead to "lost" bond atoms or bad dynamics.
-</P>
-<P>The three choices for the <I>add</I> argument affect how the IDs of atoms
-in the data file are treated.  If <I>append</I> is specified, atoms in the
+bond, which can lead to &#8220;lost&#8221; bond atoms or bad dynamics.</p>
+</div>
+<p>The three choices for the <em>add</em> argument affect how the IDs of atoms
+in the data file are treated.  If <em>append</em> is specified, atoms in the
 data file are added to the current system, with their atom IDs reset
 so that an atomID = M in the data file becomes atomID = N+M, where N
 is the largest atom ID in the current system.  This rule is applied to
 all occurrences of atom IDs in the data file, e.g. in the Velocity or
-Bonds section.  If <I>Nstart</I> is specified, then <I>Nstart</I> is a numeric
+Bonds section.  If <em>Nstart</em> is specified, then <em>Nstart</em> is a numeric
 value is given, e.g. 1000, so that an atomID = M in the data file
-becomes atomID = 1000+M.  If <I>merge</I> is specified, the data file atoms
+becomes atomID = 1000+M.  If <em>merge</em> is specified, the data file atoms
 are added to the current system without changing their IDs.  They are
 assumed to merge (without duplication) with the currently defined
 atoms.  It is up to you to insure there are no multiply defined atom
 IDs, as LAMMPS only performs an incomplete check that this is the case
-by insuring the resulting max atomID >= the number of atoms.
-</P>
-<P>The <I>offset</I> and <I>shift</I> keywords can only be used if the <I>add</I>
-keyword is also specified.
-</P>
-<P>The <I>offset</I> keyword adds the specified offset values to the atom
+by insuring the resulting max atomID &gt;= the number of atoms.</p>
+<p>The <em>offset</em> and <em>shift</em> keywords can only be used if the <em>add</em>
+keyword is also specified.</p>
+<p>The <em>offset</em> keyword adds the specified offset values to the atom
 types, bond types, angle types, dihedral types, and improper types as
-they are read from the data file.  E.g. if <I>toff</I> = 2, and the file
+they are read from the data file.  E.g. if <em>toff</em> = 2, and the file
 uses atom types 1,2,3, then the added atoms will have atom types
 3,4,5.  These offsets apply to all occurrences of types in the data
 file, e.g. for the Atoms or Masses or Pair Coeffs or Bond Coeffs
@@ -144,161 +251,146 @@ attributes from a data file in different simulations, where you want
 their types (atom, bond, angle, etc) to be different depending on what
 other types already exist.  All five offset values must be specified,
 but individual values will be ignored if the data file does not use
-that attribute (e.g. no bonds).
-</P>
-<P>The <I>shift</I> keyword can be used to specify an (Sx, Sy, Sz)
+that attribute (e.g. no bonds).</p>
+<p>The <em>shift</em> keyword can be used to specify an (Sx, Sy, Sz)
 displacement applied to the coordinates of each atom.  Sz must be 0.0
 for a 2d simulation.  This is a mechanism for adding structured
 collections of atoms at different locations within the simulation box,
 to build up a complex geometry.  It is up to you to insure atoms do
 not end up overlapping unphysically which would lead to bad dynamics.
-Note that the <A HREF = "displace_atoms.html">displace_atoms</A> command can be used
+Note that the <a class="reference internal" href="displace_atoms.html"><em>displace_atoms</em></a> command can be used
 to move a subset of atoms after they have been read from a data file.
-Likewise, the <A HREF = "delete_atoms.html">delete_atoms</A> command can be used to
+Likewise, the <a class="reference internal" href="delete_atoms.html"><em>delete_atoms</em></a> command can be used to
 remove overlapping atoms.  Note that the shift values (Sx, Sy, Sz) are
 also added to the simulation box information (xlo, xhi, ylo, yhi, zlo,
 zhi) in the data file to shift its boundaries.  E.g. xlo_new = xlo +
-Sx, xhi_new = xhi + Sx.
-</P>
-<P>The <I>extra</I> keywords can only be used the first time the read_data
+Sx, xhi_new = xhi + Sx.</p>
+<p>The <em>extra</em> keywords can only be used the first time the read_data
 command is used.  They are useful if you intend to add new atom, bond,
 angle, etc types later with additional read_data commands.  This is
 because the maximum number of allowed atom, bond, angle, etc types is
 set by LAMMPS when the system is first initialized.  If you do not use
-the <I>extra</I> keywords, then the number of these types will be limited
+the <em>extra</em> keywords, then the number of these types will be limited
 to what appears in the first data file you read.  For example, if the
 first data file is a solid substrate of Si, it will likely specify a
 single atom type.  If you read a second data file with a different
 material (water molecules) that sit on top of the substrate, you will
 want to use different atom types for those atoms.  You can only do
-this if you set the <I>extra/atom/types</I> keyword to a sufficiently large
+this if you set the <em>extra/atom/types</em> keyword to a sufficiently large
 value when reading the substrate data file.  Note that use of the
-<I>extra</I> keywords also allows each data file to contain sections like
+<em>extra</em> keywords also allows each data file to contain sections like
 Masses or Pair Coeffs or Bond Coeffs which are sized appropriately for
-the number of types in that data file.  If the <I>offset</I> keyword is
+the number of types in that data file.  If the <em>offset</em> keyword is
 used appropriately when each data file is read, the values in those
 sections will be stored correctly in the larger data structures
-allocated by the use of the <I>extra</I> keywords.  E.g. the substrate file
+allocated by the use of the <em>extra</em> keywords.  E.g. the substrate file
 can list mass and pair coefficients for type 1 silicon atoms.  The
 water file can list mass and pair coeffcients for type 1 and type 2
-hydrogen and oxygen atoms.  Use of the <I>extra</I> and <I>offset</I> keywords
+hydrogen and oxygen atoms.  Use of the <em>extra</em> and <em>offset</em> keywords
 will store those mass and pair coefficient values appropriately in
 data structures that allow for 3 atom types (Si, H, O).  Of course,
 you would still need to specify coefficients for H/Si and O/Si
 interactions in your input script to have a complete pairwise
-interaction model.
-</P>
-<P>An alternative to using the <I>extra</I> keywords with the read_data
-command, is to use the <A HREF = "create_box.html">create_box</A> command to
+interaction model.</p>
+<p>An alternative to using the <em>extra</em> keywords with the read_data
+command, is to use the <a class="reference internal" href="create_box.html"><em>create_box</em></a> command to
 initialize the simulation box and all the various type limits you need
-via its <I>extra</I> keywords.  Then use the read_data command one or more
+via its <em>extra</em> keywords.  Then use the read_data command one or more
 times to populate the system with atoms, bonds, angles, etc, using the
-<I>offset</I> keyword if desired to alter types used in the various data
-files you read.
-</P>
-<HR>
-
-<P><B>Format of a data file</B>
-</P>
-<P>The structure of the data file is important, though many settings and
+<em>offset</em> keyword if desired to alter types used in the various data
+files you read.</p>
+<hr class="docutils" />
+<p><strong>Format of a data file</strong></p>
+<p>The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
-directory for sample data files for different problems.
-</P>
-<P>A data file has a header and a body.  The header appears first.  The
+directory for sample data files for different problems.</p>
+<p>A data file has a header and a body.  The header appears first.  The
 first line of the header is always skipped; it typically contains a
 description of the file.  Then lines are read one at a time.  Lines
-can have a trailing comment starting with '#' that is ignored.  If the
+can have a trailing comment starting with &#8216;#&#8217; that is ignored.  If the
 line is blank (only whitespace after comment is deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it doesn't contain a header
-keyword, the line begins the body of the file.
-</P>
-<P>The body of the file contains zero or more sections.  The first line
+value(s) is read from the line.  If it doesn&#8217;t contain a header
+keyword, the line begins the body of the file.</p>
+<p>The body of the file contains zero or more sections.  The first line
 of a section has only a keyword.  This line can have a trailing
-comment starting with '#' that is either ignored or can be used to
+comment starting with &#8216;#&#8217; that is either ignored or can be used to
 check for a style match, as described below.  The next line is
 skipped.  The remaining lines of the section contain values.  The
 number of lines depends on the section keyword as described below.
 Zero or more blank lines can be used between sections.  Sections can
-appear in any order, with a few exceptions as noted below.
-</P>
-<P>The keyword <I>fix</I> can be used one or more times.  Each usage specifies
+appear in any order, with a few exceptions as noted below.</p>
+<p>The keyword <em>fix</em> can be used one or more times.  Each usage specifies
 a fix that will be used to process a specific portion of the data
-file.  Any header line containing <I>header-string</I> and any section with
-a name containing <I>section-string</I> will be passed to the specified
-fix.  See the <A HREF = "fix_property_atom.html">fix property/atom</A> command for
+file.  Any header line containing <em>header-string</em> and any section with
+a name containing <em>section-string</em> will be passed to the specified
+fix.  See the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command for
 an example of a fix that operates in this manner.  The doc page for
 the fix defines the syntax of the header line(s) and section(s) that
-it reads from the data file.  Note that the <I>header-string</I> can be
+it reads from the data file.  Note that the <em>header-string</em> can be
 specified as NULL, in which case no header lines are passed to the
 fix.  This means that it can infer the length of its Section from
-standard header settings, such as the number of atoms.
-</P>
-<P>The formatting of individual lines in the data file (indentation,
+standard header settings, such as the number of atoms.</p>
+<p>The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
 and section keywords (e.g. atoms, xlo xhi, Masses, Bond Coeffs) must
-be capitalized as shown and can't have extra white space between their
-words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
-the 2 words in "Bond Coeffs", is not valid.
-</P>
-<HR>
-
-<P><B>Format of the header of a data file</B>
-</P>
-<P>These are the recognized header keywords.  Header lines can come in
+be capitalized as shown and can&#8217;t have extra white space between their
+words - e.g. two spaces or a tab between the 2 words in &#8220;xlo xhi&#8221; or
+the 2 words in &#8220;Bond Coeffs&#8221;, is not valid.</p>
+<hr class="docutils" />
+<p><strong>Format of the header of a data file</strong></p>
+<p>These are the recognized header keywords.  Header lines can come in
 any order.  The value(s) are read from the beginning of the line.
-Thus the keyword <I>atoms</I> should be in a line like "1000 atoms"; the
-keyword <I>ylo yhi</I> should be in a line like "-10.0 10.0 ylo yhi"; the
-keyword <I>xy xz yz</I> should be in a line like "0.0 5.0 6.0 xy xz yz".
+Thus the keyword <em>atoms</em> should be in a line like &#8220;1000 atoms&#8221;; the
+keyword <em>ylo yhi</em> should be in a line like &#8220;-10.0 10.0 ylo yhi&#8221;; the
+keyword <em>xy xz yz</em> should be in a line like &#8220;0.0 5.0 6.0 xy xz yz&#8221;.
 All these settings have a default value of 0, except the lo/hi box
 size defaults are -0.5 and 0.5.  A line need only appear if the value
-is different than the default.
-</P>
-<UL><LI><I>atoms</I> = # of atoms in system
-<LI><I>bonds</I> = # of bonds in system
-<LI><I>angles</I> = # of angles in system
-<LI><I>dihedrals</I> = # of dihedrals in system
-<LI><I>impropers</I> = # of impropers in system
-<LI><I>atom types</I> = # of atom types in system
-<LI><I>bond types</I> = # of bond types in system
-<LI><I>angle types</I> = # of angle types in system
-<LI><I>dihedral types</I> = # of dihedral types in system
-<LI><I>improper types</I> = # of improper types in system
-<LI><I>extra bond per atom</I> = leave space for this many new bonds per atom
-<LI><I>extra angle per atom</I> = leave space for this many new angles per atom
-<LI><I>extra dihedral per atom</I> = leave space for this many new dihedrals per atom
-<LI><I>extra improper per atom</I> = leave space for this many new impropers per atom
-<LI><I>extra special per atom</I> = leave space for this many new special bonds per atom
-<LI><I>ellipsoids</I> = # of ellipsoids in system
-<LI><I>lines</I> = # of line segments in system
-<LI><I>triangles</I> = # of triangles in system
-<LI><I>bodies</I> = # of bodies in system
-<LI><I>xlo xhi</I> = simulation box boundaries in x dimension
-<LI><I>ylo yhi</I> = simulation box boundaries in y dimension
-<LI><I>zlo zhi</I> = simulation box boundaries in z dimension
-<LI><I>xy xz yz</I> = simulation box tilt factors for triclinic system 
-</UL>
-<P>The initial simulation box size is determined by the lo/hi settings.
+is different than the default.</p>
+<ul class="simple">
+<li><em>atoms</em> = # of atoms in system</li>
+<li><em>bonds</em> = # of bonds in system</li>
+<li><em>angles</em> = # of angles in system</li>
+<li><em>dihedrals</em> = # of dihedrals in system</li>
+<li><em>impropers</em> = # of impropers in system</li>
+<li><em>atom types</em> = # of atom types in system</li>
+<li><em>bond types</em> = # of bond types in system</li>
+<li><em>angle types</em> = # of angle types in system</li>
+<li><em>dihedral types</em> = # of dihedral types in system</li>
+<li><em>improper types</em> = # of improper types in system</li>
+<li><em>extra bond per atom</em> = leave space for this many new bonds per atom</li>
+<li><em>extra angle per atom</em> = leave space for this many new angles per atom</li>
+<li><em>extra dihedral per atom</em> = leave space for this many new dihedrals per atom</li>
+<li><em>extra improper per atom</em> = leave space for this many new impropers per atom</li>
+<li><em>extra special per atom</em> = leave space for this many new special bonds per atom</li>
+<li><em>ellipsoids</em> = # of ellipsoids in system</li>
+<li><em>lines</em> = # of line segments in system</li>
+<li><em>triangles</em> = # of triangles in system</li>
+<li><em>bodies</em> = # of bodies in system</li>
+<li><em>xlo xhi</em> = simulation box boundaries in x dimension</li>
+<li><em>ylo yhi</em> = simulation box boundaries in y dimension</li>
+<li><em>zlo zhi</em> = simulation box boundaries in z dimension</li>
+<li><em>xy xz yz</em> = simulation box tilt factors for triclinic system</li>
+</ul>
+<p>The initial simulation box size is determined by the lo/hi settings.
 In any dimension, the system may be periodic or non-periodic; see the
-<A HREF = "boundary.html">boundary</A> command.  When the simulation box is created
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> command.  When the simulation box is created
 it is also partitioned into a regular 3d grid of rectangular bricks,
 one per processor, based on the number of processors being used and
-the settings of the <A HREF = "processors.html">processors</A> command.  The
-partitioning can later be changed by the <A HREF = "balance.html">balance</A> or
-<A HREF = "fix_balance.html">fix balance</A> commands.
-</P>
-<P>If the <I>xy xz yz</I> line does not appear, LAMMPS will set up an
+the settings of the <a class="reference internal" href="processors.html"><em>processors</em></a> command.  The
+partitioning can later be changed by the <a class="reference internal" href="balance.html"><em>balance</em></a> or
+<a class="reference internal" href="fix_balance.html"><em>fix balance</em></a> commands.</p>
+<p>If the <em>xy xz yz</em> line does not appear, LAMMPS will set up an
 axis-aligned (orthogonal) simulation box.  If the line does appear,
 LAMMPS creates a non-orthogonal simulation domain shaped as a
 parallelepiped with triclinic symmetry.  The parallelepiped has its
-"origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
+&#8220;origin&#8221; at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
 from the origin given by A = (xhi-xlo,0,0); B = (xy,yhi-ylo,0); C =
-(xz,yz,zhi-zlo).  <I>Xy,xz,yz</I> can be 0.0 or positive or negative values
-and are called "tilt factors" because they are the amount of
+(xz,yz,zhi-zlo).  <em>Xy,xz,yz</em> can be 0.0 or positive or negative values
+and are called &#8220;tilt factors&#8221; because they are the amount of
 displacement applied to faces of an originally orthogonal box to
-transform it into the parallelepiped.
-</P>
-<P>By default, the tilt factors (xy,xz,yz) can not skew the box more than
+transform it into the parallelepiped.</p>
+<p>By default, the tilt factors (xy,xz,yz) can not skew the box more than
 half the distance of the corresponding parallel box length.  For
 example, if xlo = 2 and xhi = 12, then the x box length is 10 and the
 xy tilt factor must be between -5 and 5.  Similarly, both xz and yz
@@ -306,338 +398,342 @@ must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not
 a limitation, since if the maximum tilt factor is 5 (as in this
 example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 ... are all geometrically equivalent.  If you wish to define a box
-with tilt factors that exceed these limits, you can use the <A HREF = "box.html">box
-tilt</A> command, with a setting of <I>large</I>; a setting of
-<I>small</I> is the default.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_12">Section_howto 12</A> of the doc pages
+with tilt factors that exceed these limits, you can use the <a class="reference internal" href="box.html"><em>box tilt</em></a> command, with a setting of <em>large</em>; a setting of
+<em>small</em> is the default.</p>
+<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span>Section_howto 12</span></a> of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
-triclinic representations.
-</P>
-<P>When a triclinic system is used, the simulation domain should normally
+triclinic representations.</p>
+<p>When a triclinic system is used, the simulation domain should normally
 be periodic in the dimension that the tilt is applied to, which is
 given by the second dimension of the tilt factor (e.g. y for xy tilt).
 This is so that pairs of atoms interacting across that boundary will
 have one of them shifted by the tilt factor.  Periodicity is set by
-the <A HREF = "boundary.html">boundary</A> command.  For example, if the xy tilt
+the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command.  For example, if the xy tilt
 factor is non-zero, then the y dimension should be periodic.
 Similarly, the z dimension should be periodic if xz or yz is non-zero.
 LAMMPS does not require this periodicity, but you may lose atoms if
-this is not the case.
-</P>
-<P>Also note that if your simulation will tilt the box, e.g. via the <A HREF = "fix_deform.html">fix
-deform</A> command, the simulation box must be setup to
+this is not the case.</p>
+<p>Also note that if your simulation will tilt the box, e.g. via the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> command, the simulation box must be setup to
 be triclinic, even if the tilt factors are initially 0.0.  You can
 also change an orthogonal box to a triclinic box or vice versa by
-using the <A HREF = "change_box.html">change box</A> command with its <I>ortho</I> and
-<I>triclinic</I> options.
-</P>
-<P>For 2d simulations, the <I>zlo zhi</I> values should be set to bound the z
+using the <a class="reference internal" href="change_box.html"><em>change box</em></a> command with its <em>ortho</em> and
+<em>triclinic</em> options.</p>
+<p>For 2d simulations, the <em>zlo zhi</em> values should be set to bound the z
 coords for atoms that appear in the file; the default of -0.5 0.5 is
 valid if all z coords are 0.0.  For 2d triclinic simulations, the xz
-and yz tilt factors must be 0.0.
-</P>
-<P>If the system is periodic (in a dimension), then atom coordinates can
+and yz tilt factors must be 0.0.</p>
+<p>If the system is periodic (in a dimension), then atom coordinates can
 be outside the bounds (in that dimension); they will be remapped (in a
-periodic sense) back inside the box.  Note that if the <I>add</I> option is
+periodic sense) back inside the box.  Note that if the <em>add</em> option is
 being used to add atoms to a simulation box that already exists, this
 periodic remapping will be performed using simulation box bounds that
 are the union of the existing box and the box boundaries in the new
-data file.
-</P>
-<P>IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
+data file.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If the system is non-periodic (in a dimension), then
 all atoms in the data file must have coordinates (in that dimension)
-that are "greater than or equal to" the lo value and "less than or
-equal to" the hi value.  If the non-periodic dimension is of style
-"fixed" (see the <A HREF = "boundary.html">boundary</A> command), then the atom
-coords must be strictly "less than" the hi value, due to the way
+that are &#8220;greater than or equal to&#8221; the lo value and &#8220;less than or
+equal to&#8221; the hi value.  If the non-periodic dimension is of style
+&#8220;fixed&#8221; (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command), then the atom
+coords must be strictly &#8220;less than&#8221; the hi value, due to the way
 LAMMPS assign atoms to processors.  Note that you should not make the
 lo/hi values radically smaller/larger than the extent of the atoms.
 For example, if your atoms extend from 0 to 50, you should not specify
 the box bounds as -10000 and 10000.  This is because LAMMPS uses the
 specified box size to layout the 3d grid of processors.  A huge
 (mostly empty) box will be sub-optimal for performance when using
-"fixed" boundary conditions (see the <A HREF = "boundary.html">boundary</A>
-command).  When using "shrink-wrap" boundary conditions (see the
-<A HREF = "boundary.html">boundary</A> command), a huge (mostly empty) box may cause
+&#8220;fixed&#8221; boundary conditions (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a>
+command).  When using &#8220;shrink-wrap&#8221; boundary conditions (see the
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> command), a huge (mostly empty) box may cause
 a parallel simulation to lose atoms when LAMMPS shrink-wraps the box
 around the atoms.  The read_data command will generate an error
-in this case.
-</P>
-<P>The "extra bond per atom" setting (angle, dihedral, improper) is only
+in this case.</p>
+</div>
+<p>The &#8220;extra bond per atom&#8221; setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to
-the system when a simulation runs, e.g. by using the <A HREF = "fix_bond_create.html">fix
-bond/create</A> command.  This will pre-allocate
+the system when a simulation runs, e.g. by using the <a class="reference internal" href="fix_bond_create.html"><em>fix bond/create</em></a> command.  This will pre-allocate
 space in LAMMPS data structures for storing the new bonds (angles,
-dihedrals, impropers).
-</P>
-<P>The "extra special per atom" setting is typically only needed if new
-bonds/angles/etc will be added to the system, e.g. by using the <A HREF = "fix_bond_create.html">fix
-bond/create</A> command.  Or if entire new molecules
-will be added to the system, e.g. by using the <A HREF = "fix_deposit.html">fix
-deposit</A> or <A HREF = "fix_pour.html">fix pour</A> commands, which
+dihedrals, impropers).</p>
+<p>The &#8220;extra special per atom&#8221; setting is typically only needed if new
+bonds/angles/etc will be added to the system, e.g. by using the <a class="reference internal" href="fix_bond_create.html"><em>fix bond/create</em></a> command.  Or if entire new molecules
+will be added to the system, e.g. by using the <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> or <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a> commands, which
 will have more special 1-2,1-3,1-4 neighbors than any other molecules
 defined in the data file.  Using this setting will pre-allocate space
 in the LAMMPS data structures for storing these neighbors.  See the
-<A HREF = "special_bonds.html">special_bonds</A> and <A HREF = "molecule.html">molecule</A> doc
-pages for more discussion of 1-2,1-3,1-4 neighbors.
-</P>
-<P>IMPORTANT NOTE: All of the "extra" settings are only used if they
-appear in the first data file read; see the description of the <I>add</I>
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> and <a class="reference internal" href="molecule.html"><em>molecule</em></a> doc
+pages for more discussion of 1-2,1-3,1-4 neighbors.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">All of the &#8220;extra&#8221; settings are only used if they
+appear in the first data file read; see the description of the <em>add</em>
 keyword above for reading multiple data files.  If they appear in
-later data files, they are ignored.
-</P>
-<P>The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
-only used with <A HREF = "atom_style.html">atom_style ellipsoid or line or tri or
-body</A> and specify how many of the atoms are
+later data files, they are ignored.</p>
+</div>
+<p>The &#8220;ellipsoids&#8221; and &#8220;lines&#8221; and &#8220;triangles&#8221; and &#8220;bodies&#8221; settings are
+only used with <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid or line or tri or body</em></a> and specify how many of the atoms are
 finite-size ellipsoids or lines or triangles or bodies; the remainder
 are point particles.  See the discussion of ellipsoidflag and the
-<I>Ellipsoids</I> section below.  See the discussion of lineflag and the
-<I>Lines</I> section below.  See the discussion of triangleflag and the
-<I>Triangles</I> section below.  See the discussion of bodyflag and the
-<I>Bodies</I> section below.
-</P>
-<P>IMPORTANT NOTE: For <A HREF = "atom_style.html">atom_style template</A>, the
+<em>Ellipsoids</em> section below.  See the discussion of lineflag and the
+<em>Lines</em> section below.  See the discussion of triangleflag and the
+<em>Triangles</em> section below.  See the discussion of bodyflag and the
+<em>Bodies</em> section below.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">For <a class="reference internal" href="atom_style.html"><em>atom_style template</em></a>, the
 molecular topology (bonds,angles,etc) is contained in the molecule
-templates read-in by the <A HREF = "molecule.html">molecule</A> command.  This means
-you cannot set the <I>bonds</I>, <I>angles</I>, etc header keywords in the data
-file, nor can you define <I>Bonds</I>, <I>Angles</I>, etc sections as discussed
-below.  You can set the <I>bond types</I>, <I>angle types</I>, etc header
+templates read-in by the <a class="reference internal" href="molecule.html"><em>molecule</em></a> command.  This means
+you cannot set the <em>bonds</em>, <em>angles</em>, etc header keywords in the data
+file, nor can you define <em>Bonds</em>, <em>Angles</em>, etc sections as discussed
+below.  You can set the <em>bond types</em>, <em>angle types</em>, etc header
 keywords, though it is not necessary.  If specified, they must match
-the maximum values defined in any of the template molecules.
-</P>
-<HR>
-
-<P><B>Format of the body of a data file</B>
-</P>
-<P>These are the section keywords for the body of the file.
-</P>
-<UL><LI><I>Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies</I> = atom-property sections 
-<LI><I>Bonds, Angles, Dihedrals, Impropers</I> = molecular topology sections 
-<LI><I>Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs</I> = force field sections
-<LI><I>BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs</I> = class 2 force field sections 
-</UL>
-<P>These keywords will check an appended comment for a match with the
-currently defined style:
-</P>
-<UL><LI><I>Atoms, Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, Improper Coeffs</I> 
-</UL>
-<P>For example, these lines:
-</P>
-<PRE>Atoms # sphere
-Pair Coeffs # lj/cut 
-</PRE>
-<P>will check if the currently-defined <A HREF = "atom_style.html">atom_style</A> is
-<I>sphere</I>, and the current <A HREF = "pair_style">pair_style</A> is <I>lj/cut</I>.  If
+the maximum values defined in any of the template molecules.</p>
+</div>
+<hr class="docutils" />
+<p><strong>Format of the body of a data file</strong></p>
+<p>These are the section keywords for the body of the file.</p>
+<ul class="simple">
+<li><em>Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies</em> = atom-property sections</li>
+<li><em>Bonds, Angles, Dihedrals, Impropers</em> = molecular topology sections</li>
+<li><em>Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs</em> = force field sections</li>
+<li><em>BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs</em> = class 2 force field sections</li>
+</ul>
+<p>These keywords will check an appended comment for a match with the
+currently defined style:</p>
+<ul class="simple">
+<li><em>Atoms, Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, Improper Coeffs</em></li>
+</ul>
+<p>For example, these lines:</p>
+<div class="highlight-python"><div class="highlight"><pre>Atoms # sphere
+Pair Coeffs # lj/cut
+</pre></div>
+</div>
+<p>will check if the currently-defined <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> is
+<em>sphere</em>, and the current <a class="reference external" href="pair_style">pair_style</a> is <em>lj/cut</em>.  If
 not, LAMMPS will issue a warning to indicate that the data file
 section likely does not contain the correct number or type of
-parameters expected for the currently-defined style.
-</P>
-<P>Each section is listed below in alphabetic order.  The format of each
+parameters expected for the currently-defined style.</p>
+<p>Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
-rules (if any) for where it can appear in the data file.
-</P>
-<P>Any individual line in the various sections can have a trailing
-comment starting with "#" for annotation purposes.  E.g. in the
-Atoms section:
-</P>
-<PRE>10 1 17 -1.0 10.0 5.0 6.0   # salt ion 
-</PRE>
-<HR>
-
-<P><I>Angle Coeffs</I> section:
-</P>
-<UL><LI>one line per angle type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = angle type (1-N)
-  coeffs = list of coeffs 
-</PRE>
-<LI>example: 
-
-<PRE>  6 70 108.5 0 0 
-</PRE>
-
-</UL>
-<P>The number and meaning of the coefficients are specific to the defined
-angle style.  See the <A HREF = "angle_style.html">angle_style</A> and
-<A HREF = "angle_coeff.html">angle_coeff</A> commands for details.  Coefficients can
-also be set via the <A HREF = "angle_coeff.html">angle_coeff</A> command in the
-input script.
-</P>
-<HR>
-
-<P><I>AngleAngle Coeffs</I> section:
-</P>
-<UL><LI>one line per improper type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = improper type (1-N)
-  coeffs = list of coeffs (see <A HREF = "improper_coeff.html">improper_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>AngleAngleTorsion Coeffs</I> section:
-</P>
-<UL><LI>one line per dihedral type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = dihedral type (1-N)
-  coeffs = list of coeffs (see <A HREF = "dihedral_coeff.html">dihedral_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>Angles</I> section:
-</P>
-<UL><LI>one line per angle 
-
-<LI>line syntax: ID type atom1 atom2 atom3 
-
-<PRE>  ID = number of angle (1-Nangles)
+rules (if any) for where it can appear in the data file.</p>
+<p>Any individual line in the various sections can have a trailing
+comment starting with &#8220;#&#8221; for annotation purposes.  E.g. in the
+Atoms section:</p>
+<div class="highlight-python"><div class="highlight"><pre>10 1 17 -1.0 10.0 5.0 6.0   # salt ion
+</pre></div>
+</div>
+<hr class="docutils" />
+<p><em>Angle Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per angle type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = angle type (1-N)
+  coeffs = list of coeffs
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>6 70 108.5 0 0
+</pre></div>
+</div>
+<p>The number and meaning of the coefficients are specific to the defined
+angle style.  See the <a class="reference internal" href="angle_style.html"><em>angle_style</em></a> and
+<a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a> commands for details.  Coefficients can
+also be set via the <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a> command in the
+input script.</p>
+<hr class="docutils" />
+<p><em>AngleAngle Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per improper type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = improper type (1-N)
+  coeffs = list of coeffs (see <a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>AngleAngleTorsion Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = dihedral type (1-N)
+  coeffs = list of coeffs (see <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>Angles</em> section:</p>
+<ul class="simple">
+<li>one line per angle</li>
+<li>line syntax: ID type atom1 atom2 atom3</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = number of angle (1-Nangles)
   type = angle type (1-Nangletype)
-  atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle 
-</PRE>
-example: 
-<BR>
-<PRE>  2 2 17 29 430 
-</PRE>
-
-</UL>
-<P>The 3 atoms are ordered linearly within the angle.  Thus the central
+  atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle
+</pre></div>
+</div>
+<p>example:
+.. parsed-literal:</p>
+<div class="highlight-python"><div class="highlight"><pre>2 2 17 29 430
+</pre></div>
+</div>
+<p>The 3 atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
-E.g. H,O,H for a water molecule.  The <I>Angles</I> section must appear
-after the <I>Atoms</I> section.  All values in this section must be
-integers (1, not 1.0).
-</P>
-<HR>
-
-<P><I>AngleTorsion Coeffs</I> section:
-</P>
-<UL><LI>one line per dihedral type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = dihedral type (1-N)
-  coeffs = list of coeffs (see <A HREF = "dihedral_coeff.html">dihedral_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>Atoms</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: depends on atom style 
-</UL>
-<P>An <I>Atoms</I> section must appear in the data file if natoms > 0 in the
+E.g. H,O,H for a water molecule.  The <em>Angles</em> section must appear
+after the <em>Atoms</em> section.  All values in this section must be
+integers (1, not 1.0).</p>
+<hr class="docutils" />
+<p><em>AngleTorsion Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = dihedral type (1-N)
+  coeffs = list of coeffs (see <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>Atoms</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: depends on atom style</li>
+</ul>
+<p>An <em>Atoms</em> section must appear in the data file if natoms &gt; 0 in the
 header section.  The atoms can be listed in any order.  These are the
-line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS.  As
+line formats for each <a class="reference internal" href="atom_style.html"><em>atom style</em></a> in LAMMPS.  As
 discussed below, each line can optionally have 3 flags (nx,ny,nz)
 appended to it, which indicate which image of a periodic simulation
 box the atom is in.  These may be important to include for some kinds
-of analysis.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >angle</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
-<TR><TD >atomic</TD><TD > atom-ID atom-type x y z</TD></TR>
-<TR><TD >body</TD><TD > atom-ID atom-type bodyflag mass x y z</TD></TR>
-<TR><TD >bond</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
-<TR><TD >charge</TD><TD > atom-ID atom-type q x y z</TD></TR>
-<TR><TD >dipole</TD><TD > atom-ID atom-type q x y z mux muy muz</TD></TR>
-<TR><TD >electron</TD><TD > atom-ID atom-type q spin eradius x y z</TD></TR>
-<TR><TD >ellipsoid</TD><TD > atom-ID atom-type ellipsoidflag density x y z</TD></TR>
-<TR><TD >full</TD><TD > atom-ID molecule-ID atom-type q x y z</TD></TR>
-<TR><TD >line</TD><TD > atom-ID molecule-ID atom-type lineflag density x y z</TD></TR>
-<TR><TD >meso</TD><TD > atom-ID atom-type rho e cv x y z</TD></TR>
-<TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
-<TR><TD >peri</TD><TD > atom-ID atom-type volume density x y z</TD></TR>
-<TR><TD >sphere</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
-<TR><TD >template</TD><TD > atom-ID molecule-ID template-index template-atom atom-type x y z</TD></TR>
-<TR><TD >tri</TD><TD > atom-ID molecule-ID atom-type triangleflag density x y z</TD></TR>
-<TR><TD >wavepacket</TD><TD > atom-ID atom-type charge spin eradius etag cs_re cs_im x y z</TD></TR>
-<TR><TD >hybrid</TD><TD > atom-ID atom-type x y z sub-style1 sub-style2 ...  
-</TD></TR></TABLE></DIV>
-
-<P>The keywords have these meanings:
-</P>
-<UL><LI>atom-ID = integer ID of atom
-<LI>molecule-ID = integer ID of molecule the atom belongs to
-<LI>atom-type = type of atom (1-Ntype)
-<LI>q = charge on atom (charge units)
-<LI>diameter = diameter of spherical atom (distance units)
-<LI>ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
-<LI>lineflag = 1 for line segment particles, 0 for point particles
-<LI>triangleflag = 1 for triangular particles, 0 for point particles
-<LI>bodyflag = 1 for body particles, 0 for point particles
-<LI>template-index = which molecule within the molecule template the atom is part of
-<LI>template-atom = which atom within a template molecule the atom is
-<LI>density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
-<LI>mass = mass of particle (mass units)
-<LI>volume = volume of particle (distance^3 units)
-<LI>x,y,z = coordinates of atom
-<LI>mux,muy,muz = components of dipole moment of atom (dipole units)
-<LI>rho = density (need units) for SPH particles
-<LI>e = energy (need units) for SPH particles
-<LI>cv = heat capacity (need units) for SPH particles
-<LI>spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
-<LI>eradius = electron radius (or fixed-core radius)
-<LI>etag = integer ID of electron that each wavepacket belongs to
-<LI>cs_re,cs_im = real/imaginary parts of wavepacket coefficients 
-</UL>
-<P>The units for these quantities depend on the unit style; see the
-<A HREF = "units.html">units</A> command for details.
-</P>
-<P>For 2d simulations specify z as 0.0, or a value within the <I>zlo zhi</I>
-setting in the data file header.
-</P>
-<P>The atom-ID is used to identify the atom throughout the simulation and
+of analysis.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>angle</td>
+<td>atom-ID molecule-ID atom-type x y z</td>
+</tr>
+<tr class="row-even"><td>atomic</td>
+<td>atom-ID atom-type x y z</td>
+</tr>
+<tr class="row-odd"><td>body</td>
+<td>atom-ID atom-type bodyflag mass x y z</td>
+</tr>
+<tr class="row-even"><td>bond</td>
+<td>atom-ID molecule-ID atom-type x y z</td>
+</tr>
+<tr class="row-odd"><td>charge</td>
+<td>atom-ID atom-type q x y z</td>
+</tr>
+<tr class="row-even"><td>dipole</td>
+<td>atom-ID atom-type q x y z mux muy muz</td>
+</tr>
+<tr class="row-odd"><td>electron</td>
+<td>atom-ID atom-type q spin eradius x y z</td>
+</tr>
+<tr class="row-even"><td>ellipsoid</td>
+<td>atom-ID atom-type ellipsoidflag density x y z</td>
+</tr>
+<tr class="row-odd"><td>full</td>
+<td>atom-ID molecule-ID atom-type q x y z</td>
+</tr>
+<tr class="row-even"><td>line</td>
+<td>atom-ID molecule-ID atom-type lineflag density x y z</td>
+</tr>
+<tr class="row-odd"><td>meso</td>
+<td>atom-ID atom-type rho e cv x y z</td>
+</tr>
+<tr class="row-even"><td>molecular</td>
+<td>atom-ID molecule-ID atom-type x y z</td>
+</tr>
+<tr class="row-odd"><td>peri</td>
+<td>atom-ID atom-type volume density x y z</td>
+</tr>
+<tr class="row-even"><td>sphere</td>
+<td>atom-ID atom-type diameter density x y z</td>
+</tr>
+<tr class="row-odd"><td>template</td>
+<td>atom-ID molecule-ID template-index template-atom atom-type x y z</td>
+</tr>
+<tr class="row-even"><td>tri</td>
+<td>atom-ID molecule-ID atom-type triangleflag density x y z</td>
+</tr>
+<tr class="row-odd"><td>wavepacket</td>
+<td>atom-ID atom-type charge spin eradius etag cs_re cs_im x y z</td>
+</tr>
+<tr class="row-even"><td>hybrid</td>
+<td>atom-ID atom-type x y z sub-style1 sub-style2 ...</td>
+</tr>
+</tbody>
+</table>
+<p>The keywords have these meanings:</p>
+<ul class="simple">
+<li>atom-ID = integer ID of atom</li>
+<li>molecule-ID = integer ID of molecule the atom belongs to</li>
+<li>atom-type = type of atom (1-Ntype)</li>
+<li>q = charge on atom (charge units)</li>
+<li>diameter = diameter of spherical atom (distance units)</li>
+<li>ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles</li>
+<li>lineflag = 1 for line segment particles, 0 for point particles</li>
+<li>triangleflag = 1 for triangular particles, 0 for point particles</li>
+<li>bodyflag = 1 for body particles, 0 for point particles</li>
+<li>template-index = which molecule within the molecule template the atom is part of</li>
+<li>template-atom = which atom within a template molecule the atom is</li>
+<li>density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)</li>
+<li>mass = mass of particle (mass units)</li>
+<li>volume = volume of particle (distance^3 units)</li>
+<li>x,y,z = coordinates of atom</li>
+<li>mux,muy,muz = components of dipole moment of atom (dipole units)</li>
+<li>rho = density (need units) for SPH particles</li>
+<li>e = energy (need units) for SPH particles</li>
+<li>cv = heat capacity (need units) for SPH particles</li>
+<li>spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)</li>
+<li>eradius = electron radius (or fixed-core radius)</li>
+<li>etag = integer ID of electron that each wavepacket belongs to</li>
+<li>cs_re,cs_im = real/imaginary parts of wavepacket coefficients</li>
+</ul>
+<p>The units for these quantities depend on the unit style; see the
+<a class="reference internal" href="units.html"><em>units</em></a> command for details.</p>
+<p>For 2d simulations specify z as 0.0, or a value within the <em>zlo zhi</em>
+setting in the data file header.</p>
+<p>The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
 each atom.  Unique values larger than Natoms can be used, but they
 will cause extra memory to be allocated on each processor, if an atom
 map array is used, but not if an atom map hash is used; see the
-<A HREF = "atom_modify.html">atom_modify</A> command for details.  If an atom map is
-not used (e.g. an atomic system with no bonds), and you don't care if
+<a class="reference internal" href="atom_modify.html"><em>atom_modify</em></a> command for details.  If an atom map is
+not used (e.g. an atomic system with no bonds), and you don&#8217;t care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
-to 0.
-</P>
-<P>The molecule ID is a 2nd identifier attached to an atom.  Normally, it
+to 0.</p>
+<p>The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
-to.  It can be 0 if it is an unbonded atom or if you don't care to
-keep track of molecule assignments.
-</P>
-<P>The diameter specifies the size of a finite-size spherical particle.
-It can be set to 0.0, which means that atom is a point particle.
-</P>
-<P>The ellipsoidflag, lineflag, triangleflag, and bodyflag determine
+to.  It can be 0 if it is an unbonded atom or if you don&#8217;t care to
+keep track of molecule assignments.</p>
+<p>The diameter specifies the size of a finite-size spherical particle.
+It can be set to 0.0, which means that atom is a point particle.</p>
+<p>The ellipsoidflag, lineflag, triangleflag, and bodyflag determine
 whether the particle is a finite-size ellipsoid or line or triangle or
 body of finite size, or whether the particle is a point particle.
 Additional attributes must be defined for each ellipsoid, line,
-triangle, or body in the corresponding <I>Ellipsoids</I>, <I>Lines</I>,
-<I>Triangles</I>, or <I>Bodies</I> section.
-</P>
-<P>The <I>template-index</I> and <I>template-atom</I> are only defined used by
-<A HREF = "atom_style.html">atom_style template</A>.  In this case the
-<A HREF = "molecule.html">molecule</A> command is used to define a molecule template
+triangle, or body in the corresponding <em>Ellipsoids</em>, <em>Lines</em>,
+<em>Triangles</em>, or <em>Bodies</em> section.</p>
+<p>The <em>template-index</em> and <em>template-atom</em> are only defined used by
+<a class="reference internal" href="atom_style.html"><em>atom_style template</em></a>.  In this case the
+<a class="reference internal" href="molecule.html"><em>molecule</em></a> command is used to define a molecule template
 which contains one or more molecules.  If an atom belongs to one of
-those molecules, its <I>template-index</I> and <I>template-atom</I> are both set
+those molecules, its <em>template-index</em> and <em>template-atom</em> are both set
 to positive integers; if not the values are both 0.  The
-<I>template-index</I> is which molecule (1 to Nmols) the atom belongs to.
-The <I>template-atom</I> is which atom (1 to Natoms) within the molecule
-the atom is.
-</P>
-<P>Some pair styles and fixes and computes that operate on finite-size
+<em>template-index</em> is which molecule (1 to Nmols) the atom belongs to.
+The <em>template-atom</em> is which atom (1 to Natoms) within the molecule
+the atom is.</p>
+<p>Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See
-the doc pages of individual commands for details.
-</P>
-<P>For finite-size particles, the density is used in conjunction with the
+the doc pages of individual commands for details.</p>
+<p>For finite-size particles, the density is used in conjunction with the
 particle volume to set the mass of each particle as mass = density *
 volume.  In this context, volume can be a 3d quantity (for spheres or
 ellipsoids), a 2d quantity (for triangles), or a 1d quantity (for line
@@ -645,36 +741,34 @@ segments).  If the volume is 0.0, meaning a point particle, then the
 density value is used as the mass.  One exception is for the body atom
 style, in which case the mass of each particle (body or point
 particle) is specified explicitly.  This is because the volume of the
-body is unknown.
-</P>
-<P>For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
+body is unknown.</p>
+<p>For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
-<A HREF = "atom_style.html">atom_style</A> command.  The sub-style specific values
+<a class="reference internal" href="atom_style.html"><em>atom_style</em></a> command.  The sub-style specific values
 are those that are not the 5 standard ones (ID,type,x,y,z).  For
-example, for the "charge" sub-style, a "q" value would appear.  For
-the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
-listed in the same order they appear as listed above.  Thus if
-</P>
-<PRE>atom_style hybrid charge sphere 
-</PRE>
-<P>were used in the input script, each atom line would have these fields:
-</P>
-<PRE>atom-ID atom-type x y z q diameter density 
-</PRE>
-<P>Note that if a non-standard value is defined by multiple sub-styles,
+example, for the &#8220;charge&#8221; sub-style, a &#8220;q&#8221; value would appear.  For
+the &#8220;full&#8221; sub-style, a &#8220;molecule-ID&#8221; and &#8220;q&#8221; would appear.  These are
+listed in the same order they appear as listed above.  Thus if</p>
+<div class="highlight-python"><div class="highlight"><pre>atom_style hybrid charge sphere
+</pre></div>
+</div>
+<p>were used in the input script, each atom line would have these fields:</p>
+<div class="highlight-python"><div class="highlight"><pre>atom-ID atom-type x y z q diameter density
+</pre></div>
+</div>
+<p>Note that if a non-standard value is defined by multiple sub-styles,
 it must appear mutliple times in the atom line.  E.g. the atom line
-for atom_style hybrid dipole full would list "q" twice:
-</P>
-<PRE>atom-ID atom-type x y z q mux muy myz molecule-ID q 
-</PRE>
-<P>Atom lines specify the (x,y,z) coordinates of atoms.  These can be
+for atom_style hybrid dipole full would list &#8220;q&#8221; twice:</p>
+<div class="highlight-python"><div class="highlight"><pre>atom-ID atom-type x y z q mux muy myz molecule-ID q
+</pre></div>
+</div>
+<p>Atom lines specify the (x,y,z) coordinates of atoms.  These can be
 inside or outside the simulation box.  When the data file is read,
 LAMMPS wraps coordinates outside the box back into the box for
 dimensions that are periodic.  As discussed above, if an atom is
-outside the box in a non-periodic dimension, it will be lost.
-</P>
-<P>LAMMPS always stores atom coordinates as values which are inside the
+outside the box in a non-periodic dimension, it will be lost.</p>
+<p>LAMMPS always stores atom coordinates as values which are inside the
 simulation box.  It also stores 3 flags which indicate which image of
 the simulation box (in each dimension) the atom would be in if its
 coordinates were unwrapped across periodic boundaries.  An image flag
@@ -682,85 +776,76 @@ of 0 means the atom is still inside the box when unwrapped.  A value
 of 2 means add 2 box lengths to get the unwrapped coordinate.  A value
 of -1 means subtract 1 box length to get the unwrapped coordinate.
 LAMMPS updates these flags as atoms cross periodic boundaries during
-the simulation.  The <A HREF = "dump.html">dump</A> command can output atom atom
+the simulation.  The <a class="reference internal" href="dump.html"><em>dump</em></a> command can output atom atom
 coordinates in wrapped or unwrapped form, as well as the 3 image
-flags.
-</P>
-<P>In the data file, atom lines (all lines or none of them) can
+flags.</p>
+<p>In the data file, atom lines (all lines or none of them) can
 optionally list 3 trailing integer values (nx,ny,nz), which are used
-to initialize the atom's image flags.  If nx,ny,nz values are not
+to initialize the atom&#8217;s image flags.  If nx,ny,nz values are not
 listed in the data file, LAMMPS initializes them to 0.  Note that the
-image flags are immediately updated if an atom's coordinates need to
-wrapped back into the simulation box.
-</P>
-<P>It is only important to set image flags correctly in a data file if a
+image flags are immediately updated if an atom&#8217;s coordinates need to
+wrapped back into the simulation box.</p>
+<p>It is only important to set image flags correctly in a data file if a
 simulation model relies on unwrapped coordinates for some calculation;
 otherwise they can be left unspecified.  Examples of LAMMPS commands
-that use unwrapped coordinates internally are as follows:
-</P>
-<UL><LI>Atoms in a rigid body (see <A HREF = "fix_rigid.html">fix rigid</A>, <A HREF = "fix_rigid.html">fix
-rigid/small</A>) must have consistent image flags, so that
+that use unwrapped coordinates internally are as follows:</p>
+<ul class="simple">
+<li>Atoms in a rigid body (see <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a>, <a class="reference internal" href="fix_rigid.html"><em>fix rigid/small</em></a>) must have consistent image flags, so that
 when the atoms are unwrapped, they are near each other, i.e. as a
-single body. 
-
-<LI>If the <A HREF = "replicate.html">replicate</A> command is used to generate a larger
+single body.</li>
+<li>If the <a class="reference internal" href="replicate.html"><em>replicate</em></a> command is used to generate a larger
 system, image flags must be consistent for bonded atoms when the bond
 crosses a periodic boundary.  I.e. the values of the image flags
 should be different by 1 (in the appropriate dimension) for the two
-atoms in such a bond. 
-
-<LI>If you plan to <A HREF = "dump.html">dump</A> image flags and perform post-analysis
+atoms in such a bond.</li>
+<li>If you plan to <a class="reference internal" href="dump.html"><em>dump</em></a> image flags and perform post-analysis
 that will unwrap atom coordinates, it may be important that a
 continued run (restarted from a data file) begins with image flags
-that are consistent with the previous run. 
-</UL>
-<P>Atom velocities and other atom quantities not defined above are set to
-0.0 when the <I>Atoms</I> section is read.  Velocities can be set later by
-a <I>Velocities</I> section in the data file or by a
-<A HREF = "velocity.html">velocity</A> or <A HREF = "set.html">set</A> command in the input
-script.
-</P>
-<HR>
-
-<P><I>Bodies</I> section:
-</P>
-<UL><LI>one or more lines per body 
-
-<LI>first line syntax: atom-ID ninteger ndouble 
-
-<PRE>  ninteger = # of integer quantities for this particle
-  ndouble = # of floating-point quantities for this particle 
-</PRE>
-<LI>0 or more integer lines: one line for every 10 integer quantities 
-
-<LI>0 or more double lines: one line for every 10 double quantities 
-
-<LI>example: 
-
-<PRE>  12 3 6
+that are consistent with the previous run.</li>
+</ul>
+<p>Atom velocities and other atom quantities not defined above are set to
+0.0 when the <em>Atoms</em> section is read.  Velocities can be set later by
+a <em>Velocities</em> section in the data file or by a
+<a class="reference internal" href="velocity.html"><em>velocity</em></a> or <a class="reference internal" href="set.html"><em>set</em></a> command in the input
+script.</p>
+<hr class="docutils" />
+<p><em>Bodies</em> section:</p>
+<ul class="simple">
+<li>one or more lines per body</li>
+<li>first line syntax: atom-ID ninteger ndouble</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ninteger = # of integer quantities for this particle
+  ndouble = # of floating-point quantities for this particle
+</pre></div>
+</div>
+<ul class="simple">
+<li>0 or more integer lines: one line for every 10 integer quantities</li>
+<li>0 or more double lines: one line for every 10 double quantities</li>
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 3 6
   2 3 2
-  1.0 2.0 3.0 1.0 2.0 4.0 
-</PRE>
-<LI>example: 
-
-<PRE>  12 0 14
+  1.0 2.0 3.0 1.0 2.0 4.0
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 0 14
   1.0 2.0 3.0 1.0 2.0 4.0 1.0 2.0 3.0 1.0
-  2.0 4.0 4.0 2.0 
-</PRE>
-
-</UL>
-<P>The <I>Bodies</I> section must appear if <A HREF = "atom_style.html">atom_style body</A>
-is used and any atoms listed in the <I>Atoms</I> section have a bodyflag =
+  2.0 4.0 4.0 2.0
+</pre></div>
+</div>
+<p>The <em>Bodies</em> section must appear if <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
+is used and any atoms listed in the <em>Atoms</em> section have a bodyflag =
 1.  The number of bodies should be specified in the header section via
-the "bodies" keyword.
-</P>
-<P>Each body can have a variable number of integer and/or floating-point
+the &#8220;bodies&#8221; keyword.</p>
+<p>Each body can have a variable number of integer and/or floating-point
 values.  The number and meaning of the values is defined by the body
-style, as described in the <A HREF = "body.html">body</A> doc page.  The body style
-is given as an argument to the <A HREF = "atom_style.html">atom_style body</A>
-command.
-</P>
-<P>The ninteger and ndouble values determine how many integer and
+style, as described in the <a class="reference internal" href="body.html"><em>body</em></a> doc page.  The body style
+is given as an argument to the <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
+command.</p>
+<p>The ninteger and ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and
 ndouble can be as large as needed and can be different for every body.
 Integer values are then listed on subsequent lines, 10 values per
@@ -769,463 +854,481 @@ line.  If the number of lines is not evenly divisible by 10, the last
 line in that group contains the remaining values, e.g. 4 values out of
 14 in the last example above, for floating-point values.  If there are
 no values of a particular type, no lines appear for that type,
-e.g. there are no integer lines in the last example above.
-</P>
-<P>The <I>Bodies</I> section must appear after the <I>Atoms</I> section.
-</P>
-<HR>
-
-<P><I>Bond Coeffs</I> section:
-</P>
-<UL><LI>one line per bond type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = bond type (1-N)
-  coeffs = list of coeffs 
-</PRE>
-<LI>example: 
-
-<PRE>  4 250 1.49 
-</PRE>
-
-</UL>
-<P>The number and meaning of the coefficients are specific to the defined
-bond style.  See the <A HREF = "bond_style.html">bond_style</A> and
-<A HREF = "bond_coeff.html">bond_coeff</A> commands for details.  Coefficients can
-also be set via the <A HREF = "bond_coeff.html">bond_coeff</A> command in the input
-script.
-</P>
-<HR>
-
-<P><I>BondAngle Coeffs</I> section:
-</P>
-<UL><LI>one line per angle type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = angle type (1-N)
-  coeffs = list of coeffs (see class 2 section of <A HREF = "angle_coeff.html">angle_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>BondBond Coeffs</I> section:
-</P>
-<UL><LI>one line per angle type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = angle type (1-N)
-  coeffs = list of coeffs (see class 2 section of <A HREF = "angle_coeff.html">angle_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>BondBond13 Coeffs</I> section:
-</P>
-<UL><LI>one line per dihedral type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = dihedral type (1-N)
-  coeffs = list of coeffs (see class 2 section of <A HREF = "dihedral_coeff.html">dihedral_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>Bonds</I> section:
-</P>
-<UL><LI>one line per bond 
-
-<LI>line syntax: ID type atom1 atom2 
-
-<PRE>  ID = bond number (1-Nbonds)
+e.g. there are no integer lines in the last example above.</p>
+<p>The <em>Bodies</em> section must appear after the <em>Atoms</em> section.</p>
+<hr class="docutils" />
+<p><em>Bond Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per bond type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = bond type (1-N)
+  coeffs = list of coeffs
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>4 250 1.49
+</pre></div>
+</div>
+<p>The number and meaning of the coefficients are specific to the defined
+bond style.  See the <a class="reference internal" href="bond_style.html"><em>bond_style</em></a> and
+<a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a> commands for details.  Coefficients can
+also be set via the <a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a> command in the input
+script.</p>
+<hr class="docutils" />
+<p><em>BondAngle Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per angle type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = angle type (1-N)
+  coeffs = list of coeffs (see class 2 section of <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>BondBond Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per angle type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = angle type (1-N)
+  coeffs = list of coeffs (see class 2 section of <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>BondBond13 Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = dihedral type (1-N)
+  coeffs = list of coeffs (see class 2 section of <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>Bonds</em> section:</p>
+<ul class="simple">
+<li>one line per bond</li>
+<li>line syntax: ID type atom1 atom2</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = bond number (1-Nbonds)
   type = bond type (1-Nbondtype)
-  atom1,atom2 = IDs of 1st,2nd atoms in bond 
-</PRE>
-<LI>example: 
-
-<PRE>  12 3 17 29 
-</PRE>
-
-</UL>
-<P>The <I>Bonds</I> section must appear after the <I>Atoms</I> section.  All values
-in this section must be integers (1, not 1.0).
-</P>
-<HR>
-
-<P><I>Dihedral Coeffs</I> section:
-</P>
-<UL><LI>one line per dihedral type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = dihedral type (1-N)
-  coeffs = list of coeffs 
-</PRE>
-<LI>example: 
-
-<PRE>  3 0.6 1 0 1 
-</PRE>
-
-</UL>
-<P>The number and meaning of the coefficients are specific to the defined
-dihedral style.  See the <A HREF = "dihedral_style.html">dihedral_style</A> and
-<A HREF = "dihedral_coeff.html">dihedral_coeff</A> commands for details.
+  atom1,atom2 = IDs of 1st,2nd atoms in bond
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 3 17 29
+</pre></div>
+</div>
+<p>The <em>Bonds</em> section must appear after the <em>Atoms</em> section.  All values
+in this section must be integers (1, not 1.0).</p>
+<hr class="docutils" />
+<p><em>Dihedral Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = dihedral type (1-N)
+  coeffs = list of coeffs
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>3 0.6 1 0 1
+</pre></div>
+</div>
+<p>The number and meaning of the coefficients are specific to the defined
+dihedral style.  See the <a class="reference internal" href="dihedral_style.html"><em>dihedral_style</em></a> and
+<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> commands for details.
 Coefficients can also be set via the
-<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script.
-</P>
-<HR>
-
-<P><I>Dihedrals</I> section:
-</P>
-<UL><LI>one line per dihedral 
-
-<LI>line syntax: ID type atom1 atom2 atom3 atom4 
-
-<PRE>  ID = number of dihedral (1-Ndihedrals)
+<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command in the input script.</p>
+<hr class="docutils" />
+<p><em>Dihedrals</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral</li>
+<li>line syntax: ID type atom1 atom2 atom3 atom4</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = number of dihedral (1-Ndihedrals)
   type = dihedral type (1-Ndihedraltype)
-  atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral 
-</PRE>
-<LI>example: 
-
-<PRE>  12 4 17 29 30 21 
-</PRE>
-
-</UL>
-<P>The 4 atoms are ordered linearly within the dihedral.  The <I>Dihedrals</I>
-section must appear after the <I>Atoms</I> section.  All values in this
-section must be integers (1, not 1.0).
-</P>
-<HR>
-
-<P><I>Ellipsoids</I> section:
-</P>
-<UL><LI>one line per ellipsoid 
-
-<LI>line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk 
-
-<PRE>  atom-ID = ID of atom which is an ellipsoid
+  atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 4 17 29 30 21
+</pre></div>
+</div>
+<p>The 4 atoms are ordered linearly within the dihedral.  The <em>Dihedrals</em>
+section must appear after the <em>Atoms</em> section.  All values in this
+section must be integers (1, not 1.0).</p>
+<hr class="docutils" />
+<p><em>Ellipsoids</em> section:</p>
+<ul class="simple">
+<li>one line per ellipsoid</li>
+<li>line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>atom-ID = ID of atom which is an ellipsoid
   shapex,shapey,shapez = 3 diameters of ellipsoid (distance units)
-  quatw,quati,quatj,quatk = quaternion components for orientation of atom 
-</PRE>
-<LI>example: 
-
-<PRE>  12 1 2 1 1 0 0 0 
-</PRE>
-
-</UL>
-<P>The <I>Ellipsoids</I> section must appear if <A HREF = "atom_style.html">atom_style
-ellipsoid</A> is used and any atoms are listed in the
-<I>Atoms</I> section with an ellipsoidflag = 1.  The number of ellipsoids
-should be specified in the header section via the "ellipsoids"
-keyword.
-</P>
-<P>The 3 shape values specify the 3 diameters or aspect ratios of a
+  quatw,quati,quatj,quatk = quaternion components for orientation of atom
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 1 2 1 1 0 0 0
+</pre></div>
+</div>
+<p>The <em>Ellipsoids</em> section must appear if <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> is used and any atoms are listed in the
+<em>Atoms</em> section with an ellipsoidflag = 1.  The number of ellipsoids
+should be specified in the header section via the &#8220;ellipsoids&#8221;
+keyword.</p>
+<p>The 3 shape values specify the 3 diameters or aspect ratios of a
 finite-size ellipsoidal particle, when it is oriented along the 3
-coordinate axes.  They must all be non-zero values.
-</P>
-<P>The values <I>quatw</I>, <I>quati</I>, <I>quatj</I>, and <I>quatk</I> set the orientation
+coordinate axes.  They must all be non-zero values.</p>
+<p>The values <em>quatw</em>, <em>quati</em>, <em>quatj</em>, and <em>quatk</em> set the orientation
 of the atom as a quaternion (4-vector).  Note that the shape
 attributes specify the aspect ratios of an ellipsoidal particle, which
-is oriented by default with its x-axis along the simulation box's
+is oriented by default with its x-axis along the simulation box&#8217;s
 x-axis, and similarly for y and z.  If this body is rotated (via the
 right-hand rule) by an angle theta around a unit vector (a,b,c), then
 the quaternion that represents its new orientation is given by
 (cos(theta/2), a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  These
 4 components are quatw, quati, quatj, and quatk as specified above.
-LAMMPS normalizes each atom's quaternion in case (a,b,c) is not
-specified as a unit vector.
-</P>
-<P>The <I>Ellipsoids</I> section must appear after the <I>Atoms</I> section.
-</P>
-<HR>
-
-<P><I>EndBondTorsion Coeffs</I> section:
-</P>
-<UL><LI>one line per dihedral type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = dihedral type (1-N)
-  coeffs = list of coeffs (see class 2 section of <A HREF = "dihedral_coeff.html">dihedral_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>Improper Coeffs</I> section:
-</P>
-<UL><LI>one line per improper type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = improper type (1-N)
-  coeffs = list of coeffs 
-</PRE>
-<LI>example: 
-
-<PRE>  2 20 0.0548311 
-</PRE>
-
-</UL>
-<P>The number and meaning of the coefficients are specific to the defined
-improper style.  See the <A HREF = "improper_style.html">improper_style</A> and
-<A HREF = "improper_coeff.html">improper_coeff</A> commands for details.
+LAMMPS normalizes each atom&#8217;s quaternion in case (a,b,c) is not
+specified as a unit vector.</p>
+<p>The <em>Ellipsoids</em> section must appear after the <em>Atoms</em> section.</p>
+<hr class="docutils" />
+<p><em>EndBondTorsion Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = dihedral type (1-N)
+  coeffs = list of coeffs (see class 2 section of <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>Improper Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per improper type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = improper type (1-N)
+  coeffs = list of coeffs
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>2 20 0.0548311
+</pre></div>
+</div>
+<p>The number and meaning of the coefficients are specific to the defined
+improper style.  See the <a class="reference internal" href="improper_style.html"><em>improper_style</em></a> and
+<a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a> commands for details.
 Coefficients can also be set via the
-<A HREF = "improper_coeff.html">improper_coeff</A> command in the input script.
-</P>
-<HR>
-
-<P><I>Impropers</I> section:
-</P>
-<UL><LI>one line per improper 
-
-<LI>line syntax: ID type atom1 atom2 atom3 atom4 
-
-<PRE>  ID = number of improper (1-Nimpropers)
+<a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a> command in the input script.</p>
+<hr class="docutils" />
+<p><em>Impropers</em> section:</p>
+<ul class="simple">
+<li>one line per improper</li>
+<li>line syntax: ID type atom1 atom2 atom3 atom4</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = number of improper (1-Nimpropers)
   type = improper type (1-Nimpropertype)
-  atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper 
-</PRE>
-<LI>example: 
-
-<PRE>  12 3 17 29 13 100 
-</PRE>
-
-</UL>
-<P>The ordering of the 4 atoms determines the definition of the improper
-angle used in the formula for each <A HREF = "improper_style.html">improper
-style</A>.  See the doc pages for individual styles
-for details.
-</P>
-<P>The <I>Impropers</I> section must appear after the <I>Atoms</I> section.  All
-values in this section must be integers (1, not 1.0).
-</P>
-<HR>
-
-<P><I>Lines</I> section:
-</P>
-<UL><LI>one line per line segment 
-
-<LI>line syntax: atom-ID x1 y1 x2 y2 
-
-<PRE>  atom-ID = ID of atom which is a line segment
+  atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 3 17 29 13 100
+</pre></div>
+</div>
+<p>The ordering of the 4 atoms determines the definition of the improper
+angle used in the formula for each <a class="reference internal" href="improper_style.html"><em>improper style</em></a>.  See the doc pages for individual styles
+for details.</p>
+<p>The <em>Impropers</em> section must appear after the <em>Atoms</em> section.  All
+values in this section must be integers (1, not 1.0).</p>
+<hr class="docutils" />
+<p><em>Lines</em> section:</p>
+<ul class="simple">
+<li>one line per line segment</li>
+<li>line syntax: atom-ID x1 y1 x2 y2</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>atom-ID = ID of atom which is a line segment
   x1,y1 = 1st end point
-  x2,y2 = 2nd end point 
-</PRE>
-<LI>example: 
-
-<PRE>  12 1.0 0.0 2.0 0.0 
-</PRE>
-
-</UL>
-<P>The <I>Lines</I> section must appear if <A HREF = "atom_style.html">atom_style line</A>
-is used and any atoms are listed in the <I>Atoms</I> section with a
+  x2,y2 = 2nd end point
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 1.0 0.0 2.0 0.0
+</pre></div>
+</div>
+<p>The <em>Lines</em> section must appear if <a class="reference internal" href="atom_style.html"><em>atom_style line</em></a>
+is used and any atoms are listed in the <em>Atoms</em> section with a
 lineflag = 1.  The number of lines should be specified in the header
-section via the "lines" keyword.
-</P>
-<P>The 2 end points are the end points of the line segment.  The ordering
+section via the &#8220;lines&#8221; keyword.</p>
+<p>The 2 end points are the end points of the line segment.  The ordering
 of the 2 points should be such that using a right-hand rule to cross
 the line segment with a unit vector in the +z direction, gives an
-"outward" normal vector perpendicular to the line segment.
+&#8220;outward&#8221; normal vector perpendicular to the line segment.
 I.e. normal = (c2-c1) x (0,0,1).  This orientation may be important
-for defining some interactions.
-</P>
-<P>The <I>Lines</I> section must appear after the <I>Atoms</I> section.
-</P>
-<HR>
-
-<P><I>Masses</I> section:
-</P>
-<UL><LI>one line per atom type 
-
-<LI>line syntax: ID mass 
-
-<PRE>  ID = atom type (1-N)
-  mass = mass value 
-</PRE>
-<LI>example: 
-
-<PRE>  3 1.01 
-</PRE>
-
-</UL>
-<P>This defines the mass of each atom type.  This can also be set via the
-<A HREF = "mass.html">mass</A> command in the input script.  This section cannot be
+for defining some interactions.</p>
+<p>The <em>Lines</em> section must appear after the <em>Atoms</em> section.</p>
+<hr class="docutils" />
+<p><em>Masses</em> section:</p>
+<ul class="simple">
+<li>one line per atom type</li>
+<li>line syntax: ID mass</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = atom type (1-N)
+  mass = mass value
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>3 1.01
+</pre></div>
+</div>
+<p>This defines the mass of each atom type.  This can also be set via the
+<a class="reference internal" href="mass.html"><em>mass</em></a> command in the input script.  This section cannot be
 used for atom styles that define a mass for individual atoms -
-e.g. <A HREF = "atom_style.html">atom_style sphere</A>.
-</P>
-<HR>
-
-<P><I>MiddleBondTorsion Coeffs</I> section:
-</P>
-<UL><LI>one line per dihedral type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = dihedral type (1-N)
-  coeffs = list of coeffs (see class 2 section of <A HREF = "dihedral_coeff.html">dihedral_coeff</A>) 
-</PRE>
-
-</UL>
-<HR>
-
-<P><I>Pair Coeffs</I> section:
-</P>
-<UL><LI>one line per atom type 
-
-<LI>line syntax: ID coeffs 
-
-<PRE>  ID = atom type (1-N)
-  coeffs = list of coeffs 
-</PRE>
-<LI>example: 
-
-<PRE>  3 0.022 2.35197 0.022 2.35197 
-</PRE>
-
-</UL>
-<P>The number and meaning of the coefficients are specific to the defined
-pair style.  See the <A HREF = "pair_style.html">pair_style</A> and
-<A HREF = "pair_coeff.html">pair_coeff</A> commands for details.  Since pair
+e.g. <a class="reference internal" href="atom_style.html"><em>atom_style sphere</em></a>.</p>
+<hr class="docutils" />
+<p><em>MiddleBondTorsion Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<pre class="literal-block">
+ID = dihedral type (1-N)
+  coeffs = list of coeffs (see class 2 section of <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a>)
+</pre>
+<hr class="docutils" />
+<p><em>Pair Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per atom type</li>
+<li>line syntax: ID coeffs</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID = atom type (1-N)
+  coeffs = list of coeffs
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>3 0.022 2.35197 0.022 2.35197
+</pre></div>
+</div>
+<p>The number and meaning of the coefficients are specific to the defined
+pair style.  See the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> and
+<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> commands for details.  Since pair
 coefficients for types I != J are not specified, these will be
-generated automatically by the pair style's mixing rule.  See the
-individual pair_style doc pages and the <A HREF = "pair_modify.html">pair_modify
-mix</A> command for details.  Pair coefficients can also
-be set via the <A HREF = "pair_coeff.html">pair_coeff</A> command in the input
-script.
-</P>
-<HR>
-
-<P><I>PairIJ Coeffs</I> section:
-</P>
-<UL><LI>one line per pair of atom types for all I,J with I <= J 
-
-<LI>line syntax: ID1 ID2 coeffs 
-
-<PRE>  ID1 = atom type I = 1-N
-  ID2 = atom type J = I-N, with I <= J
-  coeffs = list of coeffs 
-</PRE>
-<LI>examples: 
-
-<PRE>  3 3 0.022 2.35197 0.022 2.35197
-  3 5 0.022 2.35197 0.022 2.35197 
-</PRE>
-
-</UL>
-<P>This section must have N*(N+1)/2 lines where N = # of atom types.  The
+generated automatically by the pair style&#8217;s mixing rule.  See the
+individual pair_style doc pages and the <a class="reference internal" href="pair_modify.html"><em>pair_modify mix</em></a> command for details.  Pair coefficients can also
+be set via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command in the input
+script.</p>
+<hr class="docutils" />
+<p><em>PairIJ Coeffs</em> section:</p>
+<ul class="simple">
+<li>one line per pair of atom types for all I,J with I &lt;= J</li>
+<li>line syntax: ID1 ID2 coeffs</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID1 = atom type I = 1-N
+  ID2 = atom type J = I-N, with I &lt;= J
+  coeffs = list of coeffs
+</pre></div>
+</div>
+<ul class="simple">
+<li>examples:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>3 3 0.022 2.35197 0.022 2.35197
+  3 5 0.022 2.35197 0.022 2.35197
+</pre></div>
+</div>
+<p>This section must have N*(N+1)/2 lines where N = # of atom types.  The
 number and meaning of the coefficients are specific to the defined
-pair style.  See the <A HREF = "pair_style.html">pair_style</A> and
-<A HREF = "pair_coeff.html">pair_coeff</A> commands for details.  Since pair
+pair style.  See the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> and
+<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> commands for details.  Since pair
 coefficients for types I != J are all specified, these values will
 turn off the default mixing rule defined by the pair style.  See the
-individual pair_style doc pages and the <A HREF = "pair_modify.html">pair_modify
-mix</A> command for details.  Pair coefficients can also
-be set via the <A HREF = "pair_coeff.html">pair_coeff</A> command in the input
-script.
-</P>
-<HR>
-
-<P><I>Triangles</I> section:
-</P>
-<UL><LI>one line per triangle 
-
-<LI>line syntax: atom-ID x1 y1 x2 y2 
-
-<PRE>  atom-ID = ID of atom which is a line segment
+individual pair_style doc pages and the <a class="reference internal" href="pair_modify.html"><em>pair_modify mix</em></a> command for details.  Pair coefficients can also
+be set via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command in the input
+script.</p>
+<hr class="docutils" />
+<p><em>Triangles</em> section:</p>
+<ul class="simple">
+<li>one line per triangle</li>
+<li>line syntax: atom-ID x1 y1 x2 y2</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>atom-ID = ID of atom which is a line segment
   x1,y1,z1 = 1st corner point
   x2,y2,z2 = 2nd corner point
-  x3,y3,z3 = 3rd corner point 
-</PRE>
-<LI>example: 
-
-<PRE>  12 0.0 0.0 0.0 2.0 0.0 1.0 0.0 2.0 1.0 
-</PRE>
-
-</UL>
-<P>The <I>Triangles</I> section must appear if <A HREF = "atom_style.html">atom_style
-tri</A> is used and any atoms are listed in the <I>Atoms</I>
+  x3,y3,z3 = 3rd corner point
+</pre></div>
+</div>
+<ul class="simple">
+<li>example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>12 0.0 0.0 0.0 2.0 0.0 1.0 0.0 2.0 1.0
+</pre></div>
+</div>
+<p>The <em>Triangles</em> section must appear if <a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> is used and any atoms are listed in the <em>Atoms</em>
 section with a triangleflag = 1.  The number of lines should be
-specified in the header section via the "triangles" keyword.
-</P>
-<P>The 3 corner points are the corner points of the triangle.  The
+specified in the header section via the &#8220;triangles&#8221; keyword.</p>
+<p>The 3 corner points are the corner points of the triangle.  The
 ordering of the 3 points should be such that using a right-hand rule
-to go from point1 to point2 to point3 gives an "outward" normal vector
+to go from point1 to point2 to point3 gives an &#8220;outward&#8221; normal vector
 to the face of the triangle.  I.e. normal = (c2-c1) x (c3-c1).  This
-orientation may be important for defining some interactions.
-</P>
-<P>The <I>Triangles</I> section must appear after the <I>Atoms</I> section.
-</P>
-<HR>
-
-<P><I>Velocities</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: depends on atom style 
-</UL>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >all styles except those listed</TD><TD > atom-ID vx vy vz</TD></TR>
-<TR><TD >electron</TD><TD > atom-ID vx vy vz ervel</TD></TR>
-<TR><TD >ellipsoid</TD><TD > atom-ID vx vy vz lx ly lz</TD></TR>
-<TR><TD >sphere</TD><TD > atom-ID vx vy vz wx wy wz</TD></TR>
-<TR><TD >hybrid</TD><TD > atom-ID vx vy vz sub-style1 sub-style2 ... 
-</TD></TR></TABLE></DIV>
-
-<P>where the keywords have these meanings:
-</P>
-<P>vx,vy,vz = translational velocity of atom
+orientation may be important for defining some interactions.</p>
+<p>The <em>Triangles</em> section must appear after the <em>Atoms</em> section.</p>
+<hr class="docutils" />
+<p><em>Velocities</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: depends on atom style</li>
+</ul>
+<table border="1" class="docutils">
+<colgroup>
+<col width="42%" />
+<col width="58%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>all styles except those listed</td>
+<td>atom-ID vx vy vz</td>
+</tr>
+<tr class="row-even"><td>electron</td>
+<td>atom-ID vx vy vz ervel</td>
+</tr>
+<tr class="row-odd"><td>ellipsoid</td>
+<td>atom-ID vx vy vz lx ly lz</td>
+</tr>
+<tr class="row-even"><td>sphere</td>
+<td>atom-ID vx vy vz wx wy wz</td>
+</tr>
+<tr class="row-odd"><td>hybrid</td>
+<td>atom-ID vx vy vz sub-style1 sub-style2 ...</td>
+</tr>
+</tbody>
+</table>
+<p>where the keywords have these meanings:</p>
+<p>vx,vy,vz = translational velocity of atom
 lx,ly,lz = angular momentum of aspherical atom
 wx,wy,wz = angular velocity of spherical atom
-ervel = electron radial velocity (0 for fixed-core):ul
-</P>
-<P>The velocity lines can appear in any order.  This section can only be
-used after an <I>Atoms</I> section.  This is because the <I>Atoms</I> section
+ervel = electron radial velocity (0 for fixed-core):ul</p>
+<p>The velocity lines can appear in any order.  This section can only be
+used after an <em>Atoms</em> section.  This is because the <em>Atoms</em> section
 must have assigned a unique atom ID to each atom so that velocities
-can be assigned to them.
-</P>
-<P>Vx, vy, vz, and ervel are in <A HREF = "units.html">units</A> of velocity.  Lx, ly,
+can be assigned to them.</p>
+<p>Vx, vy, vz, and ervel are in <a class="reference internal" href="units.html"><em>units</em></a> of velocity.  Lx, ly,
 lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
-Wz are in units of angular velocity (radians/time).
-</P>
-<P>For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),
+Wz are in units of angular velocity (radians/time).</p>
+<p>For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
-<A HREF = "atom_style.html">atom_style</A> command.  The sub-style specific values
+<a class="reference internal" href="atom_style.html"><em>atom_style</em></a> command.  The sub-style specific values
 are those that are not the 5 standard ones (ID,vx,vy,vz).  For
-example, for the "sphere" sub-style, "wx", "wy", "wz" values would
+example, for the &#8220;sphere&#8221; sub-style, &#8220;wx&#8221;, &#8220;wy&#8221;, &#8220;wz&#8221; values would
 appear.  These are listed in the same order they appear as listed
-above.  Thus if
-</P>
-<PRE>atom_style hybrid electron sphere 
-</PRE>
-<P>were used in the input script, each velocity line would have these
-fields:
-</P>
-<PRE>atom-ID vx vy vz ervel wx wy wz 
-</PRE>
-<P>Translational velocities can also be set by the
-<A HREF = "velocity.html">velocity</A> command in the input script.
-</P>
-<HR>
+above.  Thus if</p>
+<div class="highlight-python"><div class="highlight"><pre>atom_style hybrid electron sphere
+</pre></div>
+</div>
+<p>were used in the input script, each velocity line would have these
+fields:</p>
+<div class="highlight-python"><div class="highlight"><pre>atom-ID vx vy vz ervel wx wy wz
+</pre></div>
+</div>
+<p>Translational velocities can also be set by the
+<a class="reference internal" href="velocity.html"><em>velocity</em></a> command in the input script.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>To read gzipped data files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the <a class="reference internal" href="Section_start.html#start-2"><span>Making LAMMPS</span></a> section of the documentation.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="read_dump.html"><em>read_dump</em></a>, <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>,
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>, <a class="reference internal" href="write_data.html"><em>write_data</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default for all the <em>extra</em> keywords is 0.</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#start_2">Making
-LAMMPS</A> section of the documentation.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "read_dump.html">read_dump</A>, <A HREF = "read_restart.html">read_restart</A>,
-<A HREF = "create_atoms.html">create_atoms</A>, <A HREF = "write_data.html">write_data</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The default for all the <I>extra</I> keywords is 0.
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

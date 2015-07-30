@@ -1,129 +1,244 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style tersoff command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style tersoff command 
-</H3>
-<H3>pair_style tersoff/table command 
-</H3>
-<H3>pair_style tersoff/cuda 
-</H3>
-<H3>pair_style tersoff/kk 
-</H3>
-<H3>pair_style tersoff/omp 
-</H3>
-<H3>pair_style tersoff/table/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style style 
-</PRE>
-<P>style = <I>tersoff</I> or <I>tersoff/table</I> or <I>tersoff/cuda</I> or <I>tersoff/omp</I> or <I>tersoff/table/omp</I>
-</P>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style tersoff
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style tersoff command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-tersoff-command">
+<span id="index-0"></span><h1>pair_style tersoff command<a class="headerlink" href="#pair-style-tersoff-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tersoff-table-command">
+<h1>pair_style tersoff/table command<a class="headerlink" href="#pair-style-tersoff-table-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tersoff-cuda">
+<h1>pair_style tersoff/cuda<a class="headerlink" href="#pair-style-tersoff-cuda" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tersoff-kk">
+<h1>pair_style tersoff/kk<a class="headerlink" href="#pair-style-tersoff-kk" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tersoff-omp">
+<h1>pair_style tersoff/omp<a class="headerlink" href="#pair-style-tersoff-omp" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tersoff-table-omp-command">
+<h1>pair_style tersoff/table/omp command<a class="headerlink" href="#pair-style-tersoff-table-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style style
+</pre></div>
+</div>
+<p>style = <em>tersoff</em> or <em>tersoff/table</em> or <em>tersoff/cuda</em> or <em>tersoff/omp</em> or <em>tersoff/table/omp</em></p>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style tersoff
 pair_coeff * * Si.tersoff Si
-pair_coeff * * SiC.tersoff Si C Si 
-</PRE>
-<PRE>pair_style tersoff/table
-pair_coeff * * SiCGe.tersoff Si(D) 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>The <I>tersoff</I> style computes a 3-body Tersoff potential
-<A HREF = "#Tersoff_1">(Tersoff_1)</A> for the energy E of a system of atoms as
-</P>
-<CENTER><IMG SRC = "Eqs/pair_tersoff_1.jpg">
-</CENTER>
-<P>where f_R is a two-body term and f_A includes three-body interactions.
+pair_coeff * * SiC.tersoff Si C Si
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style tersoff/table
+pair_coeff * * SiCGe.tersoff Si(D)
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>tersoff</em> style computes a 3-body Tersoff potential
+<a class="reference internal" href="pair_tersoff_zbl.html#tersoff-1"><span>(Tersoff_1)</span></a> for the energy E of a system of atoms as</p>
+<img alt="_images/pair_tersoff_1.jpg" class="align-center" src="_images/pair_tersoff_1.jpg" />
+<p>where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = R + D. 
-</P>
-<P>The <I>tersoff/table</I> style uses tabulated forms for the two-body, 
+within a cutoff distance = R + D.</p>
+<p>The <em>tersoff/table</em> style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed
 between adjacent table entries. The table length is chosen to be
-accurate within 10^-6 with respect to the <I>tersoff</I> style energy.
-The <I>tersoff/table</I> should give better performance in terms of speed.
-</P>
-<P>Only a single pair_coeff command is used with the <I>tersoff</I> style
+accurate within 10^-6 with respect to the <em>tersoff</em> style energy.
+The <em>tersoff/table</em> should give better performance in terms of speed.</p>
+<p>Only a single pair_coeff command is used with the <em>tersoff</em> style
 which specifies a Tersoff potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
 N additional arguments after the filename in the pair_coeff command,
-where N is the number of LAMMPS atom types:
-</P>
-<UL><LI>filename
-<LI>N element names = mapping of Tersoff elements to atom types 
-</UL>
-<P>See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page for alternate ways
-to specify the path for the potential file.
-</P>
-<P>As an example, imagine the SiC.tersoff file has Tersoff values for Si
+where N is the number of LAMMPS atom types:</p>
+<ul class="simple">
+<li>filename</li>
+<li>N element names = mapping of Tersoff elements to atom types</li>
+</ul>
+<p>See the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> doc page for alternate ways
+to specify the path for the potential file.</p>
+<p>As an example, imagine the SiC.tersoff file has Tersoff values for Si
 and C.  If your LAMMPS simulation has 4 atoms types and you want the
 1st 3 to be Si, and the 4th to be C, you would use the following
-pair_coeff command:
-</P>
-<PRE>pair_coeff * * SiC.tersoff Si Si Si C 
-</PRE>
-<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+pair_coeff command:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * SiC.tersoff Si Si Si C
+</pre></div>
+</div>
+<p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the Tersoff file.  The final C argument maps LAMMPS atom
 type 4 to the C element in the Tersoff file.  If a mapping value is
 specified as NULL, the mapping is not performed.  This can be used
-when a <I>tersoff</I> potential is used as part of the <I>hybrid</I> pair style.
+when a <em>tersoff</em> potential is used as part of the <em>hybrid</em> pair style.
 The NULL values are placeholders for atom types that will be used with
-other potentials.
-</P>
-<P>Tersoff files in the <I>potentials</I> directory of the LAMMPS distribution
-have a ".tersoff" suffix.  Lines that are not blank or comments
+other potentials.</p>
+<p>Tersoff files in the <em>potentials</em> directory of the LAMMPS distribution
+have a &#8221;.tersoff&#8221; suffix.  Lines that are not blank or comments
 (starting with #) define parameters for a triplet of elements.  The
 parameters in a single entry correspond to coefficients in the formula
-above:
-</P>
-<UL><LI>element 1 (the center atom in a 3-body interaction)
-<LI>element 2 (the atom bonded to the center atom)
-<LI>element 3 (the atom influencing the 1-2 bond in a bond-order sense)
-<LI>m
-<LI>gamma
-<LI>lambda3 (1/distance units)
-<LI>c
-<LI>d
-<LI>costheta0 (can be a value < -1 or > 1)
-<LI>n
-<LI>beta
-<LI>lambda2 (1/distance units)
-<LI>B (energy units)
-<LI>R (distance units)
-<LI>D (distance units)
-<LI>lambda1 (1/distance units)
-<LI>A (energy units) 
-</UL>
-<P>The n, beta, lambda2, B, lambda1, and A parameters are only used for
+above:</p>
+<ul class="simple">
+<li>element 1 (the center atom in a 3-body interaction)</li>
+<li>element 2 (the atom bonded to the center atom)</li>
+<li>element 3 (the atom influencing the 1-2 bond in a bond-order sense)</li>
+<li>m</li>
+<li>gamma</li>
+<li>lambda3 (1/distance units)</li>
+<li>c</li>
+<li>d</li>
+<li>costheta0 (can be a value &lt; -1 or &gt; 1)</li>
+<li>n</li>
+<li>beta</li>
+<li>lambda2 (1/distance units)</li>
+<li>B (energy units)</li>
+<li>R (distance units)</li>
+<li>D (distance units)</li>
+<li>lambda1 (1/distance units)</li>
+<li>A (energy units)</li>
+</ul>
+<p>The n, beta, lambda2, B, lambda1, and A parameters are only used for
 two-body interactions.  The m, gamma, lambda3, c, d, and costheta0
 parameters are only used for three-body interactions. The R and D
 parameters are used for both two-body and three-body interactions. The
-non-annotated parameters are unitless.  The value of m must be 3 or 1.
-</P>
-<P>The Tersoff potential file must contain entries for all the elements
+non-annotated parameters are unitless.  The value of m must be 3 or 1.</p>
+<p>The Tersoff potential file must contain entries for all the elements
 listed in the pair_coeff command.  It can also contain entries for
 additional elements not being used in a particular simulation; LAMMPS
-ignores those entries.
-</P>
-<P>For a single-element simulation, only a single entry is required
+ignores those entries.</p>
+<p>For a single-element simulation, only a single entry is required
 (e.g. SiSiSi).  For a two-element simulation, the file must contain 8
 entries (for SiSiSi, SiSiC, SiCSi, SiCC, CSiSi, CSiC, CCSi, CCC), that
 specify Tersoff parameters for all permutations of the two elements
 interacting in three-body configurations.  Thus for 3 elements, 27
-entries would be required, etc.
-</P>
-<P>As annotated above, the first element in the entry is the center atom
+entries would be required, etc.</p>
+<p>As annotated above, the first element in the entry is the center atom
 in a three-body interaction and it is bonded to the 2nd atom and the
 bond is influenced by the 3rd atom.  Thus an entry for SiCC means Si
 bonded to a C with another C atom influencing the bond.  Thus
@@ -131,135 +246,163 @@ three-body parameters for SiCSi and SiSiC entries will not, in
 general, be the same.  The parameters used for the two-body
 interaction come from the entry where the 2nd element is repeated.
 Thus the two-body parameters for Si interacting with C, comes from the
-SiCC entry.  
-</P>
-<P>The parameters used for a particular
+SiCC entry.</p>
+<p>The parameters used for a particular
 three-body interaction come from the entry with the corresponding
 three elements.  The parameters used only for two-body interactions
 (n, beta, lambda2, B, lambda1, and A) in entries whose 2nd and 3rd
 element are different (e.g. SiCSi) are not used for anything and can
-be set to 0.0 if desired. 
-</P>
-<P>Note that the twobody parameters in entries such as SiCC and CSiSi 
-are often the same, due to the common use of symmetric mixing rules, 
-but this is not always the case. For example, the beta and n parameters in 
-Tersoff_2 <A HREF = "#Tersoff_2">(Tersoff_2)</A> are not symmetric.
-</P>
-<P>We chose the above form so as to enable users to define all commonly
+be set to 0.0 if desired.</p>
+<p>Note that the twobody parameters in entries such as SiCC and CSiSi
+are often the same, due to the common use of symmetric mixing rules,
+but this is not always the case. For example, the beta and n parameters in
+Tersoff_2 <a class="reference internal" href="pair_tersoff_zbl.html#tersoff-2"><span>(Tersoff_2)</span></a> are not symmetric.</p>
+<p>We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff potential.  In particular, our form
 reduces to the original Tersoff form when m = 3 and gamma = 1, while
-it reduces to the form of <A HREF = "#Albe">Albe et al.</A> when beta = 1 and m = 1.
+it reduces to the form of <a class="reference internal" href="pair_tersoff_zbl.html#albe"><span>Albe et al.</span></a> when beta = 1 and m = 1.
 Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff_2
-potential <A HREF = "#Tersoff_2">(Tersoff_2)</A>. The <I>tersoff/table</I> style implements
-Tersoff_2 parameterization only.
-</P>
-<P>LAMMPS parameter values for Tersoff_2 can be obtained as follows:
+potential <a class="reference internal" href="pair_tersoff_zbl.html#tersoff-2"><span>(Tersoff_2)</span></a>. The <em>tersoff/table</em> style implements
+Tersoff_2 parameterization only.</p>
+<p>LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 gamma_ijk = omega_ik, lambda3 = 0 and the value of
 m has no effect.  The parameters for species i and j can be calculated
-using the Tersoff_2 mixing rules:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_tersoff_2.jpg">
-</CENTER>
-<P>Tersoff_2 parameters R and S must be converted to the LAMMPS
+using the Tersoff_2 mixing rules:</p>
+<img alt="_images/pair_tersoff_2.jpg" class="align-center" src="_images/pair_tersoff_2.jpg" />
+<p>Tersoff_2 parameters R and S must be converted to the LAMMPS
 parameters R and D (R is different in both forms), using the following
-relations: R=(R'+S')/2 and D=(S'-R')/2, where the primes indicate the
-Tersoff_2 parameters.
-</P>
-<P>In the potentials directory, the file SiCGe.tersoff provides the
-LAMMPS parameters for Tersoff's various versions of Si, as well as his
+relations: R=(R&#8217;+S&#8217;)/2 and D=(S&#8217;-R&#8217;)/2, where the primes indicate the
+Tersoff_2 parameters.</p>
+<p>In the potentials directory, the file SiCGe.tersoff provides the
+LAMMPS parameters for Tersoff&#8217;s various versions of Si, as well as his
 alloy parameters for Si, C, and Ge. This file can be used for pure Si,
 (three different versions), pure C, pure Ge, binary SiC, and binary
 SiGe.  LAMMPS will generate an error if this file is used with any
 combination involving C and Ge, since there are no entries for the GeC
 interactions (Tersoff did not publish parameters for this
 cross-interaction.)  Tersoff files are also provided for the SiC alloy
-(SiC.tersoff) and the GaN (GaN.tersoff) alloys.
-</P>
-<P>Many thanks to Rutuparna Narulkar, David Farrell, and Xiaowang Zhou
+(SiC.tersoff) and the GaN (GaN.tersoff) alloys.</p>
+<p>Many thanks to Rutuparna Narulkar, David Farrell, and Xiaowang Zhou
 for helping clarify how Tersoff parameters for alloys have been
-defined in various papers.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+defined in various papers.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>For atom type pairs I,J and I != J, where types I and J correspond to
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
-described above from values in the potential file.
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-shift, table, and tail options.
-</P>
-<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
-files</A>, since it is stored in potential files.  Thus, you
+described above from values in the potential file.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+shift, table, and tail options.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>This pair style is part of the MANYBODY package.  It is only enabled
+script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package (which it is by default).  See
-the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
-</P>
-<P>This pair style requires the <A HREF = "newton.html">newton</A> setting to be "on"
-for pair interactions.
-</P>
-<P>The Tersoff potential files provided with LAMMPS (see the potentials
-directory) are parameterized for metal <A HREF = "units.html">units</A>.  You can
+the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This pair style requires the <a class="reference internal" href="newton.html"><em>newton</em></a> setting to be &#8220;on&#8221;
+for pair interactions.</p>
+<p>The Tersoff potential files provided with LAMMPS (see the potentials
+directory) are parameterized for metal <a class="reference internal" href="units.html"><em>units</em></a>.  You can
 use the Tersoff potential with any LAMMPS units, but you would need to
 create your own Tersoff potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "metal" units.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+appropriate units if your simulation doesn&#8217;t use &#8220;metal&#8221; units.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="tersoff-1"><strong>(Tersoff_1)</strong> J. Tersoff, Phys Rev B, 37, 6991 (1988).</p>
+<p id="albe"><strong>(Albe)</strong> J. Nord, K. Albe, P. Erhart, and K. Nordlund, J. Phys.:
+Condens. Matter, 15, 5649(2003).</p>
+<p id="tersoff-2"><strong>(Tersoff_2)</strong> J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)</p>
+</div>
+</div>
 
-<A NAME = "Tersoff_1"></A>
 
-<P><B>(Tersoff_1)</B> J. Tersoff, Phys Rev B, 37, 6991 (1988).
-</P>
-<A NAME = "Albe"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Albe)</B> J. Nord, K. Albe, P. Erhart, and K. Nordlund, J. Phys.:
-Condens. Matter, 15, 5649(2003).
-</P>
-<A NAME = "Tersoff_2"></A>
+  <hr/>
 
-<P><B>(Tersoff_2)</B> J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

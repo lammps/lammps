@@ -1,124 +1,290 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute slice command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute slice command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID slice Nstart Nstop Nskip input1 input2 ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>slice = style name of this compute command 
-
-<LI>Nstart = starting index within input vector(s) 
-
-<LI>Nstop = stopping index within input vector(s) 
-
-<LI>Nskip = extract every Nskip elements from input vector(s) 
-
-<LI>input = c_ID, c_ID[N], f_ID, f_ID[N] 
-
-<PRE>  c_ID = global vector calculated by a compute with ID
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute slice command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-slice-command">
+<span id="index-0"></span><h1>compute slice command<a class="headerlink" href="#compute-slice-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID slice Nstart Nstop Nskip input1 input2 ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>slice = style name of this compute command</li>
+<li>Nstart = starting index within input vector(s)</li>
+<li>Nstop = stopping index within input vector(s)</li>
+<li>Nskip = extract every Nskip elements from input vector(s)</li>
+<li>input = c_ID, c_ID[N], f_ID, f_ID[N]</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>c_ID = global vector calculated by a compute with ID
   c_ID[I] = Ith column of global array calculated by a compute with ID
   f_ID = global vector calculated by a fix with ID
-  f_ID[I] = Ith column of global array calculated by a fix with ID 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all slice 1 100 10 c_msdmol[4]
-compute 1 all slice 301 400 1 c_msdmol[4] 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a calculation that "slices" one or more vector inputs into
+  f_ID[I] = Ith column of global array calculated by a fix with ID
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all slice 1 100 10 c_msdmol[4]
+compute 1 all slice 301 400 1 c_msdmol[4]
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a calculation that &#8220;slices&#8221; one or more vector inputs into
 smaller vectors, one per listed input.  The inputs can be global
 quantities; they cannot be per-atom or local quantities.
-<A HREF = "compute.html">Computes</A> and <A HREF = "fix.html">fixes</A> may generate any of the
-three kinds of quantities.  <A HREF = "variable.html">Variables</A> do not generate
-global vectors.  The group specified with this command is ignored.
-</P>
-<P>The values extracted from the input vector(s) are determined by the
-<I>Nstart</I>, <I>Nstop</I>, and <I>Nskip</I> parameters.  The elements of an input
+<a class="reference internal" href="compute.html"><em>Computes</em></a> and <a class="reference internal" href="fix.html"><em>fixes</em></a> may generate any of the
+three kinds of quantities.  <a class="reference internal" href="variable.html"><em>Variables</em></a> do not generate
+global vectors.  The group specified with this command is ignored.</p>
+<p>The values extracted from the input vector(s) are determined by the
+<em>Nstart</em>, <em>Nstop</em>, and <em>Nskip</em> parameters.  The elements of an input
 vector of length N are indexed from 1 to N.  Starting at element
-<I>Nstart</I>, every Mth element is extracted, where M = <I>Nskip</I>, until
-element <I>Nstop</I> is reached.  The extracted quantities are stored as a
-vector, which is typically shorter than the input vector.
-</P>
-<P>Each listed input is operated on independently to produce one output
+<em>Nstart</em>, every Mth element is extracted, where M = <em>Nskip</em>, until
+element <em>Nstop</em> is reached.  The extracted quantities are stored as a
+vector, which is typically shorter than the input vector.</p>
+<p>Each listed input is operated on independently to produce one output
 vector.  Each listed input must be a global vector or column of a
-global array calculated by another <A HREF = "compute.html">compute</A> or
-<A HREF = "fix.html">fix</A>.
-</P>
-<P>If an input value begins with "c_", a compute ID must follow which has
+global array calculated by another <a class="reference internal" href="compute.html"><em>compute</em></a> or
+<a class="reference internal" href="fix.html"><em>fix</em></a>.</p>
+<p>If an input value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has
 been previously defined in the input script and which generates a
-global vector or array.  See the individual <A HREF = "compute.html">compute</A> doc
+global vector or array.  See the individual <a class="reference internal" href="compute.html"><em>compute</em></a> doc
 page for details.  If no bracketed integer is appended, the vector
 calculated by the compute is used.  If a bracketed integer is
 appended, the Ith column of the array calculated by the compute is
-used.  Users can also write code for their own compute styles and <A HREF = "Section_modify.html">add
-them to LAMMPS</A>.
-</P>
-<P>If a value begins with "f_", a fix ID must follow which has been
+used.  Users can also write code for their own compute styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
+<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
 previously defined in the input script and which generates a global
-vector or array.  See the individual <A HREF = "fix.html">fix</A> doc page for
+vector or array.  See the individual <a class="reference internal" href="fix.html"><em>fix</em></a> doc page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when compute slice references
 the values, else an error results.  If no bracketed integer is
 appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
-is used.  Users can also write code for their own fix style and <A HREF = "Section_modify.html">add
-them to LAMMPS</A>.
-</P>
-<P>If a single input is specified this compute produces a global vector,
+is used.  Users can also write code for their own fix style and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
+<p>If a single input is specified this compute produces a global vector,
 even if the length of the vector is 1.  If multiple inputs are
 specified, then a global array of values is produced, with the number
-of columns equal to the number of inputs specified.
-</P>
-<HR>
-
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a global vector if a single input value is
+of columns equal to the number of inputs specified.</p>
+<hr class="docutils" />
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global vector if a single input value is
 specified or a global array with N columns where N is the number of
 inputs.  The length of the vector or the number of rows in the array
 is equal to the number of values extracted from each input vector.
 These values can be used by any command that uses global vector or
-array values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
-section</A> for an overview of LAMMPS output
-options.
-</P>
-<P>The vector or array values calculated by this compute are simply
+array values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The vector or array values calculated by this compute are simply
 copies of values generated by computes or fixes that are input vectors
 to this compute.  If there is a single input vector of intensive
 and/or extensive values, then each value in the vector of values
-calculated by this compute will be "intensive" or "extensive",
+calculated by this compute will be &#8220;intensive&#8221; or &#8220;extensive&#8221;,
 depending on the corresponding input value.  If there are multiple
 input vectors, and all the values in them are intensive, then the
-array values calculated by this compute are "intensive".  If there are
+array values calculated by this compute are &#8220;intensive&#8221;.  If there are
 multiple input vectors, and any value in them is extensive, then the
-array values calculated by this compute are "extensive".
-</P>
-<P>The vector or array values will be in whatever <A HREF = "units.html">units</A> the
-input quantities are in.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, <A HREF = "compute_reduce.html">compute
-reduce</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+array values calculated by this compute are &#8220;extensive&#8221;.</p>
+<p>The vector or array values will be in whatever <a class="reference internal" href="units.html"><em>units</em></a> the
+input quantities are in.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix.html"><em>fix</em></a>, <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

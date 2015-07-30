@@ -1,267 +1,434 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>lattice command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>lattice command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>lattice style scale keyword values ... 
-</PRE>
-<UL><LI>style = <I>none</I> or <I>sc</I> or <I>bcc</I> or <I>fcc</I> or <I>hcp</I> or <I>diamond</I> or         <I>sq</I> or <I>sq2</I> or <I>hex</I> or <I>custom</I> 
-
-<LI>scale = scale factor between lattice and simulation box 
-
-<PRE>  scale = reduced density rho* (for LJ units)
-  scale = lattice constant in distance units (for all other units) 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>origin</I> or <I>orient</I> or <I>spacing</I> or <I>a1</I> or <I>a2</I> or <I>a3</I> or <I>basis</I> 
-
-<PRE>  <I>origin</I> values = x y z
-    x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
-  <I>orient</I> values = dim i j k
-    dim = <I>x</I> or <I>y</I> or <I>z</I>
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>lattice command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="lattice-command">
+<span id="index-0"></span><h1>lattice command<a class="headerlink" href="#lattice-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>lattice style scale keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>none</em> or <em>sc</em> or <em>bcc</em> or <em>fcc</em> or <em>hcp</em> or <em>diamond</em> or         <em>sq</em> or <em>sq2</em> or <em>hex</em> or <em>custom</em></li>
+<li>scale = scale factor between lattice and simulation box</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>scale = reduced density rho* (for LJ units)
+  scale = lattice constant in distance units (for all other units)
+</pre></div>
+</div>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>origin</em> or <em>orient</em> or <em>spacing</em> or <em>a1</em> or <em>a2</em> or <em>a3</em> or <em>basis</em></li>
+</ul>
+<pre class="literal-block">
+<em>origin</em> values = x y z
+    x,y,z = fractions of a unit cell (0 &lt;= x,y,z &lt; 1)
+  <em>orient</em> values = dim i j k
+    dim = <em>x</em> or <em>y</em> or <em>z</em>
     i,j,k = integer lattice directions
-  <I>spacing</I> values = dx dy dz
+  <em>spacing</em> values = dx dy dz
     dx,dy,dz = lattice spacings in the x,y,z box directions
-  <I>a1</I>,<I>a2</I>,<I>a3</I> values = x y z
+  <em>a1</em>,*a2*,*a3* values = x y z
     x,y,z = primitive vector components that define unit cell
-  <I>basis</I> values = x y z
-    x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>lattice fcc 3.52
+  <em>basis</em> values = x y z
+    x,y,z = fractional coords of a basis atom (0 &lt;= x,y,z &lt; 1)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>lattice fcc 3.52
 lattice hex 0.85
 lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
-lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
+lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &amp;
                     basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
-lattice none 2.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a lattice for use by other commands.  In LAMMPS, a lattice is
+lattice none 2.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a lattice for use by other commands.  In LAMMPS, a lattice is
 simply a set of points in space, determined by a unit cell with basis
 atoms, that is replicated infinitely in all dimensions.  The arguments
 of the lattice command can be used to define a wide variety of
-crystallographic lattices.
-</P>
-<P>A lattice is used by LAMMPS in two ways.  First, the
-<A HREF = "create_atoms.html">create_atoms</A> command creates atoms on the lattice
+crystallographic lattices.</p>
+<p>A lattice is used by LAMMPS in two ways.  First, the
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command creates atoms on the lattice
 points inside the simulation box.  Note that the
-<A HREF = "create_atoms.html">create_atoms</A> command allows different atom types
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command allows different atom types
 to be assigned to different basis atoms of the lattice.  Second, the
 lattice spacing in the x,y,z dimensions implied by the lattice, can be
 used by other commands as distance units
-(e.g. <A HREF = "create_box.html">create_box</A>, <A HREF = "region.html">region</A> and
-<A HREF = "velocity.html">velocity</A>), which are often convenient to use when the
-underlying problem geometry is atoms on a lattice.
-</P>
-<P>The lattice style must be consistent with the dimension of the
-simulation - see the <A HREF = "dimension.html">dimension</A> command.  Styles <I>sc</I>
-or <I>bcc</I> or <I>fcc</I> or <I>hcp</I> or <I>diamond</I> are for 3d problems.  Styles
-<I>sq</I> or <I>sq2</I> or <I>hex</I> are for 2d problems.  Style <I>custom</I> can be
-used for either 2d or 3d problems.
-</P>
-<P>A lattice consists of a unit cell, a set of basis atoms within that
+(e.g. <a class="reference internal" href="create_box.html"><em>create_box</em></a>, <a class="reference internal" href="region.html"><em>region</em></a> and
+<a class="reference internal" href="velocity.html"><em>velocity</em></a>), which are often convenient to use when the
+underlying problem geometry is atoms on a lattice.</p>
+<p>The lattice style must be consistent with the dimension of the
+simulation - see the <a class="reference internal" href="dimension.html"><em>dimension</em></a> command.  Styles <em>sc</em>
+or <em>bcc</em> or <em>fcc</em> or <em>hcp</em> or <em>diamond</em> are for 3d problems.  Styles
+<em>sq</em> or <em>sq2</em> or <em>hex</em> are for 2d problems.  Style <em>custom</em> can be
+used for either 2d or 3d problems.</p>
+<p>A lattice consists of a unit cell, a set of basis atoms within that
 cell, and a set of transformation parameters (scale, origin, orient)
 that map the unit cell into the simulation box.  The vectors a1,a2,a3
 are the edge vectors of the unit cell.  This is the nomenclature for
-"primitive" vectors in solid-state crystallography, but in LAMMPS the
-unit cell they determine does not have to be a "primitive cell" of
-minimum volume.
-</P>
-<P>Note that the lattice command can be used multiple times in an input
+&#8220;primitive&#8221; vectors in solid-state crystallography, but in LAMMPS the
+unit cell they determine does not have to be a &#8220;primitive cell&#8221; of
+minimum volume.</p>
+<p>Note that the lattice command can be used multiple times in an input
 script.  Each time it is invoked, the lattice attributes are
 re-defined and are used for all subsequent commands (that use lattice
 attributes).  For example, a sequence of lattice,
-<A HREF = "region.html">region</A>, and <A HREF = "create_atoms.html">create_atoms</A> commands
+<a class="reference internal" href="region.html"><em>region</em></a>, and <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> commands
 can be repeated multiple times to build a poly-crystalline model with
 different geometric regions populated with atoms in different lattice
-orientations.
-</P>
-<HR>
-
-<P>A lattice of style <I>none</I> does not define a unit cell and basis set,
-so it cannot be used with the <A HREF = "create_atoms.html">create_atoms</A>
+orientations.</p>
+<hr class="docutils" />
+<p>A lattice of style <em>none</em> does not define a unit cell and basis set,
+so it cannot be used with the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>
 command.  However it does define a lattice spacing via the specified
 scale parameter.  As explained above the lattice spacings in x,y,z can
 be used by other commands as distance units.  No additional
-keyword/value pairs can be specified for the <I>none</I> style.  By
-default, a "lattice none 1.0" is defined, which means the lattice
+keyword/value pairs can be specified for the <em>none</em> style.  By
+default, a &#8220;lattice none 1.0&#8221; is defined, which means the lattice
 spacing is the same as one distance unit, as defined by the
-<A HREF = "units.html">units</A> command.
-</P>
-<P>Lattices of style <I>sc</I>, <I>fcc</I>, <I>bcc</I>, and <I>diamond</I> are 3d lattices
+<a class="reference internal" href="units.html"><em>units</em></a> command.</p>
+<p>Lattices of style <em>sc</em>, <em>fcc</em>, <em>bcc</em>, and <em>diamond</em> are 3d lattices
 that define a cubic unit cell with edge length = 1.0.  This means a1 =
-1 0 0, a2 = 0 1 0, and a3 = 0 0 1.  Style <I>hcp</I> has a1 = 1 0 0, a2 = 0
+1 0 0, a2 = 0 1 0, and a3 = 0 0 1.  Style <em>hcp</em> has a1 = 1 0 0, a2 = 0
 sqrt(3) 0, and a3 = 0 0 sqrt(8/3).  The placement of the basis atoms
 within the unit cell are described in any solid-state physics text.  A
-<I>sc</I> lattice has 1 basis atom at the lower-left-bottom corner of the
-cube.  A <I>bcc</I> lattice has 2 basis atoms, one at the corner and one at
-the center of the cube.  A <I>fcc</I> lattice has 4 basis atoms, one at the
-corner and 3 at the cube face centers.  A <I>hcp</I> lattice has 4 basis
-atoms, two in the z = 0 plane and 2 in the z = 0.5 plane.  A <I>diamond</I>
-lattice has 8 basis atoms.
-</P>
-<P>Lattices of style <I>sq</I> and <I>sq2</I> are 2d lattices that define a square
+<em>sc</em> lattice has 1 basis atom at the lower-left-bottom corner of the
+cube.  A <em>bcc</em> lattice has 2 basis atoms, one at the corner and one at
+the center of the cube.  A <em>fcc</em> lattice has 4 basis atoms, one at the
+corner and 3 at the cube face centers.  A <em>hcp</em> lattice has 4 basis
+atoms, two in the z = 0 plane and 2 in the z = 0.5 plane.  A <em>diamond</em>
+lattice has 8 basis atoms.</p>
+<p>Lattices of style <em>sq</em> and <em>sq2</em> are 2d lattices that define a square
 unit cell with edge length = 1.0.  This means a1 = 1 0 0 and a2 = 0 1
-0.  A <I>sq</I> lattice has 1 basis atom at the lower-left corner of the
-square.  A <I>sq2</I> lattice has 2 basis atoms, one at the corner and one
-at the center of the square.  A <I>hex</I> style is also a 2d lattice, but
+0.  A <em>sq</em> lattice has 1 basis atom at the lower-left corner of the
+square.  A <em>sq2</em> lattice has 2 basis atoms, one at the corner and one
+at the center of the square.  A <em>hex</em> style is also a 2d lattice, but
 the unit cell is rectangular, with a1 = 1 0 0 and a2 = 0 sqrt(3) 0.
 It has 2 basis atoms, one at the corner and one at the center of the
-rectangle.
-</P>
-<P>A lattice of style <I>custom</I> allows you to specify a1, a2, a3, and a
+rectangle.</p>
+<p>A lattice of style <em>custom</em> allows you to specify a1, a2, a3, and a
 list of basis atoms to put in the unit cell.  By default, a1 and a2
 and a3 are 3 orthogonal unit vectors (edges of a unit cube).  But you
 can specify them to be of any length and non-orthogonal to each other,
-so that they describe a tilted parallelepiped.  Via the <I>basis</I>
+so that they describe a tilted parallelepiped.  Via the <em>basis</em>
 keyword you add atoms, one at a time, to the unit cell.  Its arguments
-are fractional coordinates (0.0 <= x,y,z < 1.0).  The position vector
+are fractional coordinates (0.0 &lt;= x,y,z &lt; 1.0).  The position vector
 x of a basis atom within the unit cell is thus a linear combination of
-the the unit cell's 3 edge vectors, i.e. x = bx a1 + by a2 + bz a3,
-where bx,by,bz are the 3 values specified for the <I>basis</I> keyword.
-</P>
-<HR>
-
-<P>This sub-section discusses the arguments that determine how the
+the the unit cell&#8217;s 3 edge vectors, i.e. x = bx a1 + by a2 + bz a3,
+where bx,by,bz are the 3 values specified for the <em>basis</em> keyword.</p>
+<hr class="docutils" />
+<p>This sub-section discusses the arguments that determine how the
 idealized unit cell is transformed into a lattice of points within the
-simulation box.
-</P>
-<P>The <I>scale</I> argument determines how the size of the unit cell will be
+simulation box.</p>
+<p>The <em>scale</em> argument determines how the size of the unit cell will be
 scaled when mapping it into the simulation box.  I.e. it determines a
 multiplicative factor to apply to the unit cell, to convert it to a
 lattice of the desired size and distance units in the simulation box.
-The meaning of the <I>scale</I> argument depends on the <A HREF = "units.html">units</A>
-being used in your simulation.
-</P>
-<P>For all unit styles except <I>lj</I>, the scale argument is specified in
-the distance units defined by the unit style.  For example, in <I>real</I>
-or <I>metal</I> units, if the unit cell is a unit cube with edge length
+The meaning of the <em>scale</em> argument depends on the <a class="reference internal" href="units.html"><em>units</em></a>
+being used in your simulation.</p>
+<p>For all unit styles except <em>lj</em>, the scale argument is specified in
+the distance units defined by the unit style.  For example, in <em>real</em>
+or <em>metal</em> units, if the unit cell is a unit cube with edge length
 1.0, specifying scale = 3.52 would create a cubic lattice with a
-spacing of 3.52 Angstroms.  In <I>cgs</I> units, the spacing would be 3.52
-cm.
-</P>
-<P>For unit style <I>lj</I>, the scale argument is the Lennard-Jones reduced
+spacing of 3.52 Angstroms.  In <em>cgs</em> units, the spacing would be 3.52
+cm.</p>
+<p>For unit style <em>lj</em>, the scale argument is the Lennard-Jones reduced
 density, typically written as rho*.  LAMMPS converts this value into
-the multiplicative factor via the formula "factor^dim = rho/rho*",
+the multiplicative factor via the formula &#8220;factor^dim = rho/rho*&#8221;,
 where rho = N/V with V = the volume of the lattice unit cell and N =
 the number of basis atoms in the unit cell (described below), and dim
 = 2 or 3 for the dimensionality of the simulation.  Effectively, this
 means that if LJ particles of size sigma = 1.0 are used in the
 simulation, the lattice of particles will be at the desired reduced
-density.
-</P>
-<P>The <I>origin</I> option specifies how the unit cell will be shifted or
+density.</p>
+<p>The <em>origin</em> option specifies how the unit cell will be shifted or
 translated when mapping it into the simulation box.  The x,y,z values
-are fractional values (0.0 <= x,y,z < 1.0) meaning shift the lattice
+are fractional values (0.0 &lt;= x,y,z &lt; 1.0) meaning shift the lattice
 by a fraction of the lattice spacing in each dimension.  The meaning
-of "lattice spacing" is discussed below.
-</P>
-<P>The <I>orient</I> option specifies how the unit cell will be rotated when
-mapping it into the simulation box.  The <I>dim</I> argument is one of the
+of &#8220;lattice spacing&#8221; is discussed below.</p>
+<p>The <em>orient</em> option specifies how the unit cell will be rotated when
+mapping it into the simulation box.  The <em>dim</em> argument is one of the
 3 coordinate axes in the simulation box.  The other 3 arguments are
 the crystallographic direction in the lattice that you want to orient
-along that axis, specified as integers.  E.g. "orient x 2 1 0" means
+along that axis, specified as integers.  E.g. &#8220;orient x 2 1 0&#8221; means
 the x-axis in the simulation box will be the [210] lattice
 direction, and similarly for y and z.  The 3 lattice directions you
 specify do not have to be unit vectors, but they must be mutually
 orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
-the Z direction.
-</P>
-<P>IMPORTANT NOTE: The preceding paragraph describing lattice directions
+the Z direction.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The preceding paragraph describing lattice directions
 is only valid for orthogonal cubic unit cells (or square in 2d).  If
-you are using a <I>hcp</I> or <I>hex</I> lattice or the more general lattice
-style <I>custom</I> with non-orthogonal a1,a2,a3 vectors, then you should
-think of the 3 <I>orient</I> vectors as creating a 3x3 rotation matrix
+you are using a <em>hcp</em> or <em>hex</em> lattice or the more general lattice
+style <em>custom</em> with non-orthogonal a1,a2,a3 vectors, then you should
+think of the 3 <em>orient</em> vectors as creating a 3x3 rotation matrix
 which is applied to a1,a2,a3 to rotate the original unit cell to a new
-orientation in the simulation box.
-</P>
-<HR>
-
-<P>Several LAMMPS commands have the option to use distance units that are
-inferred from "lattice spacings" in the x,y,z box directions.
-E.g. the <A HREF = "region.html">region</A> command can create a block of size
-10x20x20, where 10 means 10 lattice spacings in the x direction.  
-</P>
-<P>IMPORTANT NOTE: Though they are called lattice spacings, all the
-commands that have a "units lattice" option, simply use the 3 values
+orientation in the simulation box.</p>
+</div>
+<hr class="docutils" />
+<p>Several LAMMPS commands have the option to use distance units that are
+inferred from &#8220;lattice spacings&#8221; in the x,y,z box directions.
+E.g. the <a class="reference internal" href="region.html"><em>region</em></a> command can create a block of size
+10x20x20, where 10 means 10 lattice spacings in the x direction.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Though they are called lattice spacings, all the
+commands that have a &#8220;units lattice&#8221; option, simply use the 3 values
 as scale factors on the distance units defined by the
-<A HREF = "units.html">units</A> command.  Thus if you do not like the lattice
+<a class="reference internal" href="units.html"><em>units</em></a> command.  Thus if you do not like the lattice
 spacings computed by LAMMPS (e.g. for a non-orthogonal or rotated unit
 cell), you can define the 3 values to be whatever you wish, via the
-<I>spacing</I> option.
-</P>
-<P>If the <I>spacing</I> option is not specified, the lattice spacings are
+<em>spacing</em> option.</p>
+</div>
+<p>If the <em>spacing</em> option is not specified, the lattice spacings are
 computed by LAMMPS in the following way.  A unit cell of the lattice
 is mapped into the simulation box (scaled and rotated), so that it now
 has (perhaps) a modified size and orientation.  The lattice spacing in
 X is defined as the difference between the min/max extent of the x
 coordinates of the 8 corner points of the modified unit cell (4 in
 2d).  Similarly, the Y and Z lattice spacings are defined as the
-difference in the min/max of the y and z coordinates.
-</P>
-<P>Note that if the unit cell is orthogonal with axis-aligned edges (no
-rotation via the <I>orient</I> keyword), then the lattice spacings in each
+difference in the min/max of the y and z coordinates.</p>
+<p>Note that if the unit cell is orthogonal with axis-aligned edges (no
+rotation via the <em>orient</em> keyword), then the lattice spacings in each
 dimension are simply the scale factor (described above) multiplied by
-the length of a1,a2,a3.  Thus a <I>hex</I> style lattice with a scale
+the length of a1,a2,a3.  Thus a <em>hex</em> style lattice with a scale
 factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
-3*sqrt(3.0) in y.
-</P>
-<P>IMPORTANT NOTE: For non-orthogonal unit cells and/or when a rotation
-is applied via the <I>orient</I> keyword, then the lattice spacings
+3*sqrt(3.0) in y.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">For non-orthogonal unit cells and/or when a rotation
+is applied via the <em>orient</em> keyword, then the lattice spacings
 computed by LAMMPS are typically less intuitive.  In particular, in
 these cases, there is no guarantee that a particular lattice spacing
 is an integer multiple of the periodicity of the lattice in that
 direction.  Thus, if you create an orthogonal periodic simulation box
 whose size in a dimension is a multiple of the lattice spacing, and
-then fill it with atoms via the <A HREF = "create_atoms.html">create_atoms</A>
+then fill it with atoms via the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>
 command, you will NOT necessarily create a periodic system.
-I.e. atoms may overlap incorrectly at the faces of the simulation box.
-</P>
-<P>The <I>spacing</I> option sets the 3 lattice spacings directly.  All must
+I.e. atoms may overlap incorrectly at the faces of the simulation box.</p>
+</div>
+<p>The <em>spacing</em> option sets the 3 lattice spacings directly.  All must
 be non-zero (use 1.0 for dz in a 2d simulation).  The specified values
 are multiplied by the multiplicative factor described above that is
 associated with the scale factor.  Thus a spacing of 1.0 means one
 unit cell edge length independent of the scale factor.  As mentioned
 above, this option can be useful if the spacings LAMMPS computes are
 inconvenient to use in subsequent commands, which can be the case for
-non-orthogonal or rotated lattices.
-</P>
-<P>Note that whenever the lattice command is used, the values of the
+non-orthogonal or rotated lattices.</p>
+<p>Note that whenever the lattice command is used, the values of the
 lattice spacings LAMMPS calculates are printed out.  Thus their effect
-in commands that use the spacings should be decipherable.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>The <I>a1,a2,a3,basis</I> keywords can only be used with style <I>custom</I>.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "dimension.html">dimension</A>, <A HREF = "create_atoms.html">create_atoms</A>,
-<A HREF = "region.html">region</A>
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>lattice none 1.0 
-</PRE>
-<P>For other lattice styles, the option defaults are origin = 0.0 0.0
+in commands that use the spacings should be decipherable.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The <em>a1,a2,a3,basis</em> keywords can only be used with style <em>custom</em>.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dimension.html"><em>dimension</em></a>, <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>,
+<a class="reference internal" href="region.html"><em>region</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>lattice none 1.0
+</pre></div>
+</div>
+<p>For other lattice styles, the option defaults are origin = 0.0 0.0
 0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1 0 0,
-a2 = 0 1 0, and a3 = 0 0 1.
-</P>
-</HTML>
+a2 = 0 1 0, and a3 = 0 0 1.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

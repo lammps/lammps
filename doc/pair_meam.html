@@ -1,176 +1,282 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style meam command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style meam command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style meam 
-</PRE>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style meam
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style meam command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-meam-command">
+<span id="index-0"></span><h1>pair_style meam command<a class="headerlink" href="#pair-style-meam-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style meam
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style meam
 pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
-pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>NOTE: The behavior of the MEAM potential for alloy systems has changed
+pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The behavior of the MEAM potential for alloy systems has changed
 as of November 2010; see description below of the mixture_ref_t
-parameter
-</P>
-<P>Style <I>meam</I> computes pairwise interactions for a variety of materials
+parameter</p>
+</div>
+<p>Style <em>meam</em> computes pairwise interactions for a variety of materials
 using modified embedded-atom method (MEAM) potentials
-<A HREF = "#Baskes">(Baskes)</A>.  Conceptually, it is an extension to the original
-<A HREF = "pair_eam.html">EAM potentials</A> which adds angular forces.  It is
+<a class="reference internal" href="#baskes"><span>(Baskes)</span></a>.  Conceptually, it is an extension to the original
+<a class="reference internal" href="pair_eam.html"><em>EAM potentials</em></a> which adds angular forces.  It is
 thus suitable for modeling metals and alloys with fcc, bcc, hcp and
 diamond cubic structures, as well as covalently bonded materials like
-silicon and carbon.
-</P>
-<P>In the MEAM formulation, the total energy E of a system of atoms is
-given by:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_meam.jpg">
-</CENTER>
-<P>where F is the embedding energy which is a function of the atomic
+silicon and carbon.</p>
+<p>In the MEAM formulation, the total energy E of a system of atoms is
+given by:</p>
+<img alt="_images/pair_meam.jpg" class="align-center" src="_images/pair_meam.jpg" />
+<p>where F is the embedding energy which is a function of the atomic
 electron density rho, and phi is a pair potential interaction.  The
 pair interaction is summed over all neighbors J of atom I within the
 cutoff distance.  As with EAM, the multi-body nature of the MEAM
 potential is a result of the embedding energy term.  Details of the
 computation of the embedding and pair energies, as implemented in
-LAMMPS, are given in <A HREF = "#Gullet">(Gullet)</A> and references therein.
-</P>
-<P>The various parameters in the MEAM formulas are listed in two files
-which are specified by the <A HREF = "pair_coeff.html">pair_coeff</A> command.
+LAMMPS, are given in <a class="reference internal" href="#gullet"><span>(Gullet)</span></a> and references therein.</p>
+<p>The various parameters in the MEAM formulas are listed in two files
+which are specified by the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.
 These are ASCII text files in a format consistent with other MD codes
 that implement MEAM potentials, such as the serial DYNAMO code and
 Warp.  Several MEAM potential files with parameters for different
-materials are included in the "potentials" directory of the LAMMPS
-distribution with a ".meam" suffix.  All of these are parameterized in
-terms of LAMMPS <A HREF = "units.html">metal units</A>.
-</P>
-<P>Note that unlike for other potentials, cutoffs for MEAM potentials are
+materials are included in the &#8220;potentials&#8221; directory of the LAMMPS
+distribution with a &#8221;.meam&#8221; suffix.  All of these are parameterized in
+terms of LAMMPS <a class="reference internal" href="units.html"><em>metal units</em></a>.</p>
+<p>Note that unlike for other potentials, cutoffs for MEAM potentials are
 not set in the pair_style or pair_coeff command; they are specified in
-the MEAM potential files themselves.
-</P>
-<P>Only a single pair_coeff command is used with the <I>meam</I> style which
+the MEAM potential files themselves.</p>
+<p>Only a single pair_coeff command is used with the <em>meam</em> style which
 specifies two MEAM files and the element(s) to extract information
 for.  The MEAM elements are mapped to LAMMPS atom types by specifying
 N additional arguments after the 2nd filename in the pair_coeff
-command, where N is the number of LAMMPS atom types:
-</P>
-<UL><LI>MEAM library file
-<LI>Elem1, Elem2, ...
-<LI>MEAM parameter file
-<LI>N element names = mapping of MEAM elements to atom types 
-</UL>
-<P>See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page for alternate ways
-to specify the path for the potential files.
-</P>
-<P>As an example, the potentials/library.meam file has generic MEAM
+command, where N is the number of LAMMPS atom types:</p>
+<ul class="simple">
+<li>MEAM library file</li>
+<li>Elem1, Elem2, ...</li>
+<li>MEAM parameter file</li>
+<li>N element names = mapping of MEAM elements to atom types</li>
+</ul>
+<p>See the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> doc page for alternate ways
+to specify the path for the potential files.</p>
+<p>As an example, the potentials/library.meam file has generic MEAM
 settings for a variety of elements.  The potentials/sic.meam file has
 specific parameter settings for a Si and C alloy system.  If your
 LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
-and the 4th to be C, you would use the following pair_coeff command:
-</P>
-<PRE>pair_coeff * * library.meam Si C sic.meam Si Si Si C 
-</PRE>
-<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+and the 4th to be C, you would use the following pair_coeff command:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * library.meam Si C sic.meam Si Si Si C
+</pre></div>
+</div>
+<p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The two filenames are for the library and parameter file respectively.
 The Si and C arguments (between the file names) are the two elements
 for which info will be extracted from the library file.  The first
 three trailing Si arguments map LAMMPS atom types 1,2,3 to the MEAM Si
 element.  The final C argument maps LAMMPS atom type 4 to the MEAM C
-element.
-</P>
-<P>If the 2nd filename is specified as NULL, no parameter file is read,
+element.</p>
+<p>If the 2nd filename is specified as NULL, no parameter file is read,
 which simply means the generic parameters in the library file are
 used.  Use of the NULL specification for the parameter file is
 discouraged for systems with more than a single element type
 (e.g. alloys), since the parameter file is expected to set element
 interaction terms that are not captured by the information in the
-library file.
-</P>
-<P>If a mapping value is specified as NULL, the mapping is not performed.
-This can be used when a <I>meam</I> potential is used as part of the
-<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
-that will be used with other potentials.
-</P>
-<P>The MEAM library file provided with LAMMPS has the name
-potentials/library.meam.  It is the "meamf" file used by other MD
+library file.</p>
+<p>If a mapping value is specified as NULL, the mapping is not performed.
+This can be used when a <em>meam</em> potential is used as part of the
+<em>hybrid</em> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.</p>
+<p>The MEAM library file provided with LAMMPS has the name
+potentials/library.meam.  It is the &#8220;meamf&#8221; file used by other MD
 codes.  Aside from blank and comment lines (start with #) which can
 appear anywhere, it is formatted as a series of entries, each of which
-has 19 parameters and can span multiple lines:
-</P>
-<P>elt, lat, z, ielement, atwt, alpha, b0, b1, b2, b3, alat, esub, asub,
-t0, t1, t2, t3, rozero, ibar
-</P>
-<P>The "elt" and "lat" parameters are text strings, such as elt = Si or
+has 19 parameters and can span multiple lines:</p>
+<p>elt, lat, z, ielement, atwt, alpha, b0, b1, b2, b3, alat, esub, asub,
+t0, t1, t2, t3, rozero, ibar</p>
+<p>The &#8220;elt&#8221; and &#8220;lat&#8221; parameters are text strings, such as elt = Si or
 Cu and lat = dia or fcc.  Because the library file is used by Fortran
 MD codes, these strings may be enclosed in single quotes, but this is
 not required.  The other numeric parameters match values in the
-formulas above.  The value of the "elt" string is what is used in the
+formulas above.  The value of the &#8220;elt&#8221; string is what is used in the
 pair_coeff command to identify which settings from the library file
 you wish to read in.  There can be multiple entries in the library
-file with the same "elt" value; LAMMPS reads the 1st matching entry it
-finds and ignores the rest.
-</P>
-<P>Other parameters in the MEAM library file correspond to single-element
-potential parameters:
-</P>
-<PRE>lat      = lattice structure of reference configuration
+file with the same &#8220;elt&#8221; value; LAMMPS reads the 1st matching entry it
+finds and ignores the rest.</p>
+<p>Other parameters in the MEAM library file correspond to single-element
+potential parameters:</p>
+<pre class="literal-block">
+lat      = lattice structure of reference configuration
 z        = number of nearest neighbors in the reference structure
 ielement = atomic number
 atwt     = atomic weight
 alat     = lattice constant of reference structure
 esub     = energy per atom (eV) in the reference structure at equilibrium
-asub     = "A" parameter for MEAM (see e.g. <A HREF = "#Baskes">(Baskes)</A>) 
-</PRE>
-<P>The alpha, b0, b1, b2, b3, t0, t1, t2, t3 parameters correspond to the
-standard MEAM parameters in the literature <A HREF = "#Baskes">(Baskes)</A> (the b
+asub     = &quot;A&quot; parameter for MEAM (see e.g. <a class="reference internal" href="#baskes"><span>(Baskes)</span></a>)
+</pre>
+<p>The alpha, b0, b1, b2, b3, t0, t1, t2, t3 parameters correspond to the
+standard MEAM parameters in the literature <a class="reference internal" href="#baskes"><span>(Baskes)</span></a> (the b
 parameters are the standard beta parameters).  The rozero parameter is
 an element-dependent density scaling that weights the reference
-background density (see e.g. equation 4.5 in <A HREF = "#Gullet">(Gullet)</A>) and
+background density (see e.g. equation 4.5 in <a class="reference internal" href="#gullet"><span>(Gullet)</span></a>) and
 is typically 1.0 for single-element systems.  The ibar parameter
 selects the form of the function G(Gamma) used to compute the electron
-density; options are
-</P>
-<PRE>   0 => G = sqrt(1+Gamma)
-   1 => G = exp(Gamma/2)
-   2 => not implemented 
-   3 => G = 2/(1+exp(-Gamma))
-   4 => G = sqrt(1+Gamma)
-  -5 => G = +-sqrt(abs(1+Gamma)) 
-</PRE>
-<P>If used, the MEAM parameter file contains settings that override or
+density; options are</p>
+<div class="highlight-python"><div class="highlight"><pre>0 =&gt; G = sqrt(1+Gamma)
+   1 =&gt; G = exp(Gamma/2)
+   2 =&gt; not implemented
+   3 =&gt; G = 2/(1+exp(-Gamma))
+   4 =&gt; G = sqrt(1+Gamma)
+  -5 =&gt; G = +-sqrt(abs(1+Gamma))
+</pre></div>
+</div>
+<p>If used, the MEAM parameter file contains settings that override or
 complement the library file settings.  Examples of such parameter
-files are in the potentials directory with a ".meam" suffix.  Their
+files are in the potentials directory with a &#8221;.meam&#8221; suffix.  Their
 format is the same as is read by other Fortran MD codes.  Aside from
 blank and comment lines (start with #) which can appear anywhere, each
 line has one of the following forms.  Each line can also have a
-trailing comment (starting with #) which is ignored.
-</P>
-<PRE>keyword = value
-keyword(I) = value
-keyword(I,J) = value
-keyword(I,J,K) = value 
-</PRE>
-<P>The recognized keywords are as follows:
-</P>
-<P>Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
-augt1, gsmooth_factor, re
-</P>
-<P>where
-</P>
-<PRE>rc          = cutoff radius for cutoff function; default = 4.0
+trailing comment (starting with #) which is ignored.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">keyword</span> <span class="o">=</span> <span class="n">value</span>
+<span class="n">keyword</span><span class="p">(</span><span class="n">I</span><span class="p">)</span> <span class="o">=</span> <span class="n">value</span>
+<span class="n">keyword</span><span class="p">(</span><span class="n">I</span><span class="p">,</span><span class="n">J</span><span class="p">)</span> <span class="o">=</span> <span class="n">value</span>
+<span class="n">keyword</span><span class="p">(</span><span class="n">I</span><span class="p">,</span><span class="n">J</span><span class="p">,</span><span class="n">K</span><span class="p">)</span> <span class="o">=</span> <span class="n">value</span>
+</pre></div>
+</div>
+<p>The recognized keywords are as follows:</p>
+<p>Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
+augt1, gsmooth_factor, re</p>
+<p>where</p>
+<pre class="literal-block">
+rc          = cutoff radius for cutoff function; default = 4.0
 delr        = length of smoothing distance for cutoff function; default = 0.1
 rho0(I)     = relative density for element I (overwrites value
               read from meamf file)
@@ -181,32 +287,32 @@ alpha(I,J)  = alpha parameter for pair potential between I and J (can
               be computed from bulk modulus of reference structure
 re(I,J)     = equilibrium distance between I and J in the reference
               structure
-Cmax(I,J,K) = Cmax screening parameter when I-J pair is screened 
-              by K (I<=J); default = 2.8
-Cmin(I,J,K) = Cmin screening parameter when I-J pair is screened 
-              by K (I<=J); default = 2.0
+Cmax(I,J,K) = Cmax screening parameter when I-J pair is screened
+              by K (I&lt;=J); default = 2.8
+Cmin(I,J,K) = Cmin screening parameter when I-J pair is screened
+              by K (I&lt;=J); default = 2.0
 lattce(I,J) = lattice structure of I-J reference structure:
                 dia = diamond (interlaced fcc for alloy)
                 fcc = face centered cubic
                 bcc = body centered cubic
-                dim = dimer 
+                dim = dimer
                 b1  = rock salt (NaCl structure)
-		hcp = hexagonal close-packed
-		c11 = MoSi2 structure
-		l12 = Cu3Au structure (lower case L, followed by 12)
+             hcp = hexagonal close-packed
+             c11 = MoSi2 structure
+             l12 = Cu3Au structure (lower case L, followed by 12)
                 b2  = CsCl structure (interpenetrating simple cubic)
 nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
-              I-J pair (see for example <A HREF = "#Lee">(Lee)</A>).  
+              I-J pair (see for example <a class="reference internal" href="#lee"><span>(Lee)</span></a>).
                 0 = second-nearest neighbor formulation off
                 1 = second-nearest neighbor formulation on
                 default = 0
 attrac(I,J) = additional cubic attraction term in Rose energy I-J pair potential
-                default = 0            
+                default = 0
 repuls(I,J) = additional cubic repulsive term in Rose energy I-J pair potential
-                default = 0     
-zbl(I,J)    = blend the MEAM I-J pair potential with the ZBL potential for small 
-              atom separations <A HREF = "#ZBL">(ZBL)</A> 
-                default = 1       
+                default = 0
+zbl(I,J)    = blend the MEAM I-J pair potential with the ZBL potential for small
+              atom separations <a class="reference internal" href="pair_tersoff_zbl.html#zbl"><span>(ZBL)</span></a>
+                default = 1
 gsmooth_factor  = factor determining the length of the G-function smoothing
                   region; only significant for ibar=0 or ibar=4.
                       99.0 = short smoothing region, sharp step
@@ -216,7 +322,7 @@ augt1           = integer flag for whether to augment t1 parameter by
                   3/5*t3 to account for old vs. new meam formulations;
                     0 = don't augment t1
                     1 = augment t1
-                    default = 1 
+                    default = 1
 ialloy          = integer flag to use alternative averaging rule for t parameters,
                   for comparison with the DYNAMO MEAM code
                     0 = standard averaging (matches ialloy=0 in DYNAMO)
@@ -228,8 +334,8 @@ mixture_ref_t   = integer flag to use mixture average of t to compute the backgr
                   (see description and warning elsewhere in this doc page)
                     0 = do not use mixture averaging for t in the reference density
                     1 = use mixture averaging for t in the reference density
-                    default = 0 
-erose_form      = integer value to select the form of the Rose energy function 
+                    default = 0
+erose_form      = integer value to select the form of the Rose energy function
                   (see description below).
                     default = 0
 emb_lin_neg     = integer value to select embedding function for negative densities
@@ -239,30 +345,27 @@ emb_lin_neg     = integer value to select embedding function for negative densit
 bkgd_dyn        = integer value to select background density formula
                     0 = rho_bkgd = rho_ref_meam(a) (as in the reference structure)
                     1 = rho_bkgd = rho0_meam(a)*Z_meam(a) (matches DYNAMO)
-                    default = 0 
-</PRE>
-<P>Rc, delr, re are in distance units (Angstroms in the case of metal
+                    default = 0
+</pre>
+<p>Rc, delr, re are in distance units (Angstroms in the case of metal
 units).  Ec and delta are in energy units (eV in the case of metal
-units).
-</P>
-<P>Each keyword represents a quantity which is either a scalar, vector,
+units).</p>
+<p>Each keyword represents a quantity which is either a scalar, vector,
 2d array, or 3d array and must be specified with the correct
 corresponding array syntax.  The indices I,J,K each run from 1 to N
-where N is the number of MEAM elements being used.
-</P>
-<P>Thus these lines
-</P>
-<PRE>rho0(2) = 2.25
-alpha(1,2) = 4.37 
-</PRE>
-<P>set rho0 for the 2nd element to the value 2.25 and set alpha for the
-alloy interaction between elements 1 and 2 to 4.37.
-</P>
-<P>The augt1 parameter is related to modifications in the MEAM
+where N is the number of MEAM elements being used.</p>
+<p>Thus these lines</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">rho0</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">=</span> <span class="mf">2.25</span>
+<span class="n">alpha</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">=</span> <span class="mf">4.37</span>
+</pre></div>
+</div>
+<p>set rho0 for the 2nd element to the value 2.25 and set alpha for the
+alloy interaction between elements 1 and 2 to 4.37.</p>
+<p>The augt1 parameter is related to modifications in the MEAM
 formulation of the partial electron density function.  In recent
 literature, an extra term is included in the expression for the
 third-order density in order to make the densities orthogonal (see for
-example <A HREF = "#Wang">(Wang)</A>, equation 3d); this term is included in the
+example <a class="reference internal" href="pair_polymorphic.html#wang"><span>(Wang)</span></a>, equation 3d); this term is included in the
 MEAM implementation in lammps.  However, in earlier published work
 this term was not included when deriving parameters, including most of
 those provided in the library.meam file included with lammps, and to
@@ -270,9 +373,8 @@ account for this difference the parameter t1 must be augmented by
 3/5*t3.  If augt1=1, the default, this augmentation is done
 automatically.  When parameter values are fit using the modified
 density function, as in more recent literature, augt1 should be set to
-0.
-</P>
-<P>The mixture_ref_t parameter is available to match results with those
+0.</p>
+<p>The mixture_ref_t parameter is available to match results with those
 of previous versions of lammps (before January 2011).  Newer versions
 of lammps, by default, use the single-element values of the t
 parameters to compute the background reference density.  This is the
@@ -282,102 +384,133 @@ reference density.  Setting mixture_ref_t=1 gives the old behavior.
 WARNING: using mixture_ref_t=1 will give results that are demonstrably
 incorrect for second-neighbor MEAM, and non-standard for
 first-neighbor MEAM; this option is included only for matching with
-previous versions of lammps and should be avoided if possible.
-</P>
-<P>The parameters attrac and repuls, along with the integer selection
+previous versions of lammps and should be avoided if possible.</p>
+<p>The parameters attrac and repuls, along with the integer selection
 parameter erose_form, can be used to modify the Rose energy function
 used to compute the pair potential.  This function gives the energy of
 the reference state as a function of interatomic spacing.  The form of
-this function is:
-</P>
-<PRE>astar = alpha * (r/re - 1.d0)
-if erose_form = 0: erose = -Ec*(1+astar+a3*(astar**3)/(r/re))*exp(-astar) 
+this function is:</p>
+<div class="highlight-python"><div class="highlight"><pre>astar = alpha * (r/re - 1.d0)
+if erose_form = 0: erose = -Ec*(1+astar+a3*(astar**3)/(r/re))*exp(-astar)
 if erose_form = 1: erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar)
 if erose_form = 2: erose = -Ec*(1 +astar + a3*(astar**3))*exp(-astar)
-a3 = repuls, astar < 0
-a3 = attrac, astar >= 0 
-</PRE>
-<P>Most published MEAM parameter sets use the default values attrac=repulse=0. 
-Setting repuls=attrac=delta corresponds to the form used in several 
-recent published MEAM parameter sets, such as <A HREF = "#Vallone">(Vallone)</A>
-</P>
-<P>NOTE: The default form of the erose expression in LAMMPS was corrected
+a3 = repuls, astar &lt; 0
+a3 = attrac, astar &gt;= 0
+</pre></div>
+</div>
+<p>Most published MEAM parameter sets use the default values attrac=repulse=0.
+Setting repuls=attrac=delta corresponds to the form used in several
+recent published MEAM parameter sets, such as <span class="xref std std-ref">(Vallone)</span></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The default form of the erose expression in LAMMPS was corrected
 in March 2009.  The current version is correct, but may show different
 behavior compared with earlier versions of lammps with the attrac
 and/or repuls parameters are non-zero.  To obtain the previous default
 form, use erose_form = 1 (this form does not seem to appear in the
-literature).  An alternative form (see e.g. <A HREF = "#Lee2">(Lee2)</A>) is
-available using erose_form = 2.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>For atom type pairs I,J and I != J, where types I and J correspond to
+literature).  An alternative form (see e.g. <a class="reference internal" href="#lee2"><span>(Lee2)</span></a>) is
+available using erose_form = 2.</p>
+</div>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
 user-specifiable parameters as described above.  You never need to
-specify a pair_coeff command with I != J arguments for this style.
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-shift, table, and tail options.
-</P>
-<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
-files</A>, since it is stored in potential files.  Thus, you
+specify a pair_coeff command with I != J arguments for this style.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+shift, table, and tail options.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>This style is part of the MEAM package.  It is only enabled if LAMMPS
+script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This style is part of the MEAM package.  It is only enabled if LAMMPS
 was built with that package, which also requires the MEAM library be
-built and linked with LAMMPS.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_eam.html">pair_style eam</A>,
-<A HREF = "pair_meam_spline.html">pair_style meam/spline</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
-
-<A NAME = "Baskes"></A>
-
-<P><B>(Baskes)</B> Baskes, Phys Rev B, 46, 2727-2742 (1992).
-</P>
-<A NAME = "Gullet"></A>
-
-<P><B>(Gullet)</B> Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
-This report may be accessed on-line via <A HREF = "http://infoserve.sandia.gov/sand_doc/2003/038782.pdf">this link</A>.
-</P>
+built and linked with LAMMPS.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, <a class="reference internal" href="pair_eam.html"><em>pair_style eam</em></a>,
+<a class="reference internal" href="pair_meam_spline.html"><em>pair_style meam/spline</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="baskes"><strong>(Baskes)</strong> Baskes, Phys Rev B, 46, 2727-2742 (1992).</p>
+<p id="gullet"><strong>(Gullet)</strong> Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
+This report may be accessed on-line via <a class="reference external" href="http://infoserve.sandia.gov/sand_doc/2003/038782.pdf">this link</a>.</p>
+<p id="lee"><strong>(Lee)</strong> Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).</p>
+<p id="lee2"><strong>(Lee2)</strong> Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).</p>
+<p id="valone"><strong>(Valone)</strong> Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).</p>
+<p id="wang"><strong>(Wang)</strong> Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).</p>
+<p id="zbl"><strong>(ZBL)</strong> J.F. Ziegler, J.P. Biersack, U. Littmark, &#8220;Stopping and Ranges
+of Ions in Matter&#8221;, Vol 1, 1985, Pergamon Press.</p>
+</div>
+</div>
 
 
-<A NAME = "Lee"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Lee)</B> Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).
-</P>
-<A NAME = "Lee2"></A>
+  <hr/>
 
-<P><B>(Lee2)</B> Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).
-</P>
-<A NAME = "Valone"></A>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-<P><B>(Valone)</B> Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
-</P>
-<A NAME = "Wang"></A>
+</footer>
 
-<P><B>(Wang)</B> Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
-</P>
-<A NAME = "ZBL"></A>
+        </div>
+      </div>
 
-<P><B>(ZBL)</B> J.F. Ziegler, J.P. Biersack, U. Littmark, "Stopping and Ranges
-of Ions in Matter", Vol 1, 1985, Pergamon Press.
-</P>
-</HTML>
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

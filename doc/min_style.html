@@ -1,104 +1,284 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Page</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>min_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>min_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>min_style style 
-</PRE>
-<UL><LI>style = <I>cg</I> or <I>hftn</I> or <I>sd</I> or <I>quickmin</I> or <I>fire</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>min_style cg
-min_style fire 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Choose a minimization algorithm to use when a <A HREF = "minimize.html">minimize</A>
-command is performed.
-</P>
-<P>Style <I>cg</I> is the Polak-Ribiere version of the conjugate gradient (CG)
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>min_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="min-style-command">
+<span id="index-0"></span><h1>min_style command<a class="headerlink" href="#min-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>min_style style
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>cg</em> or <em>hftn</em> or <em>sd</em> or <em>quickmin</em> or <em>fire</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>min_style cg
+min_style fire
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Choose a minimization algorithm to use when a <a class="reference internal" href="minimize.html"><em>minimize</em></a>
+command is performed.</p>
+<p>Style <em>cg</em> is the Polak-Ribiere version of the conjugate gradient (CG)
 algorithm.  At each iteration the force gradient is combined with the
 previous iteration information to compute a new search direction
 perpendicular (conjugate) to the previous search direction.  The PR
 variant affects how the direction is chosen and how the CG method is
 restarted when it ceases to make progress.  The PR variant is thought
-to be the most effective CG choice for most problems.
-</P>
-<P>Style <I>hftn</I> is a Hessian-free truncated Newton algorithm.  At each
+to be the most effective CG choice for most problems.</p>
+<p>Style <em>hftn</em> is a Hessian-free truncated Newton algorithm.  At each
 iteration a quadratic model of the energy potential is solved by a
 conjugate gradient inner iteration.  The Hessian (second derivatives)
 of the energy is not formed directly, but approximated in each
 conjugate search direction by a finite difference directional
 derivative.  When close to an energy minimum, the algorithm behaves
 like a Newton method and exhibits a quadratic convergence rate to high
-accuracy.  In most cases the behavior of <I>hftn</I> is similar to <I>cg</I>,
-but it offers an alternative if <I>cg</I> seems to perform poorly.  This
-style is not affected by the <A HREF = "min_modify.html">min_modify</A> command.
-</P>
-<P>Style <I>sd</I> is a steepest descent algorithm.  At each iteration, the
+accuracy.  In most cases the behavior of <em>hftn</em> is similar to <em>cg</em>,
+but it offers an alternative if <em>cg</em> seems to perform poorly.  This
+style is not affected by the <a class="reference internal" href="min_modify.html"><em>min_modify</em></a> command.</p>
+<p>Style <em>sd</em> is a steepest descent algorithm.  At each iteration, the
 search direction is set to the downhill direction corresponding to the
 force vector (negative gradient of energy).  Typically, steepest
 descent will not converge as quickly as CG, but may be more robust in
-some situations.
-</P>
-<P>Style <I>quickmin</I> is a damped dynamics method described in
-<A HREF = "#Sheppard">(Sheppard)</A>, where the damping parameter is related to the
+some situations.</p>
+<p>Style <em>quickmin</em> is a damped dynamics method described in
+<a class="reference internal" href="#sheppard"><span>(Sheppard)</span></a>, where the damping parameter is related to the
 projection of the velocity vector along the current force vector for
 each atom.  The velocity of each atom is initialized to 0.0 by this
-style, at the beginning of a minimization.
-</P>
-<P>Style <I>fire</I> is a damped dynamics method described in
-<A HREF = "#Bitzek">(Bitzek)</A>, which is similar to <I>quickmin</I> but adds a variable
+style, at the beginning of a minimization.</p>
+<p>Style <em>fire</em> is a damped dynamics method described in
+<a class="reference internal" href="#bitzek"><span>(Bitzek)</span></a>, which is similar to <em>quickmin</em> but adds a variable
 timestep and alters the projection operation to maintain components of
 the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
-a minimization.
-</P>
-<P>Either the <I>quickmin</I> and <I>fire</I> styles are useful in the context of
-nudged elastic band (NEB) calculations via the <A HREF = "neb.html">neb</A> command.
-</P>
-<P>IMPORTANT NOTE: The damped dynamic minimizers use whatever timestep
-you have defined via the <A HREF = "timestep.html">timestep</A> command.  Often they
+a minimization.</p>
+<p>Either the <em>quickmin</em> and <em>fire</em> styles are useful in the context of
+nudged elastic band (NEB) calculations via the <a class="reference internal" href="neb.html"><em>neb</em></a> command.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The damped dynamic minimizers use whatever timestep
+you have defined via the <a class="reference internal" href="timestep.html"><em>timestep</em></a> command.  Often they
 will converge more quickly if you use a timestep about 10x larger than
-you would normally use for dynamics simulations.
-</P>
-<P>IMPORTANT NOTE: The <I>quickmin</I> and <I>fire</I> styles do not yet support
-the use of the <A HREF = "fix_box_relax.html">fix box/relax</A> command or
-minimizations involving the electron radius in <A HREF = "pair_eff.html">eFF</A>
-models.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "min_modify.html">min_modify</A>, <A HREF = "minimize.html">minimize</A>, <A HREF = "neb.html">neb</A>
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>min_style cg 
-</PRE>
-<HR>
-
-<A NAME = "Sheppard"></A>
-
-<P><B>(Sheppard)</B> Sheppard, Terrell, Henkelman, J Chem Phys, 128, 134106
+you would normally use for dynamics simulations.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <em>quickmin</em> and <em>fire</em> styles do not yet support
+the use of the <a class="reference internal" href="fix_box_relax.html"><em>fix box/relax</em></a> command or
+minimizations involving the electron radius in <a class="reference internal" href="pair_eff.html"><em>eFF</em></a>
+models.</p>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="min_modify.html"><em>min_modify</em></a>, <a class="reference internal" href="minimize.html"><em>minimize</em></a>, <a class="reference internal" href="neb.html"><em>neb</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>min_style cg
+</pre></div>
+</div>
+<hr class="docutils" />
+<p id="sheppard"><strong>(Sheppard)</strong> Sheppard, Terrell, Henkelman, J Chem Phys, 128, 134106
 (2008).  See ref 1 in this paper for original reference to Qmin in
-Jonsson, Mills, Jacobsen.
-</P>
-<A NAME = "Bitzek"></A>
+Jonsson, Mills, Jacobsen.</p>
+<p id="bitzek"><strong>(Bitzek)</strong> Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
+97, 170201 (2006).</p>
+</div>
+</div>
 
-<P><B>(Bitzek)</B> Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
-97, 170201 (2006).
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

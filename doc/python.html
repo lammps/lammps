@@ -1,130 +1,247 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>python command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>python command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>python func keyword args ... 
-</PRE>
-<UL><LI>func = name of Python function 
-
-<LI>one or more keyword/args pairs must be appended 
-
-<PRE>keyword = <I>invoke</I> or <I>input</I> or <I>return</I> or <I>format</I> or <I>file</I> or <I>here</I> or <I>exists</I>
-  <I>invoke</I> arg = none = invoke the previously defined Python function
-  <I>input</I> args = N i1 i2 ... iN
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>python command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="python-command">
+<span id="index-0"></span><h1>python command<a class="headerlink" href="#python-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>python func keyword args ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>func = name of Python function</li>
+<li>one or more keyword/args pairs must be appended</li>
+</ul>
+<pre class="literal-block">
+keyword = <em>invoke</em> or <em>input</em> or <em>return</em> or <em>format</em> or <em>file</em> or <em>here</em> or <em>exists</em>
+  <em>invoke</em> arg = none = invoke the previously defined Python function
+  <em>input</em> args = N i1 i2 ... iN
     N = # of inputs to function
     i1,...,iN = value, SELF, or LAMMPS variable name
       value = integer number, floating point number, or string
       SELF = reference to LAMMPS itself which can be accessed by Python function
       variable = v_name, where name = name of LAMMPS variable, e.g. v_abc
-  <I>return</I> arg = varReturn
+  <em>return</em> arg = varReturn
     varReturn = v_name  = LAMMPS variable name which return value of function will be assigned to
-  <I>format</I> arg = fstring with M characters 
+  <em>format</em> arg = fstring with M characters
     M = N if no return value, where N = # of inputs
     M = N+1 if there is a return value
     fstring = each character (i,f,s,p) corresponds in order to an input or return value
     'i' = integer, 'f' = floating point, 's' = string, 'p' = SELF
-  <I>file</I> arg = filename
+  <em>file</em> arg = filename
     filename = file of Python code, which defines func
-  <I>here</I> arg = inline
+  <em>here</em> arg = inline
     inline = one or more lines of Python code which defines func
              must be a single argument, typically enclosed between triple quotes
-  <I>exists</I> arg = none = Python code has been loaded by previous python command 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>python pForce input 2 v_x 20.0 return v_f format fff file force.py
-python pForce invoke 
-</PRE>
-<PRE>python factorial input 1 myN return v_fac format ii here """
+  <em>exists</em> arg = none = Python code has been loaded by previous python command
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>python pForce input 2 v_x 20.0 return v_f format fff file force.py
+python pForce invoke
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>python factorial input 1 myN return v_fac format ii here &quot;&quot;&quot;
 def factorial(n):
   if n == 1: return n
   return n * factorial(n-1)
- """ 
-</PRE>
-<PRE>python loop input 1 SELF return v_value format -f here """
+ &quot;&quot;&quot;
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>python loop input 1 SELF return v_value format -f here &quot;&quot;&quot;
 def loop(lmpptr,N,cut0):
   from lammps import lammps
-  lmp = lammps(ptr=lmpptr) 
-</PRE>
-<PRE>  # loop N times, increasing cutoff each time 
-</PRE>
-<PRE>  for i in range(N):
+  lmp = lammps(ptr=lmpptr)
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># loop N times, increasing cutoff each time</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>for i in range(N):
     cut = cut0 + i*0.1
-    lmp.set_variable("cut",cut)               # set a variable in LAMMPS
-    lmp.command("pair_style lj/cut $<I>cut</I>")   # LAMMPS commands
-    lmp.command("pair_coeff * * 1.0 1.0")
-    lmp.command("run 100")
- """ 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>IMPORTANT NOTE: It is not currently possible to use the
-<A HREF = "python.html">python</A> command described in this section with Python 3,
+    lmp.set_variable(&quot;cut&quot;,cut)               # set a variable in LAMMPS
+    lmp.command(&quot;pair_style lj/cut $*cut*&quot;)   # LAMMPS commands
+    lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)
+    lmp.command(&quot;run 100&quot;)
+ &quot;&quot;&quot;
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is not currently possible to use the
+<a class="reference internal" href=""><em>python</em></a> command described in this section with Python 3,
 only with Python 2.  The C API changed from Python 2 to 3 and the
-LAMMPS code is not compatible with both.
-</P>
-<P>Define a Python function or execute a previously defined function.
+LAMMPS code is not compatible with both.</p>
+</div>
+<p>Define a Python function or execute a previously defined function.
 Arguments, including LAMMPS variables, can be passed to the function
 from the LAMMPS input script and a value returned by the Python
 function to a LAMMPS variable.  The Python code for the function can
 be included directly in the input script or in a separate Python file.
-The function can be standard Python code or it can make "callbacks" to
+The function can be standard Python code or it can make &#8220;callbacks&#8221; to
 LAMMPS through its library interface to query or set internal values
 within LAMMPS.  This is a powerful mechanism for performing complex
 operations in a LAMMPS input script that are not possible with the
 simple input script and variable syntax which LAMMPS defines.  Thus
-your input script can operate more like a true programming language.
-</P>
-<P>Use of this command requires building LAMMPS with the PYTHON package
+your input script can operate more like a true programming language.</p>
+<p>Use of this command requires building LAMMPS with the PYTHON package
 which links to the Python library so that the Python interpreter is
-embedded in LAMMPS.  More details about this process are given below.
-</P>
-<P>There are two ways to invoke a Python function once it has been
-defined.  One is using the <I>invoke</I> keyword.  The other is to assign
-the function to a <A HREF = "variable.html">python-style variable</A> defined in
+embedded in LAMMPS.  More details about this process are given below.</p>
+<p>There are two ways to invoke a Python function once it has been
+defined.  One is using the <em>invoke</em> keyword.  The other is to assign
+the function to a <a class="reference internal" href="variable.html"><em>python-style variable</em></a> defined in
 your input script.  Whenever the variable is evaluated, it will
 execute the Python function to assign a value to the variable.  Note
 that variables can be evaluated in many different ways within LAMMPS.
 They can be substituted for directly in an input script.  Or they can
 be passed to various commands as arguments, so that the variable is
-evaluated during a simulation run.
-</P>
-<P>A broader overview of how Python can be used with LAMMPS is
-given in <A HREF = "Section_python.html">Section python</A>.  There is an
+evaluated during a simulation run.</p>
+<p>A broader overview of how Python can be used with LAMMPS is
+given in <a class="reference internal" href="Section_python.html"><em>Section python</em></a>.  There is an
 examples/python directory which illustrates use of the python
-command.
-</P>
-<HR>
-
-<P>The <I>func</I> setting specifies the name of the Python function.  The
-code for the function is defined using the <I>file</I> or <I>here</I> keywords
-as explained below.
-</P>
-<P>If the <I>invoke</I> keyword is used, no other keywords can be used, and a
+command.</p>
+<hr class="docutils" />
+<p>The <em>func</em> setting specifies the name of the Python function.  The
+code for the function is defined using the <em>file</em> or <em>here</em> keywords
+as explained below.</p>
+<p>If the <em>invoke</em> keyword is used, no other keywords can be used, and a
 previous python command must have defined the Python function
 referenced by this command.  This invokes the Python function with the
 previously defined arguments and return value processed as explained
 below.  You can invoke the function as many times as you wish in your
-input script.
-</P>
-<P>The <I>input</I> keyword defines how many arguments <I>N</I> the Python function
-expects.  If it takes no arguments, then the <I>input</I> keyword should
+input script.</p>
+<p>The <em>input</em> keyword defines how many arguments <em>N</em> the Python function
+expects.  If it takes no arguments, then the <em>input</em> keyword should
 not be used.  Each argument can be specified directly as a value,
 e.g. 6 or 3.14159 or abc (a string of characters).  The type of each
-argument is specified by the <I>format</I> keyword as explained below, so
+argument is specified by the <em>format</em> keyword as explained below, so
 that Python will know how to interpret the value.  If the word SELF is
 used for an argument it has a special meaning.  A pointer is passed to
 the Python function which it converts into a reference to LAMMPS
@@ -132,254 +249,235 @@ itself.  This enables the function to call back to LAMMPS through its
 library interface as explained below.  This allows the Python function
 to query or set values internal to LAMMPS which can affect the
 subsequent execution of the input script.  A LAMMPS variable can also
-be used as an argument, specified as v_name, where "name" is the name
+be used as an argument, specified as v_name, where &#8220;name&#8221; is the name
 of the variable.  Any style of LAMMPS variable can be used, as defined
-by the <A HREF = "variable.html">variable</A> command.  Each time the Python
+by the <a class="reference internal" href="variable.html"><em>variable</em></a> command.  Each time the Python
 function is invoked, the LAMMPS variable is evaluated and its value is
-passed to the Python function.
-</P>
-<P>The <I>return</I> keyword is only needed if the Python function returns a
-value.  The specified <I>varReturn</I> must be of the form v_name, where
-"name" is the name of a python-style LAMMPS variable, defined by the
-<A HREF = "variable.html">variable</A> command.  The Python function can return a
-numeric or string value, as specified by the <I>format</I> keyword.
-</P>
-<P>As explained on the <A HREF = "variable.html">variable</A> doc page, the definition
+passed to the Python function.</p>
+<p>The <em>return</em> keyword is only needed if the Python function returns a
+value.  The specified <em>varReturn</em> must be of the form v_name, where
+&#8220;name&#8221; is the name of a python-style LAMMPS variable, defined by the
+<a class="reference internal" href="variable.html"><em>variable</em></a> command.  The Python function can return a
+numeric or string value, as specified by the <em>format</em> keyword.</p>
+<p>As explained on the <a class="reference internal" href="variable.html"><em>variable</em></a> doc page, the definition
 of a python-style variable associates a Python function name with the
-variable.  This must match the <I>func</I> setting for this command.  For
-exampe these two commands would be self-consistent:
-</P>
-<PRE>variable foo python myMultiply
-python myMultiply return v_foo format f file funcs.py 
-</PRE>
-<P>The two commands can appear in either order in the input script so
+variable.  This must match the <em>func</em> setting for this command.  For
+exampe these two commands would be self-consistent:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable foo python myMultiply
+python myMultiply return v_foo format f file funcs.py
+</pre></div>
+</div>
+<p>The two commands can appear in either order in the input script so
 long as both are specified before the Python function is invoked for
-the first time.
-</P>
-<P>The <I>format</I> keyword must be used if the <I>input</I> or <I>return</I> keyword
-is used.  It defines an <I>fstring</I> with M characters, where M = sum of
+the first time.</p>
+<p>The <em>format</em> keyword must be used if the <em>input</em> or <em>return</em> keyword
+is used.  It defines an <em>fstring</em> with M characters, where M = sum of
 number of inputs and outputs.  The order of characters corresponds to
 the N inputs, followed by the return value (if it exists).  Each
-character must be one of the following: "i" for integer, "f" for
-floating point, "s" for string, or "p" for SELF.  Each character
+character must be one of the following: &#8220;i&#8221; for integer, &#8220;f&#8221; for
+floating point, &#8220;s&#8221; for string, or &#8220;p&#8221; for SELF.  Each character
 defines the type of the corresponding input or output value of the
 Python function and affects the type conversion that is performed
 internally as data is passed back and forth between LAMMPS and Python.
-Note that it is permissible to use a <A HREF = "variable.html">python-style
-variable</A> in a LAMMPS command that allows for an
+Note that it is permissible to use a <a class="reference internal" href="variable.html"><em>python-style variable</em></a> in a LAMMPS command that allows for an
 equal-style variable as an argument, but only if the output of the
-Python function is flagged as a numeric value ("i" or "f") via the
-<I>format</I> keyword.
-</P>
-<P>Either the <I>file</I>, <I>here</I>, or <I>exists</I> keyword must be used, but only
+Python function is flagged as a numeric value (&#8220;i&#8221; or &#8220;f&#8221;) via the
+<em>format</em> keyword.</p>
+<p>Either the <em>file</em>, <em>here</em>, or <em>exists</em> keyword must be used, but only
 one of them.  These keywords specify what Python code to load into the
-Python interpreter.  The <I>file</I> keyword gives the name of a file,
-which should end with a ".py" suffix, which contains Python code.  The
-code will be immediately loaded into and run in the "main" module of
+Python interpreter.  The <em>file</em> keyword gives the name of a file,
+which should end with a &#8221;.py&#8221; suffix, which contains Python code.  The
+code will be immediately loaded into and run in the &#8220;main&#8221; module of
 the Python interpreter.  Note that Python code which contains a
-function definition does not "execute" the function when it is run; it
-simply defines the function so that it can be invoked later.
-</P>
-<P>The <I>here</I> keyword does the same thing, except that the Python code
-follows as a single argument to the <I>here</I> keyword.  This can be done
+function definition does not &#8220;execute&#8221; the function when it is run; it
+simply defines the function so that it can be invoked later.</p>
+<p>The <em>here</em> keyword does the same thing, except that the Python code
+follows as a single argument to the <em>here</em> keyword.  This can be done
 using triple quotes as delimiters, as in the examples above.  This
 allows Python code to be listed verbatim in your input script, with
 proper indentation, blank lines, and comments, as desired.  See
-<A HREF = "Section_commands.html#cmd_2">Section 3.2</A>, for an explanation of how
-triple quotes can be used as part of input script syntax.
-</P>
-<P>The <I>exists</I> keyword takes no argument.  It means that Python code
-containing the required Python function defined by the <I>func</I> setting,
-is assumed to have been previously loaded by another python command.
-</P>
-<P>Note that the Python code that is loaded and run must contain a
-function with the specified <I>func</I> name.  To operate properly when
-later invoked, the the function code must match the <I>input</I> and
-<I>return</I> and <I>format</I> keywords specified by the python command.
-Otherwise Python will generate an error.
-</P>
-<HR>
-
-<P>This section describes how Python code can be written to work with
-LAMMPS.
-</P>
-<P>Whether you load Python code from a file or directly from your input
-script, via the <I>file</I> and <I>here</I> keywords, the code can be identical.
+<a class="reference internal" href="Section_commands.html#cmd-2"><span>Section 3.2</span></a>, for an explanation of how
+triple quotes can be used as part of input script syntax.</p>
+<p>The <em>exists</em> keyword takes no argument.  It means that Python code
+containing the required Python function defined by the <em>func</em> setting,
+is assumed to have been previously loaded by another python command.</p>
+<p>Note that the Python code that is loaded and run must contain a
+function with the specified <em>func</em> name.  To operate properly when
+later invoked, the the function code must match the <em>input</em> and
+<em>return</em> and <em>format</em> keywords specified by the python command.
+Otherwise Python will generate an error.</p>
+<hr class="docutils" />
+<p>This section describes how Python code can be written to work with
+LAMMPS.</p>
+<p>Whether you load Python code from a file or directly from your input
+script, via the <em>file</em> and <em>here</em> keywords, the code can be identical.
 It must be indented properly as Python requires.  It can contain
 comments or blank lines.  If the code is in your input script, it
 cannot however contain triple-quoted Python strings, since that will
 conflict with the triple-quote parsing that the LAMMPS input script
-performs.
-</P>
-<P>All the Python code you specify via one or more python commands is
-loaded into the Python "main" module, i.e. __main__.  The code can
+performs.</p>
+<p>All the Python code you specify via one or more python commands is
+loaded into the Python &#8220;main&#8221; module, i.e. __main__.  The code can
 define global variables or statements that are outside of function
 definitions.  It can contain multiple functions, only one of which
-matches the <I>func</I> setting in the python command.  This means you can
-use the <I>file</I> keyword once to load several functions, and the
-<I>exists</I> keyword thereafter in subsequent python commands to access
-the other functions previously loaded.
-</P>
-<P>A Python function you define (or more generally, the code you load)
+matches the <em>func</em> setting in the python command.  This means you can
+use the <em>file</em> keyword once to load several functions, and the
+<em>exists</em> keyword thereafter in subsequent python commands to access
+the other functions previously loaded.</p>
+<p>A Python function you define (or more generally, the code you load)
 can import other Python modules or classes, it can make calls to other
 system functions or functions you define, and it can access or modify
-global variables (in the "main" module) which will persist between
+global variables (in the &#8220;main&#8221; module) which will persist between
 successive function calls.  The latter can be useful, for example, to
 prevent a function from being invoke multiple times per timestep by
 different commands in a LAMMPS input script that access the returned
 python-style variable associated with the function.  For example,
 consider this function loaded with two global variables defined
-outside the function:
-</P>
-<PRE>nsteplast = -1
-nvaluelast = 0 
-</PRE>
-<PRE>def expensive(nstep):
-  global nsteplast,nvaluelast
-  if nstep == nsteplast: return nvaluelast
-  nsteplast = nstep  
-  # perform complicated calculation
-  nvalue = ...
-  nvaluelast = nvalue
-  return nvalue 
-</PRE>
-<P>Nsteplast stores the previous timestep the function was invoked
+outside the function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">nsteplast</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">nvaluelast</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">expensive</span><span class="p">(</span><span class="n">nstep</span><span class="p">):</span>
+  <span class="k">global</span> <span class="n">nsteplast</span><span class="p">,</span><span class="n">nvaluelast</span>
+  <span class="k">if</span> <span class="n">nstep</span> <span class="o">==</span> <span class="n">nsteplast</span><span class="p">:</span> <span class="k">return</span> <span class="n">nvaluelast</span>
+  <span class="n">nsteplast</span> <span class="o">=</span> <span class="n">nstep</span>
+  <span class="c"># perform complicated calculation</span>
+  <span class="n">nvalue</span> <span class="o">=</span> <span class="o">...</span>
+  <span class="n">nvaluelast</span> <span class="o">=</span> <span class="n">nvalue</span>
+  <span class="k">return</span> <span class="n">nvalue</span>
+</pre></div>
+</div>
+<p>Nsteplast stores the previous timestep the function was invoked
 (passed as an argument to the function).  Nvaluelast stores the return
 value computed on the last function invocation.  If the function is
 invoked again on the same timestep, the previous value is simply
-returned, without re-computing it.  The "global" statement inside the
-Python function allows it to overwrite the global variables.
-</P>
-<P>Note that if you load Python code multiple times (via multiple python
+returned, without re-computing it.  The &#8220;global&#8221; statement inside the
+Python function allows it to overwrite the global variables.</p>
+<p>Note that if you load Python code multiple times (via multiple python
 commands), you can overwrite previously loaded variables and functions
 if you are not careful.  E.g. if the code above were loaded twice, the
 global variables would be re-initialized, which might not be what you
 want.  Likewise, if a function with the same name exists in two chunks
 of Python code you load, the function loaded second will override the
-function loaded first.
-</P>
-<P>It's important to realize that if you are running LAMMPS in parallel,
+function loaded first.</p>
+<p>It&#8217;s important to realize that if you are running LAMMPS in parallel,
 each MPI task will load the Python interpreter and execute a local
 copy of the Python function(s) you define.  There is no connection
-between the Python interpreters running on different processors.  
-This implies three important things.
-</P>
-<P>First, if you put a print statement in your Python function, you will
+between the Python interpreters running on different processors.
+This implies three important things.</p>
+<p>First, if you put a print statement in your Python function, you will
 see P copies of the output, when running on P processors.  If the
 prints occur at (nearly) the same time, the P copies of the output may
 be mixed together.  Welcome to the world of parallel programming and
-debugging.
-</P>
-<P>Second, if your Python code loads modules that are not pre-loaded by
+debugging.</p>
+<p>Second, if your Python code loads modules that are not pre-loaded by
 the Python library, then it will load the module from disk.  This may
 be a bottleneck if 1000s of processors try to load a module at the
 same time.  On some large supercomputers, loading of modules from disk
 by Python may be disabled.  In this case you would need to pre-build a
 Python library that has the required modules pre-loaded and link
-LAMMPS with that library.
-</P>
-<P>Third, if your Python code calls back to LAMMPS (discussed in the
+LAMMPS with that library.</p>
+<p>Third, if your Python code calls back to LAMMPS (discussed in the
 next section) and causes LAMMPS to perform an MPI operation requires
 global communication (e.g. via MPI_Allreduce), such as computing the
 global temperature of the system, then you must insure all your Python
 functions (running independently on different processors) call back to
-LAMMPS.  Otherwise the code may hang.
-</P>
-<HR>
-
-<P>Your Python function can "call back" to LAMMPS through its
+LAMMPS.  Otherwise the code may hang.</p>
+<hr class="docutils" />
+<p>Your Python function can &#8220;call back&#8221; to LAMMPS through its
 library interface, if you use the SELF input to pass Python
 a pointer to LAMMPS.  The mechanism for doing this in your
-Python function is as follows:
-</P>
-<PRE>def foo(lmpptr,...):
-  from lammps import lammps
-  lmp = lammps(ptr=lmpptr)
-  lmp.command('print "Hello from inside Python"')
-  ... 
-</PRE>
-<P>The function definition must include a variable (lmpptr in this case)
+Python function is as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">lmpptr</span><span class="p">,</span><span class="o">...</span><span class="p">):</span>
+  <span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+  <span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">ptr</span><span class="o">=</span><span class="n">lmpptr</span><span class="p">)</span>
+  <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s">&#39;print &quot;Hello from inside Python&quot;&#39;</span><span class="p">)</span>
+  <span class="o">...</span>
+</pre></div>
+</div>
+<p>The function definition must include a variable (lmpptr in this case)
 which corresponds to SELF in the python command.  The first line of
 the function imports the Python module lammps.py in the python dir of
-the distribution.  The second line creates a Python object "lmp" which
+the distribution.  The second line creates a Python object &#8220;lmp&#8221; which
 wraps the instance of LAMMPS that called the function.  The
-"ptr=lmpptr" argument is what makes that happen.  The thrid line
+&#8220;ptr=lmpptr&#8221; argument is what makes that happen.  The thrid line
 invokes the command() function in the LAMMPS library interface.  It
 takes a single string argument which is a LAMMPS input script command
 for LAMMPS to execute, the same as if it appeared in your input
-script.  In this case, LAMMPS should output
-</P>
-<PRE>Hello from inside Python 
-</PRE>
-<P>to the screen and log file.  Note that since the LAMMPS print command
+script.  In this case, LAMMPS should output</p>
+<div class="highlight-python"><div class="highlight"><pre>Hello from inside Python
+</pre></div>
+</div>
+<p>to the screen and log file.  Note that since the LAMMPS print command
 itself takes a string in quotes as its argument, the Python string
-must be delimited with a different style of quotes.
-</P>
-<P><A HREF = "Section_python.html#py_7">Section 11.7</A> describes the syntax for how
+must be delimited with a different style of quotes.</p>
+<p><a class="reference internal" href="Section_python.html#py-7"><span>Section 11.7</span></a> describes the syntax for how
 Python wraps the various functions included in the LAMMPS library
-interface.
-</P>
-<P>A more interesting example is in the examples/python/in.python script
-which loads and runs the following function from examples/python/funcs.py:
-</P>
-<PRE>def loop(N,cut0,thresh,lmpptr):
-  print "LOOP ARGS",N,cut0,thresh,lmpptr
+interface.</p>
+<p>A more interesting example is in the examples/python/in.python script
+which loads and runs the following function from examples/python/funcs.py:</p>
+<div class="highlight-python"><div class="highlight"><pre>def loop(N,cut0,thresh,lmpptr):
+  print &quot;LOOP ARGS&quot;,N,cut0,thresh,lmpptr
   from lammps import lammps
   lmp = lammps(ptr=lmpptr)
-  natoms = lmp.get_natoms() 
-</PRE>
-<PRE>  for i in range(N):
-    cut = cut0 + i*0.1 
-</PRE>
-<PRE>    lmp.set_variable("cut",cut)                 # set a variable in LAMMPS
-    lmp.command("pair_style lj/cut $<I>cut</I>")     # LAMMPS command
-    #lmp.command("pair_style lj/cut %d" % cut)  # LAMMPS command option 
-</PRE>
-<PRE>    lmp.command("pair_coeff * * 1.0 1.0")       # ditto
-    lmp.command("run 10")                       # ditto
-    pe = lmp.extract_compute("thermo_pe",0,0)   # extract total PE from LAMMPS
-    print "PE",pe/natoms,thresh
-    if pe/natoms < thresh: return 
-</PRE>
-<P>with these input script commands:
-</P>
-<PRE>python          loop input 4 10 1.0 -4.0 SELF format iffp file funcs.py
-python          loop invoke 
-</PRE>
-<P>This has the effect of looping over a series of 10 short runs (10
+  natoms = lmp.get_natoms()
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">cut</span> <span class="o">=</span> <span class="n">cut0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>lmp.set_variable(&quot;cut&quot;,cut)                 # set a variable in LAMMPS
+    lmp.command(&quot;pair_style lj/cut $*cut*&quot;)     # LAMMPS command
+    #lmp.command(&quot;pair_style lj/cut %d&quot; % cut)  # LAMMPS command option
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)       # ditto
+    lmp.command(&quot;run 10&quot;)                       # ditto
+    pe = lmp.extract_compute(&quot;thermo_pe&quot;,0,0)   # extract total PE from LAMMPS
+    print &quot;PE&quot;,pe/natoms,thresh
+    if pe/natoms &lt; thresh: return
+</pre></div>
+</div>
+<p>with these input script commands:</p>
+<div class="highlight-python"><div class="highlight"><pre>python          loop input 4 10 1.0 -4.0 SELF format iffp file funcs.py
+python          loop invoke
+</pre></div>
+</div>
+<p>This has the effect of looping over a series of 10 short runs (10
 timesteps each) where the pair style cutoff is increased from a value
 of 1.0 in distance units, in increments of 0.1.  The looping stops
 when the per-atom potential energy falls below a threshhold of -4.0 in
 energy units.  More generally, Python can be used to implement a loop
 with complex logic, much more so than can be created using the LAMMPS
-<A HREF = "jump.html">jump</A> and <A HREF = "if.html">if</A> commands.
-</P>
-<P>Several LAMMPS library functions are called from the loop function.
+<a class="reference internal" href="jump.html"><em>jump</em></a> and <a class="reference internal" href="if.html"><em>if</em></a> commands.</p>
+<p>Several LAMMPS library functions are called from the loop function.
 Get_natoms() returns the number of atoms in the simulation, so that it
 can be used to normalize the potential energy that is returned by
-extract_compute() for the "thermo_pe" compute that is defined by
+extract_compute() for the &#8220;thermo_pe&#8221; compute that is defined by
 default for LAMMPS thermodynamic output.  Set_variable() sets the
 value of a string variable defined in LAMMPS.  This library function
 is a useful way for a Python function to return multiple values to
 LAMMPS, more than the single value that can be passed back via a
-return statement.  This cutoff value in the "cut" variable is then
+return statement.  This cutoff value in the &#8220;cut&#8221; variable is then
 substituted (by LAMMPS) in the pair_style command that is executed
-next.  Alternatively, the "LAMMPS command option" line could be used
+next.  Alternatively, the &#8220;LAMMPS command option&#8221; line could be used
 in place of the 2 preceeding lines, to have Python insert the value
-into the LAMMPS command string.
-</P>
-<P>IMPORTANT NOTE: When using the callback mechanism just described,
+into the LAMMPS command string.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When using the callback mechanism just described,
 recognize that there are some operations you should not attempt
 because LAMMPS cannot execute them correctly.  If the Python function
 is invoked between runs in the LAMMPS input script, then it should be
 OK to invoke any LAMMPS input script command via the library interface
 command() or file() functions, so long as the command would work if it
-were executed in the LAMMPS input script directly at the same point.
-</P>
-<P>However, a Python function can also be invoked during a run, whenever
+were executed in the LAMMPS input script directly at the same point.</p>
+</div>
+<p>However, a Python function can also be invoked during a run, whenever
 an associated LAMMPS variable it is assigned to is evaluted.  If the
-variable is an input argument to another LAMMPS command (e.g. <A HREF = "fix_setforce.html">fix
-setforce</A>), then the Python function will be invoked
+variable is an input argument to another LAMMPS command (e.g. <a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a>), then the Python function will be invoked
 inside the class for that command, in one of its methods that is
 invoked in the middle of a timestep.  You cannot execute arbitrary
 input script commands from the Python function (again, via the
@@ -387,11 +485,9 @@ command() or file() functions) at that point in the run and expect it
 to work.  Other library functions such as those that invoke computes
 or other variables may have hidden side effects as well.  In these
 cases, LAMMPS has no simple way to check that something illogical is
-being attempted.
-</P>
-<HR>
-
-<P>If you run Python code directly on your workstation, either
+being attempted.</p>
+<hr class="docutils" />
+<p>If you run Python code directly on your workstation, either
 interactively or by using Python to launch a Python script stored in a
 file, and your code has an error, you will typically see informative
 error messages.  That is not the case when you run Python code from
@@ -401,90 +497,144 @@ where in the Python code the problem occurred.  For example, if the
 Python code cannot be loaded and run because it has syntax or other
 logic errors, you may get an error from Python pointing to the
 offending line, or you may get one of these generic errors from
-LAMMPS:
-</P>
-<PRE>Could not process Python file
-Could not process Python string 
-</PRE>
-<P>When the Python function is invoked, if it does not return properly,
-you will typically get this generic error from LAMMPS:
-</P>
-<PRE>Python function evaluation failed 
-</PRE>
-<P>Here are three suggestions for debugging your Python code while
-running it under LAMMPS.
-</P>
-<P>First, don't run it under LAMMPS, at least to start with!  Debug it
+LAMMPS:</p>
+<div class="highlight-python"><div class="highlight"><pre>Could not process Python file
+Could not process Python string
+</pre></div>
+</div>
+<p>When the Python function is invoked, if it does not return properly,
+you will typically get this generic error from LAMMPS:</p>
+<div class="highlight-python"><div class="highlight"><pre>Python function evaluation failed
+</pre></div>
+</div>
+<p>Here are three suggestions for debugging your Python code while
+running it under LAMMPS.</p>
+<p>First, don&#8217;t run it under LAMMPS, at least to start with!  Debug it
 using plain Python.  Load and invoke your function, pass it arguments,
-check return values, etc.
-</P>
-<P>Second, add Python print statements to the function to check how far
+check return values, etc.</p>
+<p>Second, add Python print statements to the function to check how far
 it gets and intermediate values it calculates.  See the discussion
-above about printing from Python when running in parallel.
-</P>
-<P>Third, use Python exception handling.  For example, say this statement
+above about printing from Python when running in parallel.</p>
+<p>Third, use Python exception handling.  For example, say this statement
 in your Python function is failing, because you have not initialized the
-variable foo:
-</P>
-<PRE>foo += 1 
-</PRE>
-<P>If you put one (or more) statements inside a "try" statement,
-like this:
-</P>
-<PRE>import exceptions
-print "Inside simple function"
+variable foo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">foo</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>If you put one (or more) statements inside a &#8220;try&#8221; statement,
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>import exceptions
+print &quot;Inside simple function&quot;
 try:
   foo += 1      # one or more statements here
 except Exception, e:
-  print "FOO error:",e 
-</PRE>
-<P>then you will get this message printed to the screen:
-</P>
-<PRE>FOO error: local variable 'foo' referenced before assignment 
-</PRE>
-<P>If there is no error in the try statements, then nothing is printed.
+  print &quot;FOO error:&quot;,e
+</pre></div>
+</div>
+<p>then you will get this message printed to the screen:</p>
+<div class="highlight-python"><div class="highlight"><pre>FOO error: local variable &#39;foo&#39; referenced before assignment
+</pre></div>
+</div>
+<p>If there is no error in the try statements, then nothing is printed.
 Either way the function continues on (unless you put a return or
-sys.exit() in the except clause).
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>This command is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>Building LAMMPS with the PYTHON package will link LAMMPS with the
+sys.exit() in the except clause).</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command is part of the PYTHON package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>Building LAMMPS with the PYTHON package will link LAMMPS with the
 Python library on your system.  Settings to enable this are in the
 lib/python/Makefile.lammps file.  See the lib/python/README file for
-information on those settings.
-</P>
-<P>If you use Python code which calls back to LAMMPS, via the SELF input
+information on those settings.</p>
+<p>If you use Python code which calls back to LAMMPS, via the SELF input
 argument explained above, there is an extra step required when
 building LAMMPS.  LAMMPS must also be built as a shared library and
 your Python function must be able to to load the Python module in
 python/lammps.py that wraps the LAMMPS library interface.  These are
 the same steps required to use Python by itself to wrap LAMMPS.
-Details on these steps are explained in <A HREF = "Section.python.html">Section
-python</A>.  Note that it is important that the
+Details on these steps are explained in <code class="xref doc docutils literal"><span class="pre">Section</span> <span class="pre">python</span></code>.  Note that it is important that the
 stand-alone LAMMPS executable and the LAMMPS shared library be
 consistent (built from the same source code files) in order for this
 to work.  If the two have been built at different times using
-different source files, problems may occur.
-</P>
-<P>As described above, you can use the python command to invoke a Python
+different source files, problems may occur.</p>
+<p>As described above, you can use the python command to invoke a Python
 function which calls back to LAMMPS through its Python-wrapped library
 interface.  However you cannot do the opposite.  I.e. you cannot call
-LAMMPS from Python and invoke the python command to "callback" to
+LAMMPS from Python and invoke the python command to &#8220;callback&#8221; to
 Python and execute a Python function.  LAMMPS will generate an error
 if you try to do that.  Note that we think there actually should be a
-way to do that, but haven't yet been able to figure out how to do it
-successfully.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "shell.html">shell</A>, <A HREF = "variable.html">variable</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+way to do that, but haven&#8217;t yet been able to figure out how to do it
+successfully.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="shell.html"><em>shell</em></a>, <a class="reference internal" href="variable.html"><em>variable</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

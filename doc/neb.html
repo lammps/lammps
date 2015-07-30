@@ -1,91 +1,205 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>neb command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>neb command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>neb etol ftol N1 N2 Nevery file-style arg 
-</PRE>
-<UL><LI>etol = stopping tolerance for energy (energy units) 
-
-<LI>ftol = stopping tolerance for force (force units) 
-
-<LI>N1 = max # of iterations (timesteps) to run initial NEB 
-
-<LI>N2 = max # of iterations (timesteps) to run barrier-climbing NEB 
-
-<LI>Nevery = print replica energies and reaction coordinates every this many timesteps 
-
-<LI>file-style= <I>final</I> or <I>each</I> or <I>none</I> 
-
-<PRE>  <I>final</I> arg = filename
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>neb command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="neb-command">
+<span id="index-0"></span><h1>neb command<a class="headerlink" href="#neb-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>neb etol ftol N1 N2 Nevery file-style arg
+</pre></div>
+</div>
+<ul class="simple">
+<li>etol = stopping tolerance for energy (energy units)</li>
+<li>ftol = stopping tolerance for force (force units)</li>
+<li>N1 = max # of iterations (timesteps) to run initial NEB</li>
+<li>N2 = max # of iterations (timesteps) to run barrier-climbing NEB</li>
+<li>Nevery = print replica energies and reaction coordinates every this many timesteps</li>
+<li>file-style= <em>final</em> or <em>each</em> or <em>none</em></li>
+</ul>
+<pre class="literal-block">
+<em>final</em> arg = filename
     filename = file with initial coords for final replica
       coords for intermediate replicas are linearly interpolated between first and last replica
-  <I>each</I> arg = filename
+  <em>each</em> arg = filename
     filename = unique filename for each replica (except first) with its initial coords
-  <I>none</I> arg = no argument
-    all replicas assumed to already have their initial coords 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>neb 0.1 0.0 1000 500 50 final coords.final
+  <em>none</em> arg = no argument
+    all replicas assumed to already have their initial coords
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>neb 0.1 0.0 1000 500 50 final coords.final
 neb 0.0 0.001 1000 500 50 each coords.initial.$i
-neb 0.0 0.001 1000 500 50 none 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Perform a nudged elastic band (NEB) calculation using multiple
+neb 0.0 0.001 1000 500 50 none
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Perform a nudged elastic band (NEB) calculation using multiple
 replicas of a system.  Two or more replicas must be used; the first
-and last are the end points of the transition path.
-</P>
-<P>NEB is a method for finding both the atomic configurations and height
+and last are the end points of the transition path.</p>
+<p>NEB is a method for finding both the atomic configurations and height
 of the energy barrier associated with a transition state, e.g. for an
 atom to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 3 papers: <A HREF = "#Henkelman1">(Henkelman1)</A>,
-<A HREF = "#Henkelman2">(Henkelman2)</A>, and <A HREF = "#Nakano">(Nakano)</A>.
-</P>
-<P>Each replica runs on a partition of one or more processors.  Processor
+follows the discussion in these 3 papers: <a class="reference internal" href="#henkelman1"><span>(Henkelman1)</span></a>,
+<a class="reference internal" href="#henkelman2"><span>(Henkelman2)</span></a>, and <a class="reference internal" href="#nakano"><span>(Nakano)</span></a>.</p>
+<p>Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see <A HREF = "Section_start.html#start_7">Section_start 7</A> of the
+switch; see <a class="reference internal" href="Section_start.html#start-7"><span>Section_start 7</span></a> of the
 manual.  Note that if you have MPI installed, you can run a
 multi-replica simulation with more replicas (partitions) than you have
 physical processors, e.g you can run a 10-replica simulation on just
 one or two processors.  You will simply not get the performance
 speed-up you would see with one or more physical processors per
-replica.  See <A HREF = "Section_howto.html#howto_5">this section</A> of the manual
-for further discussion.
-</P>
-<P>IMPORTANT NOTE: The current NEB implementation in LAMMPS only allows
-there to be one processor per replica.
-</P>
-<P>IMPORTANT NOTE: As explained below, a NEB calculation perfoms a damped
+replica.  See <a class="reference internal" href="Section_howto.html#howto-5"><span>this section</span></a> of the manual
+for further discussion.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The current NEB implementation in LAMMPS only allows
+there to be one processor per replica.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As explained below, a NEB calculation perfoms a damped
 dynamics minimization across all the replicas.  The mimimizer uses
 whatever timestep you have defined in your input script, via the
-<A HREF = "timestep.html">timestep</A> command.  Often NEB will converge more
+<a class="reference internal" href="timestep.html"><em>timestep</em></a> command.  Often NEB will converge more
 quickly if you use a timestep about 10x larger than you would normally
-use for dynamics simulations.
-</P>
-<P>When a NEB calculation is performed, it is assumed that each replica
+use for dynamics simulations.</p>
+</div>
+<p>When a NEB calculation is performed, it is assumed that each replica
 is running the same system, though LAMMPS does not check for this.
 I.e. the simulation domain, the number of atoms, the interaction
 potentials, and the starting configuration when the neb command is
-issued should be the same for every replica.
-</P>
-<P>In a NEB calculation each atom in a replica is connected to the same
+issued should be the same for every replica.</p>
+<p>In a NEB calculation each atom in a replica is connected to the same
 atom in adjacent replicas by springs, which induce inter-replica
-forces.  These forces are imposed by the <A HREF = "fix_neb.html">fix neb</A>
+forces.  These forces are imposed by the <a class="reference internal" href="fix_neb.html"><em>fix neb</em></a>
 command, which must be used in conjunction with the neb command.  The
 group used to define the fix neb command defines the NEB atoms which
 are the only ones that inter-replica springs are applied to.  If the
@@ -96,17 +210,15 @@ replica.  Conceptually, the non-NEB atoms provide a background force
 field for the NEB atoms.  They can be allowed to move during the NEB
 minimiation procedure (which will typically induce different
 coordinates for non-NEB atoms in different replicas), or held fixed
-using other LAMMPS commands such as <A HREF = "fix_setforce">fix setforce</A>.  Note
-that the <A HREF = "partition.html">partition</A> command can be used to invoke a
+using other LAMMPS commands such as <a class="reference external" href="fix_setforce">fix setforce</a>.  Note
+that the <a class="reference internal" href="partition.html"><em>partition</em></a> command can be used to invoke a
 command on a subset of the replicas, e.g. if you wish to hold NEB or
-non-NEB atoms fixed in only the end-point replicas.
-</P>
-<P>The initial atomic configuration for each of the replicas can be
-specified in different manners via the <I>file-style</I> setting, as
+non-NEB atoms fixed in only the end-point replicas.</p>
+<p>The initial atomic configuration for each of the replicas can be
+specified in different manners via the <em>file-style</em> setting, as
 discussed below.  Only atoms whose initial coordinates should differ
-from the current configuration need be specified.
-</P>
-<P>Conceptually, the initial configuration for the first replica should
+from the current configuration need be specified.</p>
+<p>Conceptually, the initial configuration for the first replica should
 be a state with all the atoms (NEB and non-NEB) having coordinates on
 one side of the energy barrier.  A perfect energy minimum is not
 required, since atoms in the first replica experience no spring forces
@@ -115,16 +227,14 @@ drive the first replica to an energy minimum if it is not already
 there.  However, you will typically get better convergence if the
 initial state is already at a minimum.  For example, for a system with
 a free surface, the surface should be fully relaxed before attempting
-a NEB calculation.
-</P>
-<P>Likewise, the initial configuration of the final replica should be a
+a NEB calculation.</p>
+<p>Likewise, the initial configuration of the final replica should be a
 state with all the atoms (NEB and non-NEB) on the other side of the
 energy barrier.  Again, a perfect energy minimum is not required,
 since the atoms in the last replica also experience no spring forces
 from the next-to-last replica, and thus the damped dynamics
-minimization will drive it to an energy minimum.
-</P>
-<P>As explained below, the initial configurations of intermediate
+minimization will drive it to an energy minimum.</p>
+<p>As explained below, the initial configurations of intermediate
 replicas can be atomic coordinates interpolated in a linear fashion
 between the first and last replicas.  This is often adequate state for
 simple transitions.  For more complex transitions, it may lead to slow
@@ -132,11 +242,9 @@ convergence or even bad results if the minimum energy path (MEP, see
 below) of states over the barrier cannot be correctly converged to
 from such an initial configuration.  In this case, you will want to
 generate initial states for the intermediate replicas that are
-geometrically closer to the MEP and read them in.
-</P>
-<HR>
-
-<P>For a <I>file-style</I> setting of <I>final</I>, a filename is specified which
+geometrically closer to the MEP and read them in.</p>
+<hr class="docutils" />
+<p>For a <em>file-style</em> setting of <em>final</em>, a filename is specified which
 contains atomic coordinates for zero or more atoms, in the format
 described below.  For each atom that appears in the file, the new
 coordinates are assigned to that atom in the final replica.  Each
@@ -151,292 +259,326 @@ distance along a line between the starting and final point, and the
 the line.  Note that this procedure to produce consistent coordinates
 across all the replicas, the current coordinates need to be the same
 in all replicas.  LAMMPS does not check for this, but invalid initial
-configurations will likely result if it is not the case.
-</P>
-<P>NOTE: The "distance" between the starting and final point is
+configurations will likely result if it is not the case.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The &#8220;distance&#8221; between the starting and final point is
 calculated in a minimum-image sense for a periodic simulation box.
 This means that if the two positions are on opposite sides of a box
 (periodic in that dimension), the distance between them will be small,
 because the periodic image of one of the atoms is close to the other.
 Similarly, even if the assigned position resulting from the
 interpolation is outside the periodic box, the atom will be wrapped
-back into the box when the NEB calculation begins.
-</P>
-<P>For a <I>file-style</I> setting of <I>each</I>, a filename is specified which is
+back into the box when the NEB calculation begins.</p>
+</div>
+<p>For a <em>file-style</em> setting of <em>each</em>, a filename is specified which is
 assumed to be unique to each replica.  This can be done by
-using a variable in the filename, e.g.
-</P>
-<PRE>variable i equal part
-neb 0.0 0.001 1000 500 50 each coords.initial.$i 
-</PRE>
-<P>which in this case will substitute the partition ID (0 to N-1) for the
+using a variable in the filename, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable i equal part
+neb 0.0 0.001 1000 500 50 each coords.initial.$i
+</pre></div>
+</div>
+<p>which in this case will substitute the partition ID (0 to N-1) for the
 variable I, which is also effectively the replica ID.  See the
-<A HREF = "variable.html">variable</A> command for other options, such as using
-world-, universe-, or uloop-style variables.
-</P>
-<P>Each replica (except the first replica) will read its file, formatted
+<a class="reference internal" href="variable.html"><em>variable</em></a> command for other options, such as using
+world-, universe-, or uloop-style variables.</p>
+<p>Each replica (except the first replica) will read its file, formatted
 as described below, and for any atom that appears in the file, assign
 the specified coordinates to its atom.  The various files do not need
-to contain the same set of atoms.
-</P>
-<P>For a <I>file-style</I> setting of <I>none</I>, no filename is specified.  Each
+to contain the same set of atoms.</p>
+<p>For a <em>file-style</em> setting of <em>none</em>, no filename is specified.  Each
 replica is assumed to already be in its initial configuration at the
 time the neb command is issued.  This allows each replica to define
 its own configuration by reading a replica-specific data or restart or
-dump file, via the <A HREF = "read_data.html">read_data</A>,
-<A HREF = "read_restart.html">read_restart</A>, or <A HREF = "read_dump.html">read_dump</A>
+dump file, via the <a class="reference internal" href="read_data.html"><em>read_data</em></a>,
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a>, or <a class="reference internal" href="read_dump.html"><em>read_dump</em></a>
 commands.  The replica-specific names of these files can be specified
-as in the discussion above for the <I>each</I> file-style.  Also see the
+as in the discussion above for the <em>each</em> file-style.  Also see the
 section below for how a NEB calculation can produce restart files, so
-that a long calculation can be restarted if needed.
-</P>
-<P>IMPORTANT NOTE: None of the <I>file-style</I> settings change the initial
+that a long calculation can be restarted if needed.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">None of the <em>file-style</em> settings change the initial
 configuration of any atom in the first replica.  The first replica
 must thus be in the correct initial configuration at the time the neb
-command is issued.  
-</P>
-<HR>
-
-<P>A NEB calculation proceeds in two stages, each of which is a
+command is issued.</p>
+</div>
+<hr class="docutils" />
+<p>A NEB calculation proceeds in two stages, each of which is a
 minimization procedure, performed via damped dynamics.  To enable
 this, you must first define a damped dynamics
-<A HREF = "min_style.html">min_style</A>, such as <I>quickmin</I> or <I>fire</I>.  The <I>cg</I>,
-<I>sd</I>, and <I>hftn</I> styles cannot be used, since they perform iterative
+<a class="reference internal" href="min_style.html"><em>min_style</em></a>, such as <em>quickmin</em> or <em>fire</em>.  The <em>cg</em>,
+<em>sd</em>, and <em>hftn</em> styles cannot be used, since they perform iterative
 line searches in their inner loop, which cannot be easily synchronized
-across multiple replicas.
-</P>
-<P>The minimizer tolerances for energy and force are set by <I>etol</I> and
-<I>ftol</I>, the same as for the <A HREF = "minimize.html">minimize</A> command.
-</P>
-<P>A non-zero <I>etol</I> means that the NEB calculation will terminate if the
+across multiple replicas.</p>
+<p>The minimizer tolerances for energy and force are set by <em>etol</em> and
+<em>ftol</em>, the same as for the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.</p>
+<p>A non-zero <em>etol</em> means that the NEB calculation will terminate if the
 energy criterion is met by every replica.  The energies being compared
-to <I>etol</I> do not include any contribution from the inter-replica
-forces, since these are non-conservative.  A non-zero <I>ftol</I> means
+to <em>etol</em> do not include any contribution from the inter-replica
+forces, since these are non-conservative.  A non-zero <em>ftol</em> means
 that the NEB calculation will terminate if the force criterion is met
-by every replica.  The forces being compared to <I>ftol</I> include the
+by every replica.  The forces being compared to <em>ftol</em> include the
 inter-replica forces between an atom and its images in adjacent
-replicas.
-</P>
-<P>The maximum number of iterations in each stage is set by <I>N1</I> and
-<I>N2</I>.  These are effectively timestep counts since each iteration of
+replicas.</p>
+<p>The maximum number of iterations in each stage is set by <em>N1</em> and
+<em>N2</em>.  These are effectively timestep counts since each iteration of
 damped dynamics is like a single timestep in a dynamics
-<A HREF = "run.html">run</A>.  During both stages, the potential energy of each
+<a class="reference internal" href="run.html"><em>run</em></a>.  During both stages, the potential energy of each
 replica and its normalized distance along the reaction path (reaction
 coordinate RD) will be printed to the screen and log file every
-<I>Nevery</I> timesteps.  The RD is 0 and 1 for the first and last replica.
+<em>Nevery</em> timesteps.  The RD is 0 and 1 for the first and last replica.
 For intermediate replicas, it is the cumulative distance (normalized
 by the total cumulative distance) between adjacent replicas, where
-"distance" is defined as the length of the 3N-vector of differences in
+&#8220;distance&#8221; is defined as the length of the 3N-vector of differences in
 atomic coordinates, where N is the number of NEB atoms involved in the
-transition.  These outputs allow you to monitor NEB's progress in
-finding a good energy barrier.  <I>N1</I> and <I>N2</I> must both be multiples
-of <I>Nevery</I>.
-</P>
-<P>In the first stage of NEB, the set of replicas should converge toward
+transition.  These outputs allow you to monitor NEB&#8217;s progress in
+finding a good energy barrier.  <em>N1</em> and <em>N2</em> must both be multiples
+of <em>Nevery</em>.</p>
+<p>In the first stage of NEB, the set of replicas should converge toward
 the minimum energy path (MEP) of conformational states that transition
 over the barrier.  The MEP for a barrier is defined as a sequence of
 3N-dimensional states that cross the barrier at its saddle point, each
 of which has a potential energy gradient parallel to the MEP itself.
 The replica states will also be roughly equally spaced along the MEP
-due to the inter-replica spring force added by the <A HREF = "fix_neb.html">fix
-neb</A> command.
-</P>
-<P>In the second stage of NEB, the replica with the highest energy
+due to the inter-replica spring force added by the <a class="reference internal" href="fix_neb.html"><em>fix neb</em></a> command.</p>
+<p>In the second stage of NEB, the replica with the highest energy
 is selected and the inter-replica forces on it are converted to a
 force that drives its atom coordinates to the top or saddle point of
 the barrier, via the barrier-climbing calculation described in
-<A HREF = "#Hinkelman2">(Henkelman2)</A>.  As before, the other replicas rearrange
-themselves along the MEP so as to be roughly equally spaced.
-</P>
-<P>When both stages are complete, if the NEB calculation was successful,
+<span class="xref std std-ref">(Henkelman2)</span>.  As before, the other replicas rearrange
+themselves along the MEP so as to be roughly equally spaced.</p>
+<p>When both stages are complete, if the NEB calculation was successful,
 one of the replicas should be an atomic configuration at the top or
 saddle point of the barrier, the potential energies for the set of
 replicas should represent the energy profile of the barrier along the
 MEP, and the configurations of the replicas should be a sequence of
-configurations along the MEP.
-</P>
-<HR>
-
-<P>A few other settings in your input script are required or advised to
+configurations along the MEP.</p>
+<hr class="docutils" />
+<p>A few other settings in your input script are required or advised to
 perform a NEB calculation.  See the IMPORTANT NOTE about the choice of
-timestep at the beginning of this doc page.
-</P>
-<P>An atom map must be defined which it is not by default for <A HREF = "atom_style.html">atom_style
-atomic</A> problems.  The <A HREF = "atom_modify.html">atom_modify
-map</A> command can be used to do this.
-</P>
-<P>The "atom_modify sort 0 0.0" command should be used to turn off atom
-sorting.
-</P>
-<P>NOTE: This sorting restriction will be removed in a future version of
-NEB in LAMMPS.
-</P>
-<P>The minimizers in LAMMPS operate on all atoms in your system, even
+timestep at the beginning of this doc page.</p>
+<p>An atom map must be defined which it is not by default for <a class="reference internal" href="atom_style.html"><em>atom_style atomic</em></a> problems.  The <a class="reference internal" href="atom_modify.html"><em>atom_modify map</em></a> command can be used to do this.</p>
+<p>The &#8220;atom_modify sort 0 0.0&#8221; command should be used to turn off atom
+sorting.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This sorting restriction will be removed in a future version of
+NEB in LAMMPS.</p>
+</div>
+<p>The minimizers in LAMMPS operate on all atoms in your system, even
 non-NEB atoms, as defined above.  To prevent non-NEB atoms from moving
-during the minimization, you should use the <A HREF = "fix_setforce.html">fix
-setforce</A> command to set the force on each of those
+during the minimization, you should use the <a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a> command to set the force on each of those
 atoms to 0.0.  This is not required, and may not even be desired in
 some cases, but if those atoms move too far (e.g. because the initial
 state of your system was not well-minimized), it can cause problems
-for the NEB procedure.
-</P>
-<P>The damped dynamics <A HREF = "min_style.html">minimizers</A>, such as <I>quickmin</I>
-and <I>fire</I>), adjust the position and velocity of the atoms via an
+for the NEB procedure.</p>
+<p>The damped dynamics <a class="reference internal" href="min_style.html"><em>minimizers</em></a>, such as <em>quickmin</em>
+and <em>fire</em>), adjust the position and velocity of the atoms via an
 Euler integration step.  Thus you must define an appropriate
-<A HREF = "timestep.html">timestep</A> to use with NEB.  As mentioned above, NEB
+<a class="reference internal" href="timestep.html"><em>timestep</em></a> to use with NEB.  As mentioned above, NEB
 will often converge more quickly if you use a timestep about 10x
-larger than you would normally use for dynamics simulations.
-</P>
-<HR>
-
-<P>Each file read by the neb command containing atomic coordinates used
-to initialize one or more replicas must be formatted as follows.
-</P>
-<P>The file can be ASCII text or a gzipped text file (detected by a .gz
+larger than you would normally use for dynamics simulations.</p>
+<hr class="docutils" />
+<p>Each file read by the neb command containing atomic coordinates used
+to initialize one or more replicas must be formatted as follows.</p>
+<p>The file can be ASCII text or a gzipped text file (detected by a .gz
 suffix).  The file can contain initial blank lines or comment lines
-starting with "#" which are ignored.  The first non-blank, non-comment
+starting with &#8220;#&#8221; which are ignored.  The first non-blank, non-comment
 line should list N = the number of lines to follow.  The N successive
-lines contain the following information:
-</P>
-<PRE>ID1 x1 y1 z1
+lines contain the following information:</p>
+<div class="highlight-python"><div class="highlight"><pre>ID1 x1 y1 z1
 ID2 x2 y2 z2
 ...
-IDN xN yN zN 
-</PRE>
-<P>The fields are the the atom ID, followed by the x,y,z coordinates.
+IDN xN yN zN
+</pre></div>
+</div>
+<p>The fields are the the atom ID, followed by the x,y,z coordinates.
 The lines can be listed in any order.  Additional trailing information
-on the line is OK, such as a comment.
-</P>
-<P>Note that for a typical NEB calculation you do not need to specify
+on the line is OK, such as a comment.</p>
+<p>Note that for a typical NEB calculation you do not need to specify
 initial coordinates for very many atoms to produce differing starting
 and final replicas whose intermediate replicas will converge to the
 energy barrier.  Typically only new coordinates for atoms
-geometrically near the barrier need be specified.
-</P>
-<P>Also note there is no requirement that the atoms in the file
-correspond to the NEB atoms in the group defined by the <A HREF = "fix_neb.html">fix
-neb</A> command.  Not every NEB atom need be in the file,
-and non-NEB atoms can be listed in the file.
-</P>
-<HR>
-
-<P>Four kinds of output can be generated during a NEB calculation: energy
+geometrically near the barrier need be specified.</p>
+<p>Also note there is no requirement that the atoms in the file
+correspond to the NEB atoms in the group defined by the <a class="reference internal" href="fix_neb.html"><em>fix neb</em></a> command.  Not every NEB atom need be in the file,
+and non-NEB atoms can be listed in the file.</p>
+<hr class="docutils" />
+<p>Four kinds of output can be generated during a NEB calculation: energy
 barrier statistics, thermodynamic output by each replica, dump files,
-and restart files.
-</P>
-<P>When running with multiple partitions (each of which is a replica in
+and restart files.</p>
+<p>When running with multiple partitions (each of which is a replica in
 this case), the print-out to the screen and master log.lammps file
-contains a line of output, printed once every <I>Nevery</I> timesteps.  It
+contains a line of output, printed once every <em>Nevery</em> timesteps.  It
 contains the timestep, the maximum force per replica, the maximum
-force per atom (in any replica), potential gradients in the initial,
- final, and climbing replicas,  
-the forward and backward energy barriers, 
+force per atom (in any replica), potential gradients in the initial,</p>
+<blockquote>
+<div>final, and climbing replicas,</div></blockquote>
+<p>the forward and backward energy barriers,
 the total reaction coordinate (RDT), and
-the normalized reaction coordinate and potential energy of each replica.
-</P>
-<P>The "maximum force per replica" is
+the normalized reaction coordinate and potential energy of each replica.</p>
+<p>The &#8220;maximum force per replica&#8221; is
 the two-norm of the 3N-length force vector for the atoms in each
-replica, maximized across replicas, which is what the <I>ftol</I> setting
+replica, maximized across replicas, which is what the <em>ftol</em> setting
 is checking against.  In this case, N is all the atoms in each
-replica.  The "maximum force per atom" is the maximum force component
+replica.  The &#8220;maximum force per atom&#8221; is the maximum force component
 of any atom in any replica.  The potential gradients are the two-norm
 of the 3N-length force vector solely due to the interaction potential i.e.
 without adding in inter-replica forces. Note that inter-replica forces
 are zero in the initial and final replicas, and only affect
-the direction in the climbing replica. For this reason, the "maximum 
-force per replica" is often equal to the potential gradient in the
+the direction in the climbing replica. For this reason, the &#8220;maximum
+force per replica&#8221; is often equal to the potential gradient in the
 climbing replica. In the first stage of NEB, there is no climbing
 replica, and so the potential gradient in the highest energy replica
 is reported, since this replica will become the climbing replica
-in the second stage of NEB.
-</P>
-<P>The "reaction coordinate" (RD) for each
+in the second stage of NEB.</p>
+<p>The &#8220;reaction coordinate&#8221; (RD) for each
 replica is the two-norm of the 3N-length vector of distances between
-its atoms and the preceding replica's atoms, added to the RD of the
-preceding replica. The RD of the first replica RD1 = 0.0; 
+its atoms and the preceding replica&#8217;s atoms, added to the RD of the
+preceding replica. The RD of the first replica RD1 = 0.0;
 the RD of the final replica RDN = RDT, the total reaction coordinate.
 The normalized RDs are divided by RDT,
 so that they form a monotonically increasing sequence
-from zero to one. When computing RD, N only includes the atoms 
-being operated on by the fix neb command.
-</P>
-<P>The forward (reverse) energy barrier is the potential energy of the highest
-replica minus the energy of the first (last) replica.
-</P>
-<P>When running on multiple partitions, LAMMPS produces additional log
+from zero to one. When computing RD, N only includes the atoms
+being operated on by the fix neb command.</p>
+<p>The forward (reverse) energy barrier is the potential energy of the highest
+replica minus the energy of the first (last) replica.</p>
+<p>When running on multiple partitions, LAMMPS produces additional log
 files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For a
 NEB calculation, these contain the thermodynamic output for each
-replica.
-</P>
-<P>If <A HREF = "dump.html">dump</A> commands in the input script define a filename
-that includes a <I>universe</I> or <I>uloop</I> style <A HREF = "variable.html">variable</A>,
+replica.</p>
+<p>If <a class="reference internal" href="dump.html"><em>dump</em></a> commands in the input script define a filename
+that includes a <em>universe</em> or <em>uloop</em> style <a class="reference internal" href="variable.html"><em>variable</em></a>,
 then one dump file (per dump command) will be created for each
 replica.  At the end of the NEB calculation, the final snapshot in
 each file will contain the sequence of snapshots that transition the
 system over the energy barrier.  Earlier snapshots will show the
-convergence of the replicas to the MEP.
-</P>
-<P>Likewise, <A HREF = "restart.html">restart</A> filenames can be specified with a
-<I>universe</I> or <I>uloop</I> style <A HREF = "variable.html">variable</A>, to generate
+convergence of the replicas to the MEP.</p>
+<p>Likewise, <a class="reference internal" href="restart.html"><em>restart</em></a> filenames can be specified with a
+<em>universe</em> or <em>uloop</em> style <a class="reference internal" href="variable.html"><em>variable</em></a>, to generate
 restart files for each replica.  These may be useful if the NEB
 calculation fails to converge properly to the MEP, and you wish to
 restart the calculation from an intermediate point with altered
-parameters.
-</P>
-<P>There are 2 Python scripts provided in the tools/python directory,
+parameters.</p>
+<p>There are 2 Python scripts provided in the tools/python directory,
 neb_combine.py and neb_final.py, which are useful in analyzing output
 from a NEB calculation.  Assume a NEB simulation with M replicas, and
-the NEB atoms labelled with a specific atom type.
-</P>
-<P>The neb_combine.py script extracts atom coords for the NEB atoms from
+the NEB atoms labelled with a specific atom type.</p>
+<p>The neb_combine.py script extracts atom coords for the NEB atoms from
 all M dump files and creates a single dump file where each snapshot
 contains the NEB atoms from all the replicas and one copy of non-NEB
 atoms from the first replica (presumed to be identical in other
 replicas).  This can be visualized/animated to see how the NEB atoms
-relax as the NEB calculation proceeds.
-</P>
-<P>The neb_final.py script extracts the final snapshot from each of the M
+relax as the NEB calculation proceeds.</p>
+<p>The neb_final.py script extracts the final snapshot from each of the M
 dump files to create a single dump file with M snapshots.  This can be
 visualized to watch the system make its transition over the energy
-barrier.
-</P>
-<P>To illustrate, here are images from the final snapshot produced by the
+barrier.</p>
+<p>To illustrate, here are images from the final snapshot produced by the
 neb_combine.py script run on the dump files produced by the two
 example input scripts in examples/neb.  Click on them to see a larger
-image.
-</P>
-<A HREF = "JPG/hop1.jpg"><IMG SRC = "JPG/hop1_small.jpg"></A>
+image.</p>
+<a data-lightbox="group-default"
+                   href="_images/hop1.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/hop1.jpg"
+                    class=""
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a><a data-lightbox="group-default"
+                   href="_images/hop2.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/hop2.jpg"
+                    class=""
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a></div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section
+for more info on packages.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="prd.html"><em>prd</em></a>, <a class="reference internal" href="temper.html"><em>temper</em></a>, <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>, <a class="reference internal" href="fix_viscous.html"><em>fix viscous</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="henkelman1"><strong>(Henkelman1)</strong> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).</p>
+<p id="henkelman2"><strong>(Henkelman2)</strong> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+9901-9904 (2000).</p>
+<p id="nakano"><strong>(Nakano)</strong> Nakano, Comp Phys Comm, 178, 280-289 (2008).</p>
+</div>
+</div>
 
-<A HREF = "JPG/hop2.jpg"><IMG SRC = "JPG/hop2_small.jpg"></A>
 
-<HR>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>Restrictions:</B>
-</P>
-<P>This command can only be used if LAMMPS was built with the REPLICA
-package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
-for more info on packages.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "prd.html">prd</A>, <A HREF = "temper.html">temper</A>, <A HREF = "fix_langevin.html">fix
-langevin</A>, <A HREF = "fix_viscous.html">fix viscous</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+  <hr/>
 
-<A NAME = "Henkelman1"></A>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-<P><B>(Henkelman1)</B> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
-</P>
-<A NAME = "Henkelman2"></A>
+</footer>
 
-<P><B>(Henkelman2)</B> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
-9901-9904 (2000).
-</P>
-<A NAME = "Nakano"></A>
+        </div>
+      </div>
 
-<P><B>(Nakano)</B> Nakano, Comp Phys Comm, 178, 280-289 (2008).
-</P>
-</HTML>
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,154 +1,315 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style list command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style list command 
-</H3>
-<P><B>Syntax:</B> 
-</P>
-<PRE>pair_style list listfile cutoff keyword 
-</PRE>
-<UL><LI>listfile = name of file with list of pairwise interactions
-<LI>cutoff = global cutoff (distance units) 
-<LI>keyword = optional flag <I>nocheck</I> or <I>check</I> (default is <I>check</I>) 
-</UL>
-<P><B>Examples:</B> 
-</P>
-<PRE>pair_style list restraints.txt 200.0
-pair_coeff * * 
-</PRE>
-<PRE>pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style list command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-list-command">
+<span id="index-0"></span><h1>pair_style list command<a class="headerlink" href="#pair-style-list-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style list listfile cutoff keyword
+</pre></div>
+</div>
+<ul class="simple">
+<li>listfile = name of file with list of pairwise interactions</li>
+<li>cutoff = global cutoff (distance units)</li>
+<li>keyword = optional flag <em>nocheck</em> or <em>check</em> (default is <em>check</em>)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style list restraints.txt 200.0
+pair_coeff * *
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
 pair_coeff * * lj/cut 1.0 1.0
-pair_coeff 3* 3* list 
-</PRE>
-<P><B>Description:</B> 
-</P>
-<P>Style <I>list</I> computes interactions between explicitly listed pairs of
+pair_coeff 3* 3* list
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>list</em> computes interactions between explicitly listed pairs of
 atoms with the option to select functional form and parameters for
 each individual pair.  Because the parameters are set in the list
 file, the pair_coeff command has no parameters (but still needs to be
-provided).  The <I>check</I> and <I>nocheck</I> keywords enable/disable a test
-that checks whether all listed bonds were present and computed.
-</P>
-<P>This pair style can be thought of as a hybrid between bonded,
+provided).  The <em>check</em> and <em>nocheck</em> keywords enable/disable a test
+that checks whether all listed bonds were present and computed.</p>
+<p>This pair style can be thought of as a hybrid between bonded,
 non-bonded, and restraint interactions.  It will typically be used as
-an additional interaction within the <I>hybrid/overlay</I> pair style.  It
+an additional interaction within the <em>hybrid/overlay</em> pair style.  It
 currently supports three interaction styles: a 12-6 Lennard-Jones, a
-Morse and a harmonic potential.
-</P>
-<P>The format of the list file is as follows:
-</P>
-<UL><LI>one line per pair of atoms 
-
-<LI>empty lines will be ignored 
-
-<LI>comment text starts with a '#' character 
-
-<LI>line syntax: <I>ID1 ID2 style coeffs cutoff</I> 
-
-<PRE>  ID1 = atom ID of first atom
+Morse and a harmonic potential.</p>
+<p>The format of the list file is as follows:</p>
+<ul class="simple">
+<li>one line per pair of atoms</li>
+<li>empty lines will be ignored</li>
+<li>comment text starts with a &#8216;#&#8217; character</li>
+<li>line syntax: <em>ID1 ID2 style coeffs cutoff</em></li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>ID1 = atom ID of first atom
   ID2 = atom ID of second atom
   style = style of interaction
   coeffs = list of coeffs
-  cutoff = cutoff for interaction (optional) 
-</PRE>
-
-</UL>
-<P>The cutoff parameter is optional. If not specified, the global cutoff
-is used.
-</P>
-<P>Here is an example file:
-</P>
-<PRE># this is a comment 
-</PRE>
-<PRE>15 259 lj126     1.0 1.0      50.0
-15 603 morse    10.0 1.2 2.0  10.0 # and another comment 
-18 470 harmonic 50.0 1.2       5.0  
-</PRE>
-<P>The style <I>lj126</I> computes pairwise interactions with the formula
-</P>
-<CENTER><IMG SRC = "Eqs/pair_lj.jpg">
-</CENTER>
-<P>and the coefficients:
-</P>
-<UL><LI>epsilon (energy units)
-<LI>sigma (distance units) 
-</UL>
-<P>The style <I>morse</I> computes pairwise interactions with the formula
-</P>
-<CENTER><IMG SRC = "Eqs/pair_morse.jpg">
-</CENTER>
-<P>and the coefficients:
-</P>
-<UL><LI>D0 (energy units)
-<LI>alpha (1/distance units)
-<LI>r0 (distance units) 
-</UL>
-<P>The style <I>harmonic</I> computes pairwise interactions with the formula
-</P>
-<CENTER><IMG SRC = "Eqs/bond_harmonic.jpg">
-</CENTER>
-<P>and the coefficients:
-</P>
-<UL><LI>K (energy units)
-<LI>r0 (distance units) 
-</UL>
-<P>Note that the usual 1/2 factor is included in K. 
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>This pair style does not support mixing since all parameters are
-explicit for each pair.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> shift option is supported by this
-pair style.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
-relevant for this pair style.
-</P>
-<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
-files</A>, so pair_style and pair_coeff commands need
-to be specified in an input script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>This pair style does not use a neighbor list and instead identifies
+  cutoff = cutoff for interaction (optional)
+</pre></div>
+</div>
+<p>The cutoff parameter is optional. If not specified, the global cutoff
+is used.</p>
+<p>Here is an example file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># this is a comment</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>15 259 lj126     1.0 1.0      50.0
+15 603 morse    10.0 1.2 2.0  10.0 # and another comment
+18 470 harmonic 50.0 1.2       5.0
+</pre></div>
+</div>
+<p>The style <em>lj126</em> computes pairwise interactions with the formula</p>
+<img alt="_images/pair_lj.jpg" class="align-center" src="_images/pair_lj.jpg" />
+<p>and the coefficients:</p>
+<ul class="simple">
+<li>epsilon (energy units)</li>
+<li>sigma (distance units)</li>
+</ul>
+<p>The style <em>morse</em> computes pairwise interactions with the formula</p>
+<img alt="_images/pair_morse.jpg" class="align-center" src="_images/pair_morse.jpg" />
+<p>and the coefficients:</p>
+<ul class="simple">
+<li>D0 (energy units)</li>
+<li>alpha (1/distance units)</li>
+<li>r0 (distance units)</li>
+</ul>
+<p>The style <em>harmonic</em> computes pairwise interactions with the formula</p>
+<img alt="_images/bond_harmonic.jpg" class="align-center" src="_images/bond_harmonic.jpg" />
+<p>and the coefficients:</p>
+<ul class="simple">
+<li>K (energy units)</li>
+<li>r0 (distance units)</li>
+</ul>
+<p>Note that the usual 1/2 factor is included in K.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>This pair style does not support mixing since all parameters are
+explicit for each pair.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> shift option is supported by this
+pair style.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> table and tail options are not
+relevant for this pair style.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands need
+to be specified in an input script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This pair style does not use a neighbor list and instead identifies
 atoms by their IDs. This has two consequences: 1) The cutoff has to be
 chosen sufficiently large, so that the second atom of a pair has to be
 a ghost atom on the same node on which the first atom is local;
-otherwise the interaction will be skipped. You can use the <I>check</I>
+otherwise the interaction will be skipped. You can use the <em>check</em>
 option to detect, if interactions are missing. 2) Unlike other pair
 styles in LAMMPS, an atom I will not interact with multiple images of
 atom J (assuming the images are within the cutoff distance), but only
-with the nearest image.
-</P>
-<P>This style is part of the USER-MISC package. It is only enabled if
-LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>,
-<A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A>,
-<A HREF = "pair_lj.html">pair_style lj/cut</A>,
-<A HREF = "pair_morse.html">pair_style morse</A>,
-<A HREF = "bond_harmonic.html">bond_style harmonic</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+with the nearest image.</p>
+<p>This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the <span class="xref std std-ref">Making of LAMMPS</span> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>,
+<a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a>,
+<a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut</em></a>,
+<a class="reference internal" href="pair_morse.html"><em>pair_style morse</em></a>,
+<a class="reference internal" href="bond_harmonic.html"><em>bond_style harmonic</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

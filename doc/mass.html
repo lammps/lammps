@@ -1,89 +1,262 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mass command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>mass command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>mass I value 
-</PRE>
-<UL><LI>I = atom type (see asterisk form below)
-<LI>value = mass 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>mass 1 1.0
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>mass command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mass-command">
+<span id="index-0"></span><h1>mass command<a class="headerlink" href="#mass-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>mass I value
+</pre></div>
+</div>
+<ul class="simple">
+<li>I = atom type (see asterisk form below)</li>
+<li>value = mass</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>mass 1 1.0
 mass * 62.5
-mass 2* 62.5 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set the mass for all atoms of one or more atom types.  Per-type mass
-values can also be set in the <A HREF = "read_data.html">read_data</A> data file
-using the "Masses" keyword.  See the <A HREF = "units.html">units</A> command for
-what mass units to use.
-</P>
-<P>The I index can be specified in one of two ways.  An explicit numeric
+mass 2* 62.5
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set the mass for all atoms of one or more atom types.  Per-type mass
+values can also be set in the <a class="reference internal" href="read_data.html"><em>read_data</em></a> data file
+using the &#8220;Masses&#8221; keyword.  See the <a class="reference internal" href="units.html"><em>units</em></a> command for
+what mass units to use.</p>
+<p>The I index can be specified in one of two ways.  An explicit numeric
 value can be used, as in the 1st example above.  Or a wild-card
 asterisk can be used to set the mass for multiple atom types.  This
-takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
+takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of
 atom types, then an asterisk with no numeric values means all types
 from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-</P>
-<P>A line in a <A HREF = "read_data.html">data file</A> that follows the "Masses"
+(inclusive).</p>
+<p>A line in a <a class="reference internal" href="read_data.html"><em>data file</em></a> that follows the &#8220;Masses&#8221;
 keyword specifies mass using the same format as the arguments of the
 mass command in an input script, except that no wild-card asterisk can
-be used.  For example, under the "Masses" section of a data file, the
-line that corresponds to the 1st example above would be listed as
-</P>
-<PRE>1 1.0 
-</PRE>
-<P>Note that the mass command can only be used if the <A HREF = "atom_style.html">atom
-style</A> requires per-type atom mass to be set.
-Currently, all but the <I>sphere</I> and <I>ellipsoid</I> and <I>peri</I> styles do.
+be used.  For example, under the &#8220;Masses&#8221; section of a data file, the
+line that corresponds to the 1st example above would be listed as</p>
+<div class="highlight-python"><div class="highlight"><pre>1 1.0
+</pre></div>
+</div>
+<p>Note that the mass command can only be used if the <a class="reference internal" href="atom_style.html"><em>atom style</em></a> requires per-type atom mass to be set.
+Currently, all but the <em>sphere</em> and <em>ellipsoid</em> and <em>peri</em> styles do.
 They require mass to be set for individual particles, not types.
 Per-atom masses are defined in the data file read by the
-<A HREF = "read_data.html">read_data</A> command, or set to default values by the
-<A HREF = "create_atoms.html">create_atoms</A> command.  Per-atom masses can also be
-set to new values by the <A HREF = "set.html">set mass</A> or <A HREF = "set.html">set density</A>
-commands.
-</P>
-<P>Also note that <A HREF = "pair_eam.html">pair_style eam</A> and <A HREF = "pair_bop.html">pair_style
-bop</A> commands define the masses of atom types in their
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command, or set to default values by the
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command.  Per-atom masses can also be
+set to new values by the <a class="reference internal" href="set.html"><em>set mass</em></a> or <a class="reference internal" href="set.html"><em>set density</em></a>
+commands.</p>
+<p>Also note that <a class="reference internal" href="pair_eam.html"><em>pair_style eam</em></a> and <a class="reference internal" href="pair_bop.html"><em>pair_style bop</em></a> commands define the masses of atom types in their
 respective potential files, in which case the mass command is normally
-not used.
-</P>
-<P>If you define a <A HREF = "atom_style.html">hybrid atom style</A> which includes one
+not used.</p>
+<p>If you define a <a class="reference internal" href="atom_style.html"><em>hybrid atom style</em></a> which includes one
 (or more) sub-styles which require per-type mass and one (or more)
 sub-styles which require per-atom mass, then you must define both.
 However, in this case the per-type mass will be ignored; only the
-per-atom mass will be used by LAMMPS.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This command must come after the simulation box is defined by a
-<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
-<A HREF = "create_box.html">create_box</A> command.
-</P>
-<P>All masses must be defined before a simulation is run.  They must also
-all be defined before a <A HREF = "velocity.html">velocity</A> or <A HREF = "fix_shake.html">fix
-shake</A> command is used.
-</P>
-<P>The mass assigned to any type or atom must be > 0.0.
-</P>
-<P><B>Related commands:</B> none
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+per-atom mass will be used by LAMMPS.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command must come after the simulation box is defined by a
+<a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>, or
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> command.</p>
+<p>All masses must be defined before a simulation is run.  They must also
+all be defined before a <a class="reference internal" href="velocity.html"><em>velocity</em></a> or <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command is used.</p>
+<p>The mass assigned to any type or atom must be &gt; 0.0.</p>
+<p><strong>Related commands:</strong> none</p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

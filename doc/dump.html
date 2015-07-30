@@ -1,78 +1,201 @@
-<HTML>
-<CENTER> <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dump command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>dump command 
-</H3>
-<H3><A HREF = "dump_image.html">dump image</A> command 
-</H3>
-<H3><A HREF = "dump_image.html">dump movie</A> command 
-</H3>
-<H3><A HREF = "dump_molfile.html">dump molfile</A> command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>dump ID group-ID style N file args 
-</PRE>
-<UL><LI>ID = user-assigned name for the dump 
-
-<LI>group-ID = ID of the group of atoms to be dumped 
-
-<LI>style = <I>atom</I> or <I>atom/mpiio</I> or <I>cfg</I> or <I>cfg/mpiio</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>xyz/mpiio</I> or <I>image</I> or <I>movie</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> or <I>custom/mpiio</I> 
-
-<LI>N = dump every this many timesteps 
-
-<LI>file = name of file to write dump info to 
-
-<LI>args = list of arguments for a particular style 
-
-<PRE>  <I>atom</I> args = none
-  <I>atom/mpiio</I> args = none
-  <I>cfg</I> args = same as <I>custom</I> args, see below
-  <I>cfg/mpiio</I> args = same as <I>custom</I> args, see below
-  <I>dcd</I> args = none
-  <I>xtc</I> args = none
-  <I>xyz</I> args = none 
-</PRE>
-<PRE>  <I>xyz/mpiio</I> args = none 
-</PRE>
-<PRE>  <I>image</I> args = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
-</PRE>
-<PRE>  <I>movie</I> args = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
-</PRE>
-<PRE>  <I>molfile</I> args = discussed on <A HREF = "dump_molfile.html">dump molfile</A> doc page 
-</PRE>
-<PRE>  <I>local</I> args = list of local attributes
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>dump command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="dump-command">
+<span id="index-0"></span><h1>dump command<a class="headerlink" href="#dump-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="dump-image-command">
+<h1><a class="reference internal" href="dump_image.html"><em>dump image</em></a> command<a class="headerlink" href="#dump-image-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="dump-movie-command">
+<h1><a class="reference internal" href="dump_image.html"><em>dump movie</em></a> command<a class="headerlink" href="#dump-movie-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="dump-molfile-command">
+<h1><a class="reference internal" href="dump_molfile.html"><em>dump molfile</em></a> command<a class="headerlink" href="#dump-molfile-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dump ID group-ID style N file args
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID = user-assigned name for the dump</li>
+<li>group-ID = ID of the group of atoms to be dumped</li>
+<li>style = <em>atom</em> or <em>atom/mpiio</em> or <em>cfg</em> or <em>cfg/mpiio</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>xyz/mpiio</em> or <em>image</em> or <em>movie</em> or <em>molfile</em> or <em>local</em> or <em>custom</em> or <em>custom/mpiio</em></li>
+<li>N = dump every this many timesteps</li>
+<li>file = name of file to write dump info to</li>
+<li>args = list of arguments for a particular style</li>
+</ul>
+<pre class="literal-block">
+<em>atom</em> args = none
+  <em>atom/mpiio</em> args = none
+  <em>cfg</em> args = same as <em>custom</em> args, see below
+  <em>cfg/mpiio</em> args = same as <em>custom</em> args, see below
+  <em>dcd</em> args = none
+  <em>xtc</em> args = none
+  <em>xyz</em> args = none
+</pre>
+<pre class="literal-block">
+<em>xyz/mpiio</em> args = none
+</pre>
+<pre class="literal-block">
+<em>image</em> args = discussed on <a class="reference internal" href="dump_image.html"><em>dump image</em></a> doc page
+</pre>
+<pre class="literal-block">
+<em>movie</em> args = discussed on <a class="reference internal" href="dump_image.html"><em>dump image</em></a> doc page
+</pre>
+<pre class="literal-block">
+<em>molfile</em> args = discussed on <a class="reference internal" href="dump_molfile.html"><em>dump molfile</em></a> doc page
+</pre>
+<pre class="literal-block">
+<em>local</em> args = list of local attributes
     possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
       index = enumeration of local values
       c_ID = local vector calculated by a compute with ID
       c_ID[N] = Nth column of local array calculated by a compute with ID
       f_ID = local vector calculated by a fix with ID
-      f_ID[N] = Nth column of local array calculated by a fix with ID 
-</PRE>
-<PRE>  <I>custom</I> or <I>custom/mpiio</I> args = list of atom attributes
+      f_ID[N] = Nth column of local array calculated by a fix with ID
+</pre>
+<pre class="literal-block">
+<em>custom</em> or <em>custom/mpiio</em> args = list of atom attributes
     possible attributes = id, mol, proc, procp1, type, element, mass,
-			  x, y, z, xs, ys, zs, xu, yu, zu, 
-			  xsu, ysu, zsu, ix, iy, iz,
-			  vx, vy, vz, fx, fy, fz,
+                       x, y, z, xs, ys, zs, xu, yu, zu,
+                       xsu, ysu, zsu, ix, iy, iz,
+                       vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz, mu,
                           radius, diameter, omegax, omegay, omegaz,
-			  angmomx, angmomy, angmomz, tqx, tqy, tqz,
-			  c_ID, c_ID[N], f_ID, f_ID[N], v_name 
-</PRE>
-<PRE>      id = atom ID
+                       angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                       c_ID, c_ID[N], f_ID, f_ID[N], v_name
+</pre>
+<pre class="literal-block">
+id = atom ID
       mol = molecule ID
       proc = ID of processor that owns atom
       procp1 = ID+1 of processor that owns atom
       type = atom type
-      element = name of atom element, as defined by <A HREF = "dump_modify.html">dump_modify</A> command
+      element = name of atom element, as defined by <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command
       mass = atom mass
       x,y,z = unscaled atom coordinates
       xs,ys,zs = scaled atom coordinates
@@ -94,13 +217,12 @@
       f_ID[N] = Nth column of per-atom array calculated by a fix with ID
       v_name = per-atom vector calculated by an atom-style variable with name
       d_name = per-atom floating point vector with name, managed by fix property/atom
-      i_name = per-atom integer vector with name, managed by fix property/atom 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>dump myDump all atom 100 dump.atom
+      i_name = per-atom integer vector with name, managed by fix property/atom
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dump myDump all atom 100 dump.atom
 dump myDump all atom/mpiio 100 dump.atom.mpiio
 dump 2 subgroup atom 50 dump.run.bin
 dump 2 subgroup atom 50 dump.run.mpiio.bin
@@ -108,493 +230,428 @@ dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
 dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
 dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
-dump 1 all xtc 1000 file.xtc 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Dump a snapshot of atom quantities to one or more files every N
-timesteps in one of several styles.  The <I>image</I> and <I>movie</I> styles are
-the exception: the <I>image</I> style renders a JPG, PNG, or PPM image file
-of the atom configuration every N timesteps while the <I>movie</I> style
+dump 1 all xtc 1000 file.xtc
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Dump a snapshot of atom quantities to one or more files every N
+timesteps in one of several styles.  The <em>image</em> and <em>movie</em> styles are
+the exception: the <em>image</em> style renders a JPG, PNG, or PPM image file
+of the atom configuration every N timesteps while the <em>movie</em> style
 combines and compresses them into a movie file; both are discussed in
-detail on the <A HREF = "dump_image.html">dump image</A> doc page.  The timesteps on
+detail on the <a class="reference internal" href="dump_image.html"><em>dump image</em></a> doc page.  The timesteps on
 which dump output is written can also be controlled by a variable.
-See the <A HREF = "dump_modify.html">dump_modify every</A> command.
-</P>
-<P>Only information for atoms in the specified group is dumped.  The
-<A HREF = "dump_modify.html">dump_modify thresh and region</A> commands can also
+See the <a class="reference internal" href="dump_modify.html"><em>dump_modify every</em></a> command.</p>
+<p>Only information for atoms in the specified group is dumped.  The
+<a class="reference internal" href="dump_modify.html"><em>dump_modify thresh and region</em></a> commands can also
 alter what atoms are included.  Not all styles support all these
-options; see details below.
-</P>
-<P>As described below, the filename determines the kind of output (text
+options; see details below.</p>
+<p>As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
-or multiple smaller files).
-</P>
-<P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
+or multiple smaller files).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
 atom written to a dump file may be slightly outside the simulation
-box.
-</P>
-<P>IMPORTANT NOTE: Unless the <A HREF = "dump_modify.html">dump_modify sort</A> option
+box.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Unless the <a class="reference internal" href="dump_modify.html"><em>dump_modify sort</em></a> option
 is invoked, the lines of atom information written to dump files
 (typically one line per atom) will be in an indeterminate order for
 each snapshot.  This is even true when running on a single processor,
-if the <A HREF = "atom_modify.html">atom_modify sort</A> option is on, which it is
+if the <a class="reference internal" href="atom_modify.html"><em>atom_modify sort</em></a> option is on, which it is
 by default.  In this case atoms are re-ordered periodically during a
 simulation, due to spatial sorting.  It is also true when running in
 parallel, because data for a single snapshot is collected from
-multiple processors, each of which owns a subset of the atoms.
-</P>
-<P>For the <I>atom</I>, <I>custom</I>, <I>cfg</I>, and <I>local</I> styles, sorting is off by
-default.  For the <I>dcd</I>, <I>xtc</I>, <I>xyz</I>, and <I>molfile</I> styles, sorting by
-atom ID is on by default. See the <A HREF = "dump_modify.html">dump_modify</A> doc
-page for details.
-</P>
-<P>As explained below, the <I>atom/mpiio</I>, <I>cfg/mpiio</I>, <I>custom/mpiio</I>, and
-<I>xyz/mpiio</I> styles are identical in command syntax and in the format
+multiple processors, each of which owns a subset of the atoms.</p>
+</div>
+<p>For the <em>atom</em>, <em>custom</em>, <em>cfg</em>, and <em>local</em> styles, sorting is off by
+default.  For the <em>dcd</em>, <em>xtc</em>, <em>xyz</em>, and <em>molfile</em> styles, sorting by
+atom ID is on by default. See the <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> doc
+page for details.</p>
+<p>As explained below, the <em>atom/mpiio</em>, <em>cfg/mpiio</em>, <em>custom/mpiio</em>, and
+<em>xyz/mpiio</em> styles are identical in command syntax and in the format
 of the dump files they create, to the corresponding styles without
-"mpiio", except the single dump file they produce is written in
+&#8220;mpiio&#8221;, except the single dump file they produce is written in
 parallel via the MPI-IO library.  For the remainder of this doc page,
-you should thus consider the <I>atom</I> and <I>atom/mpiio</I> styles (etc) to
+you should thus consider the <em>atom</em> and <em>atom/mpiio</em> styles (etc) to
 be inter-changeable.  The one exception is how the filename is
-specified for the MPI-IO styles, as explained below.
-</P>
-<HR>
-
-<P>The <I>style</I> keyword determines what atom quantities are written to the
+specified for the MPI-IO styles, as explained below.</p>
+<hr class="docutils" />
+<p>The <em>style</em> keyword determines what atom quantities are written to the
 file and in what format.  Settings made via the
-<A HREF = "dump_modify.html">dump_modify</A> command can also alter the format of
-individual values and the file itself.
-</P>
-<P>The <I>atom</I>, <I>local</I>, and <I>custom</I> styles create files in a simple text
+<a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command can also alter the format of
+individual values and the file itself.</p>
+<p>The <em>atom</em>, <em>local</em>, and <em>custom</em> styles create files in a simple text
 format that is self-explanatory when viewing a dump file.  Many of the
-LAMMPS <A HREF = "Section_tools.html">post-processing tools</A>, including
-<A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A>, work with this
-format, as does the <A HREF = "rerun.html">rerun</A> command.
-</P>
-<P>For post-processing purposes the <I>atom</I>, <I>local</I>, and <I>custom</I> text
-files are self-describing in the following sense.
-</P>
-<P>The dimensions of the simulation box are included in each snapshot.
-For an orthogonal simulation box this information is is formatted as:
-</P>
-<PRE>ITEM: BOX BOUNDS xx yy zz
+LAMMPS <a class="reference internal" href="Section_tools.html"><em>post-processing tools</em></a>, including
+<a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</a>, work with this
+format, as does the <a class="reference internal" href="rerun.html"><em>rerun</em></a> command.</p>
+<p>For post-processing purposes the <em>atom</em>, <em>local</em>, and <em>custom</em> text
+files are self-describing in the following sense.</p>
+<p>The dimensions of the simulation box are included in each snapshot.
+For an orthogonal simulation box this information is is formatted as:</p>
+<div class="highlight-python"><div class="highlight"><pre>ITEM: BOX BOUNDS xx yy zz
 xlo xhi
 ylo yhi
-zlo zhi 
-</PRE>
-<P>where xlo,xhi are the maximum extents of the simulation box in the
-x-dimension, and similarly for y and z.  The "xx yy zz" represent 6
+zlo zhi
+</pre></div>
+</div>
+<p>where xlo,xhi are the maximum extents of the simulation box in the
+x-dimension, and similarly for y and z.  The &#8220;xx yy zz&#8221; represent 6
 characters that encode the style of boundary for each of the 6
 simulation box boundaries (xlo,xhi and ylo,yhi and zlo,zhi).  Each of
 the 6 characters is either p = periodic, f = fixed, s = shrink wrap,
 or m = shrink wrapped with a minimum value.  See the
-<A HREF = "boundary.html">boundary</A> command for details.
-</P>
-<P>For triclinic simulation boxes (non-orthogonal), an orthogonal
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> command for details.</p>
+<p>For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
-formatted as follows:
-</P>
-<PRE>ITEM: BOX BOUNDS xy xz yz xx yy zz 
+formatted as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>ITEM: BOX BOUNDS xy xz yz xx yy zz
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
-zlo_bound zhi_bound yz 
-</PRE>
-<P>The presence of the text "xy xz yz" in the ITEM line indicates that
+zlo_bound zhi_bound yz
+</pre></div>
+</div>
+<p>The presence of the text &#8220;xy xz yz&#8221; in the ITEM line indicates that
 the 3 tilt factors will be included on each of the 3 following lines.
 This bounding box is convenient for many visualization programs.  The
-meaning of the 6 character flags for "xx yy zz" is the same as above.
-</P>
-<P>Note that the first two numbers on each line are now xlo_bound instead
-of xlo, etc, since they repesent a bounding box.  See <A HREF = "Section_howto.html#howto_12">this
-section</A> of the doc pages for a geometric
+meaning of the 6 character flags for &#8220;xx yy zz&#8221; is the same as above.</p>
+<p>Note that the first two numbers on each line are now xlo_bound instead
+of xlo, etc, since they repesent a bounding box.  See <a class="reference internal" href="Section_howto.html#howto-12"><span>this section</span></a> of the doc pages for a geometric
 description of triclinic boxes, as defined by LAMMPS, simple formulas
 for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
 calculated from the triclinic parameters, and how to transform those
-parameters to and from other commonly used triclinic representations.
-</P>
-<P>The "ITEM: ATOMS" line in each snapshot lists column descriptors for
+parameters to and from other commonly used triclinic representations.</p>
+<p>The &#8220;ITEM: ATOMS&#8221; line in each snapshot lists column descriptors for
 the per-atom lines that follow.  For example, the descriptors would be
-"id type xs ys zs" for the default <I>atom</I> style, and would be the atom
-attributes you specify in the dump command for the <I>custom</I> style.
-</P>
-<P>For style <I>atom</I>, atom coordinates are written to the file, along with
+&#8220;id type xs ys zs&#8221; for the default <em>atom</em> style, and would be the atom
+attributes you specify in the dump command for the <em>custom</em> style.</p>
+<p>For style <em>atom</em>, atom coordinates are written to the file, along with
 the atom ID and atom type.  By default, atom coords are written in a
 scaled format (from 0 to 1).  I.e. an x value of 0.25 means the atom
 is at a location 1/4 of the distance from xlo to xhi of the box
 boundaries.  The format can be changed to unscaled coords via the
-<A HREF = "dump_modify.html">dump_modify</A> settings.  Image flags can also be
-added for each atom via dump_modify.
-</P>
-<P>Style <I>custom</I> allows you to specify a list of atom attributes to be
+<a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> settings.  Image flags can also be
+added for each atom via dump_modify.</p>
+<p>Style <em>custom</em> allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  Possible attributes are
 listed above and will appear in the order specified.  You cannot
 specify a quantity that is not defined for a particular simulation -
-such as <I>q</I> for atom style <I>bond</I>, since that atom style doesn't
+such as <em>q</em> for atom style <em>bond</em>, since that atom style doesn&#8217;t
 assign charges.  Dumps occur at the very end of a timestep, so atom
 attributes will include effects due to fixes that are applied during
 the timestep.  An explanation of the possible dump custom attributes
-is given below.
-</P>
-<P>For style <I>local</I>, local output generated by <A HREF = "compute.html">computes</A>
-and <A HREF = "fix.html">fixes</A> is used to generate lines of output that is
+is given below.</p>
+<p>For style <em>local</em>, local output generated by <a class="reference internal" href="compute.html"><em>computes</em></a>
+and <a class="reference internal" href="fix.html"><em>fixes</em></a> is used to generate lines of output that is
 written to the dump file.  This local data is typically calculated by
 each processor based on the atoms it owns, but there may be zero or
 more entities per atom, e.g. a list of bond distances.  An explanation
 of the possible dump local attributes is given below.  Note that by
-using input from the <A HREF = "compute_property_local.html">compute
-property/local</A> command with dump local,
+using input from the <a class="reference internal" href="compute_property_local.html"><em>compute property/local</em></a> command with dump local,
 it is possible to generate information on bonds, angles, etc that can
 be cut and pasted directly into a data file read by the
-<A HREF = "read_data.html">read_data</A> command.
-</P>
-<P>Style <I>cfg</I> has the same command syntax as style <I>custom</I> and writes
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command.</p>
+<p>Style <em>cfg</em> has the same command syntax as style <em>custom</em> and writes
 extended CFG format files, as used by the
-<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization
+<a class="reference external" href="http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</a> visualization
 package.  Since the extended CFG format uses a single snapshot of the
-system per file, a wildcard "*" must be included in the filename, as
-discussed below.  The list of atom attributes for style <I>cfg</I> must
-begin with either "mass type xs ys zs" or "mass type xsu ysu zsu"
+system per file, a wildcard &#8220;*&#8221; must be included in the filename, as
+discussed below.  The list of atom attributes for style <em>cfg</em> must
+begin with either &#8220;mass type xs ys zs&#8221; or &#8220;mass type xsu ysu zsu&#8221;
 since these quantities are needed to write the CFG files in the
-appropriate format (though the "mass" and "type" fields do not appear
+appropriate format (though the &#8220;mass&#8221; and &#8220;type&#8221; fields do not appear
 explicitly in the file).  Any remaining attributes will be stored as
-"auxiliary properties" in the CFG files.  Note that you will typically
-want to use the <A HREF = "dump_modify.html">dump_modify element</A> command with
+&#8220;auxiliary properties&#8221; in the CFG files.  Note that you will typically
+want to use the <a class="reference internal" href="dump_modify.html"><em>dump_modify element</em></a> command with
 CFG-formatted files, to associate element names with atom types, so
 that AtomEye can render atoms appropriately. When unwrapped
-coordinates <I>xsu</I>, <I>ysu</I>, and <I>zsu</I> are requested, the nominal AtomEye
+coordinates <em>xsu</em>, <em>ysu</em>, and <em>zsu</em> are requested, the nominal AtomEye
 periodic cell dimensions are expanded by a large factor UNWRAPEXPAND =
 10.0, which ensures atoms that are displayed correctly for up to
 UNWRAPEXPAND/2 periodic boundary crossings in any direction.  Beyond
 this, AtomEye will rewrap the unwrapped coordinates.  The expansion
 causes the atoms to be drawn farther away from the viewer, but it is
 easy to zoom the atoms closer, and the interatomic distances are
-unaffected.
-</P>
-<P>The <I>dcd</I> style writes DCD files, a standard atomic trajectory format
+unaffected.</p>
+<p>The <em>dcd</em> style writes DCD files, a standard atomic trajectory format
 used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD
 files are binary and thus may not be portable to different machines.
-The number of atoms per snapshot cannot change with the <I>dcd</I> style.
-The <I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command
-allows DCD coordinates to be written "unwrapped" by the image flags
+The number of atoms per snapshot cannot change with the <em>dcd</em> style.
+The <em>unwrap</em> option of the <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command
+allows DCD coordinates to be written &#8220;unwrapped&#8221; by the image flags
 for each atom.  Unwrapped means that if the atom has passed through
 a periodic boundary one or more times, the value is printed for what
 the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside
-the box size stored with the snapshot.
-</P>
-<P>The <I>xtc</I> style writes XTC files, a compressed trajectory format used
+the box size stored with the snapshot.</p>
+<p>The <em>xtc</em> style writes XTC files, a compressed trajectory format used
 by the GROMACS molecular dynamics package, and described
-<A HREF = "http://manual.gromacs.org/current/online/xtc.html">here</A>.
+<a class="reference external" href="http://manual.gromacs.org/current/online/xtc.html">here</a>.
 The precision used in XTC files can be adjusted via the
-<A HREF = "dump_modify.html">dump_modify</A> command.  The default value of 1000
+<a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command.  The default value of 1000
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
-files are portable binary files written in the NFS XDR data format, 
-so that any machine which supports XDR should be able to read them. 
-The number of atoms per snapshot cannot change with the <I>xtc</I> style.
-The <I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command allows
-XTC coordinates to be written "unwrapped" by the image flags for each
+files are portable binary files written in the NFS XDR data format,
+so that any machine which supports XDR should be able to read them.
+The number of atoms per snapshot cannot change with the <em>xtc</em> style.
+The <em>unwrap</em> option of the <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command allows
+XTC coordinates to be written &#8220;unwrapped&#8221; by the image flags for each
 atom.  Unwrapped means that if the atom has passed thru a periodic
 boundary one or more times, the value is printed for what the
 coordinate would be if it had not been wrapped back into the periodic
 box.  Note that these coordinates may thus be far outside the box size
-stored with the snapshot.
-</P>
-<P>The <I>xyz</I> style writes XYZ files, which is a simple text-based
+stored with the snapshot.</p>
+<p>The <em>xyz</em> style writes XYZ files, which is a simple text-based
 coordinate format that many codes can read. Specifically it has
 a line with the number of atoms, then a comment line that is
 usually ignored followed by one line per atom with the atom type
 and the x-, y-, and z-coordinate of that atom. You can use the
-<A HREF = "dump_modify.html">dump_modify element</A> option to change the output
+<a class="reference internal" href="dump_modify.html"><em>dump_modify element</em></a> option to change the output
 from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
-bonds and colors.
-</P>
-<P>Note that <I>atom</I>, <I>custom</I>, <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> style dump files
-can be read directly by <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A>, a
-popular molecular viewing program.  See <A HREF = "Section_tools.html#vmd">Section
-tools</A> of the manual and the
+bonds and colors.</p>
+<p>Note that <em>atom</em>, <em>custom</em>, <em>dcd</em>, <em>xtc</em>, and <em>xyz</em> style dump files
+can be read directly by <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a>, a
+popular molecular viewing program.  See <a class="reference internal" href="Section_tools.html#vmd"><span>Section tools</span></a> of the manual and the
 tools/lmp2vmd/README.txt file for more information about support in
-VMD for reading and visualizing LAMMPS dump files.
-</P>
-<HR>
-
-<P>Dumps are performed on timesteps that are a multiple of N (including
+VMD for reading and visualizing LAMMPS dump files.</p>
+<hr class="docutils" />
+<p>Dumps are performed on timesteps that are a multiple of N (including
 timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
 performed on the initial timestep after the dump command is invoked,
 if the current timestep is not a multiple of N.  This behavior can be
-changed via the <A HREF = "dump_modify.html">dump_modify first</A> command, which
+changed via the <a class="reference internal" href="dump_modify.html"><em>dump_modify first</em></a> command, which
 can also be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
-using the <A HREF = "dump_modify.html">dump_modify every</A> command (not allowed
-for <I>dcd</I> style).  The <A HREF = "dump_modify.html">dump_modify every</A> command
+using the <a class="reference internal" href="dump_modify.html"><em>dump_modify every</em></a> command (not allowed
+for <em>dcd</em> style).  The <a class="reference internal" href="dump_modify.html"><em>dump_modify every</em></a> command
 also allows a variable to be used to determine the sequence of
 timesteps on which dump files are written.  In this mode a dump on the
 first timestep of a run will also not be written unless the
-<A HREF = "dump_modify.html">dump_modify first</A> command is used.
-</P>
-<P>The specified filename determines how the dump file(s) is written.
+<a class="reference internal" href="dump_modify.html"><em>dump_modify first</em></a> command is used.</p>
+<p>The specified filename determines how the dump file(s) is written.
 The default is to write one large text file, which is opened when the
-dump command is invoked and closed when an <A HREF = "undump.html">undump</A>
-command is used or when LAMMPS exits.  For the <I>dcd</I> and <I>xtc</I> styles,
-this is a single large binary file.
-</P>
-<P>Dump filenames can contain two wildcard characters.  If a "*"
+dump command is invoked and closed when an <a class="reference internal" href="undump.html"><em>undump</em></a>
+command is used or when LAMMPS exits.  For the <em>dcd</em> and <em>xtc</em> styles,
+this is a single large binary file.</p>
+<p>Dump filenames can contain two wildcard characters.  If a &#8220;*&#8221;
 character appears in the filename, then one file per snapshot is
-written and the "*" character is replaced with the timestep value.
+written and the &#8220;*&#8221; character is replaced with the timestep value.
 For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,
-tmp.dump.20000, etc.  This option is not available for the <I>dcd</I> and
-<I>xtc</I> styles.  Note that the <A HREF = "dump_modify.html">dump_modify pad</A>
+tmp.dump.20000, etc.  This option is not available for the <em>dcd</em> and
+<em>xtc</em> styles.  Note that the <a class="reference internal" href="dump_modify.html"><em>dump_modify pad</em></a>
 command can be used to insure all timestep numbers are the same length
 (e.g. 00010), which can make it easier to read a series of dump files
-in order with some post-processing tools.
-</P>
-<P>If a "%" character appears in the filename, then each of P processors
-writes a portion of the dump file, and the "%" character is replaced
+in order with some post-processing tools.</p>
+<p>If a &#8220;%&#8221; character appears in the filename, then each of P processors
+writes a portion of the dump file, and the &#8220;%&#8221; character is replaced
 with the processor ID from 0 to P-1.  For example, tmp.dump.% becomes
 tmp.dump.0, tmp.dump.1, ... tmp.dump.P-1, etc.  This creates smaller
 files and can be a fast mode of output on parallel machines that
 support parallel I/O for output. This option is not available for the
-<I>dcd</I>, <I>xtc</I>, and <I>xyz</I> styles.
-</P>
-<P>By default, P = the number of processors meaning one file per
-processor, but P can be set to a smaller value via the <I>nfile</I> or
-<I>fileper</I> keywords of the <A HREF = "dump_modify.html">dump_modify</A> command.
+<em>dcd</em>, <em>xtc</em>, and <em>xyz</em> styles.</p>
+<p>By default, P = the number of processors meaning one file per
+processor, but P can be set to a smaller value via the <em>nfile</em> or
+<em>fileper</em> keywords of the <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command.
 These options can be the most efficient way of writing out dump files
-when running on large numbers of processors.
-</P>
-<P>Note that using the "*" and "%" characters together can produce a
-large number of small dump files!
-</P>
-<P>For the <I>atom/mpiio</I>, <I>cfg/mpiio</I>, <I>custom/mpiio</I>, and <I>xyz/mpiio</I>
+when running on large numbers of processors.</p>
+<p>Note that using the &#8220;*&#8221; and &#8220;%&#8221; characters together can produce a
+large number of small dump files!</p>
+<p>For the <em>atom/mpiio</em>, <em>cfg/mpiio</em>, <em>custom/mpiio</em>, and <em>xyz/mpiio</em>
 styles, a single dump file is written in parallel via the MPI-IO
 library, which is part of the MPI standard for versions 2.0 and above.
 Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
-package installed, e.g.
-</P>
-<PRE>make yes-mpiio    # installs the MPIIO package
-make g++          # build LAMMPS for your platform 
-</PRE>
-<P>Second, use a dump filename which contains ".mpiio".  Note that it
-does not have to end in ".mpiio", just contain those characters.
+package installed, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>make yes-mpiio    # installs the MPIIO package
+make g++          # build LAMMPS for your platform
+</pre></div>
+</div>
+<p>Second, use a dump filename which contains &#8221;.mpiio&#8221;.  Note that it
+does not have to end in &#8221;.mpiio&#8221;, just contain those characters.
 Unlike MPI-IO restart files, which must be both written and read using
 MPI-IO, the dump files produced by these MPI-IO styles are identical
 in format to the files produced by their non-MPI-IO style
 counterparts.  This means you can write a dump file using MPI-IO and
-use the <A HREF = "read_dump.html">read_dump</A> command or perform other
+use the <a class="reference internal" href="read_dump.html"><em>read_dump</em></a> command or perform other
 post-processing, just as if the dump file was not written using
-MPI-IO.
-</P>
-<P>Note that MPI-IO dump files are one large file which all processors
-write to.  You thus cannot use the "%" wildcard character described
+MPI-IO.</p>
+<p>Note that MPI-IO dump files are one large file which all processors
+write to.  You thus cannot use the &#8220;%&#8221; wildcard character described
 above in the filename since that specifies generation of multiple
-files.  You can use the ".bin" suffix described below in an MPI-IO
+files.  You can use the &#8221;.bin&#8221; suffix described below in an MPI-IO
 dump file; again this file will be written in parallel and have the
-same binary format as if it were written without MPI-IO.
-</P>
-<P>If the filename ends with ".bin", the dump file (or files, if "*" or
-"%" is also used) is written in binary format.  A binary dump file
+same binary format as if it were written without MPI-IO.</p>
+<p>If the filename ends with &#8221;.bin&#8221;, the dump file (or files, if &#8220;*&#8221; or
+&#8220;%&#8221; is also used) is written in binary format.  A binary dump file
 will be about the same size as a text version, but will typically
 write out much faster.  Of course, when post-processing, you will need
-to convert it back to text format (see the <A HREF = "Section_tools.html#binary">binary2txt
-tool</A>) or write your own code to read the
+to convert it back to text format (see the <a class="reference internal" href="Section_tools.html#binary"><span>binary2txt tool</span></a>) or write your own code to read the
 binary file.  The format of the binary file can be understood by
 looking at the tools/binary2txt.cpp file.  This option is only
-available for the <I>atom</I> and <I>custom</I> styles.
-</P>
-<P>If the filename ends with ".gz", the dump file (or files, if "*" or "%"
+available for the <em>atom</em> and <em>custom</em> styles.</p>
+<p>If the filename ends with &#8221;.gz&#8221;, the dump file (or files, if &#8220;*&#8221; or &#8220;%&#8221;
 is also used) is written in gzipped format.  A gzipped dump file will
 be about 3x smaller than the text version, but will also take longer
-to write.  This option is not available for the <I>dcd</I> and <I>xtc</I>
-styles.
-</P>
-<HR>
-
-<P>This section explains the local attributes that can be specified as
-part of the <I>local</I> style.
-</P>
-<P>The <I>index</I> attribute can be used to generate an index number from 1
+to write.  This option is not available for the <em>dcd</em> and <em>xtc</em>
+styles.</p>
+<hr class="docutils" />
+<p>This section explains the local attributes that can be specified as
+part of the <em>local</em> style.</p>
+<p>The <em>index</em> attribute can be used to generate an index number from 1
 to N for each line written into the dump file, where N is the total
 number of local datums from all processors, or lines of output that
 will appear in the snapshot.  Note that because data from different
 processors depend on what atoms they currently own, and atoms migrate
 between processor, there is no guarantee that the same index will be
 used for the same info (e.g. a particular bond) in successive
-snapshots.
-</P>
-<P>The <I>c_ID</I> and <I>c_ID[N]</I> attributes allow local vectors or arrays
-calculated by a <A HREF = "compute.html">compute</A> to be output.  The ID in the
+snapshots.</p>
+<p>The <em>c_ID</em> and <em>c_ID[N]</em> attributes allow local vectors or arrays
+calculated by a <a class="reference internal" href="compute.html"><em>compute</em></a> to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
-<A HREF = "compute.html">compute</A> command for details.  There are computes for
+<a class="reference internal" href="compute.html"><em>compute</em></a> command for details.  There are computes for
 calculating local information such as indices, types, and energies for
-bonds and angles.
-</P>
-<P>Note that computes which calculate global or per-atom quantities, as
+bonds and angles.</p>
+<p>Note that computes which calculate global or per-atom quantities, as
 opposed to local quantities, cannot be output in a dump local command.
-Instead, global quantities can be output by the <A HREF = "thermo_style.html">thermo_style
-custom</A> command, and per-atom quantities can be
-output by the dump custom command.
-</P>
-<P>If <I>c_ID</I> is used as a attribute, then the local vector calculated by
-the compute is printed.  If <I>c_ID[N]</I> is used, then N must be in the
+Instead, global quantities can be output by the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command, and per-atom quantities can be
+output by the dump custom command.</p>
+<p>If <em>c_ID</em> is used as a attribute, then the local vector calculated by
+the compute is printed.  If <em>c_ID[N]</em> is used, then N must be in the
 range from 1-M, which will print the Nth column of the M-length local
-array calculated by the compute.
-</P>
-<P>The <I>f_ID</I> and <I>f_ID[N]</I> attributes allow local vectors or arrays
-calculated by a <A HREF = "fix.html">fix</A> to be output.  The ID in the attribute
+array calculated by the compute.</p>
+<p>The <em>f_ID</em> and <em>f_ID[N]</em> attributes allow local vectors or arrays
+calculated by a <a class="reference internal" href="fix.html"><em>fix</em></a> to be output.  The ID in the attribute
 should be replaced by the actual ID of the fix that has been defined
-previously in the input script.
-</P>
-<P>If <I>f_ID</I> is used as a attribute, then the local vector calculated by
-the fix is printed.  If <I>f_ID[N]</I> is used, then N must be in the
+previously in the input script.</p>
+<p>If <em>f_ID</em> is used as a attribute, then the local vector calculated by
+the fix is printed.  If <em>f_ID[N]</em> is used, then N must be in the
 range from 1-M, which will print the Nth column of the M-length local
-array calculated by the fix.
-</P>
-<P>Here is an example of how to dump bond info for a system,
-including the distance and energy of each bond:
-</P>
-<PRE>compute 1 all property/local batom1 batom2 btype 
+array calculated by the fix.</p>
+<p>Here is an example of how to dump bond info for a system,
+including the distance and energy of each bond:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all property/local batom1 batom2 btype
 compute 2 all bond/local dist eng
-dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] 
-</PRE>
-<HR>
-
-<P>This section explains the atom attributes that can be specified as
-part of the <I>custom</I> and <I>cfg</I> styles.
-</P>
-<P>The <I>id</I>, <I>mol</I>, <I>proc</I>, <I>procp1</I>, <I>type</I>, <I>element</I>, <I>mass</I>, <I>vx</I>,
-<I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>, <I>fz</I>, <I>q</I> attributes are self-explanatory.
-</P>
-<P><I>Id</I> is the atom ID.  <I>Mol</I> is the molecule ID, included in the data
-file for molecular systems.  <I>Proc</I> is the ID of the processor (0 to
-Nprocs-1) that currently owns the atom.  <I>Procp1</I> is the proc ID+1,
-which can be convenient in place of a <I>type</I> attribute (1 to Ntypes)
-for coloring atoms in a visualization program.  <I>Type</I> is the atom
-type (1 to Ntypes).  <I>Element</I> is typically the chemical name of an
-element, which you must assign to each type via the <A HREF = "dump_modify.html">dump_modify
-element</A> command.  More generally, it can be any
-string you wish to associated with an atom type.  <I>Mass</I> is the atom
-mass.  <I>Vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>, <I>fz</I>, and <I>q</I> are components of
-atom velocity and force and atomic charge.
-</P>
-<P>There are several options for outputting atom coordinates.  The <I>x</I>,
-<I>y</I>, <I>z</I> attributes write atom coordinates "unscaled", in the
-appropriate distance <A HREF = "units.html">units</A> (Angstroms, sigma, etc).  Use
-<I>xs</I>, <I>ys</I>, <I>zs</I> if you want the coordinates "scaled" to the box size,
+dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>This section explains the atom attributes that can be specified as
+part of the <em>custom</em> and <em>cfg</em> styles.</p>
+<p>The <em>id</em>, <em>mol</em>, <em>proc</em>, <em>procp1</em>, <em>type</em>, <em>element</em>, <em>mass</em>, <em>vx</em>,
+<em>vy</em>, <em>vz</em>, <em>fx</em>, <em>fy</em>, <em>fz</em>, <em>q</em> attributes are self-explanatory.</p>
+<p><em>Id</em> is the atom ID.  <em>Mol</em> is the molecule ID, included in the data
+file for molecular systems.  <em>Proc</em> is the ID of the processor (0 to
+Nprocs-1) that currently owns the atom.  <em>Procp1</em> is the proc ID+1,
+which can be convenient in place of a <em>type</em> attribute (1 to Ntypes)
+for coloring atoms in a visualization program.  <em>Type</em> is the atom
+type (1 to Ntypes).  <em>Element</em> is typically the chemical name of an
+element, which you must assign to each type via the <a class="reference internal" href="dump_modify.html"><em>dump_modify element</em></a> command.  More generally, it can be any
+string you wish to associated with an atom type.  <em>Mass</em> is the atom
+mass.  <em>Vx</em>, <em>vy</em>, <em>vz</em>, <em>fx</em>, <em>fy</em>, <em>fz</em>, and <em>q</em> are components of
+atom velocity and force and atomic charge.</p>
+<p>There are several options for outputting atom coordinates.  The <em>x</em>,
+<em>y</em>, <em>z</em> attributes write atom coordinates &#8220;unscaled&#8221;, in the
+appropriate distance <a class="reference internal" href="units.html"><em>units</em></a> (Angstroms, sigma, etc).  Use
+<em>xs</em>, <em>ys</em>, <em>zs</em> if you want the coordinates &#8220;scaled&#8221; to the box size,
 so that each value is 0.0 to 1.0.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.  Use
-<I>xu</I>, <I>yu</I>, <I>zu</I> if you want the coordinates "unwrapped" by the image
+<em>xu</em>, <em>yu</em>, <em>zu</em> if you want the coordinates &#8220;unwrapped&#8221; by the image
 flags for each atom.  Unwrapped means that if the atom has passed thru
 a periodic boundary one or more times, the value is printed for what
 the coordinate would be if it had not been wrapped back into the
-periodic box.  Note that using <I>xu</I>, <I>yu</I>, <I>zu</I> means that the
+periodic box.  Note that using <em>xu</em>, <em>yu</em>, <em>zu</em> means that the
 coordinate values may be far outside the box bounds printed with the
-snapshot.  Using <I>xsu</I>, <I>ysu</I>, <I>zsu</I> is similar to using <I>xu</I>, <I>yu</I>, <I>zu</I>,
+snapshot.  Using <em>xsu</em>, <em>ysu</em>, <em>zsu</em> is similar to using <em>xu</em>, <em>yu</em>, <em>zu</em>,
 except that the unwrapped coordinates are scaled by the box size. Atoms
 that have passed through a periodic boundary will have the corresponding
-cooordinate increased or decreased by 1.0.
-</P>
-<P>The image flags can be printed directly using the <I>ix</I>, <I>iy</I>, <I>iz</I>
+cooordinate increased or decreased by 1.0.</p>
+<p>The image flags can be printed directly using the <em>ix</em>, <em>iy</em>, <em>iz</em>
 attributes.  For periodic dimensions, they specify which image of the
 simulation box the atom is considered to be in.  An image of 0 means
 it is inside the box as defined.  A value of 2 means add 2 box lengths
 to get the true value.  A value of -1 means subtract 1 box length to
 get the true value.  LAMMPS updates these flags as atoms cross
-periodic boundaries during the simulation.
-</P>
-<P>The <I>mux</I>, <I>muy</I>, <I>muz</I> attributes are specific to dipolar systems
-defined with an atom style of <I>dipole</I>.  They give the orientation of
-the atom's point dipole moment.  The <I>mu</I> attribute gives the
-magnitude of the atom's dipole moment.
-</P>
-<P>The <I>radius</I> and <I>diameter</I> attributes are specific to spherical
+periodic boundaries during the simulation.</p>
+<p>The <em>mux</em>, <em>muy</em>, <em>muz</em> attributes are specific to dipolar systems
+defined with an atom style of <em>dipole</em>.  They give the orientation of
+the atom&#8217;s point dipole moment.  The <em>mu</em> attribute gives the
+magnitude of the atom&#8217;s dipole moment.</p>
+<p>The <em>radius</em> and <em>diameter</em> attributes are specific to spherical
 particles that have a finite size, such as those defined with an atom
-style of <I>sphere</I>.
-</P>
-<P>The <I>omegax</I>, <I>omegay</I>, and <I>omegaz</I> attributes are specific to
+style of <em>sphere</em>.</p>
+<p>The <em>omegax</em>, <em>omegay</em>, and <em>omegaz</em> attributes are specific to
 finite-size spherical particles that have an angular velocity.  Only
-certain atom styles, such as <I>sphere</I> define this quantity.
-</P>
-<P>The <I>angmomx</I>, <I>angmomy</I>, and <I>angmomz</I> attributes are specific to
+certain atom styles, such as <em>sphere</em> define this quantity.</p>
+<p>The <em>angmomx</em>, <em>angmomy</em>, and <em>angmomz</em> attributes are specific to
 finite-size aspherical particles that have an angular momentum.  Only
-the <I>ellipsoid</I> atom style defines this quantity.
-</P>
-<P>The <I>tqx</I>, <I>tqy</I>, <I>tqz</I> attributes are for finite-size particles that
+the <em>ellipsoid</em> atom style defines this quantity.</p>
+<p>The <em>tqx</em>, <em>tqy</em>, <em>tqz</em> attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
-particles.
-</P>
-<P>The <I>c_ID</I> and <I>c_ID[N]</I> attributes allow per-atom vectors or arrays
-calculated by a <A HREF = "compute.html">compute</A> to be output.  The ID in the
+particles.</p>
+<p>The <em>c_ID</em> and <em>c_ID[N]</em> attributes allow per-atom vectors or arrays
+calculated by a <a class="reference internal" href="compute.html"><em>compute</em></a> to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
-<A HREF = "compute.html">compute</A> command for details.  There are computes for
+<a class="reference internal" href="compute.html"><em>compute</em></a> command for details.  There are computes for
 calculating the per-atom energy, stress, centro-symmetry parameter,
-and coordination number of individual atoms.
-</P>
-<P>Note that computes which calculate global or local quantities, as
+and coordination number of individual atoms.</p>
+<p>Note that computes which calculate global or local quantities, as
 opposed to per-atom quantities, cannot be output in a dump custom
 command.  Instead, global quantities can be output by the
-<A HREF = "thermo_style.html">thermo_style custom</A> command, and local quantities
-can be output by the dump local command.
-</P>
-<P>If <I>c_ID</I> is used as a attribute, then the per-atom vector calculated
-by the compute is printed.  If <I>c_ID[N]</I> is used, then N must be in
+<a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command, and local quantities
+can be output by the dump local command.</p>
+<p>If <em>c_ID</em> is used as a attribute, then the per-atom vector calculated
+by the compute is printed.  If <em>c_ID[N]</em> is used, then N must be in
 the range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the compute.
-</P>
-<P>The <I>f_ID</I> and <I>f_ID[N]</I> attributes allow vector or array per-atom
-quantities calculated by a <A HREF = "fix.html">fix</A> to be output.  The ID in the
+per-atom array calculated by the compute.</p>
+<p>The <em>f_ID</em> and <em>f_ID[N]</em> attributes allow vector or array per-atom
+quantities calculated by a <a class="reference internal" href="fix.html"><em>fix</em></a> to be output.  The ID in the
 attribute should be replaced by the actual ID of the fix that has been
-defined previously in the input script.  The <A HREF = "fix_ave_atom.html">fix
-ave/atom</A> command is one that calculates per-atom
+defined previously in the input script.  The <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a> command is one that calculates per-atom
 quantities.  Since it can time-average per-atom quantities produced by
-any <A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or atom-style
-<A HREF = "variable.html">variable</A>, this allows those time-averaged results to
-be written to a dump file.
-</P>
-<P>If <I>f_ID</I> is used as a attribute, then the per-atom vector calculated
-by the fix is printed.  If <I>f_ID[N]</I> is used, then N must be in the
+any <a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix.html"><em>fix</em></a>, or atom-style
+<a class="reference internal" href="variable.html"><em>variable</em></a>, this allows those time-averaged results to
+be written to a dump file.</p>
+<p>If <em>f_ID</em> is used as a attribute, then the per-atom vector calculated
+by the fix is printed.  If <em>f_ID[N]</em> is used, then N must be in the
 range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the fix.
-</P>
-<P>The <I>v_name</I> attribute allows per-atom vectors calculated by a
-<A HREF = "variable.html">variable</A> to be output.  The name in the attribute
+per-atom array calculated by the fix.</p>
+<p>The <em>v_name</em> attribute allows per-atom vectors calculated by a
+<a class="reference internal" href="variable.html"><em>variable</em></a> to be output.  The name in the attribute
 should be replaced by the actual name of the variable that has been
 defined previously in the input script.  Only an atom-style variable
 can be referenced, since it is the only style that generates per-atom
-values.  Variables of style <I>atom</I> can reference individual atom
+values.  Variables of style <em>atom</em> can reference individual atom
 attributes, per-atom atom attributes, thermodynamic keywords, or
 invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
-dump file.
-</P>
-<P>The <I>d_name</I> and <I>i_name</I> attributes allow to output custom per atom
+dump file.</p>
+<p>The <em>d_name</em> and <em>i_name</em> attributes allow to output custom per atom
 floating point or integer properties that are managed by
-<A HREF = "fix_property_atom.html">fix property/atom</A>.
-</P>
-<P>See <A HREF = "Section_modify.html">Section_modify</A> of the manual for information
+<a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a>.</p>
+<p>See <a class="reference internal" href="Section_modify.html"><em>Section_modify</em></a> of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate
-per-atom quantities which could then be output into dump files.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>To write gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#start_2">Making
-LAMMPS</A> section of the documentation.
-</P>
-<P>The <I>atom/mpiio</I>, <I>cfg/mpiio</I>, <I>custom/mpiio</I>, and <I>xyz/mpiio</I> styles
+per-atom quantities which could then be output into dump files.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>To write gzipped dump files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the <a class="reference internal" href="Section_start.html#start-2"><span>Making LAMMPS</span></a> section of the documentation.</p>
+<p>The <em>atom/mpiio</em>, <em>cfg/mpiio</em>, <em>custom/mpiio</em>, and <em>xyz/mpiio</em> styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
-built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>The <I>xtc</I> style is part of the XTC package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.  This is
+built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>The <em>xtc</em> style is part of the XTC package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.  This is
 because some machines may not support the low-level XDR data format
 that XTC files are written with, which will result in a compile-time
 error when a low-level include file is not found.  Putting this style
@@ -607,16 +664,80 @@ files.  This option can be invoked at build time by adding
 Makefile, e.g. src/MAKE/Makefile.foo.  This compatibility mode has
 been tested successfully on Cray XT3/XT4/XT5 and IBM BlueGene/L
 machines and should also work on IBM BG/P, and Windows XP/Vista/7
-machines.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "dump_image.html">dump image</A>, <A HREF = "dump_modify.html">dump_modify</A>,
-<A HREF = "undump.html">undump</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The defaults for the <I>image</I> and <I>movie</I> styles are listed on the
-<A HREF = "dump_image.html">dump image</A> doc page.
-</P>
-</HTML>
+machines.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dump_image.html"><em>dump image</em></a>, <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a>,
+<a class="reference internal" href="undump.html"><em>undump</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The defaults for the <em>image</em> and <em>movie</em> styles are listed on the
+<a class="reference internal" href="dump_image.html"><em>dump image</em></a> doc page.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

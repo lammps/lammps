@@ -1,84 +1,193 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix reax/c/species command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix reax/c/species command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID reax/c/species Nevery Nrepeat Nfreq filename keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>reax/c/species = style name of this command 
-
-<LI>Nevery = sample bond-order every this many timesteps 
-
-<LI>Nrepeat = # of bond-order samples used for calculating averages 
-
-<LI>Nfreq = calculate average bond-order every this many timesteps 
-
-<LI>filename = name of output file 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>cutoff</I> or <I>element</I> or <I>position</I> 
-
-<PRE>  <I>cutoff</I> value = I J Cutoff
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix reax/c/species command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-reax-c-species-command">
+<span id="index-0"></span><h1>fix reax/c/species command<a class="headerlink" href="#fix-reax-c-species-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID reax/c/species Nevery Nrepeat Nfreq filename keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>reax/c/species = style name of this command</li>
+<li>Nevery = sample bond-order every this many timesteps</li>
+<li>Nrepeat = # of bond-order samples used for calculating averages</li>
+<li>Nfreq = calculate average bond-order every this many timesteps</li>
+<li>filename = name of output file</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>cutoff</em> or <em>element</em> or <em>position</em></li>
+</ul>
+<pre class="literal-block">
+<em>cutoff</em> value = I J Cutoff
     I, J = atom types
     Cutoff = Bond-order cutoff value for this pair of atom types
-  <I>element</I> value = Element1, Element2, ... 
-  <I>position</I> value = posfreq filepos
+  <em>element</em> value = Element1, Element2, ...
+  <em>position</em> value = posfreq filepos
     posfreq = write position files every this many timestep
-    filepos = name of position output file 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all reax/c/species 10 10 100 species.out
+    filepos = name of position output file
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all reax/c/species 10 10 100 species.out
 fix 1 all reax/c/species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2 0.55
-fix 1 all reax/c/species 1 100 100 species.out element Au O H position 1000 AuOH.pos 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Write out the chemical species information computed by the ReaxFF
-potential specified by <A HREF = "pair_reax_c.html">pair_style reax/c</A>.
+fix 1 all reax/c/species 1 100 100 species.out element Au O H position 1000 AuOH.pos
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Write out the chemical species information computed by the ReaxFF
+potential specified by <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>.
 Bond-order values (either averaged or instantaneous, depending on
-value of <I>Nrepeat</I>) are used to determine chemical bonds.  Every
-<I>Nfreq</I> timesteps, chemical species information is written to
-<I>filename</I> as a two line output.  The first line is a header
+value of <em>Nrepeat</em>) are used to determine chemical bonds.  Every
+<em>Nfreq</em> timesteps, chemical species information is written to
+<em>filename</em> as a two line output.  The first line is a header
 containing labels. The second line consists of the following:
 timestep, total number of molecules, total number of distinct species,
-number of molecules of each species.  In this context, "species" means
+number of molecules of each species.  In this context, &#8220;species&#8221; means
 a unique molecule.  The chemical formula of each species is given in
-the first line.
-</P>
-<P>Optional keyword <I>cutoff</I> can be assigned to change the minimum
+the first line.</p>
+<p>Optional keyword <em>cutoff</em> can be assigned to change the minimum
 bond-order values used in identifying chemical bonds between pairs of
 atoms.  Bond-order cutoffs should be carefully chosen, as bond-order
 cutoffs that are too small may include too many bonds (which will
 result in an error), while cutoffs that are too large will result in
 fragmented molecules.  The default cutoff of 0.3 usually gives good
-results.
-</P>
-<P>The optional keyword <I>element</I> can be used to specify the chemical
+results.</p>
+<p>The optional keyword <em>element</em> can be used to specify the chemical
 symbol printed for each LAMMPS atom type. The number of symbols must
 match the number of LAMMPS atom types and each symbol must consist of
 1 or 2 alphanumeric characters. Normally, these symbols should be
 chosen to match the chemical identity of each LAMMPS atom type, as
-specified using the <A HREF = "pair_reax_c.html">reax/c pair_coeff</A> command and
-the ReaxFF force field file.
-</P>
-<P>The optional keyword <I>position</I> writes center-of-mass positions of
-each identified molecules to file <I>filepos</I> every <I>posfreq</I> timesteps.
+specified using the <a class="reference internal" href="pair_reax_c.html"><em>reax/c pair_coeff</em></a> command and
+the ReaxFF force field file.</p>
+<p>The optional keyword <em>position</em> writes center-of-mass positions of
+each identified molecules to file <em>filepos</em> every <em>posfreq</em> timesteps.
 The first line contains information on timestep, total number of
 molecules, total number of distinct species, and box dimensions.  The
 second line is a header containing labels.  From the third line
@@ -86,80 +195,130 @@ downward, each molecule writes a line of output containing the
 following information: molecule ID, number of atoms in this molecule,
 chemical formula, total charge, and center-of-mass xyz positions of
 this molecule.  The xyz positions are in fractional coordinates
-relative to the box dimensions.
-</P>
-<P>For the keyword <I>position</I>, the <I>filepos</I> is the name of the output
-file.  It can contain the wildcard character "*".  If the "*"
-character appears in <I>filepos</I>, then one file per snapshot is written
-at <I>posfreq</I> and the "*" character is replaced with the timestep
-value.  For example, AuO.pos.* becomes AuO.pos.0, AuO.pos.1000, etc.
-</P>
-<HR>
-
-<P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what
+relative to the box dimensions.</p>
+<p>For the keyword <em>position</em>, the <em>filepos</em> is the name of the output
+file.  It can contain the wildcard character &#8220;*&#8221;.  If the &#8220;*&#8221;
+character appears in <em>filepos</em>, then one file per snapshot is written
+at <em>posfreq</em> and the &#8220;*&#8221; character is replaced with the timestep
+value.  For example, AuO.pos.* becomes AuO.pos.0, AuO.pos.1000, etc.</p>
+<hr class="docutils" />
+<p>The <em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> arguments specify on what
 timesteps the bond-order values are sampled to get the average bond
 order.  The species analysis is performed using the average bond-order
-on timesteps that are a multiple of <I>Nfreq</I>.  The average is over
-<I>Nrepeat</I> bond-order samples, computed in the preceding portion of the
-simulation every <I>Nevery</I> timesteps.  <I>Nfreq</I> must be a multiple of
-<I>Nevery</I> and <I>Nevery</I> must be non-zero even if <I>Nrepeat</I> is 1.  Also,
+on timesteps that are a multiple of <em>Nfreq</em>.  The average is over
+<em>Nrepeat</em> bond-order samples, computed in the preceding portion of the
+simulation every <em>Nevery</em> timesteps.  <em>Nfreq</em> must be a multiple of
+<em>Nevery</em> and <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.  Also,
 the timesteps contributing to the average bond-order cannot overlap,
-i.e. Nfreq > (Nrepeat-1)*Nevery is required.
-</P>
-<P>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then bond-order
+i.e. Nfreq &gt; (Nrepeat-1)*Nevery is required.</p>
+<p>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then bond-order
 values on timesteps 90,92,94,96,98,100 will be used to compute the
-average bond-order for the species analysis output on timestep 100.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix. 
-</P>
-<P>This fix computes both a global vector of length 2 and a per-atom
-vector, either of which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  The values in the global
-vector are "intensive".
-</P>
-<P>The 2 values in the global vector are as follows:
-</P>
-<UL><LI>1 = total number of molecules
-<LI>2 = total number of distinct species 
-</UL>
-<P>The per-atom vector stores the molecule ID for each atom as identified
+average bond-order for the species analysis output on timestep 100.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
+are relevant to this fix.</p>
+<p>This fix computes both a global vector of length 2 and a per-atom
+vector, either of which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The values in the global
+vector are &#8220;intensive&#8221;.</p>
+<p>The 2 values in the global vector are as follows:</p>
+<ul class="simple">
+<li>1 = total number of molecules</li>
+<li>2 = total number of distinct species</li>
+</ul>
+<p>The per-atom vector stores the molecule ID for each atom as identified
 by the fix.  If an atom is not in a molecule, its ID will be 0.
 For atoms in the same molecule, the molecule ID for all of them
 will be the same and will be equal to the smallest atom ID of
-any atom in the molecule.
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>The fix species currently only works with 
-<A HREF = "pair_reax_c.html">pair_style reax/c</A> and it requires that the <A HREF = "pair_reax_c.html">pair_style
-reax/c</A> be invoked.  This fix is part of the
+any atom in the molecule.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The fix species currently only works with
+<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a> and it requires that the <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a> be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
-package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
-for more info.
-</P>
-<P>It should be possible to extend it to other reactive pair_styles (such as 
-<A HREF = "pair_airebo.html">rebo</A>, <A HREF = "pair_airebo.html">airebo</A>, 
-<A HREF = "pair_comb.html">comb</A>, and <A HREF = "pair_bop.html">bop</A>), but this has not yet been done.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_reax_c.html">pair_style reax/c</A>, <A HREF = "fix_reax_bonds.html">fix
-reax/bonds</A>
-</P>
-<P><B>Default:</B> 
-</P>
-<P>The default values for bond-order cutoffs are 0.3 for all I-J pairs.  The
-default element symbols are C, H, O, N.  Position files are not written 
-by default.
-</P>
-</HTML>
+package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section
+for more info.</p>
+<p>It should be possible to extend it to other reactive pair_styles (such as
+<a class="reference internal" href="pair_airebo.html"><em>rebo</em></a>, <a class="reference internal" href="pair_airebo.html"><em>airebo</em></a>,
+<a class="reference internal" href="pair_comb.html"><em>comb</em></a>, and <a class="reference internal" href="pair_bop.html"><em>bop</em></a>), but this has not yet been done.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>, <a class="reference internal" href="fix_reax_bonds.html"><em>fix reax/bonds</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default values for bond-order cutoffs are 0.3 for all I-J pairs.  The
+default element symbols are C, H, O, N.  Position files are not written
+by default.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

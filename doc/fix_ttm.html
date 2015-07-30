@@ -1,32 +1,147 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix ttm command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix ttm command 
-</H3>
-<H3>fix ttm/mod command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile
-fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>style = <I>ttm</I> or <I>ttm_mod</I> 
-
-<LI>seed = random number seed to use for white noise (positive integer) 
-
-<LI>remaining arguments for fix ttm: 
-
-<PRE>  C_e  = electronic specific heat (energy/(electron*temperature) units)
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix ttm command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-ttm-command">
+<span id="index-0"></span><h1>fix ttm command<a class="headerlink" href="#fix-ttm-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-ttm-mod-command">
+<h1>fix ttm/mod command<a class="headerlink" href="#fix-ttm-mod-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile
+fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>style = <em>ttm</em> or <em>ttm_mod</em></li>
+<li>seed = random number seed to use for white noise (positive integer)</li>
+<li>remaining arguments for fix ttm:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>C_e  = electronic specific heat (energy/(electron*temperature) units)
   rho_e = electronic density (electrons/volume units)
   kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
   gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
@@ -37,54 +152,55 @@ fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile
   Nz = number of thermal solve grid points in the z-direction (positive integer)
   T_infile = filename to read initial electronic temperature from
   N = dump TTM temperatures every this many timesteps, 0 = no dump
-  T_outfile = filename to write TTM temperatures to (only needed if N > 0) 
-</PRE>
-<LI>remaining arguments for fix ttm/mod: 
-
-<PRE>  init_file = file with the parameters to TTM
+  T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
+</pre></div>
+</div>
+<ul class="simple">
+<li>remaining arguments for fix ttm/mod:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>init_file = file with the parameters to TTM
   Nx = number of thermal solve grid points in the x-direction (positive integer)
   Ny = number of thermal solve grid points in the y-direction (positive integer)
   Nz = number of thermal solve grid points in the z-direction (positive integer)
   T_infile = filename to read initial electronic temperature from
   N = dump TTM temperatures every this many timesteps, 0 = no dump
-  T_outfile = filename to write TTM temperatures to (only needed if N > 0) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 2 all ttm 699489 1.0 1.0 10 0.1 0.0 2.0 1 12 1 initialTs 1000 T.out
+  T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 2 all ttm 699489 1.0 1.0 10 0.1 0.0 2.0 1 12 1 initialTs 1000 T.out
 fix 2 all ttm 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 Te.in 1 Te.out
-fix 2 all ttm/mod 34277 parameters.txt 5 5 5 T_init 10 T_out 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Use a two-temperature model (TTM) to represent heat transfer through
+fix 2 all ttm/mod 34277 parameters.txt 5 5 5 T_init 10 T_out
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Use a two-temperature model (TTM) to represent heat transfer through
 and between electronic and atomic subsystems.  LAMMPS models the
 atomic subsystem as usual with a molecular dynamics model and the
 classical force field specified by the user, but the electronic
-subsystem is modeled as a continuum, or a background "gas", on a
+subsystem is modeled as a continuum, or a background &#8220;gas&#8221;, on a
 regular grid.  Energy can be transferred spatially within the grid
 representing the electrons.  Energy can also be transferred between
 the electronic and the atomic subsystems.  The algorithm underlying
 this fix was derived by D. M.  Duffy and A. M. Rutherford and is
-discussed in two J Physics: Condensed Matter papers: <A HREF = "#Duffy">(Duffy)</A>
-and <A HREF = "#Rutherford">(Rutherford)</A>.  They used this algorithm in cascade
+discussed in two J Physics: Condensed Matter papers: <a class="reference internal" href="#duffy"><span>(Duffy)</span></a>
+and <a class="reference internal" href="#rutherford"><span>(Rutherford)</span></a>.  They used this algorithm in cascade
 simulations where a primary knock-on atom (PKA) was initialized with a
-high velocity to simulate a radiation event.
-</P>
-<P>The description in this sub-section applies to both fix ttm and fix
+high velocity to simulate a radiation event.</p>
+<p>The description in this sub-section applies to both fix ttm and fix
 ttm/mod.  Fix ttm/mod adds options to account for external heat
 sources (e.g. at a surface) and for specifying parameters that allow
 the electronic heat capacity to depend strongly on electronic
 temperature.  It is more expensive computationally than fix ttm
 because it treats the thermal diffusion equation as non-linear.  More
-details on fix ttm/mod are given below.
-</P>
-<P>Heat transfer between the electronic and atomic subsystems is carried
+details on fix ttm/mod are given below.</p>
+<p>Heat transfer between the electronic and atomic subsystems is carried
 out via an inhomogeneous Langevin thermostat.  This thermostat differs
-from the regular Langevin thermostat (<A HREF = "fix_langevin.html">fix
-langevin</A>) in three important ways.  First, the
+from the regular Langevin thermostat (<a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>) in three important ways.  First, the
 Langevin thermostat is applied uniformly to all atoms in the
 user-specified group for a single target temperature, whereas the TTM
 fix applies Langevin thermostatting locally to atoms within the
@@ -95,65 +211,57 @@ reservoir, whereas the heat reservoir for fix TTM is finite and
 represents the local electrons.  Third, the TTM fix allows users to
 specify not just one friction coefficient, but rather two independent
 friction coefficients: one for the electron-ion interactions
-(<I>gamma_p</I>), and one for electron stopping (<I>gamma_s</I>).
-</P>
-<P>When the friction coefficient due to electron stopping, <I>gamma_s</I>, is
+(<em>gamma_p</em>), and one for electron stopping (<em>gamma_s</em>).</p>
+<p>When the friction coefficient due to electron stopping, <em>gamma_s</em>, is
 non-zero, electron stopping effects are included for atoms moving
-faster than the electron stopping critical velocity, <I>v_0</I>.  For
-further details about this algorithm, see <A HREF = "#Duffy">(Duffy)</A> and
-<A HREF = "#Rutherford">(Rutherford)</A>.
-</P>
-<P>Energy transport within the electronic subsystem is solved according
+faster than the electron stopping critical velocity, <em>v_0</em>.  For
+further details about this algorithm, see <a class="reference internal" href="#duffy"><span>(Duffy)</span></a> and
+<a class="reference internal" href="#rutherford"><span>(Rutherford)</span></a>.</p>
+<p>Energy transport within the electronic subsystem is solved according
 to the heat diffusion equation with added source terms for heat
-transfer between the subsystems:
-</P>
-<CENTER><IMG SRC = "Eqs/fix_ttm.jpg">
-</CENTER>
-<P>where C_e is the specific heat, rho_e is the density, kappa_e is the
-thermal conductivity, T is temperature, the "e" and "a" subscripts
+transfer between the subsystems:</p>
+<img alt="_images/fix_ttm.jpg" class="align-center" src="_images/fix_ttm.jpg" />
+<p>where C_e is the specific heat, rho_e is the density, kappa_e is the
+thermal conductivity, T is temperature, the &#8220;e&#8221; and &#8220;a&#8221; subscripts
 represent electronic and atomic subsystems respectively, g_p is the
 coupling constant for the electron-ion interaction, and g_s is the
 electron stopping coupling parameter.  C_e, rho_e, and kappa_e are
 specified as parameters to the fix.  The other quantities are derived.
 The form of the heat diffusion equation used here is almost the same
-as that in equation 6 of <A HREF = "#Duffy">(Duffy)</A>, with the exception that the
+as that in equation 6 of <a class="reference internal" href="#duffy"><span>(Duffy)</span></a>, with the exception that the
 electronic density is explicitly reprensented, rather than being part
-of the the specific heat parameter.
-</P>
-<P>Currently, fix ttm assumes that none of the user-supplied parameters
-will vary with temperature. Note that <A HREF = "#Duffy">(Duffy)</A> used a tanh()
+of the the specific heat parameter.</p>
+<p>Currently, fix ttm assumes that none of the user-supplied parameters
+will vary with temperature. Note that <a class="reference internal" href="#duffy"><span>(Duffy)</span></a> used a tanh()
 functional form for the temperature dependence of the electronic
 specific heat, but ignored temperature dependencies of any of the
-other parameters.  See more discussion below for fix ttm/mod.
-</P>
-<P>These fixes require use of periodic boundary conditions and a 3D
+other parameters.  See more discussion below for fix ttm/mod.</p>
+<p>These fixes require use of periodic boundary conditions and a 3D
 simulation.  Periodic boundary conditions are also used in the heat
 equation solve for the electronic subsystem.  This varies from the
-approach of <A HREF = "#Rutherford">(Rutherford)</A> where the atomic subsystem was
+approach of <a class="reference internal" href="#rutherford"><span>(Rutherford)</span></a> where the atomic subsystem was
 embedded within a larger continuum representation of the electronic
-subsystem.
-</P>
-<P>The initial electronic temperature input file, <I>T_infile</I>, is a text
+subsystem.</p>
+<p>The initial electronic temperature input file, <em>T_infile</em>, is a text
 file LAMMPS reads in with no header and with four numeric columns
 (ix,iy,iz,Temp) and with a number of rows equal to the number of
 user-specified grid points (Nx by Ny by Nz).  The ix,iy,iz are node
 indices from 0 to nxnodes-1, etc.  For example, the initial electronic
-temperatures on a 1 by 2 by 3 grid could be specified in a <I>T_infile</I>
-as follows:
-</P>
-<PRE>0 0 0 1.0
+temperatures on a 1 by 2 by 3 grid could be specified in a <em>T_infile</em>
+as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>0 0 0 1.0
 0 0 1 1.0
 0 0 2 1.0
 0 1 0 2.0
 0 1 1 2.0
-0 1 2 2.0 
-</PRE>
-<P>where the electronic temperatures along the y=0 plane have been set to
+0 1 2 2.0
+</pre></div>
+</div>
+<p>where the electronic temperatures along the y=0 plane have been set to
 1.0, and the electronic temperatures along the y=1 plane have been set
 to 2.0.  The order of lines in this file is no important.  If all the
-nodal values are not specified, LAMMPS will generate an error.
-</P>
-<P>The temperature output file, <I>T_oufile</I>, is created and written by
+nodal values are not specified, LAMMPS will generate an error.</p>
+<p>The temperature output file, <em>T_oufile</em>, is created and written by
 this fix.  Temperatures for both the electronic and atomic subsystems
 at every node and every N timesteps are output.  If N is specified as
 zero, no output is generated, and no output filename is needed.  The
@@ -163,83 +271,66 @@ The next Nx*Ny*Nz columns contain the temperatures for the atomic
 subsystem, and the final Nx*Ny*Nz columns contain the temperatures for
 the electronic subsystem.  The ordering of the Nx*Ny*Nz columns is
 with the z index varing fastest, y the next fastest, and x the
-slowest.
-</P>
-<P>These fixes do not change the coordinates of their atoms; they only
-scales their velocities.  Thus a time integration fix (e.g. <A HREF = "fix_nve.html">fix
-nve</A>) should still be used to time integrate the affected
+slowest.</p>
+<p>These fixes do not change the coordinates of their atoms; they only
+scales their velocities.  Thus a time integration fix (e.g. <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>) should still be used to time integrate the affected
 atoms.  The fixes should not normally be used on atoms that have their
-temperature controlled by another fix - e.g. <A HREF = "fix_nh.html">fix nvt</A> or
-<A HREF = "fix_langevin.html">fix langevin</A>.
-</P>
-<P>IMPORTANT NOTE: The current implementations of these fixes create a
+temperature controlled by another fix - e.g. <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or
+<a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The current implementations of these fixes create a
 copy of the electron grid that overlays the entire simulation domain,
 for each processor.  Values on the grid are summed across all
 processors.  Thus you should insure that this grid is not too large,
-else your simulation could incur high memory and communication costs.
-</P>
-<HR>
-
-<P><B>Additional details for fix ttm/mod</B>
-</P>
-<P>Fix ttm/mod uses the heat diffusion equation with possible external
-heat sources (e.g. laser heating in ablation simulations):
-</P>
-<CENTER><IMG SRC = "Eqs/fix_ttm_mod.jpg">
-</CENTER>
-<P>where theta is the Heaviside step function, I_0 is the (absorbed) 
-laser pulse intensity for ablation simulations, l_skin is the depth 
-of skin-layer, and all other designations have the same meaning as in 
+else your simulation could incur high memory and communication costs.</p>
+</div>
+<hr class="docutils" />
+<p><strong>Additional details for fix ttm/mod</strong></p>
+<p>Fix ttm/mod uses the heat diffusion equation with possible external
+heat sources (e.g. laser heating in ablation simulations):</p>
+<img alt="_images/fix_ttm_mod.jpg" class="align-center" src="_images/fix_ttm_mod.jpg" />
+<p>where theta is the Heaviside step function, I_0 is the (absorbed)
+laser pulse intensity for ablation simulations, l_skin is the depth
+of skin-layer, and all other designations have the same meaning as in
 the former equation. The duration of the pulse is set by the parameter
-<I>tau</I> in the <I>init_file</I>.
-</P>
-<P>Fix ttm/mod also allows users to specify the dependencies of C_e and
+<em>tau</em> in the <em>init_file</em>.</p>
+<p>Fix ttm/mod also allows users to specify the dependencies of C_e and
 kappa_e on the electronic temperature. The specific heat is expressed
-as
-</P>
-<CENTER><IMG SRC = "Eqs/fix_ttm_ce.jpg">
-</CENTER>
-<P>where <I>X</I> = T_e/1000, and the thermal conductivity is defined as
+as</p>
+<img alt="_images/fix_ttm_ce.jpg" class="align-center" src="_images/fix_ttm_ce.jpg" />
+<p>where <em>X</em> = T_e/1000, and the thermal conductivity is defined as
 kappa_e = D_e*rho_e*C_e, where D_e is the thermal diffusion
-coefficient.
-</P>
-<P>Electronic pressure effects are included in the TTM model to account
+coefficient.</p>
+<p>Electronic pressure effects are included in the TTM model to account
 for the blast force acting on ions because of electronic pressure
-gradient (see <A HREF = "Chen">(Chen)</A>, <A HREF = "#Norman">(Norman)</A>).  The total force
-acting on an ion is:
-</P>
-<CENTER><IMG SRC = "Eqs/fix_ttm_blast.jpg">
-</CENTER>
-<P>where F_langevin is a force from Langevin thermostat simulating
+gradient (see <a class="reference internal" href="#chen"><span>(Chen)</span></a>, <a class="reference internal" href="#norman"><span>(Norman)</span></a>).  The total force
+acting on an ion is:</p>
+<img alt="_images/fix_ttm_blast.jpg" class="align-center" src="_images/fix_ttm_blast.jpg" />
+<p>where F_langevin is a force from Langevin thermostat simulating
 electron-phonon coupling, and nabla P_e/n_ion is the electron blast
-force.
-</P>
-<P>The electronic pressure is taken to be P_e = B*rho_e*C_e*T_e
-</P>
-<P>The current fix ttm/mod implementation allows TTM simulations with a
+force.</p>
+<p>The electronic pressure is taken to be P_e = B*rho_e*C_e*T_e</p>
+<p>The current fix ttm/mod implementation allows TTM simulations with a
 vacuum. The vacuum region is defined as the grid cells with zero
 electronic temperature. The numerical scheme does not allow energy
 exchange with such cells. Since the material can expand to previously
 unoccupied region in some simulations, the vacuum border can be
-allowed to move. It is controlled by the <I>surface_movement</I> parameter
-in the <I>init_file</I>. If it is set to 1, then "vacuum" cells can be
-changed to "electron-filled" cells with the temperature <I>T_e_min</I> if
+allowed to move. It is controlled by the <em>surface_movement</em> parameter
+in the <em>init_file</em>. If it is set to 1, then &#8220;vacuum&#8221; cells can be
+changed to &#8220;electron-filled&#8221; cells with the temperature <em>T_e_min</em> if
 atoms move into them (currently only implemented for the case of
 1-dimensional motion of flat surface normal to the X axis). The
-initial borders of vacuum can be set in the <I>init_file</I> via <I>lsurface</I>
-and <I>rsurface</I> parameters. In this case, electronic pressure gradient
-is calculated as
-</P>
-<CENTER><IMG SRC = "Eqs/fix_ttm_blast1.jpg">
-</CENTER>
-<P>where lambda is the electron mean free path (see <A HREF = "#Norman">(Norman)</A>,
-<A HREF = "#Pisarev">(Pisarev)</A>)
-</P>
-<P>The fix ttm/mod parameter file <I>init_file</I> has the following syntax/
+initial borders of vacuum can be set in the <em>init_file</em> via <em>lsurface</em>
+and <em>rsurface</em> parameters. In this case, electronic pressure gradient
+is calculated as</p>
+<img alt="_images/fix_ttm_blast1.jpg" class="align-center" src="_images/fix_ttm_blast1.jpg" />
+<p>where lambda is the electron mean free path (see <a class="reference internal" href="#norman"><span>(Norman)</span></a>,
+<a class="reference internal" href="#pisarev"><span>(Pisarev)</span></a>)</p>
+<p>The fix ttm/mod parameter file <em>init_file</em> has the following syntax/
 Every line with the odd number is considered as a comment and
-ignored. The lines with the even numbers are treated as follows:
-</P>
-<PRE>a_0, energy/(temperature*electron) units
+ignored. The lines with the even numbers are treated as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>a_0, energy/(temperature*electron) units
 a_1, energy/(temperature^2*electron) units
 a_2, energy/(temperature^3*electron) units
 a_3, energy/(temperature^4*electron) units
@@ -260,31 +351,27 @@ B, dimensionless
 lambda, length units
 n_ion, ions/volume units
 surface_movement: 0 to disable tracking of surface motion, 1 to enable
-T_e_min, temperature units 
-</PRE>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>These fixes write the state of the electronic subsystem and the energy
-exchange between the subsystems to <A HREF = "restart.html">binary restart
-files</A>.  See the <A HREF = "read_restart.html">read_restart</A> command
+T_e_min, temperature units
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>These fixes write the state of the electronic subsystem and the energy
+exchange between the subsystems to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
-</P>
-<P>Because the state of the random number generator is not saved in the
-restart files, this means you cannot do "exact" restarts with this
+uninterrupted fashion.</p>
+<p>Because the state of the random number generator is not saved in the
+restart files, this means you cannot do &#8220;exact&#8221; restarts with this
 fix, where the simulation continues on the same as if no restart had
 taken place.  However, in a statistical sense, a restarted simulation
-should produce the same behavior.
-</P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to these
-fixes.  
-</P>
-<P>Both fixes compute 2 output quantities stored in a vector of length 2,
-which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  The first quantity is the
+should produce the same behavior.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options are relevant to these
+fixes.</p>
+<p>Both fixes compute 2 output quantities stored in a vector of length 2,
+which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The first quantity is the
 total energy of the electronic subsystem. The second quantity is the
 energy transferred from the electronic to the atomic subsystem on that
 timestep. Note that the velocity verlet integrator applies the fix ttm
@@ -294,57 +381,101 @@ Consequently, the change in the atomic subsystem energy is lagged by
 half a timestep relative to the change in the electronic subsystem
 energy. As a result of this, users may notice slight fluctuations in
 the sum of the atomic and electronic subsystem energies reported at
-the end of the timestep.
-</P>
-<P>The vector values calculated are "extensive".
-</P>
-<P>No parameter of the fixes can be used with the <I>start/stop</I> keywords
-of the <A HREF = "run.html">run</A> command.  The fixes are not invoked during
-<A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>Fix <I>ttm</I> is part of the MISC package. It is only enabled if LAMMPS
-was built with that package.  Fix <I>ttm/mod</I> is part of the USER-MISC
+the end of the timestep.</p>
+<p>The vector values calculated are &#8220;extensive&#8221;.</p>
+<p>No parameter of the fixes can be used with the <em>start/stop</em> keywords
+of the <a class="reference internal" href="run.html"><em>run</em></a> command.  The fixes are not invoked during
+<a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Fix <em>ttm</em> is part of the MISC package. It is only enabled if LAMMPS
+was built with that package.  Fix <em>ttm/mod</em> is part of the USER-MISC
 package. It is only enabled if LAMMPS was built with that package.
-See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more
-info.
-</P>
-<P>These fixes can only be used for 3d simulations and orthogonal
+See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more
+info.</p>
+<p>These fixes can only be used for 3d simulations and orthogonal
 simlulation boxes.  You must also use periodic
-<A HREF = "boundary.html">boundary</A> conditions.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_langevin.html">fix langevin</A>, <A HREF = "fix_dt_reset.html">fix dt/reset</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> conditions.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>, <a class="reference internal" href="fix_dt_reset.html"><em>fix dt/reset</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="duffy"><strong>(Duffy)</strong> D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19,
+016207-016218 (2007).</p>
+<p id="rutherford"><strong>(Rutherford)</strong> A M Rutherford and D M Duffy, J. Phys.:
+Condens. Matter, 19, 496201-496210 (2007).</p>
+<p id="chen"><strong>(Chen)</strong> J Chen, D Tzou and J Beraun, Int. J. Heat
+Mass Transfer, 49, 307-316 (2006).</p>
+<p id="norman"><strong>(Norman)</strong> G E Norman, S V Starikov, V V Stegailov et al., Contrib.
+Plasma Phys., 53, 129-139 (2013).</p>
+<p id="pisarev"><strong>(Pisarev)</strong> V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
+475401 (2014).</p>
+</div>
+</div>
 
-<A NAME = "Duffy"></A>
 
-<P><B>(Duffy)</B> D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19,
-016207-016218 (2007).
-</P>
-<A NAME = "Rutherford"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Rutherford)</B> A M Rutherford and D M Duffy, J. Phys.:
-Condens. Matter, 19, 496201-496210 (2007).
-</P>
-<A NAME = "Chen"></A>
+  <hr/>
 
-<P><B>(Chen)</B> J Chen, D Tzou and J Beraun, Int. J. Heat 
-Mass Transfer, 49, 307-316 (2006).
-</P>
-<A NAME = "Norman"></A>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-<P><B>(Norman)</B> G E Norman, S V Starikov, V V Stegailov et al., Contrib. 
-Plasma Phys., 53, 129-139 (2013).
-</P>
-<A NAME = "Pisarev"></A>
+</footer>
 
-<P><B>(Pisarev)</B> V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
-475401 (2014).
-</P>
-</HTML>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

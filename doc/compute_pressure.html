@@ -1,153 +1,309 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute pressure command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute pressure command 
-</H3>
-<H3>compute pressure/cuda command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID pressure temp-ID keyword ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>pressure = style name of this compute command
-<LI>temp-ID = ID of compute that calculates temperature, can be NULL if not needed
-<LI>zero or more keywords may be appended
-<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> or <I>fix</I> or <I>virial</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all pressure thermo_temp
-compute 1 all pressure NULL pair bond 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates the pressure of the entire system
-of atoms.  The specified group must be "all".  See the <A HREF = "compute_stress_atom.html">compute
-stress/atom</A> command if you want per-atom
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute pressure command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-pressure-command">
+<span id="index-0"></span><h1>compute pressure command<a class="headerlink" href="#compute-pressure-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="compute-pressure-cuda-command">
+<h1>compute pressure/cuda command<a class="headerlink" href="#compute-pressure-cuda-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID pressure temp-ID keyword ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>pressure = style name of this compute command</li>
+<li>temp-ID = ID of compute that calculates temperature, can be NULL if not needed</li>
+<li>zero or more keywords may be appended</li>
+<li>keyword = <em>ke</em> or <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em> or <em>fix</em> or <em>virial</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all pressure thermo_temp
+compute 1 all pressure NULL pair bond
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates the pressure of the entire system
+of atoms.  The specified group must be &#8220;all&#8221;.  See the <a class="reference internal" href="compute_stress_atom.html"><em>compute stress/atom</em></a> command if you want per-atom
 pressure (stress).  These per-atom values could be summed for a group
-of atoms via the <A HREF = "compute_reduce.html">compute reduce</A> command.
-</P>
-<P>The pressure is computed by the formula
-</P>
-<CENTER><IMG SRC = "Eqs/pressure.jpg">
-</CENTER>
-<P>where N is the number of atoms in the system (see discussion of DOF
+of atoms via the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command.</p>
+<p>The pressure is computed by the formula</p>
+<img alt="_images/pressure.jpg" class="align-center" src="_images/pressure.jpg" />
+<p>where N is the number of atoms in the system (see discussion of DOF
 below), Kb is the Boltzmann constant, T is the temperature, d is the
 dimensionality of the system (2 or 3 for 2d/3d), V is the system
 volume (or area in 2d), and the second term is the virial, computed
 within LAMMPS for all pairwise as well as 2-body, 3-body, and 4-body,
-and long-range interactions.  <A HREF = "fix.html">Fixes</A> that impose constraints
-(e.g. the <A HREF = "fix_shake.html">fix shake</A> command) also contribute to the
-virial term.
-</P>
-<P>A symmetric pressure tensor, stored as a 6-element vector, is also
+and long-range interactions.  <a class="reference internal" href="fix.html"><em>Fixes</em></a> that impose constraints
+(e.g. the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command) also contribute to the
+virial term.</p>
+<p>A symmetric pressure tensor, stored as a 6-element vector, is also
 calculated by this compute.  The 6 components of the vector are
 ordered xx, yy, zz, xy, xz, yz.  The equation for the I,J components
 (where I and J = x,y,z) is similar to the above formula, except that
 the first term uses components of the kinetic energy tensor and the
-second term uses components of the virial tensor:
-</P>
-<CENTER><IMG SRC = "Eqs/pressure_tensor.jpg">
-</CENTER>
-<P>If no extra keywords are listed, the entire equations above are
+second term uses components of the virial tensor:</p>
+<img alt="_images/pressure_tensor.jpg" class="align-center" src="_images/pressure_tensor.jpg" />
+<p>If no extra keywords are listed, the entire equations above are
 calculated.  This includes a kinetic energy (temperature) term and the
 virial as the sum of pair, bond, angle, dihedral, improper, kspace
 (long-range), and fix contributions to the force on each atom.  If any
 extra keywords are listed, then only those components are summed to
-compute temperature or ke and/or the virial.  The <I>virial</I> keyword
-means include all terms except the kinetic energy <I>ke</I>.
-</P>
-<P>Details of how LAMMPS computes the virial efficiently for the entire
+compute temperature or ke and/or the virial.  The <em>virial</em> keyword
+means include all terms except the kinetic energy <em>ke</em>.</p>
+<p>Details of how LAMMPS computes the virial efficiently for the entire
 system, including the effects of periodic boundary conditions is
-discussed in <A HREF = "#Thompson">(Thompson)</A>.
-</P>
-<P>The temperature and kinetic energy tensor is not calculated by this
+discussed in <a class="reference internal" href="compute_stress_atom.html#thompson"><span>(Thompson)</span></a>.</p>
+<p>The temperature and kinetic energy tensor is not calculated by this
 compute, but rather by the temperature compute specified with the
 command.  If the kinetic energy is not included in the pressure, than
 the temperature compute is not used and can be specified as NULL.
 Normally the temperature compute used by compute pressure should
 calculate the temperature of all atoms for consistency with the virial
 term, but any compute style that calculates temperature can be used,
-e.g. one that excludes frozen atoms or other degrees of freedom.
-</P>
-<P>Note that if desired the specified temperature compute can be one that
+e.g. one that excludes frozen atoms or other degrees of freedom.</p>
+<p>Note that if desired the specified temperature compute can be one that
 subtracts off a bias to calculate a temperature using only the thermal
 velocity of the atoms, e.g. by subtracting a background streaming
-velocity.  See the doc pages for individual <A HREF = "compute.html">compute
-commands</A> to determine which ones include a bias.
-</P>
-<P>Also note that the N in the first formula above is really
+velocity.  See the doc pages for individual <a class="reference internal" href="compute.html"><em>compute commands</em></a> to determine which ones include a bias.</p>
+<p>Also note that the N in the first formula above is really
 degrees-of-freedom divided by d = dimensionality, where the DOF value
-is calcluated by the temperature compute.  See the various <A HREF = "compute.html">compute
-temperature</A> styles for details.
-</P>
-<P>A compute of this style with the ID of "thermo_press" is created when
-LAMMPS starts up, as if this command were in the input script:
-</P>
-<PRE>compute thermo_press all pressure thermo_temp 
-</PRE>
-<P>where "thermo_temp" is the ID of a similarly defined compute of style
-"temp".  See the "thermo_style" command for more details.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+is calcluated by the temperature compute.  See the various <a class="reference internal" href="compute.html"><em>compute temperature</em></a> styles for details.</p>
+<p>A compute of this style with the ID of &#8220;thermo_press&#8221; is created when
+LAMMPS starts up, as if this command were in the input script:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute thermo_press all pressure thermo_temp
+</pre></div>
+</div>
+<p>where &#8220;thermo_temp&#8221; is the ID of a similarly defined compute of style
+&#8220;temp&#8221;.  See the &#8220;thermo_style&#8221; command for more details.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
-<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
+<a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual.  The
 accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA package.  They are
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a global scalar (the pressure) and a global
+results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global scalar (the pressure) and a global
 vector of length 6 (pressure tensor), which can be accessed by indices
 1-6.  These values can be used by any command that uses global scalar
-or vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
-section</A> for an overview of LAMMPS output
-options.
-</P>
-<P>The scalar and vector values calculated by this compute are
-"intensive".  The scalar and vector values will be in pressure
-<A HREF = "units.html">units</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_stress_atom.html">compute
-stress/atom</A>,
-<A HREF = "thermo_style.html">thermo_style</A>,
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+or vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The scalar and vector values calculated by this compute are
+&#8220;intensive&#8221;.  The scalar and vector values will be in pressure
+<a class="reference internal" href="units.html"><em>units</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_temp.html"><em>compute temp</em></a>, <a class="reference internal" href="compute_stress_atom.html"><em>compute stress/atom</em></a>,
+<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>,</p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="thompson"><strong>(Thompson)</strong> Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).</p>
+</div>
+</div>
 
-<A NAME = "Thompson"></A>
 
-<P><B>(Thompson)</B> Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

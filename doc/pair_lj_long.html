@@ -1,235 +1,391 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style lj/long/coul/long command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style lj/long/coul/long command 
-</H3>
-<H3>pair_style lj/long/coul/long/omp command 
-</H3>
-<H3>pair_style lj/long/coul/long/opt command 
-</H3>
-<H3>pair_style lj/long/tip4p/long command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style style args 
-</PRE>
-<UL><LI>style = <I>lj/long/coul/long</I> or <I>lj/long/tip4p/long</I>
-<LI>args = list of arguments for a particular style 
-</UL>
-<PRE>  <I>lj/long/coul/long</I> args = flag_lj flag_coul cutoff (cutoff2)
-    flag_lj = <I>long</I> or <I>cut</I> or <I>off</I>
-      <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
-      <I>cut</I> = use a cutoff on dispersion 1/r^6 term
-      <I>off</I> = omit disperion 1/r^6 term entirely
-    flag_coul = <I>long</I> or <I>off</I>
-      <I>long</I> = use Kspace long-range summation for Coulombic 1/r term
-      <I>off</I> = omit Coulombic term
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style lj/long/coul/long command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-lj-long-coul-long-command">
+<span id="index-0"></span><h1>pair_style lj/long/coul/long command<a class="headerlink" href="#pair-style-lj-long-coul-long-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-long-coul-long-omp-command">
+<h1>pair_style lj/long/coul/long/omp command<a class="headerlink" href="#pair-style-lj-long-coul-long-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-long-coul-long-opt-command">
+<h1>pair_style lj/long/coul/long/opt command<a class="headerlink" href="#pair-style-lj-long-coul-long-opt-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-long-tip4p-long-command">
+<h1>pair_style lj/long/tip4p/long command<a class="headerlink" href="#pair-style-lj-long-tip4p-long-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>lj/long/coul/long</em> or <em>lj/long/tip4p/long</em></li>
+<li>args = list of arguments for a particular style</li>
+</ul>
+<pre class="literal-block">
+<em>lj/long/coul/long</em> args = flag_lj flag_coul cutoff (cutoff2)
+    flag_lj = <em>long</em> or <em>cut</em> or <em>off</em>
+      <em>long</em> = use Kspace long-range summation for dispersion 1/r^6 term
+      <em>cut</em> = use a cutoff on dispersion 1/r^6 term
+      <em>off</em> = omit disperion 1/r^6 term entirely
+    flag_coul = <em>long</em> or <em>off</em>
+      <em>long</em> = use Kspace long-range summation for Coulombic 1/r term
+      <em>off</em> = omit Coulombic term
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  <I>lj/long/tip4p/long</I> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
-    flag_lj = <I>long</I> or <I>cut</I>
-      <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
-      <I>cut</I> = use a cutoff
-    flag_coul = <I>long</I> or <I>off</I>
-      <I>long</I> = use Kspace long-range summation for Coulombic 1/r term
-      <I>off</I> = omit Coulombic term
+  <em>lj/long/tip4p/long</em> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
+    flag_lj = <em>long</em> or <em>cut</em>
+      <em>long</em> = use Kspace long-range summation for dispersion 1/r^6 term
+      <em>cut</em> = use a cutoff
+    flag_coul = <em>long</em> or <em>off</em>
+      <em>long</em> = use Kspace long-range summation for Coulombic 1/r term
+      <em>off</em> = omit Coulombic term
     otype,htype = atom types for TIP4P O and H
     btype,atype = bond and angle types for TIP4P waters
     qdist = distance from O atom to massless charge (distance units)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units) 
-</PRE>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style lj/long/coul/long cut off 2.5
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/long/coul/long cut off 2.5
 pair_style lj/long/coul/long cut long 2.5 4.0
 pair_style lj/long/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
-pair_coeff 1 1 1 3 4 
-</PRE>
-<PRE>pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0
+pair_coeff 1 1 1 3 4
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0
 pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
 pair_coeff * * 100.0 3.0
-pair_coeff 1 1 100.0 3.5 9.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Style <I>lj/long/coul/long</I> computes the standard 12/6 Lennard-Jones and
-Coulombic potentials, given by
-</P>
-<CENTER><IMG SRC = "Eqs/pair_lj.jpg">
-</CENTER>
-<CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
-</CENTER>
-<P>where C is an energy-conversion constant, Qi and Qj are the charges on
+pair_coeff 1 1 100.0 3.5 9.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>lj/long/coul/long</em> computes the standard 12/6 Lennard-Jones and
+Coulombic potentials, given by</p>
+<img alt="_images/pair_lj.jpg" class="align-center" src="_images/pair_lj.jpg" />
+<img alt="_images/pair_coulomb.jpg" class="align-center" src="_images/pair_coulomb.jpg" />
+<p>where C is an energy-conversion constant, Qi and Qj are the charges on
 the 2 atoms, epsilon is the dielectric constant which can be set by
-the <A HREF = "dielectric.html">dielectric</A> command, and Rc is the cutoff.  If
+the <a class="reference internal" href="dielectric.html"><em>dielectric</em></a> command, and Rc is the cutoff.  If
 one cutoff is specified in the pair_style command, it is used for both
 the LJ and Coulombic terms.  If two cutoffs are specified, they are
-used as cutoffs for the LJ and Coulombic terms respectively.
-</P>
-<P>The purpose of this pair style is to capture long-range interactions
+used as cutoffs for the LJ and Coulombic terms respectively.</p>
+<p>The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r^6 Lennard-Jones and Coulombic 1/r
-interactions.  This is done by use of the <I>flag_lj</I> and <I>flag_coul</I>
-settings.  The <A HREF = "#Veld">In 't Veld</A> paper has more details on when it is
+interactions.  This is done by use of the <em>flag_lj</em> and <em>flag_coul</em>
+settings.  The <a class="reference internal" href="#veld"><span>In &#8216;t Veld</span></a> paper has more details on when it is
 appropriate to include long-range 1/r^6 interactions, using this
-potential.
-</P>
-<P>Style <I>lj/long/tip4p/long</I> implements the TIP4P water model of
-<A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless site located a
+potential.</p>
+<p>Style <em>lj/long/tip4p/long</em> implements the TIP4P water model of
+<a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>, which introduces a massless site located a
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
 and angle types for OH and HOH interactions, and the distance to the
-massless charge site are specified as pair_style arguments.
-</P>
-<P>IMPORTANT NOTE: For each TIP4P water molecule in your system, the atom
+massless charge site are specified as pair_style arguments.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">For each TIP4P water molecule in your system, the atom
 IDs for the O and 2 H atoms must be consecutive, with the O atom
-first.  This is to enable LAMMPS to "find" the 2 H atoms associated
+first.  This is to enable LAMMPS to &#8220;find&#8221; the 2 H atoms associated
 with each O atom.  For example, if the atom ID of an O atom in a TIP4P
-water molecule is 500, then its 2 H atoms must have IDs 501 and 502.
-</P>
-<P>See the <A HREF = "Section_howto.html#howto_8">howto section</A> for more
+water molecule is 500, then its 2 H atoms must have IDs 501 and 502.</p>
+</div>
+<p>See the <a class="reference internal" href="Section_howto.html#howto-8"><span>howto section</span></a> for more
 information on how to use the TIP4P pair style.  Note that the
 neighobr list cutoff for Coulomb interactions is effectively extended
 by a distance 2*qdist when using the TIP4P pair style, to account for
 the offset distance of the fictitious charges on O atoms in water
 molecules.  Thus it is typically best in an efficiency sense to use a
-LJ cutoff >= Coulomb cutoff + 2*qdist, to shrink the size of the
+LJ cutoff &gt;= Coulomb cutoff + 2*qdist, to shrink the size of the
 neighbor list.  This leads to slightly larger cost for the long-range
-calculation, so you can test the trade-off for your model.
-</P>
-<P>If <I>flag_lj</I> is set to <I>long</I>, no cutoff is used on the LJ 1/r^6
+calculation, so you can test the trade-off for your model.</p>
+<p>If <em>flag_lj</em> is set to <em>long</em>, no cutoff is used on the LJ 1/r^6
 dispersion term.  The long-range portion can be calculated by using
-the <A HREF = "kspace_style.html">kspace_style ewald/disp or pppm/disp</A> commands.
+the <a class="reference internal" href="kspace_style.html"><em>kspace_style ewald/disp or pppm/disp</em></a> commands.
 The specified LJ cutoff then determines which portion of the LJ
 interactions are computed directly by the pair potential versus which
 part is computed in reciprocal space via the Kspace style.  If
-<I>flag_lj</I> is set to <I>cut</I>, the LJ interactions are simply cutoff, as
-with <A HREF = "pair_lj.html">pair_style lj/cut</A>.
-</P>
-<P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic
+<em>flag_lj</em> is set to <em>cut</em>, the LJ interactions are simply cutoff, as
+with <a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut</em></a>.</p>
+<p>If <em>flag_coul</em> is set to <em>long</em>, no cutoff is used on the Coulombic
 interactions.  The long-range portion can calculated by using any of
-several <A HREF = "kspace_style.html">kspace_style</A> command options such as
-<I>pppm</I> or <I>ewald</I>.  Note that if <I>flag_lj</I> is also set to long, then
-the <I>ewald/disp</I> or <I>pppm/disp</I> Kspace style needs to be used to
+several <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command options such as
+<em>pppm</em> or <em>ewald</em>.  Note that if <em>flag_lj</em> is also set to long, then
+the <em>ewald/disp</em> or <em>pppm/disp</em> Kspace style needs to be used to
 perform the long-range calculations for both the LJ and Coulombic
-interactions.  If <I>flag_coul</I> is set to <I>off</I>, Coulombic interactions
-are not computed.
-</P>
-<P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+interactions.  If <em>flag_coul</em> is set to <em>off</em>, Coulombic interactions
+are not computed.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
 above, or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands, or by mixing as described below:
-</P>
-<UL><LI>epsilon (energy units)
-<LI>sigma (distance units)
-<LI>cutoff1 (distance units)
-<LI>cutoff2 (distance units) 
-</UL>
-<P>Note that sigma is defined in the LJ formula as the zero-crossing
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands, or by mixing as described below:</p>
+<ul class="simple">
+<li>epsilon (energy units)</li>
+<li>sigma (distance units)</li>
+<li>cutoff1 (distance units)</li>
+<li>cutoff2 (distance units)</li>
+</ul>
+<p>Note that sigma is defined in the LJ formula as the zero-crossing
 distance for the potential, not as the energy minimum at 2^(1/6)
-sigma.
-</P>
-<P>The latter 2 coefficients are optional.  If not specified, the global
+sigma.</p>
+<p>The latter 2 coefficients are optional.  If not specified, the global
 LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair.
-</P>
-<P>Note that if you are using <I>flag_lj</I> set to <I>long</I>, you
+type pair.</p>
+<p>Note that if you are using <em>flag_lj</em> set to <em>long</em>, you
 cannot specify a LJ cutoff for an atom type pair, since only one
-global LJ cutoff is allowed.  Similarly, if you are using <I>flag_coul</I>
-set to <I>long</I>, you cannot specify a Coulombic cutoff for an atom type
-pair, since only one global Coulombic cutoff is allowed.
-</P>
-<P>For <I>lj/long/tip4p/long</I> only the LJ cutoff can be specified
+global LJ cutoff is allowed.  Similarly, if you are using <em>flag_coul</em>
+set to <em>long</em>, you cannot specify a Coulombic cutoff for an atom type
+pair, since only one global Coulombic cutoff is allowed.</p>
+<p>For <em>lj/long/tip4p/long</em> only the LJ cutoff can be specified
 since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
-specified in the pair_style command.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+specified in the pair_style command.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/long pair styles can be mixed.
-The default mix value is <I>geometric</I>.  See the "pair_modify" command
-for details.
-</P>
-<P>These pair styles support the <A HREF = "pair_modify.html">pair_modify</A> shift
+The default mix value is <em>geometric</em>.  See the &#8220;pair_modify&#8221; command
+for details.</p>
+<p>These pair styles support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> shift
 option for the energy of the Lennard-Jones portion of the pair
-interaction, assuming <I>flag_lj</I> is <I>cut</I>.
-</P>
-<P>These pair styles support the <A HREF = "pair_modify.html">pair_modify</A> table and
+interaction, assuming <em>flag_lj</em> is <em>cut</em>.</p>
+<p>These pair styles support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> table and
 table/disp options since they can tabulate the short-range portion of
-the long-range Coulombic and dispersion interactions.
-</P>
-<P>Thes pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
+the long-range Coulombic and dispersion interactions.</p>
+<p>Thes pair styles do not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 tail option for adding a long-range tail correction to the
-Lennard-Jones portion of the energy and pressure.
-</P>
-<P>These pair styles write their information to <A HREF = "restart.html">binary restart
-files</A>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
-</P>
-<P>The pair lj/long/coul/long styles support the use of the <I>inner</I>,
-<I>middle</I>, and <I>outer</I> keywords of the <A HREF = "run_style.html">run_style respa</A>
+Lennard-Jones portion of the energy and pressure.</p>
+<p>These pair styles write their information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+<p>The pair lj/long/coul/long styles support the use of the <em>inner</em>,
+<em>middle</em>, and <em>outer</em> keywords of the <a class="reference internal" href="run_style.html"><em>run_style respa</em></a>
 command, meaning the pairwise forces can be partitioned by distance at
 different levels of the rRESPA hierarchy.  See the
-<A HREF = "run_style.html">run_style</A> command for details.
-</P>
-<HR>
+<a class="reference internal" href="run_style.html"><em>run_style</em></a> command for details.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>These styles are part of the KSPACE package.  They are only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.  Note that
+the KSPACE package is installed by default.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="veld"><strong>(In &#8216;t Veld)</strong> In &#8216;t Veld, Ismail, Grest, J Chem Phys (accepted) (2007).</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>These styles are part of the KSPACE package.  They are only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.  Note that
-the KSPACE package is installed by default.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
 
-<A NAME = "Veld"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(In 't Veld)</B> In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

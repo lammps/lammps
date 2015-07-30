@@ -1,444 +1,579 @@
-<HTML>
-<CENTER><<A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>molecule command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>molecule command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>molecule ID file1 file2 ... keyword values ... 
-</PRE>
-<UL><LI>ID = user-assigned name for the molecule template 
-
-<LI>file1,file2,... = names of files containing molecule descriptions 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>offset</I> 
-
-<PRE>  <I>offset</I> values = toff boff aoff doff ioff
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>molecule command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="molecule-command">
+<span id="index-0"></span><h1>molecule command<a class="headerlink" href="#molecule-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>molecule ID file1 file2 ... keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID = user-assigned name for the molecule template</li>
+<li>file1,file2,... = names of files containing molecule descriptions</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>offset</em></li>
+</ul>
+<pre class="literal-block">
+<em>offset</em> values = toff boff aoff doff ioff
     toff = offset to add to atom types
     boff = offset to add to bond types
     aoff = offset to add to angle types
     doff = offset to add to dihedral types
-    ioff = offset to add to improper types 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>molecule 1 mymol
+    ioff = offset to add to improper types
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>molecule 1 mymol
 molecule 1 co2.txt h2o.txt
 molecule CO2 co2.txt
-molecule 1 mymol offset 6 9 18 23 14 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a molecule template that can be used as part of other LAMMPS
+molecule 1 mymol offset 6 9 18 23 14
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a molecule template that can be used as part of other LAMMPS
 commands, typically to define a collection of particles as a bonded
 molecule or a rigid body.  Commands that currently use molecule
-templates include:
-</P>
-<UL><LI><A HREF = "fix_deposit.html">fix deposit</A>
-<LI><A HREF = "fix_pour.html">fix pour</A>
-<LI><A HREF = "fix_rigid.html">fix rigid/small</A>
-<LI><A HREF = "fix_shake.html">fix shake</A>
-<LI><A HREF = "fix_gcmc.html">fix gcmc</A>
-<LI><A HREF = "create_atoms.html">create_atoms</A> 
-<LI><A HREF = "atom_style.html">atom_style template</A> 
-</UL>
-<P>The ID of a molecule template can only contain alphanumeric characters
-and underscores.
-</P>
-<P>A single template can contain multiple molecules, listed one per file.
+templates include:</p>
+<ul class="simple">
+<li><a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a></li>
+<li><a class="reference internal" href="fix_pour.html"><em>fix pour</em></a></li>
+<li><a class="reference internal" href="fix_rigid.html"><em>fix rigid/small</em></a></li>
+<li><a class="reference internal" href="fix_shake.html"><em>fix shake</em></a></li>
+<li><a class="reference internal" href="fix_gcmc.html"><em>fix gcmc</em></a></li>
+<li><a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a></li>
+<li><a class="reference internal" href="atom_style.html"><em>atom_style template</em></a></li>
+</ul>
+<p>The ID of a molecule template can only contain alphanumeric characters
+and underscores.</p>
+<p>A single template can contain multiple molecules, listed one per file.
 Many of the commands listed above currently use only the first
 molecule in the template, and will issue a warning if the template
-contains multiple molecules.  The <A HREF = "atom_style.html">atom_style
-template</A> command allows multiple-molecule templates
-to define a system with more than one templated molecule.
-</P>
-<P>The optional <I>offset</I> keyword adds the specified offset values to the
+contains multiple molecules.  The <a class="reference internal" href="atom_style.html"><em>atom_style template</em></a> command allows multiple-molecule templates
+to define a system with more than one templated molecule.</p>
+<p>The optional <em>offset</em> keyword adds the specified offset values to the
 atom types, bond types, angle types, dihedral types, and improper
-types as they are read from the molecule file.  E.g. if <I>toff</I> = 2,
+types as they are read from the molecule file.  E.g. if <em>toff</em> = 2,
 and the file uses atom types 1,2,3, then each created molecule will
 have atom types 3,4,5.  This is to make it easy to use the same
 molecule template file in different simulations.  Note that the same
 offsets are applied to the molecules in all specified files.  All five
 offset values must be speicified, but individual values will be
 ignored if the molecule template does not use that attribute (e.g. no
-bonds).
-</P>
-<P>IMPORTANT NOTE: This command can be used to define molecules with
+bonds).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This command can be used to define molecules with
 bonds, angles, dihedrals, imporopers, or special bond lists of
 neighbors within a molecular topology, so that you can later add the
 molecules to your simulation, via one or more of the commands listed
 above.  If such molecules do not already exist when LAMMPS creates the
-simulation box, via the <A HREF = "create_box.html">create_box</A> or
-<A HREF = "read_data.html">read_data</A> command, when you later add them you may
+simulation box, via the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command, when you later add them you may
 overflow the pre-allocated data structures which store molecular
 topology information with each atom, and an error will be generated.
-Both the <A HREF = "create_box.html">create_box</A> command and the data files read
-by the <A HREF = "read_data.html">read_data</A> command have "extra" options which
+Both the <a class="reference internal" href="create_box.html"><em>create_box</em></a> command and the data files read
+by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command have &#8220;extra&#8221; options which
 insure space is allocated for storing topology info for molecules that
-are added later.
-</P>
-<P>The format of an individual molecule file is similar to the data file
-read by the <A HREF = "read_data.html">read_data</A> commands, and is as follows.
-</P>
-<P>A molecule file has a header and a body.  The header appears first.
+are added later.</p>
+</div>
+<p>The format of an individual molecule file is similar to the data file
+read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> commands, and is as follows.</p>
+<p>A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains
 a description of the file.  Then lines are read one at a time.  Lines
-can have a trailing comment starting with '#' that is ignored.  If the
+can have a trailing comment starting with &#8216;#&#8217; that is ignored.  If the
 line is blank (only whitespace after comment is deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it doesn't contain a header
-keyword, the line begins the body of the file.
-</P>
-<P>The body of the file contains zero or more sections.  The first line
+value(s) is read from the line.  If it doesn&#8217;t contain a header
+keyword, the line begins the body of the file.</p>
+<p>The body of the file contains zero or more sections.  The first line
 of a section has only a keyword.  The next line is skipped.  The
 remaining lines of the section contain values.  The number of lines
 depends on the section keyword as described below.  Zero or more blank
 lines can be used between sections.  Sections can appear in any order,
-with a few exceptions as noted below.
-</P>
-<P>These are the recognized header keywords.  Header lines can come in
+with a few exceptions as noted below.</p>
+<p>These are the recognized header keywords.  Header lines can come in
 any order.  The numeric value(s) are read from the beginning of the
 line.  The keyword should appear at the end of the line.  All these
 settings have default values, as explained below.  A line need only
-appear if the value(s) are different than the default.
-</P>
-<UL><LI>N <I>atoms</I> = # of atoms N in molecule, default = 0
-<LI>Nb <I>bonds</I> = # of bonds Nb in molecule, default = 0
-<LI>Na <I>angles</I> = # of angles Na in molecule, default = 0
-<LI>Nd <I>dihedrals</I> = # of dihedrals Nd in molecule, default = 0
-<LI>Ni <I>impropers</I> = # of impropers Ni in molecule, default = 0
-<LI>Mtotal <I>mass</I> = total mass of molecule
-<LI>Xc Yc Zc <I>com</I> = coordinates of center-of-mass of molecule
-<LI>Ixx Iyy Izz Ixy Ixz Iyz <I>inertia</I> = 6 components of inertia tensor of molecule 
-</UL>
-<P>For <I>mass</I>, <I>com</I>, and <I>inertia</I>, the default is for LAMMPS to
+appear if the value(s) are different than the default.</p>
+<ul class="simple">
+<li>N <em>atoms</em> = # of atoms N in molecule, default = 0</li>
+<li>Nb <em>bonds</em> = # of bonds Nb in molecule, default = 0</li>
+<li>Na <em>angles</em> = # of angles Na in molecule, default = 0</li>
+<li>Nd <em>dihedrals</em> = # of dihedrals Nd in molecule, default = 0</li>
+<li>Ni <em>impropers</em> = # of impropers Ni in molecule, default = 0</li>
+<li>Mtotal <em>mass</em> = total mass of molecule</li>
+<li>Xc Yc Zc <em>com</em> = coordinates of center-of-mass of molecule</li>
+<li>Ixx Iyy Izz Ixy Ixz Iyz <em>inertia</em> = 6 components of inertia tensor of molecule</li>
+</ul>
+<p>For <em>mass</em>, <em>com</em>, and <em>inertia</em>, the default is for LAMMPS to
 calculate this quantity itself if needed, assuming the molecules
 consists of a set of point particles or finite-size particles (with a
 non-zero diameter) that do not overlap.  If finite-size particles in
 the molecule do overlap, LAMMPS will not account for the overlap
 effects when calculating any of these 3 quantities, so you should
-pre-compute them yourself and list the values in the file.
-</P>
-<P>The mass and center-of-mass coordinates (Xc,Yc,Zc) are
+pre-compute them yourself and list the values in the file.</p>
+<p>The mass and center-of-mass coordinates (Xc,Yc,Zc) are
 self-explanatory.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
 should be the values consistent with the current orientation of the
 rigid body around its center of mass.  The values are with respect to
 the simulation box XYZ axes, not with respect to the prinicpal axes of
 the rigid body itself.  LAMMPS performs the latter calculation
-internally.
-</P>
-<P>These are the allowed section keywords for the body of the file.
-</P>
-<UL><LI><I>Coords, Types, Charges, Diameters, Masses</I> = atom-property sections 
-<LI><I>Bonds, Angles, Dihedrals, Impropers</I> = molecular topology sections 
-<LI><I>Special Bond Counts, Special Bonds</I> = special neighbor info
-<LI><I>Shake Flags, Shake Atoms, Shake Bond Types</I> = SHAKE info 
-</UL>
-<P>If a Bonds section is specified then the Special Bond Counts and
+internally.</p>
+<p>These are the allowed section keywords for the body of the file.</p>
+<ul class="simple">
+<li><em>Coords, Types, Charges, Diameters, Masses</em> = atom-property sections</li>
+<li><em>Bonds, Angles, Dihedrals, Impropers</em> = molecular topology sections</li>
+<li><em>Special Bond Counts, Special Bonds</em> = special neighbor info</li>
+<li><em>Shake Flags, Shake Atoms, Shake Bond Types</em> = SHAKE info</li>
+</ul>
+<p>If a Bonds section is specified then the Special Bond Counts and
 Special Bonds sections can also be used, if desired, to explicitly
 list the 1-2, 1-3, 1-4 neighbors within the molecule topology (see
 details below).  This is optional since if these sections are not
 included, LAMMPS will auto-generate this information.  Note that
 LAMMPS uses this info to properly exclude or weight bonded pairwise
 interactions between bonded atoms.  See the
-<A HREF = "special_bonds.html">special_bonds</A> command for more details.  One
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command for more details.  One
 reason to list the special bond info explicitly is for the
-<A HREF = "tutorial_drude.html">thermalized Drude oscillator model</A> which treats
+<a class="reference internal" href="tutorial_drude.html"><em>thermalized Drude oscillator model</em></a> which treats
 the bonds between nuclear cores and Drude electrons in a different
-manner.
-</P>
-<P>IMPORTANT NOTE: Whether a section is required depends on how the
+manner.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Whether a section is required depends on how the
 molecule template is used by other LAMMPS commands.  For example, to
-add a molecule via the <A HREF = "fix_deposit.html">fix deposit</A> command, the
+add a molecule via the <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> command, the
 Coords and Types sections are required.  To add a rigid body via the
-<A HREF = "fix_pout.html">fix pour</A> command, the Bonds (Angles, etc) sections are
+<code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">pour</span></code> command, the Bonds (Angles, etc) sections are
 not required, since the molecule will be treated as a rigid body.
-Some sections are optional.  For example, the <A HREF = "fix_pour.html">fix pour</A>
-command can be used to add "molecules" which are clusters of
+Some sections are optional.  For example, the <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>
+command can be used to add &#8220;molecules&#8221; which are clusters of
 finite-size granular particles.  If the Diameters section is not
 specified, each particle in the molecule will have a default diameter
 of 1.0.  See the doc pages for LAMMPS commands that use molecule
-templates for more details.
-</P>
-<P>Each section is listed below in alphabetic order.  The format of each
+templates for more details.</p>
+</div>
+<p>Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
 rules (if any) for whether it can appear in the data file.  In each
 case the ID is ignored; it is simply included for readability, and
 should be a number from 1 to Nlines for the section, indicating which
 atom (or bond, etc) the entry applies to.  The lines are assumed to be
-listed in order from 1 to Nlines, but LAMMPS does not check for this.
-</P>
-<HR>
-
-<P><I>Coords</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID x y z
-<LI>x,y,z = coordinate of atom 
-</UL>
-<HR>
-
-<P><I>Types</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID type
-<LI>type = atom type of atom 
-</UL>
-<HR>
-
-<P><I>Charges</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID q
-<LI>q = charge on atom 
-</UL>
-<P>This section is only allowed for <A HREF = "atom_style.html">atom styles</A> that
+listed in order from 1 to Nlines, but LAMMPS does not check for this.</p>
+<hr class="docutils" />
+<p><em>Coords</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID x y z</li>
+<li>x,y,z = coordinate of atom</li>
+</ul>
+<hr class="docutils" />
+<p><em>Types</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID type</li>
+<li>type = atom type of atom</li>
+</ul>
+<hr class="docutils" />
+<p><em>Charges</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID q</li>
+<li>q = charge on atom</li>
+</ul>
+<p>This section is only allowed for <a class="reference internal" href="atom_style.html"><em>atom styles</em></a> that
 support charge.  If this section is not included, the default charge
-on each atom in the molecule is 0.0.
-</P>
-<HR>
-
-<P><I>Diameters</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID diam
-<LI>diam = diameter of atom 
-</UL>
-<P>This section is only allowed for <A HREF = "atom_style.html">atom styles</A> that
+on each atom in the molecule is 0.0.</p>
+<hr class="docutils" />
+<p><em>Diameters</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID diam</li>
+<li>diam = diameter of atom</li>
+</ul>
+<p>This section is only allowed for <a class="reference internal" href="atom_style.html"><em>atom styles</em></a> that
 support finite-size spherical particles, e.g. atom_style sphere.  If
-not listed, the default diameter of each atom in the molecule is 1.0.
-</P>
-<HR>
-
-<P><I>Masses</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID mass
-<LI>mass = mass of atom 
-</UL>
-<P>This section is only allowed for <A HREF = "atom_style.html">atom styles</A> that
+not listed, the default diameter of each atom in the molecule is 1.0.</p>
+<hr class="docutils" />
+<p><em>Masses</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID mass</li>
+<li>mass = mass of atom</li>
+</ul>
+<p>This section is only allowed for <a class="reference internal" href="atom_style.html"><em>atom styles</em></a> that
 support per-atom mass, as opposed to per-type mass.  See the
-<A HREF = "mass.html">mass</A> command for details.  If this section is not
+<a class="reference internal" href="mass.html"><em>mass</em></a> command for details.  If this section is not
 included, the default mass for each atom is derived from its volume
 (see Diameters section) and a default density of 1.0, in
-<A HREF = "units.html">units</A> of mass/volume.
-</P>
-<HR>
-
-<P><I>Bonds</I> section:
-</P>
-<UL><LI>one line per bond
-<LI>line syntax: ID type atom1 atom2
-<LI>type = bond type (1-Nbondtype)
-<LI>atom1,atom2 = IDs of atoms in bond 
-</UL>
-<P>The IDs for the two atoms in each bond should be values
-from 1 to Natoms, where Natoms = # of atoms in the molecule.
-</P>
-<HR>
-
-<P><I>Angles</I> section:
-</P>
-<UL><LI>one line per angle
-<LI>line syntax: ID type atom1 atom2 atom3
-<LI>type = angle type (1-Nangletype)
-<LI>atom1,atom2,atom3 = IDs of atoms in angle 
-</UL>
-<P>The IDs for the three atoms in each angle should be values from 1 to
+<a class="reference internal" href="units.html"><em>units</em></a> of mass/volume.</p>
+<hr class="docutils" />
+<p><em>Bonds</em> section:</p>
+<ul class="simple">
+<li>one line per bond</li>
+<li>line syntax: ID type atom1 atom2</li>
+<li>type = bond type (1-Nbondtype)</li>
+<li>atom1,atom2 = IDs of atoms in bond</li>
+</ul>
+<p>The IDs for the two atoms in each bond should be values
+from 1 to Natoms, where Natoms = # of atoms in the molecule.</p>
+<hr class="docutils" />
+<p><em>Angles</em> section:</p>
+<ul class="simple">
+<li>one line per angle</li>
+<li>line syntax: ID type atom1 atom2 atom3</li>
+<li>type = angle type (1-Nangletype)</li>
+<li>atom1,atom2,atom3 = IDs of atoms in angle</li>
+</ul>
+<p>The IDs for the three atoms in each angle should be values from 1 to
 Natoms, where Natoms = # of atoms in the molecule.  The 3 atoms are
 ordered linearly within the angle.  Thus the central atom (around
-which the angle is computed) is the atom2 in the list.
-</P>
-<HR>
-
-<P><I>Dihedrals</I> section:
-</P>
-<UL><LI>one line per dihedral
-<LI>line syntax: ID type atom1 atom2 atom3 atom4
-<LI>type = dihedral type (1-Ndihedraltype)
-<LI>atom1,atom2,atom3,atom4 = IDs of atoms in dihedral 
-</UL>
-<P>The IDs for the four atoms in each dihedral should be values from 1 to
+which the angle is computed) is the atom2 in the list.</p>
+<hr class="docutils" />
+<p><em>Dihedrals</em> section:</p>
+<ul class="simple">
+<li>one line per dihedral</li>
+<li>line syntax: ID type atom1 atom2 atom3 atom4</li>
+<li>type = dihedral type (1-Ndihedraltype)</li>
+<li>atom1,atom2,atom3,atom4 = IDs of atoms in dihedral</li>
+</ul>
+<p>The IDs for the four atoms in each dihedral should be values from 1 to
 Natoms, where Natoms = # of atoms in the molecule.  The 4 atoms are
-ordered linearly within the dihedral.
-</P>
-<HR>
-
-<P><I>Impropers</I> section:
-</P>
-<UL><LI>one line per improper
-<LI>line syntax: ID type atom1 atom2 atom3 atom4
-<LI>type = improper type (1-Nimpropertype)
-<LI>atom1,atom2,atom3,atom4 = IDs of atoms in improper 
-</UL>
-<P>The IDs for the four atoms in each improper should be values from 1 to
+ordered linearly within the dihedral.</p>
+<hr class="docutils" />
+<p><em>Impropers</em> section:</p>
+<ul class="simple">
+<li>one line per improper</li>
+<li>line syntax: ID type atom1 atom2 atom3 atom4</li>
+<li>type = improper type (1-Nimpropertype)</li>
+<li>atom1,atom2,atom3,atom4 = IDs of atoms in improper</li>
+</ul>
+<p>The IDs for the four atoms in each improper should be values from 1 to
 Natoms, where Natoms = # of atoms in the molecule.  The ordering of
 the 4 atoms determines the definition of the improper angle used in
-the formula for the defined <A HREF = "improper_style.html">improper style</A>.  See
-the doc pages for individual styles for details.
-</P>
-<HR>
-
-<P><I>Special Bond Counts</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID N1 N2 N3
-<LI>N1 = # of 1-2 bonds
-<LI>N2 = # of 1-3 bonds
-<LI>N3 = # of 1-4 bonds 
-</UL>
-<P>N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
+the formula for the defined <a class="reference internal" href="improper_style.html"><em>improper style</em></a>.  See
+the doc pages for individual styles for details.</p>
+<hr class="docutils" />
+<p><em>Special Bond Counts</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID N1 N2 N3</li>
+<li>N1 = # of 1-2 bonds</li>
+<li>N2 = # of 1-3 bonds</li>
+<li>N3 = # of 1-4 bonds</li>
+</ul>
+<p>N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
 this atom within the topology of the molecule.  See the
-<A HREF = "special_bonds.html">special_bonds</A> doc page for more discussion of
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> doc page for more discussion of
 1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
 section must also appear.  If this section is not specied, the
-atoms in the molecule will have no special bonds.
-</P>
-<HR>
-
-<P><I>Special Bonds</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID a b c d ...
-<LI>a,b,c,d,... = IDs of atoms in N1+N2+N3 special bonds 
-</UL>
-<P>A, b, c, d, etc are the IDs of the n1+n2+n3 atoms that are 1-2, 1-3,
+atoms in the molecule will have no special bonds.</p>
+<hr class="docutils" />
+<p><em>Special Bonds</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID a b c d ...</li>
+<li>a,b,c,d,... = IDs of atoms in N1+N2+N3 special bonds</li>
+</ul>
+<p>A, b, c, d, etc are the IDs of the n1+n2+n3 atoms that are 1-2, 1-3,
 1-4 neighbors of this atom.  The IDs should be values from 1 to
 Natoms, where Natoms = # of atoms in the molecule.  The first N1
 values should be the 1-2 neighbors, the next N2 should be the 1-3
 neighbors, the last N3 should be the 1-4 neighbors.  No atom ID should
-appear more than once.  See the <A HREF = "special_bonds.html">special_bonds</A> doc
+appear more than once.  See the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> doc
 page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
 appears, the Special Bond Counts section must also appear.  If this
 section is not specied, the atoms in the molecule will have no special
-bonds.
-</P>
-<HR>
-
-<P><I>Shake Flags</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID flag
-<LI>flag = 0,1,2,3,4 
-</UL>
-<P>This section is only needed when molecules created using the template
-will be constrained by SHAKE via the "fix shake" command.  The other
-two Shake sections must also appear in the file, following this one.
-</P>
-<P>The meaning of the flag for each atom is as follows.  See the <A HREF = "fix_shake.html">fix
-shake</A> doc page for a further description of SHAKE
-clusters.
-</P>
-<UL><LI>0 = not part of a SHAKE cluster
-<LI>1 = part of a SHAKE angle cluster (two bonds and the angle they form)
-<LI>2 = part of a 2-atom SHAKE cluster with a single bond
-<LI>3 = part of a 3-atom SHAKE cluster with two bonds
-<LI>4 = part of a 4-atom SHAKE cluster with three bonds 
-</UL>
-<HR>
-
-<P><I>Shake Atoms</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID a b c d
-<LI>a,b,c,d = IDs of atoms in cluster 
-</UL>
-<P>This section is only needed when molecules created using the template
-will be constrained by SHAKE via the "fix shake" command.  The other
-two Shake sections must also appear in the file.
-</P>
-<P>The a,b,c,d values are atom IDs (from 1 to Natoms) for all the atoms
+bonds.</p>
+<hr class="docutils" />
+<p><em>Shake Flags</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID flag</li>
+<li>flag = 0,1,2,3,4</li>
+</ul>
+<p>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the &#8220;fix shake&#8221; command.  The other
+two Shake sections must also appear in the file, following this one.</p>
+<p>The meaning of the flag for each atom is as follows.  See the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> doc page for a further description of SHAKE
+clusters.</p>
+<ul class="simple">
+<li>0 = not part of a SHAKE cluster</li>
+<li>1 = part of a SHAKE angle cluster (two bonds and the angle they form)</li>
+<li>2 = part of a 2-atom SHAKE cluster with a single bond</li>
+<li>3 = part of a 3-atom SHAKE cluster with two bonds</li>
+<li>4 = part of a 4-atom SHAKE cluster with three bonds</li>
+</ul>
+<hr class="docutils" />
+<p><em>Shake Atoms</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID a b c d</li>
+<li>a,b,c,d = IDs of atoms in cluster</li>
+</ul>
+<p>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the &#8220;fix shake&#8221; command.  The other
+two Shake sections must also appear in the file.</p>
+<p>The a,b,c,d values are atom IDs (from 1 to Natoms) for all the atoms
 in the SHAKE cluster that this atom belongs to.  The number of values
 that must appear is determined by the shake flag for the atom (see the
 Shake Flags section above).  All atoms in a particular cluster should
-list their a,b,c,d values identically.
-</P>
-<P>If flag = 0, no a,b,c,d values are listed on the line, just the
-(ignored) ID.
-</P>
-<P>If flag = 1, a,b,c are listed, where a = ID of central atom in the
-angle, and b,c the other two atoms in the angle.
-</P>
-<P>If flag = 2, a,b are listed, where a = ID of atom in bond with the the
-lowest ID, and b = ID of atom in bond with the highest ID.
-</P>
-<P>If flag = 3, a,b,c are listed, where a = ID of central atom,
-and b,c = IDs of other two atoms bonded to the central atom.
-</P>
-<P>If flag = 4, a,b,c,d are listed, where a = ID of central atom,
-and b,c,d = IDs of other three atoms bonded to the central atom.
-</P>
-<P>See the <A HREF = "fix_shake.html">fix shake</A> doc page for a further description
-of SHAKE clusters.
-</P>
-<HR>
-
-<P><I>Shake Bond Types</I> section:
-</P>
-<UL><LI>one line per atom
-<LI>line syntax: ID a b c
-<LI>a,b,c = bond types (or angle type) of bonds (or angle) in cluster 
-</UL>
-<P>This section is only needed when molecules created using the template
-will be constrained by SHAKE via the "fix shake" command.  The other
-two Shake sections must also appear in the file.
-</P>
-<P>The a,b,c values are bond types (from 1 to Nbondtypes) for all bonds
+list their a,b,c,d values identically.</p>
+<p>If flag = 0, no a,b,c,d values are listed on the line, just the
+(ignored) ID.</p>
+<p>If flag = 1, a,b,c are listed, where a = ID of central atom in the
+angle, and b,c the other two atoms in the angle.</p>
+<p>If flag = 2, a,b are listed, where a = ID of atom in bond with the the
+lowest ID, and b = ID of atom in bond with the highest ID.</p>
+<p>If flag = 3, a,b,c are listed, where a = ID of central atom,
+and b,c = IDs of other two atoms bonded to the central atom.</p>
+<p>If flag = 4, a,b,c,d are listed, where a = ID of central atom,
+and b,c,d = IDs of other three atoms bonded to the central atom.</p>
+<p>See the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> doc page for a further description
+of SHAKE clusters.</p>
+<hr class="docutils" />
+<p><em>Shake Bond Types</em> section:</p>
+<ul class="simple">
+<li>one line per atom</li>
+<li>line syntax: ID a b c</li>
+<li>a,b,c = bond types (or angle type) of bonds (or angle) in cluster</li>
+</ul>
+<p>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the &#8220;fix shake&#8221; command.  The other
+two Shake sections must also appear in the file.</p>
+<p>The a,b,c values are bond types (from 1 to Nbondtypes) for all bonds
 in the SHAKE cluster that this atom belongs to.  The number of values
 that must appear is determined by the shake flag for the atom (see the
 Shake Flags section above).  All atoms in a particular cluster should
-list their a,b,c values identically.
-</P>
-<P>If flag = 0, no a,b,c values are listed on the line, just the
-(ignored) ID.
-</P>
-<P>If flag = 1, a,b,c are listed, where a = bondtype of the bond between
+list their a,b,c values identically.</p>
+<p>If flag = 0, no a,b,c values are listed on the line, just the
+(ignored) ID.</p>
+<p>If flag = 1, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
 the 2nd non-central atom (value c in the Shake Atoms section), and c =
-the angle type (1 to Nangletypes) of the angle between the 3 atoms.
-</P>
-<P>If flag = 2, only a is listed, where a = bondtype of the bond between
-the 2 atoms in the cluster.
-</P>
-<P>If flag = 3, a,b are listed, where a = bondtype of the bond between
+the angle type (1 to Nangletypes) of the angle between the 3 atoms.</p>
+<p>If flag = 2, only a is listed, where a = bondtype of the bond between
+the 2 atoms in the cluster.</p>
+<p>If flag = 3, a,b are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), and b = bondtype of the bond between the central atom
-and the 2nd non-central atom (value c in the Shake Atoms section).
-</P>
-<P>If flag = 4, a,b,c are listed, where a = bondtype of the bond between
+and the 2nd non-central atom (value c in the Shake Atoms section).</p>
+<p>If flag = 4, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
 the 2nd non-central atom (value c in the Shake Atoms section), and c =
 bondtype of the bond between the central atom and the 3rd non-central
-atom (value d in the Shake Atoms section).
-</P>
-<P>See the <A HREF = "fix_shake.html">fix shake</A> doc page for a further description
-of SHAKE clusters.
-</P>
-<HR>
+atom (value d in the Shake Atoms section).</p>
+<p>See the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> doc page for a further description
+of SHAKE clusters.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a>, <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>,
+<a class="reference internal" href="fix_gcmc.html"><em>fix_gcmc</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default keyword value is offset 0 0 0 0 0.</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_deposit.html">fix deposit</A>, <A HREF = "fix_pour.html">fix pour</A>,
-<A HREF = "fix_gcmc.html">fix_gcmc</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The default keyword value is offset 0 0 0 0 0.
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

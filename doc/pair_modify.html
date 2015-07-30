@@ -1,238 +1,130 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>pair_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>pair_modify command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="pair-modify-command">
-<span id="index-0"></span><h1>pair_modify command<a class="headerlink" href="#pair-modify-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_modify keyword values ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>one or more keyword/value pairs may be listed</li>
-<li>keyword = <em>pair</em> or <em>special</em> or <em>shift</em> or <em>mix</em> or <em>table</em> or <em>table/disp</em> or <em>tabinner</em> or <em>tabinner/disp</em> or <em>tail</em> or <em>compute</em></li>
-</ul>
-<pre class="literal-block">
-<em>pair</em> values = sub-style N special which w1 wt2 wt3
-    sub-style = sub-style of <a class="reference internal" href="pair_hybrid.html"><em>pair hybrid</em></a>
+
+
+<HR>
+
+<H3>pair_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_modify keyword values ... 
+</PRE>
+<UL><LI>one or more keyword/value pairs may be listed 
+
+<LI>keyword = <I>pair</I> or <I>special</I> or <I>shift</I> or <I>mix</I> or <I>table</I> or <I>table/disp</I> or <I>tabinner</I> or <I>tabinner/disp</I> or <I>tail</I> or <I>compute</I> 
+
+<PRE>  <I>pair</I> values = sub-style N special which w1 wt2 wt3
+    sub-style = sub-style of <A HREF = "pair_hybrid.html">pair hybrid</A>
     N = which instance of sub-style (only if sub-style is used multiple times)
-  <em>special</em> values = flavor w1 w2 w3
-    flavor = <em>lj/coul</em> or <em>lj</em> or <em>coul</em>
+  <I>special</I> values = flavor w1 w2 w3
+    flavor = <I>lj/coul</I> or <I>lj</I> or <I>coul</I>
     w1,w2,w3 = weights from 0.0 to 1.0 inclusive
-  <em>mix</em> value = <em>geometric</em> or <em>arithmetic</em> or <em>sixthpower</em>
-  <em>shift</em> value = <em>yes</em> or <em>no</em>
-  <em>table</em> value = N
+  <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
+  <I>shift</I> value = <I>yes</I> or <I>no</I>
+  <I>table</I> value = N
     2^N = # of values in table
-  <em>table/disp</em> value = N
+  <I>table/disp</I> value = N
     2^N = # of values in table
-  <em>tabinner</em> value = cutoff
+  <I>tabinner</I> value = cutoff
     cutoff = inner cutoff at which to begin table (distance units)
-  <em>tabinner/disp</em> value = cutoff
+  <I>tabinner/disp</I> value = cutoff
     cutoff = inner cutoff at which to begin table (distance units)
-  <em>tail</em> value = <em>yes</em> or <em>no</em>
-  <em>compute</em> value = <em>yes</em> or <em>no</em>
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_modify shift yes mix geometric
+  <I>tail</I> value = <I>yes</I> or <I>no</I>
+  <I>compute</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_modify shift yes mix geometric
 pair_modify tail yes
-pair_modify table 12
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Modify the parameters of the currently defined pair style.  Not all
-parameters are relevant to all pair styles.</p>
-<p>If used, the <em>pair</em> keyword must appear first in the list of keywords.
-It can only be used with the <a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles.  It means that all the
+pair_modify table 12 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Modify the parameters of the currently defined pair style.  Not all
+parameters are relevant to all pair styles.
+</P>
+<P>If used, the <I>pair</I> keyword must appear first in the list of keywords.
+It can only be used with the <A HREF = "pair_hybrid.html">hybrid and
+hybrid/overlay</A> pair styles.  It means that all the
 following parameters will only be modified for the specified
 sub-style.  If the sub-style is defined multiple times, then an
-additional numeric argument <em>N</em> must also be specified, which is a
+additional numeric argument <I>N</I> must also be specified, which is a
 number from 1 to M where M is the number of times the sub-style was
-listed in the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> command.  The extra
+listed in the <A HREF = "pair_hybrid.html">pair_style hybrid</A> command.  The extra
 number indicates which instance of the sub-style the remaining
-keywords will be applied to.  Note that if the <em>pair</em> keyword is not
-used, and the pair style is <em>hybrid</em> or <em>hybrid/overlay</em>, then all the
-specified keywords will be applied to all sub-styles.</p>
-<p>If used, the <em>special</em> keyword must appear second in the list of
-keywords, and must follow the <em>pair</em> keyword.  Like the <em>pair</em>
-keyword, it also can only be used with the <a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles.  Its parameters are
-similar to the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command, and it
+keywords will be applied to.  Note that if the <I>pair</I> keyword is not
+used, and the pair style is <I>hybrid</I> or <I>hybrid/overlay</I>, then all the
+specified keywords will be applied to all sub-styles.
+</P>
+<P>If used, the <I>special</I> keyword must appear second in the list of
+keywords, and must follow the <I>pair</I> keyword.  Like the <I>pair</I>
+keyword, it also can only be used with the <A HREF = "pair_hybrid.html">hybrid and
+hybrid/overlay</A> pair styles.  Its parameters are
+similar to the <A HREF = "special_bonds.html">special_bonds</A> command, and it
 overrides the special_bond settings for the specified sub-style.  More
-details are given below.</p>
-<p>The <em>mix</em> keyword affects pair coefficients for interactions between
+details are given below.
+</P>
+<P>The <I>mix</I> keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
 explicitly set in the input script.  Note that coefficients for I = J
 must be set explicitly, either in the input script via the
-&#8220;pair_coeff&#8221; command or in the &#8220;Pair Coeffs&#8221; section of the <a class="reference internal" href="read_data.html"><em>data file</em></a>.  For some pair styles it is not necessary to
-specify coefficients when I != J, since a &#8220;mixing&#8221; rule will create
-them from the I,I and J,J settings.  The pair_modify <em>mix</em> value
+"pair_coeff" command or in the "Pair Coeffs" section of the <A HREF = "read_data.html">data
+file</A>.  For some pair styles it is not necessary to
+specify coefficients when I != J, since a "mixing" rule will create
+them from the I,I and J,J settings.  The pair_modify <I>mix</I> value
 determines what formulas are used to compute the mixed coefficients.
-In each case, the cutoff distance is mixed the same way as sigma.</p>
-<p>Note that not all pair styles support mixing.  Also, some mix options
+In each case, the cutoff distance is mixed the same way as sigma.
+</P>
+<P>Note that not all pair styles support mixing.  Also, some mix options
 are not available for certain pair styles.  See the doc page for
 individual pair styles for those restrictions.  Note also that the
-<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command also can be to directly set
+<A HREF = "pair_coeff.html">pair_coeff</A> command also can be to directly set
 coefficients for a specific I != J pairing, in which case no mixing is
-performed.</p>
-<p>mix <em>geometric</em></p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">epsilon_ij</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">epsilon_i</span> <span class="o">*</span> <span class="n">epsilon_j</span><span class="p">)</span>
-<span class="n">sigma_ij</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">sigma_i</span> <span class="o">*</span> <span class="n">sigma_j</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>mix <em>arithmetic</em></p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">epsilon_ij</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">epsilon_i</span> <span class="o">*</span> <span class="n">epsilon_j</span><span class="p">)</span>
-<span class="n">sigma_ij</span> <span class="o">=</span> <span class="p">(</span><span class="n">sigma_i</span> <span class="o">+</span> <span class="n">sigma_j</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-</pre></div>
-</div>
-<p>mix <em>sixthpower</em></p>
-<div class="highlight-python"><div class="highlight"><pre>epsilon_ij = (2 * sqrt(epsilon_i*epsilon_j) * sigma_i^3 * sigma_j^3) /
+performed.
+</P>
+<P>mix <I>geometric</I>
+</P>
+<PRE>epsilon_ij = sqrt(epsilon_i * epsilon_j)
+sigma_ij = sqrt(sigma_i * sigma_j) 
+</PRE>
+<P>mix <I>arithmetic</I>
+</P>
+<PRE>epsilon_ij = sqrt(epsilon_i * epsilon_j)
+sigma_ij = (sigma_i + sigma_j) / 2 
+</PRE>
+<P>mix <I>sixthpower</I>
+</P>
+<PRE>epsilon_ij = (2 * sqrt(epsilon_i*epsilon_j) * sigma_i^3 * sigma_j^3) /
              (sigma_i^6 + sigma_j^6)
-sigma_ij = ((sigma_i**6 + sigma_j**6) / 2) ^ (1/6)
-</pre></div>
-</div>
-<p>The <em>shift</em> keyword determines whether a Lennard-Jones potential is
+sigma_ij = ((sigma_i**6 + sigma_j**6) / 2) ^ (1/6) 
+</PRE>
+<P>The <I>shift</I> keyword determines whether a Lennard-Jones potential is
 shifted at its cutoff to 0.0.  If so, this adds an energy term to each
 pairwise interaction which will be included in the thermodynamic
 output, but does not affect pair forces or atom trajectories.  See the
 doc page for individual pair styles to see which ones support this
-option.</p>
-<p>The <em>table</em> and <em>table/disp</em> keywords apply to pair styles with a
+option.
+</P>
+<P>The <I>table</I> and <I>table/disp</I> keywords apply to pair styles with a
 long-range Coulombic term or long-range dispersion term respectively;
 see the doc page for individual styles to see which potentials support
 these options.  If N is non-zero, a table of length 2^N is
 pre-computed for forces and energies, which can shrink their
 computational cost by up to a factor of 2.  The table is indexed via a
-bit-mapping technique <a class="reference internal" href="pair_table.html#wolff"><span>(Wolff)</span></a> and a linear interpolation is
+bit-mapping technique <A HREF = "#Wolff">(Wolff)</A> and a linear interpolation is
 performed between adjacent table values.  In our experiments with
 different table styles (lookup, linear, spline), this method typically
-gave the best performance in terms of speed and accuracy.</p>
-<p>The choice of table length is a tradeoff in accuracy versus speed.  A
+gave the best performance in terms of speed and accuracy.
+</P>
+<P>The choice of table length is a tradeoff in accuracy versus speed.  A
 larger N yields more accurate force computations, but requires more
 memory which can slow down the computation due to cache misses.  A
 reasonable value of N is between 8 and 16.  The default value of 12
@@ -241,106 +133,110 @@ no-table (N = 0) option.  For N = 0, forces and energies are computed
 directly, using a polynomial fit for the needed erfc() function
 evaluation, which is what earlier versions of LAMMPS did.  Values
 greater than 16 typically slow down the simulation and will not
-improve accuracy; values from 1 to 8 give unreliable results.</p>
-<p>The <em>tabinner</em> and <em>tabinner/disp</em> keywords set an inner cutoff above
+improve accuracy; values from 1 to 8 give unreliable results.
+</P>
+<P>The <I>tabinner</I> and <I>tabinner/disp</I> keywords set an inner cutoff above
 which the pairwise computation is done by table lookup (if tables are
 invoked), for the corresponding Coulombic and dispersion tables
-discussed with the <em>table</em> and <em>table/disp</em> keywords.  The smaller the
+discussed with the <I>table</I> and <I>table/disp</I> keywords.  The smaller the
 cutoff is set, the less accurate the table becomes (for a given number
 of table values), which can require use of larger tables.  The default
 cutoff value is sqrt(2.0) distance units which means nearly all
 pairwise interactions are computed via table lookup for simulations
-with &#8220;real&#8221; units, but some close pairs may be computed directly
-(non-table) for simulations with &#8220;lj&#8221; units.</p>
-<p>When the <em>tail</em> keyword is set to <em>yes</em>, certain pair styles will add
-a long-range VanderWaals tail &#8220;correction&#8221; to the energy and pressure.
+with "real" units, but some close pairs may be computed directly
+(non-table) for simulations with "lj" units.
+</P>
+<P>When the <I>tail</I> keyword is set to <I>yes</I>, certain pair styles will add
+a long-range VanderWaals tail "correction" to the energy and pressure.
 These corrections are bookkeeping terms which do not affect dynamics,
 unless a constant-pressure simulation is being performed.  See the doc
 page for individual styles to see which support this option.  These
 corrections are included in the calculation and printing of
-thermodynamic quantities (see the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>
+thermodynamic quantities (see the <A HREF = "thermo_style.html">thermo_style</A>
 command).  Their effect will also be included in constant NPT or NPH
 simulations where the pressure influences the simulation box
-dimensions (e.g. the <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> and <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>
+dimensions (e.g. the <A HREF = "fix_nh.html">fix npt</A> and <A HREF = "fix_nh.html">fix nph</A>
 commands).  The formulas used for the long-range corrections come from
-equation 5 of <a class="reference internal" href="#sun"><span>(Sun)</span></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The tail correction terms are computed at the
+equation 5 of <A HREF = "#Sun">(Sun)</A>.
+</P>
+<P>IMPORTANT NOTE: The tail correction terms are computed at the
 beginning of each run, using the current atom counts of each atom
 type.  If atoms are deleted (or lost) or created during a simulation,
-e.g. via the <a class="reference internal" href="fix_gcmc.html"><em>fix gcmc</em></a> command, the correction factors
+e.g. via the <A HREF = "fix_gcmc.html">fix gcmc</A> command, the correction factors
 are not re-computed.  If you expect the counts to change dramatically,
 you can break a run into a series of shorter runs so that the
-correction factors are re-computed more frequently.</p>
-</div>
-<p>Several additional assumptions are inherent in using tail corrections,
-including the following:</p>
-<ul class="simple">
-<li>The simulated system is a 3d bulk homogeneous liquid. This option
+correction factors are re-computed more frequently.
+</P>
+<P>Several additional assumptions are inherent in using tail corrections,
+including the following:
+</P>
+<UL><LI>The simulated system is a 3d bulk homogeneous liquid. This option
 should not be used for systems that are non-liquid, 2d, have a slab
-geometry (only 2d periodic), or inhomogeneous.</li>
-<li>G(r), the radial distribution function (rdf), is unity beyond the
+geometry (only 2d periodic), or inhomogeneous. 
+
+<LI>G(r), the radial distribution function (rdf), is unity beyond the
 cutoff, so a fairly large cutoff should be used (i.e. 2.5 sigma for an
 LJ fluid), and it is probably a good idea to verify this assumption by
 checking the rdf.  The rdf is not exactly unity beyond the cutoff for
 each pair of interaction types, so the tail correction is necessarily
-an approximation.</li>
-</ul>
-<p>The tail corrections are computed at the beginning of each simulation
+an approximation. 
+
+<P>The tail corrections are computed at the beginning of each simulation
 run.  If the number of atoms changes during the run, e.g. due to atoms
-leaving the simulation domain, or use of the <a class="reference internal" href="fix_gcmc.html"><em>fix gcmc</em></a>
+leaving the simulation domain, or use of the <A HREF = "fix_gcmc.html">fix gcmc</A>
 command, then the corrections are not updates to relect the changed
 atom count.  If this is a large effect in your simulation, you should
 break the long run into several short runs, so that the correction
-factors are re-computed multiple times.</p>
-<ul class="simple">
-<li>Thermophysical properties obtained from calculations with this option
+factors are re-computed multiple times.
+</P>
+<LI>Thermophysical properties obtained from calculations with this option
 enabled will not be thermodynamically consistent with the truncated
 force-field that was used.  In other words, atoms do not feel any LJ
 pair interactions beyond the cutoff, but the energy and pressure
 reported by the simulation include an estimated contribution from
-those interactions.</li>
-</ul>
-<p>The <em>compute</em> keyword allows pairwise computations to be turned off,
-even though a <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> is defined.  This is not
+those interactions. 
+</UL>
+<P>The <I>compute</I> keyword allows pairwise computations to be turned off,
+even though a <A HREF = "pair_style.html">pair_style</A> is defined.  This is not
 useful for running a real simulation, but can be useful for debugging
-purposes or for performing a <a class="reference internal" href="rerun.html"><em>rerun</em></a> simulation, when you
+purposes or for performing a <A HREF = "rerun.html">rerun</A> simulation, when you
 only wish to compute partial forces that do not include the pairwise
-contribution.</p>
-<p>Two examples are as follows.  First, this option allows you to perform
-a simulation with <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> with only a
+contribution.
+</P>
+<P>Two examples are as follows.  First, this option allows you to perform
+a simulation with <A HREF = "pair_hybrid.html">pair_style hybrid</A> with only a
 subset of the hybrid sub-styles enabled.  Second, this option allows
 you to perform a simulation with only long-range interactions but no
 short-range pairwise interactions.  Doing this by simply not defining
 a pair style will not work, because the
-<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command requires a Kspace-compatible
-pair style be defined.</p>
-<hr class="docutils" />
-<div class="section" id="use-of-special-keyword">
-<h3>Use of <em>special</em> keyword<a class="headerlink" href="#use-of-special-keyword" title="Permalink to this headline">¶</a></h3>
-<p>The <em>special</em> keyword requires 4 values similar to those specified
-with the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command, <em>flavor</em> and
-w1,w2,w3.  The <em>flavor</em> argument can be <em>lj</em> to change the
-Lennard-Jones settings, <em>coul</em> to change the Coulombic settings, or
-<em>lj/coul</em> to change both to the same set of 3 values.  The w1,w2,w3
+<A HREF = "kspace_style.html">kspace_style</A> command requires a Kspace-compatible
+pair style be defined.
+</P>
+<HR>
+
+<H5>Use of <I>special</I> keyword 
+</H5>
+<P>The <I>special</I> keyword requires 4 values similar to those specified
+with the <A HREF = "special_bonds.html">special_bonds</A> command, <I>flavor</I> and
+w1,w2,w3.  The <I>flavor</I> argument can be <I>lj</I> to change the
+Lennard-Jones settings, <I>coul</I> to change the Coulombic settings, or
+<I>lj/coul</I> to change both to the same set of 3 values.  The w1,w2,w3
 values are numeric weights from 0.0 to 1.0 inclusive, for the 1-2,
-1-3, and 1-4 bond topology neighbors.  For example, these commands</p>
-<div class="highlight-python"><div class="highlight"><pre>special_bonds lj/coul 0.0 0.0 0.1
+1-3, and 1-4 bond topology neighbors.  For example, these commands
+</P>
+<PRE>special_bonds lj/coul 0.0 0.0 0.1
 pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
 pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
 pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
-pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.8333
-</pre></div>
-</div>
-<p>show how to use both the CHARMM and AMBER force fields in a single
+pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.8333 
+</PRE>
+<P>show how to use both the CHARMM and AMBER force fields in a single
 simulation.  The first pair modify command sets the special bonds to
 CHARMM values (all 0.0).  The last 2 pair modify commands set the
-standard AMBER values for LJ and Coulombic weights.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The global settings specified by the
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command affect the construction of
+standard AMBER values for LJ and Coulombic weights.
+</P>
+<P>IMPORTANT NOTE: The global settings specified by the
+<A HREF = "special_bonds.html">special_bonds</A> command affect the construction of
 neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
 exclude those pairs from the neighbor list entirely.  Weights of 1.0
 store the neighbor with no weighting applied.  The format of the
@@ -349,95 +245,36 @@ non-zero or non-one value.  Thus an error is generated if the new
 sub-style value is not 0.0 (or 1.0) when the global setting is 0.0 (or
 1.0).  Note that as in the example above, the global factor can simply
 be set a value other than 0.0 or 1.0, then overridden by any of the
-sub-styles with a value that is 0.0 or 1.0.</p>
-</div>
-</div>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-<p>You cannot use <em>shift</em> yes with <em>tail</em> yes, since those are
-conflicting options.  You cannot use <em>tail</em> yes with 2d simulations.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="pair_style.html"><em>pair_style</em></a>, <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>,
-<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The option defaults are mix = geometric, shift = no, table = 12,
-tabinner = sqrt(2.0), tail = no, and compute = yes.</p>
-<p>Note that some pair styles perform mixing, but only a certain style of
-mixing.  See the doc pages for individual pair styles for details.</p>
-<hr class="docutils" />
-<p id="wolff"><strong>(Wolff)</strong> Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).</p>
-<p id="sun"><strong>(Sun)</strong> Sun, J Phys Chem B, 102, 7338-7364 (1998).</p>
-</div>
-</div>
+sub-styles with a value that is 0.0 or 1.0.
+</P>
+<HR>
 
+<P><B>Restrictions:</B> none
+</P>
+<P>You cannot use <I>shift</I> yes with <I>tail</I> yes, since those are
+conflicting options.  You cannot use <I>tail</I> yes with 2d simulations.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_style.html">pair_style</A>, <A HREF = "pair_coeff.html">pair_coeff</A>,
+<A HREF = "thermo_style.html">thermo_style</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are mix = geometric, shift = no, table = 12,
+tabinner = sqrt(2.0), tail = no, and compute = yes.
+</P>
+<P>Note that some pair styles perform mixing, but only a certain style of
+mixing.  See the doc pages for individual pair styles for details.
+</P>
+<HR>
 
-           </div>
-          </div>
-          <footer>
-  
+<A NAME = "Wolff"></A>
 
-  <hr/>
+<P><B>(Wolff)</B> Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
+</P>
+<A NAME = "Sun"></A>
 
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Sun)</B> Sun, J Phys Chem B, 102, 7338-7364 (1998).
+</P>
+</HTML>

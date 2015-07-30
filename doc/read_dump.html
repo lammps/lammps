@@ -1,351 +1,268 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>read_dump command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>read_dump command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="read-dump-command">
-<span id="index-0"></span><h1>read_dump command<a class="headerlink" href="#read-dump-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>read_dump file Nstep field1 field2 ... keyword values ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>file = name of dump file to read</li>
-<li>Nstep = snapshot timestep to read from file</li>
-<li>one or more fields may be appended</li>
-</ul>
-<pre class="literal-block">
-field = <em>x</em> or <em>y</em> or <em>z</em> or <em>vx</em> or <em>vy</em> or <em>vz</em> or <em>q</em> or <em>ix</em> or <em>iy</em> or <em>iz</em>
-  <em>x</em>,*y*,*z* = atom coordinates
-  <em>vx</em>,*vy*,*vz* = velocity components
-  <em>q</em> = charge
-  <em>ix</em>,*iy*,*iz* = image flags in each dimension
-</pre>
-<ul class="simple">
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>box</em> or <em>replace</em> or <em>purge</em> or <em>trim</em> or <em>add</em> or <em>label</em> or <em>scaled</em> or <em>wrapped</em> or <em>format</em></li>
-</ul>
-<pre class="literal-block">
-<em>box</em> value = <em>yes</em> or <em>no</em> = replace simulation box with dump box
-  <em>replace</em> value = <em>yes</em> or <em>no</em> = overwrite atoms with dump atoms
-  <em>purge</em> value = <em>yes</em> or <em>no</em> = delete all atoms before adding dump atoms
-  <em>trim</em> value = <em>yes</em> or <em>no</em> = trim atoms not in dump snapshot
-  <em>add</em> value = <em>yes</em> or <em>no</em> = add new dump atoms to system
-  <em>label</em> value = field column
-    field = one of the listed fields or <em>id</em> or <em>type</em>
+
+
+<HR>
+
+<H3>read_dump command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>read_dump file Nstep field1 field2 ... keyword values ... 
+</PRE>
+<UL><LI>file = name of dump file to read 
+
+<LI>Nstep = snapshot timestep to read from file 
+
+<LI>one or more fields may be appended 
+
+<PRE>field = <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>q</I> or <I>ix</I> or <I>iy</I> or <I>iz</I>
+  <I>x</I>,<I>y</I>,<I>z</I> = atom coordinates
+  <I>vx</I>,<I>vy</I>,<I>vz</I> = velocity components
+  <I>q</I> = charge
+  <I>ix</I>,<I>iy</I>,<I>iz</I> = image flags in each dimension 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>box</I> or <I>replace</I> or <I>purge</I> or <I>trim</I> or <I>add</I> or <I>label</I> or <I>scaled</I> or <I>wrapped</I> or <I>format</I> 
+
+<PRE>  <I>box</I> value = <I>yes</I> or <I>no</I> = replace simulation box with dump box
+  <I>replace</I> value = <I>yes</I> or <I>no</I> = overwrite atoms with dump atoms
+  <I>purge</I> value = <I>yes</I> or <I>no</I> = delete all atoms before adding dump atoms
+  <I>trim</I> value = <I>yes</I> or <I>no</I> = trim atoms not in dump snapshot
+  <I>add</I> value = <I>yes</I> or <I>no</I> = add new dump atoms to system
+  <I>label</I> value = field column
+    field = one of the listed fields or <I>id</I> or <I>type</I>
     column = label on corresponding column in dump file
-  <em>scaled</em> value = <em>yes</em> or <em>no</em> = coords in dump file are scaled/unscaled
-  <em>wrapped</em> value = <em>yes</em> or <em>no</em> = coords in dump file are wrapped/unwrapped
-  <em>format</em> values = format of dump file, must be last keyword if used
-    <em>native</em> = native LAMMPS dump file
-    <em>xyz</em> = XYZ file
-    <em>molfile</em> style path = VMD molfile plugin interface
-      style = <em>dcd</em> or <em>xyz</em> or others supported by molfile plugins
-      path = optional path for location of molfile plugins
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>read_dump dump.file 5000 x y z
+  <I>scaled</I> value = <I>yes</I> or <I>no</I> = coords in dump file are scaled/unscaled
+  <I>wrapped</I> value = <I>yes</I> or <I>no</I> = coords in dump file are wrapped/unwrapped
+  <I>format</I> values = format of dump file, must be last keyword if used
+    <I>native</I> = native LAMMPS dump file
+    <I>xyz</I> = XYZ file
+    <I>molfile</I> style path = VMD molfile plugin interface
+      style = <I>dcd</I> or <I>xyz</I> or others supported by molfile plugins
+      path = optional path for location of molfile plugins 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>read_dump dump.file 5000 x y z
 read_dump dump.xyz 5 x y z box no format xyz
-read_dump dump.xyz 10 x y z box no format molfile xyz &quot;../plugins&quot;
+read_dump dump.xyz 10 x y z box no format molfile xyz "../plugins"
 read_dump dump.dcd 0 x y z box yes format molfile dcd
 read_dump dump.file 1000 x y z vx vy vz box yes format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
 read_dump dump.file 5000 x y vx vy trim yes
-read_dump ../run7/dump.file.gz 10000 x y z box yes
+read_dump ../run7/dump.file.gz 10000 x y z box yes 
 read_dump dump.xyz 10 x y z box no format molfile xyz ../plugins
 read_dump dump.dcd 0 x y z format molfile dcd
-read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Read atom information from a dump file to overwrite the current atom
+read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Read atom information from a dump file to overwrite the current atom
 coordinates, and optionally the atom velocities and image flags and
 the simluation box dimensions.  This is useful for restarting a run
 from a particular snapshot in a dump file.  See the
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> and <a class="reference internal" href="read_data.html"><em>read_data</em></a>
+<A HREF = "read_restart.html">read_restart</A> and <A HREF = "read_data.html">read_data</A>
 commands for alternative methods to do this.  Also see the
-<a class="reference internal" href="rerun.html"><em>rerun</em></a> command for a means of reading multiple snapshots
-from a dump file.</p>
-<p>Note that a simulation box must already be defined before using the
+<A HREF = "rerun.html">rerun</A> command for a means of reading multiple snapshots
+from a dump file.
+</P>
+<P>Note that a simulation box must already be defined before using the
 read_dump command.  This can be done by the
-<a class="reference internal" href="create_box.html"><em>create_box</em></a>, <a class="reference internal" href="read_data.html"><em>read_data</em></a>, or
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> commands.  The read_dump command can
-reset the simulation box dimensions, as explained below.</p>
-<p>Also note that reading per-atom information from a dump snapshot is
+<A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read_data</A>, or
+<A HREF = "read_restart.html">read_restart</A> commands.  The read_dump command can
+reset the simulation box dimensions, as explained below.
+</P>
+<P>Also note that reading per-atom information from a dump snapshot is
 limited to the atom coordinates, velocities and image flags, as
 explained below.  Other atom properties, which may be necessary to run
 a valid simulation, such as atom charge, or bond topology information
 for a molecular system, are not read from (or even contained in) dump
 files.  Thus this auxiliary information should be defined in the usual
-way, e.g. in a data file read in by a <a class="reference internal" href="read_data.html"><em>read_data</em></a>
-command, before using the read_dump command, or by the <a class="reference internal" href="set.html"><em>set</em></a>
-command, after the dump snapshot is read.</p>
-<hr class="docutils" />
-<p>If the dump filename specified as <em>file</em> ends with &#8221;.gz&#8221;, the dump
+way, e.g. in a data file read in by a <A HREF = "read_data.html">read_data</A>
+command, before using the read_dump command, or by the <A HREF = "set.html">set</A>
+command, after the dump snapshot is read.
+</P>
+<HR>
+
+<P>If the dump filename specified as <I>file</I> ends with ".gz", the dump
 file is read in gzipped format.  You cannot (yet) read a dump file
-that was written in binary format with a &#8221;.bin&#8221; suffix, or to multiple
-files via the &#8220;%&#8221; option in the dump file name.  See the
-<a class="reference internal" href="dump.html"><em>dump</em></a> command for details.</p>
-<p>The format of the dump file is selected through the <em>format</em> keyword.
+that was written in binary format with a ".bin" suffix, or to multiple
+files via the "%" option in the dump file name.  See the
+<A HREF = "dump.html">dump</A> command for details.
+</P>
+<P>The format of the dump file is selected through the <I>format</I> keyword.
 If specified, it must be the last keyword used, since all remaining
-arguments are passed on to the dump reader.  The <em>native</em> format is
-for native LAMMPS dump files, written with a <a class="reference internal" href="dump.html"><em>dump atom</em></a> or
-<a class="reference internal" href="dump.html"><em>dump custom</em></a> command.  The <em>xyz</em> format is for generic XYZ
-formatted dump files.  These formats take no additional values.</p>
-<p>The <em>molfile</em> format supports reading data through using the <a class="reference external" href="vmd">VMD</a>
+arguments are passed on to the dump reader.  The <I>native</I> format is
+for native LAMMPS dump files, written with a <A HREF = "dump.html">dump atom</A> or
+<A HREF = "dump.html">dump custom</A> command.  The <I>xyz</I> format is for generic XYZ
+formatted dump files.  These formats take no additional values.
+</P>
+<P>The <I>molfile</I> format supports reading data through using the <A HREF = "vmd">VMD</A>
 molfile plugin interface. This dump reader format is only available,
 if the USER-MOLFILE package has been installed when compiling
-LAMMPS.</p>
-<p>The <em>molfile</em> format takes one or two additional values.  The <em>style</em>
+LAMMPS.
+</P>
+<P>The <I>molfile</I> format takes one or two additional values.  The <I>style</I>
 value determines the file format to be used and can be any format that
 the molfile plugins support, such as DCD or XYZ.  Note that DCD dump
-files can be written by LAMMPS via the <a class="reference internal" href="dump.html"><em>dump dcd</em></a> command.
-The <em>path</em> value specifies a list of directories which LAMMPS will
-search for the molfile plugins appropriate to the specified <em>style</em>.
-The syntax of the <em>path</em> value is like other search paths: it can
+files can be written by LAMMPS via the <A HREF = "dump.html">dump dcd</A> command.
+The <I>path</I> value specifies a list of directories which LAMMPS will
+search for the molfile plugins appropriate to the specified <I>style</I>.
+The syntax of the <I>path</I> value is like other search paths: it can
 contain multiple directories separated by a colon (or semi-colon on
-windows).  The <em>path</em> keyword is optional and defaults to &#8221;.&#8221;,
-i.e. the current directory.</p>
-<p>Support for other dump format readers may be added in the future.</p>
-<hr class="docutils" />
-<p>Global information is first read from the dump file, namely timestep
-and box information.</p>
-<p>The dump file is scanned for a snapshot with a time stamp that matches
-the specified <em>Nstep</em>.  This means the LAMMPS timestep the dump file
-snapshot was written on for the <em>native</em> format.  Note that the <em>xyz</em>
-and <em>molfile</em> formats do not store the timestep.  For these formats,
+windows).  The <I>path</I> keyword is optional and defaults to ".",
+i.e. the current directory.
+</P>
+<P>Support for other dump format readers may be added in the future.
+</P>
+<HR>
+
+<P>Global information is first read from the dump file, namely timestep
+and box information.
+</P>
+<P>The dump file is scanned for a snapshot with a time stamp that matches
+the specified <I>Nstep</I>.  This means the LAMMPS timestep the dump file
+snapshot was written on for the <I>native</I> format.  Note that the <I>xyz</I>
+and <I>molfile</I> formats do not store the timestep.  For these formats,
 timesteps are numbered logically, in a sequential manner, starting
-from 0.  Thus to access the 10th snapshot in an <em>xyz</em> or <em>mofile</em>
-formatted dump file, use <em>Nstep</em> = 9.</p>
-<p>The dimensions of the simulation box for the selected snapshot are
-also read; see the <em>box</em> keyword discussion below.  For the <em>native</em>
+from 0.  Thus to access the 10th snapshot in an <I>xyz</I> or <I>mofile</I>
+formatted dump file, use <I>Nstep</I> = 9.
+</P>
+<P>The dimensions of the simulation box for the selected snapshot are
+also read; see the <I>box</I> keyword discussion below.  For the <I>native</I>
 format, an error is generated if the snapshot is for a triclinic box
 and the current simulation box is orthogonal or vice versa.  A warning
 will be generated if the snapshot box boundary conditions (periodic,
 shrink-wrapped, etc) do not match the current simulation boundary
 conditions, but the boundary condition information in the snapshot is
-otherwise ignored.  See the &#8220;boundary&#8221; command for more details.</p>
-<p>For the <em>xyz</em> format, no information about the box is available, so
-you must set the <em>box</em> flag to <em>no</em>.  See details below.</p>
-<p>For the <em>molfile</em> format, reading simulation box information is
+otherwise ignored.  See the "boundary" command for more details.
+</P>
+<P>For the <I>xyz</I> format, no information about the box is available, so
+you must set the <I>box</I> flag to <I>no</I>.  See details below.
+</P>
+<P>For the <I>molfile</I> format, reading simulation box information is
 typically supported, but the location of the simulation box origin is
 lost and no explicit information about periodicity or
 orthogonal/triclinic box shape is available.  The USER-MOLFILE package
 makes a best effort to guess based on heuristics, but this may not
-always work perfectly.</p>
-<hr class="docutils" />
-<p>Per-atom information from the dump file snapshot is then read from the
-dump file snapshot.  This corresponds to the specified <em>fields</em> listed
+always work perfectly.
+</P>
+<HR>
+
+<P>Per-atom information from the dump file snapshot is then read from the
+dump file snapshot.  This corresponds to the specified <I>fields</I> listed
 in the read_dump command.  It is an error to specify a z-dimension
-field, namely <em>z</em>, <em>vz</em>, or <em>iz</em>, for a 2d simulation.</p>
-<p>For dump files in <em>native</em> format, each column of per-atom data has a
+field, namely <I>z</I>, <I>vz</I>, or <I>iz</I>, for a 2d simulation.
+</P>
+<P>For dump files in <I>native</I> format, each column of per-atom data has a
 text label listed in the file.  A matching label for each field must
-appear, e.g. the label &#8220;vy&#8221; for the field <em>vy</em>.  For the <em>x</em>, <em>y</em>, <em>z</em>
-fields any of the following labels are considered a match:</p>
-<pre class="literal-block">
-x, xs, xu, xsu for field <em>x</em>
-y, ys, yu, ysu for field <em>y</em>
-z, zs, zu, zsu for field <em>z</em>
-</pre>
-<p>The meaning of xs (scaled), xu (unwrapped), and xsu (scaled and
-unwrapped) is explained on the <a class="reference internal" href="dump.html"><em>dump</em></a> command doc page.
+appear, e.g. the label "vy" for the field <I>vy</I>.  For the <I>x</I>, <I>y</I>, <I>z</I>
+fields any of the following labels are considered a match:
+</P>
+<PRE>x, xs, xu, xsu for field <I>x</I>
+y, ys, yu, ysu for field <I>y</I>
+z, zs, zu, zsu for field <I>z</I> 
+</PRE>
+<P>The meaning of xs (scaled), xu (unwrapped), and xsu (scaled and
+unwrapped) is explained on the <A HREF = "dump.html">dump</A> command doc page.
 These labels are searched for in the list of column labels in the dump
-file, in order, until a match is found.</p>
-<p>The dump file must also contain atom IDs, with a column label of &#8220;id&#8221;.</p>
-<p>If the <em>add</em> keyword is specified with a value of <em>yes</em>, as discussed
+file, in order, until a match is found.
+</P>
+<P>The dump file must also contain atom IDs, with a column label of "id".
+</P>
+<P>If the <I>add</I> keyword is specified with a value of <I>yes</I>, as discussed
 below, the dump file must contain atom types, with a column label of
-&#8220;type&#8221;.</p>
-<p>If a column label you want to read from the dump file is not a match
-to a specified field, the <em>label</em> keyword can be used to specify the
+"type".
+</P>
+<P>If a column label you want to read from the dump file is not a match
+to a specified field, the <I>label</I> keyword can be used to specify the
 specific column label from the dump file to associate with that field.
 An example is if a time-averaged coordinate is written to the dump
-file via the <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a> command.  The column
-will then have a label corresponding to the fix-ID rather than &#8220;x&#8221; or
-&#8220;xs&#8221;.  The <em>label</em> keyword can also be used to specify new column
-labels for fields <em>id</em> and <em>type</em>.</p>
-<p>For dump files in <em>xyz</em> format, only the <em>x</em>, <em>y</em>, and <em>z</em> fields are
+file via the <A HREF = "fix_ave_atom.html">fix ave/atom</A> command.  The column
+will then have a label corresponding to the fix-ID rather than "x" or
+"xs".  The <I>label</I> keyword can also be used to specify new column
+labels for fields <I>id</I> and <I>type</I>.
+</P>
+<P>For dump files in <I>xyz</I> format, only the <I>x</I>, <I>y</I>, and <I>z</I> fields are
 supported.  The dump file does not store atom IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
 starting from 1.  Thus you should insure that order of atoms is
 consistent from snapshot to snapshot in the the XYZ dump file.  See
-the <a class="reference internal" href="dump_modify.html"><em>dump_modify sort</em></a> command if the XYZ dump file
-was written by LAMMPS.</p>
-<p>For dump files in <em>molfile</em> format, the <em>x</em>, <em>y</em>, <em>z</em>, <em>vx</em>, <em>vy</em>, and
-<em>vz</em> fields can be specified.  However, not all molfile formats store
+the <A HREF = "dump_modify.html">dump_modify sort</A> command if the XYZ dump file
+was written by LAMMPS.
+</P>
+<P>For dump files in <I>molfile</I> format, the <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, and
+<I>vz</I> fields can be specified.  However, not all molfile formats store
 velocities, or their respective plugins may not support reading of
 velocities.  The molfile dump files do not store atom IDs, so these
 are assigned consecutively to the atoms as they appear in the dump
 file, starting from 1.  Thus you should insure that order of atoms are
 consistent from snapshot to snapshot in the the molfile dump file.
-See the <a class="reference internal" href="dump_modify.html"><em>dump_modify sort</em></a> command if the dump file
-was written by LAMMPS.</p>
-<hr class="docutils" />
-<p>Information from the dump file snapshot is used to overwrite or
+See the <A HREF = "dump_modify.html">dump_modify sort</A> command if the dump file
+was written by LAMMPS.
+</P>
+<HR>
+
+<P>Information from the dump file snapshot is used to overwrite or
 replace properties of the current system.  There are various options
 for how this is done, determined by the specified fields and optional
-keywords.</p>
-<p>The timestep of the snapshot becomes the current timestep for the
-simulation.  See the <a class="reference internal" href="reset_timestep.html"><em>reset_timestep</em></a> command if
-you wish to change this after the dump snapshot is read.</p>
-<p>If the <em>box</em> keyword is specified with a <em>yes</em> value, then the current
+keywords.
+</P>
+<P>The timestep of the snapshot becomes the current timestep for the
+simulation.  See the <A HREF = "reset_timestep.html">reset_timestep</A> command if
+you wish to change this after the dump snapshot is read.
+</P>
+<P>If the <I>box</I> keyword is specified with a <I>yes</I> value, then the current
 simulation box dimensions are replaced by the dump snapshot box
-dimensions.  If the <em>box</em> keyword is specified with a <em>no</em> value, the
-current simulatoin box is unchanged.</p>
-<p>If the <em>purge</em> keyword is specified with a <em>yes</em> value, then all
+dimensions.  If the <I>box</I> keyword is specified with a <I>no</I> value, the
+current simulatoin box is unchanged.
+</P>
+<P>If the <I>purge</I> keyword is specified with a <I>yes</I> value, then all
 current atoms in the system are deleted before any of the operations
-invoked by the <em>replace</em>, <em>trim</em>, or <em>add</em> keywords take place.</p>
-<p>If the <em>replace</em> keyword is specified with a <em>yes</em> value, then atoms
+invoked by the <I>replace</I>, <I>trim</I>, or <I>add</I> keywords take place.
+</P>
+<P>If the <I>replace</I> keyword is specified with a <I>yes</I> value, then atoms
 with IDs that are in both the current system and the dump snapshot
-have their properties overwritten by field values.  If the <em>replace</em>
-keyword is specified with a <em>no</em> value, atoms with IDs that are in
-both the current system and the dump snapshot are not modified.</p>
-<p>If the <em>trim</em> keyword is specified with a <em>yes</em> value, then atoms with
+have their properties overwritten by field values.  If the <I>replace</I>
+keyword is specified with a <I>no</I> value, atoms with IDs that are in
+both the current system and the dump snapshot are not modified.
+</P>
+<P>If the <I>trim</I> keyword is specified with a <I>yes</I> value, then atoms with
 IDs that are in the current system but not in the dump snapshot are
-deleted.  These atoms are unaffected if the <em>trim</em> keyword is
-specified with a <em>no</em> value.</p>
-<p>If the <em>add</em> keyword is specified with a <em>yes</em> value, then atoms with
+deleted.  These atoms are unaffected if the <I>trim</I> keyword is
+specified with a <I>no</I> value.
+</P>
+<P>If the <I>add</I> keyword is specified with a <I>yes</I> value, then atoms with
 IDs that are in the dump snapshot, but not in the current system are
-added to the system.  These dump atoms are ignored if the <em>add</em>
-keyword is specified with a <em>no</em> value.</p>
-<p>Note that atoms added via the <em>add</em> keyword will have only the
-attributes read from the dump file due to the <em>field</em> arguments.  If
-<em>x</em> or <em>y</em> or <em>z</em> is not specified as a field, a value of 0.0 is used
+added to the system.  These dump atoms are ignored if the <I>add</I>
+keyword is specified with a <I>no</I> value.
+</P>
+<P>Note that atoms added via the <I>add</I> keyword will have only the
+attributes read from the dump file due to the <I>field</I> arguments.  If
+<I>x</I> or <I>y</I> or <I>z</I> is not specified as a field, a value of 0.0 is used
 for added atoms.  Added atoms must have an atom type, so this value
-must appear in the dump file.</p>
-<p>Any other attributes (e.g. charge or particle diameter for spherical
+must appear in the dump file.
+</P>
+<P>Any other attributes (e.g. charge or particle diameter for spherical
 particles) will be set to default values, the same as if the
-<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command were used.</p>
-<p>Note that atom IDs are not preserved for new dump snapshot atoms added
-via the <em>add</em> keyword.  The procedure for assigning new atom IDS to
+<A HREF = "create_atoms.html">create_atoms</A> command were used.
+</P>
+<P>Note that atom IDs are not preserved for new dump snapshot atoms added
+via the <I>add</I> keyword.  The procedure for assigning new atom IDS to
 added atoms is the same as is described for the
-<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command.</p>
-<hr class="docutils" />
-<p>Atom coordinates read from the dump file are first converted into
+<A HREF = "create_atoms.html">create_atoms</A> command.
+</P>
+<HR>
+
+<P>Atom coordinates read from the dump file are first converted into
 unscaled coordinates, relative to the box dimensions of the snapshot.
 These coordinates are then be assigned to an existing or new atom in
 the current simulation.  The coordinates will then be remapped to the
@@ -354,124 +271,66 @@ box.  If periodic boundary conditions apply, this means the atom will
 be remapped back into the simulation box if necessary.  If shrink-wrap
 boundary conditions apply, the new coordinates may change the
 simulation box dimensions.  If fixed boundary conditions apply, the
-atom will be lost if it is outside the simulation box.</p>
-<p>For <em>native</em> format dump files, the 3 xyz image flags for an atom in
+atom will be lost if it is outside the simulation box.
+</P>
+<P>For <I>native</I> format dump files, the 3 xyz image flags for an atom in
 the dump file are set to the corresponding values appearing in the
-dump file if the <em>ix</em>, <em>iy</em>, <em>iz</em> fields are specified.  If not
+dump file if the <I>ix</I>, <I>iy</I>, <I>iz</I> fields are specified.  If not
 specified, the image flags for replaced atoms are not changed and
 image flags for new atoms are set to default values.  If coordinates
-read from the dump file are in unwrapped format (e.g. <em>xu</em>) then the
+read from the dump file are in unwrapped format (e.g. <I>xu</I>) then the
 image flags for read-in atoms are also set to default values.  The
 remapping procedure described in the previous paragraph will then
 change images flags for all atoms (old and new) if periodic boundary
-conditions are applied to remap an atom back into the simulation box.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you get a warning about inconsistent image flags
+conditions are applied to remap an atom back into the simulation box.
+</P>
+<P>IMPORTANT NOTE: If you get a warning about inconsistent image flags
 after reading in a dump snapshot, it means one or more pairs of bonded
-atoms now have inconsistent image flags.  As discussed in <a class="reference internal" href="Section_errors.html"><em>Section errors</em></a> this may or may not cause problems for
+atoms now have inconsistent image flags.  As discussed in <A HREF = "Section_errors.html">Section
+errors</A> this may or may not cause problems for
 subsequent simulations, One way this can happen is if you read image
 flag fields from the dump file but do not also use the dump file box
-parameters.</p>
-</div>
-<p>LAMMPS knows how to compute unscaled and remapped coordinates for the
-snapshot column labels discussed above, e.g. <em>x</em>, <em>xs</em>, <em>xu</em>, <em>xsu</em>.
-If another column label is assigned to the <em>x</em> or <em>y</em> or <em>z</em> field via
-the <em>label</em> keyword, e.g. for coordinates output by the <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a> command, then LAMMPS needs to know whether
+parameters.
+</P>
+<P>LAMMPS knows how to compute unscaled and remapped coordinates for the
+snapshot column labels discussed above, e.g. <I>x</I>, <I>xs</I>, <I>xu</I>, <I>xsu</I>.
+If another column label is assigned to the <I>x</I> or <I>y</I> or <I>z</I> field via
+the <I>label</I> keyword, e.g. for coordinates output by the <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command, then LAMMPS needs to know whether
 the coordinate information in the dump file is scaled and/or wrapped.
-This can be set via the <em>scaled</em> and <em>wrapped</em> keywords.  Note that
-the value of the <em>scaled</em> and <em>wrapped</em> keywords is ignored for fields
-<em>x</em> or <em>y</em> or <em>z</em> if the <em>label</em> keyword is not used to assign a
-column label to that field.</p>
-<p>The scaled/unscaled and wrapped/unwrapped setting must be identical
-for any of the <em>x</em>, <em>y</em>, <em>z</em> fields that are specified.  Thus you
-cannot read <em>xs</em> and <em>yu</em> from the dump file.  Also, if the dump file
+This can be set via the <I>scaled</I> and <I>wrapped</I> keywords.  Note that
+the value of the <I>scaled</I> and <I>wrapped</I> keywords is ignored for fields
+<I>x</I> or <I>y</I> or <I>z</I> if the <I>label</I> keyword is not used to assign a
+column label to that field.
+</P>
+<P>The scaled/unscaled and wrapped/unwrapped setting must be identical
+for any of the <I>x</I>, <I>y</I>, <I>z</I> fields that are specified.  Thus you
+cannot read <I>xs</I> and <I>yu</I> from the dump file.  Also, if the dump file
 coordinates are scaled and the simulation box is triclinic, then all 3
-of the <em>x</em>, <em>y</em>, <em>z</em> fields must be specified, since they are all
-needed to generate absolute, unscaled coordinates.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the <a class="reference internal" href="Section_start.html#start-2"><span>Making LAMMPS</span></a> section of the documentation.</p>
-<p>The <em>molfile</em> dump file formats are part of the USER-MOLFILE package.
+of the <I>x</I>, <I>y</I>, <I>z</I> fields must be specified, since they are all
+needed to generate absolute, unscaled coordinates.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To read gzipped dump files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#start_2">Making
+LAMMPS</A> section of the documentation.
+</P>
+<P>The <I>molfile</I> dump file formats are part of the USER-MOLFILE package.
 They are only enabled if LAMMPS was built with that packages.  See the
-<a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="dump.html"><em>dump</em></a>, <a class="reference internal" href="dump_molfile.html"><em>dump molfile</em></a>,
-<a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>,
-<a class="reference internal" href="rerun.html"><em>rerun</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The option defaults are box = yes, replace = yes, purge = no, trim =
-no, add = no, scaled = no, wrapped = yes, and format = native.</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_molfile.html">dump molfile</A>,
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>,
+<A HREF = "rerun.html">rerun</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are box = yes, replace = yes, purge = no, trim =
+no, add = no, scaled = no, wrapped = yes, and format = native.
+</P>
+</HTML>

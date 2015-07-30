@@ -1,288 +1,175 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>compute heat/flux command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>compute heat/flux command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="compute-heat-flux-command">
-<span id="index-0"></span><h1>compute heat/flux command<a class="headerlink" href="#compute-heat-flux-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID heat/flux ke-ID pe-ID stress-ID
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>heat/flux = style name of this compute command</li>
-<li>ke-ID = ID of a compute that calculates per-atom kinetic energy</li>
-<li>pe-ID = ID of a compute that calculates per-atom potential energy</li>
-<li>stress-ID = ID of a compute that calculates per-atom stress</li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute myFlux all heat/flux myKE myPE myStress
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that calculates the heat flux vector based on
+
+
+<HR>
+
+<H3>compute heat/flux command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID heat/flux ke-ID pe-ID stress-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>heat/flux = style name of this compute command
+<LI>ke-ID = ID of a compute that calculates per-atom kinetic energy
+<LI>pe-ID = ID of a compute that calculates per-atom potential energy
+<LI>stress-ID = ID of a compute that calculates per-atom stress 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute myFlux all heat/flux myKE myPE myStress 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the heat flux vector based on
 contributions from atoms in the specified group.  This can be used by
 itself to measure the heat flux into or out of a reservoir of atoms,
-or to calculate a thermal conductivity using the Green-Kubo formalism.</p>
-<p>See the <a class="reference internal" href="fix_thermal_conductivity.html"><em>fix thermal/conductivity</em></a>
+or to calculate a thermal conductivity using the Green-Kubo formalism.
+</P>
+<P>See the <A HREF = "fix_thermal_conductivity.html">fix thermal/conductivity</A>
 command for details on how to compute thermal conductivity in an
-alternate way, via the Muller-Plathe method.  See the <a class="reference internal" href="fix_heat.html"><em>fix heat</em></a> command for a way to control the heat added or
-subtracted to a group of atoms.</p>
-<p>The compute takes three arguments which are IDs of other
-<a class="reference internal" href="compute.html"><em>computes</em></a>.  One calculates per-atom kinetic energy
-(<em>ke-ID</em>), one calculates per-atom potential energy (<em>pe-ID)</em>, and the
-third calcualtes per-atom stress (<em>stress-ID</em>).  These should be
+alternate way, via the Muller-Plathe method.  See the <A HREF = "fix_heat.html">fix
+heat</A> command for a way to control the heat added or
+subtracted to a group of atoms.
+</P>
+<P>The compute takes three arguments which are IDs of other
+<A HREF = "compute.html">computes</A>.  One calculates per-atom kinetic energy
+(<I>ke-ID</I>), one calculates per-atom potential energy (<I>pe-ID)</I>, and the
+third calcualtes per-atom stress (<I>stress-ID</I>).  These should be
 defined for the same group used by compute heat/flux, though LAMMPS
-does not check for this.</p>
-<p>The Green-Kubo formulas relate the ensemble average of the
-auto-correlation of the heat flux J to the thermal conductivity kappa:</p>
-<img alt="_images/heat_flux_J.jpg" class="align-center" src="_images/heat_flux_J.jpg" />
-<img alt="_images/heat_flux_k.jpg" class="align-center" src="_images/heat_flux_k.jpg" />
-<p>Ei in the first term of the equation for J is the per-atom energy
-(potential and kinetic).  This is calculated by the computes <em>ke-ID</em>
-and <em>pe-ID</em>.  Si in the second term of the equation for J is the
-per-atom stress tensor calculated by the compute <em>stress-ID</em>.  The
+does not check for this.
+</P>
+<P>The Green-Kubo formulas relate the ensemble average of the
+auto-correlation of the heat flux J to the thermal conductivity kappa:
+</P>
+<CENTER><IMG SRC = "Eqs/heat_flux_J.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/heat_flux_k.jpg">
+</CENTER>
+<P>Ei in the first term of the equation for J is the per-atom energy
+(potential and kinetic).  This is calculated by the computes <I>ke-ID</I>
+and <I>pe-ID</I>.  Si in the second term of the equation for J is the
+per-atom stress tensor calculated by the compute <I>stress-ID</I>.  The
 tensor multiplies Vi as a 3x3 matrix-vector multiply to yield a
 vector.  Note that as discussed below, the 1/V scaling factor in the
 equation for J is NOT included in the calculation performed by this
 compute; you need to add it for a volume appropriate to the atoms
-included in the calculation.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <a class="reference internal" href="compute_pe_atom.html"><em>compute pe/atom</em></a> and
-<a class="reference internal" href="compute_stress_atom.html"><em>compute stress/atom</em></a> commands have options
+included in the calculation.
+</P>
+<P>IMPORTANT NOTE: The <A HREF = "compute_pe_atom.html">compute pe/atom</A> and
+<A HREF = "compute_stress_atom.html">compute stress/atom</A> commands have options
 for which terms to include in their calculation (pair, bond, etc).
 The heat flux calculation will thus include exactly the same terms.
-Normally you should use <a class="reference internal" href="compute_stress_atom.html"><em>compute stress/atom virial</em></a> so as not to include a kinetic energy
-term in the heat flux.</p>
-</div>
-<p>This compute calculates 6 quantities and stores them in a 6-component
+Normally you should use <A HREF = "compute_stress_atom.html">compute stress/atom
+virial</A> so as not to include a kinetic energy
+term in the heat flux.
+</P>
+<P>This compute calculates 6 quantities and stores them in a 6-component
 vector.  The first 3 components are the x, y, z components of the full
 heat flux vector, i.e. (Jx, Jy, Jz).  The next 3 components are the x,
 y, z components of just the convective portion of the flux, i.e. the
-first term in the equation for J above.</p>
-<hr class="docutils" />
-<p>The heat flux can be output every so many timesteps (e.g. via the
-<a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command).  Then as a
+first term in the equation for J above.
+</P>
+<HR>
+
+<P>The heat flux can be output every so many timesteps (e.g. via the
+<A HREF = "thermo_style.html">thermo_style custom</A> command).  Then as a
 post-processing operation, an autocorrelation can be performed, its
-integral estimated, and the Green-Kubo formula above evaluated.</p>
-<p>The <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> command can calclate
+integral estimated, and the Green-Kubo formula above evaluated.
+</P>
+<P>The <A HREF = "fix_ave_correlate.html">fix ave/correlate</A> command can calclate
 the autocorrelation.  The trap() function in the
-<a class="reference internal" href="variable.html"><em>variable</em></a> command can calculate the integral.</p>
-<p>An example LAMMPS input script for solid Ar is appended below.  The
-result should be: average conductivity ~0.29 in W/mK.</p>
-<hr class="docutils" />
-<p><strong>Output info:</strong></p>
-<p>This compute calculates a global vector of length 6 (total heat flux
+<A HREF = "variable.html">variable</A> command can calculate the integral.
+</P>
+<P>An example LAMMPS input script for solid Ar is appended below.  The
+result should be: average conductivity ~0.29 in W/mK.
+</P>
+<HR>
+
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global vector of length 6 (total heat flux
 vector, followed by convective heat flux vector), which can be
 accessed by indices 1-6.  These values can be used by any command that
-uses global vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
-options.</p>
-<p>The vector values calculated by this compute are &#8220;extensive&#8221;, meaning
+uses global vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The vector values calculated by this compute are "extensive", meaning
 they scale with the number of atoms in the simulation.  They can be
 divided by the appropriate volume to get a flux, which would then be
-an &#8220;intensive&#8221; value, meaning independent of the number of atoms in
-the simulation.  Note that if the compute is &#8220;all&#8221;, then the
+an "intensive" value, meaning independent of the number of atoms in
+the simulation.  Note that if the compute is "all", then the
 appropriate volume to divide by is the simulation box volume.
 However, if a sub-group is used, it should be the volume containing
-those atoms.</p>
-<p>The vector values will be in energy*velocity <a class="reference internal" href="units.html"><em>units</em></a>.  Once
+those atoms.
+</P>
+<P>The vector values will be in energy*velocity <A HREF = "units.html">units</A>.  Once
 divided by a volume the units will be that of flux, namely
-energy/area/time <a class="reference internal" href="units.html"><em>units</em></a></p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="fix_thermal_conductivity.html"><em>fix thermal/conductivity</em></a>,
-<a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a>,
-<a class="reference internal" href="variable.html"><em>variable</em></a></p>
-<p><strong>Default:</strong> none</p>
-<hr class="docutils" />
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># Sample LAMMPS input script for thermal conductivity of solid Ar</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>units       real
+energy/area/time <A HREF = "units.html">units</A>
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_thermal_conductivity.html">fix thermal/conductivity</A>,
+<A HREF = "fix_ave_correlate.html">fix ave/correlate</A>,
+<A HREF = "variable.html">variable</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<PRE># Sample LAMMPS input script for thermal conductivity of solid Ar 
+</PRE>
+<PRE>units       real
 variable    T equal 70
 variable    V equal vol
 variable    dt equal 4.0
 variable    p equal 200     # correlation length
 variable    s equal 10      # sample interval
-variable    d equal $p*$s   # dump interval
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># convert from LAMMPS real units to SI</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>variable    kB equal 1.3806504e-23    # [J/K] Boltzmann
+variable    d equal $p*$s   # dump interval 
+</PRE>
+<PRE># convert from LAMMPS real units to SI 
+</PRE>
+<PRE>variable    kB equal 1.3806504e-23    # [J/K] Boltzmann
 variable    kCal2J equal 4186.0/6.02214e23
 variable    A2m equal 1.0e-10
 variable    fs2s equal 1.0e-15
-variable    convert equal ${kCal2J}*${kCal2J}/${fs2s}/${A2m}
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># setup problem</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>dimension    3
+variable    convert equal ${kCal2J}*${kCal2J}/${fs2s}/${A2m} 
+</PRE>
+<PRE># setup problem 
+</PRE>
+<PRE>dimension    3
 boundary     p p p
 lattice      fcc 5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 region       box block 0 4 0 4 0 4
 create_box   1 box
 create_atoms 1 box
-mass      1 39.948
+mass	     1 39.948
 pair_style   lj/cut 13.0
 pair_coeff   * * 0.2381 3.405
 timestep     ${dt}
-thermo            $d
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># equilibration and thermalization</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>velocity     all create $T 102486 mom yes rot yes dist gaussian
+thermo	     $d 
+</PRE>
+<PRE># equilibration and thermalization 
+</PRE>
+<PRE>velocity     all create $T 102486 mom yes rot yes dist gaussian
 fix          NVT all nvt temp $T $T 10 drag 0.2
-run          8000
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># thermal conductivity calculation, switch to NVE if desired</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="c">#unfix       NVT</span>
-<span class="c">#fix         NVE all nve</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>reset_timestep 0
+run          8000 
+</PRE>
+<PRE># thermal conductivity calculation, switch to NVE if desired 
+</PRE>
+<PRE>#unfix       NVT
+#fix         NVE all nve 
+</PRE>
+<PRE>reset_timestep 0
 compute      myKE all ke/atom
 compute      myPE all pe/atom
 compute      myStress all stress/atom NULL virial
@@ -290,7 +177,7 @@ compute      flux all heat/flux myKE myPE myStress
 variable     Jx equal c_flux[1]/vol
 variable     Jy equal c_flux[2]/vol
 variable     Jz equal c_flux[3]/vol
-fix          JJ all ave/correlate $s $p $d &amp;
+fix          JJ all ave/correlate $s $p $d &
              c_flux[1] c_flux[2] c_flux[3] type auto file J0Jt.dat ave running
 variable     scale equal ${convert}/${kB}/$T/$T/$V*$s*${dt}
 variable     k11 equal trap(f_JJ[3])*${scale}
@@ -300,72 +187,6 @@ thermo_style custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
 run          100000
 variable     k equal (v_k11+v_k22+v_k33)/3.0
 variable     ndens equal count(all)/vol
-print        &quot;average conductivity: $k[W/mK] @ $T K, ${ndens} /A^3&quot;
-</pre></div>
-</div>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+print        "average conductivity: $k[W/mK] @ $T K, ${ndens} /A^3" 
+</PRE>
+</HTML>

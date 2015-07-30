@@ -1,621 +1,480 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>pair_style eam command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>pair_style eam command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="pair-style-eam-command">
-<span id="index-0"></span><h1>pair_style eam command<a class="headerlink" href="#pair-style-eam-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-cuda-command">
-<h1>pair_style eam/cuda command<a class="headerlink" href="#pair-style-eam-cuda-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-gpu-command">
-<h1>pair_style eam/gpu command<a class="headerlink" href="#pair-style-eam-gpu-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-kk-command">
-<h1>pair_style eam/kk command<a class="headerlink" href="#pair-style-eam-kk-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-omp-command">
-<h1>pair_style eam/omp command<a class="headerlink" href="#pair-style-eam-omp-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-opt-command">
-<h1>pair_style eam/opt command<a class="headerlink" href="#pair-style-eam-opt-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-alloy-command">
-<h1>pair_style eam/alloy command<a class="headerlink" href="#pair-style-eam-alloy-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-alloy-cuda-command">
-<h1>pair_style eam/alloy/cuda command<a class="headerlink" href="#pair-style-eam-alloy-cuda-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-alloy-gpu-command">
-<h1>pair_style eam/alloy/gpu command<a class="headerlink" href="#pair-style-eam-alloy-gpu-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-alloy-kk-command">
-<h1>pair_style eam/alloy/kk command<a class="headerlink" href="#pair-style-eam-alloy-kk-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-alloy-omp-command">
-<h1>pair_style eam/alloy/omp command<a class="headerlink" href="#pair-style-eam-alloy-omp-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-alloy-opt-command">
-<h1>pair_style eam/alloy/opt command<a class="headerlink" href="#pair-style-eam-alloy-opt-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-cd-command">
-<h1>pair_style eam/cd command<a class="headerlink" href="#pair-style-eam-cd-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-cd-omp-command">
-<h1>pair_style eam/cd/omp command<a class="headerlink" href="#pair-style-eam-cd-omp-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-fs-command">
-<h1>pair_style eam/fs command<a class="headerlink" href="#pair-style-eam-fs-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-fs-cuda-command">
-<h1>pair_style eam/fs/cuda command<a class="headerlink" href="#pair-style-eam-fs-cuda-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-fs-gpu-command">
-<h1>pair_style eam/fs/gpu command<a class="headerlink" href="#pair-style-eam-fs-gpu-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-fs-kk-command">
-<h1>pair_style eam/fs/kk command<a class="headerlink" href="#pair-style-eam-fs-kk-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-fs-omp-command">
-<h1>pair_style eam/fs/omp command<a class="headerlink" href="#pair-style-eam-fs-omp-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-eam-fs-opt-command">
-<h1>pair_style eam/fs/opt command<a class="headerlink" href="#pair-style-eam-fs-opt-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style style
-</pre></div>
-</div>
-<ul class="simple">
-<li>style = <em>eam</em> or <em>eam/alloy</em> or <em>eam/cd</em> or <em>eam/fs</em></li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style eam
+
+
+<HR>
+
+<H3>pair_style eam command 
+</H3>
+<H3>pair_style eam/cuda command 
+</H3>
+<H3>pair_style eam/gpu command 
+</H3>
+<H3>pair_style eam/kk command 
+</H3>
+<H3>pair_style eam/omp command 
+</H3>
+<H3>pair_style eam/opt command 
+</H3>
+<H3>pair_style eam/alloy command 
+</H3>
+<H3>pair_style eam/alloy/cuda command 
+</H3>
+<H3>pair_style eam/alloy/gpu command 
+</H3>
+<H3>pair_style eam/alloy/kk command 
+</H3>
+<H3>pair_style eam/alloy/omp command 
+</H3>
+<H3>pair_style eam/alloy/opt command 
+</H3>
+<H3>pair_style eam/cd command 
+</H3>
+<H3>pair_style eam/cd/omp command 
+</H3>
+<H3>pair_style eam/fs command 
+</H3>
+<H3>pair_style eam/fs/cuda command 
+</H3>
+<H3>pair_style eam/fs/gpu command 
+</H3>
+<H3>pair_style eam/fs/kk command 
+</H3>
+<H3>pair_style eam/fs/omp command 
+</H3>
+<H3>pair_style eam/fs/opt command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style 
+</PRE>
+<UL><LI>style = <I>eam</I> or <I>eam/alloy</I> or <I>eam/cd</I> or <I>eam/fs</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style eam
 pair_coeff * * cuu3
-pair_coeff 1*3 1*3 niu3.eam
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>pair_style eam/alloy
-pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>pair_style eam/cd
-pair_coeff * * ../potentials/FeCr.cdeam Fe Cr
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>pair_style eam/fs
-pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Style <em>eam</em> computes pairwise interactions for metals and metal alloys
-using embedded-atom method (EAM) potentials <a class="reference internal" href="pair_polymorphic.html#daw"><span>(Daw)</span></a>.  The total
-energy Ei of an atom I is given by</p>
-<img alt="_images/pair_eam.jpg" class="align-center" src="_images/pair_eam.jpg" />
-<p>where F is the embedding energy which is a function of the atomic
+pair_coeff 1*3 1*3 niu3.eam 
+</PRE>
+<PRE>pair_style eam/alloy
+pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni 
+</PRE>
+<PRE>pair_style eam/cd
+pair_coeff * * ../potentials/FeCr.cdeam Fe Cr 
+</PRE>
+<PRE>pair_style eam/fs
+pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>eam</I> computes pairwise interactions for metals and metal alloys
+using embedded-atom method (EAM) potentials <A HREF = "#Daw">(Daw)</A>.  The total
+energy Ei of an atom I is given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_eam.jpg">
+</CENTER>
+<P>where F is the embedding energy which is a function of the atomic
 electron density rho, phi is a pair potential interaction, and alpha
 and beta are the element types of atoms I and J.  The multi-body
 nature of the EAM potential is a result of the embedding energy term.
 Both summations in the formula are over all neighbors J of atom I
-within the cutoff distance.</p>
-<p>The cutoff distance and the tabulated values of the functionals F,
+within the cutoff distance.
+</P>
+<P>The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
-the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.  These are ASCII text files
+the <A HREF = "pair_coeff.html">pair_coeff</A> command.  These are ASCII text files
 in a DYNAMO-style format which is described below.  DYNAMO was the
 original serial EAM MD code, written by the EAM originators.  Several
 DYNAMO potential files for different metals are included in the
-&#8220;potentials&#8221; directory of the LAMMPS distribution.  All of these files
-are parameterized in terms of LAMMPS <a class="reference internal" href="units.html"><em>metal units</em></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <em>eam</em> style reads single-element EAM potentials in
-the DYNAMO <em>funcfl</em> format.  Either single element or alloy systems
-can be modeled using multiple <em>funcfl</em> files and style <em>eam</em>.  For the
+"potentials" directory of the LAMMPS distribution.  All of these files
+are parameterized in terms of LAMMPS <A HREF = "units.html">metal units</A>.
+</P>
+<P>IMPORTANT NOTE: The <I>eam</I> style reads single-element EAM potentials in
+the DYNAMO <I>funcfl</I> format.  Either single element or alloy systems
+can be modeled using multiple <I>funcfl</I> files and style <I>eam</I>.  For the
 alloy case LAMMPS mixes the single-element potentials to produce alloy
 potentials, the same way that DYNAMO does.  Alternatively, a single
-DYNAMO <em>setfl</em> file or Finnis/Sinclair EAM file can be used by LAMMPS
-to model alloy systems by invoking the <em>eam/alloy</em> or <em>eam/cd</em> or
-<em>eam/fs</em> styles as described below.  These files require no mixing
-since they specify alloy interactions explicitly.</p>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Note that unlike for other potentials, cutoffs for EAM
+DYNAMO <I>setfl</I> file or Finnis/Sinclair EAM file can be used by LAMMPS
+to model alloy systems by invoking the <I>eam/alloy</I> or <I>eam/cd</I> or
+<I>eam/fs</I> styles as described below.  These files require no mixing
+since they specify alloy interactions explicitly.
+</P>
+<P>IMPORTANT NOTE: Note that unlike for other potentials, cutoffs for EAM
 potentials are not set in the pair_style or pair_coeff command; they
 are specified in the EAM potential files themselves.  Likewise, the
 EAM potential files list atomic masses; thus you do not need to use
-the <a class="reference internal" href="mass.html"><em>mass</em></a> command to specify them.</p>
-</div>
-<p>There are several WWW sites that distribute and document EAM
-potentials stored in DYNAMO or other formats:</p>
-<div class="highlight-python"><div class="highlight"><pre>http://www.ctcms.nist.gov/potentials
+the <A HREF = "mass.html">mass</A> command to specify them.
+</P>
+<P>There are several WWW sites that distribute and document EAM
+potentials stored in DYNAMO or other formats:
+</P>
+<PRE>http://www.ctcms.nist.gov/potentials
 http://cst-www.nrl.navy.mil/ccm6/ap
-http://enpub.fulton.asu.edu/cms/potentials/main/main.htm
-</pre></div>
-</div>
-<p>These potentials should be usable with LAMMPS, though the alternate
+http://enpub.fulton.asu.edu/cms/potentials/main/main.htm 
+</PRE>
+<P>These potentials should be usable with LAMMPS, though the alternate
 formats would need to be converted to the DYNAMO format used by LAMMPS
 and described on this page.  The NIST site is maintained by Chandler
 Becker (cbecker at nist.gov) who is good resource for info on
-interatomic potentials and file formats.</p>
-<hr class="docutils" />
-<p>For style <em>eam</em>, potential values are read from a file that is in the
-DYNAMO single-element <em>funcfl</em> format.  If the DYNAMO file was created
-by a Fortran program, it cannot have &#8220;D&#8221; values in it for exponents.
-C only recognizes &#8220;e&#8221; or &#8220;E&#8221; for scientific notation.</p>
-<p>Note that unlike for other potentials, cutoffs for EAM potentials are
+interatomic potentials and file formats.
+</P>
+<HR>
+
+<P>For style <I>eam</I>, potential values are read from a file that is in the
+DYNAMO single-element <I>funcfl</I> format.  If the DYNAMO file was created
+by a Fortran program, it cannot have "D" values in it for exponents.
+C only recognizes "e" or "E" for scientific notation.
+</P>
+<P>Note that unlike for other potentials, cutoffs for EAM potentials are
 not set in the pair_style or pair_coeff command; they are specified in
-the EAM potential files themselves.</p>
-<p>For style <em>eam</em> a potential file must be assigned to each I,I pair of
+the EAM potential files themselves.
+</P>
+<P>For style <I>eam</I> a potential file must be assigned to each I,I pair of
 atom types by using one or more pair_coeff commands, each with a
-single argument:</p>
-<ul class="simple">
-<li>filename</li>
-</ul>
-<p>Thus the following command</p>
-<div class="highlight-python"><div class="highlight"><pre>pair_coeff *2 1*2 cuu3.eam
-</pre></div>
-</div>
-<p>will read the cuu3 potential file and use the tabulated Cu values for
+single argument:
+</P>
+<UL><LI>filename 
+</UL>
+<P>Thus the following command
+</P>
+<PRE>pair_coeff *2 1*2 cuu3.eam 
+</PRE>
+<P>will read the cuu3 potential file and use the tabulated Cu values for
 F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
-1,2 and 2,1 are ignored).  See the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> doc
+1,2 and 2,1 are ignored).  See the <A HREF = "pair_coeff.html">pair_coeff</A> doc
 page for alternate ways to specify the path for the potential file.
 In effect, this makes atom types 1 and 2 in LAMMPS be Cu atoms.
 Different single-element files can be assigned to different atom types
 to model an alloy system.  The mixing to create alloy potentials for
 type pairs with I != J is done automatically the same way that the
 serial DYNAMO code originally did it; you do not need to specify
-coefficients for these type pairs.</p>
-<p><em>Funcfl</em> files in the <em>potentials</em> directory of the LAMMPS
-distribution have an &#8221;.eam&#8221; suffix.  A DYNAMO single-element <em>funcfl</em>
-file is formatted as follows:</p>
-<ul class="simple">
-<li>line 1: comment (ignored)</li>
-<li>line 2: atomic number, mass, lattice constant, lattice type (e.g. FCC)</li>
-<li>line 3: Nrho, drho, Nr, dr, cutoff</li>
-</ul>
-<p>On line 2, all values but the mass are ignored by LAMMPS.  The mass is
-in mass <a class="reference internal" href="units.html"><em>units</em></a>, e.g. mass number or grams/mole for metal
+coefficients for these type pairs.
+</P>
+<P><I>Funcfl</I> files in the <I>potentials</I> directory of the LAMMPS
+distribution have an ".eam" suffix.  A DYNAMO single-element <I>funcfl</I>
+file is formatted as follows:
+</P>
+<UL><LI>line 1: comment (ignored)
+<LI>line 2: atomic number, mass, lattice constant, lattice type (e.g. FCC)
+<LI>line 3: Nrho, drho, Nr, dr, cutoff 
+</UL>
+<P>On line 2, all values but the mass are ignored by LAMMPS.  The mass is
+in mass <A HREF = "units.html">units</A>, e.g. mass number or grams/mole for metal
 units.  The cubic lattice constant is in Angstroms.  On line 3, Nrho
 and Nr are the number of tabulated values in the subsequent arrays,
 drho and dr are the spacing in density and distance space for the
 values in those arrays, and the specified cutoff becomes the pairwise
 cutoff used by LAMMPS for the potential.  The units of dr are
-Angstroms; I&#8217;m not sure of the units for drho - some measure of
-electron density.</p>
-<p>Following the three header lines are three arrays of tabulated values:</p>
-<ul class="simple">
-<li>embedding function F(rho) (Nrho values)</li>
-<li>effective charge function Z(r) (Nr values)</li>
-<li>density function rho(r) (Nr values)</li>
-</ul>
-<p>The values for each array can be listed as multiple values per line,
+Angstroms; I'm not sure of the units for drho - some measure of
+electron density.
+</P>
+<P>Following the three header lines are three arrays of tabulated values:
+</P>
+<UL><LI>embedding function F(rho) (Nrho values)
+<LI>effective charge function Z(r) (Nr values)
+<LI>density function rho(r) (Nr values) 
+</UL>
+<P>The values for each array can be listed as multiple values per line,
 so long as each array starts on a new line.  For example, the
-individual Z(r) values are for r = 0,dr,2*dr, ... (Nr-1)*dr.</p>
-<p>The units for the embedding function F are eV.  The units for the
+individual Z(r) values are for r = 0,dr,2*dr, ... (Nr-1)*dr.
+</P>
+<P>The units for the embedding function F are eV.  The units for the
 density function rho are the same as for drho (see above, electron
-density).  The units for the effective charge Z are &#8220;atomic charge&#8221; or
+density).  The units for the effective charge Z are "atomic charge" or
 sqrt(Hartree * Bohr-radii).  For two interacting atoms i,j this is used
 by LAMMPS to compute the pair potential term in the EAM energy
-expression as r*phi, in units of eV-Angstroms, via the formula</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">r</span><span class="o">*</span><span class="n">phi</span> <span class="o">=</span> <span class="mf">27.2</span> <span class="o">*</span> <span class="mf">0.529</span> <span class="o">*</span> <span class="n">Zi</span> <span class="o">*</span> <span class="n">Zj</span>
-</pre></div>
-</div>
-<p>where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.</p>
-<hr class="docutils" />
-<p>Style <em>eam/alloy</em> computes pairwise interactions using the same
-formula as style <em>eam</em>.  However the associated
-<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command reads a DYNAMO <em>setfl</em> file
-instead of a <em>funcfl</em> file.  <em>Setfl</em> files can be used to model a
+expression as r*phi, in units of eV-Angstroms, via the formula
+</P>
+<PRE>r*phi = 27.2 * 0.529 * Zi * Zj 
+</PRE>
+<P>where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.
+</P>
+<HR>
+
+<P>Style <I>eam/alloy</I> computes pairwise interactions using the same
+formula as style <I>eam</I>.  However the associated
+<A HREF = "pair_coeff.html">pair_coeff</A> command reads a DYNAMO <I>setfl</I> file
+instead of a <I>funcfl</I> file.  <I>Setfl</I> files can be used to model a
 single-element or alloy system.  In the alloy case, as explained
-above, <em>setfl</em> files contain explicit tabulated values for alloy
-interactions.  Thus they allow more generality than <em>funcfl</em> files for
-modeling alloys.</p>
-<p>For style <em>eam/alloy</em>, potential values are read from a file that is
-in the DYNAMO multi-element <em>setfl</em> format, except that element names
+above, <I>setfl</I> files contain explicit tabulated values for alloy
+interactions.  Thus they allow more generality than <I>funcfl</I> files for
+modeling alloys.
+</P>
+<P>For style <I>eam/alloy</I>, potential values are read from a file that is
+in the DYNAMO multi-element <I>setfl</I> format, except that element names
 (Ni, Cu, etc) are added to one of the lines in the file.  If the
-DYNAMO file was created by a Fortran program, it cannot have &#8220;D&#8221;
-values in it for exponents.  C only recognizes &#8220;e&#8221; or &#8220;E&#8221; for
-scientific notation.</p>
-<p>Only a single pair_coeff command is used with the <em>eam/alloy</em> style
-which specifies a DYNAMO <em>setfl</em> file, which contains information for
+DYNAMO file was created by a Fortran program, it cannot have "D"
+values in it for exponents.  C only recognizes "e" or "E" for
+scientific notation.
+</P>
+<P>Only a single pair_coeff command is used with the <I>eam/alloy</I> style
+which specifies a DYNAMO <I>setfl</I> file, which contains information for
 M elements.  These are mapped to LAMMPS atom types by specifying N
 additional arguments after the filename in the pair_coeff command,
-where N is the number of LAMMPS atom types:</p>
-<ul class="simple">
-<li>filename</li>
-<li>N element names = mapping of <em>setfl</em> elements to atom types</li>
-</ul>
-<p>As an example, the potentials/NiAlH_jea.eam.alloy file is a <em>setfl</em>
+where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>filename
+<LI>N element names = mapping of <I>setfl</I> elements to atom types 
+</UL>
+<P>As an example, the potentials/NiAlH_jea.eam.alloy file is a <I>setfl</I>
 file which has tabulated EAM values for 3 elements and their alloy
-interactions: Ni, Al, and H.  See the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> doc
+interactions: Ni, Al, and H.  See the <A HREF = "pair_coeff.html">pair_coeff</A> doc
 page for alternate ways to specify the path for the potential file.
 If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
 be Ni, and the 4th to be Al, you would use the following pair_coeff
-command:</p>
-<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al
-</pre></div>
-</div>
-<p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+command:
+</P>
+<PRE>pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al 
+</PRE>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
-element in the <em>setfl</em> file.  The final Al argument maps LAMMPS atom
-type 4 to the Al element in the <em>setfl</em> file.  Note that there is no
+element in the <I>setfl</I> file.  The final Al argument maps LAMMPS atom
+type 4 to the Al element in the <I>setfl</I> file.  Note that there is no
 requirement that your simulation use all the elements specified by the
-<em>setfl</em> file.</p>
-<p>If a mapping value is specified as NULL, the mapping is not performed.
-This can be used when an <em>eam/alloy</em> potential is used as part of the
-<em>hybrid</em> pair style.  The NULL values are placeholders for atom types
-that will be used with other potentials.</p>
-<p><em>Setfl</em> files in the <em>potentials</em> directory of the LAMMPS distribution
-have an &#8221;.eam.alloy&#8221; suffix.  A DYNAMO multi-element <em>setfl</em> file is
-formatted as follows:</p>
-<ul class="simple">
-<li>lines 1,2,3 = comments (ignored)</li>
-<li>line 4: Nelements Element1 Element2 ... ElementN</li>
-<li>line 5: Nrho, drho, Nr, dr, cutoff</li>
-</ul>
-<p>In a DYNAMO <em>setfl</em> file, line 4 only lists Nelements = the # of
-elements in the <em>setfl</em> file.  For LAMMPS, the element name (Ni, Cu,
+<I>setfl</I> file.
+</P>
+<P>If a mapping value is specified as NULL, the mapping is not performed.
+This can be used when an <I>eam/alloy</I> potential is used as part of the
+<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
+</P>
+<P><I>Setfl</I> files in the <I>potentials</I> directory of the LAMMPS distribution
+have an ".eam.alloy" suffix.  A DYNAMO multi-element <I>setfl</I> file is
+formatted as follows:
+</P>
+<UL><LI>lines 1,2,3 = comments (ignored)
+<LI>line 4: Nelements Element1 Element2 ... ElementN
+<LI>line 5: Nrho, drho, Nr, dr, cutoff 
+</UL>
+<P>In a DYNAMO <I>setfl</I> file, line 4 only lists Nelements = the # of
+elements in the <I>setfl</I> file.  For LAMMPS, the element name (Ni, Cu,
 etc) of each element must be added to the line, in the order the
-elements appear in the file.</p>
-<p>The meaning and units of the values in line 5 is the same as for the
-<em>funcfl</em> file described above.  Note that the cutoff (in Angstroms) is
+elements appear in the file.
+</P>
+<P>The meaning and units of the values in line 5 is the same as for the
+<I>funcfl</I> file described above.  Note that the cutoff (in Angstroms) is
 a global value, valid for all pairwise interactions for all element
-pairings.</p>
-<p>Following the 5 header lines are Nelements sections, one for each
-element, each with the following format:</p>
-<ul class="simple">
-<li>line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)</li>
-<li>embedding function F(rho) (Nrho values)</li>
-<li>density function rho(r) (Nr values)</li>
-</ul>
-<p>As with the <em>funcfl</em> files, only the mass (in mass <a class="reference internal" href="units.html"><em>units</em></a>,
+pairings.
+</P>
+<P>Following the 5 header lines are Nelements sections, one for each
+element, each with the following format:
+</P>
+<UL><LI>line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
+<LI>embedding function F(rho) (Nrho values)
+<LI>density function rho(r) (Nr values) 
+</UL>
+<P>As with the <I>funcfl</I> files, only the mass (in mass <A HREF = "units.html">units</A>,
 e.g. mass number or grams/mole for metal units) is used by LAMMPS from
 the 1st line.  The cubic lattice constant is in Angstroms.  The F and
 rho arrays are unique to a single element and have the same format and
-units as in a <em>funcfl</em> file.</p>
-<p>Following the Nelements sections, Nr values for each pair potential
+units as in a <I>funcfl</I> file.
+</P>
+<P>Following the Nelements sections, Nr values for each pair potential
 phi(r) array are listed for all i,j element pairs in the same format
 as other arrays.  Since these interactions are symmetric (i,j = j,i)
-only phi arrays with i &gt;= j are listed, in the following order: i,j =
+only phi arrays with i >= j are listed, in the following order: i,j =
 (1,1), (2,1), (2,2), (3,1), (3,2), (3,3), (4,1), ..., (Nelements,
-Nelements).  Unlike the effective charge array Z(r) in <em>funcfl</em> files,
-the tabulated values for each phi function are listed in <em>setfl</em> files
+Nelements).  Unlike the effective charge array Z(r) in <I>funcfl</I> files,
+the tabulated values for each phi function are listed in <I>setfl</I> files
 directly as r*phi (in units of eV-Angstroms), since they are for atom
-pairs.</p>
-<hr class="docutils" />
-<p>Style <em>eam/cd</em> is similar to the <em>eam/alloy</em> style, except that it
+pairs.
+</P>
+<HR>
+
+<P>Style <I>eam/cd</I> is similar to the <I>eam/alloy</I> style, except that it
 computes alloy pairwise interactions using the concentration-dependent
 embedded-atom method (CD-EAM).  This model can reproduce the enthalpy
 of mixing of alloys over the full composition range, as described in
-<a class="reference internal" href="#stukowski"><span>(Stukowski)</span></a>.</p>
-<p>The pair_coeff command is specified the same as for the <em>eam/alloy</em>
-style.  However the DYNAMO <em>setfl</em> file must has two
-lines added to it, at the end of the file:</p>
-<ul class="simple">
-<li>line 1: Comment line (ignored)</li>
-<li>line 2: N Coefficient0 Coefficient1 ... CoeffincientN</li>
-</ul>
-<p>The last line begins with the degree <em>N</em> of the polynomial function
-<em>h(x)</em> that modifies the cross interaction between A and B elements.
-Then <em>N+1</em> coefficients for the terms of the polynomial are then
-listed.</p>
-<p>Modified EAM <em>setfl</em> files used with the <em>eam/cd</em> style must contain
-exactly two elements, i.e. in the current implementation the <em>eam/cd</em>
+<A HREF = "#Stukowski">(Stukowski)</A>.
+</P>
+<P>The pair_coeff command is specified the same as for the <I>eam/alloy</I>
+style.  However the DYNAMO <I>setfl</I> file must has two
+lines added to it, at the end of the file:
+</P>
+<UL><LI>line 1: Comment line (ignored)
+<LI>line 2: N Coefficient0 Coefficient1 ... CoeffincientN 
+</UL>
+<P>The last line begins with the degree <I>N</I> of the polynomial function
+<I>h(x)</I> that modifies the cross interaction between A and B elements.
+Then <I>N+1</I> coefficients for the terms of the polynomial are then
+listed.
+</P>
+<P>Modified EAM <I>setfl</I> files used with the <I>eam/cd</I> style must contain
+exactly two elements, i.e. in the current implementation the <I>eam/cd</I>
 style only supports binary alloys.  The first and second elements in
-the input EAM file are always taken as the <em>A</em> and <em>B</em> species.</p>
-<p><em>CD-EAM</em> files in the <em>potentials</em> directory of the LAMMPS
-distribution have a &#8221;.cdeam&#8221; suffix.</p>
-<hr class="docutils" />
-<p>Style <em>eam/fs</em> computes pairwise interactions for metals and metal
+the input EAM file are always taken as the <I>A</I> and <I>B</I> species.
+</P>
+<P><I>CD-EAM</I> files in the <I>potentials</I> directory of the LAMMPS
+distribution have a ".cdeam" suffix.
+</P>
+<HR>
+
+<P>Style <I>eam/fs</I> computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
-Sinclair <a class="reference internal" href="#finnis"><span>(Finnis)</span></a>.  The total energy Ei of an atom I is
-given by</p>
-<img alt="_images/pair_eam_fs.jpg" class="align-center" src="_images/pair_eam_fs.jpg" />
-<p>This has the same form as the EAM formula above, except that rho is
+Sinclair <A HREF = "#Finnis">(Finnis)</A>.  The total energy Ei of an atom I is
+given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_eam_fs.jpg">
+</CENTER>
+<P>This has the same form as the EAM formula above, except that rho is
 now a functional specific to the atomic types of both atoms I and J,
 so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
-element at that atomic site.</p>
-<p>The associated <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command for style <em>eam/fs</em>
-reads a DYNAMO <em>setfl</em> file that has been extended to include
+element at that atomic site.
+</P>
+<P>The associated <A HREF = "pair_coeff.html">pair_coeff</A> command for style <I>eam/fs</I>
+reads a DYNAMO <I>setfl</I> file that has been extended to include
 additional rho_alpha_beta arrays of tabulated values.  A discussion of
 how FS EAM differs from conventional EAM alloy potentials is given in
-<a class="reference internal" href="#ackland1"><span>(Ackland1)</span></a>.  An example of such a potential is the same
-author&#8217;s Fe-P FS potential <a class="reference internal" href="#ackland2"><span>(Ackland2)</span></a>.  Note that while FS
+<A HREF = "#Ackland1">(Ackland1)</A>.  An example of such a potential is the same
+author's Fe-P FS potential <A HREF = "#Ackland2">(Ackland2)</A>.  Note that while FS
 potentials always specify the embedding energy with a square root
 dependence on the total density, the implementation in LAMMPS does not
 require that; the user can tabulate any functional form desired in the
-FS potential files.</p>
-<p>For style <em>eam/fs</em>, the form of the pair_coeff command is exactly the
-same as for style <em>eam/alloy</em>, e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al
-</pre></div>
-</div>
-<p>where there are N additional arguments after the filename, where N is
-the number of LAMMPS atom types.  See the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>
+FS potential files.
+</P>
+<P>For style <I>eam/fs</I>, the form of the pair_coeff command is exactly the
+same as for style <I>eam/alloy</I>, e.g.
+</P>
+<PRE>pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al 
+</PRE>
+<P>where there are N additional arguments after the filename, where N is
+the number of LAMMPS atom types.  See the <A HREF = "pair_coeff.html">pair_coeff</A>
 doc page for alternate ways to specify the path for the potential
 file.  The N values determine the mapping of LAMMPS atom types to EAM
-elements in the file, as described above for style <em>eam/alloy</em>.  As
-with <em>eam/alloy</em>, if a mapping value is NULL, the mapping is not
-performed.  This can be used when an <em>eam/fs</em> potential is used as
-part of the <em>hybrid</em> pair style.  The NULL values are used as
-placeholders for atom types that will be used with other potentials.</p>
-<p>FS EAM files include more information than the DYNAMO <em>setfl</em> format
-files read by <em>eam/alloy</em>, in that i,j density functionals for all
+elements in the file, as described above for style <I>eam/alloy</I>.  As
+with <I>eam/alloy</I>, if a mapping value is NULL, the mapping is not
+performed.  This can be used when an <I>eam/fs</I> potential is used as
+part of the <I>hybrid</I> pair style.  The NULL values are used as
+placeholders for atom types that will be used with other potentials.
+</P>
+<P>FS EAM files include more information than the DYNAMO <I>setfl</I> format
+files read by <I>eam/alloy</I>, in that i,j density functionals for all
 pairs of elements are included as needed by the Finnis/Sinclair
-formulation of the EAM.</p>
-<p>FS EAM files in the <em>potentials</em> directory of the LAMMPS distribution
-have an &#8221;.eam.fs&#8221; suffix.  They are formatted as follows:</p>
-<ul class="simple">
-<li>lines 1,2,3 = comments (ignored)</li>
-<li>line 4: Nelements Element1 Element2 ... ElementN</li>
-<li>line 5: Nrho, drho, Nr, dr, cutoff</li>
-</ul>
-<p>The 5-line header section is identical to an EAM <em>setfl</em> file.</p>
-<p>Following the header are Nelements sections, one for each element I,
-each with the following format:</p>
-<ul class="simple">
-<li>line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)</li>
-<li>embedding function F(rho) (Nrho values)</li>
-<li>density function rho(r) for element I at element 1 (Nr values)</li>
-<li>density function rho(r) for element I at element 2</li>
-<li>...</li>
-<li>density function rho(r) for element I at element Nelement</li>
-</ul>
-<p>The units of these quantities in line 1 are the same as for <em>setfl</em>
+formulation of the EAM.
+</P>
+<P>FS EAM files in the <I>potentials</I> directory of the LAMMPS distribution
+have an ".eam.fs" suffix.  They are formatted as follows:
+</P>
+<UL><LI>lines 1,2,3 = comments (ignored)
+<LI>line 4: Nelements Element1 Element2 ... ElementN
+<LI>line 5: Nrho, drho, Nr, dr, cutoff 
+</UL>
+<P>The 5-line header section is identical to an EAM <I>setfl</I> file.
+</P>
+<P>Following the header are Nelements sections, one for each element I,
+each with the following format:
+</P>
+<UL><LI>line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
+<LI>embedding function F(rho) (Nrho values)
+<LI>density function rho(r) for element I at element 1 (Nr values)
+<LI>density function rho(r) for element I at element 2
+<LI>...
+<LI>density function rho(r) for element I at element Nelement 
+</UL>
+<P>The units of these quantities in line 1 are the same as for <I>setfl</I>
 files.  Note that the rho(r) arrays in Finnis/Sinclair can be
 asymmetric (i,j != j,i) so there are Nelements^2 of them listed in the
-file.</p>
-<p>Following the Nelements sections, Nr values for each pair potential
+file.
+</P>
+<P>Following the Nelements sections, Nr values for each pair potential
 phi(r) array are listed in the same manner (r*phi, units of
-eV-Angstroms) as in EAM <em>setfl</em> files.  Note that in Finnis/Sinclair,
-the phi(r) arrays are still symmetric, so only phi arrays for i &gt;= j
-are listed.</p>
-<hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+eV-Angstroms) as in EAM <I>setfl</I> files.  Note that in Finnis/Sinclair,
+the phi(r) arrays are still symmetric, so only phi arrays for i >= j
+are listed.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
-use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accerlate</em></a> of the manual for more
-instructions on how to use the accelerated styles effectively.</p>
-<hr class="docutils" />
-<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
-<p>For atom type pairs I,J and I != J, where types I and J correspond to
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accerlate</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
 described above with the individual styles.  You never need to specify
-a pair_coeff command with I != J arguments for the eam styles.</p>
-<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
-shift, table, and tail options.</p>
-<p>The eam pair styles do not write their information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in tabulated potential files.
+a pair_coeff command with I != J arguments for the eam styles.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
+</P>
+<P>The eam pair styles do not write their information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in tabulated potential files.
 Thus, you need to re-specify the pair_style and pair_coeff commands in
-an input script that reads a restart file.</p>
-<p>The eam pair styles can only be used via the <em>pair</em> keyword of the
-<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  They do not support the
-<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>All of these styles except the <em>eam/cd</em> style are part of the MANYBODY
+an input script that reads a restart file.
+</P>
+<P>The eam pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>All of these styles except the <I>eam/cd</I> style are part of the MANYBODY
 package.  They are only enabled if LAMMPS was built with that package
-(which it is by default).  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>The <em>eam/cd</em> style is part of the USER-MISC package and also requires
+(which it is by default).  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The <I>eam/cd</I> style is part of the USER-MISC package and also requires
 the MANYBODY package.  It is only enabled if LAMMPS was built with
-those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
-section for more info.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
-<p><strong>Default:</strong> none</p>
-<hr class="docutils" />
-<p id="ackland1"><strong>(Ackland1)</strong> Ackland, Condensed Matter (2005).</p>
-<p id="ackland2"><strong>(Ackland2)</strong> Ackland, Mendelev, Srolovitz, Han and Barashev, Journal
-of Physics: Condensed Matter, 16, S2629 (2004).</p>
-<p id="daw"><strong>(Daw)</strong> Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).
-Daw, Baskes, Phys Rev B, 29, 6443 (1984).</p>
-<p id="finnis"><strong>(Finnis)</strong> Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).</p>
-<p id="stukowski"><strong>(Stukowski)</strong> Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
-Materials Science &amp; Engineering, 7, 075005 (2009).</p>
-</div>
-</div>
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
 
+<A NAME = "Ackland1"></A>
 
-           </div>
-          </div>
-          <footer>
-  
+<P><B>(Ackland1)</B> Ackland, Condensed Matter (2005).
+</P>
+<A NAME = "Ackland2"></A>
 
-  <hr/>
+<P><B>(Ackland2)</B> Ackland, Mendelev, Srolovitz, Han and Barashev, Journal 
+of Physics: Condensed Matter, 16, S2629 (2004).
+</P>
+<A NAME = "Daw"></A>
 
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+<P><B>(Daw)</B> Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).  
+Daw, Baskes, Phys Rev B, 29, 6443 (1984).
+</P>
+<A NAME = "Finnis"></A>
 
-</footer>
+<P><B>(Finnis)</B> Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
+</P>
+<A NAME = "Stukowski"></A>
 
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Stukowski)</B> Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
+Materials Science & Engineering, 7, 075005 (2009).
+</P>
+</HTML>

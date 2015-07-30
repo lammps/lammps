@@ -1,252 +1,138 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Body particles &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>Body particles</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="body-particles">
-<h1>Body particles<a class="headerlink" href="#body-particles" title="Permalink to this headline">¶</a></h1>
-<p><strong>Overview:</strong></p>
-<p>This doc page is not about a LAMMPS input script command, but about
+
+
+<HR>
+
+<H3>Body particles 
+</H3>
+<P><B>Overview:</B>
+</P>
+<P>This doc page is not about a LAMMPS input script command, but about
 body particles, which are generalized finite-size particles.
 Individual body particles can represent complex entities, such as
 surface meshes of discrete points, collections of sub-particles,
 deformable objects, etc.  Note that other kinds of finite-size
 spherical and aspherical particles are also supported by LAMMPS, such
 as spheres, ellipsoids, line segments, and triangles, but they are
-simpler entities that body particles.  See <a class="reference internal" href="Section_howto.html#howto-14"><span>Section_howto 14</span></a> for a general overview of all these
-particle types.</p>
-<p>Body particles are used via the <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
+simpler entities that body particles.  See <A HREF = "Section_howto.html#howto_14">Section_howto
+14</A> for a general overview of all these
+particle types.
+</P>
+<P>Body particles are used via the <A HREF = "atom_style.html">atom_style body</A>
 command.  It takes a body style as an argument.  The current body
 styles supported by LAMMPS are as follows.  The name in the first
-column is used as the <em>bstyle</em> argument for the <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a> command.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="28%" />
-<col width="72%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><em>nparticle</em></td>
-<td>rigid body with N sub-particles</td>
-</tr>
-</tbody>
-</table>
-<p>The body style determines what attributes are stored for each body and
+column is used as the <I>bstyle</I> argument for the <A HREF = "atom_style.html">atom_style
+body</A> command.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><I>nparticle</I> </TD><TD > rigid body with N sub-particles 
+</TD></TR></TABLE></DIV>
+
+<P>The body style determines what attributes are stored for each body and
 thus how they can be used to compute pairwise body/body or
 bond/non-body (point particle) interactions.  More details of each
-style are described below.</p>
-<p>We hope to add more styles in the future.  See <a class="reference internal" href="Section_modify.html#mod-12"><span>Section_modify 12</span></a> for details on how to add a new body
-style to the code.</p>
-<hr class="docutils" />
-<p><strong>When to use body particles:</strong></p>
-<p>You should not use body particles to model a rigid body made of
+style are described below.
+</P>
+<P>We hope to add more styles in the future.  See <A HREF = "Section_modify.html#mod_12">Section_modify
+12</A> for details on how to add a new body
+style to the code.
+</P>
+<HR>
+
+<P><B>When to use body particles:</B>
+</P>
+<P>You should not use body particles to model a rigid body made of
 simpler particles (e.g. point, sphere, ellipsoid, line segment,
 triangular particles), if the interaction between pairs of rigid
 bodies is just the summation of pairwise interactions between the
 simpler particles.  LAMMPS already supports this kind of model via the
-<a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command.  Any of the numerous pair styles
+<A HREF = "fix_rigid.html">fix rigid</A> command.  Any of the numerous pair styles
 that compute interactions between simpler particles can be used.  The
-<a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command time integrates the motion of the
+<A HREF = "fix_rigid.html">fix rigid</A> command time integrates the motion of the
 rigid bodies.  All of the standard LAMMPS commands for thermostatting,
 adding constraints, performing output, etc will operate as expected on
-the simple particles.</p>
-<p>By contrast, when body particles are used, LAMMPS treats an entire
+the simple particles.
+</P>
+<P>By contrast, when body particles are used, LAMMPS treats an entire
 body as a single particle for purposes of computing pairwise
 interactions, building neighbor lists, migrating particles between
 processors, outputting particles to a dump file, etc.  This means that
 interactions between pairs of bodies or between a body and non-body
 (point) particle need to be encoded in an appropriate pair style.  If
-such a pair style were to mimic the <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> model,
+such a pair style were to mimic the <A HREF = "fix_rigid.html">fix rigid</A> model,
 it would need to loop over the entire collection of interactions
 between pairs of simple particles within the two bodies, each time a
-single body/body interaction was computed.</p>
-<p>Thus it only makes sense to use body particles and develop such a pair
+single body/body interaction was computed.
+</P>
+<P>Thus it only makes sense to use body particles and develop such a pair
 style, when particle/particle interactions are more complex than what
-the <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command can already calculate.  For
-example, if particles have one or more of the following attributes:</p>
-<ul class="simple">
-<li>represented by a surface mesh</li>
-<li>represented by a collection of geometric entities (e.g. planes + spheres)</li>
-<li>deformable</li>
-<li>internal stress that induces fragmentation</li>
-</ul>
-<p>then the interaction between pairs of particles is likely to be more
+the <A HREF = "fix_rigid.html">fix rigid</A> command can already calculate.  For
+example, if particles have one or more of the following attributes:
+</P>
+<UL><LI>represented by a surface mesh
+<LI>represented by a collection of geometric entities (e.g. planes + spheres)
+<LI>deformable
+<LI>internal stress that induces fragmentation 
+</UL>
+<P>then the interaction between pairs of particles is likely to be more
 complex than the summation of simple sub-particle interactions.  An
 example is contact or frictional forces between particles with planar
-sufaces that inter-penetrate.</p>
-<p>These are additional LAMMPS commands that can be used with body
-particles of different styles</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="48%" />
-<col width="52%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="fix_nve_body.html"><em>fix nve/body</em></a></td>
-<td>integrate motion of a body particle</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_body_local.html"><em>compute body/local</em></a></td>
-<td>store sub-particle attributes of a body particle</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="dump.html"><em>dump local</em></a></td>
-<td>output sub-particle attributes of a body particle</td>
-</tr>
-</tbody>
-</table>
-<p>The pair styles defined for use with specific body styles are listed
-in the sections below.</p>
-<hr class="docutils" />
-<p><strong>Specifics of body style nparticle:</strong></p>
-<p>The <em>nparticle</em> body style represents body particles as a rigid body
+sufaces that inter-penetrate.
+</P>
+<P>These are additional LAMMPS commands that can be used with body
+particles of different styles
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "fix_nve_body.html">fix nve/body</A> </TD><TD > integrate motion of a body particle</TD></TR>
+<TR><TD ><A HREF = "compute_body_local.html">compute body/local</A> </TD><TD > store sub-particle attributes of a body particle</TD></TR>
+<TR><TD ><A HREF = "dump.html">dump local</A> </TD><TD > output sub-particle attributes of a body particle 
+</TD></TR></TABLE></DIV>
+
+<P>The pair styles defined for use with specific body styles are listed
+in the sections below.
+</P>
+<HR>
+
+<P><B>Specifics of body style nparticle:</B>
+</P>
+<P>The <I>nparticle</I> body style represents body particles as a rigid body
 with a variable number N of sub-particles.  It is provided as a
 vanillia, prototypical example of a body particle, although as
-mentioned above, the <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command already
-duplicates its functionality.</p>
-<p>The atom_style body command for this body style takes two additional
-arguments:</p>
-<div class="highlight-python"><div class="highlight"><pre>atom_style body nparticle Nmin Nmax
+mentioned above, the <A HREF = "fix_rigid.html">fix rigid</A> command already
+duplicates its functionality.
+</P>
+<P>The atom_style body command for this body style takes two additional
+arguments:
+</P>
+<PRE>atom_style body nparticle Nmin Nmax
 Nmin = minimum # of sub-particles in any body in the system
-Nmax = maximum # of sub-particles in any body in the system
-</pre></div>
-</div>
-<p>The Nmin and Nmax arguments are used to bound the size of data
-structures used internally by each particle.</p>
-<p>When the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command reads a data file for this
+Nmax = maximum # of sub-particles in any body in the system 
+</PRE>
+<P>The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.
+</P>
+<P>When the <A HREF = "read_data.html">read_data</A> command reads a data file for this
 body style, the following information must be provided for each entry
-in the <em>Bodies</em> section of the data file:</p>
-<div class="highlight-python"><div class="highlight"><pre>atom-ID 1 M
+in the <I>Bodies</I> section of the data file:
+</P>
+<PRE>atom-ID 1 M
 N
 ixx iyy izz ixy ixz iyz x1 y1 z1 ...
 ...
-... xN yN zN
-</pre></div>
-</div>
-<p>N is the number of sub-particles in the body particle.  M = 6 + 3*N.
+... xN yN zN 
+</PRE>
+<P>N is the number of sub-particles in the body particle.  M = 6 + 3*N.
 The integer line has a single value N.  The floating point line(s)
 list 6 moments of inertia followed by the coordinates of the N
 sub-particles (x1 to zN) as 3N values on as many lines as required.
 Note that this in not N lines, but 10 values per line; see the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> command for details.  The 6 moments of
+<A HREF = "read_data.html">read_data</A> command for details.  The 6 moments of
 inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the values consistent with
 the current orientation of the rigid body around its center of mass.
 The values are with respect to the simulation box XYZ axes, not with
@@ -254,84 +140,24 @@ respect to the prinicpal axes of the rigid body itself.  LAMMPS
 performs the latter calculation internally.  The coordinates of each
 sub-particle are specified as its x,y,z displacement from the
 center-of-mass of the body particle.  The center-of-mass position of
-the particle is specified by the x,y,z values in the <em>Atoms</em> section
-of the data file.</p>
-<p>The <a class="reference internal" href="pair_body.html"><em>pair_style body</em></a> command can be used with this
-body style to compute body/body and body/non-body interactions.</p>
-<p>For output purposes via the <a class="reference internal" href="compute_body_local.html"><em>compute body/local</em></a> and <a class="reference internal" href="dump.html"><em>dump local</em></a>
+the particle is specified by the x,y,z values in the <I>Atoms</I> section
+of the data file.
+</P>
+<P>The <A HREF = "pair_body.html">pair_style body</A> command can be used with this
+body style to compute body/body and body/non-body interactions.
+</P>
+<P>For output purposes via the <A HREF = "compute_body_local.html">compute
+body/local</A> and <A HREF = "dump.html">dump local</A>
 commands, this body style produces one datum for each of the N
-sub-particles in a body particle.  The datum has 3 values:</p>
-<div class="highlight-python"><div class="highlight"><pre>1 = x position of sub-particle
+sub-particles in a body particle.  The datum has 3 values:
+</P>
+<PRE>1 = x position of sub-particle
 2 = y position of sub-particle
-3 = z position of sub-particle
-</pre></div>
-</div>
-<p>These values are the current position of the sub-particle within the
+3 = z position of sub-particle 
+</PRE>
+<P>These values are the current position of the sub-particle within the
 simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
-current COM and orientiation of the body particle.</p>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+current COM and orientiation of the body particle.
+</P>
+</HTML>

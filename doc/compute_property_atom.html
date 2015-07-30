@@ -1,161 +1,45 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>compute property/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>compute property/atom command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="compute-property-atom-command">
-<span id="index-0"></span><h1>compute property/atom command<a class="headerlink" href="#compute-property-atom-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID property/atom input1 input2 ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>property/atom = style name of this compute command</li>
-<li>input = one or more atom attributes</li>
-</ul>
-<div class="highlight-python"><div class="highlight"><pre>possible attributes = id, mol, proc, type, mass,
-                     x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
-                     vx, vy, vz, fx, fy, fz,
+
+
+<HR>
+
+<H3>compute property/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID property/atom input1 input2 ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>property/atom = style name of this compute command 
+
+<LI>input = one or more atom attributes 
+
+<PRE>  possible attributes = id, mol, proc, type, mass,
+ 	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+		        vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz, mu,
                         radius, diameter, omegax, omegay, omegaz,
-                     angmomx, angmomy, angmomz,
-                     shapex,shapey, shapez,
-                     quatw, quati, quatj, quatk, tqx, tqy, tqz,
-                     end1x, end1y, end1z, end2x, end2y, end2z,
-                     corner1x, corner1y, corner1z,
-                     corner2x, corner2y, corner2z,
-                     corner3x, corner3y, corner3z,
-                     nbonds,
+			angmomx, angmomy, angmomz,
+			shapex,shapey, shapez,
+		        quatw, quati, quatj, quatk, tqx, tqy, tqz,
+			end1x, end1y, end1z, end2x, end2y, end2z,
+			corner1x, corner1y, corner1z,
+			corner2x, corner2y, corner2z,
+			corner3x, corner3y, corner3z,
+			nbonds,
                         vfrac, s0,
-                     spin, eradius, ervel, erforce,
+			spin, eradius, ervel, erforce,
                         rho, drho, e, de, cv,
-                        i_name, d_name
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>id = atom ID
+                        i_name, d_name 
+</PRE>
+<PRE>      id = atom ID
       mol = molecule ID
       proc = ID of processor that owns atom
       type = atom type
@@ -177,168 +61,113 @@
       tqx,tqy,tqz = torque on finite-size particles
       end12x, end12y, end12z = end points of line segment
       corner123x, corner123y, corner123z = corner points of triangle
-      nbonds = number of bonds assigned to an atom
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>PERI package per-atom properties:
+      nbonds = number of bonds assigned to an atom 
+</PRE>
+<PRE>      PERI package per-atom properties:
       vfrac = ???
-      s0 = ???
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>USER-EFF and USER-AWPMD package per-atom properties:
+      s0 = ??? 
+</PRE>
+<PRE>      USER-EFF and USER-AWPMD package per-atom properties:
       spin = electron spin
       eradius = electron radius
       ervel = electron radial velocity
-      erforce = electron radial force
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>USER-SPH package per-atom properties:
+      erforce = electron radial force 
+</PRE>
+<PRE>      USER-SPH package per-atom properties:
       rho = ???
       drho = ???
       e = ???
       de = ???
-      cv = ???
-</pre></div>
-</div>
-<pre class="literal-block">
-<a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> per-atom properties:
+      cv = ??? 
+</PRE>
+<PRE>      <A HREF = "fix_property_atom.html">fix property/atom</A> per-atom properties:
       i_name = custom integer vector with name
-      d_name = custom integer vector with name
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all property/atom xs vx fx mux
+      d_name = custom integer vector with name 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all property/atom xs vx fx mux 
 compute 2 all property/atom type
-compute 1 all property/atom ix iy iz
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that simply stores atom attributes for each atom
+compute 1 all property/atom ix iy iz 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that simply stores atom attributes for each atom
 in the group.  This is useful so that the values can be used by other
-<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a> that take computes as
-inputs.  See for example, the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a>,
-<a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>,
-<a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>, and <a class="reference internal" href="variable.html"><em>atom-style variable</em></a> commands.</p>
-<p>The list of possible attributes is the same as that used by the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command, which describes their meaning, with some
-additional quantities that are only defined for certain <a class="reference internal" href="atom_style.html"><em>atom styles</em></a>.  Basically, this augmented list gives an
-input script access to any per-atom quantity stored by LAMMPS.</p>
-<p>The values are stored in a per-atom vector or array as discussed
+<A HREF = "Section_howto.html#howto_15">output commands</A> that take computes as
+inputs.  See for example, the <A HREF = "compute_reduce.html">compute reduce</A>,
+<A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>,
+<A HREF = "fix_ave_spatial.html">fix ave/spatial</A>, and <A HREF = "variable.html">atom-style
+variable</A> commands.
+</P>
+<P>The list of possible attributes is the same as that used by the <A HREF = "dump.html">dump
+custom</A> command, which describes their meaning, with some
+additional quantities that are only defined for certain <A HREF = "atom_style.html">atom
+styles</A>.  Basically, this augmented list gives an
+input script access to any per-atom quantity stored by LAMMPS.
+</P>
+<P>The values are stored in a per-atom vector or array as discussed
 below.  Zeroes are stored for atoms not in the specified group or for
 quantities that are not defined for a particular particle in the group
-(e.g. <em>shapex</em> if the particle is not an ellipsoid).</p>
-<p>The additional quantities only accessible via this command, and not
-directly via the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command, are as follows.</p>
-<p><em>Shapex</em>, <em>shapey</em>, and <em>shapez</em> are defined for ellipsoidal particles
-and define the 3d shape of each particle.</p>
-<p><em>Quatw</em>, <em>quati</em>, <em>quatj</em>, and <em>quatk</em> are defined for ellipsoidal
+(e.g. <I>shapex</I> if the particle is not an ellipsoid).
+</P>
+<P>The additional quantities only accessible via this command, and not
+directly via the <A HREF = "dump.html">dump custom</A> command, are as follows.
+</P>
+<P><I>Shapex</I>, <I>shapey</I>, and <I>shapez</I> are defined for ellipsoidal particles
+and define the 3d shape of each particle.
+</P>
+<P><I>Quatw</I>, <I>quati</I>, <I>quatj</I>, and <I>quatk</I> are defined for ellipsoidal
 particles and body particles and store the 4-vector quaternion
-representing the orientation of each particle.  See the <a class="reference internal" href="set.html"><em>set</em></a>
-command for an explanation of the quaternion vector.</p>
-<p><em>End1x</em>, <em>end1y</em>, <em>end1z</em>, <em>end2x</em>, <em>end2y</em>, <em>end2z</em>, are defined for
-line segment particles and define the end points of each line segment.</p>
-<p><em>Corner1x</em>, <em>corner1y</em>, <em>corner1z</em>, <em>corner2x</em>, <em>corner2y</em>,
-<em>corner2z</em>, <em>corner3x</em>, <em>corner3y</em>, <em>corner3z</em>, are defined for
-triangular particles and define the corner points of each triangle.</p>
-<p><em>Nbonds</em> is available for all molecular atom styles and refers to the
+representing the orientation of each particle.  See the <A HREF = "set.html">set</A>
+command for an explanation of the quaternion vector.
+</P>
+<P><I>End1x</I>, <I>end1y</I>, <I>end1z</I>, <I>end2x</I>, <I>end2y</I>, <I>end2z</I>, are defined for
+line segment particles and define the end points of each line segment.
+</P>
+<P><I>Corner1x</I>, <I>corner1y</I>, <I>corner1z</I>, <I>corner2x</I>, <I>corner2y</I>,
+<I>corner2z</I>, <I>corner3x</I>, <I>corner3y</I>, <I>corner3z</I>, are defined for
+triangular particles and define the corner points of each triangle.
+</P>
+<P><I>Nbonds</I> is available for all molecular atom styles and refers to the
 number of explicit bonds assigned to an atom.  Note that if the
-<a class="reference internal" href="newton.html"><em>newton bond</em></a> command is set to <em>on</em>, which is the
+<A HREF = "newton.html">newton bond</A> command is set to <I>on</I>, which is the
 default, then every bond in the system is assigned to only one of the
 two atoms in the bond.  Thus a bond between atoms I,J may be tallied
-for either atom I or atom J.  If <a class="reference internal" href="newton.html"><em>newton bond off</em></a> is set,
-it will be tallied with both atom I and atom J.</p>
-<p>The <em>i_name</em> and <em>d_name</em> attributes refer to custom integer and
+for either atom I or atom J.  If <A HREF = "newton.html">newton bond off</A> is set,
+it will be tallied with both atom I and atom J.
+</P>
+<P>The <I>i_name</I> and <I>d_name</I> attributes refer to custom integer and
 floating-point properties that have been added to each atom via the
-<a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command.  When that command
+<A HREF = "fix_property_atom.html">fix property/atom</A> command.  When that command
 is used specific names are given to each attribute which are what is
-specified as the &#8220;name&#8221; portion of <em>i_name</em> or <em>d_name</em>.</p>
-<p><strong>Output info:</strong></p>
-<p>This compute calculates a per-atom vector or per-atom array depending
+specified as the "name" portion of <I>i_name</I> or <I>d_name</I>.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom vector or per-atom array depending
 on the number of input values.  If a single input is specified, a
 per-atom vector is produced.  If two or more inputs are specified, a
 per-atom array is produced where the number of columns = the number of
 inputs.  The vector or array can be accessed by any command that uses
-per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
-options.</p>
-<p>The vector or array values will be in whatever <a class="reference internal" href="units.html"><em>units</em></a> the
+per-atom values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The vector or array values will be in whatever <A HREF = "units.html">units</A> the
 corresponding attribute is in, e.g. velocity units for vx, charge
-units for q, etc.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="dump.html"><em>dump custom</em></a>, <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a>, <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>,
-<a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a></p>
-<p><strong>Default:</strong> none</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+units for q, etc.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump custom</A>, <A HREF = "compute_reduce.html">compute reduce</A>, <A HREF = "fix_ave_atom.html">fix
+ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
+<A HREF = "fix_property_atom.html">fix property/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

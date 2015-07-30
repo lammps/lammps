@@ -1,322 +1,175 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>fix ti/spring command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>fix ti/spring command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="fix-ti-spring-command">
-<span id="index-0"></span><h1>fix ti/spring command<a class="headerlink" href="#fix-ti-spring-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID ti/spring K t_switch t_equil keyword value ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
-<li>ti/spring = style name of this fix command</li>
-<li>K = spring constant (force/distance units)</li>
-<li>t_switch/t_equil = number of steps of the switching/equilibration procedure</li>
-<li>zero or more keyword/value pairs may be appended to args</li>
-<li>keyword = <em>function</em></li>
-</ul>
-<pre class="literal-block">
-<em>function</em> value = function-ID
-    function-ID = ID of the switching function (1 or 2)
-</pre>
-<p><strong>Example:</strong></p>
-<div class="highlight-python"><div class="highlight"><pre>fix ref all ti/spring 50.0 2000 1000 function 2
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>This fix allows you to compute the free energy of solids by performing
+
+
+<HR>
+
+<H3>fix ti/spring command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID ti/spring K t_switch t_equil keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>ti/spring = style name of this fix command 
+
+<LI>K = spring constant (force/distance units) 
+
+<LI>t_switch/t_equil = number of steps of the switching/equilibration procedure 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>function</I> 
+
+<PRE>  <I>function</I> value = function-ID 
+    function-ID = ID of the switching function (1 or 2) 
+</PRE>
+
+</UL>
+<P><B>Example:</B>
+</P>
+<PRE>fix ref all ti/spring 50.0 2000 1000 function 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix allows you to compute the free energy of solids by performing
 a thermodynamic integration between the solid of interest and an
-Einstein crystal <a class="reference internal" href="#frenkel"><span>(Frenkel)</span></a>. The thermodynamic integration
+Einstein crystal <A HREF = "#Frenkel">(Frenkel)</A>. The thermodynamic integration
 is performed using the nonequilibrium method of Adiabatic Switching
-<a class="reference internal" href="#watanabe"><span>(Watanabe,</span></a> <a class="reference internal" href="#dekoning96"><span>de Koning96)</span></a>.</p>
-<p>A spring force is applied independently to each atom in the group to
+<A HREF = "#Watanabe">(Watanabe,</A> <A HREF = "#deKoning96">de Koning96)</A>.
+</P>
+<P>A spring force is applied independently to each atom in the group to
 tether it to its initial position. The initial position for each atom
 is its location at the time the fix command was issued. More details
-about the springs are available in <a class="reference internal" href="fix_spring_self.html"><em>fix spring/self</em></a>. The forces on the atoms are
+about the springs are available in <A HREF = "fix_spring_self.html">fix
+spring/self</A>. The forces on the atoms are
 dynamically scaled during the simulation, the rescaling is done in the
-following manner:</p>
-<img alt="_images/fix_ti_spring_force.jpg" class="align-center" src="_images/fix_ti_spring_force.jpg" />
-<p>where F_harm is the force due to the springs, F_solid is the total
+following manner:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ti_spring_force.jpg">
+</CENTER>
+<P>where F_harm is the force due to the springs, F_solid is the total
 force on the atoms due to the interatomic potential and lambda is the
-coupling parameter of the thermodynamic integration.</p>
-<p>The fix acts as follows: during the first <em>t_equil</em> steps after the
+coupling parameter of the thermodynamic integration.
+</P>
+<P>The fix acts as follows: during the first <I>t_equil</I> steps after the
 fix is defined the value of lambda is zero, this is the period to
 equilibrate the system in the lambda = 0 state. After this the value
 of lambda changes continuously from 0 to 1 according to the function
-defined using the keyword <em>function</em> (described below), this is done
-in <em>t_switch</em> steps. Then comes the second equilibration period of
-<em>t_equil</em> to equilibrate the system in the lambda = 1 state. After
+defined using the keyword <I>function</I> (described below), this is done
+in <I>t_switch</I> steps. Then comes the second equilibration period of
+<I>t_equil</I> to equilibrate the system in the lambda = 1 state. After
 that the switching back to the lambda = 0 state is made using
-<em>t_switch</em> timesteps and following the same switching function. After
+<I>t_switch</I> timesteps and following the same switching function. After
 this period the value of lambda is kept equal to zero and the fix has
-no action in the dynamics of the system anymore.</p>
-<p>The description of thermodynamic integration in both directions is
-done in <a class="reference internal" href="#dekoning97"><span>de Koning97</span></a>, the main reason is to try to
-eliminate the dissipated heat due to the nonequilibrium process.</p>
-<p>The <em>function</em> keyword allows the use of two different switching
-rates, the option <em>1</em> results in a constant rescaling where the lambda
+no action in the dynamics of the system anymore.
+</P>
+<P>The description of thermodynamic integration in both directions is
+done in <A HREF = "#deKoning97">de Koning97</A>, the main reason is to try to
+eliminate the dissipated heat due to the nonequilibrium process.
+</P>
+<P>The <I>function</I> keyword allows the use of two different switching
+rates, the option <I>1</I> results in a constant rescaling where the lambda
 parameter changes at a constant rate during the switching time
-according to the switching function</p>
-<img alt="_images/fix_ti_spring_function_1.jpg" class="align-center" src="_images/fix_ti_spring_function_1.jpg" />
-<p>where tau is the scaled time variable t/t_switch. The option number
-<em>2</em> performs the switching at a rate defined by the following
-switching function</p>
-<img alt="_images/fix_ti_spring_function_2.jpg" class="align-center" src="_images/fix_ti_spring_function_2.jpg" />
-<p>This function has zero slope as lambda approaches its extreme values
-(0 and 1), according to (<a class="reference internal" href="#dekoning96"><span>de Koning96)</span></a> this results in
+according to the switching function
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ti_spring_function_1.jpg">
+</CENTER>
+<P>where tau is the scaled time variable t/t_switch. The option number
+<I>2</I> performs the switching at a rate defined by the following
+switching function
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ti_spring_function_2.jpg">
+</CENTER>
+<P>This function has zero slope as lambda approaches its extreme values
+(0 and 1), according to (<A HREF = "#deKoning96">de Koning96)</A> this results in
 smaller fluctuations on the integral to be computed on the
-thermodynamic integration.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is importante to keep the center of mass fixed
+thermodynamic integration.
+</P>
+<P>IMPORTANT NOTE: It is importante to keep the center of mass fixed
 during the thermodynamic integration, a non-zero total velocity will
 result in divergencies during the integration due to the fact that the
-atoms are &#8216;attatched&#8217; to its equilibrium positions by the Einstein
-crystal. Check the option <em>zero</em> of <a class="reference external" href="fix_langevin_html">fix langevin</a>
-and <a class="reference internal" href="velocity.html"><em>velocity</em></a>. The use of the Nose-Hoover thermostat
-(<code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">nvt</span></code>) is NOT recommended due to its well documented
+atoms are 'attatched' to its equilibrium positions by the Einstein
+crystal. Check the option <I>zero</I> of <A HREF = "fix_langevin_html">fix langevin</A>
+and <A HREF = "velocity.html">velocity</A>. The use of the Nose-Hoover thermostat
+(<A HREF = "fix_nvt.html">fix nvt</A>) is NOT recommended due to its well documented
 issues with the canonical sampling of harmonic degrees of freedom
-(notice that the <em>chain</em> option will NOT solve this problem). The
-Langevin thermostat (<a class="reference external" href="fix_langevin.html&quot;">fix langevin</a>) works fine.</p>
-</div>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
-<p>This fix writes the original coordinates of tethered atoms to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so that the spring effect will be the
-same in a restarted simulation. See the <a class="reference internal" href="read_restart.html"><em>read restart</em></a> command for info on how to re-specify a fix
+(notice that the <I>chain</I> option will NOT solve this problem). The
+Langevin thermostat (<A HREF = "fix_langevin.html"">fix langevin</A>) works fine.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the original coordinates of tethered atoms to <A HREF = "restart.html">binary
+restart files</A>, so that the spring effect will be the
+same in a restarted simulation. See the <A HREF = "read_restart.html">read
+restart</A> command for info on how to re-specify a fix
 in an input script that reads a restart file, so that the operation of
-the fix continues in an uninterrupted fashion.</p>
-<p>The <a class="reference internal" href="fix_modify.html"><em>fix modify</em></a> <em>energy</em> option is supported by this
-fix to add the energy stored in the per-atom springs to the system&#8217;s
-potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
-<p>This fix computes a global scalar and a global vector quantities which
-can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is an energy which
+the fix continues in an uninterrupted fashion.
+</P>
+<P>The <A HREF = "fix_modify.html">fix modify</A> <I>energy</I> option is supported by this
+fix to add the energy stored in the per-atom springs to the system's
+potential energy as part of <A HREF = "thermo_style.html">thermodynamic output</A>.
+</P>
+<P>This fix computes a global scalar and a global vector quantities which
+can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar is an energy which
 is the sum of the spring energy for each atom, where the per-atom
 energy is 0.5 * K * r^2. The vector has 2 positions, the first one is
 the coupling parameter lambda and the second one is the time
 derivative of lambda. The scalar and vector values calculated by this
-fix are &#8220;extensive&#8221;.</p>
-<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
-the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
-<p>The forces due to this fix are imposed during an energy minimization,
-invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the per-atom spring energy to be included
+fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P>IMPORTANT NOTE: If you want the per-atom spring energy to be included
 in the total potential energy of the system (the quantity being
-minimized), you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix modify</em></a> <em>energy</em>
-option for this fix.</p>
-</div>
-<p>An example script using this command is provided in the
-examples/USER/misc/ti directory.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="fix_spring.html"><em>fix spring</em></a>, <a class="reference internal" href="fix_ti_rs.html"><em>fix ti/rs</em></a></p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This command is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The keyword default is function = 1.</p>
-<hr class="docutils" />
-<p id="frenkel"><strong>(Frenkel)</strong> Daan Frenkel and Anthony J. C. Ladd, J. Chem. Phys. 81, 3188
-(1984).</p>
-<p id="watanabe"><strong>(Watanabe)</strong> M. Watanabe and W. P. Reinhardt, Phys Rev Lett, 65, 3301 (1990).</p>
-<p id="dekoning96"><strong>(de Koning 96)</strong> M. de Koning and A. Antonelli, Phys Rev E, 53, 465 (1996).</p>
-<p id="dekoning97"><strong>(de Koning 97)</strong> M. de Koning and A. Antonelli, Phys Rev B, 55, 735 (1997).</p>
-</div>
-</div>
+minimized), you MUST enable the <A HREF = "fix_modify.html">fix modify</A> <I>energy</I>
+option for this fix.
+</P>
+<P>An example script using this command is provided in the
+examples/USER/misc/ti directory.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_spring.html">fix spring</A>, <A HREF = "fix_ti_rs.html">fix ti/rs</A>
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Default:</B>
+</P>
+<P>The keyword default is function = 1.
+</P>
+<HR>
 
+<A NAME = "Frenkel"></A>
 
-           </div>
-          </div>
-          <footer>
-  
+<P><B>(Frenkel)</B> Daan Frenkel and Anthony J. C. Ladd, J. Chem. Phys. 81, 3188
+(1984).
+</P>
+<A NAME = "Watanabe"></A>
 
-  <hr/>
+<P><B>(Watanabe)</B> M. Watanabe and W. P. Reinhardt, Phys Rev Lett, 65, 3301 (1990).
+</P>
+<A NAME = "deKoning96"></A>
 
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+<P><B>(de Koning 96)</B> M. de Koning and A. Antonelli, Phys Rev E, 53, 465 (1996).
+</P>
+<A NAME = "deKoning97"></A>
 
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(de Koning 97)</B> M. de Koning and A. Antonelli, Phys Rev B, 55, 735 (1997).
+</P>
+</HTML>

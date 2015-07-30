@@ -1,212 +1,95 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>special_bonds command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>special_bonds command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="special-bonds-command">
-<span id="index-0"></span><h1>special_bonds command<a class="headerlink" href="#special-bonds-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>special_bonds keyword values ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>one or more keyword/value pairs may be appended</li>
-<li>keyword = <em>amber</em> or <em>charmm</em> or <em>dreiding</em> or <em>fene</em> or <em>lj/coul</em> or <em>lj</em> or <em>coul</em> or <em>angle</em> or <em>dihedral</em> or <em>extra</em></li>
-</ul>
-<pre class="literal-block">
-<em>amber</em> values = none
-  <em>charmm</em> values = none
-  <em>dreiding</em> values = none
-  <em>fene</em> values = none
-  <em>lj/coul</em> values = w1,w2,w3
+
+
+<HR>
+
+<H3>special_bonds command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>special_bonds keyword values ... 
+</PRE>
+<UL><LI>one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>amber</I> or <I>charmm</I> or <I>dreiding</I> or <I>fene</I> or <I>lj/coul</I> or <I>lj</I> or <I>coul</I> or <I>angle</I> or <I>dihedral</I> or <I>extra</I> 
+
+<PRE>  <I>amber</I> values = none
+  <I>charmm</I> values = none
+  <I>dreiding</I> values = none
+  <I>fene</I> values = none
+  <I>lj/coul</I> values = w1,w2,w3
     w1,w2,w3 = weights (0.0 to 1.0) on pairwise Lennard-Jones and Coulombic interactions
-  <em>lj</em> values = w1,w2,w3
+  <I>lj</I> values = w1,w2,w3
     w1,w2,w3 = weights (0.0 to 1.0) on pairwise Lennard-Jones interactions
-  <em>coul</em> values = w1,w2,w3
+  <I>coul</I> values = w1,w2,w3
     w1,w2,w3 = weights (0.0 to 1.0) on pairwise Coulombic interactions
-  <em>angle</em> value = <em>yes</em> or <em>no</em>
-  <em>dihedral</em> value = <em>yes</em> or <em>no</em>
-  <em>extra</em> value = N
-    N = number of extra 1-2,1-3,1-4 interactions to save space for
-</pre>
-<p>Examples:</p>
-<div class="highlight-python"><div class="highlight"><pre>special_bonds amber
+  <I>angle</I> value = <I>yes</I> or <I>no</I>
+  <I>dihedral</I> value = <I>yes</I> or <I>no</I>
+  <I>extra</I> value = N
+    N = number of extra 1-2,1-3,1-4 interactions to save space for 
+</PRE>
+
+</UL>
+<P>Examples:
+</P>
+<PRE>special_bonds amber
 special_bonds charmm
 special_bonds fene dihedral no
 special_bonds lj/coul 0.0 0.0 0.5 angle yes dihedral yes
 special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.0 dihedral yes
-special_bonds lj/coul 0 1 1 extra 2
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Set weighting coefficients for pairwise energy and force contributions
+special_bonds lj/coul 0 1 1 extra 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set weighting coefficients for pairwise energy and force contributions
 between pairs of atoms that are also permanently bonded to each other,
 either directly or via one or two intermediate bonds.  These weighting
-factors are used by nearly all <a class="reference internal" href="pair_style.html"><em>pair styles</em></a> in LAMMPS
+factors are used by nearly all <A HREF = "pair_style.html">pair styles</A> in LAMMPS
 that compute simple pairwise interactions.  Permanent bonds between
 atoms are specified by defining the bond topology in the data file
-read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.  Typically a
-<a class="reference internal" href="bond_style.html"><em>bond_style</em></a> command is also used to define a bond
+read by the <A HREF = "read_data.html">read_data</A> command.  Typically a
+<A HREF = "bond_style.html">bond_style</A> command is also used to define a bond
 potential.  The rationale for using these weighting factors is that
 the interaction between a pair of bonded atoms is all (or mostly)
 specified by the bond, angle, dihedral potentials, and thus the
 non-bonded Lennard-Jones or Coulombic interaction between the pair of
-atoms should be excluded (or reduced by a weighting factor).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">These weighting factors are NOT used by <a class="reference internal" href="pair_style.html"><em>pair styles</em></a> that compute many-body interactions, since the
-&#8220;bonds&#8221; that result from such interactions are not permanent, but are
+atoms should be excluded (or reduced by a weighting factor).
+</P>
+<P>IMPORTANT NOTE: These weighting factors are NOT used by <A HREF = "pair_style.html">pair
+styles</A> that compute many-body interactions, since the
+"bonds" that result from such interactions are not permanent, but are
 created and broken dynamically as atom conformations change.  Examples
 of pair styles in this category are EAM, MEAM, Stillinger-Weber,
 Tersoff, COMB, AIREBO, and ReaxFF.  In fact, it generally makes no
 sense to define permanent bonds between atoms that interact via these
 potentials, though such bonds may exist elsewhere in your system,
-e.g. when using the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> command.
+e.g. when using the <A HREF = "pair_hybrid.html">pair_style hybrid</A> command.
 Thus LAMMPS ignores special_bonds settings when manybody potentials
-are calculated.</p>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike some commands in LAMMPS, you cannot use this
+are calculated.
+</P>
+<P>IMPORTANT NOTE: Unlike some commands in LAMMPS, you cannot use this
 command multiple times in an incremental fashion: e.g. to first set
 the LJ settings and then the Coulombic ones.  Each time you use this
 command it sets all the coefficients to default values and only
 overrides the one you specify, so you should set all the options you
 need each time you use it.  See more details at the bottom of this
-page.</p>
-</div>
-<p>The Coulomb factors are applied to any Coulomb (charge interaction)
+page.
+</P>
+<P>The Coulomb factors are applied to any Coulomb (charge interaction)
 term that the potential calculates.  The LJ factors are applied to the
 remaining terms that the potential calculates, whether they represent
 LJ interactions or not.  The weighting factors are a scaling
 pre-factor on the energy and force between the pair of atoms.  A value
 of 1.0 means include the full interaction; a value of 0.0 means
-exclude it completely.</p>
-<p>The 1st of the 3 coefficients (LJ or Coulombic) is the weighting
+exclude it completely.
+</P>
+<P>The 1st of the 3 coefficients (LJ or Coulombic) is the weighting
 factor on 1-2 atom pairs, which are pairs of atoms directly bonded to
 each other.  The 2nd coefficient is the weighting factor on 1-3 atom
 pairs which are those separated by 2 bonds (e.g. the two H atoms in a
@@ -215,54 +98,59 @@ atom pairs which are those separated by 3 bonds (e.g. the 1st and 4th
 atoms in a dihedral interaction).  Thus if the 1-2 coefficient is set
 to 0.0, then the pairwise interaction is effectively turned off for
 all pairs of atoms bonded to each other.  If it is set to 1.0, then
-that interaction will be at full strength.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For purposes of computing weighted pairwise
+that interaction will be at full strength.
+</P>
+<P>IMPORTANT NOTE: For purposes of computing weighted pairwise
 interactions, 1-3 and 1-4 interactions are not defined from the list
 of angles or dihedrals used by the simulation.  Rather, they are
 inferred topologically from the set of bonds specified when the
 simulation is defined from a data or restart file (see
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
 commands).  Thus the set of 1-2,1-3,1-4 interactions that the weights
 apply to is the same whether angle and dihedral potentials are
 computed or not, and remains the same even if bonds are constrained,
-or turned off, or removed during a simulation.</p>
-</div>
-<p>The two exceptions to this rule are (a) if the <em>angle</em> or <em>dihedral</em>
-keywords are set to <em>yes</em> (see below), or (b) if the
-<a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a> command is used with the <em>special</em>
+or turned off, or removed during a simulation.
+</P>
+<P>The two exceptions to this rule are (a) if the <I>angle</I> or <I>dihedral</I>
+keywords are set to <I>yes</I> (see below), or (b) if the
+<A HREF = "delete_bonds.html">delete_bonds</A> command is used with the <I>special</I>
 option that recomputes the 1-2,1-3,1-4 topologies after bonds are
-deleted; see the <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a> command for more
-details.</p>
-<p>The <em>amber</em> keyword sets the 3 coefficients to 0.0, 0.0, 0.5 for LJ
+deleted; see the <A HREF = "delete_bonds.html">delete_bonds</A> command for more
+details.
+</P>
+<P>The <I>amber</I> keyword sets the 3 coefficients to 0.0, 0.0, 0.5 for LJ
 interactions and to 0.0, 0.0, 0.8333 for Coulombic interactions, which
 is the default for a commonly used version of the AMBER force field,
-where the last value is really 5/6.  See <a class="reference internal" href="#cornell"><span>(Cornell)</span></a> for a
-description of the AMBER force field.</p>
-<p>The <em>charmm</em> keyword sets the 3 coefficients to 0.0, 0.0, 0.0 for both
+where the last value is really 5/6.  See <A HREF = "#Cornell">(Cornell)</A> for a
+description of the AMBER force field.
+</P>
+<P>The <I>charmm</I> keyword sets the 3 coefficients to 0.0, 0.0, 0.0 for both
 LJ and Coulombic interactions, which is the default for a commonly
 used version of the CHARMM force field.  Note that in pair styles
-<em>lj/charmm/coul/charmm</em> and <em>lj/charmm/coul/long</em> the 1-4 coefficients
+<I>lj/charmm/coul/charmm</I> and <I>lj/charmm/coul/long</I> the 1-4 coefficients
 are defined explicitly, and these pairwise contributions are computed
 as part of the charmm dihedral style - see the
-<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> and <a class="reference internal" href="dihedral_style.html"><em>dihedral_style</em></a>
-commands for more information.  See <a class="reference internal" href="#mackerell"><span>(MacKerell)</span></a> for a
-description of the CHARMM force field.</p>
-<p>The <em>dreiding</em> keyword sets the 3 coefficients to 0.0, 0.0, 1.0 for both
+<A HREF = "pair_coeff.html">pair_coeff</A> and <A HREF = "dihedral_style.html">dihedral_style</A>
+commands for more information.  See <A HREF = "#MacKerell">(MacKerell)</A> for a
+description of the CHARMM force field.
+</P>
+<P>The <I>dreiding</I> keyword sets the 3 coefficients to 0.0, 0.0, 1.0 for both
 LJ and Coulombic interactions, which is the default for the Dreiding
-force field, as discussed in <a class="reference internal" href="#mayo"><span>(Mayo)</span></a>.</p>
-<p>The <em>fene</em> keyword sets the 3 coefficients to 0.0, 1.0, 1.0 for both
+force field, as discussed in <A HREF = "#Mayo">(Mayo)</A>.
+</P>
+<P>The <I>fene</I> keyword sets the 3 coefficients to 0.0, 1.0, 1.0 for both
 LJ and Coulombic interactions, which is consistent with a
-coarse-grained polymer model with <a class="reference internal" href="bond_fene.html"><em>FENE bonds</em></a>.  See
-<a class="reference internal" href="#kremer"><span>(Kremer)</span></a> for a description of FENE bonds.</p>
-<p>The <em>lj/coul</em>, <em>lj</em>, and <em>coul</em> keywords allow the 3 coefficients to
-be set explicitly.  The <em>lj/coul</em> keyword sets both the LJ and
-Coulombic coefficients to the same 3 values.  The <em>lj</em> and <em>coul</em>
+coarse-grained polymer model with <A HREF = "bond_fene.html">FENE bonds</A>.  See
+<A HREF = "#Kremer">(Kremer)</A> for a description of FENE bonds.
+</P>
+<P>The <I>lj/coul</I>, <I>lj</I>, and <I>coul</I> keywords allow the 3 coefficients to
+be set explicitly.  The <I>lj/coul</I> keyword sets both the LJ and
+Coulombic coefficients to the same 3 values.  The <I>lj</I> and <I>coul</I>
 keywords only set either the LJ or Coulombic coefficients.  Use both
 of them if you wish to set the LJ coefficients to different values
-than the Coulombic coefficients.</p>
-<p>The <em>angle</em> keyword allows the 1-3 weighting factor to be ignored for
+than the Coulombic coefficients.
+</P>
+<P>The <I>angle</I> keyword allows the 1-3 weighting factor to be ignored for
 individual atom pairs if they are not listed as the first and last
 atoms in any angle defined in the simulation or as 1,3 or 2,4 atoms in
 any dihedral defined in the simulation.  For example, imagine the 1-3
@@ -272,11 +160,12 @@ as an angle, but does not define 2-3-4 as an angle or 1-2-3-4 as a
 dihedral, then the pairwise interaction between atoms 1 and 3 will
 always be weighted by 0.5, but different force fields use different
 rules for weighting the pairwise interaction between atoms 2 and 4.
-If the <em>angle</em> keyword is specified as <em>yes</em>, then the pairwise
+If the <I>angle</I> keyword is specified as <I>yes</I>, then the pairwise
 interaction between atoms 2 and 4 will be unaffected (full weighting
-of 1.0).  If the <em>angle</em> keyword is specified as <em>no</em> which is the
-default, then the 2,4 interaction will also be weighted by 0.5.</p>
-<p>The <em>dihedral</em> keyword allows the 1-4 weighting factor to be ignored
+of 1.0).  If the <I>angle</I> keyword is specified as <I>no</I> which is the
+default, then the 2,4 interaction will also be weighted by 0.5.
+</P>
+<P>The <I>dihedral</I> keyword allows the 1-4 weighting factor to be ignored
 for individual atom pairs if they are not listed as the first and last
 atoms in any dihedral defined in the simulation.  For example, imagine
 the 1-4 weighting factor is set to 0.5 and you have a linear molecule
@@ -285,148 +174,103 @@ defines 1-2-3-4 as a dihedral, but does not define 2-3-4-5 as a
 dihedral, then the pairwise interaction between atoms 1 and 4 will
 always be weighted by 0.5, but different force fields use different
 rules for weighting the pairwise interaction between atoms 2 and 5.
-If the <em>dihedral</em> keyword is specified as <em>yes</em>, then the pairwise
+If the <I>dihedral</I> keyword is specified as <I>yes</I>, then the pairwise
 interaction between atoms 2 and 5 will be unaffected (full weighting
-of 1.0).  If the <em>dihedral</em> keyword is specified as <em>no</em> which is the
-default, then the 2,5 interaction will also be weighted by 0.5.</p>
-<p>The <em>extra</em> keyword can be used when additional bonds will be created
-during a simulation run, e.g. by the <a class="reference internal" href="fix_bond_create.html"><em>fix bond/create</em></a> command.  It can also be used if
-molecules will be added to the system, e.g. via the <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a>, or <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a> commands, which
+of 1.0).  If the <I>dihedral</I> keyword is specified as <I>no</I> which is the
+default, then the 2,5 interaction will also be weighted by 0.5.
+</P>
+<P>The <I>extra</I> keyword can be used when additional bonds will be created
+during a simulation run, e.g. by the <A HREF = "fix_bond_create.html">fix
+bond/create</A> command.  It can also be used if
+molecules will be added to the system, e.g. via the <A HREF = "fix_deposit.html">fix
+deposit</A>, or <A HREF = "fix_pour.html">fix pour</A> commands, which
 will have atoms with more special neighbors than any atom in the
-current system has.</p>
-<hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">LAMMPS stores and maintains a data structure with a
+current system has.  
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: LAMMPS stores and maintains a data structure with a
 list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
 topology of the system).  If new bonds are created (or molecules added
 containing atoms with more special neighbors), the size of this list
 needs to grow.  Note that adding a single bond always adds a new 1st
-neighbor but may also induce <em>many</em> new 2nd and 3rd neighbors,
-depending on the molecular topology of your system.  Using the <em>extra</em>
+neighbor but may also induce *many* new 2nd and 3rd neighbors,
+depending on the molecular topology of your system.  Using the <I>extra</I>
 keyword leaves empty space in the list for this N additional 1st, 2nd,
 or 3rd neighbors to be added.  If you do not do this, you may get an
-error when bonds (or molecules) are added.</p>
-</div>
-<hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you reuse this command in an input script, you
+error when bonds (or molecules) are added.
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: If you reuse this command in an input script, you
 should set all the options you need each time.  This command cannot be
 used a 2nd time incrementally, e.g. to add some extra storage
-locations via the <em>extra</em> keyword.  E.g. these two commands:</p>
-</div>
-<p>special_bonds lj 0.0 1.0 1.0
-special_bonds coul 0.0 0.0 1.0</p>
-<p>are not the same as</p>
-<p>special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0</p>
-<p>In the first case you end up with (after the 2nd command):</p>
-<p>LJ: 0.0 0.0 0.0
-Coul: coul 0.0 0.0 1.0</p>
-<p>because the LJ settings are reset to their default values
-each time the command is issued.</p>
-<p>Likewise</p>
-<div class="highlight-python"><div class="highlight"><pre>special_bonds amber
-special_bonds extra 2
-</pre></div>
-</div>
-<p>is not the same as this single command:</p>
-<div class="highlight-python"><div class="highlight"><pre>special_bonds amber extra 2
-</pre></div>
-</div>
-<p>since in the former case, the 2nd command will reset all the LJ and
-Coulombic weights to 0.0 (the default).</p>
-<p>One exception to this rule is the <em>extra</em> option itself.  It is not
+locations via the <I>extra</I> keyword.  E.g. these two commands:
+</P>
+<P>special_bonds lj 0.0 1.0 1.0
+special_bonds coul 0.0 0.0 1.0
+</P>
+<P>are not the same as 
+</P>
+<P>special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0
+</P>
+<P>In the first case you end up with (after the 2nd command):
+</P>
+<P>LJ: 0.0 0.0 0.0
+Coul: coul 0.0 0.0 1.0
+</P>
+<P>because the LJ settings are reset to their default values
+each time the command is issued.
+</P>
+<P>Likewise
+</P>
+<PRE>special_bonds amber
+special_bonds extra 2 
+</PRE>
+<P>is not the same as this single command:
+</P>
+<PRE>special_bonds amber extra 2 
+</PRE>
+<P>since in the former case, the 2nd command will reset all the LJ and
+Coulombic weights to 0.0 (the default).
+</P>
+<P>One exception to this rule is the <I>extra</I> option itself.  It is not
 reset to its default value of 0 each time the special_bonds command is
 invoked.  This is because it can also be set by the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> and <a class="reference internal" href="create_box.html"><em>create_box</em></a> commands,
+<A HREF = "read_data.html">read_data</A> and <A HREF = "create_box.html">create_box</A> commands,
 so this command will not override those settings unless you explicitly
-use <em>extra</em> as an option.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a>, <a class="reference internal" href="fix_bond_create.html"><em>fix bond/create</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>All 3 Lennard-Jones and 3 Coulombic weighting coefficients = 0.0,
-angle = no, dihedral = no, and extra = 0.</p>
-<hr class="docutils" />
-<p id="cornell"><strong>(Cornell)</strong> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
-Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).</p>
-<p id="kremer"><strong>(Kremer)</strong> Kremer, Grest, J Chem Phys, 92, 5057 (1990).</p>
-<p id="mackerell"><strong>(MacKerell)</strong> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
-Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).</p>
-<p id="mayo"><strong>(Mayo)</strong> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
-(1990).</p>
-</div>
-</div>
+use <I>extra</I> as an option.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "delete_bonds.html">delete_bonds</A>, <A HREF = "fix_bond_create.html">fix bond/create</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>All 3 Lennard-Jones and 3 Coulombic weighting coefficients = 0.0,
+angle = no, dihedral = no, and extra = 0.
+</P>
+<HR>
 
+<A NAME = "Cornell"></A>
 
-           </div>
-          </div>
-          <footer>
-  
+<P><B>(Cornell)</B> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
+</P>
+<A NAME = "Kremer"></A>
 
-  <hr/>
+<P><B>(Kremer)</B> Kremer, Grest, J Chem Phys, 92, 5057 (1990).
+</P>
+<A NAME = "MacKerell"></A>
 
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+<P><B>(MacKerell)</B> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+</P>
+<A NAME = "Mayo"></A>
 
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Mayo)</B> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).
+</P>
+</HTML>

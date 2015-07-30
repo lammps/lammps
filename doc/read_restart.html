@@ -1,154 +1,36 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>read_restart command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>read_restart command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="read-restart-command">
-<span id="index-0"></span><h1>read_restart command<a class="headerlink" href="#read-restart-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>read_restart file flag
-</pre></div>
-</div>
-<ul class="simple">
-<li>file = name of binary restart file to read in</li>
-<li>flag = remap (optional)</li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>read_restart save.10000
+
+
+<HR>
+
+<H3>read_restart command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>read_restart file flag 
+</PRE>
+<UL><LI>file = name of binary restart file to read in
+<LI>flag = remap (optional) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>read_restart save.10000
 read_restart save.10000 remap
 read_restart restart.*
 read_restart restart.*.mpiio
-read_restart poly.*.% remap
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Read in a previously saved system configuration from a restart file.
+read_restart poly.*.% remap 
+</PRE>
+<PRE>
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Read in a previously saved system configuration from a restart file.
 This allows continuation of a previous run.  Details about what
 information is stored (and not stored) in a restart file is given
 below.  Basically this operation will re-create the simulation box
@@ -157,225 +39,185 @@ settings, at the point in time it was written to the restart file by a
 previous simluation.  The simulation box will be partitioned into a
 regular 3d grid of rectangular bricks, one per processor, based on the
 number of processors in the current simulation and the settings of the
-<a class="reference internal" href="processors.html"><em>processors</em></a> command.  The partitioning can later be
-changed by the <a class="reference internal" href="balance.html"><em>balance</em></a> or <a class="reference internal" href="fix_balance.html"><em>fix balance</em></a> commands.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Normally, restart files are written by the
-<a class="reference internal" href="restart.html"><em>restart</em></a> or <a class="reference internal" href="write_restart.html"><em>write_restart</em></a> commands
+<A HREF = "processors.html">processors</A> command.  The partitioning can later be
+changed by the <A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix
+balance</A> commands.
+</P>
+<P>IMPORTANT NOTE: Normally, restart files are written by the
+<A HREF = "restart.html">restart</A> or <A HREF = "write_restart.html">write_restart</A> commands
 so that all atoms in the restart file are inside the simulation box.
 If this is not the case, the read_restart command will print an error
-that atoms were &#8220;lost&#8221; when the file is read.  This error should be
+that atoms were "lost" when the file is read.  This error should be
 reported to the LAMMPS developers so the invalid writing of the
 restart file can be fixed.  If you still wish to use the restart file,
-the optional <em>remap</em> flag can be appended to the read_restart command.
+the optional <I>remap</I> flag can be appended to the read_restart command.
 This should avoid the error, by explicitly remapping each atom back into
-the simulation box, updating image flags for the atom appropriately.</p>
-</div>
-<p>Restart files are saved in binary format to enable exact restarts,
+the simulation box, updating image flags for the atom appropriately.
+</P>
+<P>Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
-those produced by the original run had it continued on.</p>
-<p>Several things can prevent exact restarts due to round-off effects, in
+those produced by the original run had it continued on.
+</P>
+<P>Several things can prevent exact restarts due to round-off effects, in
 which case the trajectories in the 2 runs will slowly diverge.  These
 include running on a different number of processors or changing
-certain settings such as those set by the <a class="reference internal" href="newton.html"><em>newton</em></a> or
-<a class="reference internal" href="processors.html"><em>processors</em></a> commands.  LAMMPS will issue a warning in
-these cases.</p>
-<p>Certain fixes will not restart exactly, though they should provide
-statistically similar results.  These include <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> and <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>.</p>
-<p>Certain pair styles will not restart exactly, though they should
+certain settings such as those set by the <A HREF = "newton.html">newton</A> or
+<A HREF = "processors.html">processors</A> commands.  LAMMPS will issue a warning in
+these cases.
+</P>
+<P>Certain fixes will not restart exactly, though they should provide
+statistically similar results.  These include <A HREF = "fix_shake.html">fix
+shake</A> and <A HREF = "fix_langevin.html">fix langevin</A>.
+</P>
+<P>Certain pair styles will not restart exactly, though they should
 provide statistically similar results.  This is because the forces
 they compute depend on atom velocities, which are used at half-step
 values every timestep when forces are computed.  When a run restarts,
 forces are initially evaluated with a full-step velocity, which is
 different than if the run had continued.  These pair styles include
-<a class="reference internal" href="pair_gran.html"><em>granular pair styles</em></a>, <a class="reference internal" href="pair_dpd.html"><em>pair dpd</em></a>, and
-<a class="reference internal" href="pair_lubricate.html"><em>pair lubricate</em></a>.</p>
-<p>If a restarted run is immediately different than the run which
+<A HREF = "pair_gran.html">granular pair styles</A>, <A HREF = "pair_dpd.html">pair dpd</A>, and
+<A HREF = "pair_lubricate.html">pair lubricate</A>.
+</P>
+<P>If a restarted run is immediately different than the run which
 produced the restart file, it could be a LAMMPS bug, so consider
-<a class="reference internal" href="Section_errors.html#err-2"><span>reporting it</span></a> if you think the behavior is
-wrong.</p>
-<p>Because restart files are binary, they may not be portable to other
-machines.  In this case, you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-restart command-line switch</span></a> to convert a restart file to a data
-file.</p>
-<p>Similar to how restart files are written (see the
-<a class="reference internal" href="write_restart.html"><em>write_restart</em></a> and <a class="reference internal" href="restart.html"><em>restart</em></a>
+<A HREF = "Section_errors.html#err_2">reporting it</A> if you think the behavior is
+wrong.
+</P>
+<P>Because restart files are binary, they may not be portable to other
+machines.  In this case, you can use the <A HREF = "Section_start.html#start_7">-restart command-line
+switch</A> to convert a restart file to a data
+file.
+</P>
+<P>Similar to how restart files are written (see the
+<A HREF = "write_restart.html">write_restart</A> and <A HREF = "restart.html">restart</A>
 commands), the restart filename can contain two wild-card characters.
-If a &#8220;*&#8221; appears in the filename, the directory is searched for all
-filenames that match the pattern where &#8220;*&#8221; is replaced with a timestep
+If a "*" appears in the filename, the directory is searched for all
+filenames that match the pattern where "*" is replaced with a timestep
 value.  The file with the largest timestep value is read in.  Thus,
-this effectively means, read the latest restart file.  It&#8217;s useful if
+this effectively means, read the latest restart file.  It's useful if
 you want your script to continue a run from where it left off.  See
-the <a class="reference internal" href="run.html"><em>run</em></a> command and its &#8220;upto&#8221; option for how to specify
-the run command so it doesn&#8217;t need to be changed either.</p>
-<p>If a &#8220;%&#8221; character appears in the restart filename, LAMMPS expects a
-set of multiple files to exist.  The <a class="reference internal" href="restart.html"><em>restart</em></a> and
-<a class="reference internal" href="write_restart.html"><em>write_restart</em></a> commands explain how such sets are
-created.  Read_restart will first read a filename where &#8220;%&#8221; is
-replaced by &#8220;base&#8221;.  This file tells LAMMPS how many processors
+the <A HREF = "run.html">run</A> command and its "upto" option for how to specify
+the run command so it doesn't need to be changed either.
+</P>
+<P>If a "%" character appears in the restart filename, LAMMPS expects a
+set of multiple files to exist.  The <A HREF = "restart.html">restart</A> and
+<A HREF = "write_restart.html">write_restart</A> commands explain how such sets are
+created.  Read_restart will first read a filename where "%" is
+replaced by "base".  This file tells LAMMPS how many processors
 created the set and how many files are in it.  Read_restart then reads
 the additional files.  For example, if the restart file was specified
 as save.% when it was written, then read_restart reads the files
 save.base, save.0, save.1, ... save.P-1, where P is the number of
-processors that created the restart file.</p>
-<p>Note that P could be the total number of processors in the previous
-simulation, or some subset of those processors, if the <em>fileper</em> or
-<em>nfile</em> options were used when the restart file was written; see the
-<a class="reference internal" href="restart.html"><em>restart</em></a> and <a class="reference internal" href="write_restart.html"><em>write_restart</em></a> commands
+processors that created the restart file.
+</P>
+<P>Note that P could be the total number of processors in the previous
+simulation, or some subset of those processors, if the <I>fileper</I> or
+<I>nfile</I> options were used when the restart file was written; see the
+<A HREF = "restart.html">restart</A> and <A HREF = "write_restart.html">write_restart</A> commands
 for details.  The processors in the current LAMMPS simulation share
 the work of reading these files; each reads a roughly equal subset of
 the files.  The number of processors which created the set can be
 different the number of processors in the current LAMMPS simulation.
 This can be a fast mode of input on parallel machines that support
-parallel I/O.</p>
-<p>A restart file can also be read in parallel as one large binary file
+parallel I/O.
+</P>
+<P>A restart file can also be read in parallel as one large binary file
 via the MPI-IO library, assuming it was also written with MPI-IO.
 MPI-IO is part of the MPI standard for versions 2.0 and above.  Using
 MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
-installed, e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-mpiio    # installs the MPIIO package
-make g++          # build LAMMPS for your platform
-</pre></div>
-</div>
-<p>Second, use a restart filename which contains &#8221;.mpiio&#8221;.  Note that it
-does not have to end in &#8221;.mpiio&#8221;, just contain those characters.
+installed, e.g.
+</P>
+<PRE>make yes-mpiio    # installs the MPIIO package
+make g++          # build LAMMPS for your platform 
+</PRE>
+<P>Second, use a restart filename which contains ".mpiio".  Note that it
+does not have to end in ".mpiio", just contain those characters.
 Unlike MPI-IO dump files, a particular restart file must be both
-written and read using MPI-IO.</p>
-<hr class="docutils" />
-<p>A restart file stores the following information about a simulation:
-units, atom style and atom style related settings (<em>id</em>, <em>map</em>,
-<em>sort</em>), communication settings (<em>mode</em>, <em>cutoff</em>, <em>vel</em>), timestep,
+written and read using MPI-IO.
+</P>
+<HR>
+
+<P>A restart file stores the following information about a simulation:
+units, atom style and atom style related settings (<I>id</I>, <I>map</I>,
+<I>sort</I>), communication settings (<I>mode</I>, <I>cutoff</I>, <I>vel</I>), timestep,
 simulation box size and shape and boundary settings, group
 definitions, per-type atom settings such as mass, per-atom attributes
 including their group assignments and molecular topology attributes,
 force field styles and - in most cases - force field coefficients, and
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> settings.  This means that commands
+<A HREF = "special_bonds.html">special_bonds</A> settings.  This means that commands
 for these quantities do not need to be re-specified in the input
 script that reads the restart file, though you can redefine settings
-after the restart file is read.</p>
-<p>One exception is that some force styles (pair, bond, angle, etc) do
+after the restart file is read.
+</P>
+<P>One exception is that some force styles (pair, bond, angle, etc) do
 not store their coefficient info in restart files.  Typically these
 are many-body or tabulated potentials which read their parameters from
-separate files; you may need to re-specify the <a class="reference internal" href="pair_style.html"><em>pair style</em></a> and <a class="reference internal" href="pair_coeff.html"><em>pair coeff</em></a> commands in
+separate files; you may need to re-specify the <A HREF = "pair_style.html">pair
+style</A> and <A HREF = "pair_coeff.html">pair coeff</A> commands in
 your restart input script.  The doc pages for individual pair styles
 mention if this is the case.  This is also true of bond_style hybrid
-(and angle_style, dihedral_style, improper_style hybrid).</p>
-<p>All settings made by the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> command, such
+(and angle_style, dihedral_style, improper_style hybrid).
+</P>
+<P>All settings made by the <A HREF = "pair_modify.html">pair_modify</A> command, such
 as the shift and tail settings, are stored in the restart file with
-the pair style.  The one exception is the <a class="reference internal" href="pair_modify.html"><em>pair_modify compute</em></a> setting is not stored, since it is typically
-only used for debugging purposes.</p>
-<p>Information about <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> settings are not
+the pair style.  The one exception is the <A HREF = "pair_modify.html">pair_modify
+compute</A> setting is not stored, since it is typically
+only used for debugging purposes.
+</P>
+<P>Information about <A HREF = "kspace_style.html">kspace_style</A> settings are not
 stored in the restart file.  Hence if you wish to use an Ewald or PPPM
 solver, these commands must be re-issued after the restart file is
-read.</p>
-<p>The list of <a class="reference internal" href="fix.html"><em>fixes</em></a> used for a simulation is not stored in
+read.
+</P>
+<P>The list of <A HREF = "fix.html">fixes</A> used for a simulation is not stored in
 the restart file.  This means the new input script should specify all
-fixes it will use.  Note that some fixes store an internal &#8220;state&#8221;
+fixes it will use.  Note that some fixes store an internal "state"
 which is written to the restart file.  This allows the fix to continue
 on with its calculations in a restarted simulation.  To re-enable such
 a fix, the fix command in the new input script must use the same
 fix-ID and group-ID as was used in the input script that wrote the
 restart file.  If a match is found, LAMMPS prints a message indicating
 that the fix is being re-enabled.  If no match is found before the
-first run or minimization is performed by the new script, the &#8220;state&#8221;
+first run or minimization is performed by the new script, the "state"
 information for the saved fix is discarded.  See the doc pages for
 individual fixes for info on which ones can be restarted in this
-manner.</p>
-<p>Bond interactions (angle, etc) that have been turned off by the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> or <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a> command will
+manner.
+</P>
+<P>Bond interactions (angle, etc) that have been turned off by the <A HREF = "fix_shake.html">fix
+shake</A> or <A HREF = "delete_bonds.html">delete_bonds</A> command will
 be written to a restart file as if they are turned on.  This means
 they will need to be turned off again in a new run after the restart
-file is read.</p>
-<p>Bonds that are broken (e.g. by a bond-breaking potential) are written
+file is read.
+</P>
+<P>Bonds that are broken (e.g. by a bond-breaking potential) are written
 to the restart file as broken bonds with a type of 0.  Thus these
-bonds will still be broken when the restart file is read.</p>
-<p>Bonds that have been broken by the <a class="reference internal" href="fix_bond_break.html"><em>fix bond/break</em></a> command have disappeared from the
+bonds will still be broken when the restart file is read.
+</P>
+<P>Bonds that have been broken by the <A HREF = "fix_bond_break.html">fix
+bond/break</A> command have disappeared from the
 system.  No information about these bonds is written to the restart
-file.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">No other information is stored in the restart file.
+file.
+</P>
+<P>IMPORTANT NOTE: No other information is stored in the restart file.
 This means that an input script that reads a restart file should
-specify settings for quantities like <a class="reference internal" href="timestep.html"><em>timestep size</em></a>,
-<a class="reference internal" href="thermo_style.html"><em>thermodynamic</em></a>, <a class="reference internal" href="neighbor.html"><em>neighbor list</em></a>
+specify settings for quantities like <A HREF = "timestep.html">timestep size</A>,
+<A HREF = "thermo_style.html">thermodynamic</A>, <A HREF = "neighbor.html">neighbor list</A>
 criteria including settings made via the
-<a class="reference internal" href="neigh_modify.html"><em>neigh_modify</em></a> comand, <a class="reference internal" href="dump.html"><em>dump</em></a> file
-output, <a class="reference internal" href="region.html"><em>geometric regions</em></a>, etc.</p>
-</div>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>To write and read restart files in parallel with MPI-IO, the MPIIO
-package must be installed.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="read_dump.html"><em>read_dump</em></a>,
-<a class="reference internal" href="write_restart.html"><em>write_restart</em></a>, <a class="reference internal" href="restart.html"><em>restart</em></a></p>
-<p><strong>Default:</strong> none</p>
-</div>
-</div>
+<A HREF = "neigh_modify.html">neigh_modify</A> comand, <A HREF = "dump.html">dump</A> file
+output, <A HREF = "region.html">geometric regions</A>, etc.
+</P>
+<HR>
 
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>Restrictions:</B>
+</P>
+<P>To write and read restart files in parallel with MPI-IO, the MPIIO
+package must be installed.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "read_dump.html">read_dump</A>,
+<A HREF = "write_restart.html">write_restart</A>, <A HREF = "restart.html">restart</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

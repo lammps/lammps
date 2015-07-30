@@ -1,322 +1,163 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>fix external command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>fix external command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="fix-external-command">
-<span id="index-0"></span><h1>fix external command<a class="headerlink" href="#fix-external-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID external mode args
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
-<li>external = style name of this fix command</li>
-<li>mode = <em>pf/callback</em> or <em>pf/array</em></li>
-</ul>
-<pre class="literal-block">
-<em>pf/callback</em> args = Ncall Napply
+
+
+<HR>
+
+<H3>fix external command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID external mode args 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>external = style name of this fix command 
+
+<LI>mode = <I>pf/callback</I> or <I>pf/array</I> 
+
+<PRE>  <I>pf/callback</I> args = Ncall Napply
     Ncall = make callback every Ncall steps
     Napply = apply callback forces every Napply steps
-  <em>pf/array</em> args = Napply
-    Napply = apply array forces every Napply steps
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix 1 all external pf/callback 1 1
+  <I>pf/array</I> args = Napply
+    Napply = apply array forces every Napply steps 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all external pf/callback 1 1
 fix 1 all external pf/callback 100 1
-fix 1 all external pf/array 10
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>This fix allows external programs that are running LAMMPS through its
-<a class="reference internal" href="Section_howto.html#howto-19"><span>library interface</span></a> to modify certain
+fix 1 all external pf/array 10 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix allows external programs that are running LAMMPS through its
+<A HREF = "Section_howto.html#howto_19">library interface</A> to modify certain
 LAMMPS properties on specific timesteps, similar to the way other
-fixes do.  The external driver can be a <a class="reference internal" href="Section_howto.html#howto-19"><span>C/C++ or Fortran program</span></a> or a <a class="reference internal" href="Section_python.html"><em>Python script</em></a>.</p>
-<hr class="docutils" />
-<p>If mode is <em>pf/callback</em> then the fix will make a callback every
-<em>Ncall</em> timesteps or minimization iterations to the external program.
+fixes do.  The external driver can be a <A HREF = "Section_howto.html#howto_19">C/C++ or Fortran
+program</A> or a <A HREF = "Section_python.html">Python
+script</A>.
+</P>
+<HR>
+
+<P>If mode is <I>pf/callback</I> then the fix will make a callback every
+<I>Ncall</I> timesteps or minimization iterations to the external program.
 The external program computes forces on atoms by setting values in an
 array owned by the fix.  The fix then adds these forces to each atom
-in the group, once every <em>Napply</em> steps, similar to the way the <a class="reference internal" href="fix_addforce.html"><em>fix addforce</em></a> command works.  Note that if <em>Ncall</em> &gt;
-<em>Napply</em>, the force values produced by one callback will persist, and
-be used multiple times to update atom forces.</p>
-<p>The callback function &#8220;foo&#8221; is invoked by the fix as:</p>
-<div class="highlight-python"><div class="highlight"><pre>foo(void *ptr, bigint timestep, int nlocal, int *ids, double **x, double **fexternal);
-</pre></div>
-</div>
-<p>The arguments are as follows:</p>
-<ul class="simple">
-<li>ptr = pointer provided by and simply passed back to external driver</li>
-<li>timestep = current LAMMPS timestep</li>
-<li>nlocal = # of atoms on this processor</li>
-<li>ids = list of atom IDs on this processor</li>
-<li>x = coordinates of atoms on this processor</li>
-<li>fexternal = forces to add to atoms on this processor</li>
-</ul>
-<p>Note that timestep is a &#8220;bigint&#8221; which is defined in src/lmptype.h,
-typically as a 64-bit integer.</p>
-<p>Fexternal are the forces returned by the driver program.</p>
-<p>The fix has a set_callback() method which the external driver can call
+in the group, once every <I>Napply</I> steps, similar to the way the <A HREF = "fix_addforce.html">fix
+addforce</A> command works.  Note that if <I>Ncall</I> >
+<I>Napply</I>, the force values produced by one callback will persist, and
+be used multiple times to update atom forces.
+</P>
+<P>The callback function "foo" is invoked by the fix as:
+</P>
+<PRE>foo(void *ptr, bigint timestep, int nlocal, int *ids, double **x, double **fexternal); 
+</PRE>
+<P>The arguments are as follows:
+</P>
+<UL><LI>ptr = pointer provided by and simply passed back to external driver
+<LI>timestep = current LAMMPS timestep
+<LI>nlocal = # of atoms on this processor
+<LI>ids = list of atom IDs on this processor
+<LI>x = coordinates of atoms on this processor
+<LI>fexternal = forces to add to atoms on this processor 
+</UL>
+<P>Note that timestep is a "bigint" which is defined in src/lmptype.h,
+typically as a 64-bit integer.
+</P>
+<P>Fexternal are the forces returned by the driver program.
+</P>
+<P>The fix has a set_callback() method which the external driver can call
 to pass a pointer to its foo() function.  See the
 couple/lammps_quest/lmpqst.cpp file in the LAMMPS distribution for an
 example of how this is done.  This sample application performs
 classical MD using quantum forces computed by a density functional
-code <a class="reference external" href="http://dft.sandia.gov/Quest">Quest</a>.</p>
-<hr class="docutils" />
-<p>If mode is <em>pf/array</em> then the fix simply stores force values in an
+code <A HREF = "http://dft.sandia.gov/Quest">Quest</A>.
+</P>
+
+
+<HR>
+
+<P>If mode is <I>pf/array</I> then the fix simply stores force values in an
 array.  The fix adds these forces to each atom in the group, once
-every <em>Napply</em> steps, similar to the way the <a class="reference internal" href="fix_addforce.html"><em>fix addforce</em></a> command works.</p>
-<p>The name of the public force array provided by the FixExternal
-class is</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">double</span> <span class="o">**</span><span class="n">fexternal</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>It is allocated by the FixExternal class as an (N,3) array where N is
+every <I>Napply</I> steps, similar to the way the <A HREF = "fix_addforce.html">fix
+addforce</A> command works.
+</P>
+<P>The name of the public force array provided by the FixExternal
+class is
+</P>
+<PRE>double **fexternal; 
+</PRE>
+<P>It is allocated by the FixExternal class as an (N,3) array where N is
 the number of atoms owned by a processor.  The 3 corresponds to the
-fx, fy, fz components of force.</p>
-<p>It is up to the external program to set the values in this array to
+fx, fy, fz components of force.
+</P>
+<P>It is up to the external program to set the values in this array to
 the desired quantities, as often as desired.  For example, the driver
 program might perform an MD run in stages of 1000 timesteps each.  In
-between calls to the LAMMPS <a class="reference internal" href="run.html"><em>run</em></a> command, it could retrieve
+between calls to the LAMMPS <A HREF = "run.html">run</A> command, it could retrieve
 atom coordinates from LAMMPS, compute forces, set values in fexternal,
-etc.</p>
-<hr class="docutils" />
-<p>To use this fix during energy minimization, the energy corresponding
+etc.
+</P>
+<HR>
+
+<P>To use this fix during energy minimization, the energy corresponding
 to the added forces must also be set so as to be consistent with the
-added forces.  Otherwise the minimization will not converge correctly.</p>
-<p>This can be done from the external driver by calling this public
-method of the FixExternal class:</p>
-<div class="highlight-python"><div class="highlight"><pre>void set_energy(double eng);
-</pre></div>
-</div>
-<p>where eng is the potential energy.  Eng is an extensive quantity,
+added forces.  Otherwise the minimization will not converge correctly.
+</P>
+<P>This can be done from the external driver by calling this public
+method of the FixExternal class:
+</P>
+<PRE>void set_energy(double eng); 
+</PRE>
+<P>where eng is the potential energy.  Eng is an extensive quantity,
 meaning it should be the sum over per-atom energies of all affected
-atoms.  It should also be provided in <a class="reference internal" href="units.html"><em>energy units</em></a>
+atoms.  It should also be provided in <A HREF = "units.html">energy units</A>
 consistent with the simulation.  See the details below for how to
-insure this energy setting is used appropriately in a minimization.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
-<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
-<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
-fix to add the potential &#8220;energy&#8221; set by the external driver to the
-system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.  This is a fictitious quantity but is
-needed so that the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command can include the
+insure this energy setting is used appropriately in a minimization.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the potential "energy" set by the external driver to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  This is a fictitious quantity but is
+needed so that the <A HREF = "minimize.html">minimize</A> command can include the
 forces added by this fix in a consistent manner.  I.e. there is a
 decrease in potential energy when atoms move in the direction of the
-added force.</p>
-<p>This fix computes a global scalar which can be accessed by various
-<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the
+added force.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
 potential energy discussed above.  The scalar stored by this fix
-is &#8220;extensive&#8221;.</p>
-<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
-the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
-<p>The forces due to this fix are imposed during an energy minimization,
-invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the fictitious potential energy associated
+is "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command. 
+</P>
+<P>IMPORTANT NOTE: If you want the fictitious potential energy associated
 with the added forces to be included in the total potential energy of
 the system (the quantity being minimized), you MUST enable the
-<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option for this fix.</p>
-</div>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-<p><strong>Related commands:</strong> none</p>
-<p><strong>Default:</strong> none</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for this fix.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,254 +1,150 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>compute temp/profile command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>compute temp/profile command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="compute-temp-profile-command">
-<span id="index-0"></span><h1>compute temp/profile command<a class="headerlink" href="#compute-temp-profile-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID temp/profile xflag yflag zflag binstyle args
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>temp/profile = style name of this compute command</li>
-<li>xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension</li>
-<li>binstyle = <em>x</em> or <em>y</em> or <em>z</em> or <em>xy</em> or <em>yz</em> or <em>xz</em> or <em>xyz</em></li>
-</ul>
-<pre class="literal-block">
-<em>x</em> arg = Nx
-  <em>y</em> arg = Ny
-  <em>z</em> arg = Nz
-  <em>xy</em> args = Nx Ny
-  <em>yz</em> args = Ny Nz
-  <em>xz</em> args = Nx Nz
-  <em>xyz</em> args = Nx Ny Nz
-    Nx,Ny,Nz = number of velocity bins in x,y,z dimensions
-</pre>
-<ul class="simple">
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>out</em></li>
-</ul>
-<pre class="literal-block">
-<em>out</em> value = <em>tensor</em> or <em>bin</em>
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute myTemp flow temp/profile 1 1 1 x 10
+
+
+<HR>
+
+<H3>compute temp/profile command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/profile xflag yflag zflag binstyle args 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>temp/profile = style name of this compute command 
+
+<LI>xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension 
+
+<LI>binstyle = <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>xyz</I> 
+
+<PRE>  <I>x</I> arg = Nx
+  <I>y</I> arg = Ny
+  <I>z</I> arg = Nz
+  <I>xy</I> args = Nx Ny
+  <I>yz</I> args = Ny Nz
+  <I>xz</I> args = Nx Nz
+  <I>xyz</I> args = Nx Ny Nz
+    Nx,Ny,Nz = number of velocity bins in x,y,z dimensions 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>out</I> 
+
+<PRE>  <I>out</I> value = <I>tensor</I> or <I>bin</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute myTemp flow temp/profile 1 1 1 x 10
 compute myTemp flow temp/profile 1 1 1 x 10 out bin
-compute myTemp flow temp/profile 0 1 1 xyz 20 20 20
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that calculates the temperature of a group of
+compute myTemp flow temp/profile 0 1 1 xyz 20 20 20 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperature of a group of
 atoms, after subtracting out a spatially-averaged center-of-mass
 velocity field, before computing the kinetic energy.  This can be
 useful for thermostatting a collection of atoms undergoing a complex
 flow, e.g. via a profile-unbiased thermostat (PUT) as described in
-<a class="reference internal" href="fix_nvt_sllod.html#evans"><span>(Evans)</span></a>.  A compute of this style can be used by any command
-that computes a temperature, e.g. <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a>,
-<a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a>, etc.</p>
-<p>The <em>xflag</em>, <em>yflag</em>, <em>zflag</em> settings determine which components of
-average velocity are subtracted out.</p>
-<p>The <em>binstyle</em> setting and its <em>Nx</em>, <em>Ny</em>, <em>Nz</em> arguments determine
-how bins are setup to perform spatial averaging.  &#8220;Bins&#8221; can be 1d
-slabs, 2d pencils, or 3d bricks depending on which <em>binstyle</em> is used.
-The simulation box is partitioned conceptually into <em>Nx</em> by <em>Ny</em> by
-<em>Nz</em> bins.  Depending on the <em>binstyle</em>, you may only specify one or
+<A HREF = "#Evans">(Evans)</A>.  A compute of this style can be used by any command
+that computes a temperature, e.g. <A HREF = "thermo_modify.html">thermo_modify</A>,
+<A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_nh.html">fix npt</A>, etc.
+</P>
+<P>The <I>xflag</I>, <I>yflag</I>, <I>zflag</I> settings determine which components of
+average velocity are subtracted out.
+</P>
+<P>The <I>binstyle</I> setting and its <I>Nx</I>, <I>Ny</I>, <I>Nz</I> arguments determine
+how bins are setup to perform spatial averaging.  "Bins" can be 1d
+slabs, 2d pencils, or 3d bricks depending on which <I>binstyle</I> is used.
+The simulation box is partitioned conceptually into <I>Nx</I> by <I>Ny</I> by
+<I>Nz</I> bins.  Depending on the <I>binstyle</I>, you may only specify one or
 two of these values; the others are effectively set to 1 (no binning
 in that dimension).  For non-orthogonal (triclinic) simulation boxes,
-the bins are &#8220;tilted&#8221; slabs or pencils or bricks that are parallel to
-the tilted faces of the box.  See the <a class="reference internal" href="region.html"><em>region prism</em></a>
-command for a discussion of the geometry of tilted boxes in LAMMPS.</p>
-<p>When a temperature is computed, the center-of-mass velocity for the
+the bins are "tilted" slabs or pencils or bricks that are parallel to
+the tilted faces of the box.  See the <A HREF = "region.html">region prism</A>
+command for a discussion of the geometry of tilted boxes in LAMMPS.
+</P>
+<P>When a temperature is computed, the center-of-mass velocity for the
 set of atoms that are both in the compute group and in the same
 spatial bin is calculated.  This bias velocity is then subtracted from
 the velocities of individual atoms in the bin to yield a thermal
 velocity for each atom.  Note that if there is only one atom in the
-bin, its thermal velocity will thus be 0.0.</p>
-<p>After the spatially-averaged velocity field has been subtracted from
+bin, its thermal velocity will thus be 0.0.
+</P>
+<P>After the spatially-averaged velocity field has been subtracted from
 each atom, the temperature is calculated by the formula KE = (dim/2 N
 - dim*Nx*Ny*Nz) k T, where KE = total kinetic energy of the group of
 atoms (sum of 1/2 m v^2), dim = 2 or 3 = dimensionality of the
 simulation, N = number of atoms in the group, k = Boltzmann constant,
 and T = temperature.  The dim*Nx*Ny*Nz term are degrees of freedom
 subtracted to adjust for the removal of the center-of-mass velocity in
-each of Nx*Ny*Nz bins, as discussed in the <a class="reference internal" href="fix_nvt_sllod.html#evans"><span>(Evans)</span></a> paper.</p>
-<p>If the <em>out</em> keyword is used with a <em>tensor</em> value, which is the
+each of Nx*Ny*Nz bins, as discussed in the <A HREF = "#Evans">(Evans)</A> paper.
+</P>
+<P>If the <I>out</I> keyword is used with a <I>tensor</I> value, which is the
 default, a kinetic energy tensor, stored as a 6-element vector, is
 also calculated by this compute for use in the computation of a
 pressure tensor.  The formula for the components of the tensor is the
 same as the above formula, except that v^2 is replaced by vx*vy for
 the xy component, etc.  The 6 components of the vector are ordered xx,
-yy, zz, xy, xz, yz.</p>
-<p>If the <em>out</em> keyword is used with a <em>bin</em> value, the count of atoms
+yy, zz, xy, xz, yz.
+</P>
+<P>If the <I>out</I> keyword is used with a <I>bin</I> value, the count of atoms
 and computed temperature for each bin are stored for output, as an
 array of values, as described below.  The temperature of each bin is
 calculated as described above, where the bias velocity is subtracted
 and only the remaining thermal velocity of atoms in the bin
 contributes to the temperature.  See the note below for how the
 temperature is normalized by the degrees-of-freedom of atoms in the
-bin.</p>
-<p>The number of atoms contributing to the temperature is assumed to be
-constant for the duration of the run; use the <em>dynamic</em> option of the
-<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command if this is not the case.</p>
-<p>The removal of the spatially-averaged velocity field by this fix is
-essentially computing the temperature after a &#8220;bias&#8221; has been removed
+bin.
+</P>
+<P>The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the <I>dynamic</I> option of the
+<A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
+</P>
+<P>The removal of the spatially-averaged velocity field by this fix is
+essentially computing the temperature after a "bias" has been removed
 from the velocity of the atoms.  If this compute is used with a fix
 command that performs thermostatting then this bias will be subtracted
 from each atom, thermostatting of the remaining thermal velocity will
 be performed, and the bias will be added back in.  Thermostatting
-fixes that work in this way include <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>, <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a>, and <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>.</p>
-<p>This compute subtracts out degrees-of-freedom due to fixes that
-constrain molecular motion, such as <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> and
-<a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a>.  This means the temperature of groups of
+fixes that work in this way include <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_temp_berendsen.html">fix
+temp/berendsen</A>, and <A HREF = "fix_langevin.html">fix
+langevin</A>.
+</P>
+<P>This compute subtracts out degrees-of-freedom due to fixes that
+constrain molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and
+<A HREF = "fix_rigid.html">fix rigid</A>.  This means the temperature of groups of
 atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
-<em>extra</em> option of the <a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When using the <em>out</em> keyword with a value of <em>bin</em>,
+<I>extra</I> option of the <A HREF = "compute_modify.html">compute_modify</A> command.
+</P>
+<P>IMPORTANT NOTE: When using the <I>out</I> keyword with a value of <I>bin</I>,
 the calculated temperature for each bin does not include the
 degrees-of-freedom adjustment described in the preceeding paragraph,
 for fixes that constrain molecular motion.  It does include the
-adjustment due to the <em>extra</em> option, which is applied to each bin.</p>
-</div>
-<p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
+adjustment due to the <I>extra</I> option, which is applied to each bin.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
 a discussion of different ways to compute temperature and perform
 thermostatting.  Using this compute in conjunction with a
 thermostatting fix, as explained there, will effectively implement a
-profile-unbiased thermostat (PUT), as described in <a class="reference internal" href="fix_nvt_sllod.html#evans"><span>(Evans)</span></a>.</p>
-<p><strong>Output info:</strong></p>
-<p>This compute calculates a global scalar (the temperature).  Depending
-on the setting of the <em>out</em> keyword, it also calculates a global
-vector or array.  For <em>out</em> = <em>tensor</em>, it calculates a vector of
-length 6 (KE tensor), which can be accessed by indices 1-6.  For <em>out</em>
-= <em>bin</em> it calculates a global array which has 2 columns and N rows,
+profile-unbiased thermostat (PUT), as described in <A HREF = "#Evans">(Evans)</A>.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the temperature).  Depending
+on the setting of the <I>out</I> keyword, it also calculates a global
+vector or array.  For <I>out</I> = <I>tensor</I>, it calculates a vector of
+length 6 (KE tensor), which can be accessed by indices 1-6.  For <I>out</I>
+= <I>bin</I> it calculates a global array which has 2 columns and N rows,
 where N is the number of bins.  The first column contains the number
 of atoms in that bin.  The second contains the temperature of that
 bin, calculated as described above.  The ordering of rows in the array
@@ -256,97 +152,44 @@ is as follows.  Bins in x vary fastest, then y, then z.  Thus for a
 10x10x10 3d array of bins, there will be 1000 rows.  The bin with
 indices ix,iy,iz = 2,3,4 would map to row M = (iz-1)*10*10 + (iy-1)*10
 + ix = 322, where the rows are numbered from 1 to 1000 and the bin
-indices are numbered from 1 to 10 in each dimension.</p>
-<p>These values can be used by any command that uses global scalar or
-vector or array values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
-options.</p>
-<p>The scalar value calculated by this compute is &#8220;intensive&#8221;.  The
-vector values are &#8220;extensive&#8221;.  The array values are &#8220;intensive&#8221;.</p>
-<p>The scalar value will be in temperature <a class="reference internal" href="units.html"><em>units</em></a>.  The
-vector values will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.  The first column
+indices are numbered from 1 to 10 in each dimension.
+</P>
+<P>These values can be used by any command that uses global scalar or
+vector or array values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".  The array values are "intensive".
+</P>
+<P>The scalar value will be in temperature <A HREF = "units.html">units</A>.  The
+vector values will be in energy <A HREF = "units.html">units</A>.  The first column
 of array values are counts; the values in the second column will be in
-temperature <a class="reference internal" href="units.html"><em>units</em></a>.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>You should not use too large a velocity-binning grid, especially in
+temperature <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>You should not use too large a velocity-binning grid, especially in
 3d.  In the current implementation, the binned velocity averages are
 summed across all processors, so this will be inefficient if the grid
 is too large, and the operation is performed every timestep, as it
-will be for most thermostats.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="compute_temp.html"><em>compute temp</em></a>, <a class="reference internal" href="compute_temp_ramp.html"><em>compute temp/ramp</em></a>, <a class="reference internal" href="compute_temp_deform.html"><em>compute temp/deform</em></a>, <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The option default is out = tensor.</p>
-<hr class="docutils" />
-<p id="evans"><strong>(Evans)</strong> Evans and Morriss, Phys Rev Lett, 56, 2172-2175 (1986).</p>
-</div>
-</div>
+will be for most thermostats.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp_ramp.html">compute
+temp/ramp</A>, <A HREF = "compute_temp_deform.html">compute
+temp/deform</A>, <A HREF = "compute_pressure.html">compute
+pressure</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option default is out = tensor.
+</P>
+<HR>
 
+<A NAME = "Evans"></A>
 
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Evans)</B> Evans and Morriss, Phys Rev Lett, 56, 2172-2175 (1986).
+</P>
+</HTML>

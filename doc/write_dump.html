@@ -1,273 +1,101 @@
+<HTML>
+<CENTER> <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>write_dump command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>write_dump command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="write-dump-command">
-<span id="index-0"></span><h1>write_dump command<a class="headerlink" href="#write-dump-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>write_dump group-ID style file dump-args modify dump_modify-args
-</pre></div>
-</div>
-<ul class="simple">
-<li>group-ID = ID of the group of atoms to be dumped</li>
-<li>style = any of the supported <a class="reference internal" href="dump.html"><em>dump styles</em></a></li>
-<li>file = name of file to write dump info to</li>
-<li>dump-args = any additional args needed for a particular <a class="reference internal" href="dump.html"><em>dump style</em></a></li>
-<li>modify = all args after this keyword are passed to <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> (optional)</li>
-<li>dump-modify-args = args for <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> (optional)</li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>write_dump all atom dump.atom
+
+
+<HR>
+
+<H3>write_dump command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>write_dump group-ID style file dump-args modify dump_modify-args 
+</PRE>
+<UL><LI>group-ID = ID of the group of atoms to be dumped 
+
+<LI>style = any of the supported <A HREF = "dump.html">dump styles</A> 
+
+<LI>file = name of file to write dump info to 
+
+<LI>dump-args = any additional args needed for a particular <A HREF = "dump.html">dump style</A> 
+
+<LI>modify = all args after this keyword are passed to <A HREF = "dump_modify.html">dump_modify</A> (optional) 
+
+<LI>dump-modify-args = args for <A HREF = "dump_modify.html">dump_modify</A> (optional) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>write_dump all atom dump.atom
 write_dump subgroup atom dump.run.bin
 write_dump all custom dump.myforce.* id type x y vx fx
 write_dump flow custom dump.%.myforce id type c_myF[3] v_ke modify sort id
-write_dump all xyz system.xyz modify sort id elements O H
+write_dump all xyz system.xyz modify sort id elements O H 
 write_dump all image snap*.jpg type type size 960 960 modify backcolor white
-write_dump all image snap*.jpg element element &amp;
-   bond atom 0.3 shiny 0.1 ssao yes 6345 0.2 size 1600 1600  &amp;
-   modify backcolor white element C C O H N C C C O H H S O H
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Dump a single snapshot of atom quantities to one or more files for the
+write_dump all image snap*.jpg element element &
+   bond atom 0.3 shiny 0.1 ssao yes 6345 0.2 size 1600 1600  &
+   modify backcolor white element C C O H N C C C O H H S O H 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Dump a single snapshot of atom quantities to one or more files for the
 current state of the system.  This is a one-time immediate operation,
-in contrast to the <a class="reference internal" href="dump.html"><em>dump</em></a> command which will will set up a
+in contrast to the <A HREF = "dump.html">dump</A> command which will will set up a
 dump style to write out snapshots periodically during a running
-simulation.</p>
-<p>The syntax for this command is mostly identical to that of the
-<a class="reference internal" href="dump.html"><em>dump</em></a> and <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> commands as if
+simulation.
+</P>
+<P>The syntax for this command is mostly identical to that of the
+<A HREF = "dump.html">dump</A> and <A HREF = "dump_modify.html">dump_modify</A> commands as if
 they were concatenated together, with the following exceptions: There
-is no need for a dump ID or dump frequency and the keyword <em>modify</em> is
+is no need for a dump ID or dump frequency and the keyword <I>modify</I> is
 added.  The latter is so that the full range of
-<a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> options can be specified for the single
-snapshot, just as they can be for multiple snapshots.  The <em>modify</em>
+<A HREF = "dump_modify.html">dump_modify</A> options can be specified for the single
+snapshot, just as they can be for multiple snapshots.  The <I>modify</I>
 keyword separates the arguments that would normally be passed to the
-<em>dump</em> command from those that would be given the <em>dump_modify</em>.  Both
+<I>dump</I> command from those that would be given the <I>dump_modify</I>.  Both
 support optional arguments and thus LAMMPS needs to be able to cleanly
-separate the two sets of args.</p>
-<p>Note that if the specified filename uses wildcard characters &#8220;*&#8221; or
-&#8220;%&#8221;, as supported by the <a class="reference internal" href="dump.html"><em>dump</em></a> commmand, they will operate
-in the same fashion to create the new filename(s).  Normally, <a class="reference internal" href="dump_image.html"><em>dump image</em></a> files require a filename with a &#8220;*&#8221; character
+separate the two sets of args.
+</P>
+<P>Note that if the specified filename uses wildcard characters "*" or
+"%", as supported by the <A HREF = "dump.html">dump</A> commmand, they will operate
+in the same fashion to create the new filename(s).  Normally, <A HREF = "dump_image.html">dump
+image</A> files require a filename with a "*" character
 for the timestep.  That is not the case for the write_dump command; no
-wildcard &#8220;*&#8221; character is necessary.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>All restrictions for the <a class="reference internal" href="dump.html"><em>dump</em></a> and
-<a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> commands apply to this command as well,
-with the exception of the <a class="reference internal" href="dump_image.html"><em>dump image</em></a> filename not
-requiring a wildcard &#8220;*&#8221; character, as noted above.</p>
-<p>Since dumps are normally written during a <a class="reference internal" href="run.html"><em>run</em></a> or <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>, the simulation has to be ready to run
+wildcard "*" character is necessary.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>All restrictions for the <A HREF = "dump.html">dump</A> and
+<A HREF = "dump_modify.html">dump_modify</A> commands apply to this command as well,
+with the exception of the <A HREF = "dump_image.html">dump image</A> filename not
+requiring a wildcard "*" character, as noted above.
+</P>
+<P>Since dumps are normally written during a <A HREF = "run.html">run</A> or <A HREF = "minimize.html">energy
+minimization</A>, the simulation has to be ready to run
 before this command can be used.  Similarly, if the dump requires
 information from a compute, fix, or variable, the information needs to
 have been calculated for the current timestep (e.g. by a prior run),
-else LAMMPS will generate an error message.</p>
-<p>For example, it is not possible to dump per-atom energy with this
+else LAMMPS will generate an error message.
+</P>
+<P>For example, it is not possible to dump per-atom energy with this
 command before a run has been performed, since no energies and forces
-have yet been calculated.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> doc page
-sectinn on Variable Accuracy for more information on this topic.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="dump.html"><em>dump</em></a>, <a class="reference internal" href="dump_image.html"><em>dump image</em></a>,
-<a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The defaults are listed on the doc pages for the <a class="reference internal" href="dump.html"><em>dump</em></a> and
-<a class="reference internal" href="dump_image.html"><em>dump image</em></a> and <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a>
-commands.</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+have yet been calculated.  See the <A HREF = "variable.html">variable</A> doc page
+sectinn on Variable Accuracy for more information on this topic.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_image.html">dump image</A>,
+<A HREF = "dump_modify.html">dump_modify</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The defaults are listed on the doc pages for the <A HREF = "dump.html">dump</A> and
+<A HREF = "dump_image.html">dump image</A> and <A HREF = "dump_modify.html">dump_modify</A>
+commands.
+</P>
+</HTML>

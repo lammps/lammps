@@ -1,306 +1,125 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>displace_atoms command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>displace_atoms command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="displace-atoms-command">
-<span id="index-0"></span><h1>displace_atoms command<a class="headerlink" href="#displace-atoms-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>displace_atoms group-ID style args keyword value ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>group-ID = ID of group of atoms to displace</li>
-<li>style = <em>move</em> or <em>ramp</em> or <em>random</em> or <em>rotate</em></li>
-</ul>
-<pre class="literal-block">
-<em>move</em> args = delx dely delz
+
+
+<HR>
+
+<H3>displace_atoms command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>displace_atoms group-ID style args keyword value ... 
+</PRE>
+<UL><LI>group-ID = ID of group of atoms to displace 
+
+<LI>style = <I>move</I> or <I>ramp</I> or <I>random</I> or <I>rotate</I> 
+
+<PRE>  <I>move</I> args = delx dely delz
     delx,dely,delz = distance to displace in each dimension (distance units)
-  <em>ramp</em> args = ddim dlo dhi dim clo chi
-    ddim = <em>x</em> or <em>y</em> or <em>z</em>
+  <I>ramp</I> args = ddim dlo dhi dim clo chi
+    ddim = <I>x</I> or <I>y</I> or <I>z</I>
     dlo,dhi = displacement distance between dlo and dhi (distance units)
-    dim = <em>x</em> or <em>y</em> or <em>z</em>
+    dim = <I>x</I> or <I>y</I> or <I>z</I>
     clo,chi = lower and upper bound of domain to displace (distance units)
-  <em>random</em> args = dx dy dz seed
+  <I>random</I> args = dx dy dz seed
     dx,dy,dz = random displacement magnitude in each dimension (distance units)
     seed = random # seed (positive integer)
-  <em>rotate</em> args = Px Py Pz Rx Ry Rz theta
+  <I>rotate</I> args = Px Py Pz Rx Ry Rz theta
     Px,Py,Pz = origin point of axis of rotation (distance units)
     Rx,Ry,Rz = axis of rotation vector
-    theta = angle of rotation (degrees)
-</pre>
-<ul class="simple">
-<li>zero or more keyword/value pairs may be appended</li>
-</ul>
-<pre class="literal-block">
-keyword = <em>units</em>
-    value = <em>box</em> or <em>lattice</em>
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>displace_atoms top move 0 -5 0 units box
-displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Displace a group of atoms.  This can be used to move atoms a large
+    theta = angle of rotation (degrees) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>  keyword = <I>units</I>
+    value = <I>box</I> or <I>lattice</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>displace_atoms top move 0 -5 0 units box
+displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Displace a group of atoms.  This can be used to move atoms a large
 distance before beginning a simulation or to randomize atoms initially
 on a lattice.  For example, in a shear simulation, an initial strain
 can be imposed on the system.  Or two groups of atoms can be brought
-into closer proximity.</p>
-<p>The <em>move</em> style displaces the group of atoms by the specified 3d
-distance.</p>
-<p>The <em>ramp</em> style displaces atoms a variable amount in one dimension
-depending on the atom&#8217;s coordinate in a (possibly) different
+into closer proximity.
+</P>
+<P>The <I>move</I> style displaces the group of atoms by the specified 3d
+distance.
+</P>
+<P>The <I>ramp</I> style displaces atoms a variable amount in one dimension
+depending on the atom's coordinate in a (possibly) different
 dimension.  For example, the second example command displaces atoms in
 the x-direction an amount between 0.0 and 5.0 distance units.  Each
-atom&#8217;s displacement depends on the fractional distance its y
+atom's displacement depends on the fractional distance its y
 coordinate is between 2.0 and 20.5.  Atoms with y-coordinates outside
-those bounds will be moved the minimum (0.0) or maximum (5.0) amount.</p>
-<p>The <em>random</em> style independently moves each atom in the group by a
+those bounds will be moved the minimum (0.0) or maximum (5.0) amount.
+</P>
+<P>The <I>random</I> style independently moves each atom in the group by a
 random displacement, uniformly sampled from a value between -dx and
 +dx in the x dimension, and similarly for y and z.  Random numbers are
 used in such a way that the displacement of a particular atom is the
-same, regardless of how many processors are being used.</p>
-<p>The <em>rotate</em> style rotates each atom in the group by the angle <em>theta</em>
-around a rotation axis <em>R</em> = (Rx,Ry,Rz) that goes thru a point <em>P</em> =
+same, regardless of how many processors are being used.
+</P>
+<P>The <I>rotate</I> style rotates each atom in the group by the angle <I>theta</I>
+around a rotation axis <I>R</I> = (Rx,Ry,Rz) that goes thru a point <I>P</I> =
 (Px,Py,Pz).  The direction of rotation for the atoms around the
 rotation axis is consistent with the right-hand rule: if your
-right-hand&#8217;s thumb points along <em>R</em>, then your fingers wrap around the
-axis in the direction of positive theta.</p>
-<p>Distance units for displacements and the origin point of the <em>rotate</em>
-style are determined by the setting of <em>box</em> or <em>lattice</em> for the
-<em>units</em> keyword.  <em>Box</em> means distance units as defined by the
-<a class="reference internal" href="units.html"><em>units</em></a> command - e.g. Angstroms for <em>real</em> units.
-<em>Lattice</em> means distance units are in lattice spacings.  The
-<a class="reference internal" href="lattice.html"><em>lattice</em></a> command must have been previously used to
-define the lattice spacing.</p>
-<hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Care should be taken not to move atoms on top of other
+right-hand's thumb points along <I>R</I>, then your fingers wrap around the
+axis in the direction of positive theta.
+</P>
+<P>Distance units for displacements and the origin point of the <I>rotate</I>
+style are determined by the setting of <I>box</I> or <I>lattice</I> for the
+<I>units</I> keyword.  <I>Box</I> means distance units as defined by the
+<A HREF = "units.html">units</A> command - e.g. Angstroms for <I>real</I> units.
+<I>Lattice</I> means distance units are in lattice spacings.  The
+<A HREF = "lattice.html">lattice</A> command must have been previously used to
+define the lattice spacing.
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: Care should be taken not to move atoms on top of other
 atoms.  After the move, atoms are remapped into the periodic
 simulation box if needed, and any shrink-wrap boundary conditions (see
-the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command) are enforced which may change
+the <A HREF = "boundary.html">boundary</A> command) are enforced which may change
 the box size.  Other than this effect, this command does not change
 the size or shape of the simulation box.  See the
-<a class="reference internal" href="change_box.html"><em>change_box</em></a> command if that effect is desired.</p>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Atoms can be moved arbitrarily long distances by this
+<A HREF = "change_box.html">change_box</A> command if that effect is desired.
+</P>
+<P>IMPORTANT NOTE: Atoms can be moved arbitrarily long distances by this
 command.  If the simulation box is non-periodic and shrink-wrapped
-(see the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command), this can change its size
+(see the <A HREF = "boundary.html">boundary</A> command), this can change its size
 or shape.  This is not a problem, except that the mapping of
 processors to the simulation box is not changed by this command from
-its initial 3d configuration; see the <a class="reference internal" href="processors.html"><em>processors</em></a>
+its initial 3d configuration; see the <A HREF = "processors.html">processors</A>
 command.  Thus, if the box size/shape changes dramatically, the
 mapping of processors to the simulation box may not end up as optimal
-as the initial mapping attempted to be.</p>
-</div>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>You cannot rotate around any rotation vector except the z-axis for a
-2d simulation.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="lattice.html"><em>lattice</em></a>, <a class="reference internal" href="change_box.html"><em>change_box</em></a>,
-<a class="reference internal" href="fix_move.html"><em>fix_move</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The option defaults are units = lattice.</p>
-</div>
-</div>
+as the initial mapping attempted to be.
+</P>
+<HR>
 
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>Restrictions:</B>
+</P>
+<P>You cannot rotate around any rotation vector except the z-axis for a
+2d simulation.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "lattice.html">lattice</A>, <A HREF = "change_box.html">change_box</A>,
+<A HREF = "fix_move.html">fix_move</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are units = lattice.
+</P>
+</HTML>

@@ -1,261 +1,85 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>fix momentum command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>fix momentum command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="fix-momentum-command">
-<span id="index-0"></span><h1>fix momentum command<a class="headerlink" href="#fix-momentum-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID momentum N keyword values ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
-<li>momentum = style name of this fix command</li>
-<li>N = adjust the momentum every this many timesteps
-one or more keyword/value pairs may be appended</li>
-<li>keyword = <em>linear</em> or <em>angular</em> or <em>rescale</em></li>
-</ul>
-<pre class="literal-block">
-<em>linear</em> values = xflag yflag zflag
+
+
+<HR>
+
+<H3>fix momentum command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID momentum N keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>momentum = style name of this fix command 
+
+<LI>N = adjust the momentum every this many timesteps
+one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>linear</I> or <I>angular</I> or <I>rescale</I> 
+
+<PRE>  <I>linear</I> values = xflag yflag zflag
     xflag,yflag,zflag = 0/1 to exclude/include each dimension
-  <em>angular</em> values = none
-</pre>
-<pre class="literal-block">
-<em>rescale</em> values = none
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix 1 all momentum 1 linear 1 1 0
+  <I>angular</I> values = none 
+</PRE>
+<PRE>  <I>rescale</I> values = none 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all momentum 1 linear 1 1 0
 fix 1 all momentum 1 linear 1 1 1 rescale
-fix 1 all momentum 100 linear 1 1 1 angular
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Zero the linear and/or angular momentum of the group of atoms every N
+fix 1 all momentum 100 linear 1 1 1 angular 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Zero the linear and/or angular momentum of the group of atoms every N
 timesteps by adjusting the velocities of the atoms.  One (or both) of
-the <em>linear</em> or <em>angular</em> keywords must be specified.</p>
-<p>If the <em>linear</em> keyword is used, the linear momentum is zeroed by
+the <I>linear</I> or <I>angular</I> keywords must be specified.
+</P>
+<P>If the <I>linear</I> keyword is used, the linear momentum is zeroed by
 subtracting the center-of-mass velocity of the group from each atom.
 This does not change the relative velocity of any pair of atoms.  One
 or more dimensions can be excluded from this operation by setting the
-corresponding flag to 0.</p>
-<p>If the <em>angular</em> keyword is used, the angular momentum is zeroed by
-subtracting a rotational component from each atom.</p>
-<p>This command can be used to insure the entire collection of atoms (or
+corresponding flag to 0.
+</P>
+<P>If the <I>angular</I> keyword is used, the angular momentum is zeroed by
+subtracting a rotational component from each atom.
+</P>
+<P>This command can be used to insure the entire collection of atoms (or
 a subset of them) does not drift or rotate during the simulation due
-to random perturbations (e.g. <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>
-thermostatting).</p>
-<p>The <em>rescale</em> keyword enables conserving the kinetic energy of the group
-of atoms by rescaling the velocities after the momentum was removed.</p>
-<p>Note that the <a class="reference internal" href="velocity.html"><em>velocity</em></a> command can be used to create
-initial velocities with zero aggregate linear and/or angular momentum.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
-<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
+to random perturbations (e.g. <A HREF = "fix_langevin.html">fix langevin</A>
+thermostatting).
+</P>
+<P>The <I>rescale</I> keyword enables conserving the kinetic energy of the group
+of atoms by rescaling the velocities after the momentum was removed.
+</P>
+<P>Note that the <A HREF = "velocity.html">velocity</A> command can be used to create
+initial velocities with zero aggregate linear and/or angular momentum.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of this fix can
-be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.
-This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="fix_recenter.html"><em>fix recenter</em></a>, <a class="reference internal" href="velocity.html"><em>velocity</em></a></p>
-<p><strong>Default:</strong> none</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_recenter.html">fix recenter</A>, <A HREF = "velocity.html">velocity</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

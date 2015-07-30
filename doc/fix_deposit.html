@@ -1,289 +1,189 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>fix deposit command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>fix deposit command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="fix-deposit-command">
-<span id="index-0"></span><h1>fix deposit command<a class="headerlink" href="#fix-deposit-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID deposit N type M seed keyword values ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
-<li>deposit = style name of this fix command</li>
-<li>N = # of atoms or molecules to insert</li>
-<li>type = atom type to assign to inserted atoms (offset for moleclue insertion)</li>
-<li>M = insert a single atom or molecule every M steps</li>
-<li>seed = random # seed (positive integer)</li>
-<li>one or more keyword/value pairs may be appended to args</li>
-<li>keyword = <em>region</em> or <em>id</em> or <em>global</em> or <em>local</em> or <em>near</em> or <em>attempt</em> or <em>rate</em> or <em>vx</em> or <em>vy</em> or <em>vz</em> or <em>mol</em> or <em>rigid</em> or <em>shake</em> or <em>units</em></li>
-</ul>
-<pre class="literal-block">
-<em>region</em> value = region-ID
+
+
+<HR>
+
+<H3>fix deposit command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID deposit N type M seed keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>deposit = style name of this fix command 
+
+<LI>N = # of atoms or molecules to insert 
+
+<LI>type = atom type to assign to inserted atoms (offset for moleclue insertion) 
+
+<LI>M = insert a single atom or molecule every M steps 
+
+<LI>seed = random # seed (positive integer) 
+
+<LI>one or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>mol</I> or <I>rigid</I> or <I>shake</I> or <I>units</I> 
+
+<PRE>  <I>region</I> value = region-ID
     region-ID = ID of region to use as insertion volume
-  <em>id</em> value = <em>max</em> or <em>next</em>
+  <I>id</I> value = <I>max</I> or <I>next</I>
     max = atom ID for new atom(s) is max ID of all current atoms plus one
     next = atom ID for new atom(s) increments by one for every deposition
-  <em>global</em> values = lo hi
+  <I>global</I> values = lo hi
     lo,hi = put new atom/molecule a distance lo-hi above all other atoms (distance units)
-  <em>local</em> values = lo hi delta
+  <I>local</I> values = lo hi delta
     lo,hi = put new atom/molecule a distance lo-hi above any nearby atom beneath it (distance units)
-    delta = lateral distance within which a neighbor is considered &quot;nearby&quot; (distance units)
-  <em>near</em> value = R
+    delta = lateral distance within which a neighbor is considered "nearby" (distance units)
+  <I>near</I> value = R
     R = only insert atom/molecule if further than R from existing particles (distance units)
-  <em>attempt</em> value = Q
+  <I>attempt</I> value = Q
     Q = attempt a single insertion up to Q times
-  <em>rate</em> value = V
+  <I>rate</I> value = V
     V = z velocity (y in 2d) at which insertion volume moves (velocity units)
-  <em>vx</em> values = vxlo vxhi
+  <I>vx</I> values = vxlo vxhi
     vxlo,vxhi = range of x velocities for inserted atom/molecule (velocity units)
-  <em>vy</em> values = vylo vyhi
+  <I>vy</I> values = vylo vyhi
     vylo,vyhi = range of y velocities for inserted atom/molecule (velocity units)
-  <em>vz</em> values = vzlo vzhi
+  <I>vz</I> values = vzlo vzhi
     vzlo,vzhi = range of z velocities for inserted atom/molecule (velocity units)
-  <em>target</em> values = tx ty tz
+  <I>target</I> values = tx ty tz
     tx,ty,tz = location of target point (distance units)
-  <em>mol</em> value = template-ID
-    template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
-  <em>molfrac</em> values = f1 f2 ... fN
+  <I>mol</I> value = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
+  <I>molfrac</I> values = f1 f2 ... fN
     f1 to fN = relative probability of creating each of N molecules in template-ID
-  <em>rigid</em> value = fix-ID
-    fix-ID = ID of <a class="reference internal" href="fix_rigid.html"><em>fix rigid/small</em></a> command
-  <em>shake</em> value = fix-ID
-    fix-ID = ID of <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command
-  <em>units</em> value = <em>lattice</em> or <em>box</em>
+  <I>rigid</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_rigid.html">fix rigid/small</A> command
+  <I>shake</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_shake.html">fix shake</A> command
+  <I>units</I> value = <I>lattice</I> or <I>box</I>
     lattice = the geometry is defined in lattice units
-    box = the geometry is defined in simulation box units
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
+    box = the geometry is defined in simulation box units 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
 fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8
-fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Insert a single atom or molecule into the simulation domain every M
+fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Insert a single atom or molecule into the simulation domain every M
 timesteps until N atoms or molecules have been inserted.  This is
 useful for simulating deposition onto a surface.  For the remainder of
 this doc page, a single inserted atom or molecule is referred to as a
-&#8220;particle&#8221;.</p>
-<p>If inserted particles are individual atoms, they are assigned the
+"particle".
+</P>
+<P>If inserted particles are individual atoms, they are assigned the
 specified atom type.  If they are molecules, the type of each atom in
 the inserted molecule is specified in the file read by the
-<a class="reference internal" href="molecule.html"><em>molecule</em></a> command, and those values are added to the
+<A HREF = "molecule.html">molecule</A> command, and those values are added to the
 specified atom type.  E.g. if the file specifies atom types 1,2,3, and
 those are the atom types you want for inserted molecules, then specify
-<em>type</em> = 0.  If you specify <em>type</em> = 2, the in the inserted molecule
-will have atom types 3,4,5.</p>
-<p>All atoms in the inserted particle are assigned to two groups: the
-default group &#8220;all&#8221; and the group specified in the fix deposit command
-(which can also be &#8220;all&#8221;).</p>
-<p>If you are computing temperature values which include inserted
+<I>type</I> = 0.  If you specify <I>type</I> = 2, the in the inserted molecule
+will have atom types 3,4,5.
+</P>
+<P>All atoms in the inserted particle are assigned to two groups: the
+default group "all" and the group specified in the fix deposit command
+(which can also be "all").
+</P>
+<P>If you are computing temperature values which include inserted
 particles, you will want to use the
-<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> dynamic option, which insures the
+<A HREF = "compute_modify.html">compute_modify</A> dynamic option, which insures the
 current number of atoms is used as a normalizing factor each time the
-temperature is computed.</p>
-<p>Care must be taken that inserted particles are not too near existing
+temperature is computed.
+</P>
+<P>Care must be taken that inserted particles are not too near existing
 atoms, using the options described below.  When inserting particles
 above a surface in a non-periodic box (see the
-<a class="reference internal" href="boundary.html"><em>boundary</em></a> command), the possibility of a particle
+<A HREF = "boundary.html">boundary</A> command), the possibility of a particle
 escaping the surface and flying upward should be considered, since the
 particle may be lost or the box size may grow infinitely large.  A
-<a class="reference internal" href="fix_wall_reflect.html"><em>fix wall/reflect</em></a> command can be used to
+<A HREF = "fix_wall_reflect.html">fix wall/reflect</A> command can be used to
 prevent this behavior.  Note that if a shrink-wrap boundary is used,
 it is OK to insert the new particle outside the box, however the box
 will immediately be expanded to include the new particle. When
 simulating a sputtering experiment it is probably more realistic to
-ignore those atoms using the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a>
-command with the <em>lost ignore</em> option and a fixed
-<a class="reference internal" href="boundary.html"><em>boundary</em></a>.</p>
-<p>The fix deposit command must use the <em>region</em> keyword to define an
+ignore those atoms using the <A HREF = "thermo_modify.html">thermo_modify</A>
+command with the <I>lost ignore</I> option and a fixed
+<A HREF = "boundary.html">boundary</A>.
+</P>
+<P>The fix deposit command must use the <I>region</I> keyword to define an
 insertion volume.  The specified region must have been previously
-defined with a <a class="reference internal" href="region.html"><em>region</em></a> command.  It must be defined with
-side = <em>in</em>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">LAMMPS checks that the specified region is wholly
+defined with a <A HREF = "region.html">region</A> command.  It must be defined with
+side = <I>in</I>.
+</P>
+<P>IMPORTANT NOTE: LAMMPS checks that the specified region is wholly
 inside the simulation box.  It can do this correctly for orthonormal
-simulation boxes.  However for <a class="reference internal" href="Section_howto.html#howto-12"><span>triclinic boxes</span></a>, it only tests against the larger
+simulation boxes.  However for <A HREF = "Section_howto.html#howto_12">triclinic
+boxes</A>, it only tests against the larger
 orthonormal box that bounds the tilted simulation box.  If the
 specified region includes volume outside the tilted box, then an
-insertion will likely fail, leading to a &#8220;lost atoms&#8221; error.  Thus for
+insertion will likely fail, leading to a "lost atoms" error.  Thus for
 triclinic boxes you should insure the specified region is wholly
-inside the simulation box.</p>
-</div>
-<p>Individual atoms are inserted, unless the <em>mol</em> keyword is used.  It
-specifies a <em>template-ID</em> previously defined using the
-<a class="reference internal" href="molecule.html"><em>molecule</em></a> command, which reads files that define one or
+inside the simulation box.
+</P>
+<P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
+specifies a <I>template-ID</I> previously defined using the
+<A HREF = "molecule.html">molecule</A> command, which reads files that define one or
 more molecules.  The coordinates, atom types, charges, etc, as well as
 any bond/angle/etc and special neighbor information for the molecule
 can be specified in the molecule file.  See the
-<a class="reference internal" href="molecule.html"><em>molecule</em></a> command for details.  The only settings
+<A HREF = "molecule.html">molecule</A> command for details.  The only settings
 required to be in each file are the coordinates and types of atoms in
-the molecule.</p>
-<p>If the molecule template contains more than one molecule, the relative
+the molecule.
+</P>
+<P>If the molecule template contains more than one molecule, the relative
 probability of depositing each molecule can be specified by the
-<em>molfrac</em> keyword.  N relative probablities, each from 0.0 to 1.0, are
+<I>molfrac</I> keyword.  N relative probablities, each from 0.0 to 1.0, are
 specified, where N is the number of molecules in the template.  Each
 time a molecule is deposited, a random number is used to sample from
-the list of relative probabilities.  The N values must sum to 1.0.</p>
-<p>If you wish to insert molecules via the <em>mol</em> keyword, that will be
-treated as rigid bodies, use the <em>rigid</em> keyword, specifying as its
-value the ID of a separate <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">rigid/small</span></code>
-command which also appears in your input script.</p>
-<p>If you wish to insert molecules via the <em>mol</em> keyword, that will have
-their bonds or angles constrained via SHAKE, use the <em>shake</em> keyword,
-specifying as its value the ID of a separate <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command which also appears in your input script.</p>
-<p>Each timestep a particle is inserted, the coordinates for its atoms
+the list of relative probabilities.  The N values must sum to 1.0.
+</P>
+<P>If you wish to insert molecules via the <I>mol</I> keyword, that will be
+treated as rigid bodies, use the <I>rigid</I> keyword, specifying as its
+value the ID of a separate <A HREF = "fix_rigid_small.html">fix rigid/small</A>
+command which also appears in your input script.
+</P>
+<P>If you wish to insert molecules via the <I>mol</I> keyword, that will have
+their bonds or angles constrained via SHAKE, use the <I>shake</I> keyword,
+specifying as its value the ID of a separate <A HREF = "fix_shake.html">fix
+shake</A> command which also appears in your input script.
+</P>
+<P>Each timestep a particle is inserted, the coordinates for its atoms
 are chosen as follows.  For insertion of individual atoms, the
-&#8220;position&#8221; referred to in the following description is the coordinate
-of the atom.  For insertion of molecule, the &#8220;position&#8221; is the
-geometric center of the molecule; see the <a class="reference internal" href="molecule.html"><em>molecule</em></a> doc
+"position" referred to in the following description is the coordinate
+of the atom.  For insertion of molecule, the "position" is the
+geometric center of the molecule; see the <A HREF = "molecule.html">molecule</A> doc
 page for details.  A random rotation of the molecule around its center
 point is performed, which determines the coordinates all the
-individual atoms.</p>
-<p>A random position within the region insertion volume is generated.  If
-neither the <em>global</em> or <em>local</em> keyword is used, the random position
-is the trial position.  If the <em>global</em> keyword is used, the random
+individual atoms.
+</P>
+<P>A random position within the region insertion volume is generated.  If
+neither the <I>global</I> or <I>local</I> keyword is used, the random position
+is the trial position.  If the <I>global</I> keyword is used, the random
 x,y values are used, but the z position of the new particle is set
 above the highest current atom in the simulation by a distance
 randomly chosen between lo/hi.  (For a 2d simulation, this is done for
-the y position.)  If the <em>local</em> keyword is used, the z position is
+the y position.)  If the <I>local</I> keyword is used, the z position is
 set a distance between lo/hi above the highest current atom in the
-simulation that is &#8220;nearby&#8221; the chosen x,y position.  In this context,
-&#8220;nearby&#8221; means the lateral distance (in x,y) between the new and old
-particles is less than the <em>delta</em> setting.</p>
-<p>Once a trial x,y,z position has been selected, the insertion is only
+simulation that is "nearby" the chosen x,y position.  In this context,
+"nearby" means the lateral distance (in x,y) between the new and old
+particles is less than the <I>delta</I> setting.
+</P>
+<P>Once a trial x,y,z position has been selected, the insertion is only
 performed if no current atom in the simulation is within a distance R
 of any atom in the new particle, including the effect of periodic
-boundary conditions if applicable.  R is defined by the <em>near</em>
+boundary conditions if applicable.  R is defined by the <I>near</I>
 keyword.  Note that the default value for R is 0.0, which will allow
 atoms to strongly overlap if you are inserting where other atoms are
 present.  This distance test is performed independently for each atom
@@ -291,159 +191,102 @@ in an inserted molecule, based on the randomly rotated configuration
 of the molecule.  If this test fails, a new random position within the
 insertion volume is chosen and another trial is made.  Up to Q
 attempts are made.  If the particle is not successfully inserted,
-LAMMPS prints a warning message.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you are inserting finite size particles or a
+LAMMPS prints a warning message.
+</P>
+<P>IMPORTANT NOTE: If you are inserting finite size particles or a
 molecule or rigid body consisting of finite-size particles, then you
 should typically set R larger than the distance at which any inserted
 particle may overlap with either a previouly inserted particle or an
 existing particle.  LAMMPS will issue a warning if R is smaller than
-this value, based on the radii of existing and inserted particles.</p>
-</div>
-<p>The <em>rate</em> option moves the insertion volume in the z direction (3d)
+this value, based on the radii of existing and inserted particles.
+</P>
+<P>The <I>rate</I> option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables particles to be inserted from a
 successively higher height over time.  Note that this parameter is
-ignored if the <em>global</em> or <em>local</em> keywords are used, since those
-options choose a z-coordinate for insertion independently.</p>
-<p>The vx, vy, and vz components of velocity for the inserted particle
-are set using the values specified for the <em>vx</em>, <em>vy</em>, and <em>vz</em>
+ignored if the <I>global</I> or <I>local</I> keywords are used, since those
+options choose a z-coordinate for insertion independently.
+</P>
+<P>The vx, vy, and vz components of velocity for the inserted particle
+are set using the values specified for the <I>vx</I>, <I>vy</I>, and <I>vz</I>
 keywords.  Note that normally, new particles should be a assigned a
 negative vertical velocity so that they move towards the surface.  For
 molecules, the same velocity is given to every particle (no rotation
-or bond vibration).</p>
-<p>If the <em>target</em> option is used, the velocity vector of the inserted
+or bond vibration).
+</P>
+<P>If the <I>target</I> option is used, the velocity vector of the inserted
 particle is changed so that it points from the insertion position
 towards the specified target point.  The magnitude of the velocity is
 unchanged.  This can be useful, for example, for simulating a
 sputtering process.  E.g. the target point can be far away, so that
 all incident particles strike the surface as if they are in an
-incident beam of particles at a prescribed angle.</p>
-<p>The <em>id</em> keyword determines how atom IDs and molecule IDs are assigned
+incident beam of particles at a prescribed angle.
+</P>
+<P>The <I>id</I> keyword determines how atom IDs and molecule IDs are assigned
 to newly deposited particles.  Molecule IDs are only assigned if
-molecules are being inserted.  For the <em>max</em> setting, the atom and
+molecules are being inserted.  For the <I>max</I> setting, the atom and
 molecule IDs of all current atoms are checked.  Atoms in the new
 particle are assigned IDs starting with the current maximum plus one.
 If a molecule is inserted it is assigned an ID = current maximum plus
 one.  This means that if particles leave the system, the new IDs may
-replace the lost ones.  For the <em>next</em> setting, the maximum ID of any
+replace the lost ones.  For the <I>next</I> setting, the maximum ID of any
 atom and molecule is stored at the time the fix is defined.  Each time
 a new particle is added, this value is incremented to assign IDs to
 the new atom(s) or molecule.  Thus atom and molecule IDs for deposited
 particles will be consecutive even if particles leave the system over
-time.</p>
-<p>The <em>units</em> keyword determines the meaning of the distance units used
-for the other deposition parameters.  A <em>box</em> value selects standard
-distance units as defined by the <a class="reference internal" href="units.html"><em>units</em></a> command,
-e.g. Angstroms for units = real or metal.  A <em>lattice</em> value means the
-distance units are in lattice spacings.  The <a class="reference internal" href="lattice.html"><em>lattice</em></a>
+time.
+</P>
+<P>The <I>units</I> keyword determines the meaning of the distance units used
+for the other deposition parameters.  A <I>box</I> value selects standard
+distance units as defined by the <A HREF = "units.html">units</A> command,
+e.g. Angstroms for units = real or metal.  A <I>lattice</I> value means the
+distance units are in lattice spacings.  The <A HREF = "lattice.html">lattice</A>
 command must have been previously used to define the lattice spacing.
 Note that the units choice affects all the keyword values that have
-units of distance or velocity.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you are monitoring the temperature of a system
+units of distance or velocity.
+</P>
+<P>IMPORTANT NOTE: If you are monitoring the temperature of a system
 where the atom count is changing due to adding particles, you
-typically should use the <a class="reference internal" href="compute_modify.html"><em>compute_modify dynamic yes</em></a> command for the temperature compute you are
-using.</p>
-</div>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
-<p>This fix writes the state of the deposition to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  This includes information about how many
+typically should use the <A HREF = "compute_modify.html">compute_modify dynamic
+yes</A> command for the temperature compute you are
+using.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of the deposition to <A HREF = "restart.html">binary restart
+files</A>.  This includes information about how many
 particles have been depositied, the random number generator seed, the
 next timestep for deposition, etc.  See the
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for info on how to re-specify
+<A HREF = "read_restart.html">read_restart</A> command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.</p>
-<p>None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options are relevant to this
+operation of the fix continues in an uninterrupted fashion.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No
-parameter of this fix can be used with the <em>start/stop</em> keywords of
-the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>The specified insertion region cannot be a &#8220;dynamic&#8221; region, as
-defined by the <a class="reference internal" href="region.html"><em>region</em></a> command.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="fix_pour.html"><em>fix_pour</em></a>, <a class="reference internal" href="region.html"><em>region</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>Insertions are performed for individual atoms, i.e. no <em>mol</em> setting
-is defined.  If the <em>mol</em> keyword is used, the default for <em>molfrac</em>
+access by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  No
+parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The specified insertion region cannot be a "dynamic" region, as
+defined by the <A HREF = "region.html">region</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_pour.html">fix_pour</A>, <A HREF = "region.html">region</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>Insertions are performed for individual atoms, i.e. no <I>mol</I> setting
+is defined.  If the <I>mol</I> keyword is used, the default for <I>molfrac</I>
 is an equal probabilities for all molecules in the template.
 Additional option defaults are id = max, delta = 0.0, near = 0.0,
 attempt = 10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz = 0.0 0.0,
-and units = lattice.</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+and units = lattice.
+</P>
+</HTML>

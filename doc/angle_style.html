@@ -1,277 +1,100 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>angle_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>angle_style command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="angle-style-command">
-<span id="index-0"></span><h1>angle_style command<a class="headerlink" href="#angle-style-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>angle_style style
-</pre></div>
-</div>
-<ul class="simple">
-<li>style = <em>none</em> or <em>hybrid</em> or <em>charmm</em> or <em>class2</em> or <em>cosine</em> or         <em>cosine/squared</em> or <em>harmonic</em></li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>angle_style harmonic
+
+
+<HR>
+
+<H3>angle_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style style 
+</PRE>
+<UL><LI>style = <I>none</I> or <I>hybrid</I> or <I>charmm</I> or <I>class2</I> or <I>cosine</I> or         <I>cosine/squared</I> or <I>harmonic</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style harmonic
 angle_style charmm
-angle_style hybrid harmonic cosine
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Set the formula(s) LAMMPS uses to compute angle interactions between
+angle_style hybrid harmonic cosine 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the formula(s) LAMMPS uses to compute angle interactions between
 triplets of atoms, which remain in force for the duration of the
 simulation.  The list of angle triplets is read in by a
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command
-from a data or restart file.</p>
-<p>Hybrid models where angles are computed using different angle
-potentials can be setup using the <em>hybrid</em> angle style.</p>
-<p>The coefficients associated with a angle style can be specified in a
-data or restart file or via the <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a> command.</p>
-<p>All angle potentials store their coefficient data in binary restart
-files which means angle_style and <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a>
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A> command
+from a data or restart file.
+</P>
+<P>Hybrid models where angles are computed using different angle
+potentials can be setup using the <I>hybrid</I> angle style.
+</P>
+<P>The coefficients associated with a angle style can be specified in a
+data or restart file or via the <A HREF = "angle_coeff.html">angle_coeff</A> command.
+</P>
+<P>All angle potentials store their coefficient data in binary restart
+files which means angle_style and <A HREF = "angle_coeff.html">angle_coeff</A>
 commands do not need to be re-specified in an input script that
-restarts a simulation.  See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+restarts a simulation.  See the <A HREF = "read_restart.html">read_restart</A>
 command for details on how to do this.  The one exception is that
-angle_style <em>hybrid</em> only stores the list of sub-styles in the restart
-file; angle coefficients need to be re-specified.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When both an angle and pair style is defined, the
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command often needs to be used to
+angle_style <I>hybrid</I> only stores the list of sub-styles in the restart
+file; angle coefficients need to be re-specified.
+</P>
+<P>IMPORTANT NOTE: When both an angle and pair style is defined, the
+<A HREF = "special_bonds.html">special_bonds</A> command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
-exist between 3 bonded atoms.</p>
-</div>
-<p>In the formulas listed for each angle style, <em>theta</em> is the angle
-between the 3 atoms in the angle.</p>
-<hr class="docutils" />
-<p>Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
+exist between 3 bonded atoms.
+</P>
+<P>In the formulas listed for each angle style, <I>theta</I> is the angle
+between the 3 atoms in the angle.
+</P>
+<HR>
+
+<P>Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
-specified by the associated <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a> command.</p>
-<p>Note that there are also additional angle styles submitted by users
+specified by the associated <A HREF = "angle_coeff.html">angle_coeff</A> command.
+</P>
+<P>Note that there are also additional angle styles submitted by users
 which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the angle section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
-<ul class="simple">
-<li><a class="reference internal" href="angle_none.html"><em>angle_style none</em></a> - turn off angle interactions</li>
-<li><a class="reference internal" href="angle_hybrid.html"><em>angle_style hybrid</em></a> - define multiple styles of angle interactions</li>
-<li><a class="reference internal" href="angle_charmm.html"><em>angle_style charmm</em></a> - CHARMM angle</li>
-<li><a class="reference internal" href="angle_class2.html"><em>angle_style class2</em></a> - COMPASS (class 2) angle</li>
-<li><a class="reference internal" href="angle_cosine.html"><em>angle_style cosine</em></a> - cosine angle potential</li>
-<li><a class="reference internal" href="angle_cosine_delta.html"><em>angle_style cosine/delta</em></a> - difference of cosines angle potential</li>
-<li><a class="reference internal" href="angle_cosine_periodic.html"><em>angle_style cosine/periodic</em></a> - DREIDING angle</li>
-<li><a class="reference internal" href="angle_cosine_squared.html"><em>angle_style cosine/squared</em></a> - cosine squared angle potential</li>
-<li><a class="reference internal" href="angle_harmonic.html"><em>angle_style harmonic</em></a> - harmonic angle</li>
-<li><a class="reference internal" href="angle_table.html"><em>angle_style table</em></a> - tabulated by angle</li>
-</ul>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>Angle styles can only be set for atom_styles that allow angles to be
-defined.</p>
-<p>Most angle styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info on packages.
+links to the individual styles are given in the angle section of <A HREF = "Section_commands.html#cmd_5">this
+page</A>.
+</P>
+<UL><LI><A HREF = "angle_none.html">angle_style none</A> - turn off angle interactions
+<LI><A HREF = "angle_hybrid.html">angle_style hybrid</A> - define multiple styles of angle interactions 
+</UL>
+<UL><LI><A HREF = "angle_charmm.html">angle_style charmm</A> - CHARMM angle
+<LI><A HREF = "angle_class2.html">angle_style class2</A> - COMPASS (class 2) angle
+<LI><A HREF = "angle_cosine.html">angle_style cosine</A> - cosine angle potential
+<LI><A HREF = "angle_cosine_delta.html">angle_style cosine/delta</A> - difference of cosines angle potential
+<LI><A HREF = "angle_cosine_periodic.html">angle_style cosine/periodic</A> - DREIDING angle
+<LI><A HREF = "angle_cosine_squared.html">angle_style cosine/squared</A> - cosine squared angle potential
+<LI><A HREF = "angle_harmonic.html">angle_style harmonic</A> - harmonic angle
+<LI><A HREF = "angle_table.html">angle_style table</A> - tabulated by angle 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>Angle styles can only be set for atom_styles that allow angles to be
+defined.
+</P>
+<P>Most angle styles are part of the MOLECULE package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info on packages.
 The doc pages for individual bond potentials tell if it is part of a
-package.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>angle_style none
-</pre></div>
-</div>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+package.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>angle_style none 
+</PRE>
+</HTML>

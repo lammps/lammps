@@ -1,472 +1,268 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>atom_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>atom_style command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="atom-style-command">
-<span id="index-0"></span><h1>atom_style command<a class="headerlink" href="#atom-style-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>atom_style style args
-</pre></div>
-</div>
-<ul class="simple">
-<li>style = <em>angle</em> or <em>atomic</em> or <em>body</em> or <em>bond</em> or <em>charge</em> or <em>dipole</em> or         <em>electron</em> or <em>ellipsoid</em> or <em>full</em> or <em>line</em> or <em>meso</em> or         <em>molecular</em> or <em>peri</em> or <em>sphere</em> or <em>tri</em> or <em>template</em> or <em>hybrid</em></li>
-</ul>
-<pre class="literal-block">
-args = none for any style except <em>body</em> and <em>hybrid</em>
-  <em>body</em> args = bstyle bstyle-args
+
+
+<HR>
+
+<H3>atom_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>atom_style style args 
+</PRE>
+<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>template</I> or <I>hybrid</I> 
+
+<PRE>  args = none for any style except <I>body</I> and <I>hybrid</I>
+  <I>body</I> args = bstyle bstyle-args
     bstyle = style of body particles
     bstyle-args = additional arguments specific to the bstyle
-                  see the <a class="reference internal" href="body.html"><em>body</em></a> doc page for details
-  <em>template</em> args = template-ID
-    template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
-  <em>hybrid</em> args = list of one or more sub-styles, each with their args
-</pre>
-<ul class="simple">
-<li>accelerated styles (with same args) = <em>angle/cuda</em> or <em>angle/kk</em> or <em>atomic/cuda</em> or <em>atomic/kk</em> or <em>bond/kk</em> or <em>charge/cuda</em> or <em>charge/kk</em> or <em>full/cuda</em> or <em>full/kk</em> or <em>molecular/kk</em></li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>atom_style atomic
+                  see the <A HREF = "body.html">body</A> doc page for details
+  <I>template</I> args = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
+  <I>hybrid</I> args = list of one or more sub-styles, each with their args 
+</PRE>
+<LI>accelerated styles (with same args) = <I>angle/cuda</I> or <I>angle/kk</I> or <I>atomic/cuda</I> or <I>atomic/kk</I> or <I>bond/kk</I> or <I>charge/cuda</I> or <I>charge/kk</I> or <I>full/cuda</I> or <I>full/kk</I> or <I>molecular/kk</I> 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>atom_style atomic
 atom_style bond
 atom_style full
 atom_style full/cuda
 atom_style body nparticle 2 10
 atom_style hybrid charge bond
 atom_style hybrid charge body nparticle 2 5
-atom_style template myMols
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define what style of atoms to use in a simulation.  This determines
+atom_style template myMols 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define what style of atoms to use in a simulation.  This determines
 what attributes are associated with the atoms.  This command must be
-used before a simulation is setup via a <a class="reference internal" href="read_data.html"><em>read_data</em></a>,
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a>, or <a class="reference internal" href="create_box.html"><em>create_box</em></a>
-command.</p>
-<p>Once a style is assigned, it cannot be changed, so use a style general
-enough to encompass all attributes.  E.g. with style <em>bond</em>, angular
+used before a simulation is setup via a <A HREF = "read_data.html">read_data</A>,
+<A HREF = "read_restart.html">read_restart</A>, or <A HREF = "create_box.html">create_box</A>
+command.
+</P>
+<P>Once a style is assigned, it cannot be changed, so use a style general
+enough to encompass all attributes.  E.g. with style <I>bond</I>, angular
 terms cannot be used or added later to the model.  It is OK to use a
-style more general than needed, though it may be slightly inefficient.</p>
-<p>The choice of style affects what quantities are stored by each atom,
+style more general than needed, though it may be slightly inefficient.
+</P>
+<P>The choice of style affects what quantities are stored by each atom,
 what quantities are communicated between processors to enable forces
 to be computed, and what quantities are listed in the data file read
-by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.</p>
-<p>These are the additional attributes of each style and the typical
+by the <A HREF = "read_data.html">read_data</A> command.
+</P>
+<P>These are the additional attributes of each style and the typical
 kinds of physical systems they are used to model.  All styles store
 coordinates, velocities, atom IDs and types.  See the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>, and
-<a class="reference internal" href="set.html"><em>set</em></a> commands for info on how to set these various
-quantities.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="13%" />
-<col width="50%" />
-<col width="36%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><em>angle</em></td>
-<td>bonds and angles</td>
-<td>bead-spring polymers with stiffness</td>
-</tr>
-<tr class="row-even"><td><em>atomic</em></td>
-<td>only the default values</td>
-<td>coarse-grain liquids, solids, metals</td>
-</tr>
-<tr class="row-odd"><td><em>body</em></td>
-<td>mass, inertia moments, quaternion, angular momentum</td>
-<td>arbitrary bodies</td>
-</tr>
-<tr class="row-even"><td><em>bond</em></td>
-<td>bonds</td>
-<td>bead-spring polymers</td>
-</tr>
-<tr class="row-odd"><td><em>charge</em></td>
-<td>charge</td>
-<td>atomic system with charges</td>
-</tr>
-<tr class="row-even"><td><em>dipole</em></td>
-<td>charge and dipole moment</td>
-<td>system with dipolar particles</td>
-</tr>
-<tr class="row-odd"><td><em>electron</em></td>
-<td>charge and spin and eradius</td>
-<td>electronic force field</td>
-</tr>
-<tr class="row-even"><td><em>ellipsoid</em></td>
-<td>shape, quaternion, angular momentum</td>
-<td>aspherical particles</td>
-</tr>
-<tr class="row-odd"><td><em>full</em></td>
-<td>molecular + charge</td>
-<td>bio-molecules</td>
-</tr>
-<tr class="row-even"><td><em>line</em></td>
-<td>end points, angular velocity</td>
-<td>rigid bodies</td>
-</tr>
-<tr class="row-odd"><td><em>meso</em></td>
-<td>rho, e, cv</td>
-<td>SPH particles</td>
-</tr>
-<tr class="row-even"><td><em>molecular</em></td>
-<td>bonds, angles, dihedrals, impropers</td>
-<td>uncharged molecules</td>
-</tr>
-<tr class="row-odd"><td><em>peri</em></td>
-<td>mass, volume</td>
-<td>mesocopic Peridynamic models</td>
-</tr>
-<tr class="row-even"><td><em>sphere</em></td>
-<td>diameter, mass, angular velocity</td>
-<td>granular models</td>
-</tr>
-<tr class="row-odd"><td><em>template</em></td>
-<td>template index, template atom</td>
-<td>small molecules with fixed topology</td>
-</tr>
-<tr class="row-even"><td><em>tri</em></td>
-<td>corner points, angular momentum</td>
-<td>rigid bodies</td>
-</tr>
-<tr class="row-odd"><td><em>wavepacket</em></td>
-<td>charge, spin, eradius, etag, cs_re, cs_im</td>
-<td>AWPMD</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is possible to add some attributes, such as a
-molecule ID, to atom styles that do not have them via the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command.  This command also
+<A HREF = "read_data.html">read_data</A>, <A HREF = "create_atoms.html">create_atoms</A>, and
+<A HREF = "set.html">set</A> commands for info on how to set these various
+quantities.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><I>angle</I> </TD><TD > bonds and angles </TD><TD > bead-spring polymers with stiffness </TD></TR>
+<TR><TD ><I>atomic</I> </TD><TD > only the default values </TD><TD > coarse-grain liquids, solids, metals </TD></TR>
+<TR><TD ><I>body</I> </TD><TD > mass, inertia moments, quaternion, angular momentum </TD><TD > arbitrary bodies </TD></TR>
+<TR><TD ><I>bond</I> </TD><TD > bonds </TD><TD > bead-spring polymers </TD></TR>
+<TR><TD ><I>charge</I> </TD><TD > charge </TD><TD > atomic system with charges </TD></TR>
+<TR><TD ><I>dipole</I> </TD><TD > charge and dipole moment </TD><TD > system with dipolar particles </TD></TR>
+<TR><TD ><I>electron</I> </TD><TD > charge and spin and eradius </TD><TD > electronic force field </TD></TR>
+<TR><TD ><I>ellipsoid</I> </TD><TD > shape, quaternion, angular momentum </TD><TD > aspherical particles </TD></TR>
+<TR><TD ><I>full</I> </TD><TD > molecular + charge </TD><TD > bio-molecules </TD></TR>
+<TR><TD ><I>line</I> </TD><TD > end points, angular velocity </TD><TD > rigid bodies </TD></TR>
+<TR><TD ><I>meso</I> </TD><TD > rho, e, cv </TD><TD > SPH particles </TD></TR>
+<TR><TD ><I>molecular</I> </TD><TD > bonds, angles, dihedrals, impropers </TD><TD > uncharged molecules </TD></TR>
+<TR><TD ><I>peri</I> </TD><TD > mass, volume </TD><TD > mesocopic Peridynamic models </TD></TR>
+<TR><TD ><I>sphere</I> </TD><TD > diameter, mass, angular velocity </TD><TD > granular models </TD></TR>
+<TR><TD ><I>template</I> </TD><TD > template index, template atom </TD><TD > small molecules with fixed topology </TD></TR>
+<TR><TD ><I>tri</I> </TD><TD > corner points, angular momentum </TD><TD > rigid bodies </TD></TR>
+<TR><TD ><I>wavepacket</I> </TD><TD > charge, spin, eradius, etag, cs_re, cs_im </TD><TD > AWPMD 
+</TD></TR></TABLE></DIV>
+
+<P>IMPORTANT NOTE: It is possible to add some attributes, such as a
+molecule ID, to atom styles that do not have them via the <A HREF = "fix_property_atom.html">fix
+property/atom</A> command.  This command also
 allows new custom attributes consisting of extra integer or
-floating-point values to be added to atoms.  See the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> doc page for examples of cases
+floating-point values to be added to atoms.  See the <A HREF = "fix_property_atom.html">fix
+property/atom</A> doc page for examples of cases
 where this is useful and details on how to initialize, access, and
-output the custom values.</p>
-</div>
-<p>All of the above styles define point particles, except the <em>sphere</em>,
-<em>ellipsoid</em>, <em>electron</em>, <em>peri</em>, <em>wavepacket</em>, <em>line</em>, <em>tri</em>, and
-<em>body</em> styles, which define finite-size particles.  See <a class="reference internal" href="Section_howto.html#howto-14"><span>Section_howto 14</span></a> for an overview of using finite-size
-particle models with LAMMPS.</p>
-<p>All of the point-particle styles assign mass to particles on a
-per-type basis, using the <a class="reference internal" href="mass.html"><em>mass</em></a> command, The finite-size
+output the custom values.
+</P>
+<P>All of the above styles define point particles, except the <I>sphere</I>,
+<I>ellipsoid</I>, <I>electron</I>, <I>peri</I>, <I>wavepacket</I>, <I>line</I>, <I>tri</I>, and
+<I>body</I> styles, which define finite-size particles.  See <A HREF = "Section_howto.html#howto_14">Section_howto
+14</A> for an overview of using finite-size
+particle models with LAMMPS.
+</P>
+<P>All of the point-particle styles assign mass to particles on a
+per-type basis, using the <A HREF = "mass.html">mass</A> command, The finite-size
 particle styles assign mass to individual particles on a per-particle
-basis.</p>
-<p>For the <em>sphere</em> style, the particles are spheres and each stores a
-per-particle diameter and mass.  If the diameter &gt; 0.0, the particle
+basis.
+</P>
+<P>For the <I>sphere</I> style, the particles are spheres and each stores a
+per-particle diameter and mass.  If the diameter > 0.0, the particle
 is a finite-size sphere.  If the diameter = 0.0, it is a point
-particle.</p>
-<p>For the <em>ellipsoid</em> style, the particles are ellipsoids and each
+particle.
+</P>
+<P>For the <I>ellipsoid</I> style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
 a point particle.  If it is an ellipsoid, it also stores a shape
 vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
-with its orientation.</p>
-<p>For the <em>electron</em> style, the particles representing electrons are 3d
+with its orientation.
+</P>
+<P>For the <I>electron</I> style, the particles representing electrons are 3d
 Gaussians with a specified position and bandwidth or uncertainty in
-position, which is represented by the eradius = electron size.</p>
-<p>For the <em>peri</em> style, the particles are spherical and each stores a
-per-particle mass and volume.</p>
-<p>The <em>meso</em> style is for smoothed particle hydrodynamics (SPH)
+position, which is represented by the eradius = electron size.
+</P>
+<P>For the <I>peri</I> style, the particles are spherical and each stores a
+per-particle mass and volume.
+</P>
+<P>The <I>meso</I> style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
-(cv).</p>
-<p>The <em>wavepacket</em> style is similar to <em>electron</em>, but the electrons may
+(cv).
+</P>
+<P>The <I>wavepacket</I> style is similar to <I>electron</I>, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
 cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
 particle in LAMMPS, wave packets belonging to the same electron must
-have identical <em>etag</em> values.</p>
-<p>For the <em>line</em> style, the particles are idealized line segments and
+have identical <I>etag</I> values.
+</P>
+<P>For the <I>line</I> style, the particles are idealized line segments and
 each stores a per-particle mass and length and orientation (i.e. the
-end points of the line segment).</p>
-<p>For the <em>tri</em> style, the particles are planar triangles and each
+end points of the line segment).
+</P>
+<P>For the <I>tri</I> style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
-points of the triangle).</p>
-<p>The <em>template</em> style allows molecular topolgy (bonds,angles,etc) to be
-defined via a molecule template using the <a class="reference external" href="molecule.txt">molecule</a>
+points of the triangle).
+</P>
+<P>The <I>template</I> style allows molecular topolgy (bonds,angles,etc) to be
+defined via a molecule template using the <A HREF = "molecule.txt">molecule</A>
 command.  The template stores one or more molecules with a single copy
 of the topology info (bonds,angles,etc) of each.  Individual atoms
 only store a template index and template atom to identify which
 molecule and which atom-within-the-molecule they represent.  Using the
-<em>template</em> style instead of the <em>bond</em>, <em>angle</em>, <em>molecular</em> styles
+<I>template</I> style instead of the <I>bond</I>, <I>angle</I>, <I>molecular</I> styles
 can save memory for systems comprised of a large number of small
 molecules, all of a single type (or small number of types).  See the
-paper by Grime and Voth, in <a class="reference internal" href="#grime"><span>(Grime)</span></a>, for examples of how this
-can be advantageous for large-scale coarse-grained systems.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When using the <em>template</em> style with a <a class="reference internal" href="molecule.html"><em>molecule template</em></a> that contains multiple molecules, you should
+paper by Grime and Voth, in <A HREF = "#Grime">(Grime)</A>, for examples of how this
+can be advantageous for large-scale coarse-grained systems.
+</P>
+<P>IMPORTANT NOTE: When using the <I>template</I> style with a <A HREF = "molecule.html">molecule
+template</A> that contains multiple molecules, you should
 insure the atom types, bond types, angle_types, etc in all the
 molecules are consistent.  E.g. if one molecule represents H2O and
 another CO2, then you probably do not want each molecule file to
 define 2 atom types and a single bond type, because they will conflict
 with each other when a mixture system of H2O and CO2 molecules is
-defined, e.g. by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.  Rather the
+defined, e.g. by the <A HREF = "read_data.html">read_data</A> command.  Rather the
 H2O molecule should define atom types 1 and 2, and bond type 1.  And
 the CO2 molecule should define atom types 3 and 4 (or atom types 3 and
-2 if a single oxygen type is desired), and bond type 2.</p>
-</div>
-<p>For the <em>body</em> style, the particles are arbitrary bodies with internal
-attributes defined by the &#8220;style&#8221; of the bodies, which is specified by
-the <em>bstyle</em> argument.  Body particles can represent complex entities,
+2 if a single oxygen type is desired), and bond type 2.
+</P>
+<P>For the <I>body</I> style, the particles are arbitrary bodies with internal
+attributes defined by the "style" of the bodies, which is specified by
+the <I>bstyle</I> argument.  Body particles can represent complex entities,
 such as surface meshes of discrete points, collections of
-sub-particles, deformable objects, etc.</p>
-<p>The <a class="reference internal" href="body.html"><em>body</em></a> doc page descibes the body styles LAMMPS
+sub-particles, deformable objects, etc.  
+</P>
+<P>The <A HREF = "body.html">body</A> doc page descibes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body
 particles they represent.  For all styles, each body particle stores
 moments of inertia and a quaternion 4-vector, so that its orientation
-and position can be time integrated due to forces and torques.</p>
-<p>Note that there may be additional arguments required along with the
-<em>bstyle</em> specification, in the atom_style body command.  These
-arguments are described in the <a class="reference internal" href="body.html"><em>body</em></a> doc page.</p>
-<hr class="docutils" />
-<p>Typically, simulations require only a single (non-hybrid) atom style.
+and position can be time integrated due to forces and torques.
+</P>
+<P>Note that there may be additional arguments required along with the
+<I>bstyle</I> specification, in the atom_style body command.  These
+arguments are described in the <A HREF = "body.html">body</A> doc page.
+</P>
+<HR>
+
+<P>Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
 by a particular style, use the simplest style that defines all the
 needed properties by any atom.  For example, if some atoms in a
-simulation are charged, but others are not, use the <em>charge</em> style.
-If some atoms have bonds, but others do not, use the <em>bond</em> style.</p>
-<p>The only scenario where the <em>hybrid</em> style is needed is if there is no
+simulation are charged, but others are not, use the <I>charge</I> style.
+If some atoms have bonds, but others do not, use the <I>bond</I> style.
+</P>
+<P>The only scenario where the <I>hybrid</I> style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
 example, if you want dipolar particles which will rotate due to
-torque, you would need to use &#8220;atom_style hybrid sphere dipole&#8221;.  When
+torque, you would need to use "atom_style hybrid sphere dipole".  When
 a hybrid style is used, atoms store and communicate the union of all
-quantities implied by the individual styles.</p>
-<p>When using the <em>hybrid</em> style, you cannot combine the <em>template</em> style
+quantities implied by the individual styles.
+</P>
+<P>When using the <I>hybrid</I> style, you cannot combine the <I>template</I> style
 with another molecular style that stores bond,angle,etc info on a
-per-atom basis.</p>
-<p>LAMMPS can be extended with new atom styles as well as new body
-styles; see <a class="reference internal" href="Section_modify.html"><em>this section</em></a>.</p>
-<hr class="docutils" />
-<p>Styles with a <em>cuda</em> or <em>kk</em> suffix are functionally the same as the
+per-atom basis.
+</P>
+<P>LAMMPS can be extended with new atom styles as well as new body
+styles; see <A HREF = "Section_modify.html">this section</A>.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I> or <I>kk</I> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
-<a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual.  The
+<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
 accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.</p>
-<p>Note that other acceleration packages in LAMMPS, specifically the GPU,
+results, except for round-off and precision issues.
+</P>
+<P>Note that other acceleration packages in LAMMPS, specifically the GPU,
 USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
-styles.</p>
-<p>The accelerated styles are part of the USER-CUDA and KOKKOS packages
+styles.
+</P>
+<P>The accelerated styles are part of the USER-CUDA and KOKKOS packages
 respectively.  They are only enabled if LAMMPS was built with those
-packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section
-for more info.</p>
-<p>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
-use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
-more instructions on how to use the accelerated styles effectively.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This command cannot be used after the simulation box is defined by a
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="create_box.html"><em>create_box</em></a> command.</p>
-<p>The <em>angle</em>, <em>bond</em>, <em>full</em>, <em>molecular</em>, and <em>template</em> styles are
-part of the MOLECULE package.  The <em>line</em> and <em>tri</em> styles are part
-of the ASPHERE pacakge.  The <em>body</em> style is part of the BODY package.
-The <em>dipole</em> style is part of the DIPOLE package.  The <em>peri</em> style is
-part of the PERI package for Peridynamics.  The <em>electron</em> style is
-part of the USER-EFF package for <a class="reference internal" href="pair_eff.html"><em>electronic force fields</em></a>.  The <em>meso</em> style is part of the USER-SPH
-package for smoothed particle hydrodyanmics (SPH).  See <a class="reference external" href="USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</a> to using SPH in LAMMPS.  The
-<em>wavepacket</em> style is part of the USER-AWPMD package for the
-<a class="reference internal" href="pair_awpmd.html"><em>antisymmetrized wave packet MD method</em></a>.  They are
-only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="pair_style.html"><em>pair_style</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>atom_style atomic</p>
-<hr class="docutils" />
-<p id="grime"><strong>(Grime)</strong> Grime and Voth, to appear in J Chem Theory &amp; Computation
-(2014).</p>
-</div>
-</div>
+packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>The <I>angle</I>, <I>bond</I>, <I>full</I>, <I>molecular</I>, and <I>template</I> styles are
+part of the MOLECULE package.  The <I>line</I> and <I>tri</I> styles are part
+of the ASPHERE pacakge.  The <I>body</I> style is part of the BODY package.
+The <I>dipole</I> style is part of the DIPOLE package.  The <I>peri</I> style is
+part of the PERI package for Peridynamics.  The <I>electron</I> style is
+part of the USER-EFF package for <A HREF = "pair_eff.html">electronic force
+fields</A>.  The <I>meso</I> style is part of the USER-SPH
+package for smoothed particle hydrodyanmics (SPH).  See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF
+guide</A> to using SPH in LAMMPS.  The
+<I>wavepacket</I> style is part of the USER-AWPMD package for the
+<A HREF = "pair_awpmd.html">antisymmetrized wave packet MD method</A>.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "pair_style.html">pair_style</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>atom_style atomic
+</P>
+<HR>
 
+<A NAME = "Grime"></A>
 
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Grime)</B> Grime and Voth, to appear in J Chem Theory & Computation
+(2014).
+</P>
+</HTML>

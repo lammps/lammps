@@ -1,201 +1,84 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>compute reduce command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>compute reduce command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="compute-reduce-command">
-<span id="index-0"></span><h1>compute reduce command<a class="headerlink" href="#compute-reduce-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="compute-reduce-region-command">
-<h1>compute reduce/region command<a class="headerlink" href="#compute-reduce-region-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID style arg mode input1 input2 ... keyword args ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>style = <em>reduce</em> or <em>reduce/region</em></li>
-</ul>
-<pre class="literal-block">
-<em>reduce</em> arg = none
-  <em>reduce/region</em> arg = region-ID
-    region-ID = ID of region to use for choosing atoms
-</pre>
-<ul class="simple">
-<li>mode = <em>sum</em> or <em>min</em> or <em>max</em> or <em>ave</em> or <em>sumsq</em> or <em>avesq</em></li>
-<li>one or more inputs can be listed</li>
-<li>input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
-</ul>
-<div class="highlight-python"><div class="highlight"><pre>x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+
+
+<HR>
+
+<H3>compute reduce command 
+</H3>
+<H3>compute reduce/region command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID style arg mode input1 input2 ... keyword args ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>style = <I>reduce</I> or <I>reduce/region</I> 
+
+<PRE>  <I>reduce</I> arg = none
+  <I>reduce/region</I> arg = region-ID
+    region-ID = ID of region to use for choosing atoms 
+</PRE>
+<LI>mode = <I>sum</I> or <I>min</I> or <I>max</I> or <I>ave</I> or <I>sumsq</I> or <I>avesq</I> 
+
+<LI>one or more inputs can be listed 
+
+<LI>input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name 
+
+<PRE>  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
   c_ID = per-atom or local vector calculated by a compute with ID
   c_ID[I] = Ith column of per-atom or local array calculated by a compute with ID
   f_ID = per-atom or local vector calculated by a fix with ID
   f_ID[I] = Ith column of per-atom or local array calculated by a fix with ID
-  v_name = per-atom vector calculated by an atom-style variable with name
-</pre></div>
-</div>
-<ul class="simple">
-<li>zero or more keyword/args pairs may be appended</li>
-<li>keyword = <em>replace</em></li>
-</ul>
-<pre class="literal-block">
-<em>replace</em> args = vec1 vec2
+  v_name = per-atom vector calculated by an atom-style variable with name 
+</PRE>
+<LI>zero or more keyword/args pairs may be appended 
+
+<LI>keyword = <I>replace</I> 
+
+<PRE>  <I>replace</I> args = vec1 vec2
     vec1 = reduced value from this input vector will be replaced
-    vec2 = replace it with vec1[N] where N is index of max/min value from vec2
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all reduce sum c_force
+    vec2 = replace it with vec1[N] where N is index of max/min value from vec2 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all reduce sum c_force
 compute 1 all reduce/region subbox sum c_force
 compute 2 all reduce min c_press[2] f_ave v_myKE
-compute 3 fluid reduce max c_index[1] c_index[2] c_dist replace 1 3 replace 2 3
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a calculation that &#8220;reduces&#8221; one or more vector inputs into
+compute 3 fluid reduce max c_index[1] c_index[2] c_dist replace 1 3 replace 2 3 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a calculation that "reduces" one or more vector inputs into
 scalar values, one per listed input.  The inputs can be per-atom or
 local quantities; they cannot be global quantities.  Atom attributes
-are per-atom quantities, <a class="reference internal" href="compute.html"><em>computes</em></a> and <a class="reference internal" href="fix.html"><em>fixes</em></a>
-may generate any of the three kinds of quantities, and <a class="reference internal" href="variable.html"><em>atom-style variables</em></a> generate per-atom quantities.  See the
-<a class="reference external" href="variable">variable</a> command and its special functions which can
+are per-atom quantities, <A HREF = "compute.html">computes</A> and <A HREF = "fix.html">fixes</A>
+may generate any of the three kinds of quantities, and <A HREF = "variable.html">atom-style
+variables</A> generate per-atom quantities.  See the
+<A HREF = "variable">variable</A> command and its special functions which can
 perform the same operations as the compute reduce command on global
-vectors.</p>
-<p>The reduction operation is specified by the <em>mode</em> setting.  The <em>sum</em>
-option adds the values in the vector into a global total.  The <em>min</em>
-or <em>max</em> options find the minimum or maximum value across all vector
-values.  The <em>ave</em> setting adds the vector values into a global total,
-then divides by the number of values in the vector.  The <em>sumsq</em>
+vectors.
+</P>
+<P>The reduction operation is specified by the <I>mode</I> setting.  The <I>sum</I>
+option adds the values in the vector into a global total.  The <I>min</I>
+or <I>max</I> options find the minimum or maximum value across all vector
+values.  The <I>ave</I> setting adds the vector values into a global total,
+then divides by the number of values in the vector.  The <I>sumsq</I>
 option sums the square of the values in the vector into a global
-total.  The <em>avesq</em> setting does the same as <em>sumsq</em>, then divdes the
+total.  The <I>avesq</I> setting does the same as <I>sumsq</I>, then divdes the
 sum of squares by the number of values.  The last two options can be
 useful for calculating the variance of some quantity, e.g. variance =
-sumsq - ave^2.</p>
-<p>Each listed input is operated on independently.  For per-atom inputs,
+sumsq - ave^2.
+</P>
+<P>Each listed input is operated on independently.  For per-atom inputs,
 the group specified with this command means only atoms within the
 group contribute to the result.  For per-atom inputs, if the compute
 reduce/region command is used, the atoms must also currently be within
@@ -203,159 +86,115 @@ the region.  Note that an input that produces per-atom quantities may
 define its own group which affects the quantities it returns.  For
 example, if a compute is used as an input which generates a per-atom
 vector, it will generate values of 0.0 for atoms that are not in the
-group specified for that compute.</p>
-<p>Each listed input can be an atom attribute (position, velocity, force
-component) or can be the result of a <a class="reference internal" href="compute.html"><em>compute</em></a> or
-<a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an atom-style
-<a class="reference internal" href="variable.html"><em>variable</em></a>.</p>
-<p>The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
+group specified for that compute.
+</P>
+<P>Each listed input can be an atom attribute (position, velocity, force
+component) or can be the result of a <A HREF = "compute.html">compute</A> or
+<A HREF = "fix.html">fix</A> or the evaluation of an atom-style
+<A HREF = "variable.html">variable</A>.
+</P>
+<P>The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
 self-explanatory.  Note that other atom attributes can be used as
-inputs to this fix by using the <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a> command and then specifying
-an input value from that compute.</p>
-<p>If a value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
+inputs to this fix by using the <A HREF = "compute_property_atom.html">compute
+property/atom</A> command and then specifying
+an input value from that compute.
+</P>
+<P>If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  Computes can generate
 per-atom or local quantities.  See the individual
-<a class="reference internal" href="compute.html"><em>compute</em></a> doc page for details.  If no bracketed integer
+<A HREF = "compute.html">compute</A> doc page for details.  If no bracketed integer
 is appended, the vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the array calculated
 by the compute is used.  Users can also write code for their own
-compute styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
-<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
+compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
+</P>
+<P>If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  Fixes can generate per-atom
-or local quantities.  See the individual <a class="reference internal" href="fix.html"><em>fix</em></a> doc page for
+or local quantities.  See the individual <A HREF = "fix.html">fix</A> doc page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when compute reduce
 references the values, else an error results.  If no bracketed integer
 is appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
-is used.  Users can also write code for their own fix style and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
-<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
+is used.  Users can also write code for their own fix style and <A HREF = "Section_modify.html">add
+them to LAMMPS</A>.
+</P>
+<P>If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  It must be an
-<a class="reference internal" href="variable.html"><em>atom-style variable</em></a>.  Atom-style variables can
+<A HREF = "variable.html">atom-style variable</A>.  Atom-style variables can
 reference thermodynamic keywords and various per-atom attributes, or
 invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of generating per-atom quantities to
-reduce.</p>
-<hr class="docutils" />
-<p>If the <em>replace</em> keyword is used, two indices <em>vec1</em> and <em>vec2</em> are
+reduce.
+</P>
+<HR>
+
+<P>If the <I>replace</I> keyword is used, two indices <I>vec1</I> and <I>vec2</I> are
 specified, where each index ranges from 1 to the # of input values.
-The replace keyword can only be used if the <em>mode</em> is <em>min</em> or <em>max</em>.
-It works as follows.  A min/max is computed as usual on the <em>vec2</em>
-input vector.  The index N of that value within <em>vec2</em> is also stored.
-Then, instead of performing a min/max on the <em>vec1</em> input vector, the
-stored index is used to select the Nth element of the <em>vec1</em> vector.</p>
-<p>Thus, for example, if you wish to use this compute to find the bond
-with maximum stretch, you can do it as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all property/local batom1 batom2
-compute      2 all bond/local dist
-compute      3 all reduce max c_1[1] c_1[2] c_2 replace 1 3 replace 2 3
-thermo_style custom step temp c_3[1] c_3[2] c_3[3]
-</pre></div>
-</div>
-<p>The first two input values in the compute reduce command are vectors
-with the IDs of the 2 atoms in each bond, using the <a class="reference internal" href="compute_property_local.html"><em>compute property/local</em></a> command.  The last input
-value is bond distance, using the <a class="reference internal" href="compute_bond_local.html"><em>compute bond/local</em></a> command.  Instead of taking the
+The replace keyword can only be used if the <I>mode</I> is <I>min</I> or <I>max</I>.
+It works as follows.  A min/max is computed as usual on the <I>vec2</I>
+input vector.  The index N of that value within <I>vec2</I> is also stored.
+Then, instead of performing a min/max on the <I>vec1</I> input vector, the
+stored index is used to select the Nth element of the <I>vec1</I> vector.
+</P>
+<P>Thus, for example, if you wish to use this compute to find the bond
+with maximum stretch, you can do it as follows:
+</P>
+<PRE>compute 1 all property/local batom1 batom2
+compute	2 all bond/local dist
+compute	3 all reduce max c_1[1] c_1[2] c_2 replace 1 3 replace 2 3
+thermo_style custom step temp c_3[1] c_3[2] c_3[3] 
+</PRE>
+<P>The first two input values in the compute reduce command are vectors
+with the IDs of the 2 atoms in each bond, using the <A HREF = "compute_property_local.html">compute
+property/local</A> command.  The last input
+value is bond distance, using the <A HREF = "compute_bond_local.html">compute
+bond/local</A> command.  Instead of taking the
 max of the two atom ID vectors, which does not yield useful
-information in this context, the <em>replace</em> keywords will extract the
+information in this context, the <I>replace</I> keywords will extract the
 atom IDs for the two atoms in the bond of maximum stretch.  These atom
-IDs and the bond stretch will be printed with thermodynamic output.</p>
-<hr class="docutils" />
-<p>If a single input is specified this compute produces a global scalar
+IDs and the bond stretch will be printed with thermodynamic output.
+</P>
+<HR>
+
+<P>If a single input is specified this compute produces a global scalar
 value.  If multiple inputs are specified, this compute produces a
 global vector of values, the length of which is equal to the number of
-inputs specified.</p>
-<p>As discussed below, for the <em>sum</em> and <em>sumsq</em> modes, the value(s)
-produced by this compute are all &#8220;extensive&#8221;, meaning their value
+inputs specified.
+</P>
+<P>As discussed below, for the <I>sum</I> and <I>sumsq</I> modes, the value(s)
+produced by this compute are all "extensive", meaning their value
 scales linearly with the number of atoms involved.  If normalized
-values are desired, this compute can be accessed by the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command with <a class="reference internal" href="thermo_modify.html"><em>thermo_modify norm yes</em></a> set as an option.  Or it can be accessed by a
-<a class="reference internal" href="variable.html"><em>variable</em></a> that divides by the appropriate atom count.</p>
-<hr class="docutils" />
-<p><strong>Output info:</strong></p>
-<p>This compute calculates a global scalar if a single input value is
+values are desired, this compute can be accessed by the <A HREF = "thermo_style.html">thermo_style
+custom</A> command with <A HREF = "thermo_modify.html">thermo_modify norm
+yes</A> set as an option.  Or it can be accessed by a
+<A HREF = "variable.html">variable</A> that divides by the appropriate atom count.
+</P>
+<HR>
+
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar if a single input value is
 specified or a global vector of length N where N is the number of
 inputs, and which can be accessed by indices 1 to N.  These values can
 be used by any command that uses global scalar or vector values from a
-compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a>
-for an overview of LAMMPS output options.</p>
-<p>All the scalar or vector values calculated by this compute are
-&#8220;intensive&#8221;, except when the <em>sum</em> or <em>sumsq</em> modes are used on
+compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto 15</A>
+for an overview of LAMMPS output options.
+</P>
+<P>All the scalar or vector values calculated by this compute are
+"intensive", except when the <I>sum</I> or <I>sumsq</I> modes are used on
 per-atom or local vectors, in which case the calculated values are
-&#8220;extensive&#8221;.</p>
-<p>The scalar or vector values will be in whatever <a class="reference internal" href="units.html"><em>units</em></a> the
-quantities being reduced are in.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix.html"><em>fix</em></a>, <a class="reference internal" href="variable.html"><em>variable</em></a></p>
-<p><strong>Default:</strong> none</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+"extensive".
+</P>
+<P>The scalar or vector values will be in whatever <A HREF = "units.html">units</A> the
+quantities being reduced are in.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, <A HREF = "variable.html">variable</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

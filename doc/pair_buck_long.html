@@ -1,338 +1,182 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>pair_style buck/long/coul/long command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>pair_style buck/long/coul/long command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="pair-style-buck-long-coul-long-command">
-<span id="index-0"></span><h1>pair_style buck/long/coul/long command<a class="headerlink" href="#pair-style-buck-long-coul-long-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-buck-long-coul-long-omp-command">
-<h1>pair_style buck/long/coul/long/omp command<a class="headerlink" href="#pair-style-buck-long-coul-long-omp-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2)
-</pre></div>
-</div>
-<ul class="simple">
-<li>flag_buck = <em>long</em> or <em>cut</em></li>
-</ul>
-<pre class="literal-block">
-<em>long</em> = use Kspace long-range summation for the dispersion term 1/r^6
-  <em>cut</em> = use a cutoff
-</pre>
-<ul class="simple">
-<li>flag_coul = <em>long</em> or <em>off</em></li>
-</ul>
-<pre class="literal-block">
-<em>long</em> = use Kspace long-range summation for the Coulombic term 1/r
-  <em>off</em> = omit the Coulombic term
-</pre>
-<ul class="simple">
-<li>cutoff = global cutoff for Buckingham (and Coulombic if only 1 cutoff) (distance units)</li>
-<li>cutoff2 = global cutoff for Coulombic (optional) (distance units)</li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style buck/long/coul/long cut off 2.5
+
+
+<HR>
+
+<H3>pair_style buck/long/coul/long command 
+</H3>
+<H3>pair_style buck/long/coul/long/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2) 
+</PRE>
+<UL><LI>flag_buck = <I>long</I> or <I>cut</I> 
+
+<PRE>  <I>long</I> = use Kspace long-range summation for the dispersion term 1/r^6
+  <I>cut</I> = use a cutoff 
+</PRE>
+<LI>flag_coul = <I>long</I> or <I>off</I> 
+
+<PRE>  <I>long</I> = use Kspace long-range summation for the Coulombic term 1/r
+  <I>off</I> = omit the Coulombic term 
+</PRE>
+<LI>cutoff = global cutoff for Buckingham (and Coulombic if only 1 cutoff) (distance units) 
+
+<LI>cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style buck/long/coul/long cut off 2.5
 pair_style buck/long/coul/long cut long 2.5 4.0
 pair_style buck/long/coul/long long long 4.0
 pair_coeff * * 1 1
-pair_coeff 1 1 1 3 4
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>The <em>buck/long/coul/long</em> style computes a Buckingham potential (exp/6
-instead of Lennard-Jones 12/6) and Coulombic potential, given by</p>
-<img alt="_images/pair_buck.jpg" class="align-center" src="_images/pair_buck.jpg" />
-<img alt="_images/pair_coulomb.jpg" class="align-center" src="_images/pair_coulomb.jpg" />
-<p>Rc is the cutoff.  If one cutoff is specified in the pair_style
+pair_coeff 1 1 1 3 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>buck/long/coul/long</I> style computes a Buckingham potential (exp/6
+instead of Lennard-Jones 12/6) and Coulombic potential, given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_buck.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
+</CENTER>
+<P>Rc is the cutoff.  If one cutoff is specified in the pair_style
 command, it is used for both the Buckingham and Coulombic terms.  If
 two cutoffs are specified, they are used as cutoffs for the Buckingham
-and Coulombic terms respectively.</p>
-<p>The purpose of this pair style is to capture long-range interactions
+and Coulombic terms respectively.
+</P>
+<P>The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r^6 Buckingham and Coulombic 1/r
-interactions.  This is done by use of the <em>flag_buck</em> and <em>flag_coul</em>
-settings.  The &#8220;<a class="reference internal" href="#ismail"><span>Ismail</span></a> paper has more details on when it is
+interactions.  This is done by use of the <I>flag_buck</I> and <I>flag_coul</I>
+settings.  The "<A HREF = "#Ismail">Ismail</A> paper has more details on when it is
 appropriate to include long-range 1/r^6 interactions, using this
-potential.</p>
-<p>If <em>flag_buck</em> is set to <em>long</em>, no cutoff is used on the Buckingham
+potential.
+</P>
+<P>If <I>flag_buck</I> is set to <I>long</I>, no cutoff is used on the Buckingham
 1/r^6 dispersion term.  The long-range portion can be calculated by
-using the <a class="reference internal" href="kspace_style.html"><em>kspace_style ewald/disp or pppm/disp</em></a>
+using the <A HREF = "kspace_style.html">kspace_style ewald/disp or pppm/disp</A>
 commands.  The specified Buckingham cutoff then determines which
 portion of the Buckingham interactions are computed directly by the
 pair potential versus which part is computed in reciprocal space via
-the Kspace style.  If <em>flag_buck</em> is set to <em>cut</em>, the Buckingham
-interactions are simply cutoff, as with <a class="reference internal" href="pair_buck.html"><em>pair_style buck</em></a>.</p>
-<p>If <em>flag_coul</em> is set to <em>long</em>, no cutoff is used on the Coulombic
+the Kspace style.  If <I>flag_buck</I> is set to <I>cut</I>, the Buckingham
+interactions are simply cutoff, as with <A HREF = "pair_buck.html">pair_style
+buck</A>.
+</P>
+<P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic
 interactions.  The long-range portion can calculated by using any of
-several <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command options such as
-<em>pppm</em> or <em>ewald</em>.  Note that if <em>flag_buck</em> is also set to long, then
-the <em>ewald/disp</em> or <em>pppm/disp</em> Kspace style needs to be used to
+several <A HREF = "kspace_style.html">kspace_style</A> command options such as
+<I>pppm</I> or <I>ewald</I>.  Note that if <I>flag_buck</I> is also set to long, then
+the <I>ewald/disp</I> or <I>pppm/disp</I> Kspace style needs to be used to
 perform the long-range calculations for both the Buckingham and
-Coulombic interactions.  If <em>flag_coul</em> is set to <em>off</em>, Coulombic
-interactions are not computed.</p>
-<p>The following coefficients must be defined for each pair of atoms
-types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
+Coulombic interactions.  If <I>flag_coul</I> is set to <I>off</I>, Coulombic
+interactions are not computed.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
-commands:</p>
-<ul class="simple">
-<li>A (energy units)</li>
-<li>rho (distance units)</li>
-<li>C (energy-distance^6 units)</li>
-<li>cutoff (distance units)</li>
-<li>cutoff2 (distance units)</li>
-</ul>
-<p>The second coefficient, rho, must be greater than zero.</p>
-<p>The latter 2 coefficients are optional.  If not specified, the global
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>A (energy units)
+<LI>rho (distance units)
+<LI>C (energy-distance^6 units)
+<LI>cutoff (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>The second coefficient, rho, must be greater than zero.
+</P>
+<P>The latter 2 coefficients are optional.  If not specified, the global
 Buckingham and Coulombic cutoffs specified in the pair_style command
 are used.  If only one cutoff is specified, it is used as the cutoff
 for both Buckingham and Coulombic interactions for this type pair.  If
 both coefficients are specified, they are used as the Buckingham and
 Coulombic cutoffs for this type pair.  Note that if you are using
-<em>flag_buck</em> set to <em>long</em>, you cannot specify a Buckingham cutoff for
+<I>flag_buck</I> set to <I>long</I>, you cannot specify a Buckingham cutoff for
 an atom type pair, since only one global Buckingham cutoff is allowed.
-Similarly, if you are using <em>flag_coul</em> set to <em>long</em>, you cannot
+Similarly, if you are using <I>flag_coul</I> set to <I>long</I>, you cannot
 specify a Coulombic cutoff for an atom type pair, since only one
-global Coulombic cutoff is allowed.</p>
-<hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+global Coulombic cutoff is allowed.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
-use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
-more instructions on how to use the accelerated styles effectively.</p>
-<hr class="docutils" />
-<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
-<p>This pair styles does not support mixing.  Thus, coefficients for all
-I,J pairs must be specified explicitly.</p>
-<p>This pair style supports the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> shift
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair styles does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
 option for the energy of the exp() and 1/r^6 portion of the pair
-interaction, assuming <em>flag_buck</em> is <em>cut</em>.</p>
-<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+interaction, assuming <I>flag_buck</I> is <I>cut</I>.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
 shift option for the energy of the Buckingham portion of the pair
-interaction.</p>
-<p>This pair style supports the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> table and
+interaction.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> table and
 table/disp options since they can tabulate the short-range portion of
-the long-range Coulombic and dispersion interactions.</p>
-<p>This pair style write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.</p>
-<p>This pair style supports the use of the <em>inner</em>, <em>middle</em>, and <em>outer</em>
-keywords of the <a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command, meaning the
+the long-range Coulombic and dispersion interactions.
+</P>
+<P>This pair style write its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style supports the use of the <I>inner</I>, <I>middle</I>, and <I>outer</I>
+keywords of the <A HREF = "run_style.html">run_style respa</A> command, meaning the
 pairwise forces can be partitioned by distance at different levels of
-the rRESPA hierarchy.  See the <a class="reference internal" href="run_style.html"><em>run_style</em></a> command for
-details.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This style is part of the KSPACE package.  It is only enabled if
-LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.  Note that
-the KSPACE package is installed by default.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
-<p><strong>Default:</strong> none</p>
-<hr class="docutils" />
-<p id="ismail"><strong>(Ismail)</strong> Ismail, Tsige, In &#8216;t Veld, Grest, Molecular Physics
-(accepted) (2007).</p>
-</div>
-</div>
+the rRESPA hierarchy.  See the <A HREF = "run_style.html">run_style</A> command for
+details.
+</P>
+<HR>
 
+<P><B>Restrictions:</B>
+</P>
+<P>This style is part of the KSPACE package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.  Note that
+the KSPACE package is installed by default.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
 
-           </div>
-          </div>
-          <footer>
-  
+<A NAME = "Ismail"></A>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Ismail)</B> Ismail, Tsige, In 't Veld, Grest, Molecular Physics
+(accepted) (2007).
+</P>
+</HTML>

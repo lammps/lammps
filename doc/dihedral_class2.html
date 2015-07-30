@@ -1,349 +1,185 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>dihedral_style class2 command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>dihedral_style class2 command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="dihedral-style-class2-command">
-<span id="index-0"></span><h1>dihedral_style class2 command<a class="headerlink" href="#dihedral-style-class2-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="dihedral-style-class2-omp-command">
-<h1>dihedral_style class2/omp command<a class="headerlink" href="#dihedral-style-class2-omp-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>dihedral_style class2
-</pre></div>
-</div>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>dihedral_style class2
+
+
+<HR>
+
+<H3>dihedral_style class2 command 
+</H3>
+<H3>dihedral_style class2/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dihedral_style class2 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>dihedral_style class2
 dihedral_coeff 1 100 75 100 70 80 60
-dihedral_coeff * mbt 3.5945 0.1704 -0.5490 1.5228
+dihedral_coeff * mbt 3.5945 0.1704 -0.5490 1.5228 
 dihedral_coeff * ebt 0.3417 0.3264 -0.9036 0.1368 0.0 -0.8080 1.0119 1.1010
-dihedral_coeff 2 at 0.0 -0.1850 -0.7963 -2.0220 0.0 -0.3991 110.2453 105.1270
-dihedral_coeff * aat -13.5271 110.2453 105.1270
-dihedral_coeff * bb13 0.0 1.0119 1.1010
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>The <em>class2</em> dihedral style uses the potential</p>
-<img alt="_images/dihedral_class2.jpg" class="align-center" src="_images/dihedral_class2.jpg" />
-<p>where Ed is the dihedral term, Embt is a middle-bond-torsion term,
+dihedral_coeff 2 at 0.0 -0.1850 -0.7963 -2.0220 0.0 -0.3991 110.2453 105.1270 
+dihedral_coeff * aat -13.5271 110.2453 105.1270 
+dihedral_coeff * bb13 0.0 1.0119 1.1010 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>class2</I> dihedral style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/dihedral_class2.jpg">
+</CENTER>
+<P>where Ed is the dihedral term, Embt is a middle-bond-torsion term,
 Eebt is an end-bond-torsion term, Eat is an angle-torsion term, Eaat
-is an angle-angle-torsion term, and Ebb13 is a bond-bond-13 term.</p>
-<p>Theta1 and theta2 are equilibrium angles and r1 r2 r3 are equilibrium
-bond lengths.</p>
-<p>See <a class="reference internal" href="pair_modify.html#sun"><span>(Sun)</span></a> for a description of the COMPASS class2 force field.</p>
-<p>Coefficients for the Ed, Embt, Eebt, Eat, Eaat, and Ebb13 formulas
+is an angle-angle-torsion term, and Ebb13 is a bond-bond-13 term.
+</P>
+<P>Theta1 and theta2 are equilibrium angles and r1 r2 r3 are equilibrium
+bond lengths.
+</P>
+<P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
+</P>
+<P>Coefficients for the Ed, Embt, Eebt, Eat, Eaat, and Ebb13 formulas
 must be defined for each dihedral type via the
-<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command as in the example above,
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example above,
 or in the data file or restart files read by the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
-commands.</p>
-<p>These are the 6 coefficients for the Ed formula:</p>
-<ul class="simple">
-<li>K1 (energy)</li>
-<li>phi1 (degrees)</li>
-<li>K2 (energy)</li>
-<li>phi2 (degrees)</li>
-<li>K3 (energy)</li>
-<li>phi3 (degrees)</li>
-</ul>
-<p>For the Embt formula, each line in a
-<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command in the input script lists
-5 coefficients, the first of which is &#8220;mbt&#8221; to indicate they are
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<P>These are the 6 coefficients for the Ed formula:
+</P>
+<UL><LI>K1 (energy)
+<LI>phi1 (degrees)
+<LI>K2 (energy)
+<LI>phi2 (degrees)
+<LI>K3 (energy)
+<LI>phi3 (degrees) 
+</UL>
+<P>For the Embt formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+5 coefficients, the first of which is "mbt" to indicate they are
 MiddleBondTorsion coefficients.  In a data file, these coefficients
-should be listed under a &#8220;MiddleBondTorsion Coeffs&#8221; heading and you
-must leave out the &#8220;mbt&#8221;, i.e. only list 4 coefficients after the
-dihedral type.</p>
-<ul class="simple">
-<li>mbt</li>
-<li>A1 (energy/distance)</li>
-<li>A2 (energy/distance)</li>
-<li>A3 (energy/distance)</li>
-<li>r2 (distance)</li>
-</ul>
-<p>For the Eebt formula, each line in a
-<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command in the input script lists
-9 coefficients, the first of which is &#8220;ebt&#8221; to indicate they are
+should be listed under a "MiddleBondTorsion Coeffs" heading and you
+must leave out the "mbt", i.e. only list 4 coefficients after the
+dihedral type.
+</P>
+<UL><LI>mbt
+<LI>A1 (energy/distance)
+<LI>A2 (energy/distance)
+<LI>A3 (energy/distance)
+<LI>r2 (distance) 
+</UL>
+<P>For the Eebt formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+9 coefficients, the first of which is "ebt" to indicate they are
 EndBondTorsion coefficients.  In a data file, these coefficients
-should be listed under a &#8220;EndBondTorsion Coeffs&#8221; heading and you must
-leave out the &#8220;ebt&#8221;, i.e. only list 8 coefficients after the dihedral
-type.</p>
-<ul class="simple">
-<li>ebt</li>
-<li>B1 (energy/distance)</li>
-<li>B2 (energy/distance)</li>
-<li>B3 (energy/distance)</li>
-<li>C1 (energy/distance)</li>
-<li>C2 (energy/distance)</li>
-<li>C3 (energy/distance)</li>
-<li>r1 (distance)</li>
-<li>r3 (distance)</li>
-</ul>
-<p>For the Eat formula, each line in a
-<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command in the input script lists
-9 coefficients, the first of which is &#8220;at&#8221; to indicate they are
+should be listed under a "EndBondTorsion Coeffs" heading and you must
+leave out the "ebt", i.e. only list 8 coefficients after the dihedral
+type.
+</P>
+<UL><LI>ebt
+<LI>B1 (energy/distance)
+<LI>B2 (energy/distance)
+<LI>B3 (energy/distance)
+<LI>C1 (energy/distance)
+<LI>C2 (energy/distance)
+<LI>C3 (energy/distance)
+<LI>r1 (distance)
+<LI>r3 (distance) 
+</UL>
+<P>For the Eat formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+9 coefficients, the first of which is "at" to indicate they are
 AngleTorsion coefficients.  In a data file, these coefficients should
-be listed under a &#8220;AngleTorsion Coeffs&#8221; heading and you must leave out
-the &#8220;at&#8221;, i.e. only list 8 coefficients after the dihedral type.</p>
-<ul class="simple">
-<li>at</li>
-<li>D1 (energy/radian)</li>
-<li>D2 (energy/radian)</li>
-<li>D3 (energy/radian)</li>
-<li>E1 (energy/radian)</li>
-<li>E2 (energy/radian)</li>
-<li>E3 (energy/radian)</li>
-<li>theta1 (degrees)</li>
-<li>theta2 (degrees)</li>
-</ul>
-<p>Theta1 and theta2 are specified in degrees, but LAMMPS converts them
+be listed under a "AngleTorsion Coeffs" heading and you must leave out
+the "at", i.e. only list 8 coefficients after the dihedral type.
+</P>
+<UL><LI>at
+<LI>D1 (energy/radian)
+<LI>D2 (energy/radian)
+<LI>D3 (energy/radian)
+<LI>E1 (energy/radian)
+<LI>E2 (energy/radian)
+<LI>E3 (energy/radian)
+<LI>theta1 (degrees)
+<LI>theta2 (degrees) 
+</UL>
+<P>Theta1 and theta2 are specified in degrees, but LAMMPS converts them
 to radians internally; hence the units of D and E are in
-energy/radian.</p>
-<p>For the Eaat formula, each line in a
-<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command in the input script lists
-4 coefficients, the first of which is &#8220;aat&#8221; to indicate they are
+energy/radian.
+</P>
+<P>For the Eaat formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+4 coefficients, the first of which is "aat" to indicate they are
 AngleAngleTorsion coefficients.  In a data file, these coefficients
-should be listed under a &#8220;AngleAngleTorsion Coeffs&#8221; heading and you
-must leave out the &#8220;aat&#8221;, i.e. only list 3 coefficients after the
-dihedral type.</p>
-<ul class="simple">
-<li>aat</li>
-<li>M (energy/radian^2)</li>
-<li>theta1 (degrees)</li>
-<li>theta2 (degrees)</li>
-</ul>
-<p>Theta1 and theta2 are specified in degrees, but LAMMPS converts them
-to radians internally; hence the units of M are in energy/radian^2.</p>
-<p>For the Ebb13 formula, each line in a
-<a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command in the input script lists
-4 coefficients, the first of which is &#8220;bb13&#8221; to indicate they are
+should be listed under a "AngleAngleTorsion Coeffs" heading and you
+must leave out the "aat", i.e. only list 3 coefficients after the
+dihedral type.
+</P>
+<UL><LI>aat
+<LI>M (energy/radian^2)
+<LI>theta1 (degrees)
+<LI>theta2 (degrees) 
+</UL>
+<P>Theta1 and theta2 are specified in degrees, but LAMMPS converts them
+to radians internally; hence the units of M are in energy/radian^2.
+</P>
+<P>For the Ebb13 formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+4 coefficients, the first of which is "bb13" to indicate they are
 BondBond13 coefficients.  In a data file, these coefficients should be
-listed under a &#8220;BondBond13 Coeffs&#8221; heading and you must leave out the
-&#8220;bb13&#8221;, i.e. only list 3 coefficients after the dihedral type.</p>
-<ul class="simple">
-<li>bb13</li>
-<li>N (energy/distance^2)</li>
-<li>r1 (distance)</li>
-<li>r3 (distance)</li>
-</ul>
-<hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+listed under a "BondBond13 Coeffs" heading and you must leave out the
+"bb13", i.e. only list 3 coefficients after the dihedral type.
+</P>
+<UL><LI>bb13
+<LI>N (energy/distance^2)
+<LI>r1 (distance)
+<LI>r3 (distance) 
+</UL>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
-use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
-more instructions on how to use the accelerated styles effectively.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This dihedral style can only be used if LAMMPS was built with the
-CLASS2 package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
-section for more info on packages.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a></p>
-<p><strong>Default:</strong> none</p>
-<hr class="docutils" />
-<p id="sun"><strong>(Sun)</strong> Sun, J Phys Chem B 102, 7338-7364 (1998).</p>
-</div>
-</div>
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
 
+<P><B>Restrictions:</B>
+</P>
+<P>This dihedral style can only be used if LAMMPS was built with the
+CLASS2 package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
 
-           </div>
-          </div>
-          <footer>
-  
+<A NAME = "Sun"></A>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Sun)</B> Sun, J Phys Chem B 102, 7338-7364 (1998).
+</P>
+</HTML>

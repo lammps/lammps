@@ -1,220 +1,120 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>compute sna/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>compute sna/atom command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="compute-sna-atom-command">
-<span id="index-0"></span><h1>compute sna/atom command<a class="headerlink" href="#compute-sna-atom-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="compute-snad-atom-command">
-<h1>compute snad/atom command<a class="headerlink" href="#compute-snad-atom-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="compute-snav-atom-command">
-<h1>compute snav/atom command<a class="headerlink" href="#compute-snav-atom-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID sna/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
+
+
+<HR>
+
+<H3>compute sna/atom command 
+</H3>
+<H3>compute snad/atom command 
+</H3>
+<H3>compute snav/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID sna/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
 compute ID group-ID snad/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
-compute ID group-ID snav/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>sna/atom = style name of this compute command</li>
-<li>rcutfac = scale factor applied to all cutoff radii (positive real)</li>
-<li>rfac0 = parameter in distance to angle conversion (0 &lt; rcutfac &lt; 1)</li>
-<li>twojmax = band limit for bispectrum components (non-negative integer)</li>
-<li>R_1, R_2,... = list of cutoff radii, one for each type (distance units)</li>
-<li>w_1, w_2,... = list of neighbor weights, one for each type</li>
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>diagonal</em> or <em>rmin0</em> or <em>switchflag</em></li>
-</ul>
-<pre class="literal-block">
-<em>diagonal</em> value = <em>0</em> or <em>1</em> or <em>2</em> or <em>3</em>
-     <em>0</em> = all j1, j2, j &lt;= twojmax, j2 &lt;= j1
-     <em>1</em> = subset satisfying j1 == j2
-     <em>2</em> = subset satisfying j1 == j2 == j3
-     <em>3</em> = subset satisfying j2 &lt;= j1 &lt;= j
-  <em>rmin0</em> value = parameter in distance to angle conversion (distance units)
-  <em>switchflag</em> value = <em>0</em> or <em>1</em>
-     <em>0</em> = do not use switching function
-     <em>1</em> = use switching function
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute b all sna/atom 1.4 0.99363 6 2.0 2.4 0.75 1.0 diagonal 3 rmin0 0.0
+compute ID group-ID snav/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>sna/atom = style name of this compute command 
+
+<LI>rcutfac = scale factor applied to all cutoff radii (positive real) 
+
+<LI>rfac0 = parameter in distance to angle conversion (0 < rcutfac < 1) 
+
+<LI>twojmax = band limit for bispectrum components (non-negative integer) 
+
+<LI>R_1, R_2,... = list of cutoff radii, one for each type (distance units) 
+
+<LI>w_1, w_2,... = list of neighbor weights, one for each type  
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>diagonal</I> or <I>rmin0</I> or <I>switchflag</I> 
+
+<PRE>  <I>diagonal</I> value = <I>0</I> or <I>1</I> or <I>2</I> or <I>3</I>
+     <I>0</I> = all j1, j2, j <= twojmax, j2 <= j1
+     <I>1</I> = subset satisfying j1 == j2
+     <I>2</I> = subset satisfying j1 == j2 == j3
+     <I>3</I> = subset satisfying j2 <= j1 <= j
+  <I>rmin0</I> value = parameter in distance to angle conversion (distance units)
+  <I>switchflag</I> value = <I>0</I> or <I>1</I> 
+     <I>0</I> = do not use switching function
+     <I>1</I> = use switching function 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute b all sna/atom 1.4 0.99363 6 2.0 2.4 0.75 1.0 diagonal 3 rmin0 0.0
 compute db all sna/atom 1.4 0.95 6 2.0 1.0
-compute vb all sna/atom 1.4 0.95 6 2.0 1.0
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that calculates a set of bispectrum components
-for each atom in a group.</p>
-<p>Bispectrum components of an atom are order parameters characterizing
+compute vb all sna/atom 1.4 0.95 6 2.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates a set of bispectrum components
+for each atom in a group.
+</P>
+<P>Bispectrum components of an atom are order parameters characterizing
 the radial and angular distribution of neighbor atoms. The detailed
 mathematical definition is given in the paper by Thompson et
-al. <a class="reference internal" href="pair_snap.html#thompson2014"><span>(Thompson)</span></a></p>
-<p>The position of a neighbor atom <em>i&#8217;</em> relative to a central atom <em>i</em> is
-a point within the 3D ball of radius <em>R_ii&#8217; = rcutfac*(R_i + R_i&#8217;)</em></p>
-<p>Bartok et al. <a class="reference internal" href="pair_snap.html#bartok2010"><span>(Bartok)</span></a>, proposed mapping this 3D ball
+al. <A HREF = "#Thompson2014">(Thompson)</A>
+</P>
+<P>The position of a neighbor atom <I>i'</I> relative to a central atom <I>i</I> is
+a point within the 3D ball of radius <I>R_ii' = rcutfac*(R_i + R_i')</I>
+</P>
+<P>Bartok et al. <A HREF = "#Bartok2010">(Bartok)</A>, proposed mapping this 3D ball
 onto the 3-sphere, the surface of the unit ball in a four-dimensional
-space.  The radial distance <em>r</em> within <em>R_ii&#8217;</em> is mapped on to a third
-polar angle <em>theta0</em> defined by,</p>
-<img alt="_images/compute_sna_atom1.jpg" class="align-center" src="_images/compute_sna_atom1.jpg" />
-<p>In this way, all possible neighbor positions are mapped on to a subset
-of the 3-sphere.  Points south of the latitude <em>theta0max=rfac0*Pi</em>
-are excluded.</p>
-<p>The natural basis for functions on the 3-sphere is formed by the 4D
-hyperspherical harmonics <em>U^j_m,m&#8217;(theta, phi, theta0).</em>  These
-functions are better known as <em>D^j_m,m&#8217;,</em> the elements of the Wigner
-<em>D</em>-matrices <a class="reference internal" href="#meremianin2006"><span>(Meremianin</span></a>,
-<a class="reference internal" href="#varshalovich1987"><span>Varshalovich)</span></a>.</p>
-<p>The density of neighbors on the 3-sphere can be written as a sum of
+space.  The radial distance <I>r</I> within <I>R_ii'</I> is mapped on to a third
+polar angle <I>theta0</I> defined by,
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom1.jpg">
+</CENTER>
+<P>In this way, all possible neighbor positions are mapped on to a subset
+of the 3-sphere.  Points south of the latitude <I>theta0max=rfac0*Pi</I>
+are excluded.
+</P>
+<P>The natural basis for functions on the 3-sphere is formed by the 4D
+hyperspherical harmonics <I>U^j_m,m'(theta, phi, theta0).</I>  These
+functions are better known as <I>D^j_m,m',</I> the elements of the Wigner
+<I>D</I>-matrices <A HREF = "#Meremianin2006">(Meremianin</A>,
+<A HREF = "#Varshalovich1987">Varshalovich)</A>.
+</P>
+<P>The density of neighbors on the 3-sphere can be written as a sum of
 Dirac-delta functions, one for each neighbor, weighted by species and
 radial distance. Expanding this density function as a generalized
 Fourier series in the basis functions, we can write each Fourier
-coefficient as</p>
-<img alt="_images/compute_sna_atom2.jpg" class="align-center" src="_images/compute_sna_atom2.jpg" />
-<p>The <em>w_i&#8217;</em> neighbor weights are dimensionless numbers that are chosen
+coefficient as
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom2.jpg">
+</CENTER>
+<P>The <I>w_i'</I> neighbor weights are dimensionless numbers that are chosen
 to distinguish atoms of different types, while the central atom is
-arbitrarily assigned a unit weight.  The function <em>fc(r)</em> ensures that
+arbitrarily assigned a unit weight.  The function <I>fc(r)</I> ensures that
 the contribution of each neighbor atom goes smoothly to zero at
-<em>R_ii&#8217;</em>:</p>
-<img alt="_images/compute_sna_atom4.jpg" class="align-center" src="_images/compute_sna_atom4.jpg" />
-<p>The expansion coefficients <em>u^j_m,m&#8217;</em> are complex-valued and they are
+<I>R_ii'</I>:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom4.jpg">
+</CENTER>
+<P>The expansion coefficients <I>u^j_m,m'</I> are complex-valued and they are
 not directly useful as descriptors, because they are not invariant
 under rotation of the polar coordinate frame. However, the following
 scalar triple products of expansion coefficients can be shown to be
-real-valued and invariant under rotation <a class="reference internal" href="pair_snap.html#bartok2010"><span>(Bartok)</span></a>.</p>
-<img alt="_images/compute_sna_atom3.jpg" class="align-center" src="_images/compute_sna_atom3.jpg" />
-<p>The constants <em>H^jmm&#8217;_j1m1m1&#8217;_j2m2m2&#8217;</em> are coupling coefficients,
+real-valued and invariant under rotation <A HREF = "#Bartok2010">(Bartok)</A>.
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom3.jpg">
+</CENTER>
+<P>The constants <I>H^jmm'_j1m1m1'_j2m2m2'</I> are coupling coefficients,
 analogous to Clebsch-Gordan coefficients for rotations on the
 2-sphere. These invariants are the components of the bispectrum and
-these are the quantities calculated by the compute <em>sna/atom</em>. They
+these are the quantities calculated by the compute <I>sna/atom</I>. They
 characterize the strength of density correlations at three points on
 the 3-sphere. The j2=0 subset form the power spectrum, which
 characterizes the correlations of two points. The lowest-order
@@ -222,175 +122,141 @@ components describe the coarsest features of the density function,
 while higher-order components reflect finer detail.  Note that the
 central atom is included in the expansion, so three point-correlations
 can be either due to three neighbors, or two neighbors and the central
-atom.</p>
-<p>Compute <em>snad/atom</em> calculates the derivative of the bispectrum components
-summed separately for each atom type:</p>
-<img alt="_images/compute_sna_atom5.jpg" class="align-center" src="_images/compute_sna_atom5.jpg" />
-<p>The sum is over all atoms <em>i&#8217;</em> of atom type <em>I</em>.  For each atom <em>i</em>,
+atom.
+</P>
+<P>Compute <I>snad/atom</I> calculates the derivative of the bispectrum components
+summed separately for each atom type:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom5.jpg">
+</CENTER>
+<P>The sum is over all atoms <I>i'</I> of atom type <I>I</I>.  For each atom <I>i</I>,
 this compute evaluates the above expression for each direction, each
 atom type, and each bispectrum component.  See section below on output
-for a detailed explanation.</p>
-<p>Compute <em>snav/atom</em> calculates the virial contribution due to the
-derivatives:</p>
-<img alt="_images/compute_sna_atom6.jpg" class="align-center" src="_images/compute_sna_atom6.jpg" />
-<p>Again, the sum is over all atoms <em>i&#8217;</em> of atom type <em>I</em>.  For each atom
-<em>i</em>, this compute evaluates the above expression for each of the six
+for a detailed explanation.
+</P>
+<P>Compute <I>snav/atom</I> calculates the virial contribution due to the
+derivatives:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom6.jpg">
+</CENTER>
+<P>Again, the sum is over all atoms <I>i'</I> of atom type <I>I</I>.  For each atom
+<I>i</I>, this compute evaluates the above expression for each of the six
 virial components, each atom type, and each bispectrum component.  See
-section below on output for a detailed explanation.</p>
-<p>The value of all bispectrum components will be zero for atoms not in
+section below on output for a detailed explanation.
+</P>
+<P>The value of all bispectrum components will be zero for atoms not in
 the group. Neighbor atoms not in the group do not contribute to the
-bispectrum of atoms in the group.</p>
-<p>The neighbor list needed to compute this quantity is constructed each
+bispectrum of atoms in the group.
+</P>
+<P>The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
-too frequently.</p>
-<p>The argument <em>rcutfac</em> is a scale factor that controls the ratio of
-atomic radius to radial cutoff distance.</p>
-<p>The argument <em>rfac0</em> and the optional keyword <em>rmin0</em> define the
-linear mapping from radial distance to polar angle <em>theta0</em> on the
-3-sphere.</p>
-<p>The argument <em>twojmax</em> and the keyword <em>diagonal</em> define which
+too frequently.
+</P>
+<P>The argument <I>rcutfac</I> is a scale factor that controls the ratio of
+atomic radius to radial cutoff distance.
+</P>
+<P>The argument <I>rfac0</I> and the optional keyword <I>rmin0</I> define the
+linear mapping from radial distance to polar angle <I>theta0</I> on the
+3-sphere.
+</P>
+<P>The argument <I>twojmax</I> and the keyword <I>diagonal</I> define which
 bispectrum components are generated. See section below on output for a
 detailed explanation of the number of bispectrum components and the
-ordered in which they are listed</p>
-<p>The keyword <em>switchflag</em> can be used to turn off the switching
-function.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you have a bonded system, then the settings of
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command can remove pairwise
+ordered in which they are listed
+</P>
+<P>The keyword <I>switchflag</I> can be used to turn off the switching
+function.
+</P>
+<P>IMPORTANT NOTE: If you have a bonded system, then the settings of
+<A HREF = "special_bonds.html">special_bonds</A> command can remove pairwise
 interactions between atoms in the same bond, angle, or dihedral.  This
-is the default setting for the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
+is the default setting for the <A HREF = "special_bonds.html">special_bonds</A>
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
 those pairs will not be included in the calculation.  One way to get
-around this, is to write a dump file, and use the <a class="reference internal" href="rerun.html"><em>rerun</em></a>
+around this, is to write a dump file, and use the <A HREF = "rerun.html">rerun</A>
 command to compute the bispectrum components for snapshots in the dump
-file.  The rerun script can use a <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
-command that includes all pairs in the neighbor list.</p>
-</div>
-<p>;line</p>
-<p><strong>Output info:</strong></p>
-<p>Compute <em>sna/atom</em> calculates a per-atom array, each column
+file.  The rerun script can use a <A HREF = "special_bonds.html">special_bonds</A>
+command that includes all pairs in the neighbor list.
+</P>
+<P>;line
+</P>
+<P><B>Output info:</B>
+</P>
+<P>Compute <I>sna/atom</I> calculates a per-atom array, each column
 corresponding to a particular bispectrum component.  The total number
 of columns and the identities of the bispectrum component contained in
-each column depend on the values of <em>twojmax</em> and <em>diagonal</em>, as
-described by the following piece of python code:</p>
-<div class="highlight-python"><div class="highlight"><pre>for j1 in range(0,twojmax+1):
-    if(diagonal==2):
+each column depend on the values of <I>twojmax</I> and <I>diagonal</I>, as
+described by the following piece of python code:
+</P>
+<PRE>for j1 in range(0,twojmax+1):
+    if(diagonal==2): 
         print j1/2,j1/2,j1/2
     elif(diagonal==1):
-        for j in range(0,min(twojmax,2*j1)+1,2):
+        for j in range(0,min(twojmax,2*j1)+1,2): 
             print j1/2,j1/2,j/2
     elif(diagonal==0):
         for j2 in range(0,j1+1):
-            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
+            for j in range(j1-j2,min(twojmax,j1+j2)+1,2): 
                 print j1/2,j2/2,j/2
     elif(diagonal==3):
         for j2 in range(0,j1+1):
-            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
-                if (j&gt;=j1): print j1/2,j2/2,j/2
-</pre></div>
-</div>
-<p>Compute <em>snad/atom</em> evaluates a per-atom array. The columns are
-arranged into <em>ntypes</em> blocks, listed in order of atom type <em>I</em>.  Each
-block contains three sub-blocks corresponding to the <em>x</em>, <em>y</em>, and <em>z</em>
+            for j in range(j1-j2,min(twojmax,j1+j2)+1,2): 
+                if (j>=j1): print j1/2,j2/2,j/2 
+</PRE>
+<P>Compute <I>snad/atom</I> evaluates a per-atom array. The columns are
+arranged into <I>ntypes</I> blocks, listed in order of atom type <I>I</I>.  Each
+block contains three sub-blocks corresponding to the <I>x</I>, <I>y</I>, and <I>z</I>
 components of the atom position.  Each of these sub-blocks contains
 one column for each bispectrum component, the same as for compute
-<em>sna/atom</em></p>
-<p>Compute <em>snav/atom</em> evaluates a per-atom array. The columns are
-arranged into <em>ntypes</em> blocks, listed in order of atom type <em>I</em>.  Each
-block contains six sub-blocks corresponding to the <em>xx</em>, <em>yy</em>, <em>zz</em>,
-<em>yz</em>, <em>xz</em>, and <em>xy</em> components of the virial tensor in Voigt
+<I>sna/atom</I>
+</P>
+<P>Compute <I>snav/atom</I> evaluates a per-atom array. The columns are
+arranged into <I>ntypes</I> blocks, listed in order of atom type <I>I</I>.  Each
+block contains six sub-blocks corresponding to the <I>xx</I>, <I>yy</I>, <I>zz</I>,
+<I>yz</I>, <I>xz</I>, and <I>xy</I> components of the virial tensor in Voigt
 notation.  Each of these sub-blocks contains one column for each
-bispectrum component, the same as for compute <em>sna/atom</em></p>
-<p>These values can be accessed by any command that uses per-atom values
-from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
-options.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>These computes are part of the SNAP package.  They are only enabled if
-LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="pair_snap.html"><em>pair_style snap</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The optional keyword defaults are <em>diagonal</em> = 0, <em>rmin0</em> = 0,
-<em>switchflag</em> = 1.</p>
-<hr class="docutils" />
-<p id="thompson2014"><strong>(Thompson)</strong> Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint
-available at <a class="reference external" href="http://arxiv.org/abs/1409.3880">arXiv:1409.3880</a></p>
-<p id="bartok2010"><strong>(Bartok)</strong> Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).</p>
-<p id="meremianin2006"><strong>(Meremianin)</strong> Meremianin, J. Phys. A,  39, 3099 (2006).</p>
-<p id="varshalovich1987"><strong>(Varshalovich)</strong> Varshalovich, Moskalev, Khersonskii, Quantum Theory
-of Angular Momentum, World Scientific, Singapore (1987).</p>
-</div>
-</div>
+bispectrum component, the same as for compute <I>sna/atom</I>
+</P>
+<P>These values can be accessed by any command that uses per-atom values
+from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>These computes are part of the SNAP package.  They are only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_snap.html">pair_style snap</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The optional keyword defaults are <I>diagonal</I> = 0, <I>rmin0</I> = 0,
+<I>switchflag</I> = 1.
+</P>
+<HR>
 
+<A NAME = "Thompson2014"></A>
 
-           </div>
-          </div>
-          <footer>
-  
+<P><B>(Thompson)</B> Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint 
+available at <A HREF = "http://arxiv.org/abs/1409.3880">arXiv:1409.3880</A>
+</P>
+<A NAME = "Bartok2010"></A>
 
-  <hr/>
+<P><B>(Bartok)</B> Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+</P>
+<A NAME = "Meremianin2006"></A>
 
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+<P><B>(Meremianin)</B> Meremianin, J. Phys. A,  39, 3099 (2006).
+</P>
+<A NAME = "Varshalovich1987"></A>
 
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Varshalovich)</B> Varshalovich, Moskalev, Khersonskii, Quantum Theory
+of Angular Momentum, World Scientific, Singapore (1987).
+</P>
+</HTML>

@@ -1,427 +1,309 @@
+<HTML>
+<CENTER><A HREF = "Section_intro.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_commands.html">Next Section</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>2. Getting Started &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
-        <link rel="next" title="3. Commands" href="Section_commands.html"/>
-        <link rel="prev" title="1. Introduction" href="Section_intro.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">2. Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#what-s-in-the-lammps-distribution">2.1. What&#8217;s in the LAMMPS distribution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#making-lammps">2.2. Making LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#making-lammps-with-optional-packages">2.3. Making LAMMPS with optional packages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#building-lammps-via-the-make-py-script">2.4. Building LAMMPS via the Make.py script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#building-lammps-as-a-library">2.5. Building LAMMPS as a library</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#static-library">2.5.1. <strong>Static library:</strong></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#shared-library">2.5.2. <strong>Shared library:</strong></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#additional-requirement-for-using-a-shared-library">2.5.3. <strong>Additional requirement for using a shared library:</strong></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#calling-the-lammps-library">2.5.4. <strong>Calling the LAMMPS library:</strong></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#running-lammps">2.6. Running LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#command-line-options">2.7. Command-line options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#lammps-screen-output">2.8. LAMMPS screen output</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#tips-for-users-of-previous-lammps-versions">2.9. Tips for users of previous LAMMPS versions</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>2. Getting Started</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_commands.html" class="btn btn-neutral float-right" title="3. Commands" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Section_intro.html" class="btn btn-neutral" title="1. Introduction" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="getting-started">
-<h1>2. Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>This section describes how to build and run LAMMPS, for both new and
-experienced users.</p>
-<div class="line-block">
-<div class="line">2.1 <a class="reference internal" href="#start-1"><span>What&#8217;s in the LAMMPS distribution</span></a></div>
-<div class="line">2.2 <a class="reference internal" href="#start-2"><span>Making LAMMPS</span></a></div>
-<div class="line">2.3 <a class="reference internal" href="#start-3"><span>Making LAMMPS with optional packages</span></a></div>
-<div class="line">2.4 <a class="reference internal" href="#start-4"><span>Building LAMMPS via the Make.py script</span></a></div>
-<div class="line">2.5 <a class="reference internal" href="#start-5"><span>Building LAMMPS as a library</span></a></div>
-<div class="line">2.6 <a class="reference internal" href="#start-6"><span>Running LAMMPS</span></a></div>
-<div class="line">2.7 <a class="reference internal" href="#start-7"><span>Command-line options</span></a></div>
-<div class="line">2.8 <a class="reference internal" href="#start-8"><span>Screen output</span></a></div>
-<div class="line">2.9 <a class="reference internal" href="#start-9"><span>Tips for users of previous versions</span></a></div>
-<div class="line"><br /></div>
-</div>
-<div class="section" id="what-s-in-the-lammps-distribution">
-<span id="start-1"></span><h2>2.1. What&#8217;s in the LAMMPS distribution<a class="headerlink" href="#what-s-in-the-lammps-distribution" title="Permalink to this headline">¶</a></h2>
-<p>When you download a LAMMPS tarball you will need to unzip and untar
+
+
+<HR>
+
+<H3>2. Getting Started 
+</H3>
+<P>This section describes how to build and run LAMMPS, for both new and
+experienced users.
+</P>
+2.1 <A HREF = "#start_1">What's in the LAMMPS distribution</A><BR>
+2.2 <A HREF = "#start_2">Making LAMMPS</A><BR>
+2.3 <A HREF = "#start_3">Making LAMMPS with optional packages</A><BR>
+2.4 <A HREF = "#start_4">Building LAMMPS via the Make.py script</A><BR>
+2.5 <A HREF = "#start_5">Building LAMMPS as a library</A><BR>
+2.6 <A HREF = "#start_6">Running LAMMPS</A><BR>
+2.7 <A HREF = "#start_7">Command-line options</A><BR>
+2.8 <A HREF = "#start_8">Screen output</A><BR>
+2.9 <A HREF = "#start_9">Tips for users of previous versions</A> <BR>
+
+<HR>
+
+<HR>
+
+<H4><A NAME = "start_1"></A>2.1 What's in the LAMMPS distribution 
+</H4>
+<P>When you download a LAMMPS tarball you will need to unzip and untar
 the downloaded file with the following commands, after placing the
-tarball in an appropriate directory.</p>
-<div class="highlight-python"><div class="highlight"><pre>gunzip lammps*.tar.gz
-tar xvf lammps*.tar
-</pre></div>
-</div>
-<p>This will create a LAMMPS directory containing two files and several
-sub-directories:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="21%" />
-<col width="79%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>README</td>
-<td>text file</td>
-</tr>
-<tr class="row-even"><td>LICENSE</td>
-<td>the GNU General Public License (GPL)</td>
-</tr>
-<tr class="row-odd"><td>bench</td>
-<td>benchmark problems</td>
-</tr>
-<tr class="row-even"><td>doc</td>
-<td>documentation</td>
-</tr>
-<tr class="row-odd"><td>examples</td>
-<td>simple test problems</td>
-</tr>
-<tr class="row-even"><td>potentials</td>
-<td>embedded atom method (EAM) potential files</td>
-</tr>
-<tr class="row-odd"><td>src</td>
-<td>source files</td>
-</tr>
-<tr class="row-even"><td>tools</td>
-<td>pre- and post-processing tools</td>
-</tr>
-</tbody>
-</table>
-<p>Note that the <a class="reference external" href="download">download page</a> also has links to download
+tarball in an appropriate directory.
+</P>
+<PRE>gunzip lammps*.tar.gz 
+tar xvf lammps*.tar 
+</PRE>
+<P>This will create a LAMMPS directory containing two files and several
+sub-directories:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >README</TD><TD > text file</TD></TR>
+<TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
+<TR><TD >bench</TD><TD > benchmark problems</TD></TR>
+<TR><TD >doc</TD><TD > documentation</TD></TR>
+<TR><TD >examples</TD><TD > simple test problems</TD></TR>
+<TR><TD >potentials</TD><TD > embedded atom method (EAM) potential files</TD></TR>
+<TR><TD >src</TD><TD > source files</TD></TR>
+<TR><TD >tools</TD><TD > pre- and post-processing tools 
+</TD></TR></TABLE></DIV>
+
+<P>Note that the <A HREF = "download">download page</A> also has links to download
 Windows exectubles and installers, as well as pre-built executables
 for a few specific Linux distributions.  It also has instructions for
 how to download/install LAMMPS for Macs (via Homebrew), and to
 download and update LAMMPS from SVN and Git repositories, which gives
-you the same files that are in the download tarball.</p>
-<p>The Windows and Linux executables for serial or parallel only include
-certain packages and bug-fixes/upgrades listed on <a class="reference external" href="http://lammps.sandia.gov/bug.html">this page</a> up to a certain date, as
+you the same files that are in the download tarball.
+</P>
+<P>The Windows and Linux executables for serial or parallel only include
+certain packages and bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
+page</A> up to a certain date, as
 stated on the download page.  If you want an executable with
-non-included packages or that is more current, then you&#8217;ll need to
-build LAMMPS yourself, as discussed in the next section.</p>
-<p>Skip to the <a class="reference internal" href="#start-6"><span>Running LAMMPS</span></a> sections for info on how to
-launch a LAMMPS Windows executable on a Windows box.</p>
-<hr class="docutils" />
-</div>
-<div class="section" id="making-lammps">
-<span id="start-2"></span><h2>2.2. Making LAMMPS<a class="headerlink" href="#making-lammps" title="Permalink to this headline">¶</a></h2>
-<p>This section has the following sub-sections:</p>
-<ul class="simple">
-<li><a class="reference internal" href="#start-2-1"><span>Read this first</span></a></li>
-<li><a class="reference internal" href="#start-2-2"><span>Steps to build a LAMMPS executable</span></a></li>
-<li><a class="reference internal" href="#start-2-3"><span>Common errors that can occur when making LAMMPS</span></a></li>
-<li><a class="reference internal" href="#start-2-4"><span>Additional build tips</span></a></li>
-<li><a class="reference internal" href="#start-2-5"><span>Building for a Mac</span></a></li>
-<li><a class="reference internal" href="#start-2-6"><span>Building for Windows</span></a></li>
-</ul>
-<hr class="docutils" />
-<p id="start-2-1"><strong>*Read this first:*</strong></p>
-<p>If you want to avoid building LAMMPS yourself, read the preceeding
+non-included packages or that is more current, then you'll need to
+build LAMMPS yourself, as discussed in the next section.
+</P>
+<P>Skip to the <A HREF = "#start_6">Running LAMMPS</A> sections for info on how to
+launch a LAMMPS Windows executable on a Windows box.
+</P>
+<HR>
+
+<H4><A NAME = "start_2"></A>2.2 Making LAMMPS 
+</H4>
+<P>This section has the following sub-sections:
+</P>
+<UL><LI><A HREF = "#start_2_1">Read this first</A>
+<LI><A HREF = "#start_2_2">Steps to build a LAMMPS executable</A>
+<LI><A HREF = "#start_2_3">Common errors that can occur when making LAMMPS</A>
+<LI><A HREF = "#start_2_4">Additional build tips</A>
+<LI><A HREF = "#start_2_5">Building for a Mac</A>
+<LI><A HREF = "#start_2_6">Building for Windows</A> 
+</UL>
+<HR>
+
+<A NAME = "start_2_1"></A><B><I>Read this first:</I></B> 
+
+<P>If you want to avoid building LAMMPS yourself, read the preceeding
 section about options available for downloading and installing
-executables.  Details are discussed on the <a class="reference external" href="download">download</a> page.</p>
-<p>Building LAMMPS can be simple or not-so-simple.  If all you need are
+executables.  Details are discussed on the <A HREF = "download">download</A> page.
+</P>
+<P>Building LAMMPS can be simple or not-so-simple.  If all you need are
 the default packages installed in LAMMPS, and MPI is already installed
 on your machine, or you just want to run LAMMPS in serial, then you
 can typically use the Makefile.mpi or Makefile.serial files in
-src/MAKE by typing one of these lines (from the src dir):</p>
-<div class="highlight-python"><div class="highlight"><pre>make mpi
-make serial
-</pre></div>
-</div>
-<p>Note that on a facility supercomputer, there are often &#8220;modules&#8221;
+src/MAKE by typing one of these lines (from the src dir):
+</P>
+<PRE>make mpi
+make serial 
+</PRE>
+<P>Note that on a facility supercomputer, there are often "modules"
 loaded in your environment that provide the compilers and MPI you
-should use.  In this case, the &#8220;mpicxx&#8221; compile/link command in
-Makefile.mpi should just work by accessing those modules.</p>
-<p>It may be the case that one of the other Makefile.machine files in the
-src/MAKE sub-directories is a better match to your system (type &#8220;make&#8221;
-to see a list), you can use it as-is by typing (for example):</p>
-<div class="highlight-python"><div class="highlight"><pre>make stampede
-</pre></div>
-</div>
-<p>If any of these builds (with an existing Makefile.machine) works on
-your system, then you&#8217;re done!</p>
-<p>If you want to do one of the following:</p>
-<ul class="simple">
-<li>use optional LAMMPS features that require additional libraries</li>
-<li>use optional packages that require additional libraries</li>
-<li>use optional accelerator packages that require special compiler/linker settings</li>
-<li>run on a specialized platform that has its own compilers, settings, or other libs to use</li>
-</ul>
-<p>then building LAMMPS is more complicated.  You may need to find where
+should use.  In this case, the "mpicxx" compile/link command in
+Makefile.mpi should just work by accessing those modules.
+</P>
+<P>It may be the case that one of the other Makefile.machine files in the
+src/MAKE sub-directories is a better match to your system (type "make"
+to see a list), you can use it as-is by typing (for example):
+</P>
+<PRE>make stampede 
+</PRE>
+<P>If any of these builds (with an existing Makefile.machine) works on
+your system, then you're done!
+</P>
+<P>If you want to do one of the following:
+</P>
+<UL><LI>use optional LAMMPS features that require additional libraries
+<LI>use optional packages that require additional libraries
+<LI>use optional accelerator packages that require special compiler/linker settings
+<LI>run on a specialized platform that has its own compilers, settings, or other libs to use 
+</UL>
+<P>then building LAMMPS is more complicated.  You may need to find where
 auxiliary libraries exist on your machine or install them if they
-don&#8217;t.  You may need to build additional libraries that are part of
+don't.  You may need to build additional libraries that are part of
 the LAMMPS package, before building LAMMPS.  You may need to edit a
-Makefile.machine file to make it compatible with your system.</p>
-<p>Note that there is a Make.py tool in the src directory that automates
+Makefile.machine file to make it compatible with your system.
+</P>
+<P>Note that there is a Make.py tool in the src directory that automates
 several of these steps, but you still have to know what you are doing.
-<a class="reference internal" href="#start-4"><span>Section 2.4</span></a> below describes the tool.  It is a convenient
+<A HREF = "#start_4">Section 2.4</A> below describes the tool.  It is a convenient
 way to work with installing/un-installing various packages, the
 Makefile.machine changes required by some packages, and the auxiliary
-libraries some of them use.</p>
-<p>Please read the following sections carefully.  If you are not
+libraries some of them use.
+</P>
+<P>Please read the following sections carefully.  If you are not
 comfortable with makefiles, or building codes on a Unix platform, or
 running an MPI job on your machine, please find a local expert to help
 you.  Many compilation, linking, and run problems that users have are
-often not really LAMMPS issues - they are peculiar to the user&#8217;s
+often not really LAMMPS issues - they are peculiar to the user's
 system, compilers, libraries, etc.  Such questions are better answered
-by a local expert.</p>
-<p>If you have a build problem that you are convinced is a LAMMPS issue
+by a local expert.
+</P>
+<P>If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
-please post the issue to the <a class="reference external" href="http://lammps.sandia.gov/mail.html">LAMMPS mail list</a>.</p>
-<p>If you succeed in building LAMMPS on a new kind of machine, for which
-there isn&#8217;t a similar machine Makefile included in the
+please post the issue to the <A HREF = "http://lammps.sandia.gov/mail.html">LAMMPS mail
+list</A>.
+</P>
+<P>If you succeed in building LAMMPS on a new kind of machine, for which
+there isn't a similar machine Makefile included in the
 src/MAKE/MACHINES directory, then send it to the developers and we can
-include it in the LAMMPS distribution.</p>
-<hr class="docutils" />
-<p id="start-2-2"><strong>*Steps to build a LAMMPS executable:*</strong></p>
-<p><strong>Step 0</strong></p>
-<p>The src directory contains the C++ source and header files for LAMMPS.
+include it in the LAMMPS distribution.
+</P>
+<HR>
+
+<A NAME = "start_2_2"></A><B><I>Steps to build a LAMMPS executable:</I></B> 
+
+<P><B>Step 0</B>
+</P>
+<P>The src directory contains the C++ source and header files for LAMMPS.
 It also contains a top-level Makefile and a MAKE sub-directory with
 low-level Makefile.* files for many systems and machines.  See the
 src/MAKE/README file for a quick overview of what files are available
-and what sub-directories they are in.</p>
-<p>The src/MAKE dir has a few files that should work as-is on many
+and what sub-directories they are in.
+</P>
+<P>The src/MAKE dir has a few files that should work as-is on many
 platforms.  The src/MAKE/OPTIONS dir has more that invoke additional
 compiler, MPI, and other setting options commonly used by LAMMPS, to
 illustrate their syntax.  The src/MAKE/MACHINES dir has many more that
 have been tweaked or optimized for specific machines.  These files are
 all good starting points if you find you need to change them for your
 machine.  Put any file you edit into the src/MAKE/MINE directory and
-it will be never be touched by any LAMMPS updates.</p>
-<p>&gt;From within the src directory, type &#8220;make&#8221; or &#8220;gmake&#8221;.  You should see
+it will be never be touched by any LAMMPS updates.
+</P>
+<P>>From within the src directory, type "make" or "gmake".  You should see
 a list of available choices from src/MAKE and all of its
 sub-directories.  If one of those has the options you want or is the
-machine you want, you can type a command like:</p>
-<div class="highlight-python"><div class="highlight"><pre>make mpi
+machine you want, you can type a command like:
+</P>
+<PRE>make mpi
 or
 make serial_icc
 or
-gmake mac
-</pre></div>
-</div>
-<p>Note that the corresponding Makefile.machine can exist in src/MAKE or
+gmake mac 
+</PRE>
+<P>Note that the corresponding Makefile.machine can exist in src/MAKE or
 any of its sub-directories.  If a file with the same name appears in
 multiple places (not a good idea), the order they are used is as
 follows: src/MAKE/MINE, src/MAKE, src/MAKE/OPTIONS, src/MAKE/MACHINES.
 This gives preference to a file you have created/edited and put in
-src/MAKE/MINE.</p>
-<p>Note that on a multi-processor or multi-core platform you can launch a
-parallel make, by using the &#8220;-j&#8221; switch with the make command, which
-will build LAMMPS more quickly.</p>
-<p>If you get no errors and an executable like lmp_mpi or lmp_g++_serial
-or lmp_mac is produced, then you&#8217;re done; it&#8217;s your lucky day.</p>
-<p>Note that by default only a few of LAMMPS optional packages are
-installed.  To build LAMMPS with optional packages, see <a class="reference internal" href="#start-3"><span>this section</span></a> below.</p>
-<p><strong>Step 1</strong></p>
-<p>If Step 0 did not work, you will need to create a low-level Makefile
+src/MAKE/MINE.
+</P>
+<P>Note that on a multi-processor or multi-core platform you can launch a
+parallel make, by using the "-j" switch with the make command, which
+will build LAMMPS more quickly.
+</P>
+<P>If you get no errors and an executable like lmp_mpi or lmp_g++_serial
+or lmp_mac is produced, then you're done; it's your lucky day.
+</P>
+<P>Note that by default only a few of LAMMPS optional packages are
+installed.  To build LAMMPS with optional packages, see <A HREF = "#start_3">this
+section</A> below.
+</P>
+<P><B>Step 1</B>
+</P>
+<P>If Step 0 did not work, you will need to create a low-level Makefile
 for your machine, like Makefile.foo.  You should make a copy of an
 existing Makefile.* in src/MAKE or one of its sub-directories as a
 starting point.  The only portions of the file you need to edit are
-the first line, the &#8220;compiler/linker settings&#8221; section, and the
-&#8220;LAMMPS-specific settings&#8221; section.  When it works, put the edited
+the first line, the "compiler/linker settings" section, and the
+"LAMMPS-specific settings" section.  When it works, put the edited
 file in src/MAKE/MINE and it will not be altered by any future LAMMPS
-updates.</p>
-<p><strong>Step 2</strong></p>
-<p>Change the first line of Makefile.foo to list the word &#8220;foo&#8221; after the
-&#8220;#&#8221;, and whatever other options it will set.  This is the line you
-will see if you just type &#8220;make&#8221;.</p>
-<p><strong>Step 3</strong></p>
-<p>The &#8220;compiler/linker settings&#8221; section lists compiler and linker
+updates.
+</P>
+<P><B>Step 2</B>
+</P>
+<P>Change the first line of Makefile.foo to list the word "foo" after the
+"#", and whatever other options it will set.  This is the line you
+will see if you just type "make".
+</P>
+<P><B>Step 3</B>
+</P>
+<P>The "compiler/linker settings" section lists compiler and linker
 settings for your C++ compiler, including optimization flags.  You can
 use g++, the open-source GNU compiler, which is available on all Unix
 systems.  You can also use mpicxx which will typically be available if
 MPI is installed on your system, though you should check which actual
 compiler it wraps.  Vendor compilers often produce faster code.  On
 boxes with Intel CPUs, we suggest using the Intel icc compiler, which
-can be downloaded from <a class="reference external" href="http://www.intel.com/software/products/noncom">Intel&#8217;s compiler site</a>.</p>
-<p>If building a C++ code on your machine requires additional libraries,
+can be downloaded from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler site</A>.
+</P>
+
+
+<P>If building a C++ code on your machine requires additional libraries,
 then you should list them as part of the LIB variable.  You should
-not need to do this if you use mpicxx.</p>
-<p>The DEPFLAGS setting is what triggers the C++ compiler to create a
+not need to do this if you use mpicxx.
+</P>
+<P>The DEPFLAGS setting is what triggers the C++ compiler to create a
 dependency list for a source file.  This speeds re-compilation when
-source (<em>.cpp) or header (</em>.h) files are edited.  Some compilers do
+source (*.cpp) or header (*.h) files are edited.  Some compilers do
 not support dependency file creation, or may use a different switch
-than -D.  GNU g++ and Intel icc works with -D.  If your compiler can&#8217;t
-create dependency files, then you&#8217;ll need to create a Makefile.foo
+than -D.  GNU g++ and Intel icc works with -D.  If your compiler can't
+create dependency files, then you'll need to create a Makefile.foo
 patterned after Makefile.storm, which uses different rules that do not
 involve dependency files.  Note that when you build LAMMPS for the
-first time on a new platform, a long list of <a href="#id1"><span class="problematic" id="id2">*</span></a>.d files will be printed
+first time on a new platform, a long list of *.d files will be printed
 out rapidly.  This is not an error; it is the Makefile doing its
-normal creation of dependencies.</p>
-<p><strong>Step 4</strong></p>
-<p>The &#8220;system-specific settings&#8221; section has several parts.  Note that
+normal creation of dependencies.
+</P>
+<P><B>Step 4</B>
+</P>
+<P>The "system-specific settings" section has several parts.  Note that
 if you change any -D setting in this section, you should do a full
-re-compile, after typing &#8220;make clean&#8221; (which will describe different
-clean options).</p>
-<p>The LMP_INC variable is used to include options that turn on ifdefs
-within the LAMMPS code.  The options that are currently recogized are:</p>
-<ul class="simple">
-<li>-DLAMMPS_GZIP</li>
-<li>-DLAMMPS_JPEG</li>
-<li>-DLAMMPS_PNG</li>
-<li>-DLAMMPS_FFMPEG</li>
-<li>-DLAMMPS_MEMALIGN</li>
-<li>-DLAMMPS_XDR</li>
-<li>-DLAMMPS_SMALLBIG</li>
-<li>-DLAMMPS_BIGBIG</li>
-<li>-DLAMMPS_SMALLSMALL</li>
-<li>-DLAMMPS_LONGLONG_TO_LONG</li>
-<li>-DPACK_ARRAY</li>
-<li>-DPACK_POINTER</li>
-<li>-DPACK_MEMCPY</li>
-</ul>
-<p>The read_data and dump commands will read/write gzipped files if you
+re-compile, after typing "make clean" (which will describe different
+clean options).
+</P>
+<P>The LMP_INC variable is used to include options that turn on ifdefs
+within the LAMMPS code.  The options that are currently recogized are:
+</P>
+<UL><LI>-DLAMMPS_GZIP
+<LI>-DLAMMPS_JPEG
+<LI>-DLAMMPS_PNG
+<LI>-DLAMMPS_FFMPEG
+<LI>-DLAMMPS_MEMALIGN
+<LI>-DLAMMPS_XDR
+<LI>-DLAMMPS_SMALLBIG
+<LI>-DLAMMPS_BIGBIG
+<LI>-DLAMMPS_SMALLSMALL
+<LI>-DLAMMPS_LONGLONG_TO_LONG
+<LI>-DPACK_ARRAY
+<LI>-DPACK_POINTER
+<LI>-DPACK_MEMCPY 
+</UL>
+<P>The read_data and dump commands will read/write gzipped files if you
 compile with -DLAMMPS_GZIP.  It requires that your machine supports
-the &#8220;popen&#8221; function in the standard runtime library and that a gzip
-executable can be found by LAMMPS during a run.</p>
-<p>If you use -DLAMMPS_JPEG, the <a class="reference internal" href="dump_image.html"><em>dump image</em></a> command
+the "popen" function in the standard runtime library and that a gzip
+executable can be found by LAMMPS during a run.
+</P>
+<P>If you use -DLAMMPS_JPEG, the <A HREF = "dump_image.html">dump image</A> command
 will be able to write out JPEG image files. For JPEG files, you must
 also link LAMMPS with a JPEG library, as described below. If you use
--DLAMMPS_PNG, the <a class="reference internal" href="dump.html"><em>dump image</em></a> command will be able to write
+-DLAMMPS_PNG, the <A HREF = "dump.html">dump image</A> command will be able to write
 out PNG image files.  For PNG files, you must also link LAMMPS with a
 PNG library, as described below.  If neither of those two defines are
 used, LAMMPS will only be able to write out uncompressed PPM image
-files.</p>
-<p>If you use -DLAMMPS_FFMPEG, the <a class="reference internal" href="dump_image.html"><em>dump movie</em></a> command
+files.
+</P>
+<P>If you use -DLAMMPS_FFMPEG, the <A HREF = "dump_image.html">dump movie</A> command
 will be available to support on-the-fly generation of rendered movies
 the need to store intermediate image files. It requires that your
-machines supports the &#8220;popen&#8221; function in the standard runtime library
-and that an FFmpeg executable can be found by LAMMPS during the run.</p>
-<p>Using -DLAMMPS_MEMALIGN=&lt;bytes&gt; enables the use of the
+machines supports the "popen" function in the standard runtime library
+and that an FFmpeg executable can be found by LAMMPS during the run.
+</P>
+<P>Using -DLAMMPS_MEMALIGN=<bytes> enables the use of the
 posix_memalign() call instead of malloc() when large chunks or memory
 are allocated by LAMMPS.  This can help to make more efficient use of
 vector instructions of modern CPUS, since dynamically allocated memory
 has to be aligned on larger than default byte boundaries (e.g. 16
 bytes instead of 8 bytes on x86 type platforms) for optimal
-performance.</p>
-<p>If you use -DLAMMPS_XDR, the build will include XDR compatibility
+performance.
+</P>
+<P>If you use -DLAMMPS_XDR, the build will include XDR compatibility
 files for doing particle dumps in XTC format.  This is only necessary
 if your platform does have its own XDR files available.  See the
-Restrictions section of the <a class="reference internal" href="dump.html"><em>dump</em></a> command for details.</p>
-<p>Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG, -D-
+Restrictions section of the <A HREF = "dump.html">dump</A> command for details.
+</P>
+<P>Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG, -D-
 DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG. These
 settings refer to use of 4-byte (small) vs 8-byte (big) integers
 within LAMMPS, as specified in src/lmptype.h.  The only reason to use
@@ -433,41 +315,50 @@ if your machine does not support 64-bit integers, though you can use
 SMALLSMALL setting if you are running in serial or on a desktop
 machine or small cluster where you will never run large systems or for
 long time (more than 2 billion atoms, more than 2 billion timesteps).
-See the <a class="reference internal" href="#start-2-4"><span>Additional build tips</span></a> section below for more
-details on these settings.</p>
-<p>Note that two packages, USER-ATC and USER-CUDA are not currently
+See the <A HREF = "#start_2_4">Additional build tips</A> section below for more
+details on these settings.
+</P>
+<P>Note that two packages, USER-ATC and USER-CUDA are not currently
 compatible with -DLAMMPS_BIGBIG.  Also the GPU package requires the
 lib/gpu library to be compiled with the same setting, or the link will
-fail.</p>
-<p>The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
-MPI version does not recognize &#8220;long long&#8221; data types.  In this case a
-&#8220;long&#8221; data type is likely already 64-bits, in which case this setting
-will convert to that data type.</p>
-<p>Using one of the -DPACK_ARRAY, -DPACK_POINTER, and -DPACK_MEMCPY
+fail.
+</P>
+<P>The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
+MPI version does not recognize "long long" data types.  In this case a
+"long" data type is likely already 64-bits, in which case this setting
+will convert to that data type.
+</P>
+<P>Using one of the -DPACK_ARRAY, -DPACK_POINTER, and -DPACK_MEMCPY
 options can make for faster parallel FFTs (in the PPPM solver) on some
 platforms.  The -DPACK_ARRAY setting is the default.  See the
-<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command for info about PPPM.  See
-Step 6 below for info about building LAMMPS with an FFT library.</p>
-<p><strong>Step 5</strong></p>
-<p>The 3 MPI variables are used to specify an MPI library to build LAMMPS
+<A HREF = "kspace_style.html">kspace_style</A> command for info about PPPM.  See
+Step 6 below for info about building LAMMPS with an FFT library.
+</P>
+<P><B>Step 5</B>
+</P>
+<P>The 3 MPI variables are used to specify an MPI library to build LAMMPS
 with.  Note that you do not need to set these if you use the MPI
 compiler mpicxx for your CC and LINK setting in the section above.
-The MPI wrapper knows where to find the needed files.</p>
-<p>If you want LAMMPS to run in parallel, you must have an MPI library
+The MPI wrapper knows where to find the needed files.
+</P>
+<P>If you want LAMMPS to run in parallel, you must have an MPI library
 installed on your platform.  If MPI is installed on your system in the
 usual place (under /usr/local), you also may not need to specify these
 3 variables, assuming /usr/local is in your path.  On some large
-parallel machines which use &#8220;modules&#8221; for their compile/link
+parallel machines which use "modules" for their compile/link
 environements, you may simply need to include the correct module in
 your build environment, before building LAMMPS.  Or the parallel
 machine may have a vendor-provided MPI which the compiler has no
-trouble finding.</p>
-<p>Failing this, these 3 variables can be used to specify where the mpi.h
+trouble finding.
+</P>
+<P>Failing this, these 3 variables can be used to specify where the mpi.h
 file (MPI_INC) and the MPI library file (MPI_PATH) are found and the
-name of the library file (MPI_LIB).</p>
-<p>If you are installing MPI yourself, we recommend Argonne&#8217;s MPICH2
-or OpenMPI.  MPICH can be downloaded from the <a class="reference external" href="http://www.mcs.anl.gov/research/projects/mpich2/">Argonne MPI site</a>.  OpenMPI can
-be downloaded from the <a class="reference external" href="http://www.open-mpi.org">OpenMPI site</a>.
+name of the library file (MPI_LIB).
+</P>
+<P>If you are installing MPI yourself, we recommend Argonne's MPICH2
+or OpenMPI.  MPICH can be downloaded from the <A HREF = "http://www.mcs.anl.gov/research/projects/mpich2/">Argonne MPI
+site</A>.  OpenMPI can
+be downloaded from the <A HREF = "http://www.open-mpi.org">OpenMPI site</A>.
 Other MPI packages should also work. If you are running on a big
 parallel platform, your system people or the vendor should have
 already installed a version of MPI, which is likely to be faster
@@ -476,53 +367,62 @@ and link with it.  If you use MPICH or OpenMPI, you will have to
 configure and build it for your platform.  The MPI configure script
 should have compiler options to enable you to use the same compiler
 you are using for the LAMMPS build, which can avoid problems that can
-arise when linking LAMMPS to the MPI library.</p>
-<p>If you just want to run LAMMPS on a single processor, you can use the
-dummy MPI library provided in src/STUBS, since you don&#8217;t need a true
+arise when linking LAMMPS to the MPI library.
+</P>
+<P>If you just want to run LAMMPS on a single processor, you can use the
+dummy MPI library provided in src/STUBS, since you don't need a true
 MPI library installed on your system.  See src/MAKE/Makefile.serial
 for how to specify the 3 MPI variables in this case.  You will also
 need to build the STUBS library for your platform before making LAMMPS
 itself.  Note that if you are building with src/MAKE/Makefile.serial,
-e.g. by typing &#8220;make serial&#8221;, then the STUBS library is built for you.</p>
-<p>To build the STUBS library from the src directory, type &#8220;make
-mpi-stubs&#8221;, or from the src/STUBS dir, type &#8220;make&#8221;.  This should
+e.g. by typing "make serial", then the STUBS library is built for you.
+</P>
+<P>To build the STUBS library from the src directory, type "make
+mpi-stubs", or from the src/STUBS dir, type "make".  This should
 create a libmpi_stubs.a file suitable for linking to LAMMPS.  If the
 build fails, you will need to edit the STUBS/Makefile for your
-platform.</p>
-<p>The file STUBS/mpi.c provides a CPU timer function called MPI_Wtime()
-that calls gettimeofday() .  If your system doesn&#8217;t support
-gettimeofday() , you&#8217;ll need to insert code to call another timer.
+platform.
+</P>
+<P>The file STUBS/mpi.c provides a CPU timer function called MPI_Wtime()
+that calls gettimeofday() .  If your system doesn't support
+gettimeofday() , you'll need to insert code to call another timer.
 Note that the ANSI-standard function clock() rolls over after an hour
 or so, and is therefore insufficient for timing long LAMMPS
-simulations.</p>
-<p><strong>Step 6</strong></p>
-<p>The 3 FFT variables allow you to specify an FFT library which LAMMPS
+simulations.
+</P>
+<P><B>Step 6</B>
+</P>
+<P>The 3 FFT variables allow you to specify an FFT library which LAMMPS
 uses (for performing 1d FFTs) when running the particle-particle
 particle-mesh (PPPM) option for long-range Coulombics via the
-<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command.</p>
-<p>LAMMPS supports various open-source or vendor-supplied FFT libraries
+<A HREF = "kspace_style.html">kspace_style</A> command.
+</P>
+<P>LAMMPS supports various open-source or vendor-supplied FFT libraries
 for this purpose.  If you leave these 3 variables blank, LAMMPS will
-use the open-source <a class="reference external" href="http://kissfft.sf.net">KISS FFT library</a>, which is
+use the open-source <A HREF = "http://kissfft.sf.net">KISS FFT library</A>, which is
 included in the LAMMPS distribution.  This library is portable to all
 platforms and for typical LAMMPS simulations is almost as fast as FFTW
 or vendor optimized libraries.  If you are not including the KSPACE
-package in your build, you can also leave the 3 variables blank.</p>
-<p>Otherwise, select which kinds of FFTs to use as part of the FFT_INC
+package in your build, you can also leave the 3 variables blank.
+</P>
+<P>Otherwise, select which kinds of FFTs to use as part of the FFT_INC
 setting by a switch of the form -DFFT_XXX.  Recommended values for XXX
 are: MKL, SCSL, FFTW2, and FFTW3.  Legacy options are: INTEL, SGI,
 ACML, and T3E.  For backward compatability, using -DFFT_FFTW will use
 the FFTW2 library.  Using -DFFT_NONE will use the KISS library
-described above.</p>
-<p>You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
+described above.
+</P>
+<P>You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
 so the compiler and linker can find the needed FFT header and library
-files.  Note that on some large parallel machines which use &#8220;modules&#8221;
+files.  Note that on some large parallel machines which use "modules"
 for their compile/link environements, you may simply need to include
 the correct module in your build environment.  Or the parallel machine
 may have a vendor-provided FFT library which the compiler has no
-trouble finding.</p>
-<p>FFTW is a fast, portable library that should also work on any
+trouble finding.
+</P>
+<P>FFTW is a fast, portable library that should also work on any
 platform.  You can download it from
-<a class="reference external" href="http://www.fftw.org">www.fftw.org</a>.  Both the legacy version 2.1.X and
+<A HREF = "http://www.fftw.org">www.fftw.org</A>.  Both the legacy version 2.1.X and
 the newer 3.X versions are supported as -DFFT_FFTW2 or -DFFT_FFTW3.
 Building FFTW for your box should be as simple as ./configure; make.
 Note that on some platforms FFTW2 has been pre-installed, and uses
@@ -531,8 +431,9 @@ e.g. sfftw.h, or dfftw.h instead of fftw.h.  In this case, you can
 specify an additional define variable for FFT_INC called -DFFTW_SIZE,
 which will select the correct include file.  In this case, for FFT_LIB
 you must also manually specify the correct library, namely -lsfftw or
--ldfftw.</p>
-<p>The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
+-ldfftw.
+</P>
+<P>The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
 use single-precision FFTs with PPPM, which can speed-up long-range
 calulations, particularly in parallel or on GPUs.  Fourier transform
 and related PPPM operations are somewhat insensitive to floating point
@@ -540,42 +441,54 @@ truncation errors and thus do not always need to be performed in
 double precision.  Using the -DFFT_SINGLE setting trades off a little
 accuracy for reduced memory use and parallel communication costs for
 transposing 3d FFT data.  Note that single precision FFTs have only
-been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.</p>
-<p><strong>Step 7</strong></p>
-<p>The 3 JPG variables allow you to specify a JPEG and/or PNG library
-which LAMMPS uses when writing out JPEG or PNG files via the <a class="reference internal" href="dump_image.html"><em>dump image</em></a> command.  These can be left blank if you do not
+been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
+</P>
+<P><B>Step 7</B>
+</P>
+<P>The 3 JPG variables allow you to specify a JPEG and/or PNG library
+which LAMMPS uses when writing out JPEG or PNG files via the <A HREF = "dump_image.html">dump
+image</A> command.  These can be left blank if you do not
 use the -DLAMMPS_JPEG or -DLAMMPS_PNG switches discussed above in Step
-4, since in that case JPEG/PNG output will be disabled.</p>
-<p>A standard JPEG library usually goes by the name libjpeg.a or
+4, since in that case JPEG/PNG output will be disabled.
+</P>
+<P>A standard JPEG library usually goes by the name libjpeg.a or
 libjpeg.so and has an associated header file jpeglib.h.  Whichever
-JPEG library you have on your platform, you&#8217;ll need to set the
+JPEG library you have on your platform, you'll need to set the
 appropriate JPG_INC, JPG_PATH, and JPG_LIB variables, so that the
-compiler and linker can find it.</p>
-<p>A standard PNG library usually goes by the name libpng.a or libpng.so
+compiler and linker can find it.
+</P>
+<P>A standard PNG library usually goes by the name libpng.a or libpng.so
 and has an associated header file png.h.  Whichever PNG library you
-have on your platform, you&#8217;ll need to set the appropriate JPG_INC,
+have on your platform, you'll need to set the appropriate JPG_INC,
 JPG_PATH, and JPG_LIB variables, so that the compiler and linker can
-find it.</p>
-<p>As before, if these header and library files are in the usual place on
-your machine, you may not need to set these variables.</p>
-<p><strong>Step 8</strong></p>
-<p>Note that by default only a few of LAMMPS optional packages are
-installed.  To build LAMMPS with optional packages, see <a class="reference internal" href="#start-3"><span>this section</span></a> below, before proceeding to Step 9.</p>
-<p><strong>Step 9</strong></p>
-<p>That&#8217;s it.  Once you have a correct Makefile.foo, and you have
+find it.
+</P>
+<P>As before, if these header and library files are in the usual place on
+your machine, you may not need to set these variables.
+</P>
+<P><B>Step 8</B>
+</P>
+<P>Note that by default only a few of LAMMPS optional packages are
+installed.  To build LAMMPS with optional packages, see <A HREF = "#start_3">this
+section</A> below, before proceeding to Step 9.
+</P>
+<P><B>Step 9</B>
+</P>
+<P>That's it.  Once you have a correct Makefile.foo, and you have
 pre-built any other needed libraries (e.g. MPI, FFT, etc) all you need
-to do from the src directory is type something like this:</p>
-<div class="highlight-python"><div class="highlight"><pre>make foo
+to do from the src directory is type something like this:
+</P>
+<PRE>make foo
 or
-gmake foo
-</pre></div>
-</div>
-<p>You should get the executable lmp_foo when the build is complete.</p>
-<hr class="docutils" />
-<p id="start-2-3"><strong>*Errors that can occur when making LAMMPS:*</strong></p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If an error occurs when building LAMMPS, the compiler
+gmake foo 
+</PRE>
+<P>You should get the executable lmp_foo when the build is complete.
+</P>
+<HR>
+
+<A NAME = "start_2_3"></A><B><I>Errors that can occur when making LAMMPS:</I></B> 
+
+<P>IMPORTANT NOTE: If an error occurs when building LAMMPS, the compiler
 or linker will state very explicitly what the problem is.  The error
 message should give you a hint as to which of the steps above has
 failed, and what you need to do in order to fix it.  Building a code
@@ -583,278 +496,332 @@ with a Makefile is a very logical process.  The compiler and linker
 need to find the appropriate files and those files need to be
 compatible with LAMMPS source files.  When a make fails, there is
 usually a very simple reason, which you or a local expert will need to
-fix.</p>
-</div>
-<p>Here are two non-obvious errors that can occur:</p>
-<p>(1) If the make command breaks immediately with errors that indicate
-it can&#8217;t find files with a &#8220;*&#8221; in their names, this can be because
-your machine&#8217;s native make doesn&#8217;t support wildcard expansion in a
-makefile.  Try gmake instead of make.  If that doesn&#8217;t work, try using
+fix.
+</P>
+<P>Here are two non-obvious errors that can occur:
+</P>
+<P>(1) If the make command breaks immediately with errors that indicate
+it can't find files with a "*" in their names, this can be because
+your machine's native make doesn't support wildcard expansion in a
+makefile.  Try gmake instead of make.  If that doesn't work, try using
 a -f switch with your make command to use a pre-generated
-Makefile.list which explicitly lists all the needed files, e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>make makelist
+Makefile.list which explicitly lists all the needed files, e.g.
+</P>
+<PRE>make makelist
 make -f Makefile.list linux
-gmake -f Makefile.list mac
-</pre></div>
-</div>
-<p>The first &#8220;make&#8221; command will create a current Makefile.list with all
-the file names in your src dir.  The 2nd &#8220;make&#8221; command (make or
+gmake -f Makefile.list mac 
+</PRE>
+<P>The first "make" command will create a current Makefile.list with all
+the file names in your src dir.  The 2nd "make" command (make or
 gmake) will use it to build LAMMPS.  Note that you should
-include/exclude any desired optional packages before using the &#8220;make
-makelist&#8221; command.</p>
-<p>(2) If you get an error that says something like &#8216;identifier &#8220;atoll&#8221;
-is undefined&#8217;, then your machine does not support &#8220;long long&#8221;
+include/exclude any desired optional packages before using the "make
+makelist" command.
+</P>
+<P>(2) If you get an error that says something like 'identifier "atoll"
+is undefined', then your machine does not support "long long"
 integers.  Try using the -DLAMMPS_LONGLONG_TO_LONG setting described
-above in Step 4.</p>
-<hr class="docutils" />
-<p id="start-2-4"><strong>*Additional build tips:*</strong></p>
-<ol class="arabic simple">
-<li>Building LAMMPS for multiple platforms.</li>
-</ol>
-<p>You can make LAMMPS for multiple platforms from the same src
+above in Step 4.
+</P>
+<HR>
+
+<A NAME = "start_2_4"></A><B><I>Additional build tips:</I></B> 
+
+<P>(1) Building LAMMPS for multiple platforms.
+</P>
+<P>You can make LAMMPS for multiple platforms from the same src
 directory.  Each target creates its own object sub-directory called
-Obj_target where it stores the system-specific <a href="#id3"><span class="problematic" id="id4">*</span></a>.o files.</p>
-<ol class="arabic simple" start="2">
-<li>Cleaning up.</li>
-</ol>
-<p>Typing &#8220;make clean-all&#8221; or &#8220;make clean-machine&#8221; will delete <a href="#id5"><span class="problematic" id="id6">*</span></a>.o object
+Obj_target where it stores the system-specific *.o files.
+</P>
+<P>(2) Cleaning up.
+</P>
+<P>Typing "make clean-all" or "make clean-machine" will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
-particular machine.</p>
-<p>(3) Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
--DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL</p>
-<p>As explained above, any of these 3 settings can be specified on the
-LMP_INC line in your low-level src/MAKE/Makefile.foo.</p>
-<p>The default is -DLAMMPS_SMALLBIG which allows for systems with up to
+particular machine.
+</P>
+<P>(3) Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
+-DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
+</P>
+<P>As explained above, any of these 3 settings can be specified on the
+LMP_INC line in your low-level src/MAKE/Makefile.foo.
+</P>
+<P>The default is -DLAMMPS_SMALLBIG which allows for systems with up to
 2^63 atoms and 2^63 timesteps (about 9e18). The atom limit is for
 atomic systems which do not store bond topology info and thus do not
 require atom IDs.  If you use atom IDs for atomic systems (which is
 the default) or if you use a molecular model, which stores bond
 topology info and thus requires atom IDs, the limit is 2^31 atoms
 (about 2 billion).  This is because the IDs are stored in 32-bit
-integers.</p>
-<p>Likewise, with this setting, the 3 image flags for each atom (see the
-<a class="reference internal" href="dump.html"><em>dump</em></a> doc page for a discussion) are stored in a 32-bit
+integers.
+</P>
+<P>Likewise, with this setting, the 3 image flags for each atom (see the
+<A HREF = "dump.html">dump</A> doc page for a discussion) are stored in a 32-bit
 integer, which means the atoms can only wrap around a periodic box (in
 each dimension) at most 512 times.  If atoms move through the periodic
-box more than this many times, the image flags will &#8220;roll over&#8221;,
+box more than this many times, the image flags will "roll over",
 e.g. from 511 to -512, which can cause diagnostics like the
-mean-squared displacement, as calculated by the <a class="reference internal" href="compute_msd.html"><em>compute msd</em></a> command, to be faulty.</p>
-<p>To allow for larger atomic systems with atom IDs or larger molecular
+mean-squared displacement, as calculated by the <A HREF = "compute_msd.html">compute
+msd</A> command, to be faulty.
+</P>
+<P>To allow for larger atomic systems with atom IDs or larger molecular
 systems or larger image flags, compile with -DLAMMPS_BIGBIG.  This
 stores atom IDs and image flags in 64-bit integers.  This enables
 atomic or molecular systems with atom IDS of up to 2^63 atoms (about
-9e18).  And image flags will not &#8220;roll over&#8221; until they reach 2^20 =
-1048576.</p>
-<p>If your system does not support 8-byte integers, you will need to
+9e18).  And image flags will not "roll over" until they reach 2^20 =
+1048576.
+</P>
+<P>If your system does not support 8-byte integers, you will need to
 compile with the -DLAMMPS_SMALLSMALL setting.  This will restrict the
 total number of atoms (for atomic or molecular systems) and timesteps
-to 2^31 (about 2 billion).  Image flags will roll over at 2^9 = 512.</p>
-<p>Note that in src/lmptype.h there are definitions of all these data
+to 2^31 (about 2 billion).  Image flags will roll over at 2^9 = 512.
+</P>
+<P>Note that in src/lmptype.h there are definitions of all these data
 types as well as the MPI data types associated with them.  The MPI
 types need to be consistent with the associated C data types, or else
 LAMMPS will generate a run-time error.  As far as we know, the
 settings defined in src/lmptype.h are portable and work on every
-current system.</p>
-<p>In all cases, the size of problem that can be run on a per-processor
-basis is limited by 4-byte integer storage to 2^31 atoms per processor
-(about 2 billion). This should not normally be a limitation since such
-a problem would have a huge per-processor memory footprint due to
-neighbor lists and would run very slowly in terms of CPU secs/timestep.</p>
-<hr class="docutils" />
-<p id="start-2-5"><strong>*Building for a Mac:*</strong></p>
-<p>OS X is BSD Unix, so it should just work.  See the
-src/MAKE/MACHINES/Makefile.mac and Makefile.mac_mpi files.</p>
-<hr class="docutils" />
-<p id="start-2-6"><strong>*Building for Windows:*</strong></p>
-<p>The LAMMPS download page has an option to download both a serial and
-parallel pre-built Windows executable.  See the <a class="reference internal" href="#start-6"><span>Running LAMMPS</span></a> section for instructions on running these executables
-on a Windows box.</p>
-<p>The pre-built executables hosted on the <a class="reference external" href="http://lammps.sandia.gov/download.html">LAMMPS download page</a> are built with a subset
+current system.
+</P>
+<P>In all cases, the size of problem that can be run on a per-processor  
+basis is limited by 4-byte integer storage to 2^31 atoms per processor  
+(about 2 billion). This should not normally be a limitation since such  
+a problem would have a huge per-processor memory footprint due to  
+neighbor lists and would run very slowly in terms of CPU secs/timestep.
+</P>
+<HR>
+
+<A NAME = "start_2_5"></A><B><I>Building for a Mac:</I></B> 
+
+<P>OS X is BSD Unix, so it should just work.  See the
+src/MAKE/MACHINES/Makefile.mac and Makefile.mac_mpi files.
+</P>
+<HR>
+
+<A NAME = "start_2_6"></A><B><I>Building for Windows:</I></B> 
+
+<P>The LAMMPS download page has an option to download both a serial and
+parallel pre-built Windows executable.  See the <A HREF = "#start_6">Running
+LAMMPS</A> section for instructions on running these executables
+on a Windows box.
+</P>
+<P>The pre-built executables hosted on the <A HREF = "http://lammps.sandia.gov/download.html">LAMMPS download
+page</A> are built with a subset
 of the available packages; see the download page for the list. These
 are single executable files.  No examples or documentation in
 included. You will need to download the full source code package to
-obtain those.</p>
-<p>As an alternative, you can download &#8220;daily builds&#8221; (and some older
+obtain those.
+</P>
+<P>As an alternative, you can download "daily builds" (and some older
 versions) of the installer packages from
-<a class="reference external" href="http://rpm.lammps.org/windows.html">rpm.lammps.org/windows.html</a>.
+<A HREF = "http://rpm.lammps.org/windows.html">rpm.lammps.org/windows.html</A>.
 These executables are built with most optional packages and the
-download includes documentation, some tools and most examples.</p>
-<p>If you want a Windows version with specific packages included and
-excluded, you can build it yourself.</p>
-<p>One way to do this is install and use cygwin to build LAMMPS with a
+download includes documentation, some tools and most examples.
+</P>
+<P>If you want a Windows version with specific packages included and
+excluded, you can build it yourself.
+</P>
+<P>One way to do this is install and use cygwin to build LAMMPS with a
 standard unix style make program, just as you would on a Linux box;
-see src/MAKE/MACHINES/Makefile.cygwin.</p>
-<p>The other way to do this is using Visual Studio and project files.
+see src/MAKE/MACHINES/Makefile.cygwin.
+</P>
+<P>The other way to do this is using Visual Studio and project files.
 See the src/WINDOWS directory and its README.txt file for instructions
-on both a basic build and a customized build with pacakges you select.</p>
-<hr class="docutils" />
-</div>
-<div class="section" id="making-lammps-with-optional-packages">
-<span id="start-3"></span><h2>2.3. Making LAMMPS with optional packages<a class="headerlink" href="#making-lammps-with-optional-packages" title="Permalink to this headline">¶</a></h2>
-<p>This section has the following sub-sections:</p>
-<ul class="simple">
-<li><a class="reference internal" href="#start-3-1"><span>Package basics</span></a></li>
-<li><a class="reference internal" href="#start-3-2"><span>Including/excluding packages</span></a></li>
-<li><a class="reference internal" href="#start-3-3"><span>Packages that require extra libraries</span></a></li>
-<li><a class="reference internal" href="#start-3-4"><span>Packages that require Makefile.machine settings</span></a></li>
-</ul>
-<p>Note that the following <a class="reference internal" href="#start-4"><span>Section 2.4</span></a> describes the Make.py
+on both a basic build and a customized build with pacakges you select.
+</P>
+<HR>
+
+<H4><A NAME = "start_3"></A>2.3 Making LAMMPS with optional packages 
+</H4>
+<P>This section has the following sub-sections:
+</P>
+<UL><LI><A HREF = "#start_3_1">Package basics</A>
+<LI><A HREF = "#start_3_2">Including/excluding packages</A>
+<LI><A HREF = "#start_3_3">Packages that require extra libraries</A>
+<LI><A HREF = "#start_3_4">Packages that require Makefile.machine settings</A> 
+</UL>
+<P>Note that the following <A HREF = "#start_4">Section 2.4</A> describes the Make.py
 tool which can be used to install/un-install packages and build the
 auxiliary libraries which some of them use.  It can also auto-edit a
-Makefile.machine to add settings needed by some packages.</p>
-<hr class="docutils" />
-<p id="start-3-1"><strong>*Package basics:*</strong></p>
-<p>The source code for LAMMPS is structured as a set of core files which
+Makefile.machine to add settings needed by some packages.
+</P>
+<HR>
+
+<A NAME = "start_3_1"></A><B><I>Package basics:</I></B> 
+
+<P>The source code for LAMMPS is structured as a set of core files which
 are always included, plus optional packages.  Packages are groups of
 files that enable a specific set of features.  For example, force
-fields for molecular systems or granular systems are in packages.</p>
-<p>You can see the list of all packages by typing &#8220;make package&#8221; from
+fields for molecular systems or granular systems are in packages.
+</P>
+<P>You can see the list of all packages by typing "make package" from
 within the src directory of the LAMMPS distribution.  This also lists
-various make commands that can be used to manipulate packages.</p>
-<p>If you use a command in a LAMMPS input script that is specific to a
+various make commands that can be used to manipulate packages.
+</P>
+<P>If you use a command in a LAMMPS input script that is specific to a
 particular package, you must have built LAMMPS with that package, else
 you will get an error that the style is invalid or the command is
-unknown.  Every command&#8217;s doc page specfies if it is part of a
-package.  You can also type</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">lmp_machine</span> <span class="o">-</span><span class="n">h</span>
-</pre></div>
-</div>
-<p>to run your executable with the optional <a class="reference internal" href="#start-7"><span>-h command-line switch</span></a> for &#8220;help&#8221;, which will list the styles and commands
-known to your executable.</p>
-<p>There are two kinds of packages in LAMMPS, standard and user packages.
+unknown.  Every command's doc page specfies if it is part of a
+package.  You can also type
+</P>
+<PRE>lmp_machine -h 
+</PRE>
+<P>to run your executable with the optional <A HREF = "#start_7">-h command-line
+switch</A> for "help", which will list the styles and commands
+known to your executable.
+</P>
+<P>There are two kinds of packages in LAMMPS, standard and user packages.
 More information about the contents of standard and user packages is
-given in <a class="reference internal" href="Section_packages.html"><em>Section_packages</em></a> of the manual.  The
-difference between standard and user packages is as follows:</p>
-<p>Standard packages are supported by the LAMMPS developers and are
+given in <A HREF = "Section_packages.html">Section_packages</A> of the manual.  The
+difference between standard and user packages is as follows:
+</P>
+<P>Standard packages are supported by the LAMMPS developers and are
 written in a syntax and style consistent with the rest of LAMMPS.
 This means we will answer questions about them, debug and fix them if
-necessary, and keep them compatible with future changes to LAMMPS.</p>
-<p>User packages have been contributed by users, and always begin with
+necessary, and keep them compatible with future changes to LAMMPS.
+</P>
+<P>User packages have been contributed by users, and always begin with
 the user prefix.  If they are a single command (single file), they are
 typically in the user-misc package.  Otherwise, they are a a set of
-files grouped together which add a specific functionality to the code.</p>
-<p>User packages don&#8217;t necessarily meet the requirements of the standard
+files grouped together which add a specific functionality to the code.
+</P>
+<P>User packages don't necessarily meet the requirements of the standard
 packages.  If you have problems using a feature provided in a user
 package, you will likely need to contact the contributor directly to
 get help.  Information on how to submit additions you make to LAMMPS
-as a user-contributed package is given in <a class="reference internal" href="Section_modify.html#mod-15"><span>this section</span></a> of the documentation.</p>
-<p>Some packages (both standard and user) require additional libraries.
-See more details below.</p>
-<hr class="docutils" />
-<p id="start-3-2"><strong>*Including/excluding packages:*</strong></p>
-<p>To use or not use a package you must include or exclude it before
+as a user-contributed package is given in <A HREF = "Section_modify.html#mod_15">this
+section</A> of the documentation.
+</P>
+<P>Some packages (both standard and user) require additional libraries.
+See more details below.
+</P>
+<HR>
+
+<A NAME = "start_3_2"></A><B><I>Including/excluding packages:</I></B> 
+
+<P>To use or not use a package you must include or exclude it before
 building LAMMPS.  From the src directory, this is typically as simple
-as:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-colloid
-make g++
-</pre></div>
-</div>
-<p>or</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-manybody
-make g++
-</pre></div>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">You should NOT include/exclude packages and build
+as:
+</P>
+<PRE>make yes-colloid
+make g++ 
+</PRE>
+<P>or
+</P>
+<PRE>make no-manybody
+make g++ 
+</PRE>
+<P>IMPORTANT NOTE: You should NOT include/exclude packages and build
 LAMMPS in a single make command by using multiple targets, e.g. make
 yes-colloid g++.  This is because the make procedure creates a list of
 source files that will be out-of-date for the build if the package
-configuration changes during the same command.</p>
-</div>
-<p>Some packages have individual files that depend on other packages
+configuration changes during the same command.
+</P>
+<P>Some packages have individual files that depend on other packages
 being included.  LAMMPS checks for this and does the right thing.
 I.e. individual files are only included if their dependencies are
 already included.  Likewise, if a package is excluded, other files
-dependent on that package are also excluded.</p>
-<p>If you will never run simulations that use the features in a
+dependent on that package are also excluded.
+</P>
+<P>If you will never run simulations that use the features in a
 particular packages, there is no reason to include it in your build.
 For some packages, this will keep you from having to build auxiliary
 libraries (see below), and will also produce a smaller executable
-which may run a bit faster.</p>
-<p>When you download a LAMMPS tarball, these packages are pre-installed
+which may run a bit faster.
+</P>
+<P>When you download a LAMMPS tarball, these packages are pre-installed
 in the src directory: KSPACE, MANYBODY,MOLECULE.  When you download
 LAMMPS source files from the SVN or Git repositories, no packages are
-pre-installed.</p>
-<p>Packages are included or excluded by typing &#8220;make yes-name&#8221; or &#8220;make
-no-name&#8221;, where &#8220;name&#8221; is the name of the package in lower-case, e.g.
+pre-installed.
+</P>
+<P>Packages are included or excluded by typing "make yes-name" or "make
+no-name", where "name" is the name of the package in lower-case, e.g.
 name = kspace for the KSPACE package or name = user-atc for the
-USER-ATC package.  You can also type &#8220;make yes-standard&#8221;, &#8220;make
-no-standard&#8221;, &#8220;make yes-std&#8221;, &#8220;make no-std&#8221;, &#8220;make yes-user&#8221;, &#8220;make
-no-user&#8221;, &#8220;make yes-all&#8221; or &#8220;make no-all&#8221; to include/exclude various
-sets of packages.  Type &#8220;make package&#8221; to see the all of the
-package-related make options.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Inclusion/exclusion of a package works by simply
+USER-ATC package.  You can also type "make yes-standard", "make
+no-standard", "make yes-std", "make no-std", "make yes-user", "make
+no-user", "make yes-all" or "make no-all" to include/exclude various
+sets of packages.  Type "make package" to see the all of the
+package-related make options.
+</P>
+<P>IMPORTANT NOTE: Inclusion/exclusion of a package works by simply
 moving files back and forth between the main src directory and
 sub-directories with the package name (e.g. src/KSPACE, src/USER-ATC),
 so that the files are seen or not seen when LAMMPS is built.  After
-you have included or excluded a package, you must re-build LAMMPS.</p>
-</div>
-<p>Additional package-related make options exist to help manage LAMMPS
+you have included or excluded a package, you must re-build LAMMPS.
+</P>
+<P>Additional package-related make options exist to help manage LAMMPS
 files that exist in both the src directory and in package
 sub-directories.  You do not normally need to use these commands
 unless you are editing LAMMPS files or have downloaded a patch from
-the LAMMPS WWW site.</p>
-<p>Typing &#8220;make package-update&#8221; or &#8220;make pu&#8221; will overwrite src files
+the LAMMPS WWW site.
+</P>
+<P>Typing "make package-update" or "make pu" will overwrite src files
 with files from the package sub-directories if the package has been
 included.  It should be used after a patch is installed, since patches
 only update the files in the package sub-directory, but not the src
-files.  Typing &#8220;make package-overwrite&#8221; will overwrite files in the
-package sub-directories with src files.</p>
-<p>Typing &#8220;make package-status&#8221; or &#8220;make ps&#8221; will show which packages are
+files.  Typing "make package-overwrite" will overwrite files in the
+package sub-directories with src files.
+</P>
+<P>Typing "make package-status" or "make ps" will show which packages are
 currently included. Of those that are included, it will list files
 that are different in the src directory and package sub-directory.
-Typing &#8220;make package-diff&#8221; lists all differences between these files.
-Again, type &#8220;make package&#8221; to see all of the package-related make
-options.</p>
-<hr class="docutils" />
-<p id="start-3-3"><strong>*Packages that require extra libraries:*</strong></p>
-<p>A few of the standard and user packages require additional auxiliary
+Typing "make package-diff" lists all differences between these files.
+Again, type "make package" to see all of the package-related make
+options.
+</P>
+<HR>
+
+<A NAME = "start_3_3"></A><B><I>Packages that require extra libraries:</I></B> 
+
+<P>A few of the standard and user packages require additional auxiliary
 libraries.  Most of them are provided with LAMMPS, in which case they
 must be compiled first, before LAMMPS is built if you wish to include
 that package.  If you get a LAMMPS build error about a missing
 library, this is likely the reason.  See the
-<a class="reference internal" href="Section_packages.html"><em>Section_packages</em></a> doc page for a list of
-packages that have these kinds of auxiliary libraries.</p>
-<p>The lib directory in the distribution has sub-directories with package
+<A HREF = "Section_packages.html">Section_packages</A> doc page for a list of
+packages that have these kinds of auxiliary libraries.
+</P>
+<P>The lib directory in the distribution has sub-directories with package
 names that correspond to the needed auxiliary libs, e.g. lib/reax.
 Each sub-directory has a README file that gives more details.  Code
 for most of the auxiliary libraries is included in that directory.
-Examples are the USER-ATC and MEAM packages.</p>
-<p>A few of the lib sub-directories do not include code, but do include
+Examples are the USER-ATC and MEAM packages.
+</P>
+<P>A few of the lib sub-directories do not include code, but do include
 instructions and sometimes scripts that automate the process of
 downloading the auxiliary library and installing it so LAMMPS can link
-to it.  Examples are the KIM and VORONOI and USER-MOLFILE packages.</p>
-<p>The lib/python directory (for the PYTHON package) contains only a
+to it.  Examples are the KIM and VORONOI and USER-MOLFILE packages.
+</P>
+<P>The lib/python directory (for the PYTHON package) contains only a
 choice of Makefile.lammps.* files.  This is because no auxiliary code
 or libraries are needed, only the Python library and other system libs
 that already available on your system.  However, the Makefile.lammps
 file is needed to tell the LAMMPS build which libs to use and where to
-find them.</p>
-<p>For libraries with provided code, the sub-directory README file
+find them.
+</P>
+<P>For libraries with provided code, the sub-directory README file
 (e.g. lib/reax/README) has instructions on how to build that library.
-Typically this is done by typing something like:</p>
-<div class="highlight-python"><div class="highlight"><pre>make -f Makefile.g++
-</pre></div>
-</div>
-<p>If one of the provided Makefiles is not appropriate for your system
+Typically this is done by typing something like:
+</P>
+<PRE>make -f Makefile.g++ 
+</PRE>
+<P>If one of the provided Makefiles is not appropriate for your system
 you will need to edit or add one.  Note that all the Makefiles have a
 setting for EXTRAMAKE at the top that specifies a Makefile.lammps.*
-file.</p>
-<p>If the library build is successful, it will produce 2 files in the lib
-directory:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">libpackage</span><span class="o">.</span><span class="n">a</span>
-<span class="n">Makefile</span><span class="o">.</span><span class="n">lammps</span>
-</pre></div>
-</div>
-<p>The Makefile.lammps file will be a copy of the EXTRAMAKE file setting
-specified in the library Makefile.* you used.</p>
-<p>Note that you must insure that the settings in Makefile.lammps are
+file.
+</P>
+<P>If the library build is successful, it will produce 2 files in the lib
+directory:
+</P>
+<PRE>libpackage.a
+Makefile.lammps 
+</PRE>
+<P>The Makefile.lammps file will be a copy of the EXTRAMAKE file setting
+specified in the library Makefile.* you used.
+</P>
+<P>Note that you must insure that the settings in Makefile.lammps are
 appropriate for your system.  If they are not, the LAMMPS build will
-fail.</p>
-<p>As explained in the lib/package/README files, the settings in
+fail.
+</P>
+<P>As explained in the lib/package/README files, the settings in
 Makefile.lammps are used to specify additional system libraries and
 their locations so that LAMMPS can build with the auxiliary library.
 For example, if the MEAM or REAX packages are used, the auxiliary
@@ -862,170 +829,164 @@ libraries consist of F90 code, built with a Fortran complier.  To link
 that library with LAMMPS (a C++ code) via whatever C++ compiler LAMMPS
 is built with, typically requires additional Fortran-to-C libraries be
 included in the link.  Another example are the BLAS and LAPACK
-libraries needed to use the USER-ATC or USER-AWPMD packages.</p>
-<p>For libraries without provided code, the sub-directory README file has
+libraries needed to use the USER-ATC or USER-AWPMD packages.
+</P>
+<P>For libraries without provided code, the sub-directory README file has
 information on where to download the library and how to build it,
 e.g. lib/voronoi/README.  The README files also describe how you must
-either (a) create soft links, via the &#8220;ln&#8221; command, in those
+either (a) create soft links, via the "ln" command, in those
 directories to point to where you built or installed the packages,
 or (b) check or edit the Makefile.lammps file in the same directory
-to provide that information.</p>
-<p>Some of the sub-directories, e.g. lib/voronoi, also have an install.py
+to provide that information.
+</P>
+<P>Some of the sub-directories, e.g. lib/voronoi, also have an install.py
 script which can be used to automate the process of
 downloading/building/installing the auxiliary library, and setting the
-needed soft links.  Type &#8220;python install.py&#8221; for further instructions.</p>
-<p>As with the sub-directories containing library code, if the soft links
+needed soft links.  Type "python install.py" for further instructions.
+</P>
+<P>As with the sub-directories containing library code, if the soft links
 or settings in the lib/package/Makefile.lammps files are not correct,
-the LAMMPS build will typically fail.</p>
-<hr class="docutils" />
-<p id="start-3-4"><strong>*Packages that require Makefile.machine settings*</strong></p>
-<p>A few packages require specific settings in Makefile.machine, to
+the LAMMPS build will typically fail.
+</P>
+<HR>
+
+<A NAME = "start_3_4"></A><B><I>Packages that require Makefile.machine settings</I></B> 
+
+<P>A few packages require specific settings in Makefile.machine, to
 either build or use the package effectively.  These are the
 USER-INTEL, KOKKOS, USER-OMP, and OPT packages.  The details of what
 flags to add or what variables to define are given on the doc pages
-that describe each of these accelerator packages in detail:</p>
-<ul class="simple">
-<li><a class="reference internal" href="accelerate_intel.html"><em>USER-INTEL package</em></a></li>
-<li><a class="reference internal" href="accelerate_kokkos.html"><em>KOKKOS package</em></a></li>
-<li><a class="reference internal" href="accelerate_omp.html"><em>USER-OMP package</em></a></li>
-<li><a class="reference internal" href="accelerate_opt.html"><em>OPT package</em></a></li>
-</ul>
-<p>Here is a brief summary of what Makefile.machine changes are needed.
-Note that the Make.py tool, described in the next <a class="reference internal" href="#start-4"><span>Section 2.4</span></a> can automatically add the needed info to an existing
-machine Makefile, using simple command-line arguments.</p>
-<p>In src/MAKE/OPTIONS see the following Makefiles for examples of the
-changes described below:</p>
-<ul class="simple">
-<li>Makefile.intel_cpu</li>
-<li>Makefile.intel_phi</li>
-<li>Makefile.kokkos_omp</li>
-<li>Makefile.kokkos_cuda</li>
-<li>Makefile.kokkos_phi</li>
-<li>Makefile.omp</li>
-</ul>
-<p>For the USER-INTEL package, you have 2 choices when building.  You can
+that describe each of these accelerator packages in detail:
+</P>
+<UL><LI><A HREF = "accelerate_intel.html">USER-INTEL package</A>
+<LI><A HREF = "accelerate_kokkos.html">KOKKOS package</A>
+<LI><A HREF = "accelerate_omp.html">USER-OMP package</A>
+<LI><A HREF = "accelerate_opt.html">OPT package</A> 
+</UL>
+<P>Here is a brief summary of what Makefile.machine changes are needed.
+Note that the Make.py tool, described in the next <A HREF = "#start_4">Section
+2.4</A> can automatically add the needed info to an existing
+machine Makefile, using simple command-line arguments.
+</P>
+<P>In src/MAKE/OPTIONS see the following Makefiles for examples of the
+changes described below:
+</P>
+<UL><LI>Makefile.intel_cpu
+<LI>Makefile.intel_phi
+<LI>Makefile.kokkos_omp
+<LI>Makefile.kokkos_cuda
+<LI>Makefile.kokkos_phi
+<LI>Makefile.omp 
+</UL>
+<P>For the USER-INTEL package, you have 2 choices when building.  You can
 build with CPU or Phi support.  The latter uses Xeon Phi chips in
-&#8220;offload&#8221; mode.  Each of these modes requires additional settings in
-your Makefile.machine for CCFLAGS and LINKFLAGS.</p>
-<p>For CPU mode (if using an Intel compiler):</p>
-<ul class="simple">
-<li>CCFLAGS: add -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost, -fno-alias, -ansi-alias, -override-limits</li>
-<li>LINKFLAGS: add -fopenmp</li>
-</ul>
-<p>For Phi mode add the following in addition to the CPU mode flags:</p>
-<ul class="simple">
-<li>CCFLAGS: add -DLMP_INTEL_OFFLOAD and</li>
-<li>LINKFLAGS: add -offload</li>
-</ul>
-<p>And also add this to CCFLAGS:</p>
-<pre class="literal-block">
--offload-option,mic,compiler,&quot;-fp-model fast=2 -mGLOB_default_function_attrs=&quot;gather_scatter_loop_unroll=4&quot;&quot;
-</pre>
-<p>For the KOKKOS package, you have 3 choices when building.  You can
+"offload" mode.  Each of these modes requires additional settings in
+your Makefile.machine for CCFLAGS and LINKFLAGS.
+</P>
+<P>For CPU mode (if using an Intel compiler):
+</P>
+<UL><LI>CCFLAGS: add -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost, -fno-alias, -ansi-alias, -override-limits
+<LI>LINKFLAGS: add -fopenmp 
+</UL>
+<P>For Phi mode add the following in addition to the CPU mode flags:
+</P>
+<UL><LI>CCFLAGS: add -DLMP_INTEL_OFFLOAD and 
+<LI>LINKFLAGS: add -offload 
+</UL>
+<P>And also add this to CCFLAGS:
+</P>
+<PRE>-offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\"" 
+</PRE>
+<P>For the KOKKOS package, you have 3 choices when building.  You can
 build with OMP or Cuda or Phi support.  Phi support uses Xeon Phi
-chips in &#8220;native&#8221; mode.  This can be done by setting the following
-variables in your Makefile.machine:</p>
-<ul class="simple">
-<li>for OMP support, set OMP = yes</li>
-<li>for Cuda support, set OMP = yes and CUDA = yes</li>
-<li>for Phi support, set OMP = yes and MIC = yes</li>
-</ul>
-<p>These can also be set as additional arguments to the make command, e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>make g++ OMP=yes MIC=yes
-</pre></div>
-</div>
-<p>Building the KOKKOS package with CUDA support requires a Makefile
-machine that uses the NVIDIA &#8220;nvcc&#8221; compiler, as well as an
-appropriate &#8220;arch&#8221; setting appropriate to the GPU hardware and NVIDIA
+chips in "native" mode.  This can be done by setting the following
+variables in your Makefile.machine:
+</P>
+<UL><LI>for OMP support, set OMP = yes
+<LI>for Cuda support, set OMP = yes and CUDA = yes
+<LI>for Phi support, set OMP = yes and MIC = yes 
+</UL>
+<P>These can also be set as additional arguments to the make command, e.g.
+</P>
+<PRE>make g++ OMP=yes MIC=yes 
+</PRE>
+<P>Building the KOKKOS package with CUDA support requires a Makefile
+machine that uses the NVIDIA "nvcc" compiler, as well as an
+appropriate "arch" setting appropriate to the GPU hardware and NVIDIA
 software you have on your machine.  See
 src/MAKE/OPTIONS/Makefile.kokkos_cuda for an example of such a machine
-Makefile.</p>
-<p>For the USER-OMP package, your Makefile.machine needs additional
-settings for CCFLAGS and LINKFLAGS.</p>
-<ul class="simple">
-<li>CCFLAGS: add -fopenmp and -restrict</li>
-<li>LINKFLAGS: add -fopenmp</li>
-</ul>
-<p>For the OPT package, your Makefile.machine needs an additional
-settings for CCFLAGS.</p>
-<ul class="simple">
-<li>CCFLAGS: add -restrict</li>
-</ul>
-<hr class="docutils" />
-</div>
-<div class="section" id="building-lammps-via-the-make-py-script">
-<span id="start-4"></span><h2>2.4. Building LAMMPS via the Make.py script<a class="headerlink" href="#building-lammps-via-the-make-py-script" title="Permalink to this headline">¶</a></h2>
-<p>The src directory includes a Make.py script, written in Python, which
+Makefile.
+</P>
+<P>For the USER-OMP package, your Makefile.machine needs additional
+settings for CCFLAGS and LINKFLAGS.
+</P>
+<UL><LI>CCFLAGS: add -fopenmp and -restrict
+<LI>LINKFLAGS: add -fopenmp 
+</UL>
+<P>For the OPT package, your Makefile.machine needs an additional
+settings for CCFLAGS.
+</P>
+<UL><LI>CCFLAGS: add -restrict 
+</UL>
+<HR>
+
+<H4><A NAME = "start_4"></A>2.4 Building LAMMPS via the Make.py script 
+</H4>
+<P>The src directory includes a Make.py script, written in Python, which
 can be used to automate various steps of the build process.  It is
 particularly useful for working with the accelerator packages, as well
-as other packages which require auxiliary libraries to be built.</p>
-<p>The goal of the Make.py tool is to allow any complex multi-step LAMMPS
+as other packages which require auxiliary libraries to be built.
+</P>
+<P>The goal of the Make.py tool is to allow any complex multi-step LAMMPS
 build to be performed as a single Make.py command.  And you can
 archive the commands, so they can be re-invoked later via the -r
-(redo) switch.  If you find some LAMMPS build procedure that can&#8217;t be
-done in a single Make.py command, let the developers know, and we&#8217;ll
-see if we can augment the tool.</p>
-<p>You can run Make.py from the src directory by typing either:</p>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -h
-python Make.py -h
-</pre></div>
-</div>
-<p>which will give you help info about the tool.  For the former to work,
+(redo) switch.  If you find some LAMMPS build procedure that can't be
+done in a single Make.py command, let the developers know, and we'll
+see if we can augment the tool.
+</P>
+<P>You can run Make.py from the src directory by typing either:
+</P>
+<PRE>Make.py -h
+python Make.py -h 
+</PRE>
+<P>which will give you help info about the tool.  For the former to work,
 you may need to edit the first line of Make.py to point to your local
-Python.  And you may need to insure the script is executable:</p>
-<div class="highlight-python"><div class="highlight"><pre>chmod +x Make.py
-</pre></div>
-</div>
-<p>Here are examples of build tasks you can perform with Make.py:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="58%" />
-<col width="42%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>Install/uninstall packages</td>
-<td>Make.py -p no-lib kokkos omp intel</td>
-</tr>
-<tr class="row-even"><td>Build specific auxiliary libs</td>
-<td>Make.py -a lib-atc lib-meam</td>
-</tr>
-<tr class="row-odd"><td>Build libs for all installed packages</td>
-<td>Make.py -p cuda gpu -gpu mode=double arch=31 -a lib-all</td>
-</tr>
-<tr class="row-even"><td>Create a Makefile from scratch with compiler and MPI settings</td>
-<td>Make.py -m none -cc g++ -mpi mpich -a file</td>
-</tr>
-<tr class="row-odd"><td>Augment Makefile.serial with settings for installed packages</td>
-<td>Make.py -p intel -intel cpu -m serial -a file</td>
-</tr>
-<tr class="row-even"><td>Add JPG and FFTW support to Makefile.mpi</td>
-<td>Make.py -m mpi -jpg -fft fftw -a file</td>
-</tr>
-<tr class="row-odd"><td>Build LAMMPS with a parallel make using Makefile.mpi</td>
-<td>Make.py -j 16 -m mpi -a exe</td>
-</tr>
-<tr class="row-even"><td>Build LAMMPS and libs it needs using Makefile.serial with accelerator settings</td>
-<td>Make.py -p gpu intel -intel cpu -a lib-all file serial</td>
-</tr>
-</tbody>
-</table>
-<p>The bench and examples directories give Make.py commands that can be
+Python.  And you may need to insure the script is executable:
+</P>
+<PRE>chmod +x Make.py 
+</PRE>
+<P>Here are examples of build tasks you can perform with Make.py:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >Install/uninstall packages</TD><TD > Make.py -p no-lib kokkos omp intel</TD></TR>
+<TR><TD >Build specific auxiliary libs</TD><TD > Make.py -a lib-atc lib-meam</TD></TR>
+<TR><TD >Build libs for all installed packages</TD><TD > Make.py -p cuda gpu -gpu mode=double arch=31 -a lib-all</TD></TR>
+<TR><TD >Create a Makefile from scratch with compiler and MPI settings</TD><TD > Make.py -m none -cc g++ -mpi mpich -a file</TD></TR>
+<TR><TD >Augment Makefile.serial with settings for installed packages</TD><TD > Make.py -p intel -intel cpu -m serial -a file</TD></TR>
+<TR><TD >Add JPG and FFTW support to Makefile.mpi</TD><TD > Make.py -m mpi -jpg -fft fftw -a file</TD></TR>
+<TR><TD >Build LAMMPS with a parallel make using Makefile.mpi</TD><TD > Make.py -j 16 -m mpi -a exe</TD></TR>
+<TR><TD >Build LAMMPS and libs it needs using Makefile.serial with accelerator settings</TD><TD > Make.py -p gpu intel -intel cpu -a lib-all file serial 
+</TD></TR></TABLE></DIV>
+
+<P>The bench and examples directories give Make.py commands that can be
 used to build LAMMPS with the various packages and options needed to
 run all the benchmark and example input scripts.  See these files for
-more details:</p>
-<ul class="simple">
-<li>bench/README</li>
-<li>bench/FERMI/README</li>
-<li>bench/KEPLER/README</li>
-<li>bench/PHI/README</li>
-<li>examples/README</li>
-<li>examples/accelerate/README</li>
-<li>examples/accelerate/make.list</li>
-</ul>
-<p>All of the Make.py options and syntax help can be accessed by using
-the &#8220;-h&#8221; switch.</p>
-<p>E.g. typing &#8220;Make.py -h&#8221; gives</p>
-<div class="highlight-python"><div class="highlight"><pre>Syntax: Make.py switch args ...
+more details:
+</P>
+<UL><LI>bench/README
+<LI>bench/FERMI/README
+<LI>bench/KEPLER/README
+<LI>bench/PHI/README
+<LI>examples/README
+<LI>examples/accelerate/README
+<LI>examples/accelerate/make.list 
+</UL>
+<P>All of the Make.py options and syntax help can be accessed by using
+the "-h" switch.
+</P>
+<P>E.g. typing "Make.py -h" gives
+</P>
+<PRE>Syntax: Make.py switch args ...
   switches can be listed in any order
   help switch:
     -h prints help and syntax for all other specified switches
@@ -1040,80 +1001,82 @@ the &#8220;-h&#8221; switch.</p>
     -atc, -awpmd, -colvars, -cuda
     -gpu, -meam, -poems, -qmmm, -reax
   switches for build and makefile options:
-    -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
-</pre></div>
-</div>
-<p>Using the &#8220;-h&#8221; switch with other switches and actions gives additional
-info on all the other specified switches or actions.  The &#8220;-h&#8221; can be
+    -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png 
+</PRE>
+<P>Using the "-h" switch with other switches and actions gives additional
+info on all the other specified switches or actions.  The "-h" can be
 anywhere in the command-line and the other switches do not need their
-arguments.  E.g. type &#8220;Make.py -h -d -atc -intel&#8221; will print:</p>
-<div class="highlight-python"><div class="highlight"><pre>-d dir
+arguments.  E.g. type "Make.py -h -d -atc -intel" will print:
+</P>
+<PRE>-d dir
   dir = LAMMPS home dir
-  if -d not specified, working dir must be lammps/src
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>-atc make=suffix lammps=suffix2
+  if -d not specified, working dir must be lammps/src 
+</PRE>
+<PRE>-atc make=suffix lammps=suffix2
   all args are optional and can be in any order
   make = use Makefile.suffix (def = g++)
-  lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>-intel mode
+  lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile) 
+</PRE>
+<PRE>-intel mode
   mode = cpu or phi (def = cpu)
-    build Intel package for CPU or Xeon Phi
-</pre></div>
-</div>
-<p>Note that Make.py never overwrites an existing Makefile.machine.
+    build Intel package for CPU or Xeon Phi 
+</PRE>
+<P>Note that Make.py never overwrites an existing Makefile.machine.
 Instead, it creates src/MAKE/MINE/Makefile.auto, which you can save or
 rename if desired.  Likewise it creates an executable named
-src/lmp_auto, which you can rename using the -o switch if desired.</p>
-<p>The most recently executed Make.py commmand is saved in
-src/Make.py.last.  You can use the &#8220;-r&#8221; switch (for redo) to re-invoke
+src/lmp_auto, which you can rename using the -o switch if desired.
+</P>
+<P>The most recently executed Make.py commmand is saved in
+src/Make.py.last.  You can use the "-r" switch (for redo) to re-invoke
 the last command, or you can save a sequence of one or more Make.py
-commands to a file and invoke the file of commands using &#8220;-r&#8221;.  You
+commands to a file and invoke the file of commands using "-r".  You
 can also label the commands in the file and invoke one or more of them
-by name.</p>
-<p>A typical use of Make.py is to start with a valid Makefile.machine for
+by name.
+</P>
+<P>A typical use of Make.py is to start with a valid Makefile.machine for
 your system, that works for a vanilla LAMMPS build, i.e. when optional
 packages are not installed.  You can then use Make.py to add various
 settings (FFT, JPG, PNG) to the Makefile.machine as well as change its
 compiler and MPI options.  You can also add additional packages to the
-build, as well as build the needed supporting libraries.</p>
-<p>You can also use Make.py to create a new Makefile.machine from
-scratch, using the &#8220;-m none&#8221; switch, if you also specify what compiler
-and MPI options to use, via the &#8220;-cc&#8221; and &#8220;-mpi&#8221; switches.</p>
-<hr class="docutils" />
-</div>
-<div class="section" id="building-lammps-as-a-library">
-<span id="start-5"></span><h2>2.5. Building LAMMPS as a library<a class="headerlink" href="#building-lammps-as-a-library" title="Permalink to this headline">¶</a></h2>
-<p>LAMMPS can be built as either a static or shared library, which can
+build, as well as build the needed supporting libraries.
+</P>
+<P>You can also use Make.py to create a new Makefile.machine from
+scratch, using the "-m none" switch, if you also specify what compiler
+and MPI options to use, via the "-cc" and "-mpi" switches.
+</P>
+<HR>
+
+<H4><A NAME = "start_5"></A>2.5 Building LAMMPS as a library 
+</H4>
+<P>LAMMPS can be built as either a static or shared library, which can
 then be called from another application or a scripting language.  See
-<a class="reference internal" href="Section_howto.html#howto-10"><span>this section</span></a> for more info on coupling
-LAMMPS to other codes.  See <a class="reference internal" href="Section_python.html"><em>this section</em></a> for
-more info on wrapping and running LAMMPS from Python.</p>
-<div class="section" id="static-library">
-<h3>2.5.1. <strong>Static library:</strong><a class="headerlink" href="#static-library" title="Permalink to this headline">¶</a></h3>
-<p>To build LAMMPS as a static library (<a href="#id7"><span class="problematic" id="id8">*</span></a>.a file on Linux), type</p>
-<div class="highlight-python"><div class="highlight"><pre>make foo mode=lib
-</pre></div>
-</div>
-<p>where foo is the machine name.  This kind of library is typically used
+<A HREF = "Section_howto.html#howto_10">this section</A> for more info on coupling
+LAMMPS to other codes.  See <A HREF = "Section_python.html">this section</A> for
+more info on wrapping and running LAMMPS from Python.
+</P>
+<H5><B>Static library:</B> 
+</H5>
+<P>To build LAMMPS as a static library (*.a file on Linux), type
+</P>
+<PRE>make foo mode=lib 
+</PRE>
+<P>where foo is the machine name.  This kind of library is typically used
 to statically link a driver application to LAMMPS, so that you can
 insure all dependencies are satisfied at compile time.  This will use
 the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The build
 will create the file liblammps_foo.a which another application can
 link to.  It will also create a soft link liblammps.a, which will
-point to the most recently built static library.</p>
-</div>
-<div class="section" id="shared-library">
-<h3>2.5.2. <strong>Shared library:</strong><a class="headerlink" href="#shared-library" title="Permalink to this headline">¶</a></h3>
-<p>To build LAMMPS as a shared library (<a href="#id9"><span class="problematic" id="id10">*</span></a>.so file on Linux), which can be
-dynamically loaded, e.g. from Python, type</p>
-<div class="highlight-python"><div class="highlight"><pre>make foo mode=shlib
-</pre></div>
-</div>
-<p>where foo is the machine name.  This kind of library is required when
-wrapping LAMMPS with Python; see <a class="reference internal" href="Section_python.html"><em>Section_python</em></a>
+point to the most recently built static library.
+</P>
+<H5><B>Shared library:</B> 
+</H5>
+<P>To build LAMMPS as a shared library (*.so file on Linux), which can be
+dynamically loaded, e.g. from Python, type
+</P>
+<PRE>make foo mode=shlib 
+</PRE>
+<P>where foo is the machine name.  This kind of library is required when
+wrapping LAMMPS with Python; see <A HREF = "Section_python.html">Section_python</A>
 for details.  This will use the SHFLAGS and SHLIBFLAGS settings in
 src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
@@ -1121,8 +1084,9 @@ Obj_shared_foo.  This is so that each file can be compiled with the
 build will create the file liblammps_foo.so which another application
 can link to dyamically.  It will also create a soft link liblammps.so,
 which will point to the most recently built shared library.  This is
-the file the Python wrapper loads by default.</p>
-<p>Note that for a shared library to be usable by a calling program, all
+the file the Python wrapper loads by default.
+</P>
+<P>Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
 libraries.  This will be the case for libraries included with LAMMPS,
 such as the dummy MPI library in src/STUBS or any package libraries in
@@ -1131,316 +1095,349 @@ the -fPIC switch.  However, if a library like MPI or FFTW does not
 exist as a shared library, the shared library build will generate an
 error.  This means you will need to install a shared library version
 of the auxiliary library.  The build instructions for the library
-should tell you how to do this.</p>
-<p>Here is an example of such errors when the system FFTW or provided
-lib/colvars library have not been built as shared libraries:</p>
-<div class="highlight-python"><div class="highlight"><pre>/usr/bin/ld: /usr/local/lib/libfftw3.a(mapflags.o): relocation
-R_X86_64_32 against `.rodata&#39; can not be used when making a shared
+should tell you how to do this.
+</P>
+<P>Here is an example of such errors when the system FFTW or provided
+lib/colvars library have not been built as shared libraries:
+</P>
+<PRE>/usr/bin/ld: /usr/local/lib/libfftw3.a(mapflags.o): relocation
+R_X86_64_32 against `.rodata' can not be used when making a shared
 object; recompile with -fPIC
-/usr/local/lib/libfftw3.a: could not read symbols: Bad value
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>/usr/bin/ld: ../../lib/colvars/libcolvars.a(colvarmodule.o):
-relocation R_X86_64_32 against `__pthread_key_create&#39; can not be used
+/usr/local/lib/libfftw3.a: could not read symbols: Bad value 
+</PRE>
+<PRE>/usr/bin/ld: ../../lib/colvars/libcolvars.a(colvarmodule.o):
+relocation R_X86_64_32 against `__pthread_key_create' can not be used
 when making a shared object; recompile with -fPIC
-../../lib/colvars/libcolvars.a: error adding symbols: Bad value
-</pre></div>
-</div>
-<p>As an example, here is how to build and install the <a class="reference external" href="http://www-unix.mcs.anl.gov/mpi">MPICH library</a>, a popular open-source version of MPI, distributed by
+../../lib/colvars/libcolvars.a: error adding symbols: Bad value 
+</PRE>
+<P>As an example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
+library</A>, a popular open-source version of MPI, distributed by
 Argonne National Labs, as a shared library in the default
-/usr/local/lib location:</p>
-<div class="highlight-python"><div class="highlight"><pre>./configure --enable-shared
+/usr/local/lib location:
+</P>
+
+
+<PRE>./configure --enable-shared
 make
-make install
-</pre></div>
-</div>
-<p>You may need to use &#8220;sudo make install&#8221; in place of the last line if
+make install 
+</PRE>
+<P>You may need to use "sudo make install" in place of the last line if
 you do not have write privileges for /usr/local/lib.  The end result
-should be the file /usr/local/lib/libmpich.so.</p>
-</div>
-<div class="section" id="additional-requirement-for-using-a-shared-library">
-<h3>2.5.3. <strong>Additional requirement for using a shared library:</strong><a class="headerlink" href="#additional-requirement-for-using-a-shared-library" title="Permalink to this headline">¶</a></h3>
-<p>The operating system finds shared libraries to load at run-time using
+should be the file /usr/local/lib/libmpich.so.
+</P>
+<H5><B>Additional requirement for using a shared library:</B> 
+</H5>
+<P>The operating system finds shared libraries to load at run-time using
 the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
 file src/liblammps.so or src/liblammps_g++.so (for example) to a place
 the system can find it by default, such as /usr/local/lib, or you may
 wish to add the LAMMPS src directory to LD_LIBRARY_PATH, so that the
 current version of the shared library is always available to programs
-that use it.</p>
-<p>For the csh or tcsh shells, you would add something like this to your
-~/.cshrc file:</p>
-<div class="highlight-python"><div class="highlight"><pre>setenv LD_LIBRARY_PATH $*LD_LIBRARY_PATH*:/home/sjplimp/lammps/src
-</pre></div>
-</div>
-</div>
-<div class="section" id="calling-the-lammps-library">
-<h3>2.5.4. <strong>Calling the LAMMPS library:</strong><a class="headerlink" href="#calling-the-lammps-library" title="Permalink to this headline">¶</a></h3>
-<p>Either flavor of library (static or shared0 allows one or more LAMMPS
-objects to be instantiated from the calling program.</p>
-<p>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
+that use it.
+</P>
+<P>For the csh or tcsh shells, you would add something like this to your
+~/.cshrc file:
+</P>
+<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
+</PRE>
+<H5><B>Calling the LAMMPS library:</B> 
+</H5>
+<P>Either flavor of library (static or shared0 allows one or more LAMMPS
+objects to be instantiated from the calling program.
+</P>
+<P>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
 namespace; you can safely use any of its classes and methods from
-within the calling code, as needed.</p>
-<p>When used from a C or Fortran program or a scripting language like
+within the calling code, as needed.
+</P>
+<P>When used from a C or Fortran program or a scripting language like
 Python, the library has a simple function-style interface, provided in
-src/library.cpp and src/library.h.</p>
-<p>See the sample codes in examples/COUPLE/simple for examples of C++ and
+src/library.cpp and src/library.h.
+</P>
+<P>See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the COUPLE directory which are
-discussed in <a class="reference internal" href="Section_howto.html#howto-10"><span>Section_howto 10</span></a> of the
-manual.  See <a class="reference internal" href="Section_python.html"><em>Section_python</em></a> of the manual for a
+discussed in <A HREF = "Section_howto.html#howto_10">Section_howto 10</A> of the
+manual.  See <A HREF = "Section_python.html">Section_python</A> of the manual for a
 description of the Python wrapper provided with LAMMPS that operates
-through the LAMMPS library interface.</p>
-<p>The files src/library.cpp and library.h define the C-style API for
-using LAMMPS as a library.  See <a class="reference internal" href="Section_howto.html#howto-19"><span>Section_howto 19</span></a> of the manual for a description of the
-interface and how to extend it for your needs.</p>
-<hr class="docutils" />
-</div>
-</div>
-<div class="section" id="running-lammps">
-<span id="start-6"></span><h2>2.6. Running LAMMPS<a class="headerlink" href="#running-lammps" title="Permalink to this headline">¶</a></h2>
-<p>By default, LAMMPS runs by reading commands from standard input.  Thus
-if you run the LAMMPS executable by itself, e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">lmp_linux</span>
-</pre></div>
-</div>
-<p>it will simply wait, expecting commands from the keyboard.  Typically
+through the LAMMPS library interface.
+</P>
+<P>The files src/library.cpp and library.h define the C-style API for
+using LAMMPS as a library.  See <A HREF = "Section_howto.html#howto_19">Section_howto
+19</A> of the manual for a description of the
+interface and how to extend it for your needs.
+</P>
+<HR>
+
+<H4><A NAME = "start_6"></A>2.6 Running LAMMPS 
+</H4>
+<P>By default, LAMMPS runs by reading commands from standard input.  Thus
+if you run the LAMMPS executable by itself, e.g.
+</P>
+<PRE>lmp_linux 
+</PRE>
+<P>it will simply wait, expecting commands from the keyboard.  Typically
 you should put commands in an input script and use I/O redirection,
-e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>lmp_linux &lt; in.file
-</pre></div>
-</div>
-<p>For parallel environments this should also work.  If it does not, use
-the &#8216;-in&#8217; command-line switch, e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>lmp_linux -in in.file
-</pre></div>
-</div>
-<p><a class="reference internal" href="Section_commands.html"><em>This section</em></a> describes how input scripts are
-structured and what commands they contain.</p>
-<p>You can test LAMMPS on any of the sample inputs provided in the
+e.g.
+</P>
+<PRE>lmp_linux < in.file 
+</PRE>
+<P>For parallel environments this should also work.  If it does not, use
+the '-in' command-line switch, e.g.
+</P>
+<PRE>lmp_linux -in in.file 
+</PRE>
+<P><A HREF = "Section_commands.html">This section</A> describes how input scripts are
+structured and what commands they contain.
+</P>
+<P>You can test LAMMPS on any of the sample inputs provided in the
 examples or bench directory.  Input scripts are named in.* and sample
 outputs are named log.*.name.P where name is a machine and P is the
-number of processors it was run on.</p>
-<p>Here is how you might run a standard Lennard-Jones benchmark on a
-Linux box, using mpirun to launch a parallel job:</p>
-<div class="highlight-python"><div class="highlight"><pre>cd src
+number of processors it was run on.
+</P>
+<P>Here is how you might run a standard Lennard-Jones benchmark on a
+Linux box, using mpirun to launch a parallel job:
+</P>
+<PRE>cd src
 make linux
 cp lmp_linux ../bench
 cd ../bench
-mpirun -np 4 lmp_linux &lt; in.lj
-</pre></div>
-</div>
-<p>See <a class="reference external" href="http://lammps.sandia.gov/bench.html">this page</a> for timings for this and the other benchmarks on
+mpirun -np 4 lmp_linux < in.lj 
+</PRE>
+<P>See <A HREF = "http://lammps.sandia.gov/bench.html">this page</A> for timings for this and the other benchmarks on
 various platforms.  Note that some of the example scripts require
-LAMMPS to be built with one or more of its optional packages.</p>
-<hr class="docutils" />
-<p>On a Windows box, you can skip making LAMMPS and simply download an
+LAMMPS to be built with one or more of its optional packages.
+</P>
+
+
+<HR>
+
+<P>On a Windows box, you can skip making LAMMPS and simply download an
 executable, as described above, though the pre-packaged executables
-include only certain packages.</p>
-<p>To run a LAMMPS executable on a Windows machine, first decide whether
+include only certain packages.
+</P>
+<P>To run a LAMMPS executable on a Windows machine, first decide whether
 you want to download the non-MPI (serial) or the MPI (parallel)
 version of the executable. Download and save the version you have
-chosen.</p>
-<p>For the non-MPI version, follow these steps:</p>
-<ul class="simple">
-<li>Get a command prompt by going to Start-&gt;Run... ,
-then typing &#8220;cmd&#8221;.</li>
-<li>Move to the directory where you have saved lmp_win_no-mpi.exe
-(e.g. by typing: cd &#8220;Documents&#8221;).</li>
-<li>At the command prompt, type &#8220;lmp_win_no-mpi -in in.lj&#8221;, replacing in.lj
-with the name of your LAMMPS input script.</li>
-</ul>
-<p>For the MPI version, which allows you to run LAMMPS under Windows on
-multiple processors, follow these steps:</p>
-<ul class="simple">
-<li>Download and install
-<a class="reference external" href="http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads">MPICH2</a>
-for Windows.</li>
-<li>You&#8217;ll need to use the mpiexec.exe and smpd.exe files from the MPICH2
+chosen.
+</P>
+<P>For the non-MPI version, follow these steps:
+</P>
+<UL><LI>Get a command prompt by going to Start->Run... , 
+then typing "cmd". 
+
+<LI>Move to the directory where you have saved lmp_win_no-mpi.exe
+(e.g. by typing: cd "Documents"). 
+
+<LI>At the command prompt, type "lmp_win_no-mpi -in in.lj", replacing in.lj
+with the name of your LAMMPS input script. 
+</UL>
+<P>For the MPI version, which allows you to run LAMMPS under Windows on 
+multiple processors, follow these steps:
+</P>
+<UL><LI>Download and install
+<A HREF = "http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads">MPICH2</A>
+for Windows. 
+
+<LI>You'll need to use the mpiexec.exe and smpd.exe files from the MPICH2
 package. Put them in same directory (or path) as the LAMMPS Windows
-executable.</li>
-<li>Get a command prompt by going to Start-&gt;Run... ,
-then typing &#8220;cmd&#8221;.</li>
-<li>Move to the directory where you have saved lmp_win_mpi.exe
-(e.g. by typing: cd &#8220;Documents&#8221;).</li>
-<li>Then type something like this: &#8220;mpiexec -localonly 4 lmp_win_mpi -in
-in.lj&#8221;, replacing in.lj with the name of your LAMMPS input script.</li>
-<li>Note that you may need to provide smpd with a passphrase (it doesn&#8217;t
-matter what you type).</li>
-<li>In this mode, output may not immediately show up on the screen, so if
+executable. 
+
+<LI>Get a command prompt by going to Start->Run... , 
+then typing "cmd". 
+
+<LI>Move to the directory where you have saved lmp_win_mpi.exe
+(e.g. by typing: cd "Documents"). 
+
+<LI>Then type something like this: "mpiexec -localonly 4 lmp_win_mpi -in
+in.lj", replacing in.lj with the name of your LAMMPS input script. 
+
+<LI>Note that you may need to provide smpd with a passphrase (it doesn't
+matter what you type). 
+
+<LI>In this mode, output may not immediately show up on the screen, so if
 your input script takes a long time to execute, you may need to be
 patient before the output shows up. :l Alternatively, you can still
 use this executable to run on a single processor by typing something
-like: &#8220;lmp_win_mpi -in in.lj&#8221;.</li>
-</ul>
-<hr class="docutils" />
-<p>The screen output from LAMMPS is described in the next section.  As it
-runs, LAMMPS also writes a log.lammps file with the same information.</p>
-<p>Note that this sequence of commands copies the LAMMPS executable
+like: "lmp_win_mpi -in in.lj". 
+</UL>
+<HR>
+
+<P>The screen output from LAMMPS is described in the next section.  As it
+runs, LAMMPS also writes a log.lammps file with the same information.
+</P>
+<P>Note that this sequence of commands copies the LAMMPS executable
 (lmp_linux) to the directory with the input files.  This may not be
 necessary, but some versions of MPI reset the working directory to
 where the executable is, rather than leave it as the directory where
 you launch mpirun from (if you launch lmp_linux on its own and not
 under mpirun).  If that happens, LAMMPS will look for additional input
 files and write its output files to the executable directory, rather
-than your working directory, which is probably not what you want.</p>
-<p>If LAMMPS encounters errors in the input script or while running a
+than your working directory, which is probably not what you want.
+</P>
+<P>If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See <a class="reference internal" href="Section_errors.html"><em>Section_errors</em></a> for a
-discussion of the various kinds of errors LAMMPS can or can&#8217;t detect,
-a list of all ERROR and WARNING messages, and what to do about them.</p>
-<p>LAMMPS can run a problem on any number of processors, including a
+message and continue.  See <A HREF = "Section_errors.html">Section_errors</A> for a
+discussion of the various kinds of errors LAMMPS can or can't detect,
+a list of all ERROR and WARNING messages, and what to do about them.
+</P>
+<P>LAMMPS can run a problem on any number of processors, including a
 single processor.  In theory you should get identical answers on any
 number of processors and on any machine.  In practice, numerical
 round-off can cause slight differences and eventual divergence of
-molecular dynamics phase space trajectories.</p>
-<p>LAMMPS can run as large a problem as will fit in the physical memory
+molecular dynamics phase space trajectories.
+</P>
+<P>LAMMPS can run as large a problem as will fit in the physical memory
 of one or more processors.  If you run out of memory, you must run on
-more processors or setup a smaller problem.</p>
-<hr class="docutils" />
-</div>
-<div class="section" id="command-line-options">
-<span id="start-7"></span><h2>2.7. Command-line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h2>
-<p>At run time, LAMMPS recognizes several optional command-line switches
+more processors or setup a smaller problem.
+</P>
+<HR>
+
+<H4><A NAME = "start_7"></A>2.7 Command-line options 
+</H4>
+<P>At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
-letter abbreviation can be used:</p>
-<ul class="simple">
-<li>-c or -cuda</li>
-<li>-e or -echo</li>
-<li>-h or -help</li>
-<li>-i or -in</li>
-<li>-k or -kokkos</li>
-<li>-l or -log</li>
-<li>-nc or -nocite</li>
-<li>-pk or -package</li>
-<li>-p or -partition</li>
-<li>-pl or -plog</li>
-<li>-ps or -pscreen</li>
-<li>-r or -restart</li>
-<li>-ro or -reorder</li>
-<li>-sc or -screen</li>
-<li>-sf or -suffix</li>
-<li>-v or -var</li>
-</ul>
-<p>For example, lmp_ibm might be launched as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none &lt; in.alloy
-mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none &lt; in.alloy
-</pre></div>
-</div>
-<p>Here are the details on the options:</p>
-<div class="highlight-python"><div class="highlight"><pre>-cuda on/off
-</pre></div>
-</div>
-<p>Explicitly enable or disable CUDA support, as provided by the
+letter abbreviation can be used:
+</P>
+<UL><LI>-c or -cuda
+<LI>-e or -echo
+<LI>-h or -help
+<LI>-i or -in
+<LI>-k or -kokkos
+<LI>-l or -log
+<LI>-nc or -nocite
+<LI>-pk or -package
+<LI>-p or -partition
+<LI>-pl or -plog
+<LI>-ps or -pscreen
+<LI>-r or -restart
+<LI>-ro or -reorder
+<LI>-sc or -screen
+<LI>-sf or -suffix
+<LI>-v or -var 
+</UL>
+<P>For example, lmp_ibm might be launched as follows:
+</P>
+<PRE>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none < in.alloy
+mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy 
+</PRE>
+<P>Here are the details on the options:
+</P>
+<PRE>-cuda on/off 
+</PRE>
+<P>Explicitly enable or disable CUDA support, as provided by the
 USER-CUDA package.  Even if LAMMPS is built with this package, as
-described above in <a class="reference internal" href="#start-3"><span>Section 2.3</span></a>, this switch must be set to
+described above in <A HREF = "#start_3">Section 2.3</A>, this switch must be set to
 enable running with the CUDA-enabled styles the package provides.  If
 the switch is not set (the default), LAMMPS will operate as if the
 USER-CUDA package were not installed; i.e. you can run standard LAMMPS
-or with the GPU package, for testing or benchmarking purposes.</p>
-<div class="highlight-python"><div class="highlight"><pre>-echo style
-</pre></div>
-</div>
-<p>Set the style of command echoing.  The style can be <em>none</em> or <em>screen</em>
-or <em>log</em> or <em>both</em>.  Depending on the style, each command read from
+or with the GPU package, for testing or benchmarking purposes.
+</P>
+<PRE>-echo style 
+</PRE>
+<P>Set the style of command echoing.  The style can be <I>none</I> or <I>screen</I>
+or <I>log</I> or <I>both</I>.  Depending on the style, each command read from
 the input script will be echoed to the screen and/or logfile.  This
 can be useful to figure out which line of your script is causing an
-input error.  The default value is <em>log</em>.  The echo style can also be
-set by using the <a class="reference internal" href="echo.html"><em>echo</em></a> command in the input script itself.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="o">-</span><span class="n">help</span>
-</pre></div>
-</div>
-<p>Print a brief help summary and a list of options compiled into this
+input error.  The default value is <I>log</I>.  The echo style can also be
+set by using the <A HREF = "echo.html">echo</A> command in the input script itself.
+</P>
+<PRE>-help 
+</PRE>
+<P>Print a brief help summary and a list of options compiled into this
 executable for each LAMMPS style (atom_style, fix, compute,
 pair_style, bond_style, etc).  This can tell you if the command you
 want to use was included via the appropriate package at compile time.
 LAMMPS will print the info and immediately exit if this switch is
-used.</p>
-<div class="highlight-python"><div class="highlight"><pre>-in file
-</pre></div>
-</div>
-<p>Specify a file to use as an input script.  This is an optional switch
+used.
+</P>
+<PRE>-in file 
+</PRE>
+<P>Specify a file to use as an input script.  This is an optional switch
 when running LAMMPS in one-partition mode.  If it is not specified,
 LAMMPS reads its script from standard input, typically from a script
-via I/O redirection; e.g. lmp_linux &lt; in.run.  I/O redirection should
+via I/O redirection; e.g. lmp_linux < in.run.  I/O redirection should
 also work in parallel, but if it does not (in the unlikely case that
 an MPI implementation does not support it), then use the -in flag.
 Note that this is a required switch when running LAMMPS in
 multi-partition mode, since multiple processors cannot all read from
-stdin.</p>
-<div class="highlight-python"><div class="highlight"><pre>-kokkos on/off keyword/value ...
-</pre></div>
-</div>
-<p>Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
+stdin.
+</P>
+<PRE>-kokkos on/off keyword/value ... 
+</PRE>
+<P>Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
-above in <a class="reference internal" href="#start-3"><span>Section 2.3</span></a>, this switch must be set to enable
+above in <A HREF = "#start_3">Section 2.3</A>, this switch must be set to enable
 running with the KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
 the GPU or USER-CUDA or USER-OMP packages, for testing or benchmarking
-purposes.</p>
-<p>Additional optional keyword/value pairs can be specified which
+purposes.
+</P>
+<P>Additional optional keyword/value pairs can be specified which
 determine how Kokkos will use the underlying hardware on your
 platform.  These settings apply to each MPI task you launch via the
-&#8220;mpirun&#8221; or &#8220;mpiexec&#8221; command.  You may choose to run one or more MPI
+"mpirun" or "mpiexec" command.  You may choose to run one or more MPI
 tasks per physical node.  Note that if you are running on a desktop
 machine, you typically have one physical node.  On a cluster or
-supercomputer there may be dozens or 1000s of physical nodes.</p>
-<p>Either the full word or an abbreviation can be used for the keywords.
+supercomputer there may be dozens or 1000s of physical nodes.
+</P>
+<P>Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
-keyword is &#8220;t&#8221;, not &#8220;-t&#8221;.  Also note that each of the keywords has a
+keyword is "t", not "-t".  Also note that each of the keywords has a
 default setting.  Example of when to use these options and what
-settings to use on different platforms is given in <span class="xref std std-ref">Section 5.8</span>.</p>
-<ul class="simple">
-<li>d or device</li>
-<li>g or gpus</li>
-<li>t or threads</li>
-<li>n or numa</li>
-</ul>
-<div class="highlight-python"><div class="highlight"><pre>device Nd
-</pre></div>
-</div>
-<p>This option is only relevant if you built LAMMPS with CUDA=yes, you
+settings to use on different platforms is given in <A HREF = "Section_accelerate.html#acc_8">Section
+5.8</A>.
+</P>
+<UL><LI>d or device
+<LI>g or gpus
+<LI>t or threads
+<LI>n or numa 
+</UL>
+<PRE>device Nd 
+</PRE>
+<P>This option is only relevant if you built LAMMPS with CUDA=yes, you
 have more than one GPU per node, and if you are running with only one
 MPI task per node.  The Nd setting is the ID of the GPU on the node to
 run on.  By default Nd = 0.  If you have multiple GPUs per node, they
 have consecutive IDs numbered as 0,1,2,etc.  This setting allows you
 to launch multiple independent jobs on the node, each with a single
-MPI task per node, and assign each job to run on a different GPU.</p>
-<div class="highlight-python"><div class="highlight"><pre>gpus Ng Ns
-</pre></div>
-</div>
-<p>This option is only relevant if you built LAMMPS with CUDA=yes, you
+MPI task per node, and assign each job to run on a different GPU.
+</P>
+<PRE>gpus Ng Ns 
+</PRE>
+<P>This option is only relevant if you built LAMMPS with CUDA=yes, you
 have more than one GPU per node, and you are running with multiple MPI
 tasks per node (up to one per GPU).  The Ng setting is how many GPUs
 you will use.  The Ns setting is optional.  If set, it is the ID of a
 GPU to skip when assigning MPI tasks to GPUs.  This may be useful if
 your desktop system reserves one GPU to drive the screen and the rest
 are intended for computational work like running LAMMPS.  By default
-Ng = 1 and Ns is not set.</p>
-<p>Depending on which flavor of MPI you are running, LAMMPS will look for
-one of these 3 environment variables</p>
-<div class="highlight-python"><div class="highlight"><pre>SLURM_LOCALID (various MPI variants compiled with SLURM support)
+Ng = 1 and Ns is not set.
+</P>
+<P>Depending on which flavor of MPI you are running, LAMMPS will look for
+one of these 3 environment variables
+</P>
+<PRE>SLURM_LOCALID (various MPI variants compiled with SLURM support)
 MV2_COMM_WORLD_LOCAL_RANK (Mvapich)
-OMPI_COMM_WORLD_LOCAL_RANK (OpenMPI)
-</pre></div>
-</div>
-<p>which are initialized by the &#8220;srun&#8221;, &#8220;mpirun&#8221; or &#8220;mpiexec&#8221; commands.
+OMPI_COMM_WORLD_LOCAL_RANK (OpenMPI) 
+</PRE>
+<P>which are initialized by the "srun", "mpirun" or "mpiexec" commands.
 The environment variable setting for each MPI rank is used to assign a
-unique GPU ID to the MPI task.</p>
-<div class="highlight-python"><div class="highlight"><pre>threads Nt
-</pre></div>
-</div>
-<p>This option assigns Nt number of threads to each MPI task for
+unique GPU ID to the MPI task.
+</P>
+<PRE>threads Nt 
+</PRE>
+<P>This option assigns Nt number of threads to each MPI task for
 performing work when Kokkos is executing in OpenMP or pthreads mode.
 The default is Nt = 1, which essentially runs in MPI-only mode.  If
 there are Np MPI tasks per physical node, you generally want Np*Nt =
 the number of physical cores per node, to use your available hardware
 optimally.  This also sets the number of threads used by the host when
-LAMMPS is compiled with CUDA=yes.</p>
-<div class="highlight-python"><div class="highlight"><pre>numa Nm
-</pre></div>
-</div>
-<p>This option is only relevant when using pthreads with hwloc support.
+LAMMPS is compiled with CUDA=yes.
+</P>
+<PRE>numa Nm 
+</PRE>
+<P>This option is only relevant when using pthreads with hwloc support.
 In this case Nm defines the number of NUMA regions (typicaly sockets)
 on a node which will be utilizied by a single MPI rank.  By default Nm
 = 1.  If this option is used the total number of worker-threads per
@@ -1448,46 +1445,47 @@ MPI rank is threads*numa.  Currently it is always almost better to
 assign at least one MPI rank per NUMA region, and leave numa set to
 its default value of 1. This is because letting a single process span
 multiple NUMA regions induces a significant amount of cross NUMA data
-traffic which is slow.</p>
-<div class="highlight-python"><div class="highlight"><pre>-log file
-</pre></div>
-</div>
-<p>Specify a log file for LAMMPS to write status information to.  In
+traffic which is slow.
+</P>
+<PRE>-log file 
+</PRE>
+<P>Specify a log file for LAMMPS to write status information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
 file log.lammps.  If this switch is used, LAMMPS writes to the
 specified file.  In multi-partition mode, if the switch is not used, a
 log.lammps file is created with hi-level status information.  Each
 partition also writes to a log.lammps.N file where N is the partition
 ID.  If the switch is specified in multi-partition mode, the hi-level
-logfile is named &#8220;file&#8221; and each partition also logs information to a
+logfile is named "file" and each partition also logs information to a
 file.N.  For both one-partition and multi-partition mode, if the
-specified file is &#8220;none&#8221;, then no log files are created.  Using a
-<a class="reference internal" href="log.html"><em>log</em></a> command in the input script will override this setting.
-Option -plog will override the name of the partition log files file.N.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="o">-</span><span class="n">nocite</span>
-</pre></div>
-</div>
-<p>Disable writing the log.cite file which is normally written to list
+specified file is "none", then no log files are created.  Using a
+<A HREF = "log.html">log</A> command in the input script will override this setting.
+Option -plog will override the name of the partition log files file.N.
+</P>
+<PRE>-nocite 
+</PRE>
+<P>Disable writing the log.cite file which is normally written to list
 references for specific cite-able features used during a LAMMPS run.
-See the <a class="reference external" href="http://lammps.sandia.gov/cite.html">citation page</a> for more
-details.</p>
-<div class="highlight-python"><div class="highlight"><pre>-package style args ....
-</pre></div>
-</div>
-<p>Invoke the <a class="reference internal" href="package.html"><em>package</em></a> command with style and args.  The
+See the <A HREF = "http://lammps.sandia.gov/cite.html">citation page</A> for more
+details.
+</P>
+<PRE>-package style args .... 
+</PRE>
+<P>Invoke the <A HREF = "package.html">package</A> command with style and args.  The
 syntax is the same as if the command appeared at the top of the input
-script.  For example &#8220;-package gpu 2&#8221; or &#8220;-pk gpu 2&#8221; is the same as
-<a class="reference internal" href="package.html"><em>package gpu 2</em></a> in the input script.  The possible styles
-and args are documented on the <a class="reference internal" href="package.html"><em>package</em></a> doc page.  This
+script.  For example "-package gpu 2" or "-pk gpu 2" is the same as
+<A HREF = "package.html">package gpu 2</A> in the input script.  The possible styles
+and args are documented on the <A HREF = "package.html">package</A> doc page.  This
 switch can be used multiple times, e.g. to set options for the
-USER-INTEL and USER-OMP packages which can be used together.</p>
-<p>Along with the &#8220;-suffix&#8221; command-line switch, this is a convenient
+USER-INTEL and USER-OMP packages which can be used together.
+</P>
+<P>Along with the "-suffix" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
-having to edit an input script.</p>
-<div class="highlight-python"><div class="highlight"><pre>-partition 8x2 4 5 ...
-</pre></div>
-</div>
-<p>Invoke LAMMPS in multi-partition mode.  When LAMMPS is run on P
+having to edit an input script.
+</P>
+<PRE>-partition 8x2 4 5 ... 
+</PRE>
+<P>Invoke LAMMPS in multi-partition mode.  When LAMMPS is run on P
 processors and this switch is not used, LAMMPS runs in one partition,
 i.e. all P processors run a single simulation.  If this switch is
 used, the P processors are split into separate partitions and each
@@ -1496,21 +1494,23 @@ specify the number of processors in each partition.  Arguments of the
 form MxN mean M partitions, each with N processors.  Arguments of the
 form N mean a single partition with N processors.  The sum of
 processors in all partitions must equal P.  Thus the command
-&#8220;-partition 8x2 4 5&#8221; has 10 partitions and runs on a total of 25
-processors.</p>
-<p>Running with multiple partitions can e useful for running
-<a class="reference internal" href="Section_howto.html#howto-5"><span>multi-replica simulations</span></a>, where each
+"-partition 8x2 4 5" has 10 partitions and runs on a total of 25
+processors.
+</P>
+<P>Running with multiple partitions can e useful for running
+<A HREF = "Section_howto.html#howto_5">multi-replica simulations</A>, where each
 replica runs on on one or a few processors.  Note that with MPI
 installed on a machine (e.g. your desktop), you can run on more
-(virtual) processors than you have physical processors.</p>
-<p>To run multiple independent simulatoins from one input script, using
-multiple partitions, see <a class="reference internal" href="Section_howto.html#howto-4"><span>Section_howto 4</span></a>
-of the manual.  World- and universe-style <a class="reference internal" href="variable.html"><em>variables</em></a>
-are useful in this context.</p>
-<div class="highlight-python"><div class="highlight"><pre>-plog file
-</pre></div>
-</div>
-<p>Specify the base name for the partition log files, so partition N
+(virtual) processors than you have physical processors.
+</P>
+<P>To run multiple independent simulatoins from one input script, using
+multiple partitions, see <A HREF = "Section_howto.html#howto_4">Section_howto 4</A>
+of the manual.  World- and universe-style <A HREF = "variable.html">variables</A>
+are useful in this context.
+</P>
+<PRE>-plog file 
+</PRE>
+<P>Specify the base name for the partition log files, so partition N
 writes log information to file.N. If file is none, then no partition
 log files are created.  This overrides the filename specified in the
 -log command-line option.  This option is useful when working with
@@ -1518,11 +1518,11 @@ large numbers of partitions, allowing the partition log files to be
 suppressed (-plog none) or placed in a sub-directory (-plog
 replica_files/log.lammps) If this option is not used the log file for
 partition N is log.lammps.N or whatever is specified by the -log
-command-line option.</p>
-<div class="highlight-python"><div class="highlight"><pre>-pscreen file
-</pre></div>
-</div>
-<p>Specify the base name for the partition screen file, so partition N
+command-line option.
+</P>
+<PRE>-pscreen file 
+</PRE>
+<P>Specify the base name for the partition screen file, so partition N
 writes screen information to file.N. If file is none, then no
 partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
@@ -1530,80 +1530,84 @@ when working with large numbers of partitions, allowing the partition
 screen files to be suppressed (-pscreen none) or placed in a
 sub-directory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
-specified by the -screen command-line option.</p>
-<pre class="literal-block">
--restart restartfile <em>remap</em> datafile keyword value ...
-</pre>
-<p>Convert the restart file into a data file and immediately exit.  This
+specified by the -screen command-line option.
+</P>
+<PRE>-restart restartfile <I>remap</I> datafile keyword value ... 
+</PRE>
+<P>Convert the restart file into a data file and immediately exit.  This
 is the same operation as if the following 2-line input script were
-run:</p>
-<pre class="literal-block">
-read_restart restartfile <em>remap</em>
-write_data datafile keyword value ...
-</pre>
-<p>Note that the specified restartfile and datafile can have wild-card
-characters (&#8220;*&#8221;,%&#8221;) as described by the
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> and <a class="reference internal" href="write_data.html"><em>write_data</em></a>
+run:
+</P>
+<PRE>read_restart restartfile <I>remap</I>
+write_data datafile keyword value ... 
+</PRE>
+<P>Note that the specified restartfile and datafile can have wild-card
+characters ("*",%") as described by the
+<A HREF = "read_restart.html">read_restart</A> and <A HREF = "write_data.html">write_data</A>
 commands.  But a filename such as file.* will need to be enclosed in
-quotes to avoid shell expansion of the &#8220;*&#8221; character.</p>
-<p>Note that following restartfile, the optional flag <em>remap</em> can be
+quotes to avoid shell expansion of the "*" character.
+</P>
+<P>Note that following restartfile, the optional flag <I>remap</I> can be
 used.  This has the same effect as adding it to the
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command, as explained on its doc
+<A HREF = "read_restart.html">read_restart</A> command, as explained on its doc
 page.  This is only useful if the reading of the restart file triggers
 an error that atoms have been lost.  In that case, use of the remap
-flag should allow the data file to still be produced.</p>
-<p>Also note that following datafile, the same optional keyword/value
-pairs can be listed as used by the <a class="reference internal" href="write_data.html"><em>write_data</em></a>
-command.</p>
-<div class="highlight-python"><div class="highlight"><pre>-reorder nth N
--reorder custom filename
-</pre></div>
-</div>
-<p>Reorder the processors in the MPI communicator used to instantiate
+flag should allow the data file to still be produced.
+</P>
+<P>Also note that following datafile, the same optional keyword/value
+pairs can be listed as used by the <A HREF = "write_data.html">write_data</A>
+command.
+</P>
+<PRE>-reorder nth N
+-reorder custom filename 
+</PRE>
+<P>Reorder the processors in the MPI communicator used to instantiate
 LAMMPS, in one of several ways.  The original MPI communicator ranks
 all P processors from 0 to P-1.  The mapping of these ranks to
 physical processors is done by MPI before LAMMPS begins.  It may be
 useful in some cases to alter the rank order.  E.g. to insure that
 cores within each node are ranked in a desired order.  Or when using
-the <a class="reference internal" href="run_style.html"><em>run_style verlet/split</em></a> command with 2 partitions
+the <A HREF = "run_style.html">run_style verlet/split</A> command with 2 partitions
 to insure that a specific Kspace processor (in the 2nd partition) is
 matched up with a specific set of processors in the 1st partition.
-See the <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> doc pages for
-more details.</p>
-<p>If the keyword <em>nth</em> is used with a setting <em>N</em>, then it means every
+See the <A HREF = "Section_accelerate.html">Section_accelerate</A> doc pages for
+more details.
+</P>
+<P>If the keyword <I>nth</I> is used with a setting <I>N</I>, then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
-when using the <a class="reference internal" href="run_style.html"><em>run_style verlet/split</em></a> command with 2
+when using the <A HREF = "run_style.html">run_style verlet/split</A> command with 2
 partitions via the -partition command-line switch.  The first set of
 processors will be in the first partition, the 2nd set in the 2nd
 partition.  The -reorder command-line switch can alter this so that
 the 1st N procs in the 1st partition and one proc in the 2nd partition
 will be ordered consecutively, e.g. as the cores on one physical node.
-This can boost performance.  For example, if you use &#8220;-reorder nth 4&#8221;
-and &#8220;-partition 9 3&#8221; and you are running on 12 processors, the
-processors will be reordered from</p>
-<div class="highlight-python"><div class="highlight"><pre>0 1 2 3 4 5 6 7 8 9 10 11
-</pre></div>
-</div>
-<p>to</p>
-<div class="highlight-python"><div class="highlight"><pre>0 1 2 4 5 6 8 9 10 3 7 11
-</pre></div>
-</div>
-<p>so that the processors in each partition will be</p>
-<div class="highlight-python"><div class="highlight"><pre>0 1 2 4 5 6 8 9 10
-3 7 11
-</pre></div>
-</div>
-<p>See the &#8220;processors&#8221; command for how to insure processors from each
-partition could then be grouped optimally for quad-core nodes.</p>
-<p>If the keyword is <em>custom</em>, then a file that specifies a permutation
+This can boost performance.  For example, if you use "-reorder nth 4"
+and "-partition 9 3" and you are running on 12 processors, the
+processors will be reordered from
+</P>
+<PRE>0 1 2 3 4 5 6 7 8 9 10 11 
+</PRE>
+<P>to
+</P>
+<PRE>0 1 2 4 5 6 8 9 10 3 7 11 
+</PRE>
+<P>so that the processors in each partition will be
+</P>
+<PRE>0 1 2 4 5 6 8 9 10 
+3 7 11 
+</PRE>
+<P>See the "processors" command for how to insure processors from each
+partition could then be grouped optimally for quad-core nodes.
+</P>
+<P>If the keyword is <I>custom</I>, then a file that specifies a permutation
 of the processor ranks is also specified.  The format of the reorder
 file is as follows.  Any number of initial blank or comment lines
-(starting with a &#8220;#&#8221; character) can be present.  These should be
-followed by P lines of the form:</p>
-<div class="highlight-python"><div class="highlight"><pre>I J
-</pre></div>
-</div>
-<p>where P is the number of processors LAMMPS was launched with.  Note
+(starting with a "#" character) can be present.  These should be
+followed by P lines of the form:
+</P>
+<PRE>I J 
+</PRE>
+<P>where P is the number of processors LAMMPS was launched with.  Note
 that if running in multi-partition mode (see the -partition switch
 above) P is the total number of processors in all partitions.  The I
 and J values describe a permutation of the P processors.  Every I and
@@ -1611,108 +1615,121 @@ J should be values from 0 to P-1 inclusive.  In the set of P I values,
 every proc ID should appear exactly once.  Ditto for the set of P J
 values.  A single I,J pairing means that the physical processor with
 rank I in the original MPI communicator will have rank J in the
-reordered communicator.</p>
-<p>Note that rank ordering can also be specified by many MPI
+reordered communicator.
+</P>
+<P>Note that rank ordering can also be specified by many MPI
 implementations, either by environment variables that specify how to
 order physical processors, or by config files that specify what
 physical processors to assign to each MPI rank.  The -reorder switch
 simply gives you a portable way to do this without relying on MPI
-itself.  See the <a class="reference external" href="processors">processors out</a> command for how to output
+itself.  See the <A HREF = "processors">processors out</A> command for how to output
 info on the final assignment of physical processors to the LAMMPS
-simulation domain.</p>
-<div class="highlight-python"><div class="highlight"><pre>-screen file
-</pre></div>
-</div>
-<p>Specify a file for LAMMPS to write its screen information to.  In
+simulation domain.
+</P>
+<PRE>-screen file 
+</PRE>
+<P>Specify a file for LAMMPS to write its screen information to.  In
 one-partition mode, if the switch is not used, LAMMPS writes to the
 screen.  If this switch is used, LAMMPS writes to the specified file
 instead and you will see no screen output.  In multi-partition mode,
 if the switch is not used, hi-level status information is written to
 the screen.  Each partition also writes to a screen.N file where N is
 the partition ID.  If the switch is specified in multi-partition mode,
-the hi-level screen dump is named &#8220;file&#8221; and each partition also
+the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
-multi-partition mode, if the specified file is &#8220;none&#8221;, then no screen
+multi-partition mode, if the specified file is "none", then no screen
 output is performed. Option -pscreen will override the name of the
-partition screen files file.N.</p>
-<div class="highlight-python"><div class="highlight"><pre>-suffix style
-</pre></div>
-</div>
-<p>Use variants of various styles if they exist.  The specified style can
-be <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em>.  These refer to
+partition screen files file.N.
+</P>
+<PRE>-suffix style 
+</PRE>
+<P>Use variants of various styles if they exist.  The specified style can
+be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I>.  These refer to
 optional packages that LAMMPS can be built with, as described above in
-<a class="reference internal" href="#start-3"><span>Section 2.3</span></a>.  The &#8220;cuda&#8221; style corresponds to the USER-CUDA
-package, the &#8220;gpu&#8221; style to the GPU package, the &#8220;intel&#8221; style to the
-USER-INTEL package, the &#8220;kk&#8221; style to the KOKKOS package, the &#8220;opt&#8221;
-style to the OPT package, and the &#8220;omp&#8221; style to the USER-OMP package.</p>
-<p>Along with the &#8220;-package&#8221; command-line switch, this is a convenient
+<A HREF = "#start_3">Section 2.3</A>.  The "cuda" style corresponds to the USER-CUDA
+package, the "gpu" style to the GPU package, the "intel" style to the
+USER-INTEL package, the "kk" style to the KOKKOS package, the "opt"
+style to the OPT package, and the "omp" style to the USER-OMP package.
+</P>
+<P>Along with the "-package" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
-having to edit an input script.</p>
-<p>As an example, all of the packages provide a <a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut</em></a> variant, with style names lj/cut/cuda,
+having to edit an input script.
+</P>
+<P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
+lj/cut</A> variant, with style names lj/cut/cuda,
 lj/cut/gpu, lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A
 variant style can be specified explicitly in your input script,
 e.g. pair_style lj/cut/gpu.  If the -suffix switch is used the
 specified suffix (cuda,gpu,intel,kk,omp,opt) is automatically appended
 whenever your input script command creates a new
-<a class="reference internal" href="atom_style.html"><em>atom</em></a>, <a class="reference internal" href="pair_style.html"><em>pair</em></a>, <a class="reference internal" href="fix.html"><em>fix</em></a>,
-<a class="reference internal" href="compute.html"><em>compute</em></a>, or <a class="reference internal" href="run_style.html"><em>run</em></a> style.  If the variant
-version does not exist, the standard version is created.</p>
-<p>For the GPU package, using this command-line switch also invokes the
-default GPU settings, as if the command &#8220;package gpu 1&#8221; were used at
+<A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>,
+<A HREF = "compute.html">compute</A>, or <A HREF = "run_style.html">run</A> style.  If the variant
+version does not exist, the standard version is created.
+</P>
+<P>For the GPU package, using this command-line switch also invokes the
+default GPU settings, as if the command "package gpu 1" were used at
 the top of your input script.  These settings can be changed by using
-the &#8220;-package gpu&#8221; command-line switch or the <a class="reference internal" href="package.html"><em>package gpu</em></a> command in your script.</p>
-<p>For the USER-INTEL package, using this command-line switch also
-invokes the default USER-INTEL settings, as if the command &#8220;package
-intel 1&#8221; were used at the top of your input script.  These settings
-can be changed by using the &#8220;-package intel&#8221; command-line switch or
-the <a class="reference internal" href="package.html"><em>package intel</em></a> command in your script.  If the
+the "-package gpu" command-line switch or the <A HREF = "package.html">package
+gpu</A> command in your script.
+</P>
+<P>For the USER-INTEL package, using this command-line switch also
+invokes the default USER-INTEL settings, as if the command "package
+intel 1" were used at the top of your input script.  These settings
+can be changed by using the "-package intel" command-line switch or
+the <A HREF = "package.html">package intel</A> command in your script.  If the
 USER-OMP package is also installed, the intel suffix will make the omp
 suffix a second choice, if a requested style is not available in the
 USER-INTEL package.  It will also invoke the default USER-OMP
-settings, as if the command &#8220;package omp 0&#8221; were used at the top of
+settings, as if the command "package omp 0" were used at the top of
 your input script.  These settings can be changed by using the
-&#8220;-package omp&#8221; command-line switch or the <a class="reference internal" href="package.html"><em>package omp</em></a>
-command in your script.</p>
-<p>For the KOKKOS package, using this command-line switch also invokes
-the default KOKKOS settings, as if the command &#8220;package kokkos&#8221; were
+"-package omp" command-line switch or the <A HREF = "package.html">package omp</A>
+command in your script.
+</P>
+<P>For the KOKKOS package, using this command-line switch also invokes
+the default KOKKOS settings, as if the command "package kokkos" were
 used at the top of your input script.  These settings can be changed
-by using the &#8220;-package kokkos&#8221; command-line switch or the <a class="reference internal" href="package.html"><em>package kokkos</em></a> command in your script.</p>
-<p>For the OMP package, using this command-line switch also invokes the
-default OMP settings, as if the command &#8220;package omp 0&#8221; were used at
+by using the "-package kokkos" command-line switch or the <A HREF = "package.html">package
+kokkos</A> command in your script.
+</P>
+<P>For the OMP package, using this command-line switch also invokes the
+default OMP settings, as if the command "package omp 0" were used at
 the top of your input script.  These settings can be changed by using
-the &#8220;-package omp&#8221; command-line switch or the <a class="reference internal" href="package.html"><em>package omp</em></a> command in your script.</p>
-<p>The <a class="reference internal" href="suffix.html"><em>suffix</em></a> command can also be used within an input
+the "-package omp" command-line switch or the <A HREF = "package.html">package
+omp</A> command in your script.
+</P>
+<P>The <A HREF = "suffix.html">suffix</A> command can also be used within an input
 script to set a suffix, or to turn off or back on any suffix setting
-made via the command line.</p>
-<div class="highlight-python"><div class="highlight"><pre>-var name value1 value2 ...
-</pre></div>
-</div>
-<p>Specify a variable that will be defined for substitution purposes when
+made via the command line.
+</P>
+<PRE>-var name value1 value2 ... 
+</PRE>
+<P>Specify a variable that will be defined for substitution purposes when
 the input script is read.  This switch can be used multiple times to
-define multiple variables.  &#8220;Name&#8221; is the variable name which can be a
+define multiple variables.  "Name" is the variable name which can be a
 single character (referenced as $x in the input script) or a full
-string (referenced as ${abc}).  An <a class="reference internal" href="variable.html"><em>index-style variable</em></a> will be created and populated with the
+string (referenced as ${abc}).  An <A HREF = "variable.html">index-style
+variable</A> will be created and populated with the
 subsequent values, e.g. a set of filenames.  Using this command-line
-option is equivalent to putting the line &#8220;variable name index value1
-value2 ...&#8221;  at the beginning of the input script.  Defining an index
+option is equivalent to putting the line "variable name index value1
+value2 ..."  at the beginning of the input script.  Defining an index
 variable as a command-line argument overrides any setting for the same
 index variable in the input script, since index variables cannot be
-re-defined.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> command for more info on
-defining index and other kinds of variables and <a class="reference internal" href="Section_commands.html#cmd-2"><span>this section</span></a> for more info on using variables
-in input scripts.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Currently, the command-line parser looks for arguments that
-start with &#8220;-&#8221; to indicate new switches.  Thus you cannot specify
-multiple variable values if any of they start with a &#8220;-&#8221;, e.g. a
+re-defined.  See the <A HREF = "variable.html">variable</A> command for more info on
+defining index and other kinds of variables and <A HREF = "Section_commands.html#cmd_2">this
+section</A> for more info on using variables
+in input scripts.
+</P>
+<P>NOTE: Currently, the command-line parser looks for arguments that
+start with "-" to indicate new switches.  Thus you cannot specify
+multiple variable values if any of they start with a "-", e.g. a
 negative numeric value.  It is OK if the first value1 starts with a
-&#8220;-&#8221;, since it is automatically skipped.</p>
-</div>
-<hr class="docutils" />
-</div>
-<div class="section" id="lammps-screen-output">
-<span id="start-8"></span><h2>2.8. LAMMPS screen output<a class="headerlink" href="#lammps-screen-output" title="Permalink to this headline">¶</a></h2>
-<p>As LAMMPS reads an input script, it prints information to both the
+"-", since it is automatically skipped.
+</P>
+<HR>
+
+<H4><A NAME = "start_8"></A>2.8 LAMMPS screen output 
+</H4>
+<P>As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
 simulation.  When the simulation is ready to begin, LAMMPS performs
 various initializations and prints the amount of memory (in MBytes per
@@ -1722,80 +1739,80 @@ thermodynamic information is printed periodically, every few
 timesteps.  When the run concludes, LAMMPS prints the final
 thermodynamic state and a total run time for the simulation.  It then
 appends statistics about the CPU time and storage requirements for the
-simulation.  An example set of statistics is shown here:</p>
-<div class="highlight-python"><div class="highlight"><pre>Loop time of 49.002 on 2 procs for 2004 atoms
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Pair   time (%) = 35.0495 (71.5267)
+simulation.  An example set of statistics is shown here:
+</P>
+<PRE>Loop time of 49.002 on 2 procs for 2004 atoms 
+</PRE>
+<PRE>Pair   time (%) = 35.0495 (71.5267)
 Bond   time (%) = 0.092046 (0.187841)
 Kspce  time (%) = 6.42073 (13.103)
 Neigh  time (%) = 2.73485 (5.5811)
 Comm   time (%) = 1.50291 (3.06703)
 Outpt  time (%) = 0.013799 (0.0281601)
-Other  time (%) = 2.13669 (4.36041)
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Nlocal:    1002 ave, 1015 max, 989 min
+Other  time (%) = 2.13669 (4.36041) 
+</PRE>
+<PRE>Nlocal:    1002 ave, 1015 max, 989 min
+Histogram: 1 0 0 0 0 0 0 0 0 1 
+Nghost:    8720 ave, 8724 max, 8716 min 
 Histogram: 1 0 0 0 0 0 0 0 0 1
-Nghost:    8720 ave, 8724 max, 8716 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
-Neighs:    354141 ave, 361422 max, 346860 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Total # of neighbors = 708282
+Neighs:    354141 ave, 361422 max, 346860 min 
+Histogram: 1 0 0 0 0 0 0 0 0 1 
+</PRE>
+<PRE>Total # of neighbors = 708282
 Ave neighs/atom = 353.434
 Ave special neighs/atom = 2.34032
 Number of reneighborings = 42
-Dangerous reneighborings = 2
-</pre></div>
-</div>
-<p>The first section gives the breakdown of the CPU run time (in seconds)
+Dangerous reneighborings = 2 
+</PRE>
+<P>The first section gives the breakdown of the CPU run time (in seconds)
 into major categories.  The second section lists the number of owned
 atoms (Nlocal), ghost atoms (Nghost), and pair-wise neighbors stored
 per processor.  The max and min values give the spread of these values
 across processors with a 10-bin histogram showing the distribution.
 The total number of histogram counts is equal to the number of
-processors.</p>
-<p>The last section gives aggregate statistics for pair-wise neighbors
+processors.
+</P>
+<P>The last section gives aggregate statistics for pair-wise neighbors
 and special neighbors that LAMMPS keeps track of (see the
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command).  The number of times
+<A HREF = "special_bonds.html">special_bonds</A> command).  The number of times
 neighbor lists were rebuilt during the run is given as well as the
-number of potentially &#8220;dangerous&#8221; rebuilds.  If atom movement
+number of potentially "dangerous" rebuilds.  If atom movement
 triggered neighbor list rebuilding (see the
-<a class="reference internal" href="neigh_modify.html"><em>neigh_modify</em></a> command), then dangerous
+<A HREF = "neigh_modify.html">neigh_modify</A> command), then dangerous
 reneighborings are those that were triggered on the first timestep
 atom movement was checked for.  If this count is non-zero you may wish
 to reduce the delay factor to insure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
-takes place.</p>
-<p>If an energy minimization was performed via the
-<a class="reference internal" href="minimize.html"><em>minimize</em></a> command, additional information is printed,
-e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>Minimization stats:
+takes place.
+</P>
+<P>If an energy minimization was performed via the
+<A HREF = "minimize.html">minimize</A> command, additional information is printed,
+e.g.
+</P>
+<PRE>Minimization stats:
   E initial, next-to-last, final = -0.895962 -2.94193 -2.94342
   Gradient 2-norm init/final= 1920.78 20.9992
   Gradient inf-norm init/final= 304.283 9.61216
   Iterations = 36
-  Force evaluations = 177
-</pre></div>
-</div>
-<p>The first line lists the initial and final energy, as well as the
+  Force evaluations = 177 
+</PRE>
+<P>The first line lists the initial and final energy, as well as the
 energy on the next-to-last iteration.  The next 2 lines give a measure
 of the gradient of the energy (force on all atoms).  The 2-norm is the
-&#8220;length&#8221; of this force vector; the inf-norm is the largest component.
+"length" of this force vector; the inf-norm is the largest component.
 The last 2 lines are statistics on how many iterations and
 force-evaluations the minimizer required.  Multiple force evaluations
 are typically done at each iteration to perform a 1d line minimization
-in the search direction.</p>
-<p>If a <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> long-range Coulombics solve was
+in the search direction.
+</P>
+<P>If a <A HREF = "kspace_style.html">kspace_style</A> long-range Coulombics solve was
 performed during the run (PPPM, Ewald), then additional information is
-printed, e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre>FFT time (% of Kspce) = 0.200313 (8.34477)
-FFT Gflps 3d 1d-only = 2.31074 9.19989
-</pre></div>
-</div>
-<p>The first line gives the time spent doing 3d FFTs (4 per timestep) and
+printed, e.g.
+</P>
+<PRE>FFT time (% of Kspce) = 0.200313 (8.34477)
+FFT Gflps 3d 1d-only = 2.31074 9.19989 
+</PRE>
+<P>The first line gives the time spent doing 3d FFTs (4 per timestep) and
 the fraction it represents of the total KSpace time (listed above).
 Each 3d FFT requires computation (3 sets of 1d FFTs) and communication
 (transposes).  The total flops performed is 5Nlog_2(N), where N is the
@@ -1803,111 +1820,45 @@ number of points in the 3d grid.  The FFTs are timed with and without
 the communication and a Gflop rate is computed.  The 3d rate is with
 communication; the 1d rate is without (just the 1d FFTs).  Thus you
 can estimate what fraction of your FFT time was spent in
-communication, roughly 75% in the example above.</p>
-<hr class="docutils" />
-</div>
-<div class="section" id="tips-for-users-of-previous-lammps-versions">
-<span id="start-9"></span><h2>2.9. Tips for users of previous LAMMPS versions<a class="headerlink" href="#tips-for-users-of-previous-lammps-versions" title="Permalink to this headline">¶</a></h2>
-<p>The current C++ began with a complete rewrite of LAMMPS 2001, which
+communication, roughly 75% in the example above.
+</P>
+<HR>
+
+<H4><A NAME = "start_9"></A>2.9 Tips for users of previous LAMMPS versions 
+</H4>
+<P>The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed
-in <a class="reference internal" href="Section_history.html"><em>Section_history</em></a>.  The F90 and F77 versions
+in <A HREF = "Section_history.html">Section_history</A>.  The F90 and F77 versions
 (2001 and 99) are also freely distributed as open-source codes; check
-the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a> for distribution information if you prefer
+the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> for distribution information if you prefer
 those versions.  The 99 and 2001 versions are no longer under active
-development; they do not have all the features of C++ LAMMPS.</p>
-<p>If you are a previous user of LAMMPS 2001, these are the most
-significant changes you will notice in C++ LAMMPS:</p>
-<p>(1) The names and arguments of many input script commands have
+development; they do not have all the features of C++ LAMMPS.
+</P>
+<P>If you are a previous user of LAMMPS 2001, these are the most
+significant changes you will notice in C++ LAMMPS:
+</P>
+<P>(1) The names and arguments of many input script commands have
 changed.  All commands are now a single word (e.g. read_data instead
-of read data).</p>
-<p>(2) All the functionality of LAMMPS 2001 is included in C++ LAMMPS,
-but you may need to specify the relevant commands in different ways.</p>
-<p>(3) The format of the data file can be streamlined for some problems.
-See the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command for details.  The data file
-section &#8220;Nonbond Coeff&#8221; has been renamed to &#8220;Pair Coeff&#8221; in C++ LAMMPS.</p>
-<p>(4) Binary restart files written by LAMMPS 2001 cannot be read by C++
-LAMMPS with a <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command.  This is
+of read data).
+</P>
+<P>(2) All the functionality of LAMMPS 2001 is included in C++ LAMMPS,
+but you may need to specify the relevant commands in different ways.
+</P>
+<P>(3) The format of the data file can be streamlined for some problems.
+See the <A HREF = "read_data.html">read_data</A> command for details.  The data file
+section "Nonbond Coeff" has been renamed to "Pair Coeff" in C++ LAMMPS.
+</P>
+<P>(4) Binary restart files written by LAMMPS 2001 cannot be read by C++
+LAMMPS with a <A HREF = "read_restart.html">read_restart</A> command.  This is
 because they were output by F90 which writes in a different binary
-format than C or C++ writes or reads.  Use the <em>restart2data</em> tool
+format than C or C++ writes or reads.  Use the <I>restart2data</I> tool
 provided with LAMMPS 2001 to convert the 2001 restart file to a text
 data file.  Then edit the data file as necessary before using the C++
-LAMMPS <a class="reference internal" href="read_data.html"><em>read_data</em></a> command to read it in.</p>
-<p>(5) There are numerous small numerical changes in C++ LAMMPS that mean
+LAMMPS <A HREF = "read_data.html">read_data</A> command to read it in.
+</P>
+<P>(5) There are numerous small numerical changes in C++ LAMMPS that mean
 you will not get identical answers when comparing to a 2001 run.
 However, your initial thermodynamic energy and MD trajectory should be
-close if you have setup the problem for both codes the same.</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_commands.html" class="btn btn-neutral float-right" title="3. Commands" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Section_intro.html" class="btn btn-neutral" title="1. Introduction" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+close if you have setup the problem for both codes the same.
+</P>
+</HTML>

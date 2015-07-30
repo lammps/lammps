@@ -1,367 +1,210 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>rerun command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>rerun command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="rerun-command">
-<span id="index-0"></span><h1>rerun command<a class="headerlink" href="#rerun-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>rerun file1 file2 ... keyword args ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>file1,file2,... = dump file(s) to read</li>
-<li>one or more keywords may be appended, keyword <em>dump</em> must appear and be last</li>
-</ul>
-<pre class="literal-block">
-keyword = <em>first</em> or <em>last</em> or <em>every</em> or <em>skip</em> or <em>start</em> or <em>stop</em> or <em>dump</em>
- <em>first</em> args = Nfirts
+
+
+<HR>
+
+<H3>rerun command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>rerun file1 file2 ... keyword args ... 
+</PRE>
+<UL><LI>file1,file2,... = dump file(s) to read 
+
+<LI>one or more keywords may be appended, keyword <I>dump</I> must appear and be last 
+
+<PRE>keyword = <I>first</I> or <I>last</I> or <I>every</I> or <I>skip</I> or <I>start</I> or <I>stop</I> or <I>dump</I>
+ <I>first</I> args = Nfirts
    Nfirst = dump timestep to start on
- <em>last</em> args = Nlast
+ <I>last</I> args = Nlast
    Nlast = dumptimestep to stop on
- <em>every</em> args = Nevery
+ <I>every</I> args = Nevery
    Nevery = read snapshots matching every this many timesteps
- <em>skip</em> args = Nskip
+ <I>skip</I> args = Nskip
    Nskip = read one out of every Nskip snapshots
- <em>start</em> args = Nstart
+ <I>start</I> args = Nstart
    Nstart = timestep on which pseudo run will start
- <em>stop</em> args = Nstop
+ <I>stop</I> args = Nstop
    Nstop = timestep to which pseudo run will end
- <em>dump</em> args = same as <a class="reference internal" href="read_dump.html"><em>read_dump</em></a> command starting with its field arguments
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>rerun dump.file dump x y z vx vy vz
+ <I>dump</I> args = same as <A HREF = "read_dump.html">read_dump</A> command starting with its field arguments 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>rerun dump.file dump x y z vx vy vz
 rerun dump1.txt dump2.txt first 10000 every 1000 dump x y z
 rerun dump.vels dump x y z vx vy vz box yes format molfile lammpstrj
 rerun dump.dcd dump x y z box no format molfile dcd
-rerun ../run7/dump.file.gz skip 2 dump x y z box yes
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Perform a psuedo simulation run where atom information is read one
+rerun ../run7/dump.file.gz skip 2 dump x y z box yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform a psuedo simulation run where atom information is read one
 snapshot at a time from a dump file(s), and energies and forces are
-computed on the shapshot to produce thermodynamic or other output.</p>
-<p>This can be useful in the following kinds of scenarios, after an
-initial simulation produced the dump file:</p>
-<ul class="simple">
-<li>Compute the energy and forces of snaphots using a different potential.</li>
-<li>Calculate one or more diagnostic quantities on the snapshots that
-weren&#8217;t computed in the initial run.  These can also be computed with
+computed on the shapshot to produce thermodynamic or other output.
+</P>
+<P>This can be useful in the following kinds of scenarios, after an
+initial simulation produced the dump file:
+</P>
+<UL><LI>Compute the energy and forces of snaphots using a different potential.
+
+
+<LI>Calculate one or more diagnostic quantities on the snapshots that
+weren't computed in the initial run.  These can also be computed with
 settings not used in the initial run, e.g. computing an RDF via the
-<code class="xref doc docutils literal"><span class="pre">compute</span> <span class="pre">rdf</span></code> command with a longer cutoff than was
-used initially.</li>
-<li>Calculate the portion of per-atom forces resulting from a subset of
+<A HREF = "compute.rdf.html">compute rdf</A> command with a longer cutoff than was
+used initially. 
+
+<LI>Calculate the portion of per-atom forces resulting from a subset of
 the potential.  E.g. compute only Coulombic forces.  This can be done
 by only defining only a Coulombic pair style in the rerun script.
 Doing this in the original script would result in different (bad)
-dynamics.</li>
-</ul>
-<p>Conceptually, using the rerun command is like running an input script
-that has a loop in it (see the <a class="reference internal" href="next.html"><em>next</em></a> and <a class="reference internal" href="jump.html"><em>jump</em></a>
+dynamics.  
+</UL>
+<P>Conceptually, using the rerun command is like running an input script
+that has a loop in it (see the <A HREF = "next.html">next</A> and <A HREF = "jump.html">jump</A>
 commands).  Each iteration of the loop reads one snapshot from the
-dump file via the <a class="reference internal" href="read_dump.html"><em>read_dump</em></a> command, sets the
-timestep to the appropriate value, and then invokes a <a class="reference internal" href="run.html"><em>run</em></a>
+dump file via the <A HREF = "read_dump.html">read_dump</A> command, sets the
+timestep to the appropriate value, and then invokes a <A HREF = "run.html">run</A>
 command for zero timesteps to simply compute energy and forces, and
-any other <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a> or diagnostic info
+any other <A HREF = "thermo_style.html">thermodynamic output</A> or diagnostic info
 you have defined.  This computation also invokes any fixes you have
-defined that apply constraints to the system, such as <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> or <a class="reference internal" href="fix_indent.html"><em>fix indent</em></a>.</p>
-<p>Note that a simulation box must already be defined before using the
-rerun command.  This can be done by the <a class="reference internal" href="create_box.html"><em>create_box</em></a>,
-<a class="reference internal" href="read_data.html"><em>read_data</em></a>, or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
-commands.</p>
-<p>Also note that reading per-atom information from dump snapshots is
+defined that apply constraints to the system, such as <A HREF = "fix_shake.html">fix
+shake</A> or <A HREF = "fix_indent.html">fix indent</A>.
+</P>
+<P>Note that a simulation box must already be defined before using the
+rerun command.  This can be done by the <A HREF = "create_box.html">create_box</A>,
+<A HREF = "read_data.html">read_data</A>, or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<P>Also note that reading per-atom information from dump snapshots is
 limited to the atom coordinates, velocities and image flags as
-explained in the <a class="reference internal" href="read_dump.html"><em>read_dump</em></a> command.  Other atom
+explained in the <A HREF = "read_dump.html">read_dump</A> command.  Other atom
 properties, which may be necessary to compute energies and forces,
 such as atom charge, or bond topology information for a molecular
 system, are not read from (or even contained in) dump files.  Thus
 this auxiliary information should be defined in the usual way, e.g. in
-a data file read in by a <a class="reference internal" href="read_data.html"><em>read_data</em></a> command, before
-using the rerun command.</p>
-<hr class="docutils" />
-<p>If more than one dump file is specified, the dump files are read one
+a data file read in by a <A HREF = "read_data.html">read_data</A> command, before
+using the rerun command.
+</P>
+<HR>
+
+<P>If more than one dump file is specified, the dump files are read one
 after the other.  It is assumed that snapshot timesteps will be in
 ascending order.  If a snapshot is encountered that is not in
-ascending order, it will cause the rerun command to complete.</p>
-<p>The <em>first</em>, <em>last</em>, <em>every</em>, <em>skip</em> keywords determine which
+ascending order, it will cause the rerun command to complete.
+</P>
+<P>The <I>first</I>, <I>last</I>, <I>every</I>, <I>skip</I> keywords determine which
 snapshots are read from the dump file(s).  Snapshots are skipped until
-they have a timestamp &gt;= <em>Nfirst</em>.  When a snapshot with a timestamp &gt;
-<em>Nlast</em> is encountered, the rerun command finishes.  Note below that
-the defaults for <em>first</em> and <em>last</em> are to read all snapshots.  If the
-<em>every</em> keyword is set to a value &gt; 0, then only snapshots with
-timestamps that are a multiple of <em>Nevery</em> are read (the first
-snapshot is always read).  If <em>Nevery</em> = 0, then this criterion is
+they have a timestamp >= <I>Nfirst</I>.  When a snapshot with a timestamp >
+<I>Nlast</I> is encountered, the rerun command finishes.  Note below that
+the defaults for <I>first</I> and <I>last</I> are to read all snapshots.  If the
+<I>every</I> keyword is set to a value > 0, then only snapshots with
+timestamps that are a multiple of <I>Nevery</I> are read (the first
+snapshot is always read).  If <I>Nevery</I> = 0, then this criterion is
 ignored, i.e. every snapshot is read that meets the other criteria.
-If the <em>skip</em> keyword is used, then after the first snapshot is read,
-every Nth snapshot is read, where N = <em>Nskip</em>.  E.g. if <em>Nskip</em> = 3,
+If the <I>skip</I> keyword is used, then after the first snapshot is read,
+every Nth snapshot is read, where N = <I>Nskip</I>.  E.g. if <I>Nskip</I> = 3,
 then only 1 out of every 3 snapshots is read, assuming the snapshot
-timestamp is also consistent with the other criteria.</p>
-<p>The <em>start</em> and <em>stop</em> keywords do not affect which snapshots are read
+timestamp is also consistent with the other criteria.
+</P>
+<P>The <I>start</I> and <I>stop</I> keywords do not affect which snapshots are read
 from the dump file(s).  Rather, they have the same meaning that they
-do for the <a class="reference internal" href="run.html"><em>run</em></a> command.  They only need to be defined if
-(a) you are using a <a class="reference internal" href="fix.html"><em>fix</em></a> command that changes some value
+do for the <A HREF = "run.html">run</A> command.  They only need to be defined if
+(a) you are using a <A HREF = "fix.html">fix</A> command that changes some value
 over time, and (b) you want the reference point for elapsed time (from
-start to stop) to be different than the <em>first</em> and <em>last</em> settings.
+start to stop) to be different than the <I>first</I> and <I>last</I> settings.
 See the doc page for individual fixes to see which ones can be used
-with the <em>start/stop</em> keywords.  Note that if you define neither of
-the <em>start</em>/<em>stop</em> or <em>first</em>/<em>last</em> keywords, then LAMMPS treats the
+with the <I>start/stop</I> keywords.  Note that if you define neither of
+the <I>start</I>/<I>stop</I> or <I>first</I>/<I>last</I> keywords, then LAMMPS treats the
 pseudo run as going from 0 to a huge value (effectively infinity).
 This means that any quantity that a fix scales as a fraction of
 elapsed time in the run, will essentially remain at its intiial value.
 Also note that an error will occur if you read a snapshot from the
-dump file with a timestep value larger than the <em>stop</em> setting you
-have specified.</p>
-<p>The <em>dump</em> keyword is required and must be the last keyword specified.
-Its arguments are passed internally to the <a class="reference internal" href="read_dump.html"><em>read_dump</em></a>
-command.  The first argument following the <em>dump</em> keyword should be
-the <em>field1</em> argument of the <a class="reference internal" href="read_dump.html"><em>read_dump</em></a> command.  See
-the <a class="reference internal" href="read_dump.html"><em>read_dump</em></a> doc page for details on the various
+dump file with a timestep value larger than the <I>stop</I> setting you
+have specified.
+</P>
+<P>The <I>dump</I> keyword is required and must be the last keyword specified.
+Its arguments are passed internally to the <A HREF = "read_dump.html">read_dump</A>
+command.  The first argument following the <I>dump</I> keyword should be
+the <I>field1</I> argument of the <A HREF = "read_dump.html">read_dump</A> command.  See
+the <A HREF = "read_dump.html">read_dump</A> doc page for details on the various
 options it allows for extracting information from the dump file
 snapshots, and for using that information to alter the LAMMPS
-simulation.</p>
-<hr class="docutils" />
-<p>In general, a LAMMPS input script that uses a rerun command can
+simulation.
+</P>
+<HR>
+
+<P>In general, a LAMMPS input script that uses a rerun command can
 include and perform all the usual operations of an input script that
-uses the <a class="reference internal" href="run.html"><em>run</em></a> command.  There are a few exceptions and
-points to consider, as discussed here.</p>
-<p>Fixes that perform time integration, such as <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or
-<a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> are not invoked, since no time integration is
+uses the <A HREF = "run.html">run</A> command.  There are a few exceptions and
+points to consider, as discussed here.
+</P>
+<P>Fixes that perform time integration, such as <A HREF = "fix_nve.html">fix nve</A> or
+<A HREF = "fix_nh.html">fix npt</A> are not invoked, since no time integration is
 performed.  Fixes that perturb or constrain the forces on atoms will
-be invoked, just as they would during a normal run.  Examples are <a class="reference internal" href="fix_indent.html"><em>fix indent</em></a> and <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>.  So you
+be invoked, just as they would during a normal run.  Examples are <A HREF = "fix_indent.html">fix
+indent</A> and <A HREF = "fix_langevin.html">fix langevin</A>.  So you
 should think carefully as to whether that makes sense for the manner
-in which you are reprocessing the dump snapshots.</p>
-<p>If you only want the rerun script to perform analyses that do not
+in which you are reprocessing the dump snapshots.
+</P>
+<P>If you only want the rerun script to perform analyses that do not
 involve pair interactions, such as use compute msd to calculated
-displacements over time, you do not need to define a <a class="reference internal" href="pair_style.html"><em>pair style</em></a>, which may also mean neighbor lists will not
-need to be calculated which saves time.  The <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command can also be used to insure ghost
+displacements over time, you do not need to define a <A HREF = "pair_style.html">pair
+style</A>, which may also mean neighbor lists will not
+need to be calculated which saves time.  The <A HREF = "comm_modify.html">comm_modify
+cutoff</A> command can also be used to insure ghost
 atoms are acquired from far enough away for operations like bond and
-angle evaluations, if no pair style is being used.</p>
-<p>Every time a snapshot is read, the timestep for the simulation is
-reset, as if the <a class="reference internal" href="reset_timestep.html"><em>reset_timestep</em></a> command were
+angle evaluations, if no pair style is being used.
+</P>
+<P>Every time a snapshot is read, the timestep for the simulation is
+reset, as if the <A HREF = "reset_timestep.html">reset_timestep</A> command were
 used.  This command has some restrictions as to what fixes can be
-defined.  See its doc page for details.  For example, the <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> and <a class="reference internal" href="fix_dt_reset.html"><em>fix dt/reset</em></a> fixes
+defined.  See its doc page for details.  For example, the <A HREF = "fix_deposit.html">fix
+deposit</A> and <A HREF = "fix_dt_reset.html">fix dt/reset</A> fixes
 are in this category.  They also make no sense to use with a rerun
-command.</p>
-<p>If time-averaging fixes like <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> are
+command.
+</P>
+<P>If time-averaging fixes like <A HREF = "fix_ave_time.html">fix ave/time</A> are
 used, they are invoked on timesteps that are a function of their
-<em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> settings.  As an example, see the
-<a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> doc page for details.  You must
+<I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> settings.  As an example, see the
+<A HREF = "fix_ave_time.html">fix ave/time</A> doc page for details.  You must
 insure those settings are consistent with the snapshot timestamps that
 are read from the dump file(s).  If an averaging fix is not invoked on
-a timestep it expects to be, LAMMPS will flag an error.</p>
-<p>The various forms of LAMMPS output, as defined by the
-<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>, <a class="reference internal" href="thermo.html"><em>thermo</em></a>,
-<a class="reference internal" href="dump.html"><em>dump</em></a>, and <a class="reference internal" href="restart.html"><em>restart</em></a> commands occur on
+a timestep it expects to be, LAMMPS will flag an error.
+</P>
+<P>The various forms of LAMMPS output, as defined by the
+<A HREF = "thermo_style.html">thermo_style</A>, <A HREF = "thermo.html">thermo</A>,
+<A HREF = "dump.html">dump</A>, and <A HREF = "restart.html">restart</A> commands occur on
 specific timesteps.  If successvive dump snapshots skip those
 timesteps, then no output will be produced.  E.g. if you request
 thermodynamic output every 100 steps, but the dump file snapshots are
 every 1000 steps, then you will only see thermodynamic output every
-1000 steps.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the <a class="reference internal" href="Section_start.html#start-2"><span>Making LAMMPS</span></a> section of the documentation.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="read_dump.html"><em>read_dump</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The option defaults are first = 0, last = a huge value (effectively
+1000 steps.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To read gzipped dump files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#start_2">Making
+LAMMPS</A> section of the documentation.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "read_dump.html">read_dump</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are first = 0, last = a huge value (effectively
 infinity), start = same as first, stop = same as last, every = 0, skip
-= 1;</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+= 1;
+</P>
+</HTML>

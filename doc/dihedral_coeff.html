@@ -1,290 +1,113 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>dihedral_coeff command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>dihedral_coeff command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="dihedral-coeff-command">
-<span id="index-0"></span><h1>dihedral_coeff command<a class="headerlink" href="#dihedral-coeff-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>dihedral_coeff N args
-</pre></div>
-</div>
-<ul class="simple">
-<li>N = dihedral type (see asterisk form below)</li>
-<li>args = coefficients for one or more dihedral types</li>
-</ul>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>dihedral_coeff 1 80.0 1 3
+
+
+<HR>
+
+<H3>dihedral_coeff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dihedral_coeff N args 
+</PRE>
+<UL><LI>N = dihedral type (see asterisk form below)
+<LI>args = coefficients for one or more dihedral types 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dihedral_coeff 1 80.0 1 3
 dihedral_coeff * 80.0 1 3 0.5
-dihedral_coeff 2* 80.0 1 3 0.5
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<hr class="docutils" />
-<p>Specify the dihedral force field coefficients for one or more dihedral types.
+dihedral_coeff 2* 80.0 1 3 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<HR>
+
+<P>Specify the dihedral force field coefficients for one or more dihedral types.
 The number and meaning of the coefficients depends on the dihedral style.
 Dihedral coefficients can also be set in the data file read by the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> command or in a restart file.</p>
-<p>N can be specified in one of two ways.  An explicit numeric value can
+<A HREF = "read_data.html">read_data</A> command or in a restart file.
+</P>
+<P>N can be specified in one of two ways.  An explicit numeric value can
 be used, as in the 1st example above.  Or a wild-card asterisk can be
 used to set the coefficients for multiple dihedral types.  This takes the
-form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of dihedral types,
+form "*" or "*n" or "n*" or "m*n".  If N = the number of dihedral types,
 then an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
-means all types from m to n (inclusive).</p>
-<p>Note that using a dihedral_coeff command can override a previous setting
+means all types from m to n (inclusive).
+</P>
+<P>Note that using a dihedral_coeff command can override a previous setting
 for the same dihedral type.  For example, these commands set the coeffs
-for all dihedral types, then overwrite the coeffs for just dihedral type 2:</p>
-<div class="highlight-python"><div class="highlight"><pre>dihedral_coeff * 80.0 1 3
-dihedral_coeff 2 200.0 1 3
-</pre></div>
-</div>
-<p>A line in a data file that specifies dihedral coefficients uses the exact
+for all dihedral types, then overwrite the coeffs for just dihedral type 2:
+</P>
+<PRE>dihedral_coeff * 80.0 1 3
+dihedral_coeff 2 200.0 1 3 
+</PRE>
+<P>A line in a data file that specifies dihedral coefficients uses the exact
 same format as the arguments of the dihedral_coeff command in an input
 script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
-under the &#8220;Dihedral Coeffs&#8221; section of a data file, the line that
-corresponds to the 1st example above would be listed as</p>
-<div class="highlight-python"><div class="highlight"><pre>1 80.0 1 3
-</pre></div>
-</div>
-<p>The <a class="reference internal" href="dihedral_class2.html"><em>dihedral_style class2</em></a> is an exception to
+under the "Dihedral Coeffs" section of a data file, the line that
+corresponds to the 1st example above would be listed as
+</P>
+<PRE>1 80.0 1 3 
+</PRE>
+<P>The <A HREF = "dihedral_class2.html">dihedral_style class2</A> is an exception to
 this rule, in that an additional argument is used in the input script
 to allow specification of the cross-term coefficients.  See its doc
-page for details.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When comparing the formulas and coefficients for
+page for details.
+</P>
+<P>IMPORTANT NOTE: When comparing the formulas and coefficients for
 various LAMMPS dihedral styles with dihedral equations defined by
 other force fields, note that some force field implementations
-divide/multiply the energy prefactor <em>K</em> by the multiple number of
+divide/multiply the energy prefactor <I>K</I> by the multiple number of
 torsions that contain the J-K bond in an I-J-K-L torsion.  LAMMPS does
 not do this, i.e. the listed dihedral equation applies to each
-individual dihedral.  Thus you need to define <em>K</em> appropriately to
-account for this difference if necessary.</p>
-</div>
-<hr class="docutils" />
-<p>Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
+individual dihedral.  Thus you need to define <I>K</I> appropriately to
+account for this difference if necessary.
+</P>
+<HR>
+
+<P>Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
-specified by the associated <a class="reference internal" href=""><em>dihedral_coeff</em></a> command.</p>
-<p>Note that there are also additional dihedral styles submitted by users
+specified by the associated <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command.
+</P>
+<P>Note that there are also additional dihedral styles submitted by users
 which are included in the LAMMPS distribution.  The list of these with
 links to the individual styles are given in the dihedral section of
-<a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
-<ul class="simple">
-<li><a class="reference internal" href="dihedral_none.html"><em>dihedral_style none</em></a> - turn off dihedral interactions</li>
-<li><a class="reference internal" href="dihedral_hybrid.html"><em>dihedral_style hybrid</em></a> - define multiple styles of dihedral interactions</li>
-<li><a class="reference internal" href="dihedral_charmm.html"><em>dihedral_style charmm</em></a> - CHARMM dihedral</li>
-<li><a class="reference internal" href="dihedral_class2.html"><em>dihedral_style class2</em></a> - COMPASS (class 2) dihedral</li>
-<li><a class="reference internal" href="dihedral_harmonic.html"><em>dihedral_style harmonic</em></a> - harmonic dihedral</li>
-<li><a class="reference internal" href="dihedral_helix.html"><em>dihedral_style helix</em></a> - helix dihedral</li>
-<li><a class="reference internal" href="dihedral_multi_harmonic.html"><em>dihedral_style multi/harmonic</em></a> - multi-harmonic dihedral</li>
-<li><a class="reference internal" href="dihedral_opls.html"><em>dihedral_style opls</em></a> - OPLS dihedral</li>
-</ul>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This command must come after the simulation box is defined by a
-<a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>, or
-<a class="reference internal" href="create_box.html"><em>create_box</em></a> command.</p>
-<p>A dihedral style must be defined before any dihedral coefficients are
-set, either in the input script or in a data file.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="dihedral_style.html"><em>dihedral_style</em></a></p>
-<p><strong>Default:</strong> none</p>
-</div>
-</div>
+<A HREF = "Section_commands.html#cmd_5">this page</A>.
+</P>
+<UL><LI><A HREF = "dihedral_none.html">dihedral_style none</A> - turn off dihedral interactions
+<LI><A HREF = "dihedral_hybrid.html">dihedral_style hybrid</A> - define multiple styles of dihedral interactions 
+</UL>
+<UL><LI><A HREF = "dihedral_charmm.html">dihedral_style charmm</A> - CHARMM dihedral
+<LI><A HREF = "dihedral_class2.html">dihedral_style class2</A> - COMPASS (class 2) dihedral
+<LI><A HREF = "dihedral_harmonic.html">dihedral_style harmonic</A> - harmonic dihedral
+<LI><A HREF = "dihedral_helix.html">dihedral_style helix</A> - helix dihedral
+<LI><A HREF = "dihedral_multi_harmonic.html">dihedral_style multi/harmonic</A> - multi-harmonic dihedral
+<LI><A HREF = "dihedral_opls.html">dihedral_style opls</A> - OPLS dihedral 
+</UL>
+<HR>
 
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>Restrictions:</B>
+</P>
+<P>This command must come after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
+<A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>A dihedral style must be defined before any dihedral coefficients are
+set, either in the input script or in a data file.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dihedral_style.html">dihedral_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

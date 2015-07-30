@@ -1,307 +1,148 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>compute ti command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>compute ti command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="compute-ti-command">
-<span id="index-0"></span><h1>compute ti command<a class="headerlink" href="#compute-ti-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group ti keyword args ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>ti = style name of this compute command</li>
-<li>one or more attribute/arg pairs may be appended</li>
-<li>keyword = pair style (lj/cut, gauss, born, etc) or <em>tail</em> or <em>kspace</em></li>
-</ul>
-<pre class="literal-block">
-pair style args = atype v_name1 v_name2
+
+
+<HR>
+
+<H3>compute ti command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group ti keyword args ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>ti = style name of this compute command 
+
+<LI>one or more attribute/arg pairs may be appended 
+
+<LI>keyword = pair style (lj/cut, gauss, born, etc) or <I>tail</I> or <I>kspace</I> 
+
+<PRE>  pair style args = atype v_name1 v_name2
     atype = atom type (see asterisk form below)
     v_name1 = variable with name1 that is energy scale factor and function of lambda
     v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda
-  <em>tail</em> args = atype v_name1 v_name2
+  <I>tail</I> args = atype v_name1 v_name2
     atype = atom type (see asterisk form below)
     v_name1 = variable with name1 that is energy tail correction scale factor and function of lambda
     v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda
-  <em>kspace</em> args = atype v_name1 v_name2
+  <I>kspace</I> args = atype v_name1 v_name2
     atype = atom type (see asterisk form below)
     v_name1 = variable with name1 that is K-Space scale factor and function of lambda
-    v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all ti lj/cut 1 v_lj v_dlj coul/long 2 v_c v_dc kspace 1 v_ks v_dks
-compute 1 all ti lj/cut 1*3 v_lj v_dlj coul/long * v_c v_dc kspace * v_ks v_dks
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that calculates the derivative of the interaction
-potential with respect to <em>lambda</em>, the coupling parameter used in a
+    v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all ti lj/cut 1 v_lj v_dlj coul/long 2 v_c v_dc kspace 1 v_ks v_dks
+compute 1 all ti lj/cut 1*3 v_lj v_dlj coul/long * v_c v_dc kspace * v_ks v_dks 
+</PRE>
+<P><B>Description:</B> 
+</P>
+<P>Define a computation that calculates the derivative of the interaction
+potential with respect to <I>lambda</I>, the coupling parameter used in a
 thermodynamic integration.  This derivative can be used to infer a
 free energy difference resulting from an alchemical simulation, as
-described in <a class="reference internal" href="#eike"><span>Eike</span></a>.</p>
-<p>Typically this compute will be used in conjunction with the <a class="reference internal" href="fix_adapt.html"><em>fix adapt</em></a> command which can perform alchemical
+described in <A HREF = "#Eike">Eike</A>.
+</P>
+<P>Typically this compute will be used in conjunction with the <A HREF = "fix_adapt.html">fix
+adapt</A> command which can perform alchemical
 transformations by adusting the strength of an interaction potential
 as a simulation runs, as defined by one or more
-<a class="reference internal" href="pair_style.html"><em>pair_style</em></a> or <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a>
+<A HREF = "pair_style.html">pair_style</A> or <A HREF = "kspace_style.html">kspace_style</A>
 commands.  This scaling is done via a prefactor on the energy, forces,
 virial calculated by the pair or K-Space style.  The prefactor is
-often a function of a <em>lambda</em> parameter which may be adjusted from 0
-to 1 (or vice versa) over the course of a <a class="reference internal" href="run.html"><em>run</em></a>.  The
-time-dependent adjustment is what the <a class="reference internal" href="fix_adapt.html"><em>fix adapt</em></a>
-command does.</p>
-<p>Assume that the unscaled energy of a pair_style or kspace_style is
-given by U.  Then the scaled energy is</p>
-<div class="highlight-python"><div class="highlight"><pre>Us = f(lambda) U
-</pre></div>
-</div>
-<p>where f() is some function of lambda.  What this compute calculates is</p>
-<div class="highlight-python"><div class="highlight"><pre>dUs / d(lambda) = U df(lambda)/dlambda = Us / f(lambda) df(lambda)/dlambda
-</pre></div>
-</div>
-<p>which is the derivative of the system&#8217;s scaled potential energy Us
-with respect to <em>lambda</em>.</p>
-<p>To perform this calculation, you provide one or more atom types as
-<em>atype</em>.  <em>Atype</em> can be specified in one of two ways.  An explicit
+often a function of a <I>lambda</I> parameter which may be adjusted from 0
+to 1 (or vice versa) over the course of a <A HREF = "run.html">run</A>.  The
+time-dependent adjustment is what the <A HREF = "fix_adapt.html">fix adapt</A>
+command does.
+</P>
+<P>Assume that the unscaled energy of a pair_style or kspace_style is
+given by U.  Then the scaled energy is
+</P>
+<PRE>Us = f(lambda) U 
+</PRE>
+<P>where f() is some function of lambda.  What this compute calculates is
+</P>
+<PRE>dUs / d(lambda) = U df(lambda)/dlambda = Us / f(lambda) df(lambda)/dlambda 
+</PRE>
+<P>which is the derivative of the system's scaled potential energy Us
+with respect to <I>lambda</I>.
+</P>
+<P>To perform this calculation, you provide one or more atom types as
+<I>atype</I>.  <I>Atype</I> can be specified in one of two ways.  An explicit
 numeric values can be used, as in the 1st example above.  Or a
 wildcard asterisk can be used in place of or in conjunction with the
-<em>atype</em> argument to select multiple atom types.  This takes the form
-&#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of atom types, then
+<I>atype</I> argument to select multiple atom types.  This takes the form
+"*" or "*n" or "n*" or "m*n".  If N = the number of atom types, then
 an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
-means all types from m to n (inclusive).</p>
-<p>You also specify two functions, as <a class="reference internal" href="variable.html"><em>equal-style variables</em></a>.  The first is specified as <em>v_name1</em>, where
-<em>name1</em> is the name of the variable, and is f(lambda) in the notation
-above.  The second is specified as <em>v_name2</em>, where <em>name2</em> is the
+means all types from m to n (inclusive).
+</P>
+<P>You also specify two functions, as <A HREF = "variable.html">equal-style
+variables</A>.  The first is specified as <I>v_name1</I>, where
+<I>name1</I> is the name of the variable, and is f(lambda) in the notation
+above.  The second is specified as <I>v_name2</I>, where <I>name2</I> is the
 name of the variable, and is df(lambda) / dlambda in the notation
 above.  I.e. it is the analytic derivative of f() with respect to
-lambda.  Note that the <em>name1</em> variable is also typically given as an
-argument to the <a class="reference internal" href="fix_adapt.html"><em>fix adapt</em></a> command.</p>
-<p>An alchemical simulation may use several pair potentials together,
-invoked via the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid or hybrid/overlay</em></a>
+lambda.  Note that the <I>name1</I> variable is also typically given as an
+argument to the <A HREF = "fix_adapt.html">fix adapt</A> command.
+</P>
+<P>An alchemical simulation may use several pair potentials together,
+invoked via the <A HREF = "pair_hybrid.html">pair_style hybrid or hybrid/overlay</A>
 command.  The total dUs/dlambda for the overall system is calculated
 as the sum of each contributing term as listed by the keywords in the
 compute ti command.  Individual pair potentials can be listed, which
 will be sub-styles in the hybrid case.  You can also include a K-space
-term via the <em>kspace</em> keyword.  You can also include a pairwise
-long-range tail correction to the energy via the <em>tail</em> keyword.</p>
-<p>For each term you can specify a different (or the same) scale factor
+term via the <I>kspace</I> keyword.  You can also include a pairwise
+long-range tail correction to the energy via the <I>tail</I> keyword.
+</P>
+<P>For each term you can specify a different (or the same) scale factor
 by the two variables that you list.  Again, these will typically
 correspond toe the scale factors applied to these various potentials
-and the K-Space contribution via the <a class="reference internal" href="fix_adapt.html"><em>fix_adapt</em></a>
-command.</p>
-<p>More details about the exact functional forms for the computation of
-du/dl can be found in the paper by <a class="reference internal" href="#eike"><span>Eike</span></a>.</p>
-<hr class="docutils" />
-<p><strong>Output info:</strong></p>
-<p>This compute calculates a global scalar, namely dUs/dlambda.  This
+and the K-Space contribution via the <A HREF = "fix_adapt.html">fix_adapt</A>
+command.
+</P>
+<P>More details about the exact functional forms for the computation of
+du/dl can be found in the paper by <A HREF = "#Eike">Eike</A>.
+</P>
+<HR>
+
+<P><B>Output info:</B> 
+</P>
+<P>This compute calculates a global scalar, namely dUs/dlambda.  This
 value can be used by any command that uses a global scalar value from
-a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
-options.</p>
-<p>The scalar value calculated by this compute is &#8220;extensive&#8221;.</p>
-<p>The scalar value will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This compute is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="fix_adapt.html"><em>fix adapt</em></a></p>
-<p><strong>Default:</strong> none</p>
-<hr class="docutils" />
-<p id="eike"><strong>(Eike)</strong> Eike and Maginn, Journal of Chemical Physics, 124, 164503 (2006).</p>
-</div>
-</div>
+a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar value calculated by this compute is "extensive".
+</P>
+<P>The scalar value will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_adapt.html">fix adapt</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
 
+<A NAME = "Eike"></A>
 
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Eike)</B> Eike and Maginn, Journal of Chemical Physics, 124, 164503 (2006).
+</P>
+</HTML>

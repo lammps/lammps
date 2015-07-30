@@ -1,393 +1,239 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>fix nphug command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>fix nphug command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="fix-nphug-command">
-<span id="index-0"></span><h1>fix nphug command<a class="headerlink" href="#fix-nphug-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="fix-nphug-omp-command">
-<h1>fix nphug/omp command<a class="headerlink" href="#fix-nphug-omp-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID nphug keyword value ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
-</ul>
-<pre class="literal-block">
-one or more keyword value pairs may be appended
-keyword = <em>temp</em> or <em>iso</em> or <em>aniso</em> or <em>tri</em> or <em>x</em> or <em>y</em> or <em>z</em> or <em>couple</em> or <em>tchain</em> or <em>pchain</em> or <em>mtk</em> or <em>tloop</em> or <em>ploop</em> or <em>nreset</em> or <em>drag</em> or <em>dilate</em> or <em>scaleyz</em> or <em>scalexz</em> or <em>scalexy</em>
-  <em>temp</em> values = Value1 Value2 Tdamp
+
+
+<HR>
+
+<H3>fix nphug command 
+</H3>
+<H3>fix nphug/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID nphug keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<PRE>one or more keyword value pairs may be appended
+keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>couple</I> or <I>tchain</I> or <I>pchain</I> or <I>mtk</I> or <I>tloop</I> or <I>ploop</I> or <I>nreset</I> or <I>drag</I> or <I>dilate</I> or <I>scaleyz</I> or <I>scalexz</I> or <I>scalexy</I>
+  <I>temp</I> values = Value1 Value2 Tdamp
     Value1, Value2 = Nose-Hoover target temperatures, ignored by Hugoniostat
     Tdamp = temperature damping parameter (time units)
-  <em>iso</em> or <em>aniso</em> or <em>tri</em> values = Pstart Pstop Pdamp
+  <I>iso</I> or <I>aniso</I> or <I>tri</I> values = Pstart Pstop Pdamp
     Pstart,Pstop = scalar external pressures, must be equal (pressure units)
     Pdamp = pressure damping parameter (time units)
-  <em>x</em> or <em>y</em> or <em>z</em> or <em>xy</em> or <em>yz</em> or <em>xz</em> values = Pstart Pstop Pdamp
+  <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> values = Pstart Pstop Pdamp
     Pstart,Pstop = external stress tensor components, must be equal (pressure units)
     Pdamp = stress damping parameter (time units)
-  <em>couple</em> = <em>none</em> or <em>xyz</em> or <em>xy</em> or <em>yz</em> or <em>xz</em>
-  <em>tchain</em> value = length of thermostat chain (1 = single thermostat)
-  <em>pchain</em> values = length of thermostat chain on barostat (0 = no thermostat)
-  <em>mtk</em> value = <em>yes</em> or <em>no</em> = add in MTK adjustment term or not
-  <em>tloop</em> value = number of sub-cycles to perform on thermostat
-  <em>ploop</em> value = number of sub-cycles to perform on barostat thermostat
-  <em>nreset</em> value = reset reference cell every this many timesteps
-  <em>drag</em> value = drag factor added to barostat/thermostat (0.0 = no drag)
-  <em>dilate</em> value = <em>all</em> or <em>partial</em>
-  <em>scaleyz</em> value = <em>yes</em> or <em>no</em> = scale yz with lz
-  <em>scalexz</em> value = <em>yes</em> or <em>no</em> = scale xz with lz
-  <em>scalexy</em> value = <em>yes</em> or <em>no</em> = scale xy with ly
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>fix myhug all nphug temp 1.0 1.0 10.0 z 40.0 40.0 70.0
-fix myhug all nphug temp 1.0 1.0 10.0 iso 40.0 40.0 70.0 drag 200.0 tchain 1 pchain 0
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>This command is a variant of the Nose-Hoover
-<a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> fix style.
+  <I>couple</I> = <I>none</I> or <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I>
+  <I>tchain</I> value = length of thermostat chain (1 = single thermostat)
+  <I>pchain</I> values = length of thermostat chain on barostat (0 = no thermostat)
+  <I>mtk</I> value = <I>yes</I> or <I>no</I> = add in MTK adjustment term or not
+  <I>tloop</I> value = number of sub-cycles to perform on thermostat
+  <I>ploop</I> value = number of sub-cycles to perform on barostat thermostat
+  <I>nreset</I> value = reset reference cell every this many timesteps
+  <I>drag</I> value = drag factor added to barostat/thermostat (0.0 = no drag)
+  <I>dilate</I> value = <I>all</I> or <I>partial</I>
+  <I>scaleyz</I> value = <I>yes</I> or <I>no</I> = scale yz with lz
+  <I>scalexz</I> value = <I>yes</I> or <I>no</I> = scale xz with lz
+  <I>scalexy</I> value = <I>yes</I> or <I>no</I> = scale xy with ly 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix myhug all nphug temp 1.0 1.0 10.0 z 40.0 40.0 70.0
+fix myhug all nphug temp 1.0 1.0 10.0 iso 40.0 40.0 70.0 drag 200.0 tchain 1 pchain 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command is a variant of the Nose-Hoover
+<A HREF = "fix_nh.html">fix npt</A> fix style.
 It performs time integration of the Hugoniostat equations
-of motion developed by Ravelo et al. <a class="reference internal" href="pair_lj_cubic.html#ravelo"><span>(Ravelo)</span></a>.
+of motion developed by Ravelo et al. <A HREF = "#Ravelo">(Ravelo)</A>.
 These equations compress the system to a state with average
-axial stress or pressure equal to the specified target value
+axial stress or pressure equal to the specified target value 
 and that satisfies the Rankine-Hugoniot (RH)
-jump conditions for steady shocks.</p>
-<p>The compression can be performed
+jump conditions for steady shocks.
+</P>
+<P>The compression can be performed 
 either
-hydrostatically (using keyword <em>iso</em>, <em>aniso</em>, or <em>tri</em>) or uniaxially
-(using keywords <em>x</em>, <em>y</em>, or <em>z</em>).  In the hydrostatic case,
+hydrostatically (using keyword <I>iso</I>, <I>aniso</I>, or <I>tri</I>) or uniaxially
+(using keywords <I>x</I>, <I>y</I>, or <I>z</I>).  In the hydrostatic case,
 the cell dimensions change dynamically so that the average axial stress
-in all three directions converges towards the specified target value.
-In the uniaxial case, the chosen cell dimension changes dynamically
+in all three directions converges towards the specified target value. 
+In the uniaxial case, the chosen cell dimension changes dynamically 
 so that the average
 axial stress in that direction converges towards the target value. The
-other two cell dimensions are kept fixed (zero lateral strain).</p>
-<p>This leads to the following additional restrictions on the keywords:</p>
-<ul class="simple">
-<li>One and only one of the following keywords should be used: <em>iso</em>, <em>aniso</em>, <em>tri</em>, <em>x</em>, <em>y</em>, <em>z</em></li>
-<li>The specified initial and final target pressures must be the same.</li>
-<li>The keywords <em>xy</em>, <em>xz</em>, <em>yz</em> may not be used.</li>
-<li>The only admissible value for the couple keyword is <em>xyz</em>, which has the same effect as keyword <em>iso</em></li>
-<li>The <em>temp</em> keyword must be used to specify the time constant for kinetic energy relaxation, but initial and final target temperature values are ignored.</li>
-</ul>
-<p>Essentially, a Hugoniostat simulation is an NPT simulation in which the
-user-specified target temperature is replaced with a time-dependent
-target temperature Tt obtained from the following equation:</p>
-<img alt="_images/fix_nphug.jpg" class="align-center" src="_images/fix_nphug.jpg" />
-<p>where T and Tt are the instantaneous and target temperatures,
+other two cell dimensions are kept fixed (zero lateral strain).
+</P>
+<P>This leads to the following additional restrictions on the keywords:
+</P>
+<UL><LI>One and only one of the following keywords should be used: <I>iso</I>, <I>aniso</I>, <I>tri</I>, <I>x</I>, <I>y</I>, <I>z</I> 
+<LI>The specified initial and final target pressures must be the same.
+<LI>The keywords <I>xy</I>, <I>xz</I>, <I>yz</I> may not be used.
+<LI>The only admissible value for the couple keyword is <I>xyz</I>, which has the same effect as keyword <I>iso</I> 
+<LI>The <I>temp</I> keyword must be used to specify the time constant for kinetic energy relaxation, but initial and final target temperature values are ignored.  
+</UL>
+<P>Essentially, a Hugoniostat simulation is an NPT simulation in which the
+user-specified target temperature is replaced with a time-dependent 
+target temperature Tt obtained from the following equation:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_nphug.jpg">
+</CENTER>
+<P>where T and Tt are the instantaneous and target temperatures,
 P and P0 are the instantaneous and reference pressures or axial stresses,
-depending on whether hydrostatic or uniaxial compression is being
+depending on whether hydrostatic or uniaxial compression is being 
 performed, V and V0 are the instantaneous and reference volumes,
 E and E0 are the instantaneous and reference internal energy (potential
 plus kinetic), Ndof is the number of degrees of freedom used in the
-definition of temperature, and kB is the Boltzmann constant. Delta is the
+definition of temperature, and kB is the Boltzmann constant. Delta is the 
 negative deviation of the instantaneous temperature from the target temperature.
-When the system reaches a stable equilibrium, the value of Delta should
-fluctuate about zero.</p>
-<p>The values of E0, V0, and P0 are the instantaneous values at the start of
-the simulation. These can be overridden using the fix_modify keywords <em>e0</em>,
-<em>v0</em>, and <em>p0</em> described below.</p>
-<hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a> command which performs
+When the system reaches a stable equilibrium, the value of Delta should 
+fluctuate about zero.
+</P>
+<P>The values of E0, V0, and P0 are the instantaneous values at the start of
+the simulation. These can be overridden using the fix_modify keywords <I>e0</I>,
+<I>v0</I>, and <I>p0</I> described below.
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_temp_berendsen.html">fix
+temp/berendsen</A> command which performs
 thermostatting but NO time integration, this fix performs
 thermostatting/barostatting AND time integration.  Thus you should not
-use any other time integration fix, such as <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> on
-atoms to which this fix is applied.  Likewise, this fix should not be
-used on atoms that have their temperature controlled by another fix
-- e.g. by <a class="reference internal" href="fix_nh.html"><em>fix langevin</em></a> or <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>
-commands.</p>
-</div>
-<hr class="docutils" />
-<p>This fix computes a temperature and pressure at each timestep.  To do
-this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
-as if one of these two sets of commands had been issued:</p>
-<div class="highlight-python"><div class="highlight"><pre>compute fix-ID_temp group-ID temp
-compute fix-ID_press group-ID pressure fix-ID_temp
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>compute fix-ID_temp all temp
-compute fix-ID_press all pressure fix-ID_temp
-</pre></div>
-</div>
-<p>See the <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> and <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
-+ underscore + &#8220;press&#8221;.  The group for
-the new computes is &#8220;all&#8221; since pressure is computed for the entire
-system.</p>
-<p>Note that these are NOT the computes used by thermodynamic output (see
-the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command) with ID = <em>thermo_temp</em>
-and <em>thermo_press</em>.  This means you can change the attributes of this
-fix&#8217;s temperature or pressure via the
-<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command or print this temperature
-or pressure during thermodynamic output via the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command using the appropriate compute-ID.
-It also means that changing attributes of <em>thermo_temp</em> or
-<em>thermo_press</em> will have no effect on this fix.</p>
-<hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+use any other time integration fix, such as <A HREF = "fix_nve.html">fix nve</A> on
+atoms to which this fix is applied.  Likewise, this fix should not be 
+used on atoms that have their temperature controlled by another fix 
+- e.g. by <A HREF = "fix_nh.html">fix langevin</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>
+commands.
+</P>
+<HR>
+
+<P>This fix computes a temperature and pressure at each timestep.  To do
+this, the fix creates its own computes of style "temp" and "pressure",
+as if one of these two sets of commands had been issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp 
+</PRE>
+<PRE>compute fix-ID_temp all temp
+compute fix-ID_press all pressure fix-ID_temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
+pressure</A> commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press".  The group for
+the new computes is "all" since pressure is computed for the entire
+system.
+</P>
+<P>Note that these are NOT the computes used by thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
+and <I>thermo_press</I>.  This means you can change the attributes of this
+fix's temperature or pressure via the
+<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
+or pressure during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> command using the appropriate compute-ID.
+It also means that changing attributes of <I>thermo_temp</I> or
+<I>thermo_press</I> will have no effect on this fix.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
-use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
-more instructions on how to use the accelerated styles effectively.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
-<p>This fix writes the values of E0, V0, and P0, as well as the
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the values of E0, V0, and P0, as well as the 
 state of all the thermostat and barostat
-variables to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  See the
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for info on how to re-specify
+variables to <A HREF = "restart.html">binary restart files</A>.  See the
+<A HREF = "read_restart.html">read_restart</A> command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.</p>
-<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>e0</em>, <em>v0</em> and <em>p0</em> keywords
+operation of the fix continues in an uninterrupted fashion.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>e0</I>, <I>v0</I> and <I>p0</I> keywords
 can be used to define the values of E0, V0, and P0. Note the
-the values for <em>e0</em> and <em>v0</em> are extensive, and so must correspond
-to the total energy and volume of the entire system, not energy and
+the values for <I>e0</I> and <I>v0</I> are extensive, and so must correspond
+to the total energy and volume of the entire system, not energy and 
 volume per atom. If any of these quantities are not specified, then the
-instantaneous value in the system at the start of the simulation is used.</p>
-<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>temp</em> and <em>press</em> options are
+instantaneous value in the system at the start of the simulation is used.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are
 supported by these fixes.  You can use them to assign a
-<a class="reference internal" href="compute.html"><em>compute</em></a> you have defined to this fix which will be used
+<A HREF = "compute.html">compute</A> you have defined to this fix which will be used
 in its thermostatting or barostatting procedure, as described above.
 If you do this, note that the kinetic energy derived from the compute
 temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
-compute temperature on a subset of atoms.</p>
-<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by these
+compute temperature on a subset of atoms.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by these
 fixes to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system&#8217;s potential energy as part of
-<a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>. Either way, this energy is <em>not</em>
+and barostatting to the system's potential energy as part of
+<A HREF = "thermo_style.html">thermodynamic output</A>. Either way, this energy is *not*
 included in the definition of internal energy E when calculating the value
-of Delta in the above equation.</p>
-<p>These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar value calculated by
-these fixes is &#8220;extensive&#8221;; the vector values are &#8220;intensive&#8221;.</p>
-<p>The scalar is the cumulative energy change due to the fix.</p>
-<p>The vector stores three quantities unique to this fix (Delta, Us, and up),
+of Delta in the above equation.
+</P>
+<P>These fixes compute a global scalar and a global vector of quantities,
+which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar value calculated by
+these fixes is "extensive"; the vector values are "intensive".
+</P>
+<P>The scalar is the cumulative energy change due to the fix.
+</P>
+<P>The vector stores three quantities unique to this fix (Delta, Us, and up),
 followed by all the internal Nose/Hoover thermostat and barostat
-variables defined for <a class="reference internal" href="fix_nh.html"><em>fix_style npt</em></a>. Delta is the deviation
+variables defined for <A HREF = "fix_nh.html">fix_style npt</A>. Delta is the deviation
 of the temperature from the target temperature, given by the above equation.
 Us and up are the shock and particle velocity corresponding to a steady
-shock calculated from the RH conditions. They have units of distance/time.</p>
-</div>
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>All the usual restrictions for <a class="reference internal" href="fix_nh.html"><em>fix_style npt</em></a> apply,
-plus the additional ones mentioned above.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="fix_msst.html"><em>fix msst</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a>, <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The keyword defaults are the same as those for <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a></p>
-<hr class="docutils" />
-<p id="ravelo"><strong>(Ravelo)</strong> Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).</p>
-</div>
-</div>
+shock calculated from the RH conditions. They have units of distance/time.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix style is part of the SHOCK package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>All the usual restrictions for <A HREF = "fix_nh.html">fix_style npt</A> apply,
+plus the additional ones mentioned above.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_msst.html">fix msst</A>, <A HREF = "fix_nh.html">fix npt</A>, <A HREF = "fix_modify.html">fix_modify</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The keyword defaults are the same as those for <A HREF = "fix_nh.html">fix npt</A>
+</P>
+<HR>
 
+<A NAME = "Ravelo"></A>
 
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>(Ravelo)</B> Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
+</P>
+</HTML>

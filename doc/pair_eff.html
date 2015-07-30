@@ -1,171 +1,54 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>pair_style eff/cut command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>pair_style eff/cut command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="pair-style-eff-cut-command">
-<span id="index-0"></span><h1>pair_style eff/cut command<a class="headerlink" href="#pair-style-eff-cut-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style eff/cut cutoff keyword args ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>cutoff = global cutoff for Coulombic interactions</li>
-<li>zero or more keyword/value pairs may be appended</li>
-</ul>
-<pre class="literal-block">
-keyword = <em>limit/eradius</em> or <em>pressure/evirials</em> or <em>ecp</em>
-  <em>limit/eradius</em> args = none
-  <em>pressure/evirials</em> args = none
-  <em>ecp</em> args = type element type element ...
+
+
+<HR>
+
+<H3>pair_style eff/cut command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style eff/cut cutoff keyword args ... 
+</PRE>
+<UL><LI>cutoff = global cutoff for Coulombic interactions 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>keyword = <I>limit/eradius</I> or <I>pressure/evirials</I> or <I>ecp</I>
+  <I>limit/eradius</I> args = none
+  <I>pressure/evirials</I> args = none
+  <I>ecp</I> args = type element type element ...
     type = LAMMPS atom type (1 to Ntypes)
-    element = element symbol (e.g. H, Si)
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style eff/cut 39.7
+    element = element symbol (e.g. H, Si) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style eff/cut 39.7
 pair_style eff/cut 40.0 limit/eradius
 pair_style eff/cut 40.0 limit/eradius pressure/evirials
 pair_style eff/cut 40.0 ecp 1 Si 3 C
 pair_coeff * *
 pair_coeff 2 2 20.0
-pair_coeff 1 s 0.320852 2.283269 0.814857
-pair_coeff 3 p 22.721015 0.728733 1.103199 17.695345 6.693621
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>This pair style contains a LAMMPS implementation of the electron Force
+pair_coeff 1 s 0.320852 2.283269 0.814857 
+pair_coeff 3 p 22.721015 0.728733 1.103199 17.695345 6.693621 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This pair style contains a LAMMPS implementation of the electron Force
 Field (eFF) potential currently under development at Caltech, as
-described in <a class="reference internal" href="#jaramillo-botero"><span>(Jaramillo-Botero)</span></a>.  The eFF for Z&lt;6
-was first introduced by <a class="reference internal" href="#su"><span>(Su)</span></a> in 2007. It has been extended to
+described in <A HREF = "#Jaramillo-Botero">(Jaramillo-Botero)</A>.  The eFF for Z<6
+was first introduced by <A HREF = "#Su">(Su)</A> in 2007. It has been extended to
 higher Zs by using effective core potentials (ECPs) that now cover up
-to 2nd and 3rd row p-block elements of the periodic table.</p>
-<p>eFF can be viewed as an approximation to QM wave packet dynamics and
+to 2nd and 3rd row p-block elements of the periodic table.
+</P>
+<P>eFF can be viewed as an approximation to QM wave packet dynamics and
 Fermionic molecular dynamics, combining the ability of electronic
 structure methods to describe atomic structure, bonding, and chemistry
 in materials, and of plasma methods to describe nonequilibrium
@@ -192,8 +75,9 @@ potential term between Gaussians, eFF includes the electron kinetic
 energy from the Gaussians.  These two terms are based on
 first-principles quantum mechanics.  On the other hand, nuclei are
 described as point charges, which interact with other nuclei and
-electrons through standard electrostatic potential forms.</p>
-<p>The full Hamiltonian (shown below), contains then a standard
+electrons through standard electrostatic potential forms.
+</P>
+<P>The full Hamiltonian (shown below), contains then a standard
 description for electrostatic interactions between a set of
 delocalized point and Gaussian charges which include, nuclei-nuclei
 (NN), electron-electron (ee), and nuclei-electron (Ne). Thus, eFF is a
@@ -206,124 +90,142 @@ materials over a wide range of temperatures and pressures where
 electronically excited and ionized states of matter can occur and
 coexist.  Furthermore, the interactions between particles -nuclei and
 electrons- reduce to the sum of a set of effective pairwise potentials
-in the eFF formulation.  The <em>eff/cut</em> style computes the pairwise
+in the eFF formulation.  The <I>eff/cut</I> style computes the pairwise
 Coulomb interactions between nuclei and electrons (E_NN,E_Ne,E_ee),
 and the quantum-derived Pauli (E_PR) and Kinetic energy interactions
 potentials between electrons (E_KE) for a total energy expression
-given as,</p>
-<img alt="_images/eff_energy_expression.jpg" class="align-center" src="_images/eff_energy_expression.jpg" />
-<p>The individual terms are defined as follows:</p>
-<img alt="_images/eff_KE.jpg" class="align-center" src="_images/eff_KE.jpg" />
-<img alt="_images/eff_NN.jpg" class="align-center" src="_images/eff_NN.jpg" />
-<img alt="_images/eff_Ne.jpg" class="align-center" src="_images/eff_Ne.jpg" />
-<img alt="_images/eff_ee.jpg" class="align-center" src="_images/eff_ee.jpg" />
-<img alt="_images/eff_Pauli.jpg" class="align-center" src="_images/eff_Pauli.jpg" />
-<p>where, s_i correspond to the electron sizes, the sigmas i&#8217;s to the
+given as,
+</P>
+<CENTER><IMG SRC = "Eqs/eff_energy_expression.jpg">
+</CENTER>
+<P>The individual terms are defined as follows:
+</P>
+<CENTER><IMG SRC = "Eqs/eff_KE.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/eff_NN.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/eff_Ne.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/eff_ee.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/eff_Pauli.jpg">
+</CENTER>
+<P>where, s_i correspond to the electron sizes, the sigmas i's to the
 fixed spins of the electrons, Z_i to the charges on the nuclei, R_ij
 to the distances between the nuclei or the nuclei and electrons, and
 r_ij to the distances between electrons.  For additional details see
-<a class="reference internal" href="#jaramillo-botero"><span>(Jaramillo-Botero)</span></a>.</p>
-<p>The overall electrostatics energy is given in Hartree units of energy
+<A HREF = "#Jaramillo-Botero">(Jaramillo-Botero)</A>.
+</P>
+<P>The overall electrostatics energy is given in Hartree units of energy
 by default and can be modified by an energy-conversion constant,
-according to the units chosen (see <a class="reference internal" href="units.html"><em>electron_units</em></a>).  The
+according to the units chosen (see <A HREF = "units.html">electron_units</A>).  The
 cutoff Rc, given in Bohrs (by default), truncates the interaction
 distance.  The recommended cutoff for this pair style should follow
 the minimum image criterion, i.e. half of the minimum unit cell
-length.</p>
-<p>Style <em>eff/long</em> (not yet available) computes the same interactions as
-style <em>eff/cut</em> except that an additional damping factor is applied so
+length.
+</P>
+<P>Style <I>eff/long</I> (not yet available) computes the same interactions as
+style <I>eff/cut</I> except that an additional damping factor is applied so
 it can be used in conjunction with the
-<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command and its <em>ewald</em> or <em>pppm</em>
+<A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
-interactions outside that distance are computed in reciprocal space.</p>
-<p>This potential is designed to be used with <a class="reference internal" href="atom_style.html"><em>atom_style electron</em></a> definitions, in order to handle the
-description of systems with interacting nuclei and explicit electrons.</p>
-<p>The following coefficients must be defined for each pair of atoms
-types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
+interactions outside that distance are computed in reciprocal space.
+</P>
+<P>This potential is designed to be used with <A HREF = "atom_style.html">atom_style
+electron</A> definitions, in order to handle the
+description of systems with interacting nuclei and explicit electrons.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
-commands, or by mixing as described below:</p>
-<ul class="simple">
-<li>cutoff (distance units)</li>
-</ul>
-<p>For <em>eff/cut</em>, the cutoff coefficient is optional.  If it is not used
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>cutoff (distance units) 
+</UL>
+<P>For <I>eff/cut</I>, the cutoff coefficient is optional.  If it is not used
 (as in some of the examples above), the default global value specified
-in the pair_style command is used.</p>
-<p>For <em>eff/long</em> (not yet available) no cutoff will be specified for an
-individual I,J type pair via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.
+in the pair_style command is used.
+</P>
+<P>For <I>eff/long</I> (not yet available) no cutoff will be specified for an
+individual I,J type pair via the <A HREF = "pair_coeff.html">pair_coeff</A> command.
 All type pairs use the same global cutoff specified in the pair_style
-command.</p>
-<hr class="docutils" />
-<p>The <em>limit/eradius</em> and <em>pressure/evirials</em> keywrods are optional.
-Neither or both must be specified.  If not specified they are unset.</p>
-<p>The <em>limit/eradius</em> keyword is used to restrain electron size from
+command.
+</P>
+<HR>
+
+<P>The <I>limit/eradius</I> and <I>pressure/evirials</I> keywrods are optional.
+Neither or both must be specified.  If not specified they are unset.
+</P>
+<P>The <I>limit/eradius</I> keyword is used to restrain electron size from
 becoming excessively diffuse at very high temperatures were the
 Gaussian wave packet representation breaks down, and from expanding as
 free particles to infinite size.  If unset, electron radius is free to
 increase without bounds.  If set, a restraining harmonic potential of
-the form E = 1/2k_ss^2 for s &gt; L_box/2, where k_s = 1 Hartrees/Bohr^2,
-is applied on the electron radius.</p>
-<p>The <em>pressure/evirials</em> keyword is used to control between two types
+the form E = 1/2k_ss^2 for s > L_box/2, where k_s = 1 Hartrees/Bohr^2,
+is applied on the electron radius.
+</P>
+<P>The <I>pressure/evirials</I> keyword is used to control between two types
 of pressure computation: if unset, the computed pressure does not
 include the electronic radial virials contributions to the total
 pressure (scalar or tensor).  If set, the computed pressure will
 include the electronic radial virial contributions to the total
-pressure (scalar and tensor).</p>
-<p>The <em>ecp</em> keyword is used to associate an ECP representation for a
+pressure (scalar and tensor).
+</P>
+<P>The <I>ecp</I> keyword is used to associate an ECP representation for a
 particular atom type.  The ECP captures the orbital overlap between a
 core pseudo particle and valence electrons within the Pauli repulsion.
 A list of type:element-symbol pairs may be provided for all ECP
-representations, after the &#8220;ecp&#8221; keyword.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Default ECP parameters are provided for C, N, O, Al,
+representations, after the "ecp" keyword.
+</P>
+<P>IMPORTANT NOTE: Default ECP parameters are provided for C, N, O, Al,
 and Si.  Users can modify these using the pair_coeff command as
 exemplified above.  For this, the User must distinguish between two
 different functional forms supported, one that captures the orbital
 overlap assuming the s-type core interacts with an s-like valence
 electron (s-s) and another that assumes the interaction is s-p.  For
 systems that exhibit significant p-character (e.g. C, N, O) the s-p
-form is recommended. The &#8220;s&#8221; ECP form requires 3 parameters and the
-&#8220;p&#8221; 5 parameters.</p>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">there are two different pressures that can be reported
+form is recommended. The "s" ECP form requires 3 parameters and the
+"p" 5 parameters.
+</P>
+<P>IMPORTANT NOTE: there are two different pressures that can be reported
 for eFF when defining this pair_style, one (default) that considers
 electrons do not contribute radial virial components (i.e. electrons
-treated as incompressible &#8216;rigid&#8217; spheres) and one that does.  The
+treated as incompressible 'rigid' spheres) and one that does.  The
 radial electronic contributions to the virials are only tallied if the
 flexible pressure option is set, and this will affect both global and
 per-atom quantities.  In principle, the true pressure of a system is
 somewhere in between the rigid and the flexible eFF pressures, but,
 for most cases, the difference between these two pressures will not be
 significant over long-term averaged runs (i.e. even though the energy
-partitioning changes, the total energy remains similar).</p>
-</div>
-<hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This implemention of eFF gives a reasonably accurate
-description for systems containing nuclei from Z = 1-6 in &#8220;all
-electron&#8221; representations.  For systems with increasingly
+partitioning changes, the total energy remains similar).
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: This implemention of eFF gives a reasonably accurate
+description for systems containing nuclei from Z = 1-6 in "all
+electron" representations.  For systems with increasingly
 non-spherical electrons, Users should use the ECP representations.
 ECPs are now supported and validated for most of the 2nd and 3rd row
 elements of the p-block.  Predefined parameters are provided for C, N,
 O, Al, and Si.  The ECP captures the orbital overlap between the core
 and valence electrons (i.e. Pauli repulsion) with one of the
-functional forms:</p>
-</div>
-<img alt="_images/eff_ECP1.jpg" class="align-center" src="_images/eff_ECP1.jpg" />
-<img alt="_images/eff_ECP2.jpg" class="align-center" src="_images/eff_ECP2.jpg" />
-<p>Where the 1st form correspond to core interactions with s-type valence
+functional forms:
+</P>
+<CENTER><IMG SRC = "Eqs/eff_ECP1.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/eff_ECP2.jpg">
+</CENTER>
+<P>Where the 1st form correspond to core interactions with s-type valence
 electrons and the 2nd to core interactions with p-type valence
-electrons.</p>
-<p>The current version adds full support for models with fixed-core and
+electrons.
+</P>
+<P>The current version adds full support for models with fixed-core and
 ECP definitions.  to enable larger timesteps (i.e. by avoiding the
 high frequency vibrational modes -translational and radial- of the 2 s
 electrons), and in the ECP case to reduce the increased orbital
-complexity in higher Z elements (up to Z&lt;18).  A fixed-core should be
+complexity in higher Z elements (up to Z<18).  A fixed-core should be
 defined with a mass that includes the corresponding nuclear mass plus
 the 2 s electrons in atomic mass units (2x5.4857990943e-4), and a
 radius equivalent to that of minimized 1s electrons (see examples
@@ -332,8 +234,9 @@ described with a mass that includes the corresponding nuclear mass,
 plus all the core electrons (i.e no outer shell electrons), and a
 radius equivalent to that of a corresponding minimized full-electron
 system.  The charge for a pseudo-core atom should be given by the
-number of outer shell electrons.</p>
-<p>In general, eFF excels at computing the properties of materials in
+number of outer shell electrons.
+</P>
+<P>In general, eFF excels at computing the properties of materials in
 extreme conditions and tracing the system dynamics over multi-picosend
 timescales; this is particularly relevant where electron excitations
 can change significantly the nature of bonding in the system. It can
@@ -350,117 +253,73 @@ and nodeless and valid for covalent compounds such as dense hydrogen,
 hydrocarbons, and diamond; alkali metals (e.g. lithium), alkali earth
 metals (e.g. beryllium) and semimetals such as boron; and various
 compounds containing ionic and/or multicenter bonds, such as boron
-dihydride.</p>
-<hr class="docutils" />
-<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
-<p>For atom type pairs I,J and I != J, the cutoff distance for the
-<em>eff/cut</em> style can be mixed.  The default mix value is <em>geometric</em>.
-See the &#8220;pair_modify&#8221; command for details.</p>
-<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> shift option is not relevant for
-these pair styles.</p>
-<p>The <em>eff/long</em> (not yet available) style supports the
-<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> table option for tabulation of the
-short-range portion of the long-range Coulombic interaction.</p>
-<p>These pair styles do not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+dihydride.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the cutoff distance for the
+<I>eff/cut</I> style can be mixed.  The default mix value is <I>geometric</I>.
+See the "pair_modify" command for details.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> shift option is not relevant for
+these pair styles.
+</P>
+<P>The <I>eff/long</I> (not yet available) style supports the
+<A HREF = "pair_modify.html">pair_modify</A> table option for tabulation of the
+short-range portion of the long-range Coulombic interaction.
+</P>
+<P>These pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
 tail option for adding long-range tail corrections to energy and
-pressure.</p>
-<p>These pair styles write their information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.</p>
-<p>These pair styles can only be used via the <em>pair</em> keyword of the
-<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  They do not support the
-<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>These pair styles will only be enabled if LAMMPS is built with the
+pressure.
+</P>
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>These pair styles will only be enabled if LAMMPS is built with the
 USER-EFF package.  It will only be enabled if LAMMPS was built with
-that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
-section for more info.</p>
-<p>These pair styles require that particles store electron attributes
+that package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>These pair styles require that particles store electron attributes
 such as radius, radial velocity, and radital force, as defined by the
-<a class="reference internal" href="atom_style.html"><em>atom_style</em></a>.  The <em>electron</em> atom style does all of
-this.</p>
-<p>Thes pair styles require you to use the <a class="reference internal" href="comm_modify.html"><em>comm_modify vel yes</em></a> command so that velocites are stored by ghost
-atoms.</p>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>If not specified, limit_eradius = 0 and pressure_with_evirials = 0.</p>
-<hr class="docutils" />
-<p id="su"><strong>(Su)</strong> Su and Goddard, Excited Electron Dynamics Modeling of Warm
-Dense Matter, Phys Rev Lett, 99:185003 (2007).</p>
-<p id="jaramillo-botero"><strong>(Jaramillo-Botero)</strong> Jaramillo-Botero, Su, Qi, Goddard, Large-scale,
+<A HREF = "atom_style.html">atom_style</A>.  The <I>electron</I> atom style does all of
+this.
+</P>
+<P>Thes pair styles require you to use the <A HREF = "comm_modify.html">comm_modify vel
+yes</A> command so that velocites are stored by ghost
+atoms.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>If not specified, limit_eradius = 0 and pressure_with_evirials = 0.
+</P>
+<HR>
+
+<A NAME = "Su"></A>
+
+<P><B>(Su)</B> Su and Goddard, Excited Electron Dynamics Modeling of Warm
+Dense Matter, Phys Rev Lett, 99:185003 (2007).
+</P>
+<A NAME = "Jaramillo-Botero"></A>
+
+<P><B>(Jaramillo-Botero)</B> Jaramillo-Botero, Su, Qi, Goddard, Large-scale,
 Long-term Non-adiabatic Electron Molecular Dynamics for Describing
 Material Properties and Phenomena in Extreme Environments, J Comp
-Chem, 32, 497-512 (2011).</p>
-</div>
-</div>
-
-
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+Chem, 32, 497-512 (2011).
+</P>
+</HTML>

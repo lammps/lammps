@@ -29,7 +29,7 @@ The {polymorphic} pair style computes a 3-body free-form potential
 
 :c,image(Eqs/polymorphic1.jpg)
 :c,image(Eqs/polymorphic2.jpg)
-:c,image(Eqs/polymorphic2.jpg)
+:c,image(Eqs/polymorphic3.jpg)
 
 where I, J, K represent species of atoms i, j, and k, i_1, ..., i_N
 represents a list of i's neighbors, delta_ij is a Direc constant

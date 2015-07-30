@@ -1,297 +1,130 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>pair_style awpmd/cut command &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="Manual.html" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="Manual.html">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="Manual.html">Docs</a> &raquo;</li>
-      
-    <li>pair_style awpmd/cut command</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <div class="section" id="pair-style-awpmd-cut-command">
-<span id="index-0"></span><h1>pair_style awpmd/cut command<a class="headerlink" href="#pair-style-awpmd-cut-command" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="syntax">
-<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style awpmd/cut Rc keyword value ...
-</pre></div>
-</div>
-<ul class="simple">
-<li>Rc = global cutoff, -1 means cutoff of half the shortest box length</li>
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>hartree</em> or <em>dproduct</em> or <em>uhf</em> or <em>free</em> or <em>pbc</em> or <em>fix</em> or <em>harm</em> or <em>ermscale</em> or <em>flex_press</em></li>
-</ul>
-<pre class="literal-block">
-<em>hartree</em> value = none
-  <em>dproduct</em> value = none
-  <em>uhf</em> value = none
-  <em>free</em> value = none
-  <em>pbc</em> value = Plen
+
+
+<HR>
+
+<H3>pair_style awpmd/cut command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style awpmd/cut Rc keyword value ... 
+</PRE>
+<UL><LI>Rc = global cutoff, -1 means cutoff of half the shortest box length 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>hartree</I> or <I>dproduct</I> or <I>uhf</I> or <I>free</I> or <I>pbc</I> or <I>fix</I> or <I>harm</I> or <I>ermscale</I> or <I>flex_press</I> 
+
+<PRE>  <I>hartree</I> value = none
+  <I>dproduct</I> value = none
+  <I>uhf</I> value = none
+  <I>free</I> value = none
+  <I>pbc</I> value = Plen
     Plen = periodic width of electron = -1 or positive value (distance units)
-  <em>fix</em> value = Flen
+  <I>fix</I> value = Flen
     Flen = fixed width of electron = -1 or positive value (distance units)
-  <em>harm</em> value = width
+  <I>harm</I> value = width
     width = harmonic width constraint
-  <em>ermscale</em> value = factor
+  <I>ermscale</I> value = factor
     factor = scaling between electron mass and width variable mass
-  <em>flex_press</em> value = none
-</pre>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style awpmd/cut -1
+  <I>flex_press</I> value = none 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style awpmd/cut -1
 pair_style awpmd/cut 40.0 uhf free
 pair_coeff * *
-pair_coeff 2 2 20.0
-</pre></div>
-</div>
-</div>
-<div class="section" id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>This pair style contains an implementation of the Antisymmetrized Wave
+pair_coeff 2 2 20.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This pair style contains an implementation of the Antisymmetrized Wave
 Packet Molecular Dynamics (AWPMD) method.  Need citation here.  Need
-basic formulas here.  Could be links to other documents.</p>
-<p>Rc is the cutoff.</p>
-<p>The pair_style command allows for several optional keywords
-to be specified.</p>
-<p>The <em>hartree</em>, <em>dproduct</em>, and <em>uhf</em> keywords specify the form of the
-initial trial wave function for the system.  If the <em>hartree</em> keyword
+basic formulas here.  Could be links to other documents.
+</P>
+<P>Rc is the cutoff.
+</P>
+<P>The pair_style command allows for several optional keywords
+to be specified.
+</P>
+<P>The <I>hartree</I>, <I>dproduct</I>, and <I>uhf</I> keywords specify the form of the
+initial trial wave function for the system.  If the <I>hartree</I> keyword
 is used, then a Hartree multielectron trial wave function is used.  If
-the <em>dproduct</em> keyword is used, then a trial function which is a
-product of two determinants for each spin type is used.  If the <em>uhf</em>
+the <I>dproduct</I> keyword is used, then a trial function which is a
+product of two determinants for each spin type is used.  If the <I>uhf</I>
 keyword is used, then an unrestricted Hartree-Fock trial wave function
-is used.</p>
-<p>The <em>free</em>, <em>pbc</em>, and <em>fix</em> keywords specify a width constraint on
-the electron wavepackets.  If the <em>free</em> keyword is specified, then there is no
-constraint.  If the <em>pbc</em> keyword is used and <em>Plen</em> is specified as
--1, then the maximum width is half the shortest box length.  If <em>Plen</em>
+is used.
+</P>
+<P>The <I>free</I>, <I>pbc</I>, and <I>fix</I> keywords specify a width constraint on
+the electron wavepackets.  If the <I>free</I> keyword is specified, then there is no
+constraint.  If the <I>pbc</I> keyword is used and <I>Plen</I> is specified as
+-1, then the maximum width is half the shortest box length.  If <I>Plen</I>
 is a positive value, then the value is the maximum width.  If the
-<em>fix</em> keyword is used and <em>Flen</em> is specified as -1, then electrons
-have a constant width that is read from the data file.  If <em>Flen</em> is a
+<I>fix</I> keyword is used and <I>Flen</I> is specified as -1, then electrons
+have a constant width that is read from the data file.  If <I>Flen</I> is a
 positive value, then the constant width for all electrons is set to
-<em>Flen</em>.</p>
-<p>The <em>harm</em> keyword allow oscillations in the width of the
-electron wavepackets.  More details are needed.</p>
-<p>The <em>ermscale</em> keyword specifies a unitless scaling factor
+<I>Flen</I>.
+</P>
+<P>The <I>harm</I> keyword allow oscillations in the width of the
+electron wavepackets.  More details are needed.
+</P>
+<P>The <I>ermscale</I> keyword specifies a unitless scaling factor
 between the electron masses and the width variable mass.  More
-details needed.</p>
-<p>If the <em>flex_press</em> keyword is used, then a contribution from the
-electrons is added to the total virial and pressure of the system.</p>
-<p>This potential is designed to be used with <a class="reference internal" href="atom_style.html"><em>atom_style wavepacket</em></a> definitions, in order to handle the
-description of systems with interacting nuclei and explicit electrons.</p>
-<p>The following coefficients must be defined for each pair of atoms
-types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
+details needed.
+</P>
+<P>If the <I>flex_press</I> keyword is used, then a contribution from the
+electrons is added to the total virial and pressure of the system.
+</P>
+<P>This potential is designed to be used with <A HREF = "atom_style.html">atom_style
+wavepacket</A> definitions, in order to handle the
+description of systems with interacting nuclei and explicit electrons.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
-commands, or by mixing as described below:</p>
-<ul class="simple">
-<li>cutoff (distance units)</li>
-</ul>
-<p>For <em>awpmd/cut</em>, the cutoff coefficient is optional.  If it is not
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>cutoff (distance units) 
+</UL>
+<P>For <I>awpmd/cut</I>, the cutoff coefficient is optional.  If it is not
 used (as in some of the examples above), the default global value
-specified in the pair_style command is used.</p>
-<hr class="docutils" />
-<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
-<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> mix, shift, table, and tail options
-are not relevant for this pair style.</p>
-<p>This pair style writes its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.</p>
-<p>This pair style can only be used via the <em>pair</em> keyword of the
-<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
-<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
-</div>
-<hr class="docutils" />
-<div class="section" id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
-</div>
-<div class="section" id="related-commands">
-<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>These are the defaults for the pair_style keywords: <em>hartree</em> for the
-initial wavefunction, <em>free</em> for the wavepacket width.</p>
-</div>
-</div>
+specified in the pair_style command is used.
+</P>
+<HR>
 
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> mix, shift, table, and tail options
+are not relevant for this pair style.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
 
-           </div>
-          </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
-</html>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>These are the defaults for the pair_style keywords: <I>hartree</I> for the
+initial wavefunction, <I>free</I> for the wavepacket width.
+</P>
+</HTML>

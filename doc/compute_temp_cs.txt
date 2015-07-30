@@ -41,7 +41,7 @@ For this compute, core and shell particles are specified by two
 respective group IDs, which can be defined using the
 "group"_group.html command.  The number of atoms in the two groups
 must be the same and there should be one bond defined between a pair
-of atoms in the two groups.
+of atoms in the two groups.  
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
@@ -49,7 +49,10 @@ dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
 in the group, k = Boltzmann constant, and T = temperature.  Note that
 the velocity of each core or shell atom used in the KE calculation is
 the velocity of the center-of-mass (COM) of the core/shell pair the
-atom is part of.
+atom is part of.  Note that atoms that are not core or shell particles
+are also included in the temperature calculation (if they are in the
+specified group-ID); they contribute to the total kinetic energy in
+the usual way.
 
 A kinetic energy tensor, stored as a 6-element vector, is also
 calculated by this compute for use in the computation of a pressure

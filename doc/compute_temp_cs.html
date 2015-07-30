@@ -167,7 +167,10 @@ dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
 in the group, k = Boltzmann constant, and T = temperature.  Note that
 the velocity of each core or shell atom used in the KE calculation is
 the velocity of the center-of-mass (COM) of the core/shell pair the
-atom is part of.</p>
+atom is part of.  Note that atoms that are not core or shell particles
+are also included in the temperature calculation (if they are in the
+specified group-ID); they contribute to the total kinetic energy in
+the usual way.</p>
 <p>A kinetic energy tensor, stored as a 6-element vector, is also
 calculated by this compute for use in the computation of a pressure
 tensor.  The formula for the components of the tensor is the same as

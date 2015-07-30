@@ -1,97 +1,270 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute pe/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute pe/atom command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID pe/atom keyword ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>pe/atom = style name of this compute command
-<LI>zero or more keywords may be appended
-<LI>keyword = <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all pe/atom
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute pe/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-pe-atom-command">
+<span id="index-0"></span><h1>compute pe/atom command<a class="headerlink" href="#compute-pe-atom-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID pe/atom keyword ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>pe/atom = style name of this compute command</li>
+<li>zero or more keywords may be appended</li>
+<li>keyword = <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all pe/atom
 compute 1 all pe/atom pair
-compute 1 all pe/atom pair bond 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that computes the per-atom potential energy for
-each atom in a group.  See the <A HREF = "compute_pe.html">compute pe</A> command if
-you want the potential energy of the entire system.
-</P>
-<P>The per-atom energy is calculated by the various pair, bond, etc
+compute 1 all pe/atom pair bond
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that computes the per-atom potential energy for
+each atom in a group.  See the <a class="reference internal" href="compute_pe.html"><em>compute pe</em></a> command if
+you want the potential energy of the entire system.</p>
+<p>The per-atom energy is calculated by the various pair, bond, etc
 potentials defined for the simulation.  If no extra keywords are
 listed, then the potential energy is the sum of pair, bond, angle,
 dihedral,improper, and kspace energy.  If any extra keywords are
 listed, then only those components are summed to compute the potential
-energy.
-</P>
-<P>Note that the energy of each atom is due to its interaction with all
-other atoms in the simulation, not just with other atoms in the group.
-</P>
-<P>For an energy contribution produced by a small set of atoms (e.g. 4
+energy.</p>
+<p>Note that the energy of each atom is due to its interaction with all
+other atoms in the simulation, not just with other atoms in the group.</p>
+<p>For an energy contribution produced by a small set of atoms (e.g. 4
 atoms in a dihedral or 3 atoms in a Tersoff 3-body interaction), that
 energy is assigned in equal portions to each atom in the set.
-E.g. 1/4 of the dihedral energy to each of the 4 atoms.
-</P>
-<P>The <A HREF = "dihedral_charmm.html">dihedral_style charmm</A> style calculates
+E.g. 1/4 of the dihedral energy to each of the 4 atoms.</p>
+<p>The <a class="reference internal" href="dihedral_charmm.html"><em>dihedral_style charmm</em></a> style calculates
 pairwise interactions between 1-4 atoms.  The energy contribution of
-these terms is included in the pair energy, not the dihedral energy.
-</P>
-<P>The KSpace contribution is calculated using the method in
-<A HREF = "#Heyes">(Heyes)</A> for the Ewald method and a related method for PPPM,
-as specified by the <A HREF = "kspace_style.html">kspace_style pppm</A> command.
+these terms is included in the pair energy, not the dihedral energy.</p>
+<p>The KSpace contribution is calculated using the method in
+<a class="reference internal" href="compute_stress_atom.html#heyes"><span>(Heyes)</span></a> for the Ewald method and a related method for PPPM,
+as specified by the <a class="reference internal" href="kspace_style.html"><em>kspace_style pppm</em></a> command.
 For PPPM, the calcluation requires 1 extra FFT each timestep that
-per-atom energy is calculated.  Thie <A HREF = "PDF/kspace.pdf">document</A>
-describes how the long-range per-atom energy calculation is performed.
-</P>
-<P>As an example of per-atom potential energy compared to total potential
+per-atom energy is calculated.  Thie <a class="reference external" href="PDF/kspace.pdf">document</a>
+describes how the long-range per-atom energy calculation is performed.</p>
+<p>As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
-in the last 2 columns of thermo output:
-</P>
-<PRE>compute		peratom all pe/atom
-compute		pe all reduce sum c_peratom
-thermo_style	custom step temp etotal press pe c_pe 
-</PRE>
-<P>IMPORTANT NOTE: The per-atom energy does not any Lennard-Jones tail
-corrections invoked by the <A HREF = "pair_modify.html">pair_modify tail yes</A>
-command, since those are global contributions to the system energy.
-</P>
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a per-atom vector, which can be accessed by
+in the last 2 columns of thermo output:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute              peratom all pe/atom
+compute              pe all reduce sum c_peratom
+thermo_style custom step temp etotal press pe c_pe
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The per-atom energy does not any Lennard-Jones tail
+corrections invoked by the <a class="reference internal" href="pair_modify.html"><em>pair_modify tail yes</em></a>
+command, since those are global contributions to the system energy.</p>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-<A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an overview of
-LAMMPS output options.
-</P>
-<P>The per-atom vector values will be in energy <A HREF = "units.html">units</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute_pe.html">compute pe</A>, <A HREF = "compute_stress_atom.html">compute
-stress/atom</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+<a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of
+LAMMPS output options.</p>
+<p>The per-atom vector values will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_pe.html"><em>compute pe</em></a>, <a class="reference internal" href="compute_stress_atom.html"><em>compute stress/atom</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="heyes"><strong>(Heyes)</strong> Heyes, Phys Rev B 49, 755 (1994),</p>
+</div>
+</div>
 
-<A NAME = "Heyes"></A>
 
-<P><B>(Heyes)</B> Heyes, Phys Rev B 49, 755 (1994),
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

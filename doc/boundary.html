@@ -1,106 +1,282 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boundary command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>boundary command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>boundary x y z 
-</PRE>
-<UL><LI>x,y,z = <I>p</I> or <I>s</I> or <I>f</I> or <I>m</I>, one or two letters 
-
-<PRE>  <I>p</I> is periodic
-  <I>f</I> is non-periodic and fixed
-  <I>s</I> is non-periodic and shrink-wrapped
-  <I>m</I> is non-periodic and shrink-wrapped with a minimum value 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>boundary p p f
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>boundary command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="boundary-command">
+<span id="index-0"></span><h1>boundary command<a class="headerlink" href="#boundary-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>boundary x y z
+</pre></div>
+</div>
+<ul class="simple">
+<li>x,y,z = <em>p</em> or <em>s</em> or <em>f</em> or <em>m</em>, one or two letters</li>
+</ul>
+<pre class="literal-block">
+<em>p</em> is periodic
+  <em>f</em> is non-periodic and fixed
+  <em>s</em> is non-periodic and shrink-wrapped
+  <em>m</em> is non-periodic and shrink-wrapped with a minimum value
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>boundary p p f
 boundary p fs p
-boundary s f fm 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set the style of boundaries for the global simulation box in each
+boundary s f fm
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set the style of boundaries for the global simulation box in each
 dimension.  A single letter assigns the same style to both the lower
 and upper face of the box.  Two letters assigns the first style to the
 lower face and the second style to the upper face.  The initial size
-of the simulation box is set by the <A HREF = "read_data.html">read_data</A>,
-<A HREF = "read_restart.html">read_restart</A>, or <A HREF = "create_box.html">create_box</A>
-commands.
-</P>
-<P>The style <I>p</I> means the box is periodic, so that particles interact
+of the simulation box is set by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>,
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a>, or <a class="reference internal" href="create_box.html"><em>create_box</em></a>
+commands.</p>
+<p>The style <em>p</em> means the box is periodic, so that particles interact
 across the boundary, and they can exit one end of the box and re-enter
 the other end.  A periodic dimension can change in size due to
-constant pressure boundary conditions or box deformation (see the <A HREF = "fix_nh.html">fix
-npt</A> and <A HREF = "fix_deform.html">fix deform</A> commands).  The <I>p</I>
-style must be applied to both faces of a dimension.
-</P>
-<P>The styles <I>f</I>, <I>s</I>, and <I>m</I> mean the box is non-periodic, so that
+constant pressure boundary conditions or box deformation (see the <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> and <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> commands).  The <em>p</em>
+style must be applied to both faces of a dimension.</p>
+<p>The styles <em>f</em>, <em>s</em>, and <em>m</em> mean the box is non-periodic, so that
 particles do not interact across the boundary and do not move from one
-side of the box to the other.
-</P>
-<P>For style <I>f</I>, the position of the face is fixed.  If an atom moves
+side of the box to the other.</p>
+<p>For style <em>f</em>, the position of the face is fixed.  If an atom moves
 outside the face it will be deleted on the next timestep that
 reneighboring occurs.  This will typically generate an error unless
-you have set the <A HREF = "thermo_modify.html">thermo_modify lost</A> option to
-allow for lost atoms.
-</P>
-<P>For style <I>s</I>, the position of the face is set so as to encompass the
+you have set the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify lost</em></a> option to
+allow for lost atoms.</p>
+<p>For style <em>s</em>, the position of the face is set so as to encompass the
 atoms in that dimension (shrink-wrapping), no matter how far they
-move.
-</P>
-<P>For style <I>m</I>, shrink-wrapping occurs, but is bounded by the value
+move.</p>
+<p>For style <em>m</em>, shrink-wrapping occurs, but is bounded by the value
 specified in the data or restart file or set by the
-<A HREF = "create_box.html">create_box</A> command.  For example, if the upper z
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> command.  For example, if the upper z
 face has a value of 50.0 in the data file, the face will always be
 positioned at 50.0 or above, even if the maximum z-extent of all the
 atoms becomes less than 50.0.  This can be useful if you start a
 simulation with an empty box or if you wish to leave room on one side
-of the box, e.g. for atoms to evaporate from a surface.
-</P>
-<P>For triclinic (non-orthogonal) simulation boxes, if the 2nd dimension
+of the box, e.g. for atoms to evaporate from a surface.</p>
+<p>For triclinic (non-orthogonal) simulation boxes, if the 2nd dimension
 of a tilt factor (e.g. y for xy) is periodic, then the periodicity is
 enforced with the tilt factor offset.  If the 1st dimension is
 shrink-wrapped, then the shrink wrapping is applied to the tilted box
 face, to encompass the atoms.  E.g. for a positive xy tilt, the xlo
 and xhi faces of the box are planes tilting in the +y direction as y
 increases.  These tilted planes are shrink-wrapped around the atoms to
-determine the x extent of the box.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_12">Section_howto 12</A> of the doc pages
+determine the x extent of the box.</p>
+<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span>Section_howto 12</span></a> of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
-triclinic representations.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This command cannot be used after the simulation box is defined by a
-<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command or
-<A HREF = "read_restart.html">read_restart</A> command.  See the
-<A HREF = "change_box.html">change_box</A> command for how to change the simulation
-box boundaries after it has been defined.
-</P>
-<P>For 2d simulations, the z dimension must be periodic.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P>See the <A HREF = "thermo_modify.html">thermo_modify</A> command for a discussion
-of lost atoms.
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>boundary p p p 
-</PRE>
-</HTML>
+triclinic representations.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command cannot be used after the simulation box is defined by a
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="create_box.html"><em>create_box</em></a> command or
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command.  See the
+<a class="reference internal" href="change_box.html"><em>change_box</em></a> command for how to change the simulation
+box boundaries after it has been defined.</p>
+<p>For 2d simulations, the z dimension must be periodic.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p>See the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> command for a discussion
+of lost atoms.</p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>boundary p p p
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

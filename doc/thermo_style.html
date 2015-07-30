@@ -1,39 +1,156 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>thermo_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>thermo_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>thermo_style style args 
-</PRE>
-<UL><LI>style = <I>one</I> or <I>multi</I> or <I>custom</I> 
-
-<LI>args = list of arguments for a particular style 
-
-<PRE>  <I>one</I> args = none
-  <I>multi</I> args = none
-  <I>custom</I> args = list of keywords
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>thermo_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="thermo-style-command">
+<span id="index-0"></span><h1>thermo_style command<a class="headerlink" href="#thermo-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>thermo_style style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>one</em> or <em>multi</em> or <em>custom</em></li>
+<li>args = list of arguments for a particular style</li>
+</ul>
+<pre class="literal-block">
+<em>one</em> args = none
+  <em>multi</em> args = none
+  <em>custom</em> args = list of keywords
     possible keywords = step, elapsed, elaplong, dt, time,
                         cpu, tpcpu, spcpu, cpuremain, part,
                         atoms, temp, press, pe, ke, etotal, enthalpy,
                         evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                         emol, elong, etail,
                         vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
-		        xy, xz, yz, xlat, ylat, zlat,
+                     xy, xz, yz, xlat, ylat, zlat,
                         bonds, angles, dihedrals, impropers,
-		        pxx, pyy, pzz, pxy, pxz, pyz,
-			fmax, fnorm, nbuild, ndanger,
-			cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
-			c_ID, c_ID[I], c_ID[I][J],
+                     pxx, pyy, pzz, pxy, pxz, pyz,
+                     fmax, fnorm, nbuild, ndanger,
+                     cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
+                     c_ID, c_ID[I], c_ID[I][J],
                         f_ID, f_ID[I], f_ID[I][J],
                         v_name
       step = timestep
@@ -68,14 +185,14 @@
       lx,ly,lz = box lengths in x,y,z
       xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
-      xlat,ylat,zlat = lattice spacings as calculated by <A HREF = "lattice.html">lattice</A> command
+      xlat,ylat,zlat = lattice spacings as calculated by <a class="reference internal" href="lattice.html"><em>lattice</em></a> command
       bonds,angles,dihedrals,impropers = # of these interactions defined
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       fmax = max component of force on any atom in any dimension
       fnorm = length of force vector for all atoms
       nbuild = # of neighbor list builds
       ndanger = # of dangerous neighbor list builds
-      cella,cellb,cellc = periodic cell lattice constants a,b,c 
+      cella,cellb,cellc = periodic cell lattice constants a,b,c
       cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
       c_ID = global scalar value calculated by a compute with ID
       c_ID[I] = Ith component of global vector calculated by a compute with ID
@@ -83,289 +200,319 @@
       f_ID = global scalar value calculated by a fix with ID
       f_ID[I] = Ith component of global vector calculated by a fix with ID
       f_ID[I][J] = I,J component of global array calculated by a fix with ID
-      v_name = scalar value calculated by an equal-style variable with name 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>thermo_style multi
+      v_name = scalar value calculated by an equal-style variable with name
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>thermo_style multi
 thermo_style custom step temp pe etotal press vol
-thermo_style custom step temp etotal c_myTemp v_abc 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set the style and content for printing thermodynamic data to the
-screen and log file.
-</P>
-<P>Style <I>one</I> prints a one-line summary of thermodynamic info that is
-the equivalent of "thermo_style custom step temp epair emol etotal
-press".  The line contains only numeric values.
-</P>
-<P>Style <I>multi</I> prints a multiple-line listing of thermodynamic info
-that is the equivalent of "thermo_style custom etotal ke temp pe ebond
-eangle edihed eimp evdwl ecoul elong press".  The listing contains
-numeric values and a string ID for each quantity.
-</P>
-<P>Style <I>custom</I> is the most general setting and allows you to specify
+thermo_style custom step temp etotal c_myTemp v_abc
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set the style and content for printing thermodynamic data to the
+screen and log file.</p>
+<p>Style <em>one</em> prints a one-line summary of thermodynamic info that is
+the equivalent of &#8220;thermo_style custom step temp epair emol etotal
+press&#8221;.  The line contains only numeric values.</p>
+<p>Style <em>multi</em> prints a multiple-line listing of thermodynamic info
+that is the equivalent of &#8220;thermo_style custom etotal ke temp pe ebond
+eangle edihed eimp evdwl ecoul elong press&#8221;.  The listing contains
+numeric values and a string ID for each quantity.</p>
+<p>Style <em>custom</em> is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
 thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
-references to <A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and
-equal-style <A HREF = "variable.html"">variables</A> that have been defined
+references to <a class="reference internal" href="compute.html"><em>computes</em></a>, <a class="reference internal" href="fix.html"><em>fixes</em></a>, and
+equal-style <a class="reference external" href="variable.html&quot;">variables</a> that have been defined
 elsewhere in the input script or can even be new styles which users
-have added to LAMMPS (see the <A HREF = "Section_modify.html">Section_modify</A>
-section of the documentation).  Thus the <I>custom</I> style provides a
+have added to LAMMPS (see the <a class="reference internal" href="Section_modify.html"><em>Section_modify</em></a>
+section of the documentation).  Thus the <em>custom</em> style provides a
 flexible means of outputting essentially any desired quantity as a
-simulation proceeds.
-</P>
-<P>All styles except <I>custom</I> have <I>vol</I> appended to their list of
-outputs if the simulation box volume changes during the simulation.
-</P>
-<P>The values printed by the various keywords are instantaneous values,
+simulation proceeds.</p>
+<p>All styles except <em>custom</em> have <em>vol</em> appended to their list of
+outputs if the simulation box volume changes during the simulation.</p>
+<p>The values printed by the various keywords are instantaneous values,
 calculated on the current timestep.  Time-averaged quantities, which
 include values from previous timesteps, can be output by using the
 f_ID keyword and accessing a fix that does time-averaging such as the
-<A HREF = "fix_ave_time.html">fix ave/time</A> command.
-</P>
-<P>Options invoked by the <A HREF = "thermo_modify.html">thermo_modify</A> command can
+<a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command.</p>
+<p>Options invoked by the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> command can
 be used to set the one- or multi-line format of the print-out, the
 normalization of thermodynamic output (total values versus per-atom
 values for extensive quantities (ones which scale with the number of
-atoms in the system), and the numeric precision of each printed value.
-</P>
-<P>IMPORTANT NOTE: When you use a "thermo_style" command, all
+atoms in the system), and the numeric precision of each printed value.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When you use a &#8220;thermo_style&#8221; command, all
 thermodynamic settings are restored to their default values, including
-those previously set by a <A HREF = "thermo_modify.html">thermo_modify</A> command.
+those previously set by a <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> command.
 Thus if your input script specifies a thermo_style command, you should
-use the thermo_modify command after it.
-</P>
-<HR>
-
-<P>Several of the thermodynamic quantities require a temperature to be
-computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx", etc.  By
-default this is done by using a <I>temperature</I> compute which is created
-when LAMMPS starts up, as if this command had been issued:
-</P>
-<PRE>compute thermo_temp all temp 
-</PRE>
-<P>See the <A HREF = "compute_temp.html">compute temp</A> command for details.  Note
-that the ID of this compute is <I>thermo_temp</I> and the group is <I>all</I>.
+use the thermo_modify command after it.</p>
+</div>
+<hr class="docutils" />
+<p>Several of the thermodynamic quantities require a temperature to be
+computed: &#8220;temp&#8221;, &#8220;press&#8221;, &#8220;ke&#8221;, &#8220;etotal&#8221;, &#8220;enthalpy&#8221;, &#8220;pxx&#8221;, etc.  By
+default this is done by using a <em>temperature</em> compute which is created
+when LAMMPS starts up, as if this command had been issued:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute thermo_temp all temp
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> command for details.  Note
+that the ID of this compute is <em>thermo_temp</em> and the group is <em>all</em>.
 You can change the attributes of this temperature (e.g. its
-degrees-of-freedom) via the <A HREF = "compute_modify.html">compute_modify</A>
+degrees-of-freedom) via the <a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a>
 command.  Alternatively, you can directly assign a new compute (that
 calculates temperature) which you have defined, to be used for
 calculating any thermodynamic quantity that requires a temperature.
-This is done via the <A HREF = "thermo_modify.html">thermo_modify</A> command.
-</P>
-<P>Several of the thermodynamic quantities require a pressure to be
-computed: "press", "enthalpy", "pxx", etc.  By default this is done by
-using a <I>pressure</I> compute which is created when LAMMPS starts up, as
-if this command had been issued:
-</P>
-<PRE>compute thermo_press all pressure thermo_temp 
-</PRE>
-<P>See the <A HREF = "compute_pressure.html">compute pressure</A> command for details.
-Note that the ID of this compute is <I>thermo_press</I> and the group is
-<I>all</I>.  You can change the attributes of this pressure via the
-<A HREF = "compute_modify.html">compute_modify</A> command.  Alternatively, you can
+This is done via the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> command.</p>
+<p>Several of the thermodynamic quantities require a pressure to be
+computed: &#8220;press&#8221;, &#8220;enthalpy&#8221;, &#8220;pxx&#8221;, etc.  By default this is done by
+using a <em>pressure</em> compute which is created when LAMMPS starts up, as
+if this command had been issued:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute thermo_press all pressure thermo_temp
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> command for details.
+Note that the ID of this compute is <em>thermo_press</em> and the group is
+<em>all</em>.  You can change the attributes of this pressure via the
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command.  Alternatively, you can
 directly assign a new compute (that calculates pressure) which you
 have defined, to be used for calculating any thermodynamic quantity
 that requires a pressure.  This is done via the
-<A HREF = "thermo_modify.html">thermo_modify</A> command.
-</P>
-<P>Several of the thermodynamic quantities require a potential energy to
-be computed: "pe", "etotal", "ebond", etc.  This is done by using a
-<I>pe</I> compute which is created when LAMMPS starts up, as if this
-command had been issued:
-</P>
-<PRE>compute thermo_pe all pe 
-</PRE>
-<P>See the <A HREF = "compute_pe.html">compute pe</A> command for details.  Note that
-the ID of this compute is <I>thermo_pe</I> and the group is <I>all</I>.  You can
+<a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> command.</p>
+<p>Several of the thermodynamic quantities require a potential energy to
+be computed: &#8220;pe&#8221;, &#8220;etotal&#8221;, &#8220;ebond&#8221;, etc.  This is done by using a
+<em>pe</em> compute which is created when LAMMPS starts up, as if this
+command had been issued:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute thermo_pe all pe
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="compute_pe.html"><em>compute pe</em></a> command for details.  Note that
+the ID of this compute is <em>thermo_pe</em> and the group is <em>all</em>.  You can
 change the attributes of this potential energy via the
-<A HREF = "compute_modify.html">compute_modify</A> command.
-</P>
-<HR>
-
-<P>The kinetic energy of the system <I>ke</I> is inferred from the temperature
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command.</p>
+<hr class="docutils" />
+<p>The kinetic energy of the system <em>ke</em> is inferred from the temperature
 of the system with 1/2 Kb T of energy for each degree of freedom.
-Thus, using different <A HREF = "compute.html">compute commands</A> for calculating
-temperature, via the <A HREF = "thermo_modify.html">thermo_modify temp</A> command,
+Thus, using different <a class="reference internal" href="compute.html"><em>compute commands</em></a> for calculating
+temperature, via the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify temp</em></a> command,
 may yield different kinetic energies, since different computes that
 calculate temperature can subtract out different non-thermal
 components of velocity and/or include different degrees of freedom
-(translational, rotational, etc).
-</P>
-<P>The potential energy of the system <I>pe</I> will include contributions
-from fixes if the <A HREF = "fix_modify.html">fix_modify thermo</A> option is set
-for a fix that calculates such a contribution.  For example, the <A HREF = "fix_wall.html">fix
-wall/lj93</A> fix calculates the energy of atoms
-interacting with the wall.  See the doc pages for "individual fixes"
-to see which ones contribute.
-</P>
-<P>A long-range tail correction <I>etail</I> for the VanderWaal pairwise
-energy will be non-zero only if the <A HREF = "pair_modify.html">pair_modify
-tail</A> option is turned on.  The <I>etail</I> contribution
-is included in <I>evdwl</I>, <I>pe</I>, and <I>etotal</I>, and the corresponding tail
-correction to the pressure is included in <I>press</I> and <I>pxx</I>, <I>pyy</I>,
-etc.
-</P>
-<HR>
-
-<P>The <I>step</I>, <I>elapsed</I>, and <I>elaplong</I> keywords refer to timestep
-count.  <I>Step</I> is the current timestep, or iteration count when a
-<A HREF = "minimize.html">minimization</A> is being performed.  <I>Elapsed</I> is the
+(translational, rotational, etc).</p>
+<p>The potential energy of the system <em>pe</em> will include contributions
+from fixes if the <a class="reference internal" href="fix_modify.html"><em>fix_modify thermo</em></a> option is set
+for a fix that calculates such a contribution.  For example, the <a class="reference internal" href="fix_wall.html"><em>fix wall/lj93</em></a> fix calculates the energy of atoms
+interacting with the wall.  See the doc pages for &#8220;individual fixes&#8221;
+to see which ones contribute.</p>
+<p>A long-range tail correction <em>etail</em> for the VanderWaal pairwise
+energy will be non-zero only if the <a class="reference internal" href="pair_modify.html"><em>pair_modify tail</em></a> option is turned on.  The <em>etail</em> contribution
+is included in <em>evdwl</em>, <em>pe</em>, and <em>etotal</em>, and the corresponding tail
+correction to the pressure is included in <em>press</em> and <em>pxx</em>, <em>pyy</em>,
+etc.</p>
+<hr class="docutils" />
+<p>The <em>step</em>, <em>elapsed</em>, and <em>elaplong</em> keywords refer to timestep
+count.  <em>Step</em> is the current timestep, or iteration count when a
+<a class="reference internal" href="minimize.html"><em>minimization</em></a> is being performed.  <em>Elapsed</em> is the
 number of timesteps elapsed since the beginning of this run.
-<I>Elaplong</I> is the number of timesteps elapsed since the beginning of
-an initial run in a series of runs.  See the <I>start</I> and <I>stop</I>
-keywords for the <A HREF = "run.html">run</A> for info on how to invoke a series of
+<em>Elaplong</em> is the number of timesteps elapsed since the beginning of
+an initial run in a series of runs.  See the <em>start</em> and <em>stop</em>
+keywords for the <a class="reference internal" href="run.html"><em>run</em></a> for info on how to invoke a series of
 runs that keep track of an initial starting time.  If these keywords
-are not used, then <I>elapsed</I> and <I>elaplong</I> are the same value.
-</P>
-<P>The <I>dt</I> keyword is the current timestep size in time
-<A HREF = "units.html">units</A>.  The <I>time</I> keyword is the current elapsed
-simulation time, also in time <A HREF = "units.html">units</A>, which is simply
+are not used, then <em>elapsed</em> and <em>elaplong</em> are the same value.</p>
+<p>The <em>dt</em> keyword is the current timestep size in time
+<a class="reference internal" href="units.html"><em>units</em></a>.  The <em>time</em> keyword is the current elapsed
+simulation time, also in time <a class="reference internal" href="units.html"><em>units</em></a>, which is simply
 (step*dt) if the timestep size has not changed and the timestep has
-not been reset.  If the timestep has changed (e.g. via <A HREF = "fix_dt_reset.html">fix
-dt/reset</A>) or the timestep has been reset (e.g. via
-the "reset_timestep" command), then the simulation time is effectively
-a cummulative value up to the current point.
-</P>
-<P>The <I>cpu</I> keyword is elapsed CPU seconds since the beginning of this
-run.  The <I>tpcpu</I> and <I>spcpu</I> keywords are measures of how fast your
-simulation is currently running.  The <I>tpcpu</I> keyword is simulation
+not been reset.  If the timestep has changed (e.g. via <a class="reference internal" href="fix_dt_reset.html"><em>fix dt/reset</em></a>) or the timestep has been reset (e.g. via
+the &#8220;reset_timestep&#8221; command), then the simulation time is effectively
+a cummulative value up to the current point.</p>
+<p>The <em>cpu</em> keyword is elapsed CPU seconds since the beginning of this
+run.  The <em>tpcpu</em> and <em>spcpu</em> keywords are measures of how fast your
+simulation is currently running.  The <em>tpcpu</em> keyword is simulation
 time per CPU second, where simulation time is in time
-<A HREF = "units.html">units</A>.  E.g. for metal units, the <I>tpcpu</I> value would be
-picoseconds per CPU second.  The <I>spcpu</I> keyword is the number of
+<a class="reference internal" href="units.html"><em>units</em></a>.  E.g. for metal units, the <em>tpcpu</em> value would be
+picoseconds per CPU second.  The <em>spcpu</em> keyword is the number of
 timesteps per CPU second.  Both quantities are on-the-fly metrics,
 measured relative to the last time they were invoked.  Thus if you are
 printing out thermodyamic output every 100 timesteps, the two keywords
 will continually output the time and timestep rate for the last 100
-steps.  The <I>tpcpu</I> keyword does not attempt to track any changes in
-timestep size, e.g. due to using the <A HREF = "fix_dt_reset.html">fix dt/reset</A>
-command.
-</P>
-<P>The <I>cpuremain</I> keyword estimates the CPU time remaining in the
+steps.  The <em>tpcpu</em> keyword does not attempt to track any changes in
+timestep size, e.g. due to using the <a class="reference internal" href="fix_dt_reset.html"><em>fix dt/reset</em></a>
+command.</p>
+<p>The <em>cpuremain</em> keyword estimates the CPU time remaining in the
 current run, based on the time elapsed thus far.  It will only be a
 good estimate if the CPU time/timestep for the rest of the run is
 similar to the preceding timesteps.  On the initial timestep the value
 will be 0.0 since there is no history to estimate from.  For a
-minimization run performed by the "minimize" command, the estimate is
-based on the <I>maxiter</I> parameter, assuming the minimization will
-proceed for the maximum number of allowed iterations.
-</P>
-<P>The <I>part</I> keyword is useful for multi-replica or multi-partition
+minimization run performed by the &#8220;minimize&#8221; command, the estimate is
+based on the <em>maxiter</em> parameter, assuming the minimization will
+proceed for the maximum number of allowed iterations.</p>
+<p>The <em>part</em> keyword is useful for multi-replica or multi-partition
 simulations to indicate which partition this output and this file
-corresponds to, or for use in a <A HREF = "variable.html">variable</A> to append to
-a filename for output specific to this partition.  See <A HREF = "Section_start.html#start_7">Section_start
-7</A> of the manual for details on running in
-multi-partition mode.
-</P>
-<P>The <I>fmax</I> and <I>fnorm</I> keywords are useful for monitoring the progress
-of an <A HREF = "minimize.html">energy minimization</A>.  The <I>fmax</I> keyword
+corresponds to, or for use in a <a class="reference internal" href="variable.html"><em>variable</em></a> to append to
+a filename for output specific to this partition.  See <a class="reference internal" href="Section_start.html#start-7"><span>Section_start 7</span></a> of the manual for details on running in
+multi-partition mode.</p>
+<p>The <em>fmax</em> and <em>fnorm</em> keywords are useful for monitoring the progress
+of an <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.  The <em>fmax</em> keyword
 calculates the maximum force in any dimension on any atom in the
 system, or the infinity-norm of the force vector for the system.  The
-<I>fnorm</I> keyword calculates the 2-norm or length of the force vector.
-</P>
-<P>The <I>nbuild</I> and <I>ndanger</I> keywords are useful for monitoring neighbor
+<em>fnorm</em> keyword calculates the 2-norm or length of the force vector.</p>
+<p>The <em>nbuild</em> and <em>ndanger</em> keywords are useful for monitoring neighbor
 list builds during a run.  Note that both these values are also
-printed with the end-of-run statistics.  The <I>nbuild</I> keyword is the
-number of re-builds during the current run.  The <I>ndanger</I> keyword is
+printed with the end-of-run statistics.  The <em>nbuild</em> keyword is the
+number of re-builds during the current run.  The <em>ndanger</em> keyword is
 the number of re-builds that LAMMPS considered potentially
-"dangerous".  If atom movement triggered neighbor list rebuilding (see
-the <A HREF = "neigh_modify.html">neigh_modify</A> command), then dangerous
+&#8220;dangerous&#8221;.  If atom movement triggered neighbor list rebuilding (see
+the <a class="reference internal" href="neigh_modify.html"><em>neigh_modify</em></a> command), then dangerous
 reneighborings are those that were triggered on the first timestep
 atom movement was checked for.  If this count is non-zero you may wish
 to reduce the delay factor to insure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
-takes place.
-</P>
-<P>The keywords <I>cella</I>, <I>cellb</I>, <I>cellc</I>, <I>cellalpha</I>, <I>cellbeta</I>,
-<I>cellgamma</I>, correspond to the usual crystallographic quantities that
-define the periodic unit cell of a crystal.  See <A HREF = "Section_howto.html#howto_12">this
-section</A> of the doc pages for a geometric
+takes place.</p>
+<p>The keywords <em>cella</em>, <em>cellb</em>, <em>cellc</em>, <em>cellalpha</em>, <em>cellbeta</em>,
+<em>cellgamma</em>, correspond to the usual crystallographic quantities that
+define the periodic unit cell of a crystal.  See <a class="reference internal" href="Section_howto.html#howto-12"><span>this section</span></a> of the doc pages for a geometric
 description of triclinic periodic cells, including a precise defintion
 of these quantities in terms of the internal LAMMPS cell dimensions
-<I>lx</I>, <I>ly</I>, <I>lz</I>, <I>yz</I>, <I>xz</I>, <I>xy</I>.
-</P>
-<HR>
-
-<P>The <I>c_ID</I> and <I>c_ID[I]</I> and <I>c_ID[I][J]</I> keywords allow global
+<em>lx</em>, <em>ly</em>, <em>lz</em>, <em>yz</em>, <em>xz</em>, <em>xy</em>.</p>
+<hr class="docutils" />
+<p>The <em>c_ID</em> and <em>c_ID[I]</em> and <em>c_ID[I][J]</em> keywords allow global
 values calculated by a compute to be output.  As discussed on the
-<A HREF = "compute.html">compute</A> doc page, computes can calculate global,
+<a class="reference internal" href="compute.html"><em>compute</em></a> doc page, computes can calculate global,
 per-atom, or local values.  Only global values can be referenced by
 this command.  However, per-atom compute values can be referenced in a
-<A HREF = "variable.html">variable</A> and the variable referenced by thermo_style
-custom, as discussed below.
-</P>
-<P>The ID in the keyword should be replaced by the actual ID of a compute
+<a class="reference internal" href="variable.html"><em>variable</em></a> and the variable referenced by thermo_style
+custom, as discussed below.</p>
+<p>The ID in the keyword should be replaced by the actual ID of a compute
 that has been defined elsewhere in the input script.  See the
-<A HREF = "compute.html">compute</A> command for details.  If the compute calculates
+<a class="reference internal" href="compute.html"><em>compute</em></a> command for details.  If the compute calculates
 a global scalar, vector, or array, then the keyword formats with 0, 1,
-or 2 brackets will reference a scalar value from the compute.
-</P>
-<P>Note that some computes calculate "intensive" global quantities like
-temperature; others calculate "extensive" global quantities like
+or 2 brackets will reference a scalar value from the compute.</p>
+<p>Note that some computes calculate &#8220;intensive&#8221; global quantities like
+temperature; others calculate &#8220;extensive&#8221; global quantities like
 kinetic energy that are summed over all atoms in the compute group.
 Intensive quantities are printed directly without normalization by
 thermo_style custom.  Extensive quantities may be normalized by the
 total number of atoms in the simulation (NOT the number of atoms in
-the compute group) when output, depending on the <A HREF = "thermo_modify.html">thermo_modify
-norm</A> option being used.
-</P>
-<P>The <I>f_ID</I> and <I>f_ID[I]</I> and <I>f_ID[I][J]</I> keywords allow global
+the compute group) when output, depending on the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify norm</em></a> option being used.</p>
+<p>The <em>f_ID</em> and <em>f_ID[I]</em> and <em>f_ID[I][J]</em> keywords allow global
 values calculated by a fix to be output.  As discussed on the
-<A HREF = "fix.html">fix</A> doc page, fixes can calculate global, per-atom, or
+<a class="reference internal" href="fix.html"><em>fix</em></a> doc page, fixes can calculate global, per-atom, or
 local values.  Only global values can be referenced by this command.
 However, per-atom fix values can be referenced in a
-<A HREF = "variable.html">variable</A> and the variable referenced by thermo_style
-custom, as discussed below.
-</P>
-<P>The ID in the keyword should be replaced by the actual ID of a fix
+<a class="reference internal" href="variable.html"><em>variable</em></a> and the variable referenced by thermo_style
+custom, as discussed below.</p>
+<p>The ID in the keyword should be replaced by the actual ID of a fix
 that has been defined elsewhere in the input script.  See the
-<A HREF = "fix.html">fix</A> command for details.  If the fix calculates a global
+<a class="reference internal" href="fix.html"><em>fix</em></a> command for details.  If the fix calculates a global
 scalar, vector, or array, then the keyword formats with 0, 1, or 2
-brackets will reference a scalar value from the fix.
-</P>
-<P>Note that some fixes calculate "intensive" global quantities like
-timestep size; others calculate "extensive" global quantities like
+brackets will reference a scalar value from the fix.</p>
+<p>Note that some fixes calculate &#8220;intensive&#8221; global quantities like
+timestep size; others calculate &#8220;extensive&#8221; global quantities like
 energy that are summed over all atoms in the fix group.  Intensive
 quantities are printed directly without normalization by thermo_style
 custom.  Extensive quantities may be normalized by the total number of
 atoms in the simulation (NOT the number of atoms in the fix group)
-when output, depending on the <A HREF = "thermo_modify.html">thermo_modify norm</A>
-option being used.
-</P>
-<P>The <I>v_name</I> keyword allow the current value of a variable to be
+when output, depending on the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify norm</em></a>
+option being used.</p>
+<p>The <em>v_name</em> keyword allow the current value of a variable to be
 output.  The name in the keyword should be replaced by the variable
 name that has been defined elsewhere in the input script.  Only
 equal-style variables can be referenced.  See the
-<A HREF = "variable.html">variable</A> command for details.  Variables of style
-<I>equal</I> can reference per-atom properties or thermodynamic keywords,
+<a class="reference internal" href="variable.html"><em>variable</em></a> command for details.  Variables of style
+<em>equal</em> can reference per-atom properties or thermodynamic keywords,
 or they can invoke other computes, fixes, or variables when evaluated,
-so this is a very general means of creating thermodynamic output.
-</P>
-<P>Note that equal-style variables are assumed to be "intensive" global
+so this is a very general means of creating thermodynamic output.</p>
+<p>Note that equal-style variables are assumed to be &#8220;intensive&#8221; global
 quantities, which are thus printed as-is, without normalization by
-thermo_style custom.  You can include a division by "natoms" in the
-variable formula if this is not the case.
-</P>
-<HR>
+thermo_style custom.  You can include a division by &#8220;natoms&#8221; in the
+variable formula if this is not the case.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command must come after the simulation box is defined by a
+<a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>, or
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> command.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="thermo.html"><em>thermo</em></a>, <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a>,
+<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a>, <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a>,
+<a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>thermo_style one
+</pre></div>
+</div>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>This command must come after the simulation box is defined by a
-<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
-<A HREF = "create_box.html">create_box</A> command.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "thermo.html">thermo</A>, <A HREF = "thermo_modify.html">thermo_modify</A>,
-<A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "compute_temp.html">compute temp</A>,
-<A HREF = "compute_pressure.html">compute pressure</A>
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>thermo_style one 
-</PRE>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

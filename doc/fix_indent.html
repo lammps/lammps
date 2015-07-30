@@ -1,83 +1,194 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix indent command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix indent command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID indent K keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>indent = style name of this fix command 
-
-<LI>K = force constant for indenter surface (force/distance^2 units) 
-
-<LI>one or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>sphere</I> or <I>cylinder</I> or <I>plane</I> or <I>side</I> or <I>units</I> 
-
-<PRE>  <I>sphere</I> args = x y z R
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix indent command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-indent-command">
+<span id="index-0"></span><h1>fix indent command<a class="headerlink" href="#fix-indent-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID indent K keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>indent = style name of this fix command</li>
+<li>K = force constant for indenter surface (force/distance^2 units)</li>
+<li>one or more keyword/value pairs may be appended</li>
+<li>keyword = <em>sphere</em> or <em>cylinder</em> or <em>plane</em> or <em>side</em> or <em>units</em></li>
+</ul>
+<pre class="literal-block">
+<em>sphere</em> args = x y z R
     x,y,z = initial position of center of indenter (distance units)
     R = sphere radius of indenter (distance units)
     any of x,y,z,R can be a variable (see below)
-  <I>cylinder</I> args = dim c1 c2 R
-    dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cylinder
+  <em>cylinder</em> args = dim c1 c2 R
+    dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     R = cylinder radius of indenter (distance units)
     any of c1,c2,R can be a variable (see below)
-  <I>plane</I> args = dim pos side
-    dim = <I>x</I> or <I>y</I> or <I>z</I> = plane perpendicular to this dimension
+  <em>plane</em> args = dim pos side
+    dim = <em>x</em> or <em>y</em> or <em>z</em> = plane perpendicular to this dimension
     pos = position of plane in dimension x, y, or z (distance units)
     pos can be a variable (see below)
-    side = <I>lo</I> or <I>hi</I>
-  <I>side</I> value = <I>in</I> or <I>out</I>
-    <I>in</I> = the indenter acts on particles inside the sphere or cylinder
-    <I>out</I> = the indenter acts on particles outside the sphere or cylinder
-  <I>units</I> value = <I>lattice</I> or <I>box</I>
+    side = <em>lo</em> or <em>hi</em>
+  <em>side</em> value = <em>in</em> or <em>out</em>
+    <em>in</em> = the indenter acts on particles inside the sphere or cylinder
+    <em>out</em> = the indenter acts on particles outside the sphere or cylinder
+  <em>units</em> value = <em>lattice</em> or <em>box</em>
     lattice = the geometry is defined in lattice units
-    box = the geometry is defined in simulation box units 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all indent 10.0 sphere 0.0 0.0 15.0 3.0
+    box = the geometry is defined in simulation box units
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all indent 10.0 sphere 0.0 0.0 15.0 3.0
 fix 1 all indent 10.0 sphere v_x v_y 0.0 v_radius side in
-fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Insert an indenter within a simulation box.  The indenter repels all
+fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Insert an indenter within a simulation box.  The indenter repels all
 atoms that touch it, so it can be used to push into a material or as
 an obstacle in a flow.  Or it can be used as a constraining wall
-around a simulation; see the discussion of the <I>side</I> keyword below.
-</P>
-<P>The indenter can either be spherical or cylindrical or planar.  You
-must set one of those 3 keywords.
-</P>
-<P>A spherical indenter exerts a force of magnitude
-</P>
-<PRE>F(r) = - K (r - R)^2 
-</PRE>
-<P>on each atom where <I>K</I> is the specified force constant, <I>r</I> is the
-distance from the atom to the center of the indenter, and <I>R</I> is the
-radius of the indenter.  The force is repulsive and F(r) = 0 for <I>r</I> >
-<I>R</I>.
-</P>
-<P>A cylindrical indenter exerts the same force, except that <I>r</I> is the
+around a simulation; see the discussion of the <em>side</em> keyword below.</p>
+<p>The indenter can either be spherical or cylindrical or planar.  You
+must set one of those 3 keywords.</p>
+<p>A spherical indenter exerts a force of magnitude</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">F</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">=</span> <span class="o">-</span> <span class="n">K</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">R</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>on each atom where <em>K</em> is the specified force constant, <em>r</em> is the
+distance from the atom to the center of the indenter, and <em>R</em> is the
+radius of the indenter.  The force is repulsive and F(r) = 0 for <em>r</em> &gt;
+<em>R</em>.</p>
+<p>A cylindrical indenter exerts the same force, except that <em>r</em> is the
 distance from the atom to the center axis of the cylinder.  The
-cylinder extends infinitely along its axis.
-</P>
-<P>Spherical and cylindrical indenters account for periodic boundaries in
+cylinder extends infinitely along its axis.</p>
+<p>Spherical and cylindrical indenters account for periodic boundaries in
 two ways.  First, the center point of a spherical indenter (x,y,z) or
 axis of a cylindrical indenter (c1,c2) is remapped back into the
 simulation box, if the box is periodic in a particular dimension.
@@ -85,127 +196,182 @@ This occurs every timestep if the indenter geometry is specified with
 a variable (see below), e.g. it is moving over time.  Second, the
 calculation of distance to the indenter center or axis accounts for
 periodic boundaries.  Both of these mean that an indenter can
-effectively move through and straddle one or more periodic boundaries.
-</P>
-<P>A planar indenter is really an axis-aligned infinite-extent wall
-exerting the same force on atoms in the system, where <I>R</I> is the
-position of the plane and <I>r-R</I> is the distance from the plane.  If
-the <I>side</I> parameter of the plane is specified as <I>lo</I> then it will
+effectively move through and straddle one or more periodic boundaries.</p>
+<p>A planar indenter is really an axis-aligned infinite-extent wall
+exerting the same force on atoms in the system, where <em>R</em> is the
+position of the plane and <em>r-R</em> is the distance from the plane.  If
+the <em>side</em> parameter of the plane is specified as <em>lo</em> then it will
 indent from the lo end of the simulation box, meaning that atoms with
-a coordinate less than the plane's current position will be pushed
+a coordinate less than the plane&#8217;s current position will be pushed
 towards the hi end of the box and atoms with a coordinate higher than
-the plane's current position will feel no force.  Vice versa if <I>side</I>
-is specified as <I>hi</I>.
-</P>
-<P>Any of the 4 quantities defining a spherical indenter's geometry can
-be specified as an equal-style <A HREF = "variable.html">variable</A>, namely <I>x</I>,
-<I>y</I>, <I>z</I>, or <I>R</I>.  Similarly, for a cylindrical indenter, any of <I>c1</I>,
-<I>c2</I>, or <I>R</I>, can be a variable.  For a planar indenter, <I>pos</I> can be
+the plane&#8217;s current position will feel no force.  Vice versa if <em>side</em>
+is specified as <em>hi</em>.</p>
+<p>Any of the 4 quantities defining a spherical indenter&#8217;s geometry can
+be specified as an equal-style <a class="reference internal" href="variable.html"><em>variable</em></a>, namely <em>x</em>,
+<em>y</em>, <em>z</em>, or <em>R</em>.  Similarly, for a cylindrical indenter, any of <em>c1</em>,
+<em>c2</em>, or <em>R</em>, can be a variable.  For a planar indenter, <em>pos</em> can be
 a variable.  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to define the
-indenter geometry.
-</P>
-<P>Note that equal-style variables can specify formulas with various
-mathematical functions, and include <A HREF = "thermo_style.html">thermo_style</A>
+indenter geometry.</p>
+<p>Note that equal-style variables can specify formulas with various
+mathematical functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>
 command keywords for the simulation box parameters and timestep and
 elapsed time.  Thus it is easy to specify indenter properties that
 change as a function of time or span consecutive runs in a continuous
-fashion.  For the latter, see the <I>start</I> and <I>stop</I> keywords of the
-<A HREF = "run.html">run</A> command and the <I>elaplong</I> keyword of <A HREF = "thermo_style.html">thermo_style
-custom</A> for details.
-</P>
-<P>For example, if a spherical indenter's x-position is specfied as v_x,
-then this variable definition will keep it's center at a relative
+fashion.  For the latter, see the <em>start</em> and <em>stop</em> keywords of the
+<a class="reference internal" href="run.html"><em>run</em></a> command and the <em>elaplong</em> keyword of <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> for details.</p>
+<p>For example, if a spherical indenter&#8217;s x-position is specfied as v_x,
+then this variable definition will keep it&#8217;s center at a relative
 position in the simulation box, 1/4 of the way from the left edge to
-the right edge, even if the box size changes:
-</P>
-<PRE>variable x equal "xlo + 0.25*lx" 
-</PRE>
-<P>Similarly, either of these variable definitions will move the indenter
-from an initial position at 2.5 at a constant velocity of 5:
-</P>
-<PRE>variable x equal "2.5 + 5*elaplong*dt"
-variable x equal vdisplace(2.5,5) 
-</PRE>
-<P>If a spherical indenter's radius is specified as v_r, then these
+the right edge, even if the box size changes:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable x equal &quot;xlo + 0.25*lx&quot;
+</pre></div>
+</div>
+<p>Similarly, either of these variable definitions will move the indenter
+from an initial position at 2.5 at a constant velocity of 5:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable x equal &quot;2.5 + 5*elaplong*dt&quot;
+variable x equal vdisplace(2.5,5)
+</pre></div>
+</div>
+<p>If a spherical indenter&#8217;s radius is specified as v_r, then these
 variable definitions will grow the size of the indenter at a specfied
-rate.
-</P>
-<PRE>variable r0 equal 0.0
+rate.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable r0 equal 0.0
 variable rate equal 1.0
-variable r equal "v_r0 + step*dt*v_rate" 
-</PRE>
-<P>If the <I>side</I> keyword is specified as <I>out</I>, which is the default,
+variable r equal &quot;v_r0 + step*dt*v_rate&quot;
+</pre></div>
+</div>
+<p>If the <em>side</em> keyword is specified as <em>out</em>, which is the default,
 then particles outside the indenter are pushded away from its outer
 surface, as described above.  This only applies to spherical or
-cylindrical indenters.  If the <I>side</I> keyword is specified as <I>in</I>,
+cylindrical indenters.  If the <em>side</em> keyword is specified as <em>in</em>,
 the action of the indenter is reversed.  Particles inside the indenter
 are pushed away from its inner surface.  In other words, the indenter
 is now a containing wall that traps the particles inside it.  If the
-radius shrinks over time, it will squeeze the particles.
-</P>
-<P>The <I>units</I> keyword determines the meaning of the distance units used
-to define the indenter geometry.  A <I>box</I> value selects standard
-distance units as defined by the <A HREF = "units.html">units</A> command,
-e.g. Angstroms for units = real or metal.  A <I>lattice</I> value means the
-distance units are in lattice spacings.  The <A HREF = "lattice.html">lattice</A>
+radius shrinks over time, it will squeeze the particles.</p>
+<p>The <em>units</em> keyword determines the meaning of the distance units used
+to define the indenter geometry.  A <em>box</em> value selects standard
+distance units as defined by the <a class="reference internal" href="units.html"><em>units</em></a> command,
+e.g. Angstroms for units = real or metal.  A <em>lattice</em> value means the
+distance units are in lattice spacings.  The <a class="reference internal" href="lattice.html"><em>lattice</em></a>
 command must have been previously used to define the lattice spacing.
 The (x,y,z) coords of the indenter position are scaled by the x,y,z
 lattice spacings respectively.  The radius of a spherical or
-cylindrical indenter is scaled by the x lattice spacing.
-</P>
-<P>Note that the units keyword only affects indenter geometry parameters
+cylindrical indenter is scaled by the x lattice spacing.</p>
+<p>Note that the units keyword only affects indenter geometry parameters
 specified directly with numbers, not those specified as variables.  In
-the latter case, you should use the <I>xlat</I>, <I>ylat</I>, <I>zlat</I> keywords of
-the <A HREF = "thermo_style.html">thermo_style</A> command if you want to include
-lattice spacings in a variable formula.
-</P>
-<P>The force constant <I>K</I> is not affected by the <I>units</I> keyword.  It is
+the latter case, you should use the <em>xlat</em>, <em>ylat</em>, <em>zlat</em> keywords of
+the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command if you want to include
+lattice spacings in a variable formula.</p>
+<p>The force constant <em>K</em> is not affected by the <em>units</em> keyword.  It is
 always in force/distance^2 units where force and distance are defined
-by the <A HREF = "units.html">units</A> command.  If you wish K to be scaled by the
+by the <a class="reference internal" href="units.html"><em>units</em></a> command.  If you wish K to be scaled by the
 lattice spacing, you can define K with a variable whose formula
-contains <I>xlat</I>, <I>ylat</I>, <I>zlat</I> keywords of the
-<A HREF = "thermo_style.html">thermo_style</A> command, e.g.
-</P>
-<PRE>variable k equal 100.0/xlat/xlat
-fix 1 all indent $k sphere ... 
-</PRE>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+contains <em>xlat</em>, <em>ylat</em>, <em>zlat</em> keywords of the
+<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable k equal 100.0/xlat/xlat
+fix 1 all indent $k sphere ...
+</pre></div>
+</div>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
 fix to add the energy of interaction between atoms and the indenter to
-the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.  The energy of each particle interacting
-with the indenter is K/3 (r - R)^3.
-</P>
-<P>This fix computes a global scalar energy and a global 3-vector of
-forces (on the indenter), which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  The scalar and vector values
-calculated by this fix are "extensive".
-</P>
-<P>The forces due to this fix are imposed during an energy minimization,
-invoked by the <A HREF = "minimize.html">minimize</A> command.  Note that if you
+the system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.  The energy of each particle interacting
+with the indenter is K/3 (r - R)^3.</p>
+<p>This fix computes a global scalar energy and a global 3-vector of
+forces (on the indenter), which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar and vector values
+calculated by this fix are &#8220;extensive&#8221;.</p>
+<p>The forces due to this fix are imposed during an energy minimization,
+invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.  Note that if you
 define the indenter geometry with a variable using a time-dependent
 formula, LAMMPS uses the iteration count in the minimizer as the
 timestep.  But it is almost certainly a bad idea to have the indenter
 change its position or size during a minimization.  LAMMPS does not
-check if you have done this.
-</P>
-<P>IMPORTANT NOTE: If you want the atom/indenter interaction energy to be
+check if you have done this.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you want the atom/indenter interaction energy to be
 included in the total potential energy of the system (the quantity
-being minimized), you must enable the <A HREF = "fix_modify.html">fix_modify</A>
-<I>energy</I> option for this fix.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B> none
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are side = out and units = lattice.
-</P>
-</HTML>
+being minimized), you must enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a>
+<em>energy</em> option for this fix.</p>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+<p><strong>Related commands:</strong> none</p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are side = out and units = lattice.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

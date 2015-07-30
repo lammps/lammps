@@ -1,150 +1,257 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style table command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style table command 
-</H3>
-<H3>pair_style table/gpu command 
-</H3>
-<H3>pair_style table/kk command 
-</H3>
-<H3>pair_style table/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style table style N keyword ... 
-</PRE>
-<UL><LI>style = <I>lookup</I> or <I>linear</I> or <I>spline</I> or <I>bitmap</I> = method of interpolation
-<LI>N = use N values in <I>lookup</I>, <I>linear</I>, <I>spline</I> tables
-<LI>N = use 2^N values in <I>bitmap</I> tables
-<LI>zero or more keywords may be appended
-<LI>keyword = <I>ewald</I> or <I>pppm</I> or <I>msm</I> or <I>dispersion</I> or <I>tip4p</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style table linear 1000
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style table command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-table-command">
+<span id="index-0"></span><h1>pair_style table command<a class="headerlink" href="#pair-style-table-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-table-gpu-command">
+<h1>pair_style table/gpu command<a class="headerlink" href="#pair-style-table-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-table-kk-command">
+<h1>pair_style table/kk command<a class="headerlink" href="#pair-style-table-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-table-omp-command">
+<h1>pair_style table/omp command<a class="headerlink" href="#pair-style-table-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style table style N keyword ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>lookup</em> or <em>linear</em> or <em>spline</em> or <em>bitmap</em> = method of interpolation</li>
+<li>N = use N values in <em>lookup</em>, <em>linear</em>, <em>spline</em> tables</li>
+<li>N = use 2^N values in <em>bitmap</em> tables</li>
+<li>zero or more keywords may be appended</li>
+<li>keyword = <em>ewald</em> or <em>pppm</em> or <em>msm</em> or <em>dispersion</em> or <em>tip4p</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style table linear 1000
 pair_style table linear 1000 pppm
 pair_style table bitmap 12
 pair_coeff * 3 morse.table ENTRY1
-pair_coeff * 3 morse.table ENTRY1 7.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Style <I>table</I> creates interpolation tables of length <I>N</I> from pair
+pair_coeff * 3 morse.table ENTRY1 7.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>table</em> creates interpolation tables of length <em>N</em> from pair
 potential and force values listed in a file(s) as a function of
-distance.  The files are read by the <A HREF = "pair_coeff.html">pair_coeff</A>
-command.
-</P>
-<P>The interpolation tables are created by fitting cubic splines to the
-file values and interpolating energy and force values at each of <I>N</I>
+distance.  The files are read by the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>
+command.</p>
+<p>The interpolation tables are created by fitting cubic splines to the
+file values and interpolating energy and force values at each of <em>N</em>
 distances.  During a simulation, these tables are used to interpolate
 energy and force values as needed.  The interpolation is done in one
-of 4 styles: <I>lookup</I>, <I>linear</I>, <I>spline</I>, or <I>bitmap</I>.
-</P>
-<P>For the <I>lookup</I> style, the distance between 2 atoms is used to find
-the nearest table entry, which is the energy or force.
-</P>
-<P>For the <I>linear</I> style, the pair distance is used to find 2
+of 4 styles: <em>lookup</em>, <em>linear</em>, <em>spline</em>, or <em>bitmap</em>.</p>
+<p>For the <em>lookup</em> style, the distance between 2 atoms is used to find
+the nearest table entry, which is the energy or force.</p>
+<p>For the <em>linear</em> style, the pair distance is used to find 2
 surrounding table values from which an energy or force is computed by
-linear interpolation.
-</P>
-<P>For the <I>spline</I> style, a cubic spline coefficients are computed and
-stored at each of the <I>N</I> values in the table.  The pair distance is
+linear interpolation.</p>
+<p>For the <em>spline</em> style, a cubic spline coefficients are computed and
+stored at each of the <em>N</em> values in the table.  The pair distance is
 used to find the appropriate set of coefficients which are used to
-evaluate a cubic polynomial which computes the energy or force.
-</P>
-<P>For the <I>bitmap</I> style, the N means to create interpolation tables
+evaluate a cubic polynomial which computes the energy or force.</p>
+<p>For the <em>bitmap</em> style, the N means to create interpolation tables
 that are 2^N in length.  The pair distance is used to index into the
-table via a fast bit-mapping technique due to <A HREF = "#Wolff">(Wolff)</A>, and a
-linear interpolation is performed between adjacent table values.
-</P>
-<P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
-above.
-</P>
-<UL><LI>filename
-<LI>keyword
-<LI>cutoff (distance units) 
-</UL>
-<P>The filename specifies a file containing tabulated energy and force
+table via a fast bit-mapping technique due to <a class="reference internal" href="#wolff"><span>(Wolff)</span></a>, and a
+linear interpolation is performed between adjacent table values.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
+above.</p>
+<ul class="simple">
+<li>filename</li>
+<li>keyword</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The filename specifies a file containing tabulated energy and force
 values.  The keyword specifies a section of the file.  The cutoff is
 an optional coefficient.  If not specified, the outer cutoff in the
 table itself (see below) will be used to build an interpolation table
 that extend to the largest tabulated distance.  If specified, only
 file values up to the cutoff are used to create the interpolation
-table.  The format of this file is described below.
-</P>
-<P>If your tabulated potential(s) are designed to be used as the
+table.  The format of this file is described below.</p>
+<p>If your tabulated potential(s) are designed to be used as the
 short-range part of one of the long-range solvers specified by the
-<A HREF = "kspace_style.html">kspace_style</A> command, then you must use one or
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command, then you must use one or
 more of the optional keywords listed above for the pair_style command.
-These are <I>ewald</I> or <I>pppm</I> or <I>msm</I> or <I>dispersion</I> or <I>tip4p</I>.  This
+These are <em>ewald</em> or <em>pppm</em> or <em>msm</em> or <em>dispersion</em> or <em>tip4p</em>.  This
 is so LAMMPS can insure the short-range potential and long-range
 solver are compatible with each other, as it does for other
-short-range pair styles, such as <A HREF = "pair_lj.html">pair_style
-lj/cut/coul/long</A>.  Note that it is up to you to insure
+short-range pair styles, such as <a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/long</em></a>.  Note that it is up to you to insure
 the tabulated values for each pair of atom types has the correct
-functional form to be compatible with the matching long-range solver.
-</P>
-<HR>
-
-<P>Here are some guidelines for using the pair_style table command to
-best effect:
-</P>
-<UL><LI>Vary the number of table points; you may need to use more than you think
-to get good resolution. 
-
-<LI>Always use the <A HREF = "pair_write.html">pair_write</A> command to produce a plot
+functional form to be compatible with the matching long-range solver.</p>
+<hr class="docutils" />
+<p>Here are some guidelines for using the pair_style table command to
+best effect:</p>
+<ul class="simple">
+<li>Vary the number of table points; you may need to use more than you think
+to get good resolution.</li>
+<li>Always use the <a class="reference internal" href="pair_write.html"><em>pair_write</em></a> command to produce a plot
 of what the final interpolated potential looks like.  This can show up
-interpolation "features" you may not like. 
-
-<LI>Start with the linear style; it's the style least likely to have problems. 
-
-<LI>Use <I>N</I> in the pair_style command equal to the "N" in the tabulation
-file, and use the "RSQ" or "BITMAP" parameter, so additional interpolation
-is not needed.  See discussion below. 
-
-<LI>Make sure that your tabulated forces and tabulated energies are consistent 
-(dE/dr = -F) along the entire range of r values. 
-
-<LI>Use as large an inner cutoff as possible.  This avoids fitting splines
-to very steep parts of the potential. 
-</UL>
-<HR>
-
-<P>The format of a tabulated file is a series of one or more sections,
-defined as follows (without the parenthesized comments):
-</P>
-<PRE># Morse potential for Fe   (one or more comment or blank lines) 
-</PRE>
-<PRE>MORSE_FE                   (keyword is first text on line)
+interpolation &#8220;features&#8221; you may not like.</li>
+<li>Start with the linear style; it&#8217;s the style least likely to have problems.</li>
+<li>Use <em>N</em> in the pair_style command equal to the &#8220;N&#8221; in the tabulation
+file, and use the &#8220;RSQ&#8221; or &#8220;BITMAP&#8221; parameter, so additional interpolation
+is not needed.  See discussion below.</li>
+<li>Make sure that your tabulated forces and tabulated energies are consistent
+(dE/dr = -F) along the entire range of r values.</li>
+<li>Use as large an inner cutoff as possible.  This avoids fitting splines
+to very steep parts of the potential.</li>
+</ul>
+<hr class="docutils" />
+<p>The format of a tabulated file is a series of one or more sections,
+defined as follows (without the parenthesized comments):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Morse potential for Fe   (one or more comment or blank lines)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>MORSE_FE                   (keyword is first text on line)
 N 500 R 1.0 10.0           (N, R, RSQ, BITMAP, FPRIME parameters)
                            (blank)
 1 1.0 25.5 102.34          (index, r, energy, force)
 2 1.02 23.4 98.5
 ...
-500 10.0 0.001 0.003 
-</PRE>
-<P>A section begins with a non-blank line whose 1st character is not a
-"#"; blank lines or lines starting with "#" can be used as comments
+500 10.0 0.001 0.003
+</pre></div>
+</div>
+<p>A section begins with a non-blank line whose 1st character is not a
+&#8220;#&#8221;; blank lines or lines starting with &#8220;#&#8221; can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
 initial text must match the argument specified in the pair_coeff
 command.  The next line lists (in any order) one or more parameters
 for the table.  Each parameter is a keyword followed by one or more
-numeric values.
-</P>
-<P>The parameter "N" is required and its value is the number of table
-entries that follow.  Note that this may be different than the <I>N</I>
-specified in the <A HREF = "pair_style.html">pair_style table</A> command.  Let
-Ntable = <I>N</I> in the pair_style command, and Nfile = "N" in the
+numeric values.</p>
+<p>The parameter &#8220;N&#8221; is required and its value is the number of table
+entries that follow.  Note that this may be different than the <em>N</em>
+specified in the <a class="reference internal" href="pair_style.html"><em>pair_style table</em></a> command.  Let
+Ntable = <em>N</em> in the pair_style command, and Nfile = &#8220;N&#8221; in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
 uses these to interpolate as needed to generate energy and force
@@ -153,111 +260,153 @@ Ntable are then used as described above, when computing energy and
 force for individual pair distances.  This means that if you want the
 interpolation tables of length Ntable to match exactly what is in the
 tabulated file (with effectively no preliminary interpolation), you
-should set Ntable = Nfile, and use the "RSQ" or "BITMAP" parameter.
-The internal table abscissa is RSQ (separation distance squared).
-</P>
-<P>All other parameters are optional.  If "R" or "RSQ" or "BITMAP" does
+should set Ntable = Nfile, and use the &#8220;RSQ&#8221; or &#8220;BITMAP&#8221; parameter.
+The internal table abscissa is RSQ (separation distance squared).</p>
+<p>All other parameters are optional.  If &#8220;R&#8221; or &#8220;RSQ&#8221; or &#8220;BITMAP&#8221; does
 not appear, then the distances in each line of the table are used
 as-is to perform spline interpolation.  In this case, the table values
-can be spaced in <I>r</I> uniformly or however you wish to position table
-values in regions of large gradients.
-</P>
-<P>If used, the parameters "R" or "RSQ" are followed by 2 values <I>rlo</I>
-and <I>rhi</I>.  If specified, the distance associated with each energy and
+can be spaced in <em>r</em> uniformly or however you wish to position table
+values in regions of large gradients.</p>
+<p>If used, the parameters &#8220;R&#8221; or &#8220;RSQ&#8221; are followed by 2 values <em>rlo</em>
+and <em>rhi</em>.  If specified, the distance associated with each energy and
 force value is computed from these 2 values (at high accuracy), rather
 than using the (low-accuracy) value listed in each line of the table.
 The distance values in the table file are ignored in this case.
-For "R", distances uniformly spaced between <I>rlo</I> and <I>rhi</I> are
-computed; for "RSQ", squared distances uniformly spaced between
-<I>rlo*rlo</I> and <I>rhi*rhi</I> are computed.
-</P>
-<P>If used, the parameter "BITMAP" is also followed by 2 values <I>rlo</I> and
-<I>rhi</I>.  These values, along with the "N" value determine the ordering
+For &#8220;R&#8221;, distances uniformly spaced between <em>rlo</em> and <em>rhi</em> are
+computed; for &#8220;RSQ&#8221;, squared distances uniformly spaced between
+<em>rlo*rlo</em> and <em>rhi*rhi</em> are computed.</p>
+<p>If used, the parameter &#8220;BITMAP&#8221; is also followed by 2 values <em>rlo</em> and
+<em>rhi</em>.  These values, along with the &#8220;N&#8221; value determine the ordering
 of the N lines that follow and what distance is associated with each.
 This ordering is complex, so it is not documented here, since this
-file is typically produced by the <A HREF = "pair_write.html">pair_write</A> command
-with its <I>bitmap</I> option.  When the table is in BITMAP format, the "N"
+file is typically produced by the <a class="reference internal" href="pair_write.html"><em>pair_write</em></a> command
+with its <em>bitmap</em> option.  When the table is in BITMAP format, the &#8220;N&#8221;
 parameter in the file must be equal to 2^M where M is the value
 specified in the pair_style command.  Also, a cutoff parameter cannot
 be used as an optional 3rd argument in the pair_coeff command; the
-entire table extent as specified in the file must be used.
-</P>
-<P>If used, the parameter "FPRIME" is followed by 2 values <I>fplo</I> and
-<I>fphi</I> which are the derivative of the force at the innermost and
+entire table extent as specified in the file must be used.</p>
+<p>If used, the parameter &#8220;FPRIME&#8221; is followed by 2 values <em>fplo</em> and
+<em>fphi</em> which are the derivative of the force at the innermost and
 outermost distances listed in the table.  These values are needed by
-the spline construction routines.  If not specified by the "FPRIME"
+the spline construction routines.  If not specified by the &#8220;FPRIME&#8221;
 parameter, they are estimated (less accurately) by the first 2 and
 last 2 force values in the table.  This parameter is not used by
-BITMAP tables.
-</P>
-<P>Following a blank line, the next N lines list the tabulated values.
+BITMAP tables.</p>
+<p>Following a blank line, the next N lines list the tabulated values.
 On each line, the 1st value is the index from 1 to N, the 2nd value is
 r (in distance units), the 3rd value is the energy (in energy units),
 and the 4th is the force (in force units).  The r values must increase
-from one line to the next (unless the BITMAP parameter is specified).
-</P>
-<P>Note that one file can contain many sections, each with a tabulated
+from one line to the next (unless the BITMAP parameter is specified).</p>
+<p>Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
-one that matches the specified keyword.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+one that matches the specified keyword.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>This pair style does not support mixing.  Thus, coefficients for all
-I,J pairs must be specified explicitly.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> shift, table, and tail options are
-not relevant for this pair style.
-</P>
-<P>This pair style writes the settings for the "pair_style table" command
-to <A HREF = "restart.html">binary restart files</A>, so a pair_style command does
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>This pair style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> shift, table, and tail options are
+not relevant for this pair style.</p>
+<p>This pair style writes the settings for the &#8220;pair_style table&#8221; command
+to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so a pair_style command does
 not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
 file, since it is tabulated in the potential files.  Thus, pair_coeff
-commands do need to be specified in the restart input script.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<HR>
+commands do need to be specified in the restart input script.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="wolff"><strong>(Wolff)</strong> Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
 
-<A NAME = "Wolff"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Wolff)</B> Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

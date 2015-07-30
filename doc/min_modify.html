@@ -1,83 +1,266 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>min_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>min_modify command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>min_modify keyword values ... 
-</PRE>
-<UL><LI>one or more keyword/value pairs may be listed 
-
-<PRE>keyword = <I>dmax</I> or <I>line</I>
-  <I>dmax</I> value = max
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>min_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="min-modify-command">
+<span id="index-0"></span><h1>min_modify command<a class="headerlink" href="#min-modify-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>min_modify keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>one or more keyword/value pairs may be listed</li>
+</ul>
+<pre class="literal-block">
+keyword = <em>dmax</em> or <em>line</em>
+  <em>dmax</em> value = max
     max = maximum distance for line search to move (distance units)
-  <I>line</I> value = <I>backtrack</I> or <I>quadratic</I> or <I>forcezero</I>
-    backtrack,quadratic,forcezero = style of linesearch to use 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>min_modify dmax 0.2 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command sets parameters that affect the energy minimization
-algorithms selected by the <A HREF = "min_style.html">min_style</A> command.  The
+  <em>line</em> value = <em>backtrack</em> or <em>quadratic</em> or <em>forcezero</em>
+    backtrack,quadratic,forcezero = style of linesearch to use
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>min_modify dmax 0.2
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command sets parameters that affect the energy minimization
+algorithms selected by the <a class="reference internal" href="min_style.html"><em>min_style</em></a> command.  The
 various settings may affect the convergence rate and overall number of
 force evaluations required by a minimization, so users can experiment
-with these parameters to tune their minimizations.
-</P>
-<P>The <I>cg</I> and <I>sd</I> minimization styles have an outer iteration and an
+with these parameters to tune their minimizations.</p>
+<p>The <em>cg</em> and <em>sd</em> minimization styles have an outer iteration and an
 inner iteration which is steps along a one-dimensional line search in
-a particular search direction.  The <I>dmax</I> parameter is how far any
+a particular search direction.  The <em>dmax</em> parameter is how far any
 atom can move in a single line search in any dimension (x, y, or z).
-For the <I>quickmin</I> and <I>fire</I> minimization styles, the <I>dmax</I> setting
+For the <em>quickmin</em> and <em>fire</em> minimization styles, the <em>dmax</em> setting
 is how far any atom can move in a single iteration (timestep).  Thus a
-value of 0.1 in real <A HREF = "units.html">units</A> means no atom will move
+value of 0.1 in real <a class="reference internal" href="units.html"><em>units</em></a> means no atom will move
 further than 0.1 Angstroms in a single outer iteration.  This prevents
 highly overlapped atoms from being moved long distances (e.g. through
-another atom) due to large forces.
-</P>
-<P>The choice of line search algorithm for the <I>cg</I> and <I>sd</I> minimization
-styles can be selected via the <I>line</I> keyword.  
-The default <I>quadratic</I> line search algorithm starts out using 
+another atom) due to large forces.</p>
+<p>The choice of line search algorithm for the <em>cg</em> and <em>sd</em> minimization
+styles can be selected via the <em>line</em> keyword.
+The default <em>quadratic</em> line search algorithm starts out using
 the robust backtracking method described below. However, once
 the system gets close to a local
 minimum and the linesearch steps get small, so that the energy
-is approximately quadratic in the step length, it uses the 
+is approximately quadratic in the step length, it uses the
 estimated location of zero gradient as the linesearch step,
-provided the energy change is downhill. 
+provided the energy change is downhill.
 This becomes more efficient than backtracking
-for highly-converged relaxations. The <I>forcezero</I> 
-line search algorithm is similar to <I>quadratic</I>.
-It may be more efficient than <I>quadratic</I> on some systems.
-</P>
-<P>The backtracking search is robust and should always find a local energy
-minimum.  However, it will "converge" when it can no longer reduce the
+for highly-converged relaxations. The <em>forcezero</em>
+line search algorithm is similar to <em>quadratic</em>.
+It may be more efficient than <em>quadratic</em> on some systems.</p>
+<p>The backtracking search is robust and should always find a local energy
+minimum.  However, it will &#8220;converge&#8221; when it can no longer reduce the
 energy of the system.  Individual atom forces may still be larger than
 desired at this point, because the energy change is measured as the
 difference of two large values (energy before and energy after) and
 that difference may be smaller than machine epsilon even if atoms
-could move in the gradient direction to reduce forces further.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "min_style.html">min_style</A>, <A HREF = "minimize.html">minimize</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are dmax = 0.1 and line = quadratic.
-</P>
-</HTML>
+could move in the gradient direction to reduce forces further.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="min_style.html"><em>min_style</em></a>, <a class="reference internal" href="minimize.html"><em>minimize</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are dmax = 0.1 and line = quadratic.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

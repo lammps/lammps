@@ -1,170 +1,321 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix gle command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix gle command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID id-group gle Ns Tstart Tstop seed Amatrix [noneq Cmatrix] [every stride] 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>gle = style name of this fix command 
-
-<LI>Ns = number of additional fictitious momenta 
-
-<LI>Tstart, Tstop = temperature ramp during the run 
-
-<LI>Amatrix = file to read the drift matrix A from 
-
-<LI>seed = random number seed to use for generating noise (positive integer) 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-keyword = <I>noneq</I> and/or <I>every</I>
-  <I>noneq</I> Cmatrix  = file to read the non-equilibrium covariance matrix from 
-  <I>every</I> stride   = apply the GLE once every time steps. Reduces the accuracy
-      of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
-      sampling. It might change sampling properties when used together with <I>noneq</I>.
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<P>fix 3 boundary gle 6 300 300 31415 smart.A
-fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C
-</P>
-<P><B>Description:</B>
-</P>
-<P>Apply a Generalized Langevin Equation (GLE) thermostat as described
-in <A HREF = "#Ceriotti">(Ceriotti)</A>. The formalism allows one to obtain a number
-of different effects ranging from efficient sampling of all 
-vibrational modes in the system to inexpensive (approximate) 
-modelling of nuclear quantum effects. Contrary to 
-<A HREF = "fix_langevin.html">fix langevin</A>, this fix performs both 
-thermostatting and evolution of the Hamiltonian equations of motion, so it 
-should not be used together with <A HREF = "fix_nve.html">fix nve</A> -- at least not 
-on the same atom groups. 
-</P>
-<P>Each degree of freedom in the thermostatted group is supplemented
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix gle command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-gle-command">
+<span id="index-0"></span><h1>fix gle command<a class="headerlink" href="#fix-gle-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID id-group gle Ns Tstart Tstop seed Amatrix [noneq Cmatrix] [every stride]
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>gle = style name of this fix command</li>
+<li>Ns = number of additional fictitious momenta</li>
+<li>Tstart, Tstop = temperature ramp during the run</li>
+<li>Amatrix = file to read the drift matrix A from</li>
+<li>seed = random number seed to use for generating noise (positive integer)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+</ul>
+<dl class="docutils">
+<dt>keyword = <em>noneq</em> and/or <em>every</em></dt>
+<dd><p class="first"><em>noneq</em> Cmatrix  = file to read the non-equilibrium covariance matrix from
+<em>every</em> stride   = apply the GLE once every time steps. Reduces the accuracy</p>
+<blockquote class="last">
+<div>of the integration of the GLE, but has <em>no effect</em> on the accuracy of equilibrium
+sampling. It might change sampling properties when used together with <em>noneq</em>.</div></blockquote>
+</dd>
+</dl>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>fix 3 boundary gle 6 300 300 31415 smart.A
+fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C</p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Apply a Generalized Langevin Equation (GLE) thermostat as described
+in <a class="reference internal" href="#ceriotti"><span>(Ceriotti)</span></a>. The formalism allows one to obtain a number
+of different effects ranging from efficient sampling of all
+vibrational modes in the system to inexpensive (approximate)
+modelling of nuclear quantum effects. Contrary to
+<a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>, this fix performs both
+thermostatting and evolution of the Hamiltonian equations of motion, so it
+should not be used together with <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> &#8211; at least not
+on the same atom groups.</p>
+<p>Each degree of freedom in the thermostatted group is supplemented
 with Ns additional degrees of freedom s, and the equations of motion
-become
-</P>
-<P>dq/dt=p/m
-d(p,s)/dt=(F,0) - A(p,s) + B dW/dt
-</P>
-<P>where F is the physical force, A is the drift matrix (that generalizes 
-the friction in Langevin dynamics), B is the diffusion term and dW/dt 
+become</p>
+<p>dq/dt=p/m
+d(p,s)/dt=(F,0) - A(p,s) + B dW/dt</p>
+<p>where F is the physical force, A is the drift matrix (that generalizes
+the friction in Langevin dynamics), B is the diffusion term and dW/dt
 un-correlated Gaussian random forces. The A matrix couples the physical
-(q,p) dynamics with that of the additional degrees of freedom, 
-and makes it possible to obtain effectively a history-dependent 
-noise and friction kernel. 
-</P>
-<P>The drift matrix should be given as an external file <I>Afile</I>,
+(q,p) dynamics with that of the additional degrees of freedom,
+and makes it possible to obtain effectively a history-dependent
+noise and friction kernel.</p>
+<p>The drift matrix should be given as an external file <em>Afile</em>,
 as a (Ns+1 x Ns+1) matrix in inverse time units. Matrices that are
-optimal for a given application and the system of choice can be 
-obtained from <A HREF = "#GLE4MD">(GLE4MD)</A>.
-</P>
-<P>Equilibrium sampling a temperature T is obtained by specifiying the 
-target value as the <I>Tstart</I> and <I>Tstop</I> arguments, so that the diffusion 
+optimal for a given application and the system of choice can be
+obtained from <a class="reference internal" href="#gle4md"><span>(GLE4MD)</span></a>.</p>
+<p>Equilibrium sampling a temperature T is obtained by specifiying the
+target value as the <em>Tstart</em> and <em>Tstop</em> arguments, so that the diffusion
 matrix that gives canonical sampling for a given A is computed automatically.
 However, the GLE framework also allow for non-equilibrium sampling, that
 can be used for instance to model inexpensively zero-point energy
-effects <A HREF = "#Ceriotti2">(Ceriotti2)</A>. This is achieved specifying the 
-<I>noneq</I> keyword followed by the name of the file that contains the
-static covariance matrix for the non-equilibrium dynamics.
-</P>
-<P>Since integrating GLE dynamics can be costly when used together with 
-simple potentials, one can use the <I>every</I> optional keyword to 
-apply the Langevin terms only once every several MD steps, in a 
+effects <a class="reference internal" href="#ceriotti2"><span>(Ceriotti2)</span></a>. This is achieved specifying the
+<em>noneq</em> keyword followed by the name of the file that contains the
+static covariance matrix for the non-equilibrium dynamics.</p>
+<p>Since integrating GLE dynamics can be costly when used together with
+simple potentials, one can use the <em>every</em> optional keyword to
+apply the Langevin terms only once every several MD steps, in a
 multiple time-step fashion. This should be used with care when doing
 non-equilibrium sampling, but should have no effect on equilibrium
-averages when using canonical sampling.
-</P>
-<P>The random number <I>seed</I> must be a positive integer.  A Marsaglia random
+averages when using canonical sampling.</p>
+<p>The random number <em>seed</em> must be a positive integer.  A Marsaglia random
 number generator is used.  Each processor uses the input seed to
 generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
-different numbers of processors. 
-</P>
-<P>Note also that the Generalized Langevin Dynamics scheme that is 
-implemented by the <A HREF = "fix_gld.html">fix gld</A> scheme is closely related
+different numbers of processors.</p>
+<p>Note also that the Generalized Langevin Dynamics scheme that is
+implemented by the <a class="reference internal" href="fix_gld.html"><em>fix gld</em></a> scheme is closely related
 to the present one. In fact, it should be always possible to cast the
 Prony series form of the memory kernel used by GLD into an appropriate
-input matrix for <A HREF = "fix_gle.html">fix_gle</A>. While the GLE scheme is more
-general, the form used by <A HREF = "fix_gld.html">fix gld</A> can be more directly
-related to the representation of an implicit solvent environment. 
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>The instantaneous values of the extended variables are written to
-<A HREF = "restart.html">binary restart files</A>.  Because the state of the random
+input matrix for <a class="reference internal" href=""><em>fix_gle</em></a>. While the GLE scheme is more
+general, the form used by <a class="reference internal" href="fix_gld.html"><em>fix gld</em></a> can be more directly
+related to the representation of an implicit solvent environment.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>The instantaneous values of the extended variables are written to
+<a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  Because the state of the random
 number generator is not saved in restart files, this means you cannot
-do "exact" restarts with this fix, where the simulation continues on
+do &#8220;exact&#8221; restarts with this fix, where the simulation continues on
 the same as if no restart had taken place. However, in a statistical
 sense, a restarted simulation should produce the same behavior.
 Note however that you should use a different seed each time you
-restart, otherwise the same sequence of random numbers will be used 
-each time, which might lead to stochastic synchronization and 
-subtle artefacts in the sampling. 
-</P>
-<P>This fix can ramp its target temperature over multiple runs, using the
-<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
-<A HREF = "run.html">run</A> command for details of how to do this.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+restart, otherwise the same sequence of random numbers will be used
+each time, which might lead to stochastic synchronization and
+subtle artefacts in the sampling.</p>
+<p>This fix can ramp its target temperature over multiple runs, using the
+<em>start</em> and <em>stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.  See the
+<a class="reference internal" href="run.html"><em>run</em></a> command for details of how to do this.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
 fix to add the energy change induced by Langevin thermostatting to the
-system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.  
-</P>
-<P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the
 cummulative energy change due to this fix.  The scalar value
-calculated by this fix is "extensive".  
-</P>
-<P><B>Restrictions:</B> 
-</P>
-<P>The GLE thermostat in its current implementation should not be used
+calculated by this fix is &#8220;extensive&#8221;.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The GLE thermostat in its current implementation should not be used
 with rigid bodies, SHAKE or RATTLE. It is expected that all the
 thermostatted degrees of freedom are fully flexible, and the sampled
-ensemble will not be correct otherwise.
-</P>
-<P>In order to perform constant-pressure simulations please use 
-<A HREF = "fix_press_berendsen.html">fix press/berendsen</A>, rather than 
-<A HREF = "fix_npt.html">fix_npt</A>, to avoid duplicate integration of the
-equations of motion. 
-</P>
-<P>This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_viscous.html">fix
-viscous</A>, <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "pair_dpd.html">pair_style
-dpd/tstat</A>, <A HREF = "fix_gld.html">fix_gld</A>
-</P>
-<HR>
+ensemble will not be correct otherwise.</p>
+<p>In order to perform constant-pressure simulations please use
+<a class="reference internal" href="fix_press_berendsen.html"><em>fix press/berendsen</em></a>, rather than
+<code class="xref doc docutils literal"><span class="pre">fix_npt</span></code>, to avoid duplicate integration of the
+equations of motion.</p>
+<p>This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>, <a class="reference internal" href="fix_viscous.html"><em>fix viscous</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="pair_dpd.html"><em>pair_style dpd/tstat</em></a>, <a class="reference internal" href="fix_gld.html"><em>fix_gld</em></a></p>
+<hr class="docutils" />
+<p id="ceriotti"><strong>(Ceriotti)</strong> Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6,
+1170-80 (2010)</p>
+<p id="gle4md"><strong>(GLE4MD)</strong> <a class="reference external" href="http://epfl-cosmo.github.io/gle4md/">http://epfl-cosmo.github.io/gle4md/</a></p>
+<p id="ceriotti2"><strong>(Ceriotti2)</strong> Ceriotti, Bussi and Parrinello, Phys Rev Lett 103,
+030603 (2009)</p>
+</div>
+</div>
 
-<A NAME = "Ceriotti"></A>
 
-<P><B>(Ceriotti)</B> Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6, 
-1170-80 (2010)
-</P>
-<A NAME = "GLE4MD"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(GLE4MD)</B> <A HREF = "http://epfl-cosmo.github.io/gle4md/">http://epfl-cosmo.github.io/gle4md/</A>
-</P>
-<A NAME = "Ceriotti2"></A>
+  <hr/>
 
-<P><B>(Ceriotti2)</B> Ceriotti, Bussi and Parrinello, Phys Rev Lett 103, 
-030603 (2009)
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

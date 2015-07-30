@@ -1,82 +1,195 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID style args 
-</PRE>
-<UL><LI>ID = user-assigned name for the fix
-<LI>group-ID = ID of the group of atoms to apply the fix to
-<LI>style = one of a long list of possible style names (see below)
-<LI>args = arguments used by a particular style 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all nve
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-command">
+<span id="index-0"></span><h1>fix command<a class="headerlink" href="#fix-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID = user-assigned name for the fix</li>
+<li>group-ID = ID of the group of atoms to apply the fix to</li>
+<li>style = one of a long list of possible style names (see below)</li>
+<li>args = arguments used by a particular style</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all nve
 fix 3 all nvt temp 300.0 300.0 0.01
-fix mine top setforce 0.0 NULL 0.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set a fix that will be applied to a group of atoms.  In LAMMPS, a
-"fix" is any operation that is applied to the system during
+fix mine top setforce 0.0 NULL 0.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set a fix that will be applied to a group of atoms.  In LAMMPS, a
+&#8220;fix&#8221; is any operation that is applied to the system during
 timestepping or minimization.  Examples include updating of atom
 positions and velocities due to time integration, controlling
 temperature, applying constraint forces to atoms, enforcing boundary
 conditions, computing diagnostics, etc.  There are dozens of fixes
-defined in LAMMPS and new ones can be added; see <A HREF = "Section_modify.html">this
-section</A> for a discussion.
-</P>
-<P>Fixes perform their operations at different stages of the timestep.
+defined in LAMMPS and new ones can be added; see <a class="reference internal" href="Section_modify.html"><em>this section</em></a> for a discussion.</p>
+<p>Fixes perform their operations at different stages of the timestep.
 If 2 or more fixes operate at the same stage of the timestep, they are
-invoked in the order they were specified in the input script.
-</P>
-<P>The ID of a fix can only contain alphanumeric characters and
-underscores.
-</P>
-<P>Fixes can be deleted with the <A HREF = "unfix.html">unfix</A> command.
-</P>
-<P>IMPORTANT NOTE: The <A HREF = "unfix.html">unfix</A> command is the only way to turn
+invoked in the order they were specified in the input script.</p>
+<p>The ID of a fix can only contain alphanumeric characters and
+underscores.</p>
+<p>Fixes can be deleted with the <a class="reference internal" href="unfix.html"><em>unfix</em></a> command.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <a class="reference internal" href="unfix.html"><em>unfix</em></a> command is the only way to turn
 off a fix; simply specifying a new fix with a similar style will not
 turn off the first one.  This is especially important to realize for
-integration fixes.  For example, using a <A HREF = "fix_nve.html">fix nve</A>
-command for a second run after using a <A HREF = "fix_nh.html">fix nvt</A> command
+integration fixes.  For example, using a <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>
+command for a second run after using a <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command
 for the first run, will not cancel out the NVT time integration
-invoked by the "fix nvt" command.  Thus two time integrators would be
-in place!
-</P>
-<P>If you specify a new fix with the same ID and style as an existing
+invoked by the &#8220;fix nvt&#8221; command.  Thus two time integrators would be
+in place!</p>
+</div>
+<p>If you specify a new fix with the same ID and style as an existing
 fix, the old fix is deleted and the new one is created (presumably
-with new settings).  This is the same as if an "unfix" command were
+with new settings).  This is the same as if an &#8220;unfix&#8221; command were
 first performed on the old fix, except that the new fix is kept in the
 same order relative to the existing fixes as the old one originally
 was.  Note that this operation also wipes out any additional changes
-made to the old fix via the <A HREF = "fix_modify.html">fix_modify</A> command.
-</P>
-<P>The <A HREF = "fix_modify.html">fix modify</A> command allows settings for some
-fixes to be reset.  See the doc page for individual fixes for details.
-</P>
-<P>Some fixes store an internal "state" which is written to binary
-restart files via the <A HREF = "restart.html">restart</A> or
-<A HREF = "write_restart.html">write_restart</A> commands.  This allows the fix to
+made to the old fix via the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> command.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix modify</em></a> command allows settings for some
+fixes to be reset.  See the doc page for individual fixes for details.</p>
+<p>Some fixes store an internal &#8220;state&#8221; which is written to binary
+restart files via the <a class="reference internal" href="restart.html"><em>restart</em></a> or
+<a class="reference internal" href="write_restart.html"><em>write_restart</em></a> commands.  This allows the fix to
 continue on with its calculations in a restarted simulation.  See the
-<A HREF = "read_restart.html">read_restart</A> command for info on how to re-specify
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for info on how to re-specify
 a fix in an input script that reads a restart file.  See the doc pages
-for individual fixes for info on which ones can be restarted.
-</P>
-<HR>
-
-<P>Some fixes calculate one of three styles of quantities: global,
+for individual fixes for info on which ones can be restarted.</p>
+<hr class="docutils" />
+<p>Some fixes calculate one of three styles of quantities: global,
 per-atom, or local, which can be used by other commands or output as
 described below.  A global quantity is one or more system-wide values,
 e.g. the energy of a wall interacting with particles.  A per-atom
@@ -84,202 +197,257 @@ quantity is one or more values per atom, e.g. the displacement vector
 for each atom since time 0.  Per-atom values are set to 0.0 for atoms
 not in the specified fix group.  Local quantities are calculated by
 each processor based on the atoms it owns, but there may be zero or
-more per atoms.
-</P>
-<P>Note that a single fix may produces either global or per-atom or local
-quantities (or none at all), but never more than one of these.
-</P>
-<P>Global, per-atom, and local quantities each come in three kinds: a
+more per atoms.</p>
+<p>Note that a single fix may produces either global or per-atom or local
+quantities (or none at all), but never more than one of these.</p>
+<p>Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
 doc page for each fix describes the style and kind of values it
 produces, e.g. a per-atom vector.  Some fixes produce more than one
-kind of a single style, e.g. a global scalar and a global vector.
-</P>
-<P>When a fix quantity is accessed, as in many of the output commands
+kind of a single style, e.g. a global scalar and a global vector.</p>
+<p>When a fix quantity is accessed, as in many of the output commands
 discussed below, it can be referenced via the following bracket
-notation, where ID is the ID of the fix:
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >f_ID </TD><TD > entire scalar, vector, or array</TD></TR>
-<TR><TD >f_ID[I] </TD><TD > one element of vector, one column of array</TD></TR>
-<TR><TD >f_ID[I][J] </TD><TD > one element of array 
-</TD></TR></TABLE></DIV>
-
-<P>In other words, using one bracket reduces the dimension of the
-quantity once (vector -> scalar, array -> vector).  Using two brackets
-reduces the dimension twice (array -> scalar).  Thus a command that
+notation, where ID is the ID of the fix:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>f_ID</td>
+<td>entire scalar, vector, or array</td>
+</tr>
+<tr class="row-even"><td>f_ID[I]</td>
+<td>one element of vector, one column of array</td>
+</tr>
+<tr class="row-odd"><td>f_ID[I][J]</td>
+<td>one element of array</td>
+</tr>
+</tbody>
+</table>
+<p>In other words, using one bracket reduces the dimension of the
+quantity once (vector -&gt; scalar, array -&gt; vector).  Using two brackets
+reduces the dimension twice (array -&gt; scalar).  Thus a command that
 uses scalar fix values as input can also process elements of a vector
-or array.
-</P>
-<P>Note that commands and <A HREF = "variable.html">variables</A> which use fix
+or array.</p>
+<p>Note that commands and <a class="reference internal" href="variable.html"><em>variables</em></a> which use fix
 quantities typically do not allow for all kinds, e.g. a command may
 require a vector of values, not a scalar.  This means there is no
 ambiguity about referring to a fix quantity as f_ID even if it
 produces, for example, both a scalar and vector.  The doc pages for
-various commands explain the details.
-</P>
-<HR>
-
-<P>In LAMMPS, the values generated by a fix can be used in several ways:
-</P>
-<UL><LI>Global values can be output via the <A HREF = "thermo_style.html">thermo_style
-custom</A> or <A HREF = "fix_ave_time.html">fix ave/time</A> command.
-Or the values can be referenced in a <A HREF = "variable.html">variable equal</A> or
-<A HREF = "variable.html">variable atom</A> command. 
-
-<LI>Per-atom values can be output via the <A HREF = "dump.html">dump custom</A> command
-or the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command.  Or they can be
-time-averaged via the <A HREF = "fix_ave_atom.html">fix ave/atom</A> command or
-reduced by the <A HREF = "compute_reduce.html">compute reduce</A> command.  Or the
-per-atom values can be referenced in an <A HREF = "variable.html">atom-style
-variable</A>. 
-
-<LI>Local values can be reduced by the <A HREF = "compute_reduce.html">compute
-reduce</A> command, or histogrammed by the <A HREF = "fix_ave_histo.html">fix
-ave/histo</A> command. 
-</UL>
-<P>See this <A HREF = "Section_howto.html#howto_15">howto section</A> for a summary of
-various LAMMPS output options, many of which involve fixes.
-</P>
-<P>The results of fixes that calculate global quantities can be either
-"intensive" or "extensive" values.  Intensive means the value is
+various commands explain the details.</p>
+<hr class="docutils" />
+<p>In LAMMPS, the values generated by a fix can be used in several ways:</p>
+<ul class="simple">
+<li>Global values can be output via the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> or <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command.
+Or the values can be referenced in a <a class="reference internal" href="variable.html"><em>variable equal</em></a> or
+<a class="reference internal" href="variable.html"><em>variable atom</em></a> command.</li>
+<li>Per-atom values can be output via the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command
+or the <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a> command.  Or they can be
+time-averaged via the <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a> command or
+reduced by the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command.  Or the
+per-atom values can be referenced in an <a class="reference internal" href="variable.html"><em>atom-style variable</em></a>.</li>
+<li>Local values can be reduced by the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command, or histogrammed by the <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a> command.</li>
+</ul>
+<p>See this <a class="reference internal" href="Section_howto.html#howto-15"><span>howto section</span></a> for a summary of
+various LAMMPS output options, many of which involve fixes.</p>
+<p>The results of fixes that calculate global quantities can be either
+&#8220;intensive&#8221; or &#8220;extensive&#8221; values.  Intensive means the value is
 independent of the number of atoms in the simulation,
 e.g. temperature.  Extensive means the value scales with the number of
 atoms in the simulation, e.g. total rotational kinetic energy.
-<A HREF = "thermo_style.html">Thermodynamic output</A> will normalize extensive
+<a class="reference internal" href="thermo_style.html"><em>Thermodynamic output</em></a> will normalize extensive
 values by the number of atoms in the system, depending on the
-"thermo_modify norm" setting.  It will not normalize intensive values.
+&#8220;thermo_modify norm&#8221; setting.  It will not normalize intensive values.
 If a fix value is accessed in another way, e.g. by a
-<A HREF = "variable.html">variable</A>, you may want to know whether it is an
+<a class="reference internal" href="variable.html"><em>variable</em></a>, you may want to know whether it is an
 intensive or extensive value.  See the doc page for individual fixes
-for further info.
-</P>
-<HR>
-
-<P>Each fix style has its own documentation page which describes its
+for further info.</p>
+<hr class="docutils" />
+<p>Each fix style has its own documentation page which describes its
 arguments and what it does, as listed below.  Here is an alphabetic
 list of fix styles available in LAMMPS.  They are also given in more
-compact form in the fix section of <A HREF = "Section_commands.html#cmd_5">this
-page</A>.
-</P>
-<P>There are also additional fix styles (not listed here) submitted by
+compact form in the fix section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<p>There are also additional fix styles (not listed here) submitted by
 users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the fix section
-of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<P>There are also additional accelerated fix styles (not listed here)
+of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<p>There are also additional accelerated fix styles (not listed here)
 included in the LAMMPS distribution for faster performance on CPUs and
 GPUs.  The list of these with links to the individual styles are given
-in the fix section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<UL><LI><A HREF = "fix_adapt.html">adapt</A> - change a simulation parameter over time
-<LI><A HREF = "fix_addforce.html">addforce</A> - add a force to each atom
-<LI><A HREF = "fix_append_atoms.html">append/atoms</A> - append atoms to a running simulation
-<LI><A HREF = "fix_aveforce.html">aveforce</A> - add an averaged force to each atom
-<LI><A HREF = "fix_ave_atom.html">ave/atom</A> - compute per-atom time-averaged quantities
-<LI><A HREF = "fix_ave_correlate.html">ave/correlate</A> - compute/output time correlations
-<LI><A HREF = "fix_ave_histo.html">ave/histo</A> - compute/output time-averaged histograms
-<LI><A HREF = "fix_ave_spatial.html">ave/spatial</A> - compute/output time-averaged per-atom quantities by layer
-<LI><A HREF = "fix_ave_time.html">ave/time</A> - compute/output global time-averaged quantities
-<LI><A HREF = "fix_balance.html">balance</A> - perform dynamic load-balancing
-<LI><A HREF = "fix_bond_break.html">bond/break</A> - break bonds on the fly
-<LI><A HREF = "fix_bond_create.html">bond/create</A> - create bonds on the fly
-<LI><A HREF = "fix_bond_swap.html">bond/swap</A> - Monte Carlo bond swapping
-<LI><A HREF = "fix_box_relax.html">box/relax</A> - relax box size during energy minimization
-<LI><A HREF = "fix_deform.html">deform</A> - change the simulation box size/shape
-<LI><A HREF = "fix_deposit.html">deposit</A> - add new atoms above a surface
-<LI><A HREF = "fix_drag.html">drag</A> - drag atoms towards a defined coordinate
-<LI><A HREF = "fix_dt_reset.html">dt/reset</A> - reset the timestep based on velocity, forces
-<LI><A HREF = "fix_efield.html">efield</A> - impose electric field on system
-<LI><A HREF = "fix_enforce2d.html">enforce2d</A> - zero out z-dimension velocity and force
-<LI><A HREF = "fix_evaporate.html">evaporate</A> - remove atoms from simulation periodically
-<LI><A HREF = "fix_external.html">external</A> - callback to an external driver program
-<LI><A HREF = "fix_freeze.html">freeze</A> - freeze atoms in a granular simulation
-<LI><A HREF = "fix_gcmc.html">gcmc</A> - grand canonical insertions/deletions
-<LI><A HREF = "fix_gcmc.html">gld</A> - generalized Langevin dynamics integrator
-<LI><A HREF = "fix_gravity.html">gravity</A> - add gravity to atoms in a granular simulation
-<LI><A HREF = "fix_heat.html">heat</A> - add/subtract momentum-conserving heat
-<LI><A HREF = "fix_indent.html">indent</A> - impose force due to an indenter
-<LI><A HREF = "fix_langevin.html">langevin</A> - Langevin temperature control
-<LI><A HREF = "fix_lineforce.html">lineforce</A> - constrain atoms to move in a line
-<LI><A HREF = "fix_momentum.html">momentum</A> - zero the linear and/or angular momentum of a group of atoms
-<LI><A HREF = "fix_move.html">move</A> - move atoms in a prescribed fashion
-<LI><A HREF = "fix_msst.html">msst</A> - multi-scale shock technique (MSST) integration
-<LI><A HREF = "fix_neb.html">neb</A> - nudged elastic band (NEB) spring forces
-<LI><A HREF = "fix_nh.html">nph</A> - constant NPH time integration via Nose/Hoover
-<LI><A HREF = "fix_nphug.html">nphug</A> - constant-stress Hugoniostat integration
-<LI><A HREF = "fix_nph_asphere.html">nph/asphere</A> - NPH for aspherical particles
-<LI><A HREF = "fix_nph_sphere.html">nph/sphere</A> - NPH for spherical particles
-<LI><A HREF = "fix_nh.html">npt</A> - constant NPT time integration via Nose/Hoover
-<LI><A HREF = "fix_npt_asphere.html">npt/asphere</A> - NPT for aspherical particles
-<LI><A HREF = "fix_npt_sphere.html">npt/sphere</A> - NPT for spherical particles
-<LI><A HREF = "fix_nve.html">nve</A> - constant NVE time integration
-<LI><A HREF = "fix_nve_asphere.html">nve/asphere</A> - NVE for aspherical particles
-<LI><A HREF = "fix_nve_asphere_noforce.html">nve/asphere/noforce</A> - NVE for aspherical particles without forces"
-<LI><A HREF = "fix_nve_body.html">nve/body</A> - NVE for body particles
-<LI><A HREF = "fix_nve_limit.html">nve/limit</A> - NVE with limited step length
-<LI><A HREF = "fix_nve_line.html">nve/line</A> - NVE for line segments
-<LI><A HREF = "fix_nve_noforce.html">nve/noforce</A> - NVE without forces (v only)
-<LI><A HREF = "fix_nve_sphere.html">nve/sphere</A> - NVE for spherical particles
-<LI><A HREF = "fix_nve_tri.html">nve/tri</A> - NVE for triangles
-<LI><A HREF = "fix_nh.html">nvt</A> - constant NVT time integration via Nose/Hoover
-<LI><A HREF = "fix_nvt_asphere.html">nvt/asphere</A> - NVT for aspherical particles
-<LI><A HREF = "fix_nvt_sllod.html">nvt/sllod</A> - NVT for NEMD with SLLOD equations
-<LI><A HREF = "fix_nvt_sphere.html">nvt/sphere</A> - NVT for spherical particles
-<LI><A HREF = "fix_orient_fcc.html">orient/fcc</A> - add grain boundary migration force
-<LI><A HREF = "fix_planeforce.html">planeforce</A> - constrain atoms to move in a plane
-<LI><A HREF = "fix_poems.html">poems</A> - constrain clusters of atoms to move   as coupled rigid bodies
-<LI><A HREF = "fix_pour.html">pour</A> - pour new atoms/molecules into a granular simulation domain
-<LI><A HREF = "fix_press_berendsen.html">press/berendsen</A> - pressure control by      Berendsen barostat
-<LI><A HREF = "fix_print.html">print</A> - print text and variables during a simulation
-<LI><A HREF = "fix_property_atom.html">property/atom</A> - add customized per-atom values
-<LI><A HREF = "fix_qeq_comb.html">qeq/comb</A> - charge equilibration for COMB potential <A HREF = "fix_qeq.html">qeq/dynamic</A> - charge equilibration via dynamic method <A HREF = "fix_qeq.html">qeq/point</A> - charge equilibration via point method <A HREF = "fix_qeq.html">qeq/shielded</A> - charge equilibration via shielded method <A HREF = "fix_qeq.html">qeq/slater</A> - charge equilibration via Slater method <A HREF = "fix_reax_bonds.html">reax/bonds</A> - write out ReaxFF bond information <A HREF = "fix_recenter.html">recenter</A> - constrain the center-of-mass position   of a group of atoms
-<LI><A HREF = "fix_restrain.html">restrain</A> - constrain a bond, angle, dihedral
-<LI><A HREF = "fix_rigid.html">rigid</A> - constrain one or more clusters of atoms to      move as a rigid body with NVE integration
-<LI><A HREF = "fix_rigid.html">rigid/nph</A> - constrain one or more clusters of atoms to      move as a rigid body with NPH integration
-<LI><A HREF = "fix_rigid.html">rigid/npt</A> - constrain one or more clusters of atoms to      move as a rigid body with NPT integration
-<LI><A HREF = "fix_rigid.html">rigid/nve</A> - constrain one or more clusters of atoms to      move as a rigid body with alternate NVE integration
-<LI><A HREF = "fix_rigid.html">rigid/nvt</A> - constrain one or more clusters of atoms to      move as a rigid body with NVT integration
-<LI><A HREF = "fix_rigid.html">rigid/small</A> - constrain many small clusters of atoms to      move as a rigid body with NVE integration
-<LI><A HREF = "fix_setforce.html">setforce</A> - set the force on each atom
-<LI><A HREF = "fix_shake.html">shake</A> - SHAKE constraints on bonds and/or angles
-<LI><A HREF = "fix_spring.html">spring</A> - apply harmonic spring force to group of atoms
-<LI><A HREF = "fix_spring_rg.html">spring/rg</A> - spring on radius of gyration of      group of atoms
-<LI><A HREF = "fix_spring_self.html">spring/self</A> - spring from each atom to its origin
-<LI><A HREF = "fix_srd.html">srd</A> - stochastic rotation dynamics (SRD)
-<LI><A HREF = "fix_store_force.html">store/force</A> - store force on each atom
-<LI><A HREF = "fix_store_state.html">store/state</A> - store attributes for each atom
-<LI><A HREF = "fix_temp_berendsen.html">temp/berendsen</A> - temperature control by      Berendsen thermostat
-<LI><A HREF = "fix_temp_rescale.html">temp/rescale</A> - temperature control by      velocity rescaling
-<LI><A HREF = "fix_thermal_conductivity.html">thermal/conductivity</A> - Muller-Plathe kinetic energy exchange for      thermal conductivity calculation
-<LI><A HREF = "fix_tmd.html">tmd</A> - guide a group of atoms to a new configuration
-<LI><A HREF = "fix_ttm.html">ttm</A> - two-temperature model for electronic/atomic coupling
-<LI><A HREF = "fix_tune_kspace.html">tune/kspace</A> - auto-tune KSpace parameters
-<LI><A HREF = "fix_vector.html">vector</A> - accumulate a global vector every N timesteps
-<LI><A HREF = "fix_viscosity.html">viscosity</A> - Muller-Plathe momentum exchange for      viscosity calculation
-<LI><A HREF = "fix_viscous.html">viscous</A> - viscous damping for granular simulations
-<LI><A HREF = "fix_wall.html">wall/colloid</A> - Lennard-Jones wall interacting with finite-size particles
-<LI><A HREF = "fix_wall_gran.html">wall/gran</A> - frictional wall(s) for granular simulations
-<LI><A HREF = "fix_wall.html">wall/harmonic</A> - harmonic spring wall
-<LI><A HREF = "fix_wall.html">wall/lj1043</A> - Lennard-Jones 10-4-3 wall
-<LI><A HREF = "fix_wall.html">wall/lj126</A> - Lennard-Jones 12-6 wall
-<LI><A HREF = "fix_wall.html">wall/lj93</A> - Lennard-Jones 9-3 wall
-<LI><A HREF = "fix_wall_piston.html">wall/piston</A> - moving reflective piston wall
-<LI><A HREF = "fix_wall_reflect.html">wall/reflect</A> - reflecting wall(s)
-<LI><A HREF = "fix_wall_region.html">wall/region</A> - use region surface as wall
-<LI><A HREF = "fix_wall_srd.html">wall/srd</A> - slip/no-slip wall for SRD particles 
-</UL>
-<P><B>Restrictions:</B>
-</P>
-<P>Some fix styles are part of specific packages.  They are only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info on packages.
-The doc pages for individual fixes tell if it is part of a package.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "unfix.html">unfix</A>, <A HREF = "fix_modify.html">fix_modify</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+in the fix section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<ul class="simple">
+<li><a class="reference internal" href="fix_adapt.html"><em>adapt</em></a> - change a simulation parameter over time</li>
+<li><a class="reference internal" href="fix_addforce.html"><em>addforce</em></a> - add a force to each atom</li>
+<li><a class="reference internal" href="fix_append_atoms.html"><em>append/atoms</em></a> - append atoms to a running simulation</li>
+<li><a class="reference internal" href="fix_aveforce.html"><em>aveforce</em></a> - add an averaged force to each atom</li>
+<li><a class="reference internal" href="fix_ave_atom.html"><em>ave/atom</em></a> - compute per-atom time-averaged quantities</li>
+<li><a class="reference internal" href="fix_ave_correlate.html"><em>ave/correlate</em></a> - compute/output time correlations</li>
+<li><a class="reference internal" href="fix_ave_histo.html"><em>ave/histo</em></a> - compute/output time-averaged histograms</li>
+<li><a class="reference internal" href="fix_ave_spatial.html"><em>ave/spatial</em></a> - compute/output time-averaged per-atom quantities by layer</li>
+<li><a class="reference internal" href="fix_ave_time.html"><em>ave/time</em></a> - compute/output global time-averaged quantities</li>
+<li><a class="reference internal" href="fix_balance.html"><em>balance</em></a> - perform dynamic load-balancing</li>
+<li><a class="reference internal" href="fix_bond_break.html"><em>bond/break</em></a> - break bonds on the fly</li>
+<li><a class="reference internal" href="fix_bond_create.html"><em>bond/create</em></a> - create bonds on the fly</li>
+<li><a class="reference internal" href="fix_bond_swap.html"><em>bond/swap</em></a> - Monte Carlo bond swapping</li>
+<li><a class="reference internal" href="fix_box_relax.html"><em>box/relax</em></a> - relax box size during energy minimization</li>
+<li><a class="reference internal" href="fix_deform.html"><em>deform</em></a> - change the simulation box size/shape</li>
+<li><a class="reference internal" href="fix_deposit.html"><em>deposit</em></a> - add new atoms above a surface</li>
+<li><a class="reference internal" href="fix_drag.html"><em>drag</em></a> - drag atoms towards a defined coordinate</li>
+<li><a class="reference internal" href="fix_dt_reset.html"><em>dt/reset</em></a> - reset the timestep based on velocity, forces</li>
+<li><a class="reference internal" href="fix_efield.html"><em>efield</em></a> - impose electric field on system</li>
+<li><a class="reference internal" href="fix_enforce2d.html"><em>enforce2d</em></a> - zero out z-dimension velocity and force</li>
+<li><a class="reference internal" href="fix_evaporate.html"><em>evaporate</em></a> - remove atoms from simulation periodically</li>
+<li><a class="reference internal" href="fix_external.html"><em>external</em></a> - callback to an external driver program</li>
+<li><a class="reference internal" href="fix_freeze.html"><em>freeze</em></a> - freeze atoms in a granular simulation</li>
+<li><a class="reference internal" href="fix_gcmc.html"><em>gcmc</em></a> - grand canonical insertions/deletions</li>
+<li><a class="reference internal" href="fix_gcmc.html"><em>gld</em></a> - generalized Langevin dynamics integrator</li>
+<li><a class="reference internal" href="fix_gravity.html"><em>gravity</em></a> - add gravity to atoms in a granular simulation</li>
+<li><a class="reference internal" href="fix_heat.html"><em>heat</em></a> - add/subtract momentum-conserving heat</li>
+<li><a class="reference internal" href="fix_indent.html"><em>indent</em></a> - impose force due to an indenter</li>
+<li><a class="reference internal" href="fix_langevin.html"><em>langevin</em></a> - Langevin temperature control</li>
+<li><a class="reference internal" href="fix_lineforce.html"><em>lineforce</em></a> - constrain atoms to move in a line</li>
+<li><a class="reference internal" href="fix_momentum.html"><em>momentum</em></a> - zero the linear and/or angular momentum of a group of atoms</li>
+<li><a class="reference internal" href="fix_move.html"><em>move</em></a> - move atoms in a prescribed fashion</li>
+<li><a class="reference internal" href="fix_msst.html"><em>msst</em></a> - multi-scale shock technique (MSST) integration</li>
+<li><a class="reference internal" href="fix_neb.html"><em>neb</em></a> - nudged elastic band (NEB) spring forces</li>
+<li><a class="reference internal" href="fix_nh.html"><em>nph</em></a> - constant NPH time integration via Nose/Hoover</li>
+<li><a class="reference internal" href="fix_nphug.html"><em>nphug</em></a> - constant-stress Hugoniostat integration</li>
+<li><a class="reference internal" href="fix_nph_asphere.html"><em>nph/asphere</em></a> - NPH for aspherical particles</li>
+<li><a class="reference internal" href="fix_nph_sphere.html"><em>nph/sphere</em></a> - NPH for spherical particles</li>
+<li><a class="reference internal" href="fix_nh.html"><em>npt</em></a> - constant NPT time integration via Nose/Hoover</li>
+<li><a class="reference internal" href="fix_npt_asphere.html"><em>npt/asphere</em></a> - NPT for aspherical particles</li>
+<li><a class="reference internal" href="fix_npt_sphere.html"><em>npt/sphere</em></a> - NPT for spherical particles</li>
+<li><a class="reference internal" href="fix_nve.html"><em>nve</em></a> - constant NVE time integration</li>
+<li><a class="reference internal" href="fix_nve_asphere.html"><em>nve/asphere</em></a> - NVE for aspherical particles</li>
+<li><a class="reference internal" href="fix_nve_asphere_noforce.html"><em>nve/asphere/noforce</em></a> - NVE for aspherical particles without forces&#8221;</li>
+<li><a class="reference internal" href="fix_nve_body.html"><em>nve/body</em></a> - NVE for body particles</li>
+<li><a class="reference internal" href="fix_nve_limit.html"><em>nve/limit</em></a> - NVE with limited step length</li>
+<li><a class="reference internal" href="fix_nve_line.html"><em>nve/line</em></a> - NVE for line segments</li>
+<li><a class="reference internal" href="fix_nve_noforce.html"><em>nve/noforce</em></a> - NVE without forces (v only)</li>
+<li><a class="reference internal" href="fix_nve_sphere.html"><em>nve/sphere</em></a> - NVE for spherical particles</li>
+<li><a class="reference internal" href="fix_nve_tri.html"><em>nve/tri</em></a> - NVE for triangles</li>
+<li><a class="reference internal" href="fix_nh.html"><em>nvt</em></a> - constant NVT time integration via Nose/Hoover</li>
+<li><a class="reference internal" href="fix_nvt_asphere.html"><em>nvt/asphere</em></a> - NVT for aspherical particles</li>
+<li><a class="reference internal" href="fix_nvt_sllod.html"><em>nvt/sllod</em></a> - NVT for NEMD with SLLOD equations</li>
+<li><a class="reference internal" href="fix_nvt_sphere.html"><em>nvt/sphere</em></a> - NVT for spherical particles</li>
+<li><a class="reference internal" href="fix_orient_fcc.html"><em>orient/fcc</em></a> - add grain boundary migration force</li>
+<li><a class="reference internal" href="fix_planeforce.html"><em>planeforce</em></a> - constrain atoms to move in a plane</li>
+<li><a class="reference internal" href="fix_poems.html"><em>poems</em></a> - constrain clusters of atoms to move   as coupled rigid bodies</li>
+<li><a class="reference internal" href="fix_pour.html"><em>pour</em></a> - pour new atoms/molecules into a granular simulation domain</li>
+<li><a class="reference internal" href="fix_press_berendsen.html"><em>press/berendsen</em></a> - pressure control by      Berendsen barostat</li>
+<li><a class="reference internal" href="fix_print.html"><em>print</em></a> - print text and variables during a simulation</li>
+<li><a class="reference internal" href="fix_property_atom.html"><em>property/atom</em></a> - add customized per-atom values</li>
+<li><a class="reference internal" href="fix_qeq_comb.html"><em>qeq/comb</em></a> - charge equilibration for COMB potential <a class="reference internal" href="fix_qeq.html"><em>qeq/dynamic</em></a> - charge equilibration via dynamic method <a class="reference internal" href="fix_qeq.html"><em>qeq/point</em></a> - charge equilibration via point method <a class="reference internal" href="fix_qeq.html"><em>qeq/shielded</em></a> - charge equilibration via shielded method <a class="reference internal" href="fix_qeq.html"><em>qeq/slater</em></a> - charge equilibration via Slater method <a class="reference internal" href="fix_reax_bonds.html"><em>reax/bonds</em></a> - write out ReaxFF bond information <a class="reference internal" href="fix_recenter.html"><em>recenter</em></a> - constrain the center-of-mass position   of a group of atoms</li>
+<li><a class="reference internal" href="fix_restrain.html"><em>restrain</em></a> - constrain a bond, angle, dihedral</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid</em></a> - constrain one or more clusters of atoms to      move as a rigid body with NVE integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/nph</em></a> - constrain one or more clusters of atoms to      move as a rigid body with NPH integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/npt</em></a> - constrain one or more clusters of atoms to      move as a rigid body with NPT integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/nve</em></a> - constrain one or more clusters of atoms to      move as a rigid body with alternate NVE integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/nvt</em></a> - constrain one or more clusters of atoms to      move as a rigid body with NVT integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/small</em></a> - constrain many small clusters of atoms to      move as a rigid body with NVE integration</li>
+<li><a class="reference internal" href="fix_setforce.html"><em>setforce</em></a> - set the force on each atom</li>
+<li><a class="reference internal" href="fix_shake.html"><em>shake</em></a> - SHAKE constraints on bonds and/or angles</li>
+<li><a class="reference internal" href="fix_spring.html"><em>spring</em></a> - apply harmonic spring force to group of atoms</li>
+<li><a class="reference internal" href="fix_spring_rg.html"><em>spring/rg</em></a> - spring on radius of gyration of      group of atoms</li>
+<li><a class="reference internal" href="fix_spring_self.html"><em>spring/self</em></a> - spring from each atom to its origin</li>
+<li><a class="reference internal" href="fix_srd.html"><em>srd</em></a> - stochastic rotation dynamics (SRD)</li>
+<li><a class="reference internal" href="fix_store_force.html"><em>store/force</em></a> - store force on each atom</li>
+<li><a class="reference internal" href="fix_store_state.html"><em>store/state</em></a> - store attributes for each atom</li>
+<li><a class="reference internal" href="fix_temp_berendsen.html"><em>temp/berendsen</em></a> - temperature control by      Berendsen thermostat</li>
+<li><a class="reference internal" href="fix_temp_rescale.html"><em>temp/rescale</em></a> - temperature control by      velocity rescaling</li>
+<li><a class="reference internal" href="fix_thermal_conductivity.html"><em>thermal/conductivity</em></a> - Muller-Plathe kinetic energy exchange for      thermal conductivity calculation</li>
+<li><a class="reference internal" href="fix_tmd.html"><em>tmd</em></a> - guide a group of atoms to a new configuration</li>
+<li><a class="reference internal" href="fix_ttm.html"><em>ttm</em></a> - two-temperature model for electronic/atomic coupling</li>
+<li><a class="reference internal" href="fix_tune_kspace.html"><em>tune/kspace</em></a> - auto-tune KSpace parameters</li>
+<li><a class="reference internal" href="fix_vector.html"><em>vector</em></a> - accumulate a global vector every N timesteps</li>
+<li><a class="reference internal" href="fix_viscosity.html"><em>viscosity</em></a> - Muller-Plathe momentum exchange for      viscosity calculation</li>
+<li><a class="reference internal" href="fix_viscous.html"><em>viscous</em></a> - viscous damping for granular simulations</li>
+<li><a class="reference internal" href="fix_wall.html"><em>wall/colloid</em></a> - Lennard-Jones wall interacting with finite-size particles</li>
+<li><a class="reference internal" href="fix_wall_gran.html"><em>wall/gran</em></a> - frictional wall(s) for granular simulations</li>
+<li><a class="reference internal" href="fix_wall.html"><em>wall/harmonic</em></a> - harmonic spring wall</li>
+<li><a class="reference internal" href="fix_wall.html"><em>wall/lj1043</em></a> - Lennard-Jones 10-4-3 wall</li>
+<li><a class="reference internal" href="fix_wall.html"><em>wall/lj126</em></a> - Lennard-Jones 12-6 wall</li>
+<li><a class="reference internal" href="fix_wall.html"><em>wall/lj93</em></a> - Lennard-Jones 9-3 wall</li>
+<li><a class="reference internal" href="fix_wall_piston.html"><em>wall/piston</em></a> - moving reflective piston wall</li>
+<li><a class="reference internal" href="fix_wall_reflect.html"><em>wall/reflect</em></a> - reflecting wall(s)</li>
+<li><a class="reference internal" href="fix_wall_region.html"><em>wall/region</em></a> - use region surface as wall</li>
+<li><a class="reference internal" href="fix_wall_srd.html"><em>wall/srd</em></a> - slip/no-slip wall for SRD particles</li>
+</ul>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Some fix styles are part of specific packages.  They are only enabled
+if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info on packages.
+The doc pages for individual fixes tell if it is part of a package.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="unfix.html"><em>unfix</em></a>, <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,241 +1,335 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dump_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>dump_modify command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>dump_modify dump-ID keyword values ... 
-</PRE>
-<UL><LI>dump-ID = ID of dump to modify 
-
-<LI>one or more keyword/value pairs may be appended 
-
-<LI>these keywords apply to various dump styles 
-
-<LI>keyword = <I>append</I> or <I>buffer</I> or <I>element</I> or <I>every</I> or <I>fileper</I> or <I>first</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>label</I> or <I>nfile</I> or <I>pad</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
-
-<PRE>  <I>append</I> arg = <I>yes</I> or <I>no</I>
-  <I>buffer</I> arg = <I>yes</I> or <I>no</I>
-  <I>element</I> args = E1 E2 ... EN, where N = # of atom types
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>dump_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="dump-modify-command">
+<span id="index-0"></span><h1>dump_modify command<a class="headerlink" href="#dump-modify-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dump_modify dump-ID keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>dump-ID = ID of dump to modify</li>
+<li>one or more keyword/value pairs may be appended</li>
+<li>these keywords apply to various dump styles</li>
+<li>keyword = <em>append</em> or <em>buffer</em> or <em>element</em> or <em>every</em> or <em>fileper</em> or <em>first</em> or <em>flush</em> or <em>format</em> or <em>image</em> or <em>label</em> or <em>nfile</em> or <em>pad</em> or <em>precision</em> or <em>region</em> or <em>scale</em> or <em>sort</em> or <em>thresh</em> or <em>unwrap</em></li>
+</ul>
+<pre class="literal-block">
+<em>append</em> arg = <em>yes</em> or <em>no</em>
+  <em>buffer</em> arg = <em>yes</em> or <em>no</em>
+  <em>element</em> args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
-  <I>every</I> arg = N
+  <em>every</em> arg = N
     N = dump every this many timesteps
     N can be a variable (see below)
-  <I>fileper</I> arg = Np
+  <em>fileper</em> arg = Np
     Np = write one file for every this many processors
-  <I>first</I> arg = <I>yes</I> or <I>no</I>
-  <I>format</I> arg = C-style format string for one line of output
-  <I>flush</I> arg = <I>yes</I> or <I>no</I>
-  <I>image</I> arg = <I>yes</I> or <I>no</I>
-  <I>label</I> arg = string
+  <em>first</em> arg = <em>yes</em> or <em>no</em>
+  <em>format</em> arg = C-style format string for one line of output
+  <em>flush</em> arg = <em>yes</em> or <em>no</em>
+  <em>image</em> arg = <em>yes</em> or <em>no</em>
+  <em>label</em> arg = string
     string = character string (e.g. BONDS) to use in header of dump local file
-  <I>nfile</I> arg = Nf
+  <em>nfile</em> arg = Nf
     Nf = write this many files, one from each of Nf processors
-  <I>pad</I> arg = Nchar = # of characters to convert timestep to
-  <I>precision</I> arg = power-of-10 value from 10 to 1000000
-  <I>region</I> arg = region-ID or "none"
-  <I>scale</I> arg = <I>yes</I> or <I>no</I>
-  <I>sfactor</I> arg = coordinate scaling factor (> 0.0)
-  <I>tfactor</I> arg = time scaling factor (> 0.0)
-  <I>sort</I> arg = <I>off</I> or <I>id</I> or N or -N
+  <em>pad</em> arg = Nchar = # of characters to convert timestep to
+  <em>precision</em> arg = power-of-10 value from 10 to 1000000
+  <em>region</em> arg = region-ID or &quot;none&quot;
+  <em>scale</em> arg = <em>yes</em> or <em>no</em>
+  <em>sfactor</em> arg = coordinate scaling factor (&gt; 0.0)
+  <em>tfactor</em> arg = time scaling factor (&gt; 0.0)
+  <em>sort</em> arg = <em>off</em> or <em>id</em> or N or -N
      off = no sorting of per-atom lines within a snapshot
      id = sort per-atom lines by atom ID
      N = sort per-atom lines in ascending order by the Nth column
      -N = sort per-atom lines in descending order by the Nth column
-  <I>thresh</I> args = attribute operation value
+  <em>thresh</em> args = attribute operation value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
-    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
+    operation = &quot;&lt;&quot; or &quot;&lt;=&quot; or &quot;&gt;&quot; or &quot;&gt;=&quot; or &quot;==&quot; or &quot;!=&quot;
     value = numeric value to compare to
-    these 3 args can be replaced by the word "none" to turn off thresholding
-  <I>unwrap</I> arg = <I>yes</I> or <I>no</I> 
-</PRE>
-<LI>these keywords apply only to the <I>image</I> and <I>movie</I> <A HREF = "dump_image.html">styles</A> 
-
-<LI>keyword = <I>acolor</I> or <I>adiam</I> or <I>amap</I> or <I>backcolor</I> or <I>bcolor</I> or <I>bdiam</I> or <I>boxcolor</I> or <I>color</I> or <I>bitrate</I> or <I>framerate</I> 
-
-<PRE>  <I>acolor</I> args = type color
+    these 3 args can be replaced by the word &quot;none&quot; to turn off thresholding
+  <em>unwrap</em> arg = <em>yes</em> or <em>no</em>
+</pre>
+<ul class="simple">
+<li>these keywords apply only to the <em>image</em> and <em>movie</em> <a class="reference internal" href="dump_image.html"><em>styles</em></a></li>
+<li>keyword = <em>acolor</em> or <em>adiam</em> or <em>amap</em> or <em>backcolor</em> or <em>bcolor</em> or <em>bdiam</em> or <em>boxcolor</em> or <em>color</em> or <em>bitrate</em> or <em>framerate</em></li>
+</ul>
+<pre class="literal-block">
+<em>acolor</em> args = type color
     type = atom type or range of types (see below)
     color = name of color or color1/color2/...
-  <I>adiam</I> args = type diam
+  <em>adiam</em> args = type diam
     type = atom type or range of types (see below)
     diam = diameter of atoms of that type (distance units)
-  <I>amap</I> args = lo hi style delta N entry1 entry2 ... entryN
-    lo = number or <I>min</I> = lower bound of range of color map
-    hi = number or <I>max</I> = upper bound of range of color map
-    style = 2 letters = "c" or "d" or "s" plus "a" or "f"
-      "c" for continuous
-      "d" for discrete
-      "s" for sequential
-      "a" for absolute
-      "f" for fractional
-    delta = binsize (only used for style "s", otherwise ignored)
+  <em>amap</em> args = lo hi style delta N entry1 entry2 ... entryN
+    lo = number or <em>min</em> = lower bound of range of color map
+    hi = number or <em>max</em> = upper bound of range of color map
+    style = 2 letters = &quot;c&quot; or &quot;d&quot; or &quot;s&quot; plus &quot;a&quot; or &quot;f&quot;
+      &quot;c&quot; for continuous
+      &quot;d&quot; for discrete
+      &quot;s&quot; for sequential
+      &quot;a&quot; for absolute
+      &quot;f&quot; for fractional
+    delta = binsize (only used for style &quot;s&quot;, otherwise ignored)
       binsize = range is divided into bins of this width
     N = # of subsequent entries
     entry = value color (for continuous style)
-      value = number or <I>min</I> or <I>max</I> = single value within range
+      value = number or <em>min</em> or <em>max</em> = single value within range
       color = name of color used for that value
     entry = lo hi color (for discrete style)
-      lo/hi = number or <I>min</I> or <I>max</I> = lower/upper bound of subset of range
+      lo/hi = number or <em>min</em> or <em>max</em> = lower/upper bound of subset of range
       color = name of color used for that subset of values
     entry = color (for sequential style)
       color = name of color used for a bin of values
-  <I>backcolor</I> arg = color
+  <em>backcolor</em> arg = color
     color = name of color for background
-  <I>bcolor</I> args = type color
+  <em>bcolor</em> args = type color
     type = bond type or range of types (see below)
     color = name of color or color1/color2/...
-  <I>bdiam</I> args = type diam
+  <em>bdiam</em> args = type diam
     type = bond type or range of types (see below)
     diam = diameter of bonds of that type (distance units)
-  <I>boxcolor</I> arg = color
+  <em>boxcolor</em> arg = color
     color = name of color for simulation box lines and processor sub-domain lines
-  <I>color</I> args = name R G B
+  <em>color</em> args = name R G B
     name = name of color
     R,G,B = red/green/blue numeric values from 0.0 to 1.0
-  <I>bitrate</I> arg = rate
+  <em>bitrate</em> arg = rate
     rate = target bitrate for movie in kbps
-  <I>framerate</I> arg = fps
-    fps = frames per second for movie 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>dump_modify 1 format "%d %d %20.15g %g %g" scale yes
+  <em>framerate</em> arg = fps
+    fps = frames per second for movie
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dump_modify 1 format &quot;%d %d %20.15g %g %g&quot; scale yes
 dump_modify myDump image yes scale no flush yes
-dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
+dump_modify 1 region mySphere thresh x &lt; 0.0 thresh epair &gt;= 3.2
 dump_modify xtcdump precision 10000 sfactor 0.1
 dump_modify 1 every 1000 nfile 20
 dump_modify 1 every v_myVar
-dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Modify the parameters of a previously defined dump command.  Not all
-parameters are relevant to all dump styles.
-</P>
-<P>As explained on the <A HREF = "dump.html">dump</A> doc page, the <I>atom/mpiio</I>,
-<I>custom/mpiio</I>, and <I>xyz/mpiio</I> dump styles are identical in command
+dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Modify the parameters of a previously defined dump command.  Not all
+parameters are relevant to all dump styles.</p>
+<p>As explained on the <a class="reference internal" href="dump.html"><em>dump</em></a> doc page, the <em>atom/mpiio</em>,
+<em>custom/mpiio</em>, and <em>xyz/mpiio</em> dump styles are identical in command
 syntax and in the format of the dump files they create, to the
-corresponding styles without "mpiio", except the single dump file they
+corresponding styles without &#8220;mpiio&#8221;, except the single dump file they
 produce is written in parallel via the MPI-IO library.  Thus if a
-dump_modify option below is valid for the <I>atom</I> style, it is also
-valid for the <I>atom/mpiio</I> style, and similarly for the other styles
-which allow for use of MPI-IO.
-</P>
-<HR>
-
-<HR>
-
-<P>These keywords apply to various dump styles, including the <A HREF = "dump_image.html">dump
-image</A> and <A HREF = "dump_image.html">dump movie</A> styles.  The
-description gives details.
-</P>
-<HR>
-
-<P>The <I>append</I> keyword applies to all dump styles except <I>cfg</I> and <I>xtc</I>
-and <I>dcd</I>.  It also applies only to text output files, not to binary
-or gzipped or image/movie files.  If specified as <I>yes</I>, then dump
+dump_modify option below is valid for the <em>atom</em> style, it is also
+valid for the <em>atom/mpiio</em> style, and similarly for the other styles
+which allow for use of MPI-IO.</p>
+<p>These keywords apply to various dump styles, including the <a class="reference internal" href="dump_image.html"><em>dump image</em></a> and <a class="reference internal" href="dump_image.html"><em>dump movie</em></a> styles.  The
+description gives details.</p>
+<hr class="docutils" />
+<p>The <em>append</em> keyword applies to all dump styles except <em>cfg</em> and <em>xtc</em>
+and <em>dcd</em>.  It also applies only to text output files, not to binary
+or gzipped or image/movie files.  If specified as <em>yes</em>, then dump
 snapshots are appended to the end of an existing dump file.  If
-specified as <I>no</I>, then a new dump file will be created which will
+specified as <em>no</em>, then a new dump file will be created which will
 overwrite an existing file with the same name.  This keyword can only
 take effect if the dump_modify command is used after the
-<A HREF = "dump.html">dump</A> command, but before the first command that causes
-dump snapshots to be output, e.g. a <A HREF = "run.html">run</A> or
-<A HREF = "minimize.html">minimize</A> command.  Once the dump file has been opened,
-this keyword has no further effect.
-</P>
-<HR>
-
-<P>The <I>buffer</I> keyword applies only to dump styles <I>atom</I>, <I>cfg</I>,
-<I>custom</I>, <I>local</I>, and <I>xyz</I>.  It also applies only to text output
-files, not to binary or gzipped files.  If specified as <I>yes</I>, which
+<a class="reference internal" href="dump.html"><em>dump</em></a> command, but before the first command that causes
+dump snapshots to be output, e.g. a <a class="reference internal" href="run.html"><em>run</em></a> or
+<a class="reference internal" href="minimize.html"><em>minimize</em></a> command.  Once the dump file has been opened,
+this keyword has no further effect.</p>
+<hr class="docutils" />
+<p>The <em>buffer</em> keyword applies only to dump styles <em>atom</em>, <em>cfg</em>,
+<em>custom</em>, <em>local</em>, and <em>xyz</em>.  It also applies only to text output
+files, not to binary or gzipped files.  If specified as <em>yes</em>, which
 is the default, then each processor writes its output into an internal
 text buffer, which is then sent to the processor(s) which perform file
 writes, and written by those processors(s) as one large chunk of text.
-If specified as <I>no</I>, each processor sends its per-atom data in binary
+If specified as <em>no</em>, each processor sends its per-atom data in binary
 format to the processor(s) which perform file wirtes, and those
-processor(s) format and write it line by line into the output file.
-</P>
-<P>The buffering mode is typically faster since each processor does the
+processor(s) format and write it line by line into the output file.</p>
+<p>The buffering mode is typically faster since each processor does the
 relatively expensive task of formatting the output for its own atoms.
 However it requires about twice the memory (per processor) for the
-extra buffering.
-</P>
-<HR>
-
-<P>The <I>element</I> keyword applies only to the the dump <I>cfg</I>, <I>xyz</I>, and
-<I>image</I> styles.  It associates element names (e.g. H, C, Fe) with
+extra buffering.</p>
+<hr class="docutils" />
+<p>The <em>element</em> keyword applies only to the the dump <em>cfg</em>, <em>xyz</em>, and
+<em>image</em> styles.  It associates element names (e.g. H, C, Fe) with
 LAMMPS atom types.  See the list of element names at the bottom of
-this page.
-</P>
-<P>In the case of dump <I>cfg</I>, this allows the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A>
+this page.</p>
+<p>In the case of dump <em>cfg</em>, this allows the <a class="reference external" href="http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</a>
 visualization package to read the dump file and render atoms with the
-appropriate size and color.
-</P>
-<P>In the case of dump <I>image</I>, the output images will follow the same
-<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> convention.  An element name is specified for each
+appropriate size and color.</p>
+<p>In the case of dump <em>image</em>, the output images will follow the same
+<a class="reference external" href="http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</a> convention.  An element name is specified for each
 atom type (1 to Ntype) in the simulation.  The same element name can
-be given to multiple atom types.
-</P>
-<P>In the case of <I>xyz</I> format dumps, there are no restrictions to what
+be given to multiple atom types.</p>
+<p>In the case of <em>xyz</em> format dumps, there are no restrictions to what
 label can be used as an element name.  Any whitespace separated text
-will be accepted.
-</P>
-
-
-<HR>
-
-<P>The <I>every</I> keyword changes the dump frequency originally specified by
-the <A HREF = "dump.html">dump</A> command to a new value.  The every keyword can be
+will be accepted.</p>
+<hr class="docutils" />
+<p>The <em>every</em> keyword changes the dump frequency originally specified by
+the <a class="reference internal" href="dump.html"><em>dump</em></a> command to a new value.  The every keyword can be
 specified in one of two ways.  It can be a numeric value in which case
-it must be > 0.  Or it can be an <A HREF = "variable.html">equal-style variable</A>,
-which should be specified as v_name, where name is the variable name.
-</P>
-<P>In this case, the variable is evaluated at the beginning of a run to
+it must be &gt; 0.  Or it can be an <a class="reference internal" href="variable.html"><em>equal-style variable</em></a>,
+which should be specified as v_name, where name is the variable name.</p>
+<p>In this case, the variable is evaluated at the beginning of a run to
 determine the next timestep at which a dump snapshot will be written
 out.  On that timestep the variable will be evaluated again to
 determine the next timestep, etc.  Thus the variable should return
 timestep values.  See the stagger() and logfreq() and stride() math
-functions for <A HREF = "variable.html">equal-style variables</A>, as examples of
+functions for <a class="reference internal" href="variable.html"><em>equal-style variables</em></a>, as examples of
 useful functions to use in this context.  Other similar math functions
-could easily be added as options for <A HREF = "variable.html">equal-style
-variables</A>.  Also see the next() function, which allows
+could easily be added as options for <a class="reference internal" href="variable.html"><em>equal-style variables</em></a>.  Also see the next() function, which allows
 use of a file-style variable which reads successive values from a
-file, each time the variable is evaluated.  Used with the <I>every</I>
+file, each time the variable is evaluated.  Used with the <em>every</em>
 keyword, if the file contains a list of ascending timesteps, you can
-output snapshots whenever you wish.
-</P>
-<P>Note that when using the variable option with the <I>every</I> keyword, you
-need to use the <I>first</I> option if you want an initial snapshot written
-to the dump file.  The <I>every</I> keyword cannot be used with the dump
-<I>dcd</I> style.
-</P>
-<P>For example, the following commands will
-write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:
-</P>
-<PRE>variable	s equal logfreq(10,3,10)
-dump		1 all atom 100 tmp.dump
-dump_modify	1 every v_s first yes 
-</PRE>
-<P>The following commands would write snapshots at the timesteps listed
-in file tmp.times:
-</P>
-<PRE>variable        f file tmp.times
-variable	s equal next(f)
-dump		1 all atom 100 tmp.dump
-dump_modify	1 every v_s 
-</PRE>
-<P>IMPORTANT NOTE: When using a file-style variable with the <I>every</I>
+output snapshots whenever you wish.</p>
+<p>Note that when using the variable option with the <em>every</em> keyword, you
+need to use the <em>first</em> option if you want an initial snapshot written
+to the dump file.  The <em>every</em> keyword cannot be used with the dump
+<em>dcd</em> style.</p>
+<p>For example, the following commands will
+write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable     s equal logfreq(10,3,10)
+dump         1 all atom 100 tmp.dump
+dump_modify  1 every v_s first yes
+</pre></div>
+</div>
+<p>The following commands would write snapshots at the timesteps listed
+in file tmp.times:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable        f file tmp.times
+variable     s equal next(f)
+dump         1 all atom 100 tmp.dump
+dump_modify  1 every v_s
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When using a file-style variable with the <em>every</em>
 keyword, the file of timesteps must list a first timestep that is
 beyond the current timestep (e.g. it cannot be 0).  And it must list
 one or more timesteps beyond the length of the run you perform.  This
@@ -243,467 +337,393 @@ is because the dump command will generate an error if the next
 timestep it reads from the file is not a value greater than the
 current timestep.  Thus if you wanted output on steps 0,15,100 of a
 100-timestep run, the file should contain the values 15,100,101 and
-you should also use the dump_modify first command.  Any final value >
-100 could be used in place of 101.
-</P>
-<HR>
-
-<P>The <I>first</I> keyword determines whether a dump snapshot is written on
+you should also use the dump_modify first command.  Any final value &gt;
+100 could be used in place of 101.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>first</em> keyword determines whether a dump snapshot is written on
 the very first timestep after the dump command is invoked.  This will
 always occur if the current timestep is a multiple of N, the frequency
-specified in the <A HREF = "dump.html">dump</A> command, including timestep 0.  But
+specified in the <a class="reference internal" href="dump.html"><em>dump</em></a> command, including timestep 0.  But
 if this is not the case, a dump snapshot will only be written if the
-setting of this keyword is <I>yes</I>.  If it is <I>no</I>, which is the
-default, then it will not be written.
-</P>
-<HR>
-
-<P>The <I>flush</I> keyword determines whether a flush operation is invoked
+setting of this keyword is <em>yes</em>.  If it is <em>no</em>, which is the
+default, then it will not be written.</p>
+<hr class="docutils" />
+<p>The <em>flush</em> keyword determines whether a flush operation is invoked
 after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
-performed with dump style <I>xtc</I>.
-</P>
-<HR>
-
-<P>The text-based dump styles have a default C-style format string which
+performed with dump style <em>xtc</em>.</p>
+<hr class="docutils" />
+<p>The text-based dump styles have a default C-style format string which
 simply specifies %d for integers and %g for floating-point values.
-The <I>format</I> keyword can be used to override the default with a new
-C-style format string.  Do not include a trailing "\n" newline
+The <em>format</em> keyword can be used to override the default with a new
+C-style format string.  Do not include a trailing &#8220;n&#8221; newline
 character in the format string.  This option has no effect on the
-<I>dcd</I> and <I>xtc</I> dump styles since they write binary files.  Note that
-for the <I>cfg</I> style, the first two fields (atom id and type) are not
+<em>dcd</em> and <em>xtc</em> dump styles since they write binary files.  Note that
+for the <em>cfg</em> style, the first two fields (atom id and type) are not
 actually written into the CFG file, though you must include formats
-for them in the format string.
-</P>
-<P>IMPORTANT NOTE: Any value written to a text-based dump file that is a
-per-atom quantity calculated by a <A HREF = "compute.html">compute</A> or
-<A HREF = "fix.html">fix</A> is stored internally as a floating-point value.  If the
+for them in the format string.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Any value written to a text-based dump file that is a
+per-atom quantity calculated by a <a class="reference internal" href="compute.html"><em>compute</em></a> or
+<a class="reference internal" href="fix.html"><em>fix</em></a> is stored internally as a floating-point value.  If the
 value is actually an integer and you wish it to appear in the text
 dump file as a (large) integer, then you need to use an appropriate
-format.  For example, these commands:
-</P>
-<PRE>compute     1 all property/local batom1 batom2
+format.  For example, these commands:</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>compute     1 all property/local batom1 batom2
 dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
-dump_modify 1 format "%d %0.0f %0.0f" 
-</PRE>
-<P>will output the two atom IDs for atoms in each bond as integers.  If
+dump_modify 1 format &quot;%d %0.0f %0.0f&quot;
+</pre></div>
+</div>
+<p>will output the two atom IDs for atoms in each bond as integers.  If
 the dump_modify command were omitted, they would appear as
 floating-point values, assuming they were large integers (more than 6
-digits).  The "index" keyword should use the "%d" format since it is
+digits).  The &#8220;index&#8221; keyword should use the &#8220;%d&#8221; format since it is
 not generated by a compute or fix, and is stored internally as an
-integer.
-</P>
-<HR>
-
-<P>The <I>fileper</I> keyword is documented below with the <I>nfile</I> keyword.
-</P>
-<HR>
-
-<P>The <I>image</I> keyword applies only to the dump <I>atom</I> style.  If the
-image value is <I>yes</I>, 3 flags are appended to each atom's coords which
+integer.</p>
+<hr class="docutils" />
+<p>The <em>fileper</em> keyword is documented below with the <em>nfile</em> keyword.</p>
+<hr class="docutils" />
+<p>The <em>image</em> keyword applies only to the dump <em>atom</em> style.  If the
+image value is <em>yes</em>, 3 flags are appended to each atom&#8217;s coords which
 are the absolute box image of the atom in each dimension.  For
 example, an x image flag of -2 with a normalized coord of 0.5 means
 the atom is in the center of the box, but has passed thru the box
 boundary 2 times and is really 2 box lengths to the left of its
-current coordinate.  Note that for dump style <I>custom</I> these various
+current coordinate.  Note that for dump style <em>custom</em> these various
 values can be printed in the dump file by using the appropriate atom
-attributes in the dump command itself.
-</P>
-<HR>
-
-<P>The <I>label</I> keyword applies only to the dump <I>local</I> style.  When
+attributes in the dump command itself.</p>
+<hr class="docutils" />
+<p>The <em>label</em> keyword applies only to the dump <em>local</em> style.  When
 it writes local information, such as bond or angle topology
-to a dump file, it will use the specified <I>label</I> to format
-the header.  By default this includes 2 lines:
-</P>
-<PRE>ITEM: NUMBER OF ENTRIES
-ITEM: ENTRIES ... 
-</PRE>
-<P>The word "ENTRIES" will be replaced with the string specified,
-e.g. BONDS or ANGLES.
-</P>
-<HR>
-
-<P>The <I>nfile</I> or <I>fileper</I> keywords can be used in conjunction with the
-"%" wildcard character in the specified dump file name, for all dump
-styles except the <I>dcd</I>, <I>image</I>, <I>movie</I>, <I>xtc</I>, and <I>xyz</I> styles
-(for which "%" is not allowed).  As explained on the <A HREF = "dump.html">dump</A>
-command doc page, the "%" character causes the dump file to be written
+to a dump file, it will use the specified <em>label</em> to format
+the header.  By default this includes 2 lines:</p>
+<div class="highlight-python"><div class="highlight"><pre>ITEM: NUMBER OF ENTRIES
+ITEM: ENTRIES ...
+</pre></div>
+</div>
+<p>The word &#8220;ENTRIES&#8221; will be replaced with the string specified,
+e.g. BONDS or ANGLES.</p>
+<hr class="docutils" />
+<p>The <em>nfile</em> or <em>fileper</em> keywords can be used in conjunction with the
+&#8220;%&#8221; wildcard character in the specified dump file name, for all dump
+styles except the <em>dcd</em>, <em>image</em>, <em>movie</em>, <em>xtc</em>, and <em>xyz</em> styles
+(for which &#8220;%&#8221; is not allowed).  As explained on the <a class="reference internal" href="dump.html"><em>dump</em></a>
+command doc page, the &#8220;%&#8221; character causes the dump file to be written
 in pieces, one piece for each of P processors.  By default P = the
-number of processors the simulation is running on.  The <I>nfile</I> or
-<I>fileper</I> keyword can be used to set P to a smaller value, which can
-be more efficient when running on a large number of processors.
-</P>
-<P>The <I>nfile</I> keyword sets P to the specified Nf value.  For example, if
+number of processors the simulation is running on.  The <em>nfile</em> or
+<em>fileper</em> keyword can be used to set P to a smaller value, which can
+be more efficient when running on a large number of processors.</p>
+<p>The <em>nfile</em> keyword sets P to the specified Nf value.  For example, if
 Nf = 4, and the simulation is running on 100 processors, 4 files will
 be written, by processors 0,25,50,75.  Each will collect information
-from itself and the next 24 processors and write it to a dump file.
-</P>
-<P>For the <I>fileper</I> keyword, the specified value of Np means write one
+from itself and the next 24 processors and write it to a dump file.</p>
+<p>For the <em>fileper</em> keyword, the specified value of Np means write one
 file for every Np processors.  For example, if Np = 4, every 4th
 processor (0,4,8,12,etc) will collect information from itself and the
-next 3 processors and write it to a dump file.
-</P>
-<HR>
-
-<P>The <I>pad</I> keyword only applies when the dump filename is specified
-with a wildcard "*" character which becomes the timestep.  If <I>pad</I> is
+next 3 processors and write it to a dump file.</p>
+<hr class="docutils" />
+<p>The <em>pad</em> keyword only applies when the dump filename is specified
+with a wildcard &#8220;*&#8221; character which becomes the timestep.  If <em>pad</em> is
 0, which is the default, the timestep is converted into a string of
-unpadded length, e.g. 100 or 12000 or 2000000.  When <I>pad</I> is
-specified with <I>Nchar</I> > 0, the string is padded with leading zeroes
-so they are all the same length = <I>Nchar</I>.  For example, pad 7 would
+unpadded length, e.g. 100 or 12000 or 2000000.  When <em>pad</em> is
+specified with <em>Nchar</em> &gt; 0, the string is padded with leading zeroes
+so they are all the same length = <em>Nchar</em>.  For example, pad 7 would
 yield 0000100, 0012000, 2000000.  This can be useful so that
 post-processing programs can easily read the files in ascending
-timestep order.
-</P>
-<HR>
-
-<P>The <I>precision</I> keyword only applies to the dump <I>xtc</I> style.  A
+timestep order.</p>
+<hr class="docutils" />
+<p>The <em>precision</em> keyword only applies to the dump <em>xtc</em> style.  A
 specified value of N means that coordinates are stored to 1/N
 nanometer accuracy, e.g. for N = 1000, the coordinates are written to
-1/1000 nanometer accuracy.
-</P>
-<HR>
-
-<P>The <I>sfactor</I> and <I>tfactor</I> keywords only apply to the dump <I>xtc</I>
+1/1000 nanometer accuracy.</p>
+<hr class="docutils" />
+<p>The <em>sfactor</em> and <em>tfactor</em> keywords only apply to the dump <em>xtc</em>
 style.  They allow customization of the unit conversion factors used
 when writing to XTC files.  By default they are initialized for
-whatever <A HREF = "units.html">units</A> style is being used, to write out
-coordinates in nanometers and time in picoseconds.  I.e. for <I>real</I>
-units, LAMMPS defines <I>sfactor</I> = 0.1 and <I>tfactor</I> = 0.001, since the
-Angstroms and fmsec used by <I>real</I> units are 0.1 nm and 0.001 psec
+whatever <a class="reference internal" href="units.html"><em>units</em></a> style is being used, to write out
+coordinates in nanometers and time in picoseconds.  I.e. for <em>real</em>
+units, LAMMPS defines <em>sfactor</em> = 0.1 and <em>tfactor</em> = 0.001, since the
+Angstroms and fmsec used by <em>real</em> units are 0.1 nm and 0.001 psec
 respectively.  If you are using a units system with distance and time
 units far from nm and psec, you may wish to write XTC files with
 different units, since the compression algorithm used in XTC files is
 most effective when the typical magnitude of position data is between
-10.0 and 0.1.
-</P>
-<HR>
-
-<P>The <I>region</I> keyword only applies to the dump <I>custom</I>, <I>cfg</I>,
-<I>image</I>, and <I>movie</I> styles.  If specified, only atoms in the region
+10.0 and 0.1.</p>
+<hr class="docutils" />
+<p>The <em>region</em> keyword only applies to the dump <em>custom</em>, <em>cfg</em>,
+<em>image</em>, and <em>movie</em> styles.  If specified, only atoms in the region
 will be written to the dump file or included in the image/movie.  Only
 one region can be applied as a filter (the last one specified).  See
-the <A HREF = "region.html">region</A> command for more details.  Note that a region
-can be defined as the "inside" or "outside" of a geometric shape, and
-it can be the "union" or "intersection" of a series of simpler
-regions.
-</P>
-<HR>
-
-<P>The <I>scale</I> keyword applies only to the dump <I>atom</I> style.  A scale
-value of <I>yes</I> means atom coords are written in normalized units from
+the <a class="reference internal" href="region.html"><em>region</em></a> command for more details.  Note that a region
+can be defined as the &#8220;inside&#8221; or &#8220;outside&#8221; of a geometric shape, and
+it can be the &#8220;union&#8221; or &#8220;intersection&#8221; of a series of simpler
+regions.</p>
+<hr class="docutils" />
+<p>The <em>scale</em> keyword applies only to the dump <em>atom</em> style.  A scale
+value of <em>yes</em> means atom coords are written in normalized units from
 0.0 to 1.0 in each box dimension.  If the simluation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.  A
-value of <I>no</I> means they are written in absolute distance units
-(e.g. Angstroms or sigma).
-</P>
-<HR>
-
-<P>The <I>sort</I> keyword determines whether lines of per-atom output in a
-snapshot are sorted or not.  A sort value of <I>off</I> means they will
+value of <em>no</em> means they are written in absolute distance units
+(e.g. Angstroms or sigma).</p>
+<hr class="docutils" />
+<p>The <em>sort</em> keyword determines whether lines of per-atom output in a
+snapshot are sorted or not.  A sort value of <em>off</em> means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the <A HREF = "atom_modify.html">atom_modify
-sort</A> option is turned on, which it is by default, to
-improve performance.  A sort value of <I>id</I> means sort the output by
+parallel.  This is the case even in serial if the <a class="reference internal" href="atom_modify.html"><em>atom_modify sort</em></a> option is turned on, which it is by default, to
+improve performance.  A sort value of <em>id</em> means sort the output by
 atom ID.  A sort value of N or -N means sort the output by the value
 in the Nth column of per-atom info in either ascending or descending
-order.
-</P>
-<P>The dump <I>local</I> style cannot be sorted by atom ID, since there are
+order.</p>
+<p>The dump <em>local</em> style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
-as <I>dcd</I> and <I>xtc</I>, require sorting by atom ID to format the output
+as <em>dcd</em> and <em>xtc</em>, require sorting by atom ID to format the output
 file correctly.  If multiple processors are writing the dump file, via
-the "%" wildcard in the dump filename, then sorting cannot be
-performed.
-</P>
-<P>IMPORTANT NOTE: Unless it is required by the dump style, sorting dump
+the &#8220;%&#8221; wildcard in the dump filename, then sorting cannot be
+performed.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Unless it is required by the dump style, sorting dump
 file output requires extra overhead in terms of CPU and communication
-cost, as well as memory, versus unsorted output.
-</P>
-<HR>
-
-<P>The <I>thresh</I> keyword only applies to the dump <I>custom</I>, <I>cfg</I>,
-<I>image</I>, and <I>movie</I> styles.  Multiple thresholds can be specified.
-Specifying "none" turns off all threshold criteria.  If thresholds are
+cost, as well as memory, versus unsorted output.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>thresh</em> keyword only applies to the dump <em>custom</em>, <em>cfg</em>,
+<em>image</em>, and <em>movie</em> styles.  Multiple thresholds can be specified.
+Specifying &#8220;none&#8221; turns off all threshold criteria.  If thresholds are
 specified, only atoms whose attributes meet all the threshold criteria
 are written to the dump file or included in the image.  The possible
 attributes that can be tested for are the same as those that can be
-specified in the <A HREF = "dump.html">dump custom</A> command, with the exception
-of the <I>element</I> attribute, since it is not a numeric value.  Note
+specified in the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command, with the exception
+of the <em>element</em> attribute, since it is not a numeric value.  Note
 that different attributes can be output by the dump custom command
 than are used as threshold criteria by the dump_modify command.
 E.g. you can output the coordinates and stress of atoms whose energy
-is above some threshold.
-</P>
-<HR>
-
-<P>The <I>unwrap</I> keyword only applies to the dump <I>dcd</I> and <I>xtc</I> styles.
-If set to <I>yes</I>, coordinates will be written "unwrapped" by the image
+is above some threshold.</p>
+<hr class="docutils" />
+<p>The <em>unwrap</em> keyword only applies to the dump <em>dcd</em> and <em>xtc</em> styles.
+If set to <em>yes</em>, coordinates will be written &#8220;unwrapped&#8221; by the image
 flags for each atom.  Unwrapped means that if the atom has passed thru
 a periodic boundary one or more times, the value is printed for what
 the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside the
-box size stored with the snapshot.
-</P>
-<HR>
-
-<HR>
-
-<P>These keywords apply only to the <A HREF = "dump_image.html">dump image</A> and
-<A HREF = "dump_image.html">dump movie</A> styles.  Any keyword that affects an
+box size stored with the snapshot.</p>
+<p>These keywords apply only to the <a class="reference internal" href="dump_image.html"><em>dump image</em></a> and
+<a class="reference internal" href="dump_image.html"><em>dump movie</em></a> styles.  Any keyword that affects an
 image, also affects a movie, since the movie is simply a collection of
-images.  Some of the keywords only affect the <A HREF = "dump_image.html">dump
-movie</A> style.  The descriptions give details.
-</P>
-<HR>
-
-<P>The <I>acolor</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
-command, when its atom color setting is <I>type</I>, to set the color that
-atoms of each type will be drawn in the image.
-</P>
-<P>The specified <I>type</I> should be an integer from 1 to Ntypes = the
+images.  Some of the keywords only affect the <a class="reference internal" href="dump_image.html"><em>dump movie</em></a> style.  The descriptions give details.</p>
+<hr class="docutils" />
+<p>The <em>acolor</em> keyword can be used with the <a class="reference internal" href="dump_image.html"><em>dump image</em></a>
+command, when its atom color setting is <em>type</em>, to set the color that
+atoms of each type will be drawn in the image.</p>
+<p>The specified <em>type</em> should be an integer from 1 to Ntypes = the
 number of atom types.  A wildcard asterisk can be used in place of or
-in conjunction with the <I>type</I> argument to specify a range of atom
-types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+in conjunction with the <em>type</em> argument to specify a range of atom
+types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
 number of atom types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-</P>
-<P>The specified <I>color</I> can be a single color which is any of the 140
+(inclusive).</p>
+<p>The specified <em>color</em> can be a single color which is any of the 140
 pre-defined colors (see below) or a color name defined by the
 dump_modify color option.  Or it can be two or more colors separated
-by a "/" character, e.g. red/green/blue.  In the former case, that
+by a &#8220;/&#8221; character, e.g. red/green/blue.  In the former case, that
 color is assigned to all the specified atom types.  In the latter
 case, the list of colors are assigned in a round-robin fashion to each
-of the specified atom types.
-</P>
-<HR>
-
-<P>The <I>adiam</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
-command, when its atom diameter setting is <I>type</I>, to set the size
+of the specified atom types.</p>
+<hr class="docutils" />
+<p>The <em>adiam</em> keyword can be used with the <a class="reference internal" href="dump_image.html"><em>dump image</em></a>
+command, when its atom diameter setting is <em>type</em>, to set the size
 that atoms of each type will be drawn in the image.  The specified
-<I>type</I> should be an integer from 1 to Ntypes.  As with the <I>acolor</I>
-keyword, a wildcard asterisk can be used as part of the <I>type</I>
-argument to specify a range of atomt types.  The specified <I>diam</I> is
-the size in whatever distance <A HREF = "units.html">units</A> the input script is
-using, e.g. Angstroms.
-</P>
-<HR>
-
-<P>The <I>amap</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
-command, with its <I>atom</I> keyword, when its atom setting is an
+<em>type</em> should be an integer from 1 to Ntypes.  As with the <em>acolor</em>
+keyword, a wildcard asterisk can be used as part of the <em>type</em>
+argument to specify a range of atomt types.  The specified <em>diam</em> is
+the size in whatever distance <a class="reference internal" href="units.html"><em>units</em></a> the input script is
+using, e.g. Angstroms.</p>
+<hr class="docutils" />
+<p>The <em>amap</em> keyword can be used with the <a class="reference internal" href="dump_image.html"><em>dump image</em></a>
+command, with its <em>atom</em> keyword, when its atom setting is an
 atom-attribute, to setup a color map.  The color map is used to assign
 a specific RGB (red/green/blue) color value to an individual atom when
-it is drawn, based on the atom's attribute, which is a numeric value,
-e.g. its x-component of velocity if the atom-attribute "vx" was
-specified.
-</P>
-<P>The basic idea of a color map is that the atom-attribute will be
+it is drawn, based on the atom&#8217;s attribute, which is a numeric value,
+e.g. its x-component of velocity if the atom-attribute &#8220;vx&#8221; was
+specified.</p>
+<p>The basic idea of a color map is that the atom-attribute will be
 within a range of values, and that range is associated with a a series
-of colors (e.g. red, blue, green).  An atom's specific value (vx =
+of colors (e.g. red, blue, green).  An atom&#8217;s specific value (vx =
 -3.2) can then mapped to the series of colors (e.g. halfway between
 red and blue), and a specific color is determined via an interpolation
-procedure.
-</P>
-<P>There are many possible options for the color map, enabled by the
-<I>amap</I> keyword.  Here are the details.
-</P>
-<P>The <I>lo</I> and <I>hi</I> settings determine the range of values allowed for
-the atom attribute.  If numeric values are used for <I>lo</I> and/or <I>hi</I>,
+procedure.</p>
+<p>There are many possible options for the color map, enabled by the
+<em>amap</em> keyword.  Here are the details.</p>
+<p>The <em>lo</em> and <em>hi</em> settings determine the range of values allowed for
+the atom attribute.  If numeric values are used for <em>lo</em> and/or <em>hi</em>,
 then values that are lower/higher than that value are set to the
-value.  I.e. the range is static.  If <I>lo</I> is specified as <I>min</I> or
-<I>hi</I> as <I>max</I> then the range is dynamic, and the lower and/or
+value.  I.e. the range is static.  If <em>lo</em> is specified as <em>min</em> or
+<em>hi</em> as <em>max</em> then the range is dynamic, and the lower and/or
 upper bound will be calculated each time an image is drawn, based
-on the set of atoms being visualized.
-</P>
-<P>The <I>style</I> setting is two letters, such as "ca".  The first letter is
-either "c" for continuous, "d" for discrete, or "s" for sequential.
-The second letter is either "a" for absolute, or "f" for fractional.
-</P>
-<P>A continuous color map is one in which the color changes continuously
+on the set of atoms being visualized.</p>
+<p>The <em>style</em> setting is two letters, such as &#8220;ca&#8221;.  The first letter is
+either &#8220;c&#8221; for continuous, &#8220;d&#8221; for discrete, or &#8220;s&#8221; for sequential.
+The second letter is either &#8220;a&#8221; for absolute, or &#8220;f&#8221; for fractional.</p>
+<p>A continuous color map is one in which the color changes continuously
 from value to value within the range.  A discrete color map is one in
 which discrete colors are assigned to sub-ranges of values within the
 range.  A sequential color map is one in which discrete colors are
 assigned to a sequence of sub-ranges of values covering the entire
-range.
-</P>
-<P>An absolute color map is one in which the values to which colors are
+range.</p>
+<p>An absolute color map is one in which the values to which colors are
 assigned are specified explicitly as values within the range.  A
 fractional color map is one in which the values to which colors are
 assigned are specified as a fractional portion of the range.  For
 example if the range is from -10.0 to 10.0, and the color red is to be
 assigned to atoms with a value of 5.0, then for an absolute color map
 the number 5.0 would be used.  But for a fractional map, the number
-0.75 would be used since 5.0 is 3/4 of the way from -10.0 to 10.0.
-</P>
-<P>The <I>delta</I> setting must be specified for all styles, but is only used
+0.75 would be used since 5.0 is 3/4 of the way from -10.0 to 10.0.</p>
+<p>The <em>delta</em> setting must be specified for all styles, but is only used
 for the sequential style; otherwise the value is ignored.  It
 specifies the bin size to use within the range for assigning
 consecutive colors to.  For example, if the range is from -10.0 to
-10.0 and a <I>delta</I> of 1.0 is used, then 20 colors will be assigned to
-the range.  The first will be from -10.0 <= color1 < -9.0, then 2nd
-from -9.0 <= color2 < -8.0, etc.
-</P>
-<P>The <I>N</I> setting is how many entries follow.  The format of the entries
+10.0 and a <em>delta</em> of 1.0 is used, then 20 colors will be assigned to
+the range.  The first will be from -10.0 &lt;= color1 &lt; -9.0, then 2nd
+from -9.0 &lt;= color2 &lt; -8.0, etc.</p>
+<p>The <em>N</em> setting is how many entries follow.  The format of the entries
 depends on whether the color map style is continuous, discrete or
-sequential.  In all cases the <I>color</I> setting can be any of the 140
+sequential.  In all cases the <em>color</em> setting can be any of the 140
 pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-</P>
-<P>For continuous color maps, each entry has a <I>value</I> and a <I>color</I>.
-The <I>value</I> is either a number within the range of values or <I>min</I> or
-<I>max</I>.  The <I>value</I> of the first entry must be <I>min</I> and the <I>value</I>
-of the last entry must be <I>max</I>.  Any entries in between must have
+dump_modify color option.</p>
+<p>For continuous color maps, each entry has a <em>value</em> and a <em>color</em>.
+The <em>value</em> is either a number within the range of values or <em>min</em> or
+<em>max</em>.  The <em>value</em> of the first entry must be <em>min</em> and the <em>value</em>
+of the last entry must be <em>max</em>.  Any entries in between must have
 increasing values.  Note that numeric values can be specified either
 as absolute numbers or as fractions (0.0 to 1.0) of the range,
-depending on the "a" or "f" in the style setting for the color map.
-</P>
-<P>Here is how the entries are used to determine the color of an
+depending on the &#8220;a&#8221; or &#8220;f&#8221; in the style setting for the color map.</p>
+<p>Here is how the entries are used to determine the color of an
 individual atom, given the value X of its atom attribute.  X will fall
 between 2 of the entry values.  The color of the atom is linearly
 interpolated (in each of the RGB values) between the 2 colors
 associated with those entries.  For example, if X = -5.0 and the 2
-surrounding entries are "red" at -10.0 and "blue" at 0.0, then the
-atom's color will be halfway between "red" and "blue", which happens
-to be "purple".
-</P>
-<P>For discrete color maps, each entry has a <I>lo</I> and <I>hi</I> value and a
-<I>color</I>.  The <I>lo</I> and <I>hi</I> settings are either numbers within the
-range of values or <I>lo</I> can be <I>min</I> or <I>hi</I> can be <I>max</I>.  The <I>lo</I>
-and <I>hi</I> settings of the last entry must be <I>min</I> and <I>max</I>.  Other
-entries can have any <I>lo</I> and <I>hi</I> values and the sub-ranges of
-different values can overlap.  Note that numeric <I>lo</I> and <I>hi</I> values
+surrounding entries are &#8220;red&#8221; at -10.0 and &#8220;blue&#8221; at 0.0, then the
+atom&#8217;s color will be halfway between &#8220;red&#8221; and &#8220;blue&#8221;, which happens
+to be &#8220;purple&#8221;.</p>
+<p>For discrete color maps, each entry has a <em>lo</em> and <em>hi</em> value and a
+<em>color</em>.  The <em>lo</em> and <em>hi</em> settings are either numbers within the
+range of values or <em>lo</em> can be <em>min</em> or <em>hi</em> can be <em>max</em>.  The <em>lo</em>
+and <em>hi</em> settings of the last entry must be <em>min</em> and <em>max</em>.  Other
+entries can have any <em>lo</em> and <em>hi</em> values and the sub-ranges of
+different values can overlap.  Note that numeric <em>lo</em> and <em>hi</em> values
 can be specified either as absolute numbers or as fractions (0.0 to
-1.0) of the range, depending on the "a" or "f" in the style setting
-for the color map.
-</P>
-<P>Here is how the entries are used to determine the color of an
+1.0) of the range, depending on the &#8220;a&#8221; or &#8220;f&#8221; in the style setting
+for the color map.</p>
+<p>Here is how the entries are used to determine the color of an
 individual atom, given the value X of its atom attribute.  The entries
-are scanned from first to last.  The first time that <I>lo</I> <= X <=
-<I>hi</I>, X is assigned the color associated with that entry.  You can
+are scanned from first to last.  The first time that <em>lo</em> &lt;= X &lt;=
+<em>hi</em>, X is assigned the color associated with that entry.  You can
 think of the last entry as assigning a default color (since it will
 always be matched by X), and the earlier entries as colors that
 override the default.  Also note that no interpolation of a color RGB
 is done.  All atoms will be drawn with one of the colors in the list
-of entries.
-</P>
-<P>For sequential color maps, each entry has only a <I>color</I>.  Here is how
+of entries.</p>
+<p>For sequential color maps, each entry has only a <em>color</em>.  Here is how
 the entries are used to determine the color of an individual atom,
 given the value X of its atom attribute.  The range is partitioned
-into N bins of width <I>binsize</I>.  Thus X will fall in a specific bin
+into N bins of width <em>binsize</em>.  Thus X will fall in a specific bin
 from 1 to N, say the Mth bin.  If it falls on a boundary between 2
 bins, it is considered to be in the higher of the 2 bins.  Each bin is
-assigned a color from the E entries.  If E < N, then the colors are
+assigned a color from the E entries.  If E &lt; N, then the colors are
 repeated.  For example if 2 entries with colors red and green are
 specified, then the odd numbered bins will be red and the even bins
 green.  The color of the atom is the color of its bin.  Note that the
 sequential color map is really a shorthand way of defining a discrete
-color map without having to specify where all the bin boundaries are.
-</P>
-<P>Here is an example of using a sequential color map to color all the
+color map without having to specify where all the bin boundaries are.</p>
+<p>Here is an example of using a sequential color map to color all the
 atoms in individual molecules with a different color.  See the
 examples/pour/in.pour.2d.molecule input script for an example of how
-this is used.
-</P>
-<PRE>variable        colors string &
-                "red green blue yellow white &
-                purple pink orange lime gray"
-variable	mol atom mol%10
-dump		1 all image 250 image.*.jpg v_mol type &
-		zoom 1.6 adiam 1.5
-dump_modify	1 pad 5 amap 0 10 sa 1 10 ${colors} 
-</PRE>
-<P>In this case, 10 colors are defined, and molecule IDs are
-mapped to one of the colors, even if there are 1000s of molecules.
-</P>
-<HR>
-
-<P>The <I>backcolor</I> sets the background color of the images.  The color
+this is used.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable        colors string &amp;
+                &quot;red green blue yellow white &amp;
+                purple pink orange lime gray&quot;
+variable     mol atom mol%10
+dump         1 all image 250 image.*.jpg v_mol type &amp;
+             zoom 1.6 adiam 1.5
+dump_modify  1 pad 5 amap 0 10 sa 1 10 ${colors}
+</pre></div>
+</div>
+<p>In this case, 10 colors are defined, and molecule IDs are
+mapped to one of the colors, even if there are 1000s of molecules.</p>
+<hr class="docutils" />
+<p>The <em>backcolor</em> sets the background color of the images.  The color
 name can be any of the 140 pre-defined colors (see below) or a color
-name defined by the dump_modify color option.
-</P>
-<HR>
-
-<P>The <I>bcolor</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
-command, with its <I>bond</I> keyword, when its color setting is <I>type</I>, to
-set the color that bonds of each type will be drawn in the image.
-</P>
-<P>The specified <I>type</I> should be an integer from 1 to Nbondtypes = the
+name defined by the dump_modify color option.</p>
+<hr class="docutils" />
+<p>The <em>bcolor</em> keyword can be used with the <a class="reference internal" href="dump_image.html"><em>dump image</em></a>
+command, with its <em>bond</em> keyword, when its color setting is <em>type</em>, to
+set the color that bonds of each type will be drawn in the image.</p>
+<p>The specified <em>type</em> should be an integer from 1 to Nbondtypes = the
 number of bond types.  A wildcard asterisk can be used in place of or
-in conjunction with the <I>type</I> argument to specify a range of bond
-types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+in conjunction with the <em>type</em> argument to specify a range of bond
+types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
 number of bond types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-</P>
-<P>The specified <I>color</I> can be a single color which is any of the 140
+(inclusive).</p>
+<p>The specified <em>color</em> can be a single color which is any of the 140
 pre-defined colors (see below) or a color name defined by the
 dump_modify color option.  Or it can be two or more colors separated
-by a "/" character, e.g. red/green/blue.  In the former case, that
+by a &#8220;/&#8221; character, e.g. red/green/blue.  In the former case, that
 color is assigned to all the specified bond types.  In the latter
 case, the list of colors are assigned in a round-robin fashion to each
-of the specified bond types.
-</P>
-<HR>
-
-<P>The <I>bdiam</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
-command, with its <I>bond</I> keyword, when its diam setting is <I>type</I>, to
+of the specified bond types.</p>
+<hr class="docutils" />
+<p>The <em>bdiam</em> keyword can be used with the <a class="reference internal" href="dump_image.html"><em>dump image</em></a>
+command, with its <em>bond</em> keyword, when its diam setting is <em>type</em>, to
 set the diameter that bonds of each type will be drawn in the image.
-The specified <I>type</I> should be an integer from 1 to Nbondtypes.  As
-with the <I>bcolor</I> keyword, a wildcard asterisk can be used as part of
-the <I>type</I> argument to specify a range of bond types.  The specified
-<I>diam</I> is the size in whatever distance <A HREF = "units.html">units</A> you are
-using, e.g. Angstroms.
-</P>
-<HR>
-
-<P>The <I>bitrate</I> keyword can be used with the <A HREF = "dump_image.html">dump
-movie</A> command to define the size of the resulting
+The specified <em>type</em> should be an integer from 1 to Nbondtypes.  As
+with the <em>bcolor</em> keyword, a wildcard asterisk can be used as part of
+the <em>type</em> argument to specify a range of bond types.  The specified
+<em>diam</em> is the size in whatever distance <a class="reference internal" href="units.html"><em>units</em></a> you are
+using, e.g. Angstroms.</p>
+<hr class="docutils" />
+<p>The <em>bitrate</em> keyword can be used with the <a class="reference internal" href="dump_image.html"><em>dump movie</em></a> command to define the size of the resulting
 movie file and its quality via setting how many kbits per second are
 to be used for the movie file. Higher bitrates require less
 compression and will result in higher quality movies.  The quality is
 also determined by the compression format and encoder.  The default
 setting is 2000 kbit/s, which will result in average quality with
-older compression formats.
-</P>
-<P>IMPORTANT NOTE: Not all movie file formats supported by dump movie
-allow the bitrate to be set.  If not, the setting is silently ignored.
-</P>
-<HR>
-
-<P>The <I>boxcolor</I> keyword sets the color of the simulation box drawn
+older compression formats.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Not all movie file formats supported by dump movie
+allow the bitrate to be set.  If not, the setting is silently ignored.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>boxcolor</em> keyword sets the color of the simulation box drawn
 around the atoms in each image as well as the color of processor
-sub-domain boundaries.  See the "dump image box" command for how to
-specify that a box be drawn via the <I>box</I> keyword, and the sub-domain
-boundaries via the <I>subbox</I> keyword.  The color name can be any of the
+sub-domain boundaries.  See the &#8220;dump image box&#8221; command for how to
+specify that a box be drawn via the <em>box</em> keyword, and the sub-domain
+boundaries via the <em>subbox</em> keyword.  The color name can be any of the
 140 pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-</P>
-<HR>
-
-<P>The <I>color</I> keyword allows definition of a new color name, in addition
+dump_modify color option.</p>
+<hr class="docutils" />
+<p>The <em>color</em> keyword allows definition of a new color name, in addition
 to the 140-predefined colors (see below), and associates 3
 red/green/blue RGB values with that color name.  The color name can
 then be used with any other dump_modify keyword that takes a color
 name as a value.  The RGB values should each be floating point values
-between 0.0 and 1.0 inclusive.
-</P>
-<P>When a color name is converted to RGB values, the user-defined color
+between 0.0 and 1.0 inclusive.</p>
+<p>When a color name is converted to RGB values, the user-defined color
 names are searched first, then the 140 pre-defined color names.  This
-means you can also use the <I>color</I> keyword to overwrite one of the
-pre-defined color names with new RBG values.
-</P>
-<HR>
-
-<P>The <I>framerate</I> keyword can be used with the <A HREF = "dump_image.html">dump
-movie</A> command to define the duration of the resulting
-movie file.  Movie files written by the dump <I>movie</I> command have a
+means you can also use the <em>color</em> keyword to overwrite one of the
+pre-defined color names with new RBG values.</p>
+<hr class="docutils" />
+<p>The <em>framerate</em> keyword can be used with the <a class="reference internal" href="dump_image.html"><em>dump movie</em></a> command to define the duration of the resulting
+movie file.  Movie files written by the dump <em>movie</em> command have a
 default frame rate of 24 frames per second and the images generated
 will be converted at that rate.  Thus a sequence of 1000 dump images
 will result in a movie of about 42 seconds.  To make a movie run
@@ -711,107 +731,315 @@ longer you can either generate images more frequently or lower the
 frame rate.  To speed a movie up, you can do the inverse.  Using a
 frame rate higher than 24 is not recommended, as it will result in
 simply dropping the rendered images. It is more efficient to dump
-images less frequently.
-</P>
-<HR>
-
-<HR>
-
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_image.html">dump image</A>, <A HREF = "undump.html">undump</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are
-</P>
-<UL><LI>append = no
-<LI>buffer = yes for dump styles <I>atom</I>, <I>custom</I>, <I>loca</I>, and <I>xyz</I>
-<LI>element = "C" for every atom type
-<LI>every = whatever it was set to via the <A HREF = "dump.html">dump</A> command
-<LI>fileper = # of processors
-<LI>first = no
-<LI>flush = yes
-<LI>format = %d and %g for each integer or floating point value
-<LI>image = no
-<LI>label = ENTRIES
-<LI>nfile = 1
-<LI>pad = 0
-<LI>precision = 1000
-<LI>region = none
-<LI>scale = yes
-<LI>sort = off for dump styles <I>atom</I>, <I>custom</I>, <I>cfg</I>, and <I>local</I>
-<LI>sort = id for dump styles <I>dcd</I>, <I>xtc</I>, and <I>xyz</I>
-<LI>thresh = none
-<LI>unwrap = no 
-</UL>
-<UL><LI>acolor = * red/green/blue/yellow/aqua/cyan
-<LI>adiam = * 1.0
-<LI>amap = min max cf 0.0 2 min blue max red
-<LI>backcolor = black
-<LI>bcolor = * red/green/blue/yellow/aqua/cyan
-<LI>bdiam = * 0.5
-<LI>bitrate = 2000
-<LI>boxcolor = yellow
-<LI>color = 140 color names are pre-defined as listed below
-<LI>framerate = 24 
-</UL>
-<HR>
-
-<P>These are the standard 109 element names that LAMMPS pre-defines for
-use with the <A HREF = "dump_image.html">dump image</A> and dump_modify commands.
-</P>
-<UL><LI>1-10 = "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne"
-<LI>11-20 = "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"
-<LI>21-30 = "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"
-<LI>31-40 = "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr"
-<LI>41-50 = "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn"
-<LI>51-60 = "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd"
-<LI>61-70 = "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb"
-<LI>71-80 = "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg"
-<LI>81-90 = "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th"
-<LI>91-100 = "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm"
-<LI>101-109 = "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt" 
-</UL>
-<HR>
-
-<P>These are the 140 colors that LAMMPS pre-defines for use with the
-<A HREF = "dump_image.html">dump image</A> and dump_modify commands.  Additional
+images less frequently.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dump.html"><em>dump</em></a>, <a class="reference internal" href="dump_image.html"><em>dump image</em></a>, <a class="reference internal" href="undump.html"><em>undump</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are</p>
+<ul class="simple">
+<li>append = no</li>
+<li>buffer = yes for dump styles <em>atom</em>, <em>custom</em>, <em>loca</em>, and <em>xyz</em></li>
+<li>element = &#8220;C&#8221; for every atom type</li>
+<li>every = whatever it was set to via the <a class="reference internal" href="dump.html"><em>dump</em></a> command</li>
+<li>fileper = # of processors</li>
+<li>first = no</li>
+<li>flush = yes</li>
+<li>format = %d and %g for each integer or floating point value</li>
+<li>image = no</li>
+<li>label = ENTRIES</li>
+<li>nfile = 1</li>
+<li>pad = 0</li>
+<li>precision = 1000</li>
+<li>region = none</li>
+<li>scale = yes</li>
+<li>sort = off for dump styles <em>atom</em>, <em>custom</em>, <em>cfg</em>, and <em>local</em></li>
+<li>sort = id for dump styles <em>dcd</em>, <em>xtc</em>, and <em>xyz</em></li>
+<li>thresh = none</li>
+<li>unwrap = no</li>
+<li>acolor = * red/green/blue/yellow/aqua/cyan</li>
+<li>adiam = * 1.0</li>
+<li>amap = min max cf 0.0 2 min blue max red</li>
+<li>backcolor = black</li>
+<li>bcolor = * red/green/blue/yellow/aqua/cyan</li>
+<li>bdiam = * 0.5</li>
+<li>bitrate = 2000</li>
+<li>boxcolor = yellow</li>
+<li>color = 140 color names are pre-defined as listed below</li>
+<li>framerate = 24</li>
+</ul>
+<hr class="docutils" />
+<p>These are the standard 109 element names that LAMMPS pre-defines for
+use with the <a class="reference internal" href="dump_image.html"><em>dump image</em></a> and dump_modify commands.</p>
+<ul class="simple">
+<li>1-10 = &#8220;H&#8221;, &#8220;He&#8221;, &#8220;Li&#8221;, &#8220;Be&#8221;, &#8220;B&#8221;, &#8220;C&#8221;, &#8220;N&#8221;, &#8220;O&#8221;, &#8220;F&#8221;, &#8220;Ne&#8221;</li>
+<li>11-20 = &#8220;Na&#8221;, &#8220;Mg&#8221;, &#8220;Al&#8221;, &#8220;Si&#8221;, &#8220;P&#8221;, &#8220;S&#8221;, &#8220;Cl&#8221;, &#8220;Ar&#8221;, &#8220;K&#8221;, &#8220;Ca&#8221;</li>
+<li>21-30 = &#8220;Sc&#8221;, &#8220;Ti&#8221;, &#8220;V&#8221;, &#8220;Cr&#8221;, &#8220;Mn&#8221;, &#8220;Fe&#8221;, &#8220;Co&#8221;, &#8220;Ni&#8221;, &#8220;Cu&#8221;, &#8220;Zn&#8221;</li>
+<li>31-40 = &#8220;Ga&#8221;, &#8220;Ge&#8221;, &#8220;As&#8221;, &#8220;Se&#8221;, &#8220;Br&#8221;, &#8220;Kr&#8221;, &#8220;Rb&#8221;, &#8220;Sr&#8221;, &#8220;Y&#8221;, &#8220;Zr&#8221;</li>
+<li>41-50 = &#8220;Nb&#8221;, &#8220;Mo&#8221;, &#8220;Tc&#8221;, &#8220;Ru&#8221;, &#8220;Rh&#8221;, &#8220;Pd&#8221;, &#8220;Ag&#8221;, &#8220;Cd&#8221;, &#8220;In&#8221;, &#8220;Sn&#8221;</li>
+<li>51-60 = &#8220;Sb&#8221;, &#8220;Te&#8221;, &#8220;I&#8221;, &#8220;Xe&#8221;, &#8220;Cs&#8221;, &#8220;Ba&#8221;, &#8220;La&#8221;, &#8220;Ce&#8221;, &#8220;Pr&#8221;, &#8220;Nd&#8221;</li>
+<li>61-70 = &#8220;Pm&#8221;, &#8220;Sm&#8221;, &#8220;Eu&#8221;, &#8220;Gd&#8221;, &#8220;Tb&#8221;, &#8220;Dy&#8221;, &#8220;Ho&#8221;, &#8220;Er&#8221;, &#8220;Tm&#8221;, &#8220;Yb&#8221;</li>
+<li>71-80 = &#8220;Lu&#8221;, &#8220;Hf&#8221;, &#8220;Ta&#8221;, &#8220;W&#8221;, &#8220;Re&#8221;, &#8220;Os&#8221;, &#8220;Ir&#8221;, &#8220;Pt&#8221;, &#8220;Au&#8221;, &#8220;Hg&#8221;</li>
+<li>81-90 = &#8220;Tl&#8221;, &#8220;Pb&#8221;, &#8220;Bi&#8221;, &#8220;Po&#8221;, &#8220;At&#8221;, &#8220;Rn&#8221;, &#8220;Fr&#8221;, &#8220;Ra&#8221;, &#8220;Ac&#8221;, &#8220;Th&#8221;</li>
+<li>91-100 = &#8220;Pa&#8221;, &#8220;U&#8221;, &#8220;Np&#8221;, &#8220;Pu&#8221;, &#8220;Am&#8221;, &#8220;Cm&#8221;, &#8220;Bk&#8221;, &#8220;Cf&#8221;, &#8220;Es&#8221;, &#8220;Fm&#8221;</li>
+<li>101-109 = &#8220;Md&#8221;, &#8220;No&#8221;, &#8220;Lr&#8221;, &#8220;Rf&#8221;, &#8220;Db&#8221;, &#8220;Sg&#8221;, &#8220;Bh&#8221;, &#8220;Hs&#8221;, &#8220;Mt&#8221;</li>
+</ul>
+<hr class="docutils" />
+<p>These are the 140 colors that LAMMPS pre-defines for use with the
+<a class="reference internal" href="dump_image.html"><em>dump image</em></a> and dump_modify commands.  Additional
 colors can be defined with the dump_modify color command.  The 3
 numbers listed for each name are the RGB (red/green/blue) values.
-Divide each value by 255 to get the equivalent 0.0 to 1.0 value.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >aliceblue = 240, 248, 255 </TD><TD >antiquewhite = 250, 235, 215 </TD><TD >aqua = 0, 255, 255 </TD><TD >aquamarine = 127, 255, 212 </TD><TD >azure = 240, 255, 255 </TD></TR>
-<TR><TD >beige = 245, 245, 220 </TD><TD >bisque = 255, 228, 196 </TD><TD >black = 0, 0, 0 </TD><TD >blanchedalmond = 255, 255, 205 </TD><TD >blue = 0, 0, 255 </TD></TR>
-<TR><TD >blueviolet = 138, 43, 226 </TD><TD >brown = 165, 42, 42 </TD><TD >burlywood = 222, 184, 135 </TD><TD >cadetblue = 95, 158, 160 </TD><TD >chartreuse = 127, 255, 0 </TD></TR>
-<TR><TD >chocolate = 210, 105, 30 </TD><TD >coral = 255, 127, 80 </TD><TD >cornflowerblue = 100, 149, 237 </TD><TD >cornsilk = 255, 248, 220 </TD><TD >crimson = 220, 20, 60 </TD></TR>
-<TR><TD >cyan = 0, 255, 255 </TD><TD >darkblue = 0, 0, 139 </TD><TD >darkcyan = 0, 139, 139 </TD><TD >darkgoldenrod = 184, 134, 11 </TD><TD >darkgray = 169, 169, 169 </TD></TR>
-<TR><TD >darkgreen = 0, 100, 0 </TD><TD >darkkhaki = 189, 183, 107 </TD><TD >darkmagenta = 139, 0, 139 </TD><TD >darkolivegreen = 85, 107, 47 </TD><TD >darkorange = 255, 140, 0 </TD></TR>
-<TR><TD >darkorchid = 153, 50, 204 </TD><TD >darkred = 139, 0, 0 </TD><TD >darksalmon = 233, 150, 122 </TD><TD >darkseagreen = 143, 188, 143 </TD><TD >darkslateblue = 72, 61, 139 </TD></TR>
-<TR><TD >darkslategray = 47, 79, 79 </TD><TD >darkturquoise = 0, 206, 209 </TD><TD >darkviolet = 148, 0, 211 </TD><TD >deeppink = 255, 20, 147 </TD><TD >deepskyblue = 0, 191, 255 </TD></TR>
-<TR><TD >dimgray = 105, 105, 105 </TD><TD >dodgerblue = 30, 144, 255 </TD><TD >firebrick = 178, 34, 34 </TD><TD >floralwhite = 255, 250, 240 </TD><TD >forestgreen = 34, 139, 34 </TD></TR>
-<TR><TD >fuchsia = 255, 0, 255 </TD><TD >gainsboro = 220, 220, 220 </TD><TD >ghostwhite = 248, 248, 255 </TD><TD >gold = 255, 215, 0 </TD><TD >goldenrod = 218, 165, 32 </TD></TR>
-<TR><TD >gray = 128, 128, 128 </TD><TD >green = 0, 128, 0 </TD><TD >greenyellow = 173, 255, 47 </TD><TD >honeydew = 240, 255, 240 </TD><TD >hotpink = 255, 105, 180 </TD></TR>
-<TR><TD >indianred = 205, 92, 92 </TD><TD >indigo = 75, 0, 130 </TD><TD >ivory = 255, 240, 240 </TD><TD >khaki = 240, 230, 140 </TD><TD >lavender = 230, 230, 250 </TD></TR>
-<TR><TD >lavenderblush = 255, 240, 245 </TD><TD >lawngreen = 124, 252, 0 </TD><TD >lemonchiffon = 255, 250, 205 </TD><TD >lightblue = 173, 216, 230 </TD><TD >lightcoral = 240, 128, 128 </TD></TR>
-<TR><TD >lightcyan = 224, 255, 255 </TD><TD >lightgoldenrodyellow = 250, 250, 210 </TD><TD >lightgreen = 144, 238, 144 </TD><TD >lightgrey = 211, 211, 211 </TD><TD >lightpink = 255, 182, 193 </TD></TR>
-<TR><TD >lightsalmon = 255, 160, 122 </TD><TD >lightseagreen = 32, 178, 170 </TD><TD >lightskyblue = 135, 206, 250 </TD><TD >lightslategray = 119, 136, 153 </TD><TD >lightsteelblue = 176, 196, 222 </TD></TR>
-<TR><TD >lightyellow = 255, 255, 224 </TD><TD >lime = 0, 255, 0 </TD><TD >limegreen = 50, 205, 50 </TD><TD >linen = 250, 240, 230 </TD><TD >magenta = 255, 0, 255 </TD></TR>
-<TR><TD >maroon = 128, 0, 0 </TD><TD >mediumaquamarine = 102, 205, 170 </TD><TD >mediumblue = 0, 0, 205 </TD><TD >mediumorchid = 186, 85, 211 </TD><TD >mediumpurple = 147, 112, 219 </TD></TR>
-<TR><TD >mediumseagreen = 60, 179, 113 </TD><TD >mediumslateblue = 123, 104, 238 </TD><TD >mediumspringgreen = 0, 250, 154 </TD><TD >mediumturquoise = 72, 209, 204 </TD><TD >mediumvioletred = 199, 21, 133 </TD></TR>
-<TR><TD >midnightblue = 25, 25, 112 </TD><TD >mintcream = 245, 255, 250 </TD><TD >mistyrose = 255, 228, 225 </TD><TD >moccasin = 255, 228, 181 </TD><TD >navajowhite = 255, 222, 173 </TD></TR>
-<TR><TD >navy = 0, 0, 128 </TD><TD >oldlace = 253, 245, 230 </TD><TD >olive = 128, 128, 0 </TD><TD >olivedrab = 107, 142, 35 </TD><TD >orange = 255, 165, 0 </TD></TR>
-<TR><TD >orangered = 255, 69, 0 </TD><TD >orchid = 218, 112, 214 </TD><TD >palegoldenrod = 238, 232, 170 </TD><TD >palegreen = 152, 251, 152 </TD><TD >paleturquoise = 175, 238, 238 </TD></TR>
-<TR><TD >palevioletred = 219, 112, 147 </TD><TD >papayawhip = 255, 239, 213 </TD><TD >peachpuff = 255, 239, 213 </TD><TD >peru = 205, 133, 63 </TD><TD >pink = 255, 192, 203 </TD></TR>
-<TR><TD >plum = 221, 160, 221 </TD><TD >powderblue = 176, 224, 230 </TD><TD >purple = 128, 0, 128 </TD><TD >red = 255, 0, 0 </TD><TD >rosybrown = 188, 143, 143 </TD></TR>
-<TR><TD >royalblue = 65, 105, 225 </TD><TD >saddlebrown = 139, 69, 19 </TD><TD >salmon = 250, 128, 114 </TD><TD >sandybrown = 244, 164, 96 </TD><TD >seagreen = 46, 139, 87 </TD></TR>
-<TR><TD >seashell = 255, 245, 238 </TD><TD >sienna = 160, 82, 45 </TD><TD >silver = 192, 192, 192 </TD><TD >skyblue = 135, 206, 235 </TD><TD >slateblue = 106, 90, 205 </TD></TR>
-<TR><TD >slategray = 112, 128, 144 </TD><TD >snow = 255, 250, 250 </TD><TD >springgreen = 0, 255, 127 </TD><TD >steelblue = 70, 130, 180 </TD><TD >tan = 210, 180, 140 </TD></TR>
-<TR><TD >teal = 0, 128, 128 </TD><TD >thistle = 216, 191, 216 </TD><TD >tomato = 253, 99, 71 </TD><TD >turquoise = 64, 224, 208 </TD><TD >violet = 238, 130, 238 </TD></TR>
-<TR><TD >wheat = 245, 222, 179 </TD><TD >white = 255, 255, 255 </TD><TD >whitesmoke = 245, 245, 245 </TD><TD >yellow = 255, 255, 0 </TD><TD >yellowgreen = 154, 205, 50 
-</TD></TR></TABLE></DIV>
+Divide each value by 255 to get the equivalent 0.0 to 1.0 value.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="23%" />
+<col width="20%" />
+<col width="19%" />
+<col width="19%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>aliceblue = 240, 248, 255</td>
+<td>antiquewhite = 250, 235, 215</td>
+<td>aqua = 0, 255, 255</td>
+<td>aquamarine = 127, 255, 212</td>
+<td>azure = 240, 255, 255</td>
+</tr>
+<tr class="row-even"><td>beige = 245, 245, 220</td>
+<td>bisque = 255, 228, 196</td>
+<td>black = 0, 0, 0</td>
+<td>blanchedalmond = 255, 255, 205</td>
+<td>blue = 0, 0, 255</td>
+</tr>
+<tr class="row-odd"><td>blueviolet = 138, 43, 226</td>
+<td>brown = 165, 42, 42</td>
+<td>burlywood = 222, 184, 135</td>
+<td>cadetblue = 95, 158, 160</td>
+<td>chartreuse = 127, 255, 0</td>
+</tr>
+<tr class="row-even"><td>chocolate = 210, 105, 30</td>
+<td>coral = 255, 127, 80</td>
+<td>cornflowerblue = 100, 149, 237</td>
+<td>cornsilk = 255, 248, 220</td>
+<td>crimson = 220, 20, 60</td>
+</tr>
+<tr class="row-odd"><td>cyan = 0, 255, 255</td>
+<td>darkblue = 0, 0, 139</td>
+<td>darkcyan = 0, 139, 139</td>
+<td>darkgoldenrod = 184, 134, 11</td>
+<td>darkgray = 169, 169, 169</td>
+</tr>
+<tr class="row-even"><td>darkgreen = 0, 100, 0</td>
+<td>darkkhaki = 189, 183, 107</td>
+<td>darkmagenta = 139, 0, 139</td>
+<td>darkolivegreen = 85, 107, 47</td>
+<td>darkorange = 255, 140, 0</td>
+</tr>
+<tr class="row-odd"><td>darkorchid = 153, 50, 204</td>
+<td>darkred = 139, 0, 0</td>
+<td>darksalmon = 233, 150, 122</td>
+<td>darkseagreen = 143, 188, 143</td>
+<td>darkslateblue = 72, 61, 139</td>
+</tr>
+<tr class="row-even"><td>darkslategray = 47, 79, 79</td>
+<td>darkturquoise = 0, 206, 209</td>
+<td>darkviolet = 148, 0, 211</td>
+<td>deeppink = 255, 20, 147</td>
+<td>deepskyblue = 0, 191, 255</td>
+</tr>
+<tr class="row-odd"><td>dimgray = 105, 105, 105</td>
+<td>dodgerblue = 30, 144, 255</td>
+<td>firebrick = 178, 34, 34</td>
+<td>floralwhite = 255, 250, 240</td>
+<td>forestgreen = 34, 139, 34</td>
+</tr>
+<tr class="row-even"><td>fuchsia = 255, 0, 255</td>
+<td>gainsboro = 220, 220, 220</td>
+<td>ghostwhite = 248, 248, 255</td>
+<td>gold = 255, 215, 0</td>
+<td>goldenrod = 218, 165, 32</td>
+</tr>
+<tr class="row-odd"><td>gray = 128, 128, 128</td>
+<td>green = 0, 128, 0</td>
+<td>greenyellow = 173, 255, 47</td>
+<td>honeydew = 240, 255, 240</td>
+<td>hotpink = 255, 105, 180</td>
+</tr>
+<tr class="row-even"><td>indianred = 205, 92, 92</td>
+<td>indigo = 75, 0, 130</td>
+<td>ivory = 255, 240, 240</td>
+<td>khaki = 240, 230, 140</td>
+<td>lavender = 230, 230, 250</td>
+</tr>
+<tr class="row-odd"><td>lavenderblush = 255, 240, 245</td>
+<td>lawngreen = 124, 252, 0</td>
+<td>lemonchiffon = 255, 250, 205</td>
+<td>lightblue = 173, 216, 230</td>
+<td>lightcoral = 240, 128, 128</td>
+</tr>
+<tr class="row-even"><td>lightcyan = 224, 255, 255</td>
+<td>lightgoldenrodyellow = 250, 250, 210</td>
+<td>lightgreen = 144, 238, 144</td>
+<td>lightgrey = 211, 211, 211</td>
+<td>lightpink = 255, 182, 193</td>
+</tr>
+<tr class="row-odd"><td>lightsalmon = 255, 160, 122</td>
+<td>lightseagreen = 32, 178, 170</td>
+<td>lightskyblue = 135, 206, 250</td>
+<td>lightslategray = 119, 136, 153</td>
+<td>lightsteelblue = 176, 196, 222</td>
+</tr>
+<tr class="row-even"><td>lightyellow = 255, 255, 224</td>
+<td>lime = 0, 255, 0</td>
+<td>limegreen = 50, 205, 50</td>
+<td>linen = 250, 240, 230</td>
+<td>magenta = 255, 0, 255</td>
+</tr>
+<tr class="row-odd"><td>maroon = 128, 0, 0</td>
+<td>mediumaquamarine = 102, 205, 170</td>
+<td>mediumblue = 0, 0, 205</td>
+<td>mediumorchid = 186, 85, 211</td>
+<td>mediumpurple = 147, 112, 219</td>
+</tr>
+<tr class="row-even"><td>mediumseagreen = 60, 179, 113</td>
+<td>mediumslateblue = 123, 104, 238</td>
+<td>mediumspringgreen = 0, 250, 154</td>
+<td>mediumturquoise = 72, 209, 204</td>
+<td>mediumvioletred = 199, 21, 133</td>
+</tr>
+<tr class="row-odd"><td>midnightblue = 25, 25, 112</td>
+<td>mintcream = 245, 255, 250</td>
+<td>mistyrose = 255, 228, 225</td>
+<td>moccasin = 255, 228, 181</td>
+<td>navajowhite = 255, 222, 173</td>
+</tr>
+<tr class="row-even"><td>navy = 0, 0, 128</td>
+<td>oldlace = 253, 245, 230</td>
+<td>olive = 128, 128, 0</td>
+<td>olivedrab = 107, 142, 35</td>
+<td>orange = 255, 165, 0</td>
+</tr>
+<tr class="row-odd"><td>orangered = 255, 69, 0</td>
+<td>orchid = 218, 112, 214</td>
+<td>palegoldenrod = 238, 232, 170</td>
+<td>palegreen = 152, 251, 152</td>
+<td>paleturquoise = 175, 238, 238</td>
+</tr>
+<tr class="row-even"><td>palevioletred = 219, 112, 147</td>
+<td>papayawhip = 255, 239, 213</td>
+<td>peachpuff = 255, 239, 213</td>
+<td>peru = 205, 133, 63</td>
+<td>pink = 255, 192, 203</td>
+</tr>
+<tr class="row-odd"><td>plum = 221, 160, 221</td>
+<td>powderblue = 176, 224, 230</td>
+<td>purple = 128, 0, 128</td>
+<td>red = 255, 0, 0</td>
+<td>rosybrown = 188, 143, 143</td>
+</tr>
+<tr class="row-even"><td>royalblue = 65, 105, 225</td>
+<td>saddlebrown = 139, 69, 19</td>
+<td>salmon = 250, 128, 114</td>
+<td>sandybrown = 244, 164, 96</td>
+<td>seagreen = 46, 139, 87</td>
+</tr>
+<tr class="row-odd"><td>seashell = 255, 245, 238</td>
+<td>sienna = 160, 82, 45</td>
+<td>silver = 192, 192, 192</td>
+<td>skyblue = 135, 206, 235</td>
+<td>slateblue = 106, 90, 205</td>
+</tr>
+<tr class="row-even"><td>slategray = 112, 128, 144</td>
+<td>snow = 255, 250, 250</td>
+<td>springgreen = 0, 255, 127</td>
+<td>steelblue = 70, 130, 180</td>
+<td>tan = 210, 180, 140</td>
+</tr>
+<tr class="row-odd"><td>teal = 0, 128, 128</td>
+<td>thistle = 216, 191, 216</td>
+<td>tomato = 253, 99, 71</td>
+<td>turquoise = 64, 224, 208</td>
+<td>violet = 238, 130, 238</td>
+</tr>
+<tr class="row-even"><td>wheat = 245, 222, 179</td>
+<td>white = 255, 255, 255</td>
+<td>whitesmoke = 245, 245, 245</td>
+<td>yellow = 255, 255, 0</td>
+<td>yellowgreen = 154, 205, 50</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

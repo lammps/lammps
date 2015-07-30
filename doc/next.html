@@ -1,109 +1,220 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>next command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>next command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>next variables 
-</PRE>
-<UL><LI>variables = one or more variable names 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>next x
-next a t x myTemp 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command is used with variables defined by the
-<A HREF = "variable.html">variable</A> command.  It assigns the next value to the
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>next command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="next-command">
+<span id="index-0"></span><h1>next command<a class="headerlink" href="#next-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>next variables
+</pre></div>
+</div>
+<ul class="simple">
+<li>variables = one or more variable names</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>next x
+next a t x myTemp
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command is used with variables defined by the
+<a class="reference internal" href="variable.html"><em>variable</em></a> command.  It assigns the next value to the
 variable from the list of values defined for that variable by the
-<A HREF = "variable.html">variable</A> command.  Thus when that variable is
+<a class="reference internal" href="variable.html"><em>variable</em></a> command.  Thus when that variable is
 subsequently substituted for in an input script command, the new value
-is used.
-</P>
-<P>See the <A HREF = "variable.html">variable</A> command for info on how to define and
+is used.</p>
+<p>See the <a class="reference internal" href="variable.html"><em>variable</em></a> command for info on how to define and
 use different kinds of variables in LAMMPS input scripts.  If a
-variable name is a single lower-case character from "a" to "z", it can
+variable name is a single lower-case character from &#8220;a&#8221; to &#8220;z&#8221;, it can
 be used in an input script command as $a or $z.  If it is multiple
-letters, it can be used as ${myTemp}.
-</P>
-<P>If multiple variables are used as arguments to the <I>next</I> command,
-then all must be of the same variable style: <I>index</I>, <I>loop</I>, <I>file</I>,
-<I>universe</I>, or <I>uloop</I>.  An exception is that <I>universe</I>- and
-<I>uloop</I>-style variables can be mixed in the same <I>next</I> command.
-</P>
-<P>All the variables specified with the next command are incremented by
-one value from their respective list of values.  A <I>file</I>-style
+letters, it can be used as ${myTemp}.</p>
+<p>If multiple variables are used as arguments to the <em>next</em> command,
+then all must be of the same variable style: <em>index</em>, <em>loop</em>, <em>file</em>,
+<em>universe</em>, or <em>uloop</em>.  An exception is that <em>universe</em>- and
+<em>uloop</em>-style variables can be mixed in the same <em>next</em> command.</p>
+<p>All the variables specified with the next command are incremented by
+one value from their respective list of values.  A <em>file</em>-style
 variable reads the next line from its associated file.  An
-<I>atomfile</I>-style variable reads the next set of lines (one per atom)
-from its associated file.  <I>String-</I> or <I>atom</I>- or <I>equal</I>- or
-<I>world</I>-style variables cannot be used with the the next command,
-since they only store a single value.
-</P>
-<P>When any of the variables in the next command has no more values, a
+<em>atomfile</em>-style variable reads the next set of lines (one per atom)
+from its associated file.  <em>String-</em> or <em>atom</em>- or <em>equal</em>- or
+<em>world</em>-style variables cannot be used with the the next command,
+since they only store a single value.</p>
+<p>When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next
-<A HREF = "jump.html">jump</A> command encountered.  This enables a loop containing
-a next command to exit.  As explained in the <A HREF = "variable.html">variable</A>
+<a class="reference internal" href="jump.html"><em>jump</em></a> command encountered.  This enables a loop containing
+a next command to exit.  As explained in the <a class="reference internal" href="variable.html"><em>variable</em></a>
 command, the variable that has exhausted its values is also deleted.
 This allows it to be used and re-defined later in the input script.
-<I>File</I>-style and <I>atomfile</I>-style variables are exhausted when the
-end-of-file is reached.
-</P>
-<P>When the next command is used with <I>index</I>- or <I>loop</I>-style variables,
+<em>File</em>-style and <em>atomfile</em>-style variables are exhausted when the
+end-of-file is reached.</p>
+<p>When the next command is used with <em>index</em>- or <em>loop</em>-style variables,
 the next value is assigned to the variable for all processors.  When
-the next command is used with <I>file</I>-style variables, the next line is
+the next command is used with <em>file</em>-style variables, the next line is
 read from its file and the string assigned to the variable.  When the
-next command is used with <I>atomfile</I>-style variables, the next set of
-per-atom values is read from its file and assigned to the variable.
-</P>
-<P>When the next command is used with <I>universe</I>- or <I>uloop</I>-style
-variables, all <I>universe</I>- or <I>uloop</I>-style variables must be listed
+next command is used with <em>atomfile</em>-style variables, the next set of
+per-atom values is read from its file and assigned to the variable.</p>
+<p>When the next command is used with <em>universe</em>- or <em>uloop</em>-style
+variables, all <em>universe</em>- or <em>uloop</em>-style variables must be listed
 in the next command.  This is because of the manner in which the
 incrementing is done, using a single lock file for all variables.  The
 next value (for each variable) is assigned to whichever processor
 partition executes the command first.  All processors in the partition
 are assigned the same value(s).  Running LAMMPS on multiple partitions
-of processors via the "-partition" command-line switch is described in
-<A HREF = "Section_start.html#start_7">this section</A> of the manual.  <I>Universe</I>-
-and <I>uloop</I>-style variables are incremented using the files
-"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
-see in your directory during and after such a LAMMPS run.
-</P>
-<P>Here is an example of running a series of simulations using the next
-command with an <I>index</I>-style variable.  If this input script is named
+of processors via the &#8220;-partition&#8221; command-line switch is described in
+<a class="reference internal" href="Section_start.html#start-7"><span>this section</span></a> of the manual.  <em>Universe</em>-
+and <em>uloop</em>-style variables are incremented using the files
+&#8220;tmp.lammps.variable&#8221; and &#8220;tmp.lammps.variable.lock&#8221; which you will
+see in your directory during and after such a LAMMPS run.</p>
+<p>Here is an example of running a series of simulations using the next
+command with an <em>index</em>-style variable.  If this input script is named
 in.polymer, 8 simulations would be run using data files from
-directories run1 thru run8.
-</P>
-<PRE>variable d index run1 run2 run3 run4 run5 run6 run7 run8
+directories run1 thru run8.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable d index run1 run2 run3 run4 run5 run6 run7 run8
 shell cd $d
 read_data data.polymer
 run 10000
 shell cd ..
 clear
 next d
-jump in.polymer 
-</PRE>
-<P>If the variable "d" were of style <I>universe</I>, and the same in.polymer
+jump in.polymer
+</pre></div>
+</div>
+<p>If the variable &#8220;d&#8221; were of style <em>universe</em>, and the same in.polymer
 input script were run on 3 partitions of processors, then the first 3
 simulations would begin, one on each set of processors.  Whichever
-partition finished first, it would assign variable "d" the 4th value
+partition finished first, it would assign variable &#8220;d&#8221; the 4th value
 and run another simulation, and so forth until all 8 simulations were
-finished.
-</P>
-<P>Jump and next commands can also be nested to enable multi-level loops.
-For example, this script will run 15 simulations in a double loop.
-</P>
-<PRE>variable i loop 3
+finished.</p>
+<p>Jump and next commands can also be nested to enable multi-level loops.
+For example, this script will run 15 simulations in a double loop.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable i loop 3
   variable j loop 5
   clear
   ...
@@ -113,36 +224,102 @@ For example, this script will run 15 simulations in a double loop.
   next j
   jump in.script
 next i
-jump in.script 
-</PRE>
-<P>Here is an example of a double loop which uses the <A HREF = "if.html">if</A> and
-<A HREF = "jump.html">jump</A> commands to break out of the inner loop when a
-condition is met, then continues iterating thru the outer loop.
-</P>
-<PRE>label	    loopa
+jump in.script
+</pre></div>
+</div>
+<p>Here is an example of a double loop which uses the <a class="reference internal" href="if.html"><em>if</em></a> and
+<a class="reference internal" href="jump.html"><em>jump</em></a> commands to break out of the inner loop when a
+condition is met, then continues iterating thru the outer loop.</p>
+<div class="highlight-python"><div class="highlight"><pre>label            loopa
 variable    a loop 5
-  label	    loopb
+  label          loopb
   variable  b loop 5
-  print	    "A,B = $a,$b"
+  print          &quot;A,B = $a,$b&quot;
   run       10000
-  if	    $b > 2 then "jump in.script break"
-  next	    b
-  jump	    in.script loopb
-label	    break
-variable    b delete 
-</PRE>
-<PRE>next	    a
-jump	    in.script loopa 
-</PRE>
-<P><B>Restrictions:</B>
-</P>
-<P>As described above.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "jump.html">jump</A>, <A HREF = "include.html">include</A>, <A HREF = "shell.html">shell</A>,
-<A HREF = "variable.html">variable</A>,
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+  if     $b &gt; 2 then &quot;jump in.script break&quot;
+  next           b
+  jump           in.script loopb
+label            break
+variable    b delete
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>next     a
+jump     in.script loopa
+</pre></div>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>As described above.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="jump.html"><em>jump</em></a>, <a class="reference internal" href="include.html"><em>include</em></a>, <a class="reference internal" href="shell.html"><em>shell</em></a>,
+<a class="reference internal" href="variable.html"><em>variable</em></a>,</p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

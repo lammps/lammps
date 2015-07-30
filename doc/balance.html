@@ -1,130 +1,246 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>balance command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>balance command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>balance thresh style args ... keyword value ... 
-</PRE>
-<UL><LI>thresh = imbalance threshhold that must be exceeded to perform a re-balance 
-
-<LI>one style/arg pair can be used (or multiple for <I>x</I>,<I>y</I>,<I>z</I>) 
-
-<LI>style = <I>x</I> or <I>y</I> or <I>z</I> or <I>shift</I> or <I>rcb</I> 
-
-<PRE>  <I>x</I> args = <I>uniform</I> or Px-1 numbers between 0 and 1
-    <I>uniform</I> = evenly spaced cuts between processors in x dimension
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>balance command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="balance-command">
+<span id="index-0"></span><h1>balance command<a class="headerlink" href="#balance-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>balance thresh style args ... keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>thresh = imbalance threshhold that must be exceeded to perform a re-balance</li>
+<li>one style/arg pair can be used (or multiple for <em>x</em>,*y*,*z*)</li>
+<li>style = <em>x</em> or <em>y</em> or <em>z</em> or <em>shift</em> or <em>rcb</em></li>
+</ul>
+<pre class="literal-block">
+<em>x</em> args = <em>uniform</em> or Px-1 numbers between 0 and 1
+    <em>uniform</em> = evenly spaced cuts between processors in x dimension
     numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
-    <I>x</I> can be specified together with <I>y</I> or <I>z</I>
-  <I>y</I> args = <I>uniform</I> or Py-1 numbers between 0 and 1
-    <I>uniform</I> = evenly spaced cuts between processors in y dimension
+    <em>x</em> can be specified together with <em>y</em> or <em>z</em>
+  <em>y</em> args = <em>uniform</em> or Py-1 numbers between 0 and 1
+    <em>uniform</em> = evenly spaced cuts between processors in y dimension
     numbers = Py-1 ascending values between 0 and 1, Py - # of processors in y dimension
-    <I>y</I> can be specified together with <I>x</I> or <I>z</I>
-  <I>z</I> args = <I>uniform</I> or Pz-1 numbers between 0 and 1
-    <I>uniform</I> = evenly spaced cuts between processors in z dimension
+    <em>y</em> can be specified together with <em>x</em> or <em>z</em>
+  <em>z</em> args = <em>uniform</em> or Pz-1 numbers between 0 and 1
+    <em>uniform</em> = evenly spaced cuts between processors in z dimension
     numbers = Pz-1 ascending values between 0 and 1, Pz - # of processors in z dimension
-    <I>z</I> can be specified together with <I>x</I> or <I>y</I>
-  <I>shift</I> args = dimstr Niter stopthresh
-    dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
+    <em>z</em> can be specified together with <em>x</em> or <em>y</em>
+  <em>shift</em> args = dimstr Niter stopthresh
+    dimstr = sequence of letters containing &quot;x&quot; or &quot;y&quot; or &quot;z&quot;, each not more than once
     Niter = # of times to iterate within each dimension of dimstr sequence
     stopthresh = stop balancing when this imbalance threshhold is reached
-  <I>rcb</I> args = none 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>out</I> 
-
-<PRE>  <I>out</I> value = filename
-    filename = write each processor's sub-domain to a file 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>balance 0.9 x uniform y 0.4 0.5 0.6
+  <em>rcb</em> args = none
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>out</em></li>
+</ul>
+<pre class="literal-block">
+<em>out</em> value = filename
+    filename = write each processor's sub-domain to a file
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>balance 0.9 x uniform y 0.4 0.5 0.6
 balance 1.2 shift xz 5 1.1
 balance 1.0 shift xz 5 1.1
 balance 1.1 rcb
-balance 1.0 shift x 20 1.0 out tmp.balance 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command adjusts the size and shape of processor sub-domains
+balance 1.0 shift x 20 1.0 out tmp.balance
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command adjusts the size and shape of processor sub-domains
 within the simulation box, to attempt to balance the number of
 particles and thus the computational cost (load) evenly across
-processors.  The load balancing is "static" in the sense that this
+processors.  The load balancing is &#8220;static&#8221; in the sense that this
 command performs the balancing once, before or between simulations.
 The processor sub-domains will then remain static during the
-subsequent run.  To perform "dynamic" balancing, see the <A HREF = "fix_balance.html">fix
-balance</A> command, which can adjust processor
-sub-domain sizes and shapes on-the-fly during a <A HREF = "run.html">run</A>.
-</P>
-<P>Load-balancing is typically only useful if the particles in the
+subsequent run.  To perform &#8220;dynamic&#8221; balancing, see the <a class="reference internal" href="fix_balance.html"><em>fix balance</em></a> command, which can adjust processor
+sub-domain sizes and shapes on-the-fly during a <a class="reference internal" href="run.html"><em>run</em></a>.</p>
+<p>Load-balancing is typically only useful if the particles in the
 simulation box have a spatially-varying density distribution.  E.g. a
 model of a vapor/liquid interface, or a solid with an irregular-shaped
 geometry containing void regions.  In this case, the LAMMPS default of
 dividing the simulation box volume into a regular-spaced grid of 3d
 bricks, with one equal-volume sub-domain per procesor, may assign very
 different numbers of particles per processor.  This can lead to poor
-performance when the simulation is run in parallel.
-</P>
-<P>Note that the <A HREF = "processors.html">processors</A> command allows some control
+performance when the simulation is run in parallel.</p>
+<p>Note that the <a class="reference internal" href="processors.html"><em>processors</em></a> command allows some control
 over how the box volume is split across processors.  Specifically, for
 a Px by Py by Pz grid of processors, it allows choice of Px, Py, and
 Pz, subject to the constraint that Px * Py * Pz = P, the total number
 of processors.  This is sufficient to achieve good load-balance for
 some problems on some processor counts.  However, all the processor
-sub-domains will still have the same shape and same volume.
-</P>
-<P>The requested load-balancing operation is only performed if the
-current "imbalance factor" in particles owned by each processor
-exceeds the specified <I>thresh</I> parameter.  The imbalance factor is
+sub-domains will still have the same shape and same volume.</p>
+<p>The requested load-balancing operation is only performed if the
+current &#8220;imbalance factor&#8221; in particles owned by each processor
+exceeds the specified <em>thresh</em> parameter.  The imbalance factor is
 defined as the maximum number of particles owned by any processor,
 divided by the average number of particles per processor.  Thus an
-imbalance factor of 1.0 is perfect balance.
-</P>
-<P>As an example, for 10000 particles running on 10 processors, if the
+imbalance factor of 1.0 is perfect balance.</p>
+<p>As an example, for 10000 particles running on 10 processors, if the
 most heavily loaded processor has 1200 particles, then the factor is
 1.2, meaning there is a 20% imbalance.  Note that a re-balance can be
 forced even if the current balance is perfect (1.0) be specifying a
-<I>thresh</I> < 1.0.
-</P>
-<P>IMPORTANT NOTE: Balancing is performed even if the imbalance factor
-does not exceed the <I>thresh</I> parameter if a "grid" style is specified
-when the current partitioning is "tiled".  The meaning of "grid" vs
-"tiled" is explained below.  This is to allow forcing of the
-partitioning to "grid" so that the <A HREF = "comm_style.html">comm_style brick</A>
-command can then be used to replace a current <A HREF = "comm_style.html">comm_style
-tiled</A> setting.
-</P>
-<P>When the balance command completes, it prints statistics about the
+<em>thresh</em> &lt; 1.0.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Balancing is performed even if the imbalance factor
+does not exceed the <em>thresh</em> parameter if a &#8220;grid&#8221; style is specified
+when the current partitioning is &#8220;tiled&#8221;.  The meaning of &#8220;grid&#8221; vs
+&#8220;tiled&#8221; is explained below.  This is to allow forcing of the
+partitioning to &#8220;grid&#8221; so that the <a class="reference internal" href="comm_style.html"><em>comm_style brick</em></a>
+command can then be used to replace a current <a class="reference internal" href="comm_style.html"><em>comm_style tiled</em></a> setting.</p>
+</div>
+<p>When the balance command completes, it prints statistics about the
 result, including the change in the imbalance factor and the change in
-the maximum number of particles on any processor.  For "grid" methods
+the maximum number of particles on any processor.  For &#8220;grid&#8221; methods
 (defined below) that create a logical 3d grid of processors, the
 positions of all cutting planes in each of the 3 dimensions (as
-fractions of the box length) are also printed.
-</P>
-<P>IMPORTANT NOTE: This command attempts to minimize the imbalance
+fractions of the box length) are also printed.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This command attempts to minimize the imbalance
 factor, as defined above.  But depending on the method a perfect
-balance (1.0) may not be achieved.  For example, "grid" methods
+balance (1.0) may not be achieved.  For example, &#8220;grid&#8221; methods
 (defined below) that create a logical 3d grid cannot achieve perfect
 balance for many irregular distributions of particles.  Likewise, if a
 portion of the system is a perfect lattice, e.g. the intiial system is
-generated by the <A HREF = "create_atoms.html">create_atoms</A> command, then "grid"
+generated by the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command, then &#8220;grid&#8221;
 methods may be unable to achieve exact balance.  This is because
 entire lattice planes will be owned or not owned by a single
-processor.
-</P>
-<P>IMPORTANT NOTE: The imbalance factor is also an estimate of the
+processor.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The imbalance factor is also an estimate of the
 maximum speed-up you can hope to achieve by running a perfectly
 balanced simulation versus an imbalanced one.  In the example above,
 the 10000 particle simulation could run up to 20% faster if it were
@@ -132,105 +248,117 @@ perfectly balanced, versus when imbalanced.  However, computational
 cost is not strictly proportional to particle count, and changing the
 relative size and shape of processor sub-domains may lead to
 additional computational and communication overheads, e.g. in the PPPM
-solver used via the <A HREF = "kspace_style.html">kspace_style</A> command.  Thus
+solver used via the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command.  Thus
 you should benchmark the run times of a simulation before and after
-balancing.
-</P>
-<HR>
-
-<P>The method used to perform a load balance is specified by one of the
-listed styles (or more in the case of <I>x</I>,<I>y</I>,<I>z</I>), which are
-described in detail below.  There are 2 kinds of styles.
-</P>
-<P>The <I>x</I>, <I>y</I>, <I>z</I>, and <I>shift</I> styles are "grid" methods which produce
+balancing.</p>
+</div>
+<hr class="docutils" />
+<p>The method used to perform a load balance is specified by one of the
+listed styles (or more in the case of <em>x</em>,*y*,*z*), which are
+described in detail below.  There are 2 kinds of styles.</p>
+<p>The <em>x</em>, <em>y</em>, <em>z</em>, and <em>shift</em> styles are &#8220;grid&#8221; methods which produce
 a logical 3d grid of processors.  They operate by changing the cutting
 planes (or lines) between processors in 3d (or 2d), to adjust the
 volume (area in 2d) assigned to each processor, as in the following 2d
 diagram where processor sub-domains are shown and atoms are colored by
 the processor that owns them.  The leftmost diagram is the default
 partitioning of the simulation box across processors (one sub-box for
-each of 16 processors); the middle diagram is after a "grid" method
-has been applied.
-</P>
-<CENTER><A HREF = "JPG/balance_uniform.jpg"><IMG SRC = "JPG/balance_uniform_small.jpg"></A><A HREF = "JPG/balance_nonuniform.jpg"><IMG SRC = "JPG/balance_nonuniform_small.jpg"></A><A HREF = "JPG/balance_rcb.jpg"><IMG SRC = "JPG/balance_rcb_small.jpg"></A>
-</CENTER>
-<P>The <I>rcb</I> style is a "tiling" method which does not produce a logical
+each of 16 processors); the middle diagram is after a &#8220;grid&#8221; method
+has been applied.</p>
+<a data-lightbox="group-default"
+                   href="_images/balance_uniform.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/balance_uniform.jpg"
+                    class="align-center"
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a><a data-lightbox="group-default"
+                   href="_images/balance_nonuniform.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/balance_nonuniform.jpg"
+                    class="align-center"
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a><a data-lightbox="group-default"
+                   href="_images/balance_rcb.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/balance_rcb.jpg"
+                    class="align-center"
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a><p>The <em>rcb</em> style is a &#8220;tiling&#8221; method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
 rectangular sub-boxes of varying size and shape in an irregular
 fashion so as to have equal numbers of particles in each sub-box, as
-in the rightmost diagram above.
-</P>
-<P>The "grid" methods can be used with either of the
-<A HREF = "comm_style.html">comm_style</A> command options, <I>brick</I> or <I>tiled</I>.  The
-"tiling" methods can only be used with <A HREF = "comm_style.html">comm_style
-tiled</A>.  Note that it can be useful to use a "grid"
-method with <A HREF = "comm_style.html">comm_style tiled</A> to return the domain
-partitioning to a logical 3d grid of processors so that "comm_style
-brick" can afterwords be specified for subsequent <A HREF = "run.html">run</A>
-commands.
-</P>
-<P>When a "grid" method is specified, the current domain partitioning can
+in the rightmost diagram above.</p>
+<p>The &#8220;grid&#8221; methods can be used with either of the
+<a class="reference internal" href="comm_style.html"><em>comm_style</em></a> command options, <em>brick</em> or <em>tiled</em>.  The
+&#8220;tiling&#8221; methods can only be used with <a class="reference internal" href="comm_style.html"><em>comm_style tiled</em></a>.  Note that it can be useful to use a &#8220;grid&#8221;
+method with <a class="reference internal" href="comm_style.html"><em>comm_style tiled</em></a> to return the domain
+partitioning to a logical 3d grid of processors so that &#8220;comm_style
+brick&#8221; can afterwords be specified for subsequent <a class="reference internal" href="run.html"><em>run</em></a>
+commands.</p>
+<p>When a &#8220;grid&#8221; method is specified, the current domain partitioning can
 be either a logical 3d grid or a tiled partitioning.  In the former
 case, the current logical 3d grid is used as a starting point and
 changes are made to improve the imbalance factor.  In the latter case,
 the tiled partitioning is discarded and a logical 3d grid is created
 with uniform spacing in all dimensions.  This becomes the starting
-point for the balancing operation.
-</P>
-<P>When a "tiling" method is specified, the current domain partitioning
-("grid" or "tiled") is ignored, and a new partitioning is computed
-from scratch.
-</P>
-<HR>
-
-<P>The <I>x</I>, <I>y</I>, and <I>z</I> styles invoke a "grid" method for balancing, as
+point for the balancing operation.</p>
+<p>When a &#8220;tiling&#8221; method is specified, the current domain partitioning
+(&#8220;grid&#8221; or &#8220;tiled&#8221;) is ignored, and a new partitioning is computed
+from scratch.</p>
+<hr class="docutils" />
+<p>The <em>x</em>, <em>y</em>, and <em>z</em> styles invoke a &#8220;grid&#8221; method for balancing, as
 described above.  Note that any or all of these 3 styles can be
 specified together, one after the other, but they cannot be used with
 any other style.  This style adjusts the position of cutting planes
 between processor sub-domains in specific dimensions.  Only the
-specified dimensions are altered.
-</P>
-<P>The <I>uniform</I> argument spaces the planes evenly, as in the left
-diagrams above.  The <I>numeric</I> argument requires listing Ps-1 numbers
+specified dimensions are altered.</p>
+<p>The <em>uniform</em> argument spaces the planes evenly, as in the left
+diagrams above.  The <em>numeric</em> argument requires listing Ps-1 numbers
 that specify the position of the cutting planes.  This requires
 knowing Ps = Px or Py or Pz = the number of processors assigned by
 LAMMPS to the relevant dimension.  This assignment is made (and the
 Px, Py, Pz values printed out) when the simulation box is created by
-the "create_box" or "read_data" or "read_restart" command and is
-influenced by the settings of the <A HREF = "processors.html">processors</A>
-command.
-</P>
-<P>Each of the numeric values must be between 0 and 1, and they must be
+the &#8220;create_box&#8221; or &#8220;read_data&#8221; or &#8220;read_restart&#8221; command and is
+influenced by the settings of the <a class="reference internal" href="processors.html"><em>processors</em></a>
+command.</p>
+<p>Each of the numeric values must be between 0 and 1, and they must be
 listed in ascending order.  They represent the fractional position of
 the cutting place.  The left (or lower) edge of the box is 0.0, and
 the right (or upper) edge is 1.0.  Neither of these values is
 specified.  Only the interior Ps-1 positions are specified.  Thus is
 there are 2 procesors in the x dimension, you specify a single value
-such as 0.75, which would make the left processor's sub-domain 3x
-larger than the right processor's sub-domain.
-</P>
-<HR>
-
-<P>The <I>shift</I> style invokes a "grid" method for balancing, as
+such as 0.75, which would make the left processor&#8217;s sub-domain 3x
+larger than the right processor&#8217;s sub-domain.</p>
+<hr class="docutils" />
+<p>The <em>shift</em> style invokes a &#8220;grid&#8221; method for balancing, as
 described above.  It changes the positions of cutting planes between
 processors in an iterative fashion, seeking to reduce the imbalance
-factor, similar to how the <A HREF = "fix_balance.html">fix balance shift</A>
-command operates.
-</P>
-<P>The <I>dimstr</I> argument is a string of characters, each of which must be
-an "x" or "y" or "z".  Eacn character can appear zero or one time,
+factor, similar to how the <a class="reference internal" href="fix_balance.html"><em>fix balance shift</em></a>
+command operates.</p>
+<p>The <em>dimstr</em> argument is a string of characters, each of which must be
+an &#8220;x&#8221; or &#8220;y&#8221; or &#8220;z&#8221;.  Eacn character can appear zero or one time,
 since there is no advantage to balancing on a dimension more than
 once.  You should normally only list dimensions where you expect there
-to be a density variation in the particles.
-</P>
-<P>Balancing proceeds by adjusting the cutting planes in each of the
-dimensions listed in <I>dimstr</I>, one dimension at a time.  For a single
+to be a density variation in the particles.</p>
+<p>Balancing proceeds by adjusting the cutting planes in each of the
+dimensions listed in <em>dimstr</em>, one dimension at a time.  For a single
 dimension, the balancing operation (described below) is iterated on up
-to <I>Niter</I> times.  After each dimension finishes, the imbalance factor
-is re-computed, and the balancing operation halts if the <I>stopthresh</I>
-criterion is met.
-</P>
-<P>A rebalance operation in a single dimension is performed using a
+to <em>Niter</em> times.  After each dimension finishes, the imbalance factor
+is re-computed, and the balancing operation halts if the <em>stopthresh</em>
+criterion is met.</p>
+<p>A rebalance operation in a single dimension is performed using a
 recursive multisectioning algorithm, where the position of each
 cutting plane (line in 2d) in the dimension is adjusted independently.
 This is similar to a recursive bisectioning for a single value, except
@@ -242,33 +370,31 @@ the cut is adjusted to be halfway between a low and high bound.  The
 low and high bounds are adjusted on each iteration, using new count
 information, so that they become closer together over time.  Thus as
 the recustion progresses, the count of particles on either side of the
-plane gets closer to the target value.
-</P>
-<P>Once the rebalancing is complete and final processor sub-domains
+plane gets closer to the target value.</p>
+<p>Once the rebalancing is complete and final processor sub-domains
 assigned, particles are migrated to their new owning processor, and
-the balance procedure ends.
-</P>
-<P>IMPORTANT NOTE: At each rebalance operation, the bisectioning for each
+the balance procedure ends.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">At each rebalance operation, the bisectioning for each
 cutting plane (line in 2d) typcially starts with low and high bounds
-separated by the extent of a processor's sub-domain in one dimension.
+separated by the extent of a processor&#8217;s sub-domain in one dimension.
 The size of this bracketing region shrinks by 1/2 every iteration.
-Thus if <I>Niter</I> is specified as 10, the cutting plane will typically
+Thus if <em>Niter</em> is specified as 10, the cutting plane will typically
 be positioned to 1 part in 1000 accuracy (relative to the perfect
-target position).  For <I>Niter</I> = 20, it will be accurate to 1 part in
-a million.  Thus there is no need ot set <I>Niter</I> to a large value.
+target position).  For <em>Niter</em> = 20, it will be accurate to 1 part in
+a million.  Thus there is no need ot set <em>Niter</em> to a large value.
 LAMMPS will check if the threshold accuracy is reached (in a
-dimension) is less iterations than <I>Niter</I> and exit early.  However,
-<I>Niter</I> should also not be set too small, since it will take roughly
+dimension) is less iterations than <em>Niter</em> and exit early.  However,
+<em>Niter</em> should also not be set too small, since it will take roughly
 the same number of iterations to converge even if the cutting plane is
-initially close to the target value.
-</P>
-<HR>
-
-<P>The <I>rcb</I> style invokes a "tiled" method for balancing, as described
+initially close to the target value.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>rcb</em> style invokes a &#8220;tiled&#8221; method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
-simulation domain. The basic idea is as follows.
-</P>
-<P>The simulation domain is cut into 2 boxes by an axis-aligned cut in
+simulation domain. The basic idea is as follows.</p>
+<p>The simulation domain is cut into 2 boxes by an axis-aligned cut in
 the longest dimension, leaving one new box on either side of the cut.
 All the processors are also partitioned into 2 groups, half assigned
 to the box on the lower side of the cut, and half to the box on the
@@ -279,27 +405,23 @@ box should own for load balance to be perfect.  This also makes load
 balance for the upper box perfect.  The positioning is done
 iteratively, by a bisectioning method.  Note that counting atoms on
 either side of the cut requires communication between all processors
-at each iteration.
-</P>
-<P>That is the procedure for the first cut.  Subsequent cuts are made
+at each iteration.</p>
+<p>That is the procedure for the first cut.  Subsequent cuts are made
 recursively, in exactly the same manner.  The subset of processors
 assigned to each box make a new cut in the longest dimension of that
 box, splitting the box, the subset of processsors, and the atoms in
 the box in two.  The recursion continues until every processor is
 assigned a sub-box of the entire simulation domain, and owns the atoms
-in that sub-box.
-</P>
-<HR>
-
-<P>The <I>out</I> keyword writes a text file to the specified <I>filename</I> with
+in that sub-box.</p>
+<hr class="docutils" />
+<p>The <em>out</em> keyword writes a text file to the specified <em>filename</em> with
 the results of the balancing operation.  The file contains the bounds
 of the sub-domain for each processor after the balancing operation
 completes.  The format of the file is compatible with the
-<A HREF = "pizza">Pizza.py</A> <I>mdump</I> tool which has support for manipulating and
+<a class="reference external" href="pizza">Pizza.py</a> <em>mdump</em> tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by 4
-processors for a 2d problem:
-</P>
-<PRE>ITEM: TIMESTEP
+processors for a 2d problem:</p>
+<div class="highlight-python"><div class="highlight"><pre>ITEM: TIMESTEP
 0
 ITEM: NUMBER OF NODES
 16
@@ -332,29 +454,90 @@ ITEM: SQUARES
 1 1 1 2 3 4
 2 1 5 6 7 8
 3 1 9 10 11 12
-4 1 13 14 15 16 
-</PRE>
-<P>The coordinates of all the vertices are listed in the NODES section, 5
+4 1 13 14 15 16
+</pre></div>
+</div>
+<p>The coordinates of all the vertices are listed in the NODES section, 5
 per processor.  Note that the 4 sub-domains share vertices, so there
-will be duplicate nodes in the list.
-</P>
-<P>The "SQUARES" section lists the node IDs of the 4 vertices in a
-rectangle for each processor (1 to 4).  
-</P>
-<P>For a 3d problem, the syntax is similar with 8 vertices listed for
-each processor, instead of 4, and "SQUARES" replaced by "CUBES".
-</P>
-<HR>
+will be duplicate nodes in the list.</p>
+<p>The &#8220;SQUARES&#8221; section lists the node IDs of the 4 vertices in a
+rectangle for each processor (1 to 4).</p>
+<p>For a 3d problem, the syntax is similar with 8 vertices listed for
+each processor, instead of 4, and &#8220;SQUARES&#8221; replaced by &#8220;CUBES&#8221;.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>For 2d simulations, the <em>z</em> style cannot be used.  Nor can a &#8220;z&#8221;
+appear in <em>dimstr</em> for the <em>shift</em> style.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="processors.html"><em>processors</em></a>, <a class="reference internal" href="fix_balance.html"><em>fix balance</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>For 2d simulations, the <I>z</I> style cannot be used.  Nor can a "z"
-appear in <I>dimstr</I> for the <I>shift</I> style.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "processors.html">processors</A>, <A HREF = "fix_balance.html">fix balance</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

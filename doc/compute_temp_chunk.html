@@ -1,251 +1,397 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute temp/chunk command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute temp/chunk command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID temp/chunk chunkID value1 value2 ... keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>temp/chunk = style name of this compute command 
-
-<LI>chunkID = ID of <A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command 
-
-<LI>zero or more values can be listed as value1,value2,etc 
-
-<LI>value = <I>temp</I> or <I>kecom</I> or <I>internal</I> 
-
-<PRE>  temp = temperature of each chunk
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute temp/chunk command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-temp-chunk-command">
+<span id="index-0"></span><h1>compute temp/chunk command<a class="headerlink" href="#compute-temp-chunk-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID temp/chunk chunkID value1 value2 ... keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>temp/chunk = style name of this compute command</li>
+<li>chunkID = ID of <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command</li>
+<li>zero or more values can be listed as value1,value2,etc</li>
+<li>value = <em>temp</em> or <em>kecom</em> or <em>internal</em></li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>temp = temperature of each chunk
   kecom = kinetic energy of each chunk based on velocity of center of mass
-  internal = internal kinetic energy of each chunk 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>com</I> or <I>bias</I> or <I>adof</I> or <I>cdof</I> 
-
-<PRE>  <I>com</I> value = <I>yes</I> or <I>no</I>
+  internal = internal kinetic energy of each chunk
+</pre></div>
+</div>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>com</em> or <em>bias</em> or <em>adof</em> or <em>cdof</em></li>
+</ul>
+<pre class="literal-block">
+<em>com</em> value = <em>yes</em> or <em>no</em>
     yes = subtract center-of-mass velocity from each chunk before calculating temperature
     no = do not subtract center-of-mass velocity
-  <I>bias</I> value = bias-ID
+  <em>bias</em> value = bias-ID
     bias-ID = ID of a temperature compute that removes a velocity bias
-  <I>adof</I> value = dof_per_atom
+  <em>adof</em> value = dof_per_atom
     dof_per_atom = define this many degrees-of-freedom per atom
-  <I>cdof</I> value = dof_per_chunk
-    dof_per_chunk = define this many degrees-of-freedom per chunk 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 fluid temp/chunk molchunk
+  <em>cdof</em> value = dof_per_chunk
+    dof_per_chunk = define this many degrees-of-freedom per chunk
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 fluid temp/chunk molchunk
 compute 1 fluid temp/chunk molchunk temp internal
-compute 1 fluid temp/chunk molchunk bias tpartial adof 2.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates the temperature of a group of
+compute 1 fluid temp/chunk molchunk bias tpartial adof 2.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates the temperature of a group of
 atoms that are also in chunks, after optionally subtracting out the
 center-of-mass velocity of each chunk.  By specifying optional values,
 it can also calulate the per-chunk temperature or energies of the
-multiple chunks of atoms.
-</P>
-<P>In LAMMPS, chunks are collections of atoms defined by a <A HREF = "compute_chunk_atom.html">compute
-chunk/atom</A> command, which assigns each atom
+multiple chunks of atoms.</p>
+<p>In LAMMPS, chunks are collections of atoms defined by a <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the <A HREF = "compute_chunk_atom.html">compute
-chunk/atom</A> doc page and "<A HREF = "Section_howto.html#howto_23">Section_howto
-23</A> for details of how chunks can be
+molecule or atoms in a spatial bin.  See the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> doc page and &#8220;<a class="reference internal" href="Section_howto.html#howto-23"><span>Section_howto 23</span></a> for details of how chunks can be
 defined and examples of how they can be used to measure properties of
-a system.
-</P>
-<P>The temperature is calculated by the formula KE = DOF/2 k T, where KE =
+a system.</p>
+<p>The temperature is calculated by the formula KE = DOF/2 k T, where KE =
 total kinetic energy of all atoms assigned to chunks (sum of 1/2 m
 v^2), DOF = the total number of degrees of freedom for those atoms, k
-= Boltzmann constant, and T = temperature.
-</P>
-<P>The DOF is calculated as N*adof + Nchunk*cdof, where N = number of
+= Boltzmann constant, and T = temperature.</p>
+<p>The DOF is calculated as N*adof + Nchunk*cdof, where N = number of
 atoms contributing to the KE, adof = degrees of freedom per atom, and
 cdof = degrees of freedom per chunk.  By default adof = 2 or 3 =
-dimensionality of system, as set via the <A HREF = "dimension.html">dimension</A>
+dimensionality of system, as set via the <a class="reference internal" href="dimension.html"><em>dimension</em></a>
 command, and cdof = 0.0.  This gives the usual formula for
-temperature.
-</P>
-<P>A kinetic energy tensor, stored as a 6-element vector, is also
+temperature.</p>
+<p>A kinetic energy tensor, stored as a 6-element vector, is also
 calculated by this compute for use in the computation of a pressure
 tensor.  The formula for the components of the tensor is the same as
 the above formula, except that v^2 is replaced by vx*vy for the xy
 component, etc.  The 6 components of the vector are ordered xx, yy,
-zz, xy, xz, yz.
-</P>
-<P>Note that the number of atoms contributing to the temperature is
+zz, xy, xz, yz.</p>
+<p>Note that the number of atoms contributing to the temperature is
 calculated each time the temperature is evaluated since it is assumed
 the atoms may be dynamically assigned to chunks.  Thus there is no
-need to use the <I>dynamic</I> option of the
-<A HREF = "compute_modify.html">compute_modify</A> command for this compute style.
-</P>
-<P>If any optional values are specified, then per-chunk quantities are
-also calculated and stored in a global array, as described below.
-</P>
-<P>The <I>temp</I> value calculates the temperature for each chunk by the
+need to use the <em>dynamic</em> option of the
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command for this compute style.</p>
+<p>If any optional values are specified, then per-chunk quantities are
+also calculated and stored in a global array, as described below.</p>
+<p>The <em>temp</em> value calculates the temperature for each chunk by the
 formula KE = DOF/2 k T, where KE = total kinetic energy of the chunk
 of atoms (sum of 1/2 m v^2), DOF = the total number of degrees of
 freedom for all atoms in the chunk, k = Boltzmann constant, and T =
-temperature.
-</P>
-<P>The DOF in this case is calculated as N*adof + cdof, where N = number
+temperature.</p>
+<p>The DOF in this case is calculated as N*adof + cdof, where N = number
 of atoms in the chunk, adof = degrees of freedom per atom, and cdof =
 degrees of freedom per chunk.  By default adof = 2 or 3 =
-dimensionality of system, as set via the <A HREF = "dimension.html">dimension</A>
+dimensionality of system, as set via the <a class="reference internal" href="dimension.html"><em>dimension</em></a>
 command, and cdof = 0.0.  This gives the usual formula for
-temperature.
-</P>
-<P>The <I>kecom</I> value calculates the kinetic energy of each chunk as if
+temperature.</p>
+<p>The <em>kecom</em> value calculates the kinetic energy of each chunk as if
 all its atoms were moving with the velocity of the center-of-mass of
-the chunk.
-</P>
-<P>The <I>internal</I> value calculates the internal kinetic energy of each
+the chunk.</p>
+<p>The <em>internal</em> value calculates the internal kinetic energy of each
 chunk.  The interal KE is summed over the atoms in the chunk using an
-internal "thermal" velocity for each atom, which is its velocity minus
-the center-of-mass velocity of the chunk.
-</P>
-<HR>
-
-<P>Note that currently the global and per-chunk temperatures calculated
+internal &#8220;thermal&#8221; velocity for each atom, which is its velocity minus
+the center-of-mass velocity of the chunk.</p>
+<hr class="docutils" />
+<p>Note that currently the global and per-chunk temperatures calculated
 by this compute only include translational degrees of freedom for each
 atom.  No rotational degrees of freedom are included for finite-size
 particles.  Also no degrees of freedom are subtracted for any velocity
-bias or constraints that are applied, such as <A HREF = "compute_temp_partial.html">compute
-temp/partial</A>, or <A HREF = "fix_shake.html">fix shake</A>
-or <A HREF = "fix_rigid.html">fix rigid</A>.  This is because those degrees of
+bias or constraints that are applied, such as <a class="reference internal" href="compute_temp_partial.html"><em>compute temp/partial</em></a>, or <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a>
+or <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a>.  This is because those degrees of
 freedom (e.g. a constrained bond) could apply to sets of atoms that
 are both included and excluded from a specific chunk, and hence the
 concept is somewhat ill-defined.  In some cases, you can use the
-<I>adof</I> and <I>cdof</I> keywords to adjust the calculated degress of freedom
-appropriately, as explained below.
-</P>
-<P>Note that the per-chunk temperature calulated by this compute and the
-<A HREF = "fix_ave_chunk.html">fix ave/chunk temp</A> command can be different.
+<em>adof</em> and <em>cdof</em> keywords to adjust the calculated degress of freedom
+appropriately, as explained below.</p>
+<p>Note that the per-chunk temperature calulated by this compute and the
+<a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk temp</em></a> command can be different.
 This compute calculates the temperature for each chunk for a single
 snapshot.  Fix ave/chunk can do that but can also time average those
 values over many snapshots, or it can compute a temperature as if the
 atoms in the chunk on different timesteps were collected together as
 one set of atoms to calculate their temperature.  This compute allows
 the center-of-mass velocity of each chunk to be subtracted before
-calculating the temperature; fix ave/chunk does not.
-</P>
-<P>IMPORTANT NOTE: Only atoms in the specified group contribute to the
-calculations performed by this compute.  The <A HREF = "compute_chunk_atom.html">compute
-chunk/atom</A> command defines its own group;
+calculating the temperature; fix ave/chunk does not.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Only atoms in the specified group contribute to the
+calculations performed by this compute.  The <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command defines its own group;
 atoms will have a chunk ID = 0 if they are not in that group,
 signifying they are not assigned to a chunk, and will thus also not
-contribute to this calculation.  You can specify the "all" group for
+contribute to this calculation.  You can specify the &#8220;all&#8221; group for
 this command if you simply want to include atoms with non-zero chunk
-IDs.
-</P>
-<P>The simplest way to output the per-chunk results of the compute
-temp/chunk calculation to a file is to use the <A HREF = "fix_ave_time.html">fix
-ave/time</A> command, for example:
-</P>
-<PRE>compute cc1 all chunk/atom molecule
+IDs.</p>
+</div>
+<p>The simplest way to output the per-chunk results of the compute
+temp/chunk calculation to a file is to use the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute cc1 all chunk/atom molecule
 compute myChunk all temp/chunk cc1 temp
-fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector 
-</PRE>
-<HR>
-
-<P>The keyword/value option pairs are used in the following ways.
-</P>
-<P>The <I>com</I> keyword can be used with a value of <I>yes</I> to subtract the
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The keyword/value option pairs are used in the following ways.</p>
+<p>The <em>com</em> keyword can be used with a value of <em>yes</em> to subtract the
 velocity of the center-of-mass for each chunk from the velocity of the
 atoms in that chunk, before calculating either the global or per-chunk
 temperature.  This can be useful if the atoms are streaming or
 otherwise moving collectively, and you wish to calculate only the
-thermal temperature.
-</P>
-<P>For the <I>bias</I> keyword, <I>bias-ID</I> refers to the ID of a temperature
-compute that removes a "bias" velocity from each atom.  This also
+thermal temperature.</p>
+<p>For the <em>bias</em> keyword, <em>bias-ID</em> refers to the ID of a temperature
+compute that removes a &#8220;bias&#8221; velocity from each atom.  This also
 allows calculation of the global or per-chunk temperature using only
 the thermal temperature of atoms in each chunk after the translational
 kinetic energy components have been altered in a prescribed way,
 e.g. to remove a velocity profile.  It also applies to the calculation
-of the other per-chunk values, such as <I>kecom</I> or <I>internal</I>, which
+of the other per-chunk values, such as <em>kecom</em> or <em>internal</em>, which
 involve the center-of-mass velocity of each chunk, which is calculated
 after the velocity bias is removed from each atom.  Note that the
 temperature compute will apply its bias globally to the entire system,
-not on a per-chunk basis.
-</P>
-<P>The <I>adof</I> and <I>cdof</I> keywords define the values used in the degree of
+not on a per-chunk basis.</p>
+<p>The <em>adof</em> and <em>cdof</em> keywords define the values used in the degree of
 freedom (DOF) formulas used for the global or per-chunk temperature,
 as described above.  They can be used to calculate a more appropriate
-temperature for some kinds of chunks.  Here are 3 examples:
-</P>
-<P>If spatially binned chunks contain some number of water molecules and
-<A HREF = "fix_shake.html">fix shake</A> is used to make each molecule rigid, then
+temperature for some kinds of chunks.  Here are 3 examples:</p>
+<p>If spatially binned chunks contain some number of water molecules and
+<a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> is used to make each molecule rigid, then
 you could calculate a temperature with 6 degrees of freedom (DOF) (3
-translational, 3 rotational) per molecule by setting <I>adof</I> to 2.0.
-</P>
-<P>If <A HREF = "compute_temp_partial.html">compute temp/partial</A> is used with the
-<I>bias</I> keyword to only allow the x component of velocity to contribute
-to the temperature, then <I>adof</I> = 1.0 would be appropriate.
-</P>
-<P>If each chunk consists of a large molecule, with some number of its
-bonds constrained by <A HREF = "fix_shake.html">fix shake</A> or the entire molecule
-by <A HREF = "fix_rigid.html">fix rigid/small</A>, <I>adof</I> = 0.0 and <I>cdof</I> could be
+translational, 3 rotational) per molecule by setting <em>adof</em> to 2.0.</p>
+<p>If <a class="reference internal" href="compute_temp_partial.html"><em>compute temp/partial</em></a> is used with the
+<em>bias</em> keyword to only allow the x component of velocity to contribute
+to the temperature, then <em>adof</em> = 1.0 would be appropriate.</p>
+<p>If each chunk consists of a large molecule, with some number of its
+bonds constrained by <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> or the entire molecule
+by <a class="reference internal" href="fix_rigid.html"><em>fix rigid/small</em></a>, <em>adof</em> = 0.0 and <em>cdof</em> could be
 set to the remaining degrees of freedom for the entire molecule
 (entire chunk in this case), e.g. 6 for 3d, or 3 for 2d, for a rigid
-molecule.
-</P>
-<HR>
-
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a global scalar (the temperature) and a global
+molecule.</p>
+<hr class="docutils" />
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
-section</A> for an overview of LAMMPS output
-options.
-</P>
-<P>This compute also optionally calculates a global array, if one or more
+vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>This compute also optionally calculates a global array, if one or more
 of the optional values are specified.  The number of rows in the array
-= the number of chunks <I>Nchunk</I> as calculated by the specified
-<A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command.  The number of
+= the number of chunks <em>Nchunk</em> as calculated by the specified
+<a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command.  The number of
 columns is the number of specifed values (1 or more).  These values
 can be accessed by any command that uses global array values from a
-compute as input.  Again, see <A HREF = "Section_howto.html#howto_15">Section_howto
-15</A> for an overview of LAMMPS output
-options.
-</P>
-<P>The scalar value calculated by this compute is "intensive".  The
-vector values are "extensive".  The array values are "intensive".
-</P>
-<P>The scalar value will be in temperature <A HREF = "units.html">units</A>.  The
-vector values will be in energy <A HREF = "units.html">units</A>.  The array values
-will be in temperature <A HREF = "units.html">units</A> for the <I>temp</I> value, and in
-energy <A HREF = "units.html">units</A> for the <I>kecom</I> and <I>internal</I> values.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>The <I>com</I> and <I>bias</I> keywords cannot be used together.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "fix_ave_chunk.html">fix ave/chunk
-temp</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are com no, no bias, adof = dimensionality of the
-system (2 or 3), and cdof = 0.0.
-</P>
-</HTML>
+compute as input.  Again, see <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The scalar value calculated by this compute is &#8220;intensive&#8221;.  The
+vector values are &#8220;extensive&#8221;.  The array values are &#8220;intensive&#8221;.</p>
+<p>The scalar value will be in temperature <a class="reference internal" href="units.html"><em>units</em></a>.  The
+vector values will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.  The array values
+will be in temperature <a class="reference internal" href="units.html"><em>units</em></a> for the <em>temp</em> value, and in
+energy <a class="reference internal" href="units.html"><em>units</em></a> for the <em>kecom</em> and <em>internal</em> values.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The <em>com</em> and <em>bias</em> keywords cannot be used together.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_temp.html"><em>compute temp</em></a>, <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk temp</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are com no, no bias, adof = dimensionality of the
+system (2 or 3), and cdof = 0.0.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,159 +1,328 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>delete_bonds command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>delete_bonds command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>delete_bonds group-ID style arg keyword ... 
-</PRE>
-<UL><LI>group-ID = group ID 
-
-<LI>style = <I>multi</I> or <I>atom</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or
-        <I>improper</I> or <I>stats</I> 
-
-<PRE>  <I>multi</I> arg = none
-  <I>atom</I> arg = an atom type or range of types (see below)
-  <I>bond</I> arg = a bond type or range of types (see below)
-  <I>angle</I> arg = an angle type or range of types (see below)
-  <I>dihedral</I> arg = a dihedral type or range of types (see below)
-  <I>improper</I> arg = an improper type or range of types (see below)
-  <I>stats</I> arg = none 
-</PRE>
-<LI>zero or more keywords may be appended 
-
-<LI>keyword = <I>any</I> or <I>undo</I> or <I>remove</I> or <I>special</I> 
-
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>delete_bonds frozen multi remove
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>delete_bonds command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="delete-bonds-command">
+<span id="index-0"></span><h1>delete_bonds command<a class="headerlink" href="#delete-bonds-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>delete_bonds group-ID style arg keyword ...
+</pre></div>
+</div>
+<ul>
+<li><p class="first">group-ID = group ID</p>
+</li>
+<li><dl class="first docutils">
+<dt>style = <em>multi</em> or <em>atom</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or</dt>
+<dd><p class="first last"><em>improper</em> or <em>stats</em></p>
+</dd>
+</dl>
+</li>
+</ul>
+<pre class="literal-block">
+<em>multi</em> arg = none
+  <em>atom</em> arg = an atom type or range of types (see below)
+  <em>bond</em> arg = a bond type or range of types (see below)
+  <em>angle</em> arg = an angle type or range of types (see below)
+  <em>dihedral</em> arg = a dihedral type or range of types (see below)
+  <em>improper</em> arg = an improper type or range of types (see below)
+  <em>stats</em> arg = none
+</pre>
+<ul class="simple">
+<li>zero or more keywords may be appended</li>
+<li>keyword = <em>any</em> or <em>undo</em> or <em>remove</em> or <em>special</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>delete_bonds frozen multi remove
 delete_bonds all atom 4 special
 delete_bonds all bond 0*3 special
-delete_bonds all stats 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Turn off (or on) molecular topology interactions, i.e. bonds, angles,
+delete_bonds all stats
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Turn off (or on) molecular topology interactions, i.e. bonds, angles,
 dihedrals, impropers.  This command is useful for deleting
 interactions that have been previously turned off by bond-breaking
 potentials.  It is also useful for turning off topology interactions
 between frozen or rigid atoms.  Pairwise interactions can be turned
-off via the <A HREF = "neigh_modify.html">neigh_modify exclude</A> command.  The
-<A HREF = "fix_shake.html">fix shake</A> command also effectively turns off certain
-bond and angle interactions.
-</P>
-<P>For all styles, by default, an interaction is only turned off (or on)
-if all the atoms involved are in the specified group.  See the <I>any</I>
-keyword to change the behavior.
-</P>
-<P>Several of the styles (<I>atom</I>, <I>bond</I>, <I>angle</I>, <I>dihedral</I>,
-<I>improper</I>) take a <I>type</I> as an argument.  The specified <I>type</I> should
+off via the <a class="reference internal" href="neigh_modify.html"><em>neigh_modify exclude</em></a> command.  The
+<a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command also effectively turns off certain
+bond and angle interactions.</p>
+<p>For all styles, by default, an interaction is only turned off (or on)
+if all the atoms involved are in the specified group.  See the <em>any</em>
+keyword to change the behavior.</p>
+<p>Several of the styles (<em>atom</em>, <em>bond</em>, <em>angle</em>, <em>dihedral</em>,
+<em>improper</em>) take a <em>type</em> as an argument.  The specified <em>type</em> should
 be an integer from 0 to N, where N is the number of relevant types
 (atom types, bond types, etc).  A value of 0 is only relevant for
-style <I>bond</I>; see details below.  In all cases, a wildcard asterisk
-can be used in place of or in conjunction with the <I>type</I> argument to
-specify a range of types.  This takes the form "*" or "*n" or "n*" or
-"m*n".  If N = the number of types, then an asterisk with no numeric
+style <em>bond</em>; see details below.  In all cases, a wildcard asterisk
+can be used in place of or in conjunction with the <em>type</em> argument to
+specify a range of types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or
+&#8220;m*n&#8221;.  If N = the number of types, then an asterisk with no numeric
 values means all types from 0 to N.  A leading asterisk means all
 types from 0 to n (inclusive).  A trailing asterisk means all types
 from n to N (inclusive).  A middle asterisk means all types from m to
 n (inclusive).  Note that it is fine to include a type of 0 for
-non-bond styles; it will simply be ignored.
-</P>
-<P>For style <I>multi</I> all bond, angle, dihedral, and improper interactions
-of any type, involving atoms in the group, are turned off.
-</P>
-<P>Style <I>atom</I> is the same as style <I>multi</I> except that in addition, one
+non-bond styles; it will simply be ignored.</p>
+<p>For style <em>multi</em> all bond, angle, dihedral, and improper interactions
+of any type, involving atoms in the group, are turned off.</p>
+<p>Style <em>atom</em> is the same as style <em>multi</em> except that in addition, one
 or more of the atoms involved in the bond, angle, dihedral, or
-improper interaction must also be of the specified atom type.
-</P>
-<P>For style <I>bond</I>, only bonds are candidates for turn-off, and the bond
-must also be of the specified type.  Styles <I>angle</I>, <I>dihedral</I>, and
-<I>improper</I> are treated similarly.
-</P>
-<P>For style <I>bond</I>, you can set the type to 0 to delete bonds that have
+improper interaction must also be of the specified atom type.</p>
+<p>For style <em>bond</em>, only bonds are candidates for turn-off, and the bond
+must also be of the specified type.  Styles <em>angle</em>, <em>dihedral</em>, and
+<em>improper</em> are treated similarly.</p>
+<p>For style <em>bond</em>, you can set the type to 0 to delete bonds that have
 been previously broken by a bond-breaking potential (which sets the
-bond type to 0 when a bond is broken); e.g. see the <A HREF = "bond_style.html">bond_style
-quartic</A> command.
-</P>
-<P>For style <I>stats</I> no interactions are turned off (or on); the status
+bond type to 0 when a bond is broken); e.g. see the <a class="reference internal" href="bond_style.html"><em>bond_style quartic</em></a> command.</p>
+<p>For style <em>stats</em> no interactions are turned off (or on); the status
 of all interactions in the specified group is simply reported.  This
 is useful for diagnostic purposes if bonds have been turned off by a
-bond-breaking potential during a previous run.
-</P>
-<P>The default behavior of the delete_bonds command is to turn off
+bond-breaking potential during a previous run.</p>
+<p>The default behavior of the delete_bonds command is to turn off
 interactions by toggling their type to a negative value, but not to
 permanently remove the interaction.  E.g. a bond_type of 2 is set to
 -2.  The neighbor list creation routines will not include such an
 interaction in their interaction lists.  The default is also to not
 alter the list of 1-2, 1-3, 1-4 neighbors computed by the
-<A HREF = "special_bonds.html">special_bonds</A> command and used to weight pairwise
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command and used to weight pairwise
 force and energy calculations.  This means that pairwise computations
-will proceed as if the bond (or angle, etc) were still turned on.
-</P>
-<P>Several keywords can be appended to the argument list to alter the
-default behaviors.
-</P>
-<P>The <I>any</I> keyword changes the requirement that all atoms in the bond
+will proceed as if the bond (or angle, etc) were still turned on.</p>
+<p>Several keywords can be appended to the argument list to alter the
+default behaviors.</p>
+<p>The <em>any</em> keyword changes the requirement that all atoms in the bond
 (angle, etc) must be in the specified group in order to turn-off the
 interaction.  Instead, if any of the atoms in the interaction are in
-the specified group, it will be turned off (or on if the <I>undo</I>
-keyword is used).
-</P>
-<P>The <I>undo</I> keyword inverts the delete_bonds command so that the
+the specified group, it will be turned off (or on if the <em>undo</em>
+keyword is used).</p>
+<p>The <em>undo</em> keyword inverts the delete_bonds command so that the
 specified bonds, angles, etc are turned on if they are currently
 turned off.  This means a negative value is toggled to positive.  For
-example, for style <I>angle</I>, if <I>type</I> is specified as 2, then all
+example, for style <em>angle</em>, if <em>type</em> is specified as 2, then all
 angles with current type = -2, are reset to type = 2.  Note that the
-<A HREF = "fix_shake.html">fix shake</A> command also sets bond and angle types
-negative, so this option should not be used on those interactions.
-</P>
-<P>The <I>remove</I> keyword is invoked at the end of the delete_bonds
+<a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command also sets bond and angle types
+negative, so this option should not be used on those interactions.</p>
+<p>The <em>remove</em> keyword is invoked at the end of the delete_bonds
 operation.  It causes turned-off bonds (angles, etc) to be removed
-from each atom's data structure and then adjusts the global bond
+from each atom&#8217;s data structure and then adjusts the global bond
 (angle, etc) counts accordingly.  Removal is a permanent change;
-removed bonds cannot be turned back on via the <I>undo</I> keyword.
-Removal does not alter the pairwise 1-2, 1-3, 1-4 weighting list.
-</P>
-<P>The <I>special</I> keyword is invoked at the end of the delete_bonds
+removed bonds cannot be turned back on via the <em>undo</em> keyword.
+Removal does not alter the pairwise 1-2, 1-3, 1-4 weighting list.</p>
+<p>The <em>special</em> keyword is invoked at the end of the delete_bonds
 operation, after (optional) removal.  It re-computes the pairwise 1-2,
 1-3, 1-4 weighting list.  The weighting list computation treats
 turned-off bonds the same as turned-on.  Thus, turned-off bonds must
-be removed if you wish to change the weighting list. 
-</P>
-<P>Note that the choice of <I>remove</I> and <I>special</I> options affects how
+be removed if you wish to change the weighting list.</p>
+<p>Note that the choice of <em>remove</em> and <em>special</em> options affects how
 1-2, 1-3, 1-4 pairwise interactions will be computed across bonds that
-have been modified by the delete_bonds command.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This command requires inter-processor communication to coordinate the
+have been modified by the delete_bonds command.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command requires inter-processor communication to coordinate the
 deleting of bonds.  This means that your system must be ready to
 perform a simulation before using this command (force fields setup,
-atom masses set, etc).
-</P>
-<P>If deleted bonds (angles, etc) are removed but the 1-2, 1-3, 1-4
-weighting list is not recomputed, this can cause a later <A HREF = "fix_shake.html">fix
-shake</A> command to fail due to an atom's bonds being
+atom masses set, etc).</p>
+<p>If deleted bonds (angles, etc) are removed but the 1-2, 1-3, 1-4
+weighting list is not recomputed, this can cause a later <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command to fail due to an atom&#8217;s bonds being
 inconsistent with the weighting list.  This should only happen if the
 group used in the fix command includes both atoms in the bond, in
-which case you probably should be recomputing the weighting list.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "neigh_modify.html">neigh_modify</A> exclude,
-<A HREF = "special_bonds.html">special_bonds</A>, <A HREF = "fix_shake.html">fix shake</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+which case you probably should be recomputing the weighting list.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="neigh_modify.html"><em>neigh_modify</em></a> exclude,
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>, <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

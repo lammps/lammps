@@ -1,174 +1,339 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix wall/reflect command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix wall/reflect command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID wall/reflect face arg ... keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>wall/reflect = style name of this fix command 
-
-<LI>one or more face/arg pairs may be appended 
-
-<LI>face = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> 
-
-<PRE>  <I>xlo</I>,<I>ylo</I>,<I>zlo</I> arg = EDGE or constant or variable
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix wall/reflect command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-wall-reflect-command">
+<span id="index-0"></span><h1>fix wall/reflect command<a class="headerlink" href="#fix-wall-reflect-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID wall/reflect face arg ... keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>wall/reflect = style name of this fix command</li>
+<li>one or more face/arg pairs may be appended</li>
+<li>face = <em>xlo</em> or <em>xhi</em> or <em>ylo</em> or <em>yhi</em> or <em>zlo</em> or <em>zhi</em></li>
+</ul>
+<pre class="literal-block">
+<em>xlo</em>,*ylo*,*zlo* arg = EDGE or constant or variable
     EDGE = current lo edge of simulation box
     constant = number like 0.0 or -30.0 (distance units)
-    variable = <A HREF = "variable.html">equal-style variable</A> like v_x or v_wiggle
-  <I>xhi</I>,<I>yhi</I>,<I>zhi</I> arg = EDGE or constant or variable
+    variable = <a class="reference internal" href="variable.html"><em>equal-style variable</em></a> like v_x or v_wiggle
+  <em>xhi</em>,*yhi*,*zhi* arg = EDGE or constant or variable
     EDGE = current hi edge of simulation box
     constant = number like 50.0 or 100.3 (distance units)
-    variable = <A HREF = "variable.html">equal-style variable</A> like v_x or v_wiggle 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>units</I> 
-
-<PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
-    <I>lattice</I> = the wall position is defined in lattice units
-    <I>box</I> = the wall position is defined in simulation box units 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix xwalls all wall/reflect xlo EDGE xhi EDGE
+    variable = <a class="reference internal" href="variable.html"><em>equal-style variable</em></a> like v_x or v_wiggle
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>units</em></li>
+</ul>
+<pre class="literal-block">
+<em>units</em> value = <em>lattice</em> or <em>box</em>
+    <em>lattice</em> = the wall position is defined in lattice units
+    <em>box</em> = the wall position is defined in simulation box units
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix xwalls all wall/reflect xlo EDGE xhi EDGE
 fix walls all wall/reflect xlo 0.0 ylo 10.0 units box
-fix top all wall/reflect zhi v_pressdown 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Bound the simulation with one or more walls which reflect particles
-in the specified group when they attempt to move thru them. 
-</P>
-<P>Reflection means that if an atom moves outside the wall on a timestep
-by a distance delta (e.g. due to <A HREF = "fix_nve.html">fix nve</A>), then it is
+fix top all wall/reflect zhi v_pressdown
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Bound the simulation with one or more walls which reflect particles
+in the specified group when they attempt to move thru them.</p>
+<p>Reflection means that if an atom moves outside the wall on a timestep
+by a distance delta (e.g. due to <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>), then it is
 put back inside the face by the same delta, and the sign of the
-corresponding component of its velocity is flipped.
-</P>
-<P>When used in conjunction with <A HREF = "fix_nve.html">fix nve</A> and <A HREF = "run_style.html">run_style
-verlet</A>, the resultant time-integration algorithm is
+corresponding component of its velocity is flipped.</p>
+<p>When used in conjunction with <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> and <a class="reference internal" href="run_style.html"><em>run_style verlet</em></a>, the resultant time-integration algorithm is
 equivalent to the primitive splitting algorithm (PSA) described by
-<A HREF = "#Bond">Bond</A>.  Because each reflection event divides
+<a class="reference internal" href="#bond"><span>Bond</span></a>.  Because each reflection event divides
 the corresponding timestep asymmetrically, energy conservation is only
 satisfied to O(dt), rather than to O(dt^2) as it would be for
-velocity-Verlet integration without reflective walls.
-</P>
-<P>Up to 6 walls or faces can be specified in a single command: <I>xlo</I>,
-<I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  A <I>lo</I> face reflects particles
+velocity-Verlet integration without reflective walls.</p>
+<p>Up to 6 walls or faces can be specified in a single command: <em>xlo</em>,
+<em>xhi</em>, <em>ylo</em>, <em>yhi</em>, <em>zlo</em>, <em>zhi</em>.  A <em>lo</em> face reflects particles
 that move to a coordinate less than the wall position, back in the
-<I>hi</I> direction.  A <I>hi</I> face reflects particles that move to a
-coordinate higher than the wall position, back in the <I>lo</I> direction.
-</P>
-<P>The position of each wall can be specified in one of 3 ways: as the
+<em>hi</em> direction.  A <em>hi</em> face reflects particles that move to a
+coordinate higher than the wall position, back in the <em>lo</em> direction.</p>
+<p>The position of each wall can be specified in one of 3 ways: as the
 EDGE of the simulation box, as a constant value, or as a variable.  If
 EDGE is used, then the corresponding boundary of the current
 simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
 If the wall position is a variable, it should be specified as v_name,
-where name is an <A HREF = "variable.html">equal-style variable</A> name.  In this
+where name is an <a class="reference internal" href="variable.html"><em>equal-style variable</em></a> name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
 can specify formulas with various mathematical functions, and include
-<A HREF = "thermo_style.html">thermo_style</A> command keywords for the simulation
+<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command keywords for the simulation
 box parameters and timestep and elapsed time.  Thus it is easy to
-specify a time-dependent wall position.
-</P>
-<P>The <I>units</I> keyword determines the meaning of the distance units used
+specify a time-dependent wall position.</p>
+<p>The <em>units</em> keyword determines the meaning of the distance units used
 to define a wall position, but only when a numeric constant or
 variable is used.  It is not relevant when EDGE is used to specify a
 face position.  In the variable case, the variable is assumed to
-produce a value compatible with the <I>units</I> setting you specify.
-</P>
-<P>A <I>box</I> value selects standard distance units as defined by the
-<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
-A <I>lattice</I> value means the distance units are in lattice spacings.
-The <A HREF = "lattice.html">lattice</A> command must have been previously used to
-define the lattice spacings.
-</P>
-<HR>
-
-<P>Here are examples of variable definitions that move the wall position
+produce a value compatible with the <em>units</em> setting you specify.</p>
+<p>A <em>box</em> value selects standard distance units as defined by the
+<a class="reference internal" href="units.html"><em>units</em></a> command, e.g. Angstroms for units = real or metal.
+A <em>lattice</em> value means the distance units are in lattice spacings.
+The <a class="reference internal" href="lattice.html"><em>lattice</em></a> command must have been previously used to
+define the lattice spacings.</p>
+<hr class="docutils" />
+<p>Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
-<A HREF = "variable.html">variables</A>.
-</P>
-<PRE>variable ramp equal ramp(0,10)
-fix 1 all wall/reflect xlo v_ramp 
-</PRE>
-<PRE>variable linear equal vdisplace(0,20)
-fix 1 all wall/reflect xlo v_linear 
-</PRE>
-<PRE>variable wiggle equal swiggle(0.0,5.0,3.0)
-fix 1 all wall/reflect xlo v_wiggle  
-</PRE>
-<PRE>variable wiggle equal cwiggle(0.0,5.0,3.0)
-fix 1 all wall/reflect xlo v_wiggle 
-</PRE>
-<P>The ramp(lo,hi) function adjusts the wall position linearly from lo to
+<a class="reference internal" href="variable.html"><em>variables</em></a>.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable ramp equal ramp(0,10)
+fix 1 all wall/reflect xlo v_ramp
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>variable linear equal vdisplace(0,20)
+fix 1 all wall/reflect xlo v_linear
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>variable wiggle equal swiggle(0.0,5.0,3.0)
+fix 1 all wall/reflect xlo v_wiggle
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>variable wiggle equal cwiggle(0.0,5.0,3.0)
+fix 1 all wall/reflect xlo v_wiggle
+</pre></div>
+</div>
+<p>The ramp(lo,hi) function adjusts the wall position linearly from lo to
 hi over the course of a run.  The vdisplace(c0,velocity) function does
 something similar using the equation position = c0 + velocity*delta,
-where delta is the elapsed time.
-</P>
-<P>The swiggle(c0,A,period) function causes the wall position to
+where delta is the elapsed time.</p>
+<p>The swiggle(c0,A,period) function causes the wall position to
 oscillate sinusoidally according to this equation, where omega = 2 PI
-/ period:
-</P>
-<PRE>position = c0 + A sin(omega*delta) 
-</PRE>
-<P>The cwiggle(c0,A,period) function causes the wall position to
+/ period:</p>
+<div class="highlight-python"><div class="highlight"><pre>position = c0 + A sin(omega*delta)
+</pre></div>
+</div>
+<p>The cwiggle(c0,A,period) function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
-perturbation on the particles:
-</P>
-<PRE>position = c0 + A (1 - cos(omega*delta)) 
-</PRE>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+perturbation on the particles:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">position</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">+</span> <span class="n">A</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">delta</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>Any dimension (xyz) that has a reflecting wall must be non-periodic.
-</P>
-<P>A reflecting wall should not be used with rigid bodies such as those
-defined by a "fix rigid" command.  This is because the wall/reflect
+by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.
+This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Any dimension (xyz) that has a reflecting wall must be non-periodic.</p>
+<p>A reflecting wall should not be used with rigid bodies such as those
+defined by a &#8220;fix rigid&#8221; command.  This is because the wall/reflect
 displaces atoms directly rather than exerts a force on them.  For
-rigid bodies, use a soft wall instead, such as <A HREF = "fix_wall.html">fix
-wall/lj93</A>.  LAMMPS will flag the use of a rigid
+rigid bodies, use a soft wall instead, such as <a class="reference internal" href="fix_wall.html"><em>fix wall/lj93</em></a>.  LAMMPS will flag the use of a rigid
 fix with fix wall/reflect with a warning, but will not generate an
-error.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_wall.html">fix wall/lj93</A>, <A HREF = "fix_oneway.html">fix oneway</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+error.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_wall.html"><em>fix wall/lj93</em></a>, <a class="reference internal" href="fix_oneway.html"><em>fix oneway</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="bond"><strong>(Bond)</strong> Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).</p>
+</div>
+</div>
 
-<A NAME = "Bond"></A>
 
-<P><B>(Bond)</B> Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

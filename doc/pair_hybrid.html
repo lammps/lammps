@@ -1,140 +1,259 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style hybrid command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style hybrid command 
-</H3>
-<H3>pair_style hybrid/omp command 
-</H3>
-<H3>pair_style hybrid/overlay command 
-</H3>
-<H3>pair_style hybrid/overlay/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style hybrid style1 args style2 args ...
-pair_style hybrid/overlay style1 args style2 args ... 
-</PRE>
-<UL><LI>style1,style2 = list of one or more pair styles and their arguments 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style hybrid lj/cut/coul/cut 10.0 eam lj/cut 5.0
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style hybrid command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-hybrid-command">
+<span id="index-0"></span><h1>pair_style hybrid command<a class="headerlink" href="#pair-style-hybrid-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-hybrid-omp-command">
+<h1>pair_style hybrid/omp command<a class="headerlink" href="#pair-style-hybrid-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-hybrid-overlay-command">
+<h1>pair_style hybrid/overlay command<a class="headerlink" href="#pair-style-hybrid-overlay-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-hybrid-overlay-omp-command">
+<h1>pair_style hybrid/overlay/omp command<a class="headerlink" href="#pair-style-hybrid-overlay-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid style1 args style2 args ...
+pair_style hybrid/overlay style1 args style2 args ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>style1,style2 = list of one or more pair styles and their arguments</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid lj/cut/coul/cut 10.0 eam lj/cut 5.0
 pair_coeff 1*2 1*2 eam niu3
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-pair_coeff 1*2 3 lj/cut 0.5 1.2 
-</PRE>
-<PRE>pair_style hybrid/overlay lj/cut 2.5 coul/long 2.0
+pair_coeff 1*2 3 lj/cut 0.5 1.2
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid/overlay lj/cut 2.5 coul/long 2.0
 pair_coeff * * lj/cut 1.0 1.0
-pair_coeff * * coul/long 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>The <I>hybrid</I> and <I>hybrid/overlay</I> styles enable the use of multiple
-pair styles in one simulation.  With the <I>hybrid</I> style, exactly one
+pair_coeff * * coul/long
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>hybrid</em> and <em>hybrid/overlay</em> styles enable the use of multiple
+pair styles in one simulation.  With the <em>hybrid</em> style, exactly one
 pair style is assigned to each pair of atom types.  With the
-<I>hybrid/overlay</I> style, one or more pair styles can be assigned to
+<em>hybrid/overlay</em> style, one or more pair styles can be assigned to
 each pair of atom types.  The assignment of pair styles to type pairs
-is made via the <A HREF = "pair_coeff.html">pair_coeff</A> command.
-</P>
-<P>Here are two examples of hybrid simulations.  The <I>hybrid</I> style could
+is made via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.</p>
+<p>Here are two examples of hybrid simulations.  The <em>hybrid</em> style could
 be used for a simulation of a metal droplet on a LJ surface.  The
-metal atoms interact with each other via an <I>eam</I> potential, the
-surface atoms interact with each other via a <I>lj/cut</I> potential, and
-the metal/surface interaction is also computed via a <I>lj/cut</I>
-potential.  The <I>hybrid/overlay</I> style could be used as in the 2nd
+metal atoms interact with each other via an <em>eam</em> potential, the
+surface atoms interact with each other via a <em>lj/cut</em> potential, and
+the metal/surface interaction is also computed via a <em>lj/cut</em>
+potential.  The <em>hybrid/overlay</em> style could be used as in the 2nd
 example above, where multiple potentials are superposed in an additive
 fashion to compute the interaction between atoms.  In this example,
-using <I>lj/cut</I> and <I>coul/long</I> together gives the same result as if
-the <I>lj/cut/coul/long</I> potential were used by itself.  In this case,
+using <em>lj/cut</em> and <em>coul/long</em> together gives the same result as if
+the <em>lj/cut/coul/long</em> potential were used by itself.  In this case,
 it would be more efficient to use the single combined potential, but
 in general any combination of pair potentials can be used together in
 to produce an interaction that is not encoded in any single pair_style
-file, e.g. adding Coulombic forces between granular particles.
-</P>
-<P>All pair styles that will be used are listed as "sub-styles" following
-the <I>hybrid</I> or <I>hybrid/overlay</I> keyword, in any order.  Each
-sub-style's name is followed by its usual arguments, as illustrated in
+file, e.g. adding Coulombic forces between granular particles.</p>
+<p>All pair styles that will be used are listed as &#8220;sub-styles&#8221; following
+the <em>hybrid</em> or <em>hybrid/overlay</em> keyword, in any order.  Each
+sub-style&#8217;s name is followed by its usual arguments, as illustrated in
 the example above.  See the doc pages of individual pair styles for a
-listing and explanation of the appropriate arguments.
-</P>
-<P>Note that an individual pair style can be used multiple times as a
+listing and explanation of the appropriate arguments.</p>
+<p>Note that an individual pair style can be used multiple times as a
 sub-style.  For efficiency this should only be done if your model
 requires it.  E.g. if you have different regions of Si and C atoms and
 wish to use a Tersoff potential for pure Si for one set of atoms, and
 a Tersoff potetnial for pure C for the other set (presumably with some
-3rd potential for Si-C interactions), then the sub-style <I>tersoff</I>
+3rd potential for Si-C interactions), then the sub-style <em>tersoff</em>
 could be listed twice.  But if you just want to use a Lennard-Jones or
 other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
-pair_coeff command to assign parameters for the different type pairs.
-</P>
-<P>IMPORTANT NOTE: An exception to this option to list an individual pair
+pair_coeff command to assign parameters for the different type pairs.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">An exception to this option to list an individual pair
 style multiple times are the pair styles implemented as Fortran
-libraries: <A HREF = "pair_meam.html">pair_style meam</A> and <A HREF = "pair_reax.html">pair_style
-reax</A> (<A HREF = "pair_reax_c.html">pair_style reax/c</A> is OK).
+libraries: <a class="reference internal" href="pair_meam.html"><em>pair_style meam</em></a> and <a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> (<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a> is OK).
 This is because unlike a C++ class, they can not be instantiated
-multiple times, due to the manner in which they were coded in Fortran.
-</P>
-<P>In the pair_coeff commands, the name of a pair style must be added
+multiple times, due to the manner in which they were coded in Fortran.</p>
+</div>
+<p>In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
 being those appropriate to that style.  If the pair style is used
 multiple times in the pair_style command, then an additional numeric
 argument must also be specified which is a number from 1 to M where M
 is the number of times the sub-style was listed in the pair style
 command.  The extra number indicates which instance of the sub-style
-these coefficients apply to.
-</P>
-<P>For example, consider a simulation with 3 atom types: types 1 and 2
+these coefficients apply to.</p>
+<p>For example, consider a simulation with 3 atom types: types 1 and 2
 are Ni atoms, type 3 are LJ atoms with charges.  The following
-commands would set up a hybrid simulation:
-</P>
-<PRE>pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
+commands would set up a hybrid simulation:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
 pair_coeff * * eam/alloy nialhjea Ni Ni NULL
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-pair_coeff 1*2 3 lj/cut 0.8 1.3 
-</PRE>
-<P>As an example of using the same pair style multiple times, consider a
+pair_coeff 1*2 3 lj/cut 0.8 1.3
+</pre></div>
+</div>
+<p>As an example of using the same pair style multiple times, consider a
 simulation with 2 atom types.  Type 1 is Si, type 2 is C.  The
 following commands would model the Si atoms with Tersoff, the C atoms
-with Tersoff, and the cross-interactions with Lennard-Jones:
-</P>
-<PRE>pair_style hybrid lj/cut 2.5 tersoff tersoff
-pair_coeff * * tersoff 1 Si.tersoff Si NULL 
+with Tersoff, and the cross-interactions with Lennard-Jones:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid lj/cut 2.5 tersoff tersoff
+pair_coeff * * tersoff 1 Si.tersoff Si NULL
 pair_coeff * * tersoff 2 C.tersoff NULL C
-pair_coeff 1 2 lj/cut 1.0 1.5 
-</PRE>
-<P>If pair coefficients are specified in the data file read via the
-<A HREF = "read_data.html">read_data</A> command, then the same rule applies.
-E.g. "eam/alloy" or "lj/cut" must be added after the atom type, for
-each line in the "Pair Coeffs" section, e.g.
-</P>
-<PRE>Pair Coeffs 
-</PRE>
-<PRE>1 lj/cut/coul/cut 1.0 1.0
-... 
-</PRE>
-<P>Note that the pair_coeff command for some potentials such as
-<A HREF = "pair_eam.html">pair_style eam/alloy</A> includes a mapping specification
+pair_coeff 1 2 lj/cut 1.0 1.5
+</pre></div>
+</div>
+<p>If pair coefficients are specified in the data file read via the
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command, then the same rule applies.
+E.g. &#8220;eam/alloy&#8221; or &#8220;lj/cut&#8221; must be added after the atom type, for
+each line in the &#8220;Pair Coeffs&#8221; section, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>Pair Coeffs
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>1 lj/cut/coul/cut 1.0 1.0
+...
+</pre></div>
+</div>
+<p>Note that the pair_coeff command for some potentials such as
+<a class="reference internal" href="pair_eam.html"><em>pair_style eam/alloy</em></a> includes a mapping specification
 of elements to all atom types, which in the hybrid case, can include
-atom types not assigned to the <I>eam/alloy</I> potential.  The NULL
+atom types not assigned to the <em>eam/alloy</em> potential.  The NULL
 keyword is used by many such potentials (eam/alloy, Tersoff, AIREBO,
 etc), to denote an atom type that will be assigned to a different
-sub-style.
-</P>
-<P>For the <I>hybrid</I> style, each atom type pair I,J is assigned to exactly
+sub-style.</p>
+<p>For the <em>hybrid</em> style, each atom type pair I,J is assigned to exactly
 one sub-style.  Just as with a simulation using a single pair style,
 if you specify the same atom type pair in a second pair_coeff command,
-the previous assignment will be overwritten.
-</P>
-<P>For the <I>hybrid/overlay</I> style, each atom type pair I,J can be
+the previous assignment will be overwritten.</p>
+<p>For the <em>hybrid/overlay</em> style, each atom type pair I,J can be
 assigned to one or more sub-styles.  If you specify the same atom type
 pair in a second pair_coeff command with a new sub-style, then the
 second sub-style is added to the list of potentials that will be
@@ -143,76 +262,66 @@ the same atom type pair in a second pair_coeff command with a
 sub-style that has already been defined for that pair of atoms, then
 the new pair coefficients simply override the previous ones, as in the
 normal usage of the pair_coeff command.  E.g. these two sets of
-commands are the same:
-</P>
-<PRE>pair_style lj/cut 2.5
+commands are the same:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut 2.5
 pair_coeff * * 1.0 1.0
-pair_coeff 2 2 1.5 0.8 
-</PRE>
-<PRE>pair_style hybrid/overlay lj/cut 2.5
+pair_coeff 2 2 1.5 0.8
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid/overlay lj/cut 2.5
 pair_coeff * * lj/cut 1.0 1.0
-pair_coeff 2 2 lj/cut 1.5 0.8 
-</PRE>
-<P>Coefficients must be defined for each pair of atoms types via the
-<A HREF = "pair_coeff.html">pair_coeff</A> command as described above, or in the
-data file or restart files read by the <A HREF = "read_data.html">read_data</A> or
-<A HREF = "read_restart.html">read_restart</A> commands, or by mixing as described
-below.
-</P>
-<P>For both the <I>hybrid</I> and <I>hybrid/overlay</I> styles, every atom type
-pair I,J (where I <= J) must be assigned to at least one sub-style via
-the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above, or
-in the data file read by the <A HREF = "read_data.html">read_data</A>, or by mixing
-as described below.
-</P>
-<P>If you want there to be no interactions between a particular pair of
+pair_coeff 2 2 lj/cut 1.5 0.8
+</pre></div>
+</div>
+<p>Coefficients must be defined for each pair of atoms types via the
+<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as described above, or in the
+data file or restart files read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> or
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> commands, or by mixing as described
+below.</p>
+<p>For both the <em>hybrid</em> and <em>hybrid/overlay</em> styles, every atom type
+pair I,J (where I &lt;= J) must be assigned to at least one sub-style via
+the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples above, or
+in the data file read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>, or by mixing
+as described below.</p>
+<p>If you want there to be no interactions between a particular pair of
 atom types, you have 3 choices.  You can assign the type pair to some
-sub-style and use the <A HREF = "neigh_modify.html">neigh_modify exclude type</A>
+sub-style and use the <a class="reference internal" href="neigh_modify.html"><em>neigh_modify exclude type</em></a>
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
-LJ potential).  Or, for <I>hybrid</I> and <I>hybrid/overlay</I> simulations, you
-can use this form of the pair_coeff command in your input script:
-</P>
-<PRE>pair_coeff	2 3 none 
-</PRE>
-<P>or this form in the "Pair Coeffs" section of the data file:
-</P>
-<PRE>3 none 
-</PRE>
-<P>If an assignment to <I>none</I> is made in a simulation with the
-<I>hybrid/overlay</I> pair style, it wipes out all previous assignments of
-that atom type pair to sub-styles.
-</P>
-<P>Note that you may need to use an <A HREF = "atom_style.html">atom_style</A> hybrid
+LJ potential).  Or, for <em>hybrid</em> and <em>hybrid/overlay</em> simulations, you
+can use this form of the pair_coeff command in your input script:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_coeff   2 3 none
+</pre></div>
+</div>
+<p>or this form in the &#8220;Pair Coeffs&#8221; section of the data file:</p>
+<div class="highlight-python"><div class="highlight"><pre>3 none
+</pre></div>
+</div>
+<p>If an assignment to <em>none</em> is made in a simulation with the
+<em>hybrid/overlay</em> pair style, it wipes out all previous assignments of
+that atom type pair to sub-styles.</p>
+<p>Note that you may need to use an <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> hybrid
 command in your input script, if atoms in the simulation will need
 attributes from several atom styles, due to using multiple pair
-potentials.
-</P>
-<HR>
-
-<P>Different force fields (e.g. CHARMM vs AMBER) may have different rules
+potentials.</p>
+<hr class="docutils" />
+<p>Different force fields (e.g. CHARMM vs AMBER) may have different rules
 for applying weightings that change the strength of pairwise
 interactions bewteen pairs of atoms that are also 1-2, 1-3, and 1-4
 neighbors in the molecular bond topology, as normally set by the
-<A HREF = "special_bonds.html">special_bonds</A> command.  Different weights can be
-assigned to different pair hybrid sub-styles via the <A HREF = "pair_modify.html">pair_modify
-special</A> command.  This allows multiple force fields
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command.  Different weights can be
+assigned to different pair hybrid sub-styles via the <a class="reference internal" href="pair_modify.html"><em>pair_modify special</em></a> command.  This allows multiple force fields
 to be used in a model of a hybrid system.  See the
-<A HREF = "pair_modify.html">pair_modify</A> doc page for details.
-</P>
-<P>The potential energy contribution to the overall system due to an
-individual sub-style can be accessed and output via the <A HREF = "compute_pair.html">compute
-pair</A> command.
-</P>
-<HR>
-
-<P>IMPORTANT: Several of the potentials defined via the pair_style
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> doc page for details.</p>
+<p>The potential energy contribution to the overall system due to an
+individual sub-style can be accessed and output via the <a class="reference internal" href="compute_pair.html"><em>compute pair</em></a> command.</p>
+<hr class="docutils" />
+<p>IMPORTANT: Several of the potentials defined via the pair_style
 command in LAMMPS are really many-body potentials, such as Tersoff,
 AIREBO, MEAM, ReaxFF, etc.  The way to think about using these
-potentials in a hybrid setting is as follows.
-</P>
-<P>A subset of atom types is assigned to the many-body potential with a
-single <A HREF = "pair_coeff.html">pair_coeff</A> command, using "* *" to include
+potentials in a hybrid setting is as follows.</p>
+<p>A subset of atom types is assigned to the many-body potential with a
+single <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command, using &#8220;* <a href="#id1"><span class="problematic" id="id2">*</span></a>&#8221; to include
 all types and the NULL keywords described above to exclude specific
 types not assigned to that potential.  If types 1,3,4 were assigned in
 that way (but not type 2), this means that all many-body interactions
@@ -220,9 +329,8 @@ between all atoms of types 1,3,4 will be computed by that potential.
 Pair_style hybrid allows interactions between type pairs 2-2, 1-2,
 2-3, 2-4 to be specified for computation by other pair styles.  You
 could even add a second interaction for 1-1 to be computed by another
-pair style, assuming pair_style hybrid/overlay is used.
-</P>
-<P>But you should not, as a general rule, attempt to exclude the
+pair style, assuming pair_style hybrid/overlay is used.</p>
+<p>But you should not, as a general rule, attempt to exclude the
 many-body interactions for some subset of the type pairs within the
 set of 1,3,4 interactions, e.g. exclude 1-1 or 1-3 interactions.  That
 is not conceptually well-defined for many-body interactions, since the
@@ -230,125 +338,171 @@ potential will typically calculate energies and foces for small groups
 of atoms, e.g. 3 or 4 atoms, using the neighbor lists of the atoms to
 find the additional atoms in the group.  It is typically non-physical
 to think of excluding an interaction between a particular pair of
-atoms when the potential computes 3-body or 4-body interactions.
-</P>
-<P>However, you can still use the pair_coeff none setting or the
-<A HREF = "neigh_modify.html">neigh_modify exclude</A> command to exclude certain
+atoms when the potential computes 3-body or 4-body interactions.</p>
+<p>However, you can still use the pair_coeff none setting or the
+<a class="reference internal" href="neigh_modify.html"><em>neigh_modify exclude</em></a> command to exclude certain
 type pairs from the neighbor list that will be passed to a manybody
 sub-style.  This will alter the calculations made by a many-body
 potential, since it builds its list of 3-body, 4-body, etc
 interactions from the pair list.  You will need to think carefully as
-to whether it produces a physically meaningful result for your model.
-</P>
-<P>For example, imagine you have two atom types in your model, type 1 for
+to whether it produces a physically meaningful result for your model.</p>
+<p>For example, imagine you have two atom types in your model, type 1 for
 atoms in one surface, and type 2 for atoms in the other, and you wish
 to use a Tersoff potential to compute interactions within each
 surface, but not between surfaces.  Then either of these two command
-sequences would implement that model:
-</P>
-<PRE>pair_style hybrid tersoff
+sequences would implement that model:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid tersoff
 pair_coeff * * tersoff SiC.tersoff C C
-pair_coeff 1 2 none 
-</PRE>
-<PRE>pair_style tersoff
+pair_coeff 1 2 none
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style tersoff
 pair_coeff * * SiC.tersoff C C
-neigh_modify exclude type 1 2 
-</PRE>
-<P>Either way, only neighbor lists with 1-1 or 2-2 interactions would be
+neigh_modify exclude type 1 2
+</pre></div>
+</div>
+<p>Either way, only neighbor lists with 1-1 or 2-2 interactions would be
 passed to the Tersoff potential, which means it would compute no
-3-body interactions containing both type 1 and 2 atoms.
-</P>
-<P>Here is another example, using hybrid/overlay, to use 2 many-body
+3-body interactions containing both type 1 and 2 atoms.</p>
+<p>Here is another example, using hybrid/overlay, to use 2 many-body
 potentials together, in an overlapping manner.  Imagine you have CNT
 (C atoms) on a Si surface.  You want to use Tersoff for Si/Si and Si/C
 interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
-atoms are type 2.  Something like this will work:
-</P>
-<PRE>pair_style hybrid/overlay tersoff airebo 3.0
+atoms are type 2.  Something like this will work:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid/overlay tersoff airebo 3.0
 pair_coeff * * tersoff SiC.tersoff.custom Si C
-pair_coeff * * airebo CH.airebo NULL C 
-</PRE>
-<P>Note that to prevent the Tersoff potential from computing C/C
+pair_coeff * * airebo CH.airebo NULL C
+</pre></div>
+</div>
+<p>Note that to prevent the Tersoff potential from computing C/C
 interactions, you would need to modify the SiC.tersoff file to turn
 off C/C interaction, i.e. by setting the appropriate coefficients to
-0.0.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+0.0.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
-of the manual.
-</P>
-<P>Since the <I>hybrid</I> and <I>hybrid/overlay</I> styles delegate computation
-to the individual sub-styles, the suffix versions of the <I>hybrid</I>
-and <I>hybrid/overlay</I> styles are used to propagate the corresponding
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
+of the manual.</p>
+<p>Since the <em>hybrid</em> and <em>hybrid/overlay</em> styles delegate computation
+to the individual sub-styles, the suffix versions of the <em>hybrid</em>
+and <em>hybrid/overlay</em> styles are used to propagate the corresponding
 suffix to all sub-styles, if those versions exist. Otherwise the
-non-accelerated version will be used.
-</P>
-<P>The individual accelerated sub-styles are part of the USER-CUDA, GPU,
+non-accelerated version will be used.</p>
+<p>The individual accelerated sub-styles are part of the USER-CUDA, GPU,
 USER-OMP and OPT packages, respectively.  They are only enabled if
 LAMMPS was built with those packages.  See the
-<A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>Any pair potential settings made via the
-<A HREF = "pair_modify.html">pair_modify</A> command are passed along to all
-sub-styles of the hybrid potential.
-</P>
-<P>For atom type pairs I,J and I != J, if the sub-style assigned to I,I
+<a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>Any pair potential settings made via the
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> command are passed along to all
+sub-styles of the hybrid potential.</p>
+<p>For atom type pairs I,J and I != J, if the sub-style assigned to I,I
 and J,J is the same, and if the sub-style allows for mixing, then the
 coefficients for I,J can be mixed.  This means you do not have to
 specify a pair_coeff command for I,J since the I,J type pair will be
 assigned automatically to the sub-style defined for both I,I and J,J
 and its coefficients generated by the mixing rule used by that
-sub-style.  For the <I>hybrid/overlay</I> style, there is an additional
+sub-style.  For the <em>hybrid/overlay</em> style, there is an additional
 requirement that both the I,I and J,J pairs are assigned to a single
-sub-style.  See the "pair_modify" command for details of mixing rules.
+sub-style.  See the &#8220;pair_modify&#8221; command for details of mixing rules.
 See the See the doc page for the sub-style to see if allows for
-mixing.
-</P>
-<P>The hybrid pair styles supports the <A HREF = "pair_modify.html">pair_modify</A>
+mixing.</p>
+<p>The hybrid pair styles supports the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 shift, table, and tail options for an I,J pair interaction, if the
-associated sub-style supports it.
-</P>
-<P>For the hybrid pair styles, the list of sub-styles and their
-respective settings are written to <A HREF = "restart.html">binary restart
-files</A>, so a <A HREF = "pair_style.html">pair_style</A> command does
+associated sub-style supports it.</p>
+<p>For the hybrid pair styles, the list of sub-styles and their
+respective settings are written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so a <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command does
 not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
 file.  Thus, pair_coeff commands need to be re-specified in the
-restart input script.
-</P>
-<P>These pair styles support the use of the <I>inner</I>, <I>middle</I>, and
-<I>outer</I> keywords of the <A HREF = "run_style.html">run_style respa</A> command, if
-their sub-styles do.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>When using a long-range Coulombic solver (via the
-<A HREF = "kspace_style.html">kspace_style</A> command) with a hybrid pair_style,
-one or more sub-styles will be of the "long" variety,
-e.g. <I>lj/cut/coul/long</I> or <I>buck/coul/long</I>.  You must insure that the
+restart input script.</p>
+<p>These pair styles support the use of the <em>inner</em>, <em>middle</em>, and
+<em>outer</em> keywords of the <a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command, if
+their sub-styles do.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>When using a long-range Coulombic solver (via the
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command) with a hybrid pair_style,
+one or more sub-styles will be of the &#8220;long&#8221; variety,
+e.g. <em>lj/cut/coul/long</em> or <em>buck/coul/long</em>.  You must insure that the
 short-range Coulombic cutoff used by each of these long pair styles is
-the same or else LAMMPS will generate an error.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+the same or else LAMMPS will generate an error.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

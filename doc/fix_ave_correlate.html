@@ -141,10 +141,10 @@
 <li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>c_ID = global scalar calculated by a compute with ID
-  c_ID[I] = Ith component of global vector calculated by a compute with ID
-  f_ID = global scalar calculated by a fix with ID
-  f_ID[I] = Ith component of global vector calculated by a fix with ID
-  v_name = global value calculated by an equal-style variable with name
+c_ID[I] = Ith component of global vector calculated by a compute with ID
+f_ID = global scalar calculated by a fix with ID
+f_ID[I] = Ith component of global vector calculated by a fix with ID
+v_name = global value calculated by an equal-style variable with name
 </pre></div>
 </div>
 <ul class="simple">
@@ -153,28 +153,28 @@
 </ul>
 <pre class="literal-block">
 <em>type</em> arg = <em>auto</em> or <em>upper</em> or <em>lower</em> or <em>auto/upper</em> or <em>auto/lower</em> or <em>full</em>
-    auto = correlate each value with itself
-    upper = correlate each value with each succeeding value
-    lower = correlate each value with each preceding value
-    auto/upper = auto + upper
-    auto/lower = auto + lower
-    full = correlate each value with every other value, including itself = auto + upper + lower
-  <em>ave</em> args = <em>one</em> or <em>running</em>
-    one = zero the correlation accumulation every Nfreq steps
-    running = accumulate correlations continuously
-  <em>start</em> args = Nstart
-    Nstart = start accumulating correlations on this timestep
-  <em>prefactor</em> args = value
-    value = prefactor to scale all the correlation data by
-  <em>file</em> arg = filename
-    filename = name of file to output correlation data to
-  <em>overwrite</em> arg = none = overwrite output file with only latest output
-  <em>title1</em> arg = string
-    string = text to print as 1st line of output file
-  <em>title2</em> arg = string
-    string = text to print as 2nd line of output file
-  <em>title3</em> arg = string
-    string = text to print as 3rd line of output file
+  auto = correlate each value with itself
+  upper = correlate each value with each succeeding value
+  lower = correlate each value with each preceding value
+  auto/upper = auto + upper
+  auto/lower = auto + lower
+  full = correlate each value with every other value, including itself = auto + upper + lower
+<em>ave</em> args = <em>one</em> or <em>running</em>
+  one = zero the correlation accumulation every Nfreq steps
+  running = accumulate correlations continuously
+<em>start</em> args = Nstart
+  Nstart = start accumulating correlations on this timestep
+<em>prefactor</em> args = value
+  value = prefactor to scale all the correlation data by
+<em>file</em> arg = filename
+  filename = name of file to output correlation data to
+<em>overwrite</em> arg = none = overwrite output file with only latest output
+<em>title1</em> arg = string
+  string = text to print as 1st line of output file
+<em>title2</em> arg = string
+  string = text to print as 2nd line of output file
+<em>title3</em> arg = string
+  string = text to print as 3rd line of output file
 </pre>
 </div>
 <div class="section" id="examples">

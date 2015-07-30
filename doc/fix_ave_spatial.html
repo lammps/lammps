@@ -141,20 +141,20 @@
 </ul>
 <pre class="literal-block">
 dim = <em>x</em> or <em>y</em> or <em>z</em>
-  origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
-  delta = thickness of spatial bins in dim (distance units)
+origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
+delta = thickness of spatial bins in dim (distance units)
 </pre>
 <ul class="simple">
 <li>one or more input values can be listed</li>
 <li>value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID[I], f_ID, f_ID[I], v_name</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
-  density/number, density/mass = number or mass density
-  c_ID = per-atom vector calculated by a compute with ID
-  c_ID[I] = Ith column of per-atom array calculated by a compute with ID
-  f_ID = per-atom vector calculated by a fix with ID
-  f_ID[I] = Ith column of per-atom array calculated by a fix with ID
-  v_name = per-atom vector calculated by an atom-style variable with name
+density/number, density/mass = number or mass density
+c_ID = per-atom vector calculated by a compute with ID
+c_ID[I] = Ith column of per-atom array calculated by a compute with ID
+f_ID = per-atom vector calculated by a fix with ID
+f_ID[I] = Ith column of per-atom array calculated by a fix with ID
+v_name = per-atom vector calculated by an atom-style variable with name
 </pre></div>
 </div>
 <ul class="simple">
@@ -163,30 +163,30 @@ dim = <em>x</em> or <em>y</em> or <em>z</em>
 </ul>
 <pre class="literal-block">
 <em>region</em> arg = region-ID
-  <em>bound</em> args = x/y/z lo hi
-    x/y/z = <em>x</em> or <em>y</em> or <em>z</em> to bound bins in this dimension
-    lo = <em>lower</em> or coordinate value (distance units)
-    hi = <em>upper</em> or coordinate value (distance units)
-  <em>discard</em> arg = <em>mixed</em> or <em>no</em> or <em>yes</em>
-    mixed = discard atoms outside bins only if bin bounds are explicitly set
-    no = always keep out-of-bounds atoms
-    yes = always discard out-of-bounds atoms
-  <em>norm</em> arg = <em>all</em> or <em>sample</em>
-    region-ID = ID of region atoms must be in to contribute to spatial averaging
-  <em>ave</em> args = <em>one</em> or <em>running</em> or <em>window M</em>
-    one = output new average value every Nfreq steps
-    running = output cumulative average of all previous Nfreq steps
-    window M = output average of M most recent Nfreq steps
-  <em>units</em> arg = <em>box</em> or <em>lattice</em> or <em>reduced</em>
-  <em>file</em> arg = filename
-    filename = file to write results to
-  <em>overwrite</em> arg = none = overwrite output file with only latest output
-  <em>title1</em> arg = string
-    string = text to print as 1st line of output file
-  <em>title2</em> arg = string
-    string = text to print as 2nd line of output file
-  <em>title3</em> arg = string
-    string = text to print as 3rd line of output file
+<em>bound</em> args = x/y/z lo hi
+  x/y/z = <em>x</em> or <em>y</em> or <em>z</em> to bound bins in this dimension
+  lo = <em>lower</em> or coordinate value (distance units)
+  hi = <em>upper</em> or coordinate value (distance units)
+<em>discard</em> arg = <em>mixed</em> or <em>no</em> or <em>yes</em>
+  mixed = discard atoms outside bins only if bin bounds are explicitly set
+  no = always keep out-of-bounds atoms
+  yes = always discard out-of-bounds atoms
+<em>norm</em> arg = <em>all</em> or <em>sample</em>
+  region-ID = ID of region atoms must be in to contribute to spatial averaging
+<em>ave</em> args = <em>one</em> or <em>running</em> or <em>window M</em>
+  one = output new average value every Nfreq steps
+  running = output cumulative average of all previous Nfreq steps
+  window M = output average of M most recent Nfreq steps
+<em>units</em> arg = <em>box</em> or <em>lattice</em> or <em>reduced</em>
+<em>file</em> arg = filename
+  filename = file to write results to
+<em>overwrite</em> arg = none = overwrite output file with only latest output
+<em>title1</em> arg = string
+  string = text to print as 1st line of output file
+<em>title2</em> arg = string
+  string = text to print as 2nd line of output file
+<em>title3</em> arg = string
+  string = text to print as 3rd line of output file
 </pre>
 </div>
 <div class="section" id="examples">

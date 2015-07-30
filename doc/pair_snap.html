@@ -211,14 +211,14 @@ tantalum potential provided in the LAMMPS potentials directory
 combines the <em>snap</em> and <em>zbl</em> pair styles. It is invoked
 by the following commands:</p>
 <div class="highlight-python"><div class="highlight"><pre>variable zblcutinner equal 4
-     variable zblcutouter equal 4.8
-     variable zblz equal 73
-     pair_style hybrid/overlay &amp;
-     zbl ${zblcutinner} ${zblcutouter} snap
-     pair_coeff * * zbl 0.0
-     pair_coeff 1 1 zbl ${zblz}
-     pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &amp;
-     ../potentials/Ta06A.snapparam Ta
+variable zblcutouter equal 4.8
+variable zblz equal 73
+pair_style hybrid/overlay &amp;
+zbl ${zblcutinner} ${zblcutouter} snap
+pair_coeff * * zbl 0.0
+pair_coeff 1 1 zbl ${zblz}
+pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &amp;
+../potentials/Ta06A.snapparam Ta
 </pre></div>
 </div>
 <p>It is convenient to keep these commands in a separate file that can

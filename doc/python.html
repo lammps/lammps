@@ -181,13 +181,13 @@ def loop(lmpptr,N,cut0):
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># loop N times, increasing cutoff each time</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre>for i in range(N):
-    cut = cut0 + i*0.1
-    lmp.set_variable(&quot;cut&quot;,cut)               # set a variable in LAMMPS
-    lmp.command(&quot;pair_style lj/cut $*cut*&quot;)   # LAMMPS commands
-    lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)
-    lmp.command(&quot;run 100&quot;)
- &quot;&quot;&quot;
+<div class="highlight-python"><div class="highlight"><pre> for i in range(N):
+   cut = cut0 + i*0.1
+   lmp.set_variable(&quot;cut&quot;,cut)               # set a variable in LAMMPS
+   lmp.command(&quot;pair_style lj/cut $*cut*&quot;)   # LAMMPS commands
+   lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)
+   lmp.command(&quot;run 100&quot;)
+&quot;&quot;&quot;
 </pre></div>
 </div>
 </div>
@@ -425,19 +425,19 @@ which loads and runs the following function from examples/python/funcs.py:</p>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
-    <span class="n">cut</span> <span class="o">=</span> <span class="n">cut0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.1</span>
+  <span class="n">cut</span> <span class="o">=</span> <span class="n">cut0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.1</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre>lmp.set_variable(&quot;cut&quot;,cut)                 # set a variable in LAMMPS
-    lmp.command(&quot;pair_style lj/cut $*cut*&quot;)     # LAMMPS command
-    #lmp.command(&quot;pair_style lj/cut %d&quot; % cut)  # LAMMPS command option
+<div class="highlight-python"><div class="highlight"><pre><span class="n">lmp</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s">&quot;cut&quot;</span><span class="p">,</span><span class="n">cut</span><span class="p">)</span>                 <span class="c"># set a variable in LAMMPS</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s">&quot;pair_style lj/cut $*cut*&quot;</span><span class="p">)</span>     <span class="c"># LAMMPS command</span>
+<span class="c">#lmp.command(&quot;pair_style lj/cut %d&quot; % cut)  # LAMMPS command option</span>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)       # ditto
-    lmp.command(&quot;run 10&quot;)                       # ditto
-    pe = lmp.extract_compute(&quot;thermo_pe&quot;,0,0)   # extract total PE from LAMMPS
-    print &quot;PE&quot;,pe/natoms,thresh
-    if pe/natoms &lt; thresh: return
+lmp.command(&quot;run 10&quot;)                       # ditto
+pe = lmp.extract_compute(&quot;thermo_pe&quot;,0,0)   # extract total PE from LAMMPS
+print &quot;PE&quot;,pe/natoms,thresh
+if pe/natoms &lt; thresh: return
 </pre></div>
 </div>
 <p>with these input script commands:</p>

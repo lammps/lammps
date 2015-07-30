@@ -144,29 +144,29 @@
 </ul>
 <pre class="literal-block">
 <em>setArea</em> values = type node_area
-      type = atom type (1-N)
-      node_area = portion of the surface area of the composite object associated with the particular atom type (used when the force coupling constant is set by default).
-  <em>setGamma</em> values = gamma
-      gamma = user set value for the force coupling constant.
-  <em>scaleGamma</em> values = type gammaFactor
-      type = atom type (1-N)
-      gammaFactor = factor to scale the <em>setGamma</em> gamma value by, for the specified atom type.
-  <em>dx</em> values = dx_LB = the lattice spacing.
-  <em>dm</em> values = dm_LB = the lattice-Boltzmann mass unit.
-  <em>a0</em> values = a_0_real = the square of the speed of sound in the fluid.
-  <em>noise</em> values = Temperature seed
-      Temperature = fluid temperature.
-      seed = random number generator seed (positive integer)
-  <em>calcforce</em> values = N forcegroup-ID
-      N = output the force and torque every N timesteps
-      forcegroup-ID = ID of the particle group to calculate the force and torque of
-  <em>trilinear</em> values = none (used to switch from the default Peskin interpolation stencil to the trilinear stencil).
-  <em>D3Q19</em> values = none (used to switch from the default D3Q15, 15 velocity lattice, to the D3Q19, 19 velocity lattice).
-  <em>read_restart</em> values = restart file = name of the restart file to use to restart a fluid run.
-  <em>write_restart</em> values = N = write a restart file every N MD timesteps.
-  <em>zwall_velocity</em> values = velocity_bottom velocity_top = velocities along the y-direction of the bottom and top walls (located at z=zmin and z=zmax).
-  <em>bodyforce</em> values = bodyforcex bodyforcey bodyforcez = the x,y and z components of a constant body force added to the fluid.
-  <em>printfluid</em> values = N = print the fluid density and velocity at each grid point every N timesteps.
+    type = atom type (1-N)
+    node_area = portion of the surface area of the composite object associated with the particular atom type (used when the force coupling constant is set by default).
+<em>setGamma</em> values = gamma
+    gamma = user set value for the force coupling constant.
+<em>scaleGamma</em> values = type gammaFactor
+    type = atom type (1-N)
+    gammaFactor = factor to scale the <em>setGamma</em> gamma value by, for the specified atom type.
+<em>dx</em> values = dx_LB = the lattice spacing.
+<em>dm</em> values = dm_LB = the lattice-Boltzmann mass unit.
+<em>a0</em> values = a_0_real = the square of the speed of sound in the fluid.
+<em>noise</em> values = Temperature seed
+    Temperature = fluid temperature.
+    seed = random number generator seed (positive integer)
+<em>calcforce</em> values = N forcegroup-ID
+    N = output the force and torque every N timesteps
+    forcegroup-ID = ID of the particle group to calculate the force and torque of
+<em>trilinear</em> values = none (used to switch from the default Peskin interpolation stencil to the trilinear stencil).
+<em>D3Q19</em> values = none (used to switch from the default D3Q15, 15 velocity lattice, to the D3Q19, 19 velocity lattice).
+<em>read_restart</em> values = restart file = name of the restart file to use to restart a fluid run.
+<em>write_restart</em> values = N = write a restart file every N MD timesteps.
+<em>zwall_velocity</em> values = velocity_bottom velocity_top = velocities along the y-direction of the bottom and top walls (located at z=zmin and z=zmax).
+<em>bodyforce</em> values = bodyforcex bodyforcey bodyforcez = the x,y and z components of a constant body force added to the fluid.
+<em>printfluid</em> values = N = print the fluid density and velocity at each grid point every N timesteps.
 </pre>
 </div>
 <div class="section" id="examples">

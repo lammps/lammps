@@ -137,14 +137,14 @@
 </ul>
 <pre class="literal-block">
 <em>box</em> args = none
-  <em>region</em> args = region-ID
-    region-ID = particles will only be created if contained in the region
-  <em>single</em> args = x y z
-    x,y,z = coordinates of a single particle (distance units)
-  <em>random</em> args = N seed region-ID
-    N = number of particles to create
-    seed = random # seed (positive integer)
-    region-ID = create atoms within this region, use NULL for entire simulation box
+<em>region</em> args = region-ID
+  region-ID = particles will only be created if contained in the region
+<em>single</em> args = x y z
+  x,y,z = coordinates of a single particle (distance units)
+<em>random</em> args = N seed region-ID
+  N = number of particles to create
+  seed = random # seed (positive integer)
+  region-ID = create atoms within this region, use NULL for entire simulation box
 </pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
@@ -152,22 +152,22 @@
 </ul>
 <pre class="literal-block">
 <em>mol</em> value = template-ID seed
-    template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
-    seed = random # seed (positive integer)
-  <em>basis</em> values = M itype
-    M = which basis atom
-    itype = atom type (1-N) to assign to this basis atom
-  <em>remap</em> value = <em>yes</em> or <em>no</em>
-  <em>var</em> value = name = variable name to evaluate for test of atom creation
-  <em>set</em> values = dim vname
-    dim = <em>x</em> or <em>y</em> or <em>z</em>
-    name = name of variable to set with x,y,z atom position
-  <em>rotate</em> values = Rx Ry Rz theta
-    Rx,Ry,Rz = rotation vector for single molecule
-    theta = rotation angle for single molecule (degrees)
-  <em>units</em> value = <em>lattice</em> or <em>box</em>
-    <em>lattice</em> = the geometry is defined in lattice units
-    <em>box</em> = the geometry is defined in simulation box units
+  template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
+  seed = random # seed (positive integer)
+<em>basis</em> values = M itype
+  M = which basis atom
+  itype = atom type (1-N) to assign to this basis atom
+<em>remap</em> value = <em>yes</em> or <em>no</em>
+<em>var</em> value = name = variable name to evaluate for test of atom creation
+<em>set</em> values = dim vname
+  dim = <em>x</em> or <em>y</em> or <em>z</em>
+  name = name of variable to set with x,y,z atom position
+<em>rotate</em> values = Rx Ry Rz theta
+  Rx,Ry,Rz = rotation vector for single molecule
+  theta = rotation angle for single molecule (degrees)
+<em>units</em> value = <em>lattice</em> or <em>box</em>
+  <em>lattice</em> = the geometry is defined in lattice units
+  <em>box</em> = the geometry is defined in simulation box units
 </pre>
 </div>
 <div class="section" id="examples">

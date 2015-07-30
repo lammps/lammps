@@ -140,14 +140,14 @@
 </ul>
 <pre class="literal-block">
 <em>pair</em> args = pstyle pparam I J v_delta
-    pstyle = pair style name, e.g. lj/cut
-    pparam = parameter to perturb
-    I,J = type pair(s) to set parameter for
-    v_delta = variable with perturbation to apply (in the units of the parameter)
-  <em>atom</em> args = aparam I v_delta
-    aparam = parameter to perturb
-    I = type to set parameter for
-    v_delta = variable with perturbation to apply (in the units of the parameter)
+  pstyle = pair style name, e.g. lj/cut
+  pparam = parameter to perturb
+  I,J = type pair(s) to set parameter for
+  v_delta = variable with perturbation to apply (in the units of the parameter)
+<em>atom</em> args = aparam I v_delta
+  aparam = parameter to perturb
+  I = type to set parameter for
+  v_delta = variable with perturbation to apply (in the units of the parameter)
 </pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
@@ -155,11 +155,11 @@
 </ul>
 <pre class="literal-block">
 <em>tail</em> value = <em>no</em> or <em>yes</em>
-    <em>no</em> = ignore tail correction to pair energies (usually small in fep)
-    <em>yes</em> = include tail correction to pair energies
-  <em>volume</em> value = <em>no</em> or <em>yes</em>
-    <em>no</em> = ignore volume changes (e.g. in <em>NVE</em> or <em>NVT</em> trajectories)
-    <em>yes</em> = include volume changes (e.g. in <em>NpT</em> trajectories)
+  <em>no</em> = ignore tail correction to pair energies (usually small in fep)
+  <em>yes</em> = include tail correction to pair energies
+<em>volume</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = ignore volume changes (e.g. in <em>NVE</em> or <em>NVT</em> trajectories)
+  <em>yes</em> = include volume changes (e.g. in <em>NpT</em> trajectories)
 </pre>
 </div>
 <div class="section" id="examples">

@@ -142,29 +142,29 @@ fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile
 <li>remaining arguments for fix ttm:</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>C_e  = electronic specific heat (energy/(electron*temperature) units)
-  rho_e = electronic density (electrons/volume units)
-  kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
-  gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
-  gamma_s = friction coefficient due to electronic stopping (mass/time units)
-  v_0 = electronic stopping critical velocity (velocity units)
-  Nx = number of thermal solve grid points in the x-direction (positive integer)
-  Ny = number of thermal solve grid points in the y-direction (positive integer)
-  Nz = number of thermal solve grid points in the z-direction (positive integer)
-  T_infile = filename to read initial electronic temperature from
-  N = dump TTM temperatures every this many timesteps, 0 = no dump
-  T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
+rho_e = electronic density (electrons/volume units)
+kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
+gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
+gamma_s = friction coefficient due to electronic stopping (mass/time units)
+v_0 = electronic stopping critical velocity (velocity units)
+Nx = number of thermal solve grid points in the x-direction (positive integer)
+Ny = number of thermal solve grid points in the y-direction (positive integer)
+Nz = number of thermal solve grid points in the z-direction (positive integer)
+T_infile = filename to read initial electronic temperature from
+N = dump TTM temperatures every this many timesteps, 0 = no dump
+T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
 </pre></div>
 </div>
 <ul class="simple">
 <li>remaining arguments for fix ttm/mod:</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>init_file = file with the parameters to TTM
-  Nx = number of thermal solve grid points in the x-direction (positive integer)
-  Ny = number of thermal solve grid points in the y-direction (positive integer)
-  Nz = number of thermal solve grid points in the z-direction (positive integer)
-  T_infile = filename to read initial electronic temperature from
-  N = dump TTM temperatures every this many timesteps, 0 = no dump
-  T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
+Nx = number of thermal solve grid points in the x-direction (positive integer)
+Ny = number of thermal solve grid points in the y-direction (positive integer)
+Nz = number of thermal solve grid points in the z-direction (positive integer)
+T_infile = filename to read initial electronic temperature from
+N = dump TTM temperatures every this many timesteps, 0 = no dump
+T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
 </pre></div>
 </div>
 </div>

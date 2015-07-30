@@ -137,90 +137,90 @@
 </ul>
 <pre class="literal-block">
 <em>cuda</em> args = Ngpu keyword value ...
-    Ngpu = # of GPUs per node
-    zero or more keyword/value pairs may be appended
-    keywords = <em>newton</em> or <em>gpuID</em> or <em>timing</em> or <em>test</em> or <em>thread</em>
-      <em>newton</em> = <em>off</em> or <em>on</em>
-        off = set Newton pairwise and bonded flags off (default)
-        on = set Newton pairwise and bonded flags on
-      <em>gpuID</em> values = gpu1 .. gpuN
-        gpu1 .. gpuN = IDs of the Ngpu GPUs to use
-      <em>timing</em> values = none
-      <em>test</em> values = id
-        id = atom-ID of a test particle
-      <em>thread</em> = auto or tpa or bpa
-        auto = test whether tpa or bpa is faster
-        tpa = one thread per atom
-        bpa = one block per atom
-  <em>gpu</em> args = Ngpu keyword value ...
-    Ngpu = # of GPUs per node
-    zero or more keyword/value pairs may be appended
-    keywords = <em>neigh</em> or <em>newton</em> or <em>binsize</em> or <em>split</em> or <em>gpuID</em> or <em>tpa</em> or <em>device</em>
-      <em>neigh</em> value = <em>yes</em> or <em>no</em>
-        yes = neighbor list build on GPU (default)
-        no = neighbor list build on CPU
-      <em>newton</em> = <em>off</em> or <em>on</em>
-        off = set Newton pairwise flag off (default and required)
-        on = set Newton pairwise flag on (currently not allowed)
-      <em>binsize</em> value = size
-        size = bin size for neighbor list construction (distance units)
-      <em>split</em> = fraction
-        fraction = fraction of atoms assigned to GPU (default = 1.0)
-      <em>gpuID</em> values = first last
-        first = ID of first GPU to be used on each node
-        last = ID of last GPU to be used on each node
-      <em>tpa</em> value = Nthreads
-        Nthreads = # of GPU threads used per atom
-      <em>device</em> value = device_type
-        device_type = <em>kepler</em> or <em>fermi</em> or <em>cypress</em> or <em>generic</em>
-  <em>intel</em> args = NPhi keyword value ...
-    Nphi = # of coprocessors per node
-    zero or more keyword/value pairs may be appended
-    keywords = <em>omp</em> or <em>mode</em> or <em>balance</em> or <em>ghost</em> or <em>tpc</em> or <em>tptask</em> or <em>no_affinity</em>
-      <em>omp</em> value = Nthreads
-        Nthreads = number of OpenMP threads to use on CPU (default = 0)
-      <em>mode</em> value = <em>single</em> or <em>mixed</em> or <em>double</em>
-        single = perform force calculations in single precision
-        mixed = perform force calculations in mixed precision
-        double = perform force calculations in double precision
-      <em>balance</em> value = split
-        split = fraction of work to offload to coprocessor, -1 for dynamic
-      <em>ghost</em> value = <em>yes</em> or <em>no</em>
-        yes = include ghost atoms for offload
-        no = do not include ghost atoms for offload
-      <em>tpc</em> value = Ntpc
-        Ntpc = max number of coprocessor threads per coprocessor core (default = 4)
-      <em>tptask</em> value = Ntptask
-        Ntptask = max number of coprocessor threads per MPI task (default = 240)
-      <em>no_affinity</em> values = none
-  <em>kokkos</em> args = keyword value ...
-    zero or more keyword/value pairs may be appended
-    keywords = <em>neigh</em> or <em>newton</em> or <em>binsize</em> or <em>comm</em> or <em>comm/exchange</em> or <em>comm/forward</em>
-      <em>neigh</em> value = <em>full</em> or <em>half/thread</em> or <em>half</em> or <em>n2</em> or <em>full/cluster</em>
-        full = full neighbor list
-        half/thread = half neighbor list built in thread-safe manner
-        half = half neighbor list, not thread-safe, only use when 1 thread/MPI task
-        n2 = non-binning neighbor list build, O(N^2) algorithm
-        full/cluster = full neighbor list with clustered groups of atoms
-      <em>newton</em> = <em>off</em> or <em>on</em>
-        off = set Newton pairwise and bonded flags off (default)
-        on = set Newton pairwise and bonded flags on
-      <em>binsize</em> value = size
-        size = bin size for neighbor list construction (distance units)
-      <em>comm</em> value = <em>no</em> or <em>host</em> or <em>device</em>
-        use value for both comm/exchange and comm/forward
-      <em>comm/exchange</em> value = <em>no</em> or <em>host</em> or <em>device</em>
-      <em>comm/forward</em> value = <em>no</em> or <em>host</em> or <em>device</em>
-        no = perform communication pack/unpack in non-KOKKOS mode
-        host = perform pack/unpack on host (e.g. with OpenMP threading)
-        device = perform pack/unpack on device (e.g. on GPU)
-  <em>omp</em> args = Nthreads keyword value ...
-    Nthread = # of OpenMP threads to associate with each MPI process
-    zero or more keyword/value pairs may be appended
-    keywords = <em>neigh</em>
-      <em>neigh</em> value = <em>yes</em> or <em>no</em>
-        yes = threaded neighbor list build (default)
-        no = non-threaded neighbor list build
+  Ngpu = # of GPUs per node
+  zero or more keyword/value pairs may be appended
+  keywords = <em>newton</em> or <em>gpuID</em> or <em>timing</em> or <em>test</em> or <em>thread</em>
+    <em>newton</em> = <em>off</em> or <em>on</em>
+      off = set Newton pairwise and bonded flags off (default)
+      on = set Newton pairwise and bonded flags on
+    <em>gpuID</em> values = gpu1 .. gpuN
+      gpu1 .. gpuN = IDs of the Ngpu GPUs to use
+    <em>timing</em> values = none
+    <em>test</em> values = id
+      id = atom-ID of a test particle
+    <em>thread</em> = auto or tpa or bpa
+      auto = test whether tpa or bpa is faster
+      tpa = one thread per atom
+      bpa = one block per atom
+<em>gpu</em> args = Ngpu keyword value ...
+  Ngpu = # of GPUs per node
+  zero or more keyword/value pairs may be appended
+  keywords = <em>neigh</em> or <em>newton</em> or <em>binsize</em> or <em>split</em> or <em>gpuID</em> or <em>tpa</em> or <em>device</em>
+    <em>neigh</em> value = <em>yes</em> or <em>no</em>
+      yes = neighbor list build on GPU (default)
+      no = neighbor list build on CPU
+    <em>newton</em> = <em>off</em> or <em>on</em>
+      off = set Newton pairwise flag off (default and required)
+      on = set Newton pairwise flag on (currently not allowed)
+    <em>binsize</em> value = size
+      size = bin size for neighbor list construction (distance units)
+    <em>split</em> = fraction
+      fraction = fraction of atoms assigned to GPU (default = 1.0)
+    <em>gpuID</em> values = first last
+      first = ID of first GPU to be used on each node
+      last = ID of last GPU to be used on each node
+    <em>tpa</em> value = Nthreads
+      Nthreads = # of GPU threads used per atom
+    <em>device</em> value = device_type
+      device_type = <em>kepler</em> or <em>fermi</em> or <em>cypress</em> or <em>generic</em>
+<em>intel</em> args = NPhi keyword value ...
+  Nphi = # of coprocessors per node
+  zero or more keyword/value pairs may be appended
+  keywords = <em>omp</em> or <em>mode</em> or <em>balance</em> or <em>ghost</em> or <em>tpc</em> or <em>tptask</em> or <em>no_affinity</em>
+    <em>omp</em> value = Nthreads
+      Nthreads = number of OpenMP threads to use on CPU (default = 0)
+    <em>mode</em> value = <em>single</em> or <em>mixed</em> or <em>double</em>
+      single = perform force calculations in single precision
+      mixed = perform force calculations in mixed precision
+      double = perform force calculations in double precision
+    <em>balance</em> value = split
+      split = fraction of work to offload to coprocessor, -1 for dynamic
+    <em>ghost</em> value = <em>yes</em> or <em>no</em>
+      yes = include ghost atoms for offload
+      no = do not include ghost atoms for offload
+    <em>tpc</em> value = Ntpc
+      Ntpc = max number of coprocessor threads per coprocessor core (default = 4)
+    <em>tptask</em> value = Ntptask
+      Ntptask = max number of coprocessor threads per MPI task (default = 240)
+    <em>no_affinity</em> values = none
+<em>kokkos</em> args = keyword value ...
+  zero or more keyword/value pairs may be appended
+  keywords = <em>neigh</em> or <em>newton</em> or <em>binsize</em> or <em>comm</em> or <em>comm/exchange</em> or <em>comm/forward</em>
+    <em>neigh</em> value = <em>full</em> or <em>half/thread</em> or <em>half</em> or <em>n2</em> or <em>full/cluster</em>
+      full = full neighbor list
+      half/thread = half neighbor list built in thread-safe manner
+      half = half neighbor list, not thread-safe, only use when 1 thread/MPI task
+      n2 = non-binning neighbor list build, O(N^2) algorithm
+      full/cluster = full neighbor list with clustered groups of atoms
+    <em>newton</em> = <em>off</em> or <em>on</em>
+      off = set Newton pairwise and bonded flags off (default)
+      on = set Newton pairwise and bonded flags on
+    <em>binsize</em> value = size
+      size = bin size for neighbor list construction (distance units)
+    <em>comm</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+      use value for both comm/exchange and comm/forward
+    <em>comm/exchange</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+    <em>comm/forward</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+      no = perform communication pack/unpack in non-KOKKOS mode
+      host = perform pack/unpack on host (e.g. with OpenMP threading)
+      device = perform pack/unpack on device (e.g. on GPU)
+<em>omp</em> args = Nthreads keyword value ...
+  Nthread = # of OpenMP threads to associate with each MPI process
+  zero or more keyword/value pairs may be appended
+  keywords = <em>neigh</em>
+    <em>neigh</em> value = <em>yes</em> or <em>no</em>
+      yes = threaded neighbor list build (default)
+      no = non-threaded neighbor list build
 </pre>
 </div>
 <div class="section" id="examples">

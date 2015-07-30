@@ -139,39 +139,39 @@
 </ul>
 <pre class="literal-block">
 <em>append</em> arg = <em>yes</em> or <em>no</em>
-  <em>buffer</em> arg = <em>yes</em> or <em>no</em>
-  <em>element</em> args = E1 E2 ... EN, where N = # of atom types
-    E1,...,EN = element name, e.g. C or Fe or Ga
-  <em>every</em> arg = N
-    N = dump every this many timesteps
-    N can be a variable (see below)
-  <em>fileper</em> arg = Np
-    Np = write one file for every this many processors
-  <em>first</em> arg = <em>yes</em> or <em>no</em>
-  <em>format</em> arg = C-style format string for one line of output
-  <em>flush</em> arg = <em>yes</em> or <em>no</em>
-  <em>image</em> arg = <em>yes</em> or <em>no</em>
-  <em>label</em> arg = string
-    string = character string (e.g. BONDS) to use in header of dump local file
-  <em>nfile</em> arg = Nf
-    Nf = write this many files, one from each of Nf processors
-  <em>pad</em> arg = Nchar = # of characters to convert timestep to
-  <em>precision</em> arg = power-of-10 value from 10 to 1000000
-  <em>region</em> arg = region-ID or &quot;none&quot;
-  <em>scale</em> arg = <em>yes</em> or <em>no</em>
-  <em>sfactor</em> arg = coordinate scaling factor (&gt; 0.0)
-  <em>tfactor</em> arg = time scaling factor (&gt; 0.0)
-  <em>sort</em> arg = <em>off</em> or <em>id</em> or N or -N
-     off = no sorting of per-atom lines within a snapshot
-     id = sort per-atom lines by atom ID
-     N = sort per-atom lines in ascending order by the Nth column
-     -N = sort per-atom lines in descending order by the Nth column
-  <em>thresh</em> args = attribute operation value
-    attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
-    operation = &quot;&lt;&quot; or &quot;&lt;=&quot; or &quot;&gt;&quot; or &quot;&gt;=&quot; or &quot;==&quot; or &quot;!=&quot;
-    value = numeric value to compare to
-    these 3 args can be replaced by the word &quot;none&quot; to turn off thresholding
-  <em>unwrap</em> arg = <em>yes</em> or <em>no</em>
+<em>buffer</em> arg = <em>yes</em> or <em>no</em>
+<em>element</em> args = E1 E2 ... EN, where N = # of atom types
+  E1,...,EN = element name, e.g. C or Fe or Ga
+<em>every</em> arg = N
+  N = dump every this many timesteps
+  N can be a variable (see below)
+<em>fileper</em> arg = Np
+  Np = write one file for every this many processors
+<em>first</em> arg = <em>yes</em> or <em>no</em>
+<em>format</em> arg = C-style format string for one line of output
+<em>flush</em> arg = <em>yes</em> or <em>no</em>
+<em>image</em> arg = <em>yes</em> or <em>no</em>
+<em>label</em> arg = string
+  string = character string (e.g. BONDS) to use in header of dump local file
+<em>nfile</em> arg = Nf
+  Nf = write this many files, one from each of Nf processors
+<em>pad</em> arg = Nchar = # of characters to convert timestep to
+<em>precision</em> arg = power-of-10 value from 10 to 1000000
+<em>region</em> arg = region-ID or &quot;none&quot;
+<em>scale</em> arg = <em>yes</em> or <em>no</em>
+<em>sfactor</em> arg = coordinate scaling factor (&gt; 0.0)
+<em>tfactor</em> arg = time scaling factor (&gt; 0.0)
+<em>sort</em> arg = <em>off</em> or <em>id</em> or N or -N
+   off = no sorting of per-atom lines within a snapshot
+   id = sort per-atom lines by atom ID
+   N = sort per-atom lines in ascending order by the Nth column
+   -N = sort per-atom lines in descending order by the Nth column
+<em>thresh</em> args = attribute operation value
+  attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
+  operation = &quot;&lt;&quot; or &quot;&lt;=&quot; or &quot;&gt;&quot; or &quot;&gt;=&quot; or &quot;==&quot; or &quot;!=&quot;
+  value = numeric value to compare to
+  these 3 args can be replaced by the word &quot;none&quot; to turn off thresholding
+<em>unwrap</em> arg = <em>yes</em> or <em>no</em>
 </pre>
 <ul class="simple">
 <li>these keywords apply only to the <em>image</em> and <em>movie</em> <a class="reference internal" href="dump_image.html"><em>styles</em></a></li>
@@ -179,48 +179,48 @@
 </ul>
 <pre class="literal-block">
 <em>acolor</em> args = type color
-    type = atom type or range of types (see below)
-    color = name of color or color1/color2/...
-  <em>adiam</em> args = type diam
-    type = atom type or range of types (see below)
-    diam = diameter of atoms of that type (distance units)
-  <em>amap</em> args = lo hi style delta N entry1 entry2 ... entryN
-    lo = number or <em>min</em> = lower bound of range of color map
-    hi = number or <em>max</em> = upper bound of range of color map
-    style = 2 letters = &quot;c&quot; or &quot;d&quot; or &quot;s&quot; plus &quot;a&quot; or &quot;f&quot;
-      &quot;c&quot; for continuous
-      &quot;d&quot; for discrete
-      &quot;s&quot; for sequential
-      &quot;a&quot; for absolute
-      &quot;f&quot; for fractional
-    delta = binsize (only used for style &quot;s&quot;, otherwise ignored)
-      binsize = range is divided into bins of this width
-    N = # of subsequent entries
-    entry = value color (for continuous style)
-      value = number or <em>min</em> or <em>max</em> = single value within range
-      color = name of color used for that value
-    entry = lo hi color (for discrete style)
-      lo/hi = number or <em>min</em> or <em>max</em> = lower/upper bound of subset of range
-      color = name of color used for that subset of values
-    entry = color (for sequential style)
-      color = name of color used for a bin of values
-  <em>backcolor</em> arg = color
-    color = name of color for background
-  <em>bcolor</em> args = type color
-    type = bond type or range of types (see below)
-    color = name of color or color1/color2/...
-  <em>bdiam</em> args = type diam
-    type = bond type or range of types (see below)
-    diam = diameter of bonds of that type (distance units)
-  <em>boxcolor</em> arg = color
-    color = name of color for simulation box lines and processor sub-domain lines
-  <em>color</em> args = name R G B
-    name = name of color
-    R,G,B = red/green/blue numeric values from 0.0 to 1.0
-  <em>bitrate</em> arg = rate
-    rate = target bitrate for movie in kbps
-  <em>framerate</em> arg = fps
-    fps = frames per second for movie
+  type = atom type or range of types (see below)
+  color = name of color or color1/color2/...
+<em>adiam</em> args = type diam
+  type = atom type or range of types (see below)
+  diam = diameter of atoms of that type (distance units)
+<em>amap</em> args = lo hi style delta N entry1 entry2 ... entryN
+  lo = number or <em>min</em> = lower bound of range of color map
+  hi = number or <em>max</em> = upper bound of range of color map
+  style = 2 letters = &quot;c&quot; or &quot;d&quot; or &quot;s&quot; plus &quot;a&quot; or &quot;f&quot;
+    &quot;c&quot; for continuous
+    &quot;d&quot; for discrete
+    &quot;s&quot; for sequential
+    &quot;a&quot; for absolute
+    &quot;f&quot; for fractional
+  delta = binsize (only used for style &quot;s&quot;, otherwise ignored)
+    binsize = range is divided into bins of this width
+  N = # of subsequent entries
+  entry = value color (for continuous style)
+    value = number or <em>min</em> or <em>max</em> = single value within range
+    color = name of color used for that value
+  entry = lo hi color (for discrete style)
+    lo/hi = number or <em>min</em> or <em>max</em> = lower/upper bound of subset of range
+    color = name of color used for that subset of values
+  entry = color (for sequential style)
+    color = name of color used for a bin of values
+<em>backcolor</em> arg = color
+  color = name of color for background
+<em>bcolor</em> args = type color
+  type = bond type or range of types (see below)
+  color = name of color or color1/color2/...
+<em>bdiam</em> args = type diam
+  type = bond type or range of types (see below)
+  diam = diameter of bonds of that type (distance units)
+<em>boxcolor</em> arg = color
+  color = name of color for simulation box lines and processor sub-domain lines
+<em>color</em> args = name R G B
+  name = name of color
+  R,G,B = red/green/blue numeric values from 0.0 to 1.0
+<em>bitrate</em> arg = rate
+  rate = target bitrate for movie in kbps
+<em>framerate</em> arg = fps
+  fps = frames per second for movie
 </pre>
 </div>
 <div class="section" id="examples">

@@ -165,10 +165,10 @@
 </ul>
 <pre class="literal-block">
 <em>single</em> args = none
-  <em>molecule</em> args = none
-  <em>group</em> args = N groupID1 groupID2 ...
-    N = # of groups
-    groupID1, groupID2, ... = list of N group IDs
+<em>molecule</em> args = none
+<em>group</em> args = N groupID1 groupID2 ...
+  N = # of groups
+  groupID1, groupID2, ... = list of N group IDs
 </pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
@@ -176,37 +176,37 @@
 </ul>
 <pre class="literal-block">
 <em>langevin</em> values = Tstart Tstop Tperiod seed
-    Tstart,Tstop = desired temperature at start/stop of run (temperature units)
-    Tdamp = temperature damping parameter (time units)
-    seed = random number seed to use for white noise (positive integer)
-  <em>temp</em> values = Tstart Tstop Tdamp
-    Tstart,Tstop = desired temperature at start/stop of run (temperature units)
-    Tdamp = temperature damping parameter (time units)
-  <em>iso</em> or <em>aniso</em> values = Pstart Pstop Pdamp
-    Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
-    Pdamp = pressure damping parameter (time units)
-  <em>x</em> or <em>y</em> or <em>z</em> values = Pstart Pstop Pdamp
-    Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
-    Pdamp = stress damping parameter (time units)
-  <em>couple</em> = <em>none</em> or <em>xyz</em> or <em>xy</em> or <em>yz</em> or <em>xz</em>
-  <em>tparam</em> values = Tchain Titer Torder
-    Tchain = length of Nose/Hoover thermostat chain
-    Titer = number of thermostat iterations performed
-    Torder = 3 or 5 = Yoshida-Suzuki integration parameters
-  <em>pchain</em> values = Pchain
-    Pchain = length of the Nose/Hoover thermostat chain coupled with the barostat
-  <em>dilate</em> value = dilate-group-ID
-    dilate-group-ID = only dilate atoms in this group due to barostat volume changes
-  <em>force</em> values = M xflag yflag zflag
-    M = which rigid body from 1-Nbody (see asterisk form below)
-    xflag,yflag,zflag = off/on if component of center-of-mass force is active
-  <em>torque</em> values = M xflag yflag zflag
-    M = which rigid body from 1-Nbody (see asterisk form below)
-    xflag,yflag,zflag = off/on if component of center-of-mass torque is active
-  <em>infile</em> filename
-    filename = file with per-body values of mass, center-of-mass, moments of inertia
-  <em>mol</em> value = template-ID
-    template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
+  Tstart,Tstop = desired temperature at start/stop of run (temperature units)
+  Tdamp = temperature damping parameter (time units)
+  seed = random number seed to use for white noise (positive integer)
+<em>temp</em> values = Tstart Tstop Tdamp
+  Tstart,Tstop = desired temperature at start/stop of run (temperature units)
+  Tdamp = temperature damping parameter (time units)
+<em>iso</em> or <em>aniso</em> values = Pstart Pstop Pdamp
+  Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
+  Pdamp = pressure damping parameter (time units)
+<em>x</em> or <em>y</em> or <em>z</em> values = Pstart Pstop Pdamp
+  Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
+  Pdamp = stress damping parameter (time units)
+<em>couple</em> = <em>none</em> or <em>xyz</em> or <em>xy</em> or <em>yz</em> or <em>xz</em>
+<em>tparam</em> values = Tchain Titer Torder
+  Tchain = length of Nose/Hoover thermostat chain
+  Titer = number of thermostat iterations performed
+  Torder = 3 or 5 = Yoshida-Suzuki integration parameters
+<em>pchain</em> values = Pchain
+  Pchain = length of the Nose/Hoover thermostat chain coupled with the barostat
+<em>dilate</em> value = dilate-group-ID
+  dilate-group-ID = only dilate atoms in this group due to barostat volume changes
+<em>force</em> values = M xflag yflag zflag
+  M = which rigid body from 1-Nbody (see asterisk form below)
+  xflag,yflag,zflag = off/on if component of center-of-mass force is active
+<em>torque</em> values = M xflag yflag zflag
+  M = which rigid body from 1-Nbody (see asterisk form below)
+  xflag,yflag,zflag = off/on if component of center-of-mass torque is active
+<em>infile</em> filename
+  filename = file with per-body values of mass, center-of-mass, moments of inertia
+<em>mol</em> value = template-ID
+  template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
 </pre>
 </div>
 <div class="section" id="examples">

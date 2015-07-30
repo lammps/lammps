@@ -138,22 +138,22 @@
 </ul>
 <pre class="literal-block">
 <em>x</em> args = <em>uniform</em> or Px-1 numbers between 0 and 1
-    <em>uniform</em> = evenly spaced cuts between processors in x dimension
-    numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
-    <em>x</em> can be specified together with <em>y</em> or <em>z</em>
-  <em>y</em> args = <em>uniform</em> or Py-1 numbers between 0 and 1
-    <em>uniform</em> = evenly spaced cuts between processors in y dimension
-    numbers = Py-1 ascending values between 0 and 1, Py - # of processors in y dimension
-    <em>y</em> can be specified together with <em>x</em> or <em>z</em>
-  <em>z</em> args = <em>uniform</em> or Pz-1 numbers between 0 and 1
-    <em>uniform</em> = evenly spaced cuts between processors in z dimension
-    numbers = Pz-1 ascending values between 0 and 1, Pz - # of processors in z dimension
-    <em>z</em> can be specified together with <em>x</em> or <em>y</em>
-  <em>shift</em> args = dimstr Niter stopthresh
-    dimstr = sequence of letters containing &quot;x&quot; or &quot;y&quot; or &quot;z&quot;, each not more than once
-    Niter = # of times to iterate within each dimension of dimstr sequence
-    stopthresh = stop balancing when this imbalance threshhold is reached
-  <em>rcb</em> args = none
+  <em>uniform</em> = evenly spaced cuts between processors in x dimension
+  numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
+  <em>x</em> can be specified together with <em>y</em> or <em>z</em>
+<em>y</em> args = <em>uniform</em> or Py-1 numbers between 0 and 1
+  <em>uniform</em> = evenly spaced cuts between processors in y dimension
+  numbers = Py-1 ascending values between 0 and 1, Py - # of processors in y dimension
+  <em>y</em> can be specified together with <em>x</em> or <em>z</em>
+<em>z</em> args = <em>uniform</em> or Pz-1 numbers between 0 and 1
+  <em>uniform</em> = evenly spaced cuts between processors in z dimension
+  numbers = Pz-1 ascending values between 0 and 1, Pz - # of processors in z dimension
+  <em>z</em> can be specified together with <em>x</em> or <em>y</em>
+<em>shift</em> args = dimstr Niter stopthresh
+  dimstr = sequence of letters containing &quot;x&quot; or &quot;y&quot; or &quot;z&quot;, each not more than once
+  Niter = # of times to iterate within each dimension of dimstr sequence
+  stopthresh = stop balancing when this imbalance threshhold is reached
+<em>rcb</em> args = none
 </pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
@@ -161,7 +161,7 @@
 </ul>
 <pre class="literal-block">
 <em>out</em> value = filename
-    filename = write each processor's sub-domain to a file
+  filename = write each processor's sub-domain to a file
 </pre>
 </div>
 <div class="section" id="examples">

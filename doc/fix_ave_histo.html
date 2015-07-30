@@ -146,11 +146,11 @@
 <li>value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
-  c_ID = scalar or vector calculated by a compute with ID
-  c_ID[I] = Ith component of vector or Ith column of array calculated by a compute with ID
-  f_ID = scalar or vector calculated by a fix with ID
-  f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID
-  v_name = value(s) calculated by an equal-style or atom-style variable with name
+c_ID = scalar or vector calculated by a compute with ID
+c_ID[I] = Ith component of vector or Ith column of array calculated by a compute with ID
+f_ID = scalar or vector calculated by a fix with ID
+f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID
+v_name = value(s) calculated by an equal-style or atom-style variable with name
 </pre></div>
 </div>
 <ul class="simple">
@@ -159,27 +159,27 @@
 </ul>
 <pre class="literal-block">
 <em>mode</em> arg = <em>scalar</em> or <em>vector</em>
-    scalar = all input values are scalars
-    vector = all input values are vectors
-  <em>file</em> arg = filename
-    filename = name of file to output histogram(s) to
-  <em>ave</em> args = <em>one</em> or <em>running</em> or <em>window</em>
-    one = output a new average value every Nfreq steps
-    running = output cumulative average of all previous Nfreq steps
-    window M = output average of M most recent Nfreq steps
-  <em>start</em> args = Nstart
-    Nstart = start averaging on this timestep
-  <em>beyond</em> arg = <em>ignore</em> or <em>end</em> or <em>extra</em>
-    ignore = ignore values outside histogram lo/hi bounds
-    end = count values outside histogram lo/hi bounds in end bins
-    extra = create 2 extra bins for value outside histogram lo/hi bounds
-  <em>overwrite</em> arg = none = overwrite output file with only latest output
-  <em>title1</em> arg = string
-    string = text to print as 1st line of output file
-  <em>title2</em> arg = string
-    string = text to print as 2nd line of output file
-  <em>title3</em> arg = string
-    string = text to print as 3rd line of output file, only for vector mode
+  scalar = all input values are scalars
+  vector = all input values are vectors
+<em>file</em> arg = filename
+  filename = name of file to output histogram(s) to
+<em>ave</em> args = <em>one</em> or <em>running</em> or <em>window</em>
+  one = output a new average value every Nfreq steps
+  running = output cumulative average of all previous Nfreq steps
+  window M = output average of M most recent Nfreq steps
+<em>start</em> args = Nstart
+  Nstart = start averaging on this timestep
+<em>beyond</em> arg = <em>ignore</em> or <em>end</em> or <em>extra</em>
+  ignore = ignore values outside histogram lo/hi bounds
+  end = count values outside histogram lo/hi bounds in end bins
+  extra = create 2 extra bins for value outside histogram lo/hi bounds
+<em>overwrite</em> arg = none = overwrite output file with only latest output
+<em>title1</em> arg = string
+  string = text to print as 1st line of output file
+<em>title2</em> arg = string
+  string = text to print as 2nd line of output file
+<em>title3</em> arg = string
+  string = text to print as 3rd line of output file, only for vector mode
 </pre>
 </div>
 <div class="section" id="examples">

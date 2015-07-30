@@ -146,27 +146,27 @@
 </ul>
 <pre class="literal-block">
 <em>lj/long/coul/long</em> args = flag_lj flag_coul cutoff (cutoff2)
-    flag_lj = <em>long</em> or <em>cut</em> or <em>off</em>
-      <em>long</em> = use Kspace long-range summation for dispersion 1/r^6 term
-      <em>cut</em> = use a cutoff on dispersion 1/r^6 term
-      <em>off</em> = omit disperion 1/r^6 term entirely
-    flag_coul = <em>long</em> or <em>off</em>
-      <em>long</em> = use Kspace long-range summation for Coulombic 1/r term
-      <em>off</em> = omit Coulombic term
-    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  <em>lj/long/tip4p/long</em> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
-    flag_lj = <em>long</em> or <em>cut</em>
-      <em>long</em> = use Kspace long-range summation for dispersion 1/r^6 term
-      <em>cut</em> = use a cutoff
-    flag_coul = <em>long</em> or <em>off</em>
-      <em>long</em> = use Kspace long-range summation for Coulombic 1/r term
-      <em>off</em> = omit Coulombic term
-    otype,htype = atom types for TIP4P O and H
-    btype,atype = bond and angle types for TIP4P waters
-    qdist = distance from O atom to massless charge (distance units)
-    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  flag_lj = <em>long</em> or <em>cut</em> or <em>off</em>
+    <em>long</em> = use Kspace long-range summation for dispersion 1/r^6 term
+    <em>cut</em> = use a cutoff on dispersion 1/r^6 term
+    <em>off</em> = omit disperion 1/r^6 term entirely
+  flag_coul = <em>long</em> or <em>off</em>
+    <em>long</em> = use Kspace long-range summation for Coulombic 1/r term
+    <em>off</em> = omit Coulombic term
+  cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
+<em>lj/long/tip4p/long</em> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
+  flag_lj = <em>long</em> or <em>cut</em>
+    <em>long</em> = use Kspace long-range summation for dispersion 1/r^6 term
+    <em>cut</em> = use a cutoff
+  flag_coul = <em>long</em> or <em>off</em>
+    <em>long</em> = use Kspace long-range summation for Coulombic 1/r term
+    <em>off</em> = omit Coulombic term
+  otype,htype = atom types for TIP4P O and H
+  btype,atype = bond and angle types for TIP4P waters
+  qdist = distance from O atom to massless charge (distance units)
+  cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
 </pre>
 </div>
 <div class="section" id="examples">

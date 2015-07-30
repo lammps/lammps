@@ -136,41 +136,41 @@
 </ul>
 <pre class="literal-block">
 <em>verlet</em> args = none
-  <em>verlet/split</em> args = none
-  <em>respa</em> args = N n1 n2 ... keyword values ...
-    N = # of levels of rRESPA
-    n1, n2, ... = loop factor between rRESPA levels (N-1 values)
-    zero or more keyword/value pairings may be appended to the loop factors
-    keyword = <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or
-           <em>pair</em> or <em>inner</em> or <em>middle</em> or <em>outer</em> or <em>hybrid</em> or <em>kspace</em>
-      <em>bond</em> value = M
-        M = which level (1-N) to compute bond forces in
-      <em>angle</em> value = M
-        M = which level (1-N) to compute angle forces in
-      <em>dihedral</em> value = M
-        M = which level (1-N) to compute dihedral forces in
-      <em>improper</em> value = M
-        M = which level (1-N) to compute improper forces in
-      <em>pair</em> value = M
-        M = which level (1-N) to compute pair forces in
-      <em>inner</em> values = M cut1 cut2
-        M = which level (1-N) to compute pair inner forces in
-     cut1 = inner cutoff between pair inner and
-            pair middle or outer  (distance units)
-     cut2 = outer cutoff between pair inner and
-            pair middle or outer  (distance units)
-      <em>middle</em> values = M cut1 cut2
-        M = which level (1-N) to compute pair middle forces in
-     cut1 = inner cutoff between pair middle and pair outer (distance units)
-     cut2 = outer cutoff between pair middle and pair outer (distance units)
-      <em>outer</em> value = M
-        M = which level (1-N) to compute pair outer forces in
-      <em>hybrid</em> values = M1 [M2 ...] (as many values as there are hybrid sub-styles
-        M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
-        M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
-        ...
-      <em>kspace</em> value = M
-        M = which level (1-N) to compute kspace forces in
+<em>verlet/split</em> args = none
+<em>respa</em> args = N n1 n2 ... keyword values ...
+  N = # of levels of rRESPA
+  n1, n2, ... = loop factor between rRESPA levels (N-1 values)
+  zero or more keyword/value pairings may be appended to the loop factors
+  keyword = <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or
+         <em>pair</em> or <em>inner</em> or <em>middle</em> or <em>outer</em> or <em>hybrid</em> or <em>kspace</em>
+    <em>bond</em> value = M
+      M = which level (1-N) to compute bond forces in
+    <em>angle</em> value = M
+      M = which level (1-N) to compute angle forces in
+    <em>dihedral</em> value = M
+      M = which level (1-N) to compute dihedral forces in
+    <em>improper</em> value = M
+      M = which level (1-N) to compute improper forces in
+    <em>pair</em> value = M
+      M = which level (1-N) to compute pair forces in
+    <em>inner</em> values = M cut1 cut2
+      M = which level (1-N) to compute pair inner forces in
+   cut1 = inner cutoff between pair inner and
+          pair middle or outer  (distance units)
+   cut2 = outer cutoff between pair inner and
+          pair middle or outer  (distance units)
+    <em>middle</em> values = M cut1 cut2
+      M = which level (1-N) to compute pair middle forces in
+   cut1 = inner cutoff between pair middle and pair outer (distance units)
+   cut2 = outer cutoff between pair middle and pair outer (distance units)
+    <em>outer</em> value = M
+      M = which level (1-N) to compute pair outer forces in
+    <em>hybrid</em> values = M1 [M2 ...] (as many values as there are hybrid sub-styles
+      M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
+      M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
+      ...
+    <em>kspace</em> value = M
+      M = which level (1-N) to compute kspace forces in
 </pre>
 </div>
 <div class="section" id="examples">

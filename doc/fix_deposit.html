@@ -143,40 +143,40 @@
 </ul>
 <pre class="literal-block">
 <em>region</em> value = region-ID
-    region-ID = ID of region to use as insertion volume
-  <em>id</em> value = <em>max</em> or <em>next</em>
-    max = atom ID for new atom(s) is max ID of all current atoms plus one
-    next = atom ID for new atom(s) increments by one for every deposition
-  <em>global</em> values = lo hi
-    lo,hi = put new atom/molecule a distance lo-hi above all other atoms (distance units)
-  <em>local</em> values = lo hi delta
-    lo,hi = put new atom/molecule a distance lo-hi above any nearby atom beneath it (distance units)
-    delta = lateral distance within which a neighbor is considered &quot;nearby&quot; (distance units)
-  <em>near</em> value = R
-    R = only insert atom/molecule if further than R from existing particles (distance units)
-  <em>attempt</em> value = Q
-    Q = attempt a single insertion up to Q times
-  <em>rate</em> value = V
-    V = z velocity (y in 2d) at which insertion volume moves (velocity units)
-  <em>vx</em> values = vxlo vxhi
-    vxlo,vxhi = range of x velocities for inserted atom/molecule (velocity units)
-  <em>vy</em> values = vylo vyhi
-    vylo,vyhi = range of y velocities for inserted atom/molecule (velocity units)
-  <em>vz</em> values = vzlo vzhi
-    vzlo,vzhi = range of z velocities for inserted atom/molecule (velocity units)
-  <em>target</em> values = tx ty tz
-    tx,ty,tz = location of target point (distance units)
-  <em>mol</em> value = template-ID
-    template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
-  <em>molfrac</em> values = f1 f2 ... fN
-    f1 to fN = relative probability of creating each of N molecules in template-ID
-  <em>rigid</em> value = fix-ID
-    fix-ID = ID of <a class="reference internal" href="fix_rigid.html"><em>fix rigid/small</em></a> command
-  <em>shake</em> value = fix-ID
-    fix-ID = ID of <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command
-  <em>units</em> value = <em>lattice</em> or <em>box</em>
-    lattice = the geometry is defined in lattice units
-    box = the geometry is defined in simulation box units
+  region-ID = ID of region to use as insertion volume
+<em>id</em> value = <em>max</em> or <em>next</em>
+  max = atom ID for new atom(s) is max ID of all current atoms plus one
+  next = atom ID for new atom(s) increments by one for every deposition
+<em>global</em> values = lo hi
+  lo,hi = put new atom/molecule a distance lo-hi above all other atoms (distance units)
+<em>local</em> values = lo hi delta
+  lo,hi = put new atom/molecule a distance lo-hi above any nearby atom beneath it (distance units)
+  delta = lateral distance within which a neighbor is considered &quot;nearby&quot; (distance units)
+<em>near</em> value = R
+  R = only insert atom/molecule if further than R from existing particles (distance units)
+<em>attempt</em> value = Q
+  Q = attempt a single insertion up to Q times
+<em>rate</em> value = V
+  V = z velocity (y in 2d) at which insertion volume moves (velocity units)
+<em>vx</em> values = vxlo vxhi
+  vxlo,vxhi = range of x velocities for inserted atom/molecule (velocity units)
+<em>vy</em> values = vylo vyhi
+  vylo,vyhi = range of y velocities for inserted atom/molecule (velocity units)
+<em>vz</em> values = vzlo vzhi
+  vzlo,vzhi = range of z velocities for inserted atom/molecule (velocity units)
+<em>target</em> values = tx ty tz
+  tx,ty,tz = location of target point (distance units)
+<em>mol</em> value = template-ID
+  template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
+<em>molfrac</em> values = f1 f2 ... fN
+  f1 to fN = relative probability of creating each of N molecules in template-ID
+<em>rigid</em> value = fix-ID
+  fix-ID = ID of <a class="reference internal" href="fix_rigid.html"><em>fix rigid/small</em></a> command
+<em>shake</em> value = fix-ID
+  fix-ID = ID of <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command
+<em>units</em> value = <em>lattice</em> or <em>box</em>
+  lattice = the geometry is defined in lattice units
+  box = the geometry is defined in simulation box units
 </pre>
 </div>
 <div class="section" id="examples">

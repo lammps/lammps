@@ -250,12 +250,12 @@ background density (see e.g. equation 4.5 in <a class="reference internal" href=
 is typically 1.0 for single-element systems.  The ibar parameter
 selects the form of the function G(Gamma) used to compute the electron
 density; options are</p>
-<div class="highlight-python"><div class="highlight"><pre>0 =&gt; G = sqrt(1+Gamma)
-   1 =&gt; G = exp(Gamma/2)
-   2 =&gt; not implemented
-   3 =&gt; G = 2/(1+exp(-Gamma))
-   4 =&gt; G = sqrt(1+Gamma)
-  -5 =&gt; G = +-sqrt(abs(1+Gamma))
+<div class="highlight-python"><div class="highlight"><pre> 0 =&gt; G = sqrt(1+Gamma)
+ 1 =&gt; G = exp(Gamma/2)
+ 2 =&gt; not implemented
+ 3 =&gt; G = 2/(1+exp(-Gamma))
+ 4 =&gt; G = sqrt(1+Gamma)
+-5 =&gt; G = +-sqrt(abs(1+Gamma))
 </pre></div>
 </div>
 <p>If used, the MEAM parameter file contains settings that override or

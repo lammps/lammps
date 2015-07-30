@@ -137,70 +137,70 @@
 </ul>
 <pre class="literal-block">
 <em>one</em> args = none
-  <em>multi</em> args = none
-  <em>custom</em> args = list of keywords
-    possible keywords = step, elapsed, elaplong, dt, time,
-                        cpu, tpcpu, spcpu, cpuremain, part,
-                        atoms, temp, press, pe, ke, etotal, enthalpy,
-                        evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
-                        emol, elong, etail,
-                        vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
-                     xy, xz, yz, xlat, ylat, zlat,
-                        bonds, angles, dihedrals, impropers,
-                     pxx, pyy, pzz, pxy, pxz, pyz,
-                     fmax, fnorm, nbuild, ndanger,
-                     cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
-                     c_ID, c_ID[I], c_ID[I][J],
-                        f_ID, f_ID[I], f_ID[I][J],
-                        v_name
-      step = timestep
-      elapsed = timesteps since start of this run
-      elaplong = timesteps since start of initial run in a series of runs
-      dt = timestep size
-      time = simulation time
-      cpu = elapsed CPU time in seconds
-      tpcpu = time per CPU second
-      spcpu = timesteps per CPU second
-      cpuremain = estimated CPU time remaining in run
-      part = which partition (0 to Npartition-1) this is
-      atoms = # of atoms
-      temp = temperature
-      press = pressure
-      pe = total potential energy
-      ke = kinetic energy
-      etotal = total energy (pe + ke)
-      enthalpy = enthalpy (etotal + press*vol)
-      evdwl = VanderWaal pairwise energy
-      ecoul = Coulombic pairwise energy
-      epair = pairwise energy (evdwl + ecoul + elong + etail)
-      ebond = bond energy
-      eangle = angle energy
-      edihed = dihedral energy
-      eimp = improper energy
-      emol = molecular energy (ebond + eangle + edihed + eimp)
-      elong = long-range kspace energy
-      etail = VanderWaal energy long-range tail correction
-      vol = volume
-      density = mass density of system
-      lx,ly,lz = box lengths in x,y,z
-      xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
-      xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
-      xlat,ylat,zlat = lattice spacings as calculated by <a class="reference internal" href="lattice.html"><em>lattice</em></a> command
-      bonds,angles,dihedrals,impropers = # of these interactions defined
-      pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
-      fmax = max component of force on any atom in any dimension
-      fnorm = length of force vector for all atoms
-      nbuild = # of neighbor list builds
-      ndanger = # of dangerous neighbor list builds
-      cella,cellb,cellc = periodic cell lattice constants a,b,c
-      cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
-      c_ID = global scalar value calculated by a compute with ID
-      c_ID[I] = Ith component of global vector calculated by a compute with ID
-      c_ID[I][J] = I,J component of global array calculated by a compute with ID
-      f_ID = global scalar value calculated by a fix with ID
-      f_ID[I] = Ith component of global vector calculated by a fix with ID
-      f_ID[I][J] = I,J component of global array calculated by a fix with ID
-      v_name = scalar value calculated by an equal-style variable with name
+<em>multi</em> args = none
+<em>custom</em> args = list of keywords
+  possible keywords = step, elapsed, elaplong, dt, time,
+                      cpu, tpcpu, spcpu, cpuremain, part,
+                      atoms, temp, press, pe, ke, etotal, enthalpy,
+                      evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
+                      emol, elong, etail,
+                      vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
+                   xy, xz, yz, xlat, ylat, zlat,
+                      bonds, angles, dihedrals, impropers,
+                   pxx, pyy, pzz, pxy, pxz, pyz,
+                   fmax, fnorm, nbuild, ndanger,
+                   cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
+                   c_ID, c_ID[I], c_ID[I][J],
+                      f_ID, f_ID[I], f_ID[I][J],
+                      v_name
+    step = timestep
+    elapsed = timesteps since start of this run
+    elaplong = timesteps since start of initial run in a series of runs
+    dt = timestep size
+    time = simulation time
+    cpu = elapsed CPU time in seconds
+    tpcpu = time per CPU second
+    spcpu = timesteps per CPU second
+    cpuremain = estimated CPU time remaining in run
+    part = which partition (0 to Npartition-1) this is
+    atoms = # of atoms
+    temp = temperature
+    press = pressure
+    pe = total potential energy
+    ke = kinetic energy
+    etotal = total energy (pe + ke)
+    enthalpy = enthalpy (etotal + press*vol)
+    evdwl = VanderWaal pairwise energy
+    ecoul = Coulombic pairwise energy
+    epair = pairwise energy (evdwl + ecoul + elong + etail)
+    ebond = bond energy
+    eangle = angle energy
+    edihed = dihedral energy
+    eimp = improper energy
+    emol = molecular energy (ebond + eangle + edihed + eimp)
+    elong = long-range kspace energy
+    etail = VanderWaal energy long-range tail correction
+    vol = volume
+    density = mass density of system
+    lx,ly,lz = box lengths in x,y,z
+    xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
+    xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
+    xlat,ylat,zlat = lattice spacings as calculated by <a class="reference internal" href="lattice.html"><em>lattice</em></a> command
+    bonds,angles,dihedrals,impropers = # of these interactions defined
+    pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
+    fmax = max component of force on any atom in any dimension
+    fnorm = length of force vector for all atoms
+    nbuild = # of neighbor list builds
+    ndanger = # of dangerous neighbor list builds
+    cella,cellb,cellc = periodic cell lattice constants a,b,c
+    cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
+    c_ID = global scalar value calculated by a compute with ID
+    c_ID[I] = Ith component of global vector calculated by a compute with ID
+    c_ID[I][J] = I,J component of global array calculated by a compute with ID
+    f_ID = global scalar value calculated by a fix with ID
+    f_ID[I] = Ith component of global vector calculated by a fix with ID
+    f_ID[I][J] = I,J component of global array calculated by a fix with ID
+    v_name = scalar value calculated by an equal-style variable with name
 </pre>
 </div>
 <div class="section" id="examples">

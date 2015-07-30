@@ -138,60 +138,60 @@
 </ul>
 <pre class="literal-block">
 <em>delete</em> = no args
-  <em>index</em> args = one or more strings
-  <em>loop</em> args = N
-    N = integer size of loop, loop from 1 to N inclusive
-  <em>loop</em> args = N pad
-    N = integer size of loop, loop from 1 to N inclusive
-    pad = all values will be same length, e.g. 001, 002, ..., 100
-  <em>loop</em> args = N1 N2
-    N1,N2 = loop from N1 to N2 inclusive
-  <em>loop</em> args = N1 N2 pad
-    N1,N2 = loop from N1 to N2 inclusive
-    pad = all values will be same length, e.g. 050, 051, ..., 100
-  <em>world</em> args = one string for each partition of processors
-  <em>universe</em> args = one or more strings
-  <em>uloop</em> args = N
-    N = integer size of loop
-  <em>uloop</em> args = N pad
-    N = integer size of loop
-    pad = all values will be same length, e.g. 001, 002, ..., 100
-  <em>string</em> arg = one string
-  <em>format</em> args = vname fstr
-    vname = name of equal-style variable to evaluate
-    fstr = C-style format string
-  <em>getenv</em> arg = one string
-  <em>file</em> arg = filename
-  <em>atomfile</em> arg = filename
-  <em>python</em> arg = function
-  <em>equal</em> or <em>atom</em> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
-    numbers = 0.0, 100, -5.4, 2.8e-4, etc
-    constants = PI
-    thermo keywords = vol, ke, press, etc from <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>
-    math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
-                     x == y, x != y, x &amp;lt y, x &amp;lt= y, x &amp;gt y, x &amp;gt= y, x &amp;&amp; y, x || y, !x
-    math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
-                     sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
-                     random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
-                     ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
-                  stride(x,y,z), stride2(x,y,z,a,b,c),
-                  vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
-    group functions = count(group), mass(group), charge(group),
-                   xcm(group,dim), vcm(group,dim), fcm(group,dim),
-                   bound(group,dir), gyration(group), ke(group),
-                   angmom(group,dim), torque(group,dim),
-                      inertia(group,dimdim), omega(group,dim)
-    region functions = count(group,region), mass(group,region), charge(group,region),
-                   xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
-                   bound(group,dir,region), gyration(group,region), ke(group,reigon),
-                   angmom(group,dim,region), torque(group,dim,region),
-                   inertia(group,dimdim,region), omega(group,dim,region)
-    special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
-    atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
-    atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
-    compute references = c_ID, c_ID[i], c_ID[i][j]
-    fix references = f_ID, f_ID[i], f_ID[i][j]
-    variable references = v_name, v_name[i]
+<em>index</em> args = one or more strings
+<em>loop</em> args = N
+  N = integer size of loop, loop from 1 to N inclusive
+<em>loop</em> args = N pad
+  N = integer size of loop, loop from 1 to N inclusive
+  pad = all values will be same length, e.g. 001, 002, ..., 100
+<em>loop</em> args = N1 N2
+  N1,N2 = loop from N1 to N2 inclusive
+<em>loop</em> args = N1 N2 pad
+  N1,N2 = loop from N1 to N2 inclusive
+  pad = all values will be same length, e.g. 050, 051, ..., 100
+<em>world</em> args = one string for each partition of processors
+<em>universe</em> args = one or more strings
+<em>uloop</em> args = N
+  N = integer size of loop
+<em>uloop</em> args = N pad
+  N = integer size of loop
+  pad = all values will be same length, e.g. 001, 002, ..., 100
+<em>string</em> arg = one string
+<em>format</em> args = vname fstr
+  vname = name of equal-style variable to evaluate
+  fstr = C-style format string
+<em>getenv</em> arg = one string
+<em>file</em> arg = filename
+<em>atomfile</em> arg = filename
+<em>python</em> arg = function
+<em>equal</em> or <em>atom</em> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
+  numbers = 0.0, 100, -5.4, 2.8e-4, etc
+  constants = PI
+  thermo keywords = vol, ke, press, etc from <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>
+  math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
+                   x == y, x != y, x &amp;lt y, x &amp;lt= y, x &amp;gt y, x &amp;gt= y, x &amp;&amp; y, x || y, !x
+  math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
+                   sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
+                   random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
+                   ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
+                stride(x,y,z), stride2(x,y,z,a,b,c),
+                vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+  group functions = count(group), mass(group), charge(group),
+                 xcm(group,dim), vcm(group,dim), fcm(group,dim),
+                 bound(group,dir), gyration(group), ke(group),
+                 angmom(group,dim), torque(group,dim),
+                    inertia(group,dimdim), omega(group,dim)
+  region functions = count(group,region), mass(group,region), charge(group,region),
+                 xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
+                 bound(group,dir,region), gyration(group,region), ke(group,reigon),
+                 angmom(group,dim,region), torque(group,dim,region),
+                 inertia(group,dimdim,region), omega(group,dim,region)
+  special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
+  atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
+  atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
+  compute references = c_ID, c_ID[i], c_ID[i][j]
+  fix references = f_ID, f_ID[i], f_ID[i][j]
+  variable references = v_name, v_name[i]
 </pre>
 </div>
 <div class="section" id="examples">

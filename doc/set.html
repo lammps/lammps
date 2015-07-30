@@ -148,67 +148,67 @@
 </ul>
 <pre class="literal-block">
 <em>type</em> value = atom type
-    value can be an atom-style variable (see below)
-  <em>type/fraction</em> values = type fraction seed
-    type = new atom type
-    fraction = fraction of selected atoms to set to new atom type
-    seed = random # seed (positive integer)
-  <em>mol</em> value = molecule ID
-    value can be an atom-style variable (see below)
-  <em>x</em>,*y*,*z* value = atom coordinate (distance units)
-    value can be an atom-style variable (see below)
-  <em>charge</em> value = atomic charge (charge units)
-    value can be an atom-style variable (see below)
-  <em>dipole</em> values = x y z
-    x,y,z = orientation of dipole moment vector
-    any of x,y,z can be an atom-style variable (see below)
-  <em>dipole/random</em> value = seed Dlen
-    seed = random # seed (positive integer) for dipole moment orientations
-    Dlen = magnitude of dipole moment (dipole units)
-  <em>quat</em> values = a b c theta
-    a,b,c = unit vector to rotate particle around via right-hand rule
-    theta = rotation angle (degrees)
-    any of a,b,c,theta can be an atom-style variable (see below)
-  <em>quat/random</em> value = seed
-    seed = random # seed (positive integer) for quaternion orientations
-  <em>diameter</em> value = diameter of spherical particle (distance units)
-    value can be an atom-style variable (see below)
-  <em>shape</em> value = Sx Sy Sz
-    Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
-  <em>length</em> value = len
-    len = length of line segment (distance units)
-    len can be an atom-style variable (see below)
-  <em>tri</em> value = side
-    side = side length of equilateral triangle (distance units)
-    side can be an atom-style variable (see below)
-  <em>theta</em> value = angle (degrees)
-    angle = orientation of line segment with respect to x-axis
-    angle can be an atom-style variable (see below)
-  <em>angmom</em> values = Lx Ly Lz
-    Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
-    any of Lx,Ly,Lz can be an atom-style variable (see below)
-  <em>mass</em> value = per-atom mass (mass units)
-    value can be an atom-style variable (see below)
-  <em>density</em> value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
-    value can be an atom-style variable (see below)
-  <em>volume</em> value = particle volume for Peridynamic particle (distance^3 units)
-    value can be an atom-style variable (see below)
-  <em>image</em> nx ny nz
-    nx,ny,nz = which periodic image of the simulation box the atom is in
-  <em>bond</em> value = bond type for all bonds between selected atoms
-  <em>angle</em> value = angle type for all angles between selected atoms
-  <em>dihedral</em> value = dihedral type for all dihedrals between selected atoms
-  <em>improper</em> value = improper type for all impropers between selected atoms
-  <em>meso_e</em> value = energy of SPH particles (need units)
-    value can be an atom-style variable (see below)
-  <em>meso_cv</em> value = heat capacity of SPH particles (need units)
-    value can be an atom-style variable (see below)
-  <em>meso_rho</em> value = density of SPH particles (need units)
-    value can be an atom-style variable (see below)
-  <em>i_name</em> value = value for custom integer vector with name
-    value can be an atom-style variable (see below)
-  <em>d_name</em> value = value for custom floating-point vector with name
-    value can be an atom-style variable (see below)
+  value can be an atom-style variable (see below)
+<em>type/fraction</em> values = type fraction seed
+  type = new atom type
+  fraction = fraction of selected atoms to set to new atom type
+  seed = random # seed (positive integer)
+<em>mol</em> value = molecule ID
+  value can be an atom-style variable (see below)
+<em>x</em>,*y*,*z* value = atom coordinate (distance units)
+  value can be an atom-style variable (see below)
+<em>charge</em> value = atomic charge (charge units)
+  value can be an atom-style variable (see below)
+<em>dipole</em> values = x y z
+  x,y,z = orientation of dipole moment vector
+  any of x,y,z can be an atom-style variable (see below)
+<em>dipole/random</em> value = seed Dlen
+  seed = random # seed (positive integer) for dipole moment orientations
+  Dlen = magnitude of dipole moment (dipole units)
+<em>quat</em> values = a b c theta
+  a,b,c = unit vector to rotate particle around via right-hand rule
+  theta = rotation angle (degrees)
+  any of a,b,c,theta can be an atom-style variable (see below)
+<em>quat/random</em> value = seed
+  seed = random # seed (positive integer) for quaternion orientations
+<em>diameter</em> value = diameter of spherical particle (distance units)
+  value can be an atom-style variable (see below)
+<em>shape</em> value = Sx Sy Sz
+  Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
+<em>length</em> value = len
+  len = length of line segment (distance units)
+  len can be an atom-style variable (see below)
+<em>tri</em> value = side
+  side = side length of equilateral triangle (distance units)
+  side can be an atom-style variable (see below)
+<em>theta</em> value = angle (degrees)
+  angle = orientation of line segment with respect to x-axis
+  angle can be an atom-style variable (see below)
+<em>angmom</em> values = Lx Ly Lz
+  Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
+  any of Lx,Ly,Lz can be an atom-style variable (see below)
+<em>mass</em> value = per-atom mass (mass units)
+  value can be an atom-style variable (see below)
+<em>density</em> value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
+  value can be an atom-style variable (see below)
+<em>volume</em> value = particle volume for Peridynamic particle (distance^3 units)
+  value can be an atom-style variable (see below)
+<em>image</em> nx ny nz
+  nx,ny,nz = which periodic image of the simulation box the atom is in
+<em>bond</em> value = bond type for all bonds between selected atoms
+<em>angle</em> value = angle type for all angles between selected atoms
+<em>dihedral</em> value = dihedral type for all dihedrals between selected atoms
+<em>improper</em> value = improper type for all impropers between selected atoms
+<em>meso_e</em> value = energy of SPH particles (need units)
+  value can be an atom-style variable (see below)
+<em>meso_cv</em> value = heat capacity of SPH particles (need units)
+  value can be an atom-style variable (see below)
+<em>meso_rho</em> value = density of SPH particles (need units)
+  value can be an atom-style variable (see below)
+<em>i_name</em> value = value for custom integer vector with name
+  value can be an atom-style variable (see below)
+<em>d_name</em> value = value for custom floating-point vector with name
+  value can be an atom-style variable (see below)
 </pre>
 </div>
 <div class="section" id="examples">

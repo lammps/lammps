@@ -133,15 +133,15 @@
 </div>
 <ul class="simple">
 <li>one or more keyword/value pairs may be listed</li>
-<li>keyword = <em>pair</em> or <em>special</em> or <em>shift</em> or <em>mix</em> or <em>table</em> or <em>table/disp</em> or <em>tabinner</em> or <em>tabinner/disp</em> or <em>tail</em> or <em>compute</em></li>
+<li>keyword = <em>pair</em> or <em>shift</em> or <em>mix</em> or <em>table</em> or <em>table/disp</em> or <em>tabinner</em> or <em>tabinner/disp</em> or <em>tail</em> or <em>compute</em></li>
 </ul>
 <pre class="literal-block">
-<em>pair</em> values = sub-style N special which w1 wt2 wt3
+<em>pair</em> values = sub-style N <em>special</em> which wt1 wt2 wt3
   sub-style = sub-style of <a class="reference internal" href="pair_hybrid.html"><em>pair hybrid</em></a>
   N = which instance of sub-style (only if sub-style is used multiple times)
-<em>special</em> values = flavor w1 w2 w3
-  flavor = <em>lj/coul</em> or <em>lj</em> or <em>coul</em>
-  w1,w2,w3 = weights from 0.0 to 1.0 inclusive
+  <em>special</em> which wt1 wt2 wt3 = override <em>special_bonds</em> settings (optional)
+  which = <em>lj/coul</em> or <em>lj</em> or <em>coul</em>
+  w1,w2,w3 = 1-2, 1-3, and 1-4 weights from 0.0 to 1.0 inclusive
 <em>mix</em> value = <em>geometric</em> or <em>arithmetic</em> or <em>sixthpower</em>
 <em>shift</em> value = <em>yes</em> or <em>no</em>
 <em>table</em> value = N
@@ -158,11 +158,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_modify shift yes mix geometric
+<p>pair_modify shift yes mix geometric
 pair_modify tail yes
 pair_modify table 12
-</pre></div>
-</div>
+pair_modify pair lj/cut compute no
+pair_modify pair lj/cut/coul/long 1 special lj/coul 0.0 0.0 0.0:pre</p>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
@@ -179,12 +179,10 @@ number indicates which instance of the sub-style the remaining
 keywords will be applied to.  Note that if the <em>pair</em> keyword is not
 used, and the pair style is <em>hybrid</em> or <em>hybrid/overlay</em>, then all the
 specified keywords will be applied to all sub-styles.</p>
-<p>If used, the <em>special</em> keyword must appear second in the list of
-keywords, and must follow the <em>pair</em> keyword.  Like the <em>pair</em>
-keyword, it also can only be used with the <a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles.  Its parameters are
-similar to the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command, and it
-overrides the special_bond settings for the specified sub-style.  More
-details are given below.</p>
+<p>The <em>special</em> keyword can only be used in conjunction with the <em>pair</em>
+keyword and must directly follow it. It allows to override the
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> settings for the specified sub-style.
+More details are given below.</p>
 <p>The <em>mix</em> keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
 explicitly set in the input script.  Note that coefficients for I = J
@@ -228,7 +226,7 @@ see the doc page for individual styles to see which potentials support
 these options.  If N is non-zero, a table of length 2^N is
 pre-computed for forces and energies, which can shrink their
 computational cost by up to a factor of 2.  The table is indexed via a
-bit-mapping technique <a class="reference internal" href="pair_table.html#wolff"><span>(Wolff)</span></a> and a linear interpolation is
+bit-mapping technique <a class="reference internal" href="#wolff"><span>(Wolff)</span></a> and a linear interpolation is
 performed between adjacent table values.  In our experiments with
 different table styles (lookup, linear, spline), this method typically
 gave the best performance in terms of speed and accuracy.</p>
@@ -319,37 +317,29 @@ pair style be defined.</p>
 <hr class="docutils" />
 <div class="section" id="use-of-special-keyword">
 <h3>Use of <em>special</em> keyword<a class="headerlink" href="#use-of-special-keyword" title="Permalink to this headline">¶</a></h3>
-<p>The <em>special</em> keyword requires 4 values similar to those specified
-with the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command, <em>flavor</em> and
-w1,w2,w3.  The <em>flavor</em> argument can be <em>lj</em> to change the
-Lennard-Jones settings, <em>coul</em> to change the Coulombic settings, or
-<em>lj/coul</em> to change both to the same set of 3 values.  The w1,w2,w3
+<p>The <em>special</em> keyword allows to override the 1-2, 1-3, and 1-4
+exclusion settings for individual sub-styles of a
+<a class="reference internal" href="pair_hybrid.html"><em>hybrid pair style</em></a>. It requires 4 arguments similar
+to the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command, <em>which</em> and
+wt1,wt2,wt3.  The <em>which</em> argument can be <em>lj</em> to change the
+Lennard-Jones settings, <em>coul</em> to change the Coulombic settings,
+or <em>lj/coul</em> to change both to the same set of 3 values.  The wt1,wt2,wt3
 values are numeric weights from 0.0 to 1.0 inclusive, for the 1-2,
-1-3, and 1-4 bond topology neighbors.  For example, these commands</p>
-<div class="highlight-python"><div class="highlight"><pre>special_bonds lj/coul 0.0 0.0 0.1
-pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
-pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
-pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
-pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.8333
-</pre></div>
-</div>
-<p>show how to use both the CHARMM and AMBER force fields in a single
-simulation.  The first pair modify command sets the special bonds to
-CHARMM values (all 0.0).  The last 2 pair modify commands set the
-standard AMBER values for LJ and Coulombic weights.</p>
+1-3, and 1-4 bond topology neighbors, respectively. The <em>special</em>
+keyword can only be used in conjunction with the <em>pair</em> keyword
+and has to directly follow it.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">The global settings specified by the
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command affect the construction of
 neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
 exclude those pairs from the neighbor list entirely.  Weights of 1.0
-store the neighbor with no weighting applied.  The format of the
-neighbor list cannot be changed by setting a sub-style weight to a
-non-zero or non-one value.  Thus an error is generated if the new
-sub-style value is not 0.0 (or 1.0) when the global setting is 0.0 (or
-1.0).  Note that as in the example above, the global factor can simply
-be set a value other than 0.0 or 1.0, then overridden by any of the
-sub-styles with a value that is 0.0 or 1.0.</p>
+store the neighbor with no weighting applied. Thus only global values
+different from exactly 0.0 or 1.0 can be overridden and an error
+is generated if the requested setting is not compatible with the
+global setting. Substituting 1.0e-10 for 0.0 and 0.9999999999 for
+1.0 is usually a sufficient workaround in this case without causing
+a significant error.</p>
 </div>
 </div>
 </div>

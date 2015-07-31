@@ -58,7 +58,7 @@ def loop(lmpptr,N,cut0):
   for i in range(N):
     cut = cut0 + i*0.1
     lmp.set_variable("cut",cut)               # set a variable in LAMMPS
-    lmp.command("pair_style lj/cut ${cut}")   # LAMMPS commands
+    lmp.command("pair_style lj/cut $\{cut\}")   # LAMMPS commands
     lmp.command("pair_coeff * * 1.0 1.0")
     lmp.command("run 100")
  """ :pre
@@ -326,7 +326,7 @@ def loop(N,cut0,thresh,lmpptr):
     cut = cut0 + i*0.1 :pre
 
     lmp.set_variable("cut",cut)                 # set a variable in LAMMPS
-    lmp.command("pair_style lj/cut ${cut}")     # LAMMPS command
+    lmp.command("pair_style lj/cut $\{cut\}")     # LAMMPS command
     #lmp.command("pair_style lj/cut %d" % cut)  # LAMMPS command option :pre
 
     lmp.command("pair_coeff * * 1.0 1.0")       # ditto

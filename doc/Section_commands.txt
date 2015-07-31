@@ -164,7 +164,7 @@ needed.  For example:
 
 print "Volume = $v"
 print 'Volume = $v'
-if "${steps} > 1000" then quit
+if "$\{steps\} > 1000" then quit
 variable a string "red green blue &
                    purple orange cyan"
 print """
@@ -697,9 +697,9 @@ KOKKOS, o = USER-OMP, t = OPT.
 "reduce"_compute_reduce.html,
 "reduce/region"_compute_reduce.html,
 "slice"_compute_slice.html,
-"sna/atom"_compute_sna.html,
-"snad/atom"_compute_sna.html,
-"snav/atom"_compute_sna.html,
+"sna/atom"_compute_sna_atom.html,
+"snad/atom"_compute_sna_atom.html,
+"snav/atom"_compute_sna_atom.html,
 "stress/atom"_compute_stress_atom.html,
 "temp (c)"_compute_temp.html,
 "temp/asphere"_compute_temp_asphere.html,

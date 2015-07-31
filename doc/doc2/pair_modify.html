@@ -17,14 +17,14 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>pair</I> or <I>special</I> or <I>shift</I> or <I>mix</I> or <I>table</I> or <I>table/disp</I> or <I>tabinner</I> or <I>tabinner/disp</I> or <I>tail</I> or <I>compute</I> 
+<LI>keyword = <I>pair</I> or <I>shift</I> or <I>mix</I> or <I>table</I> or <I>table/disp</I> or <I>tabinner</I> or <I>tabinner/disp</I> or <I>tail</I> or <I>compute</I> 
 
-<PRE>  <I>pair</I> values = sub-style N special which w1 wt2 wt3
+<PRE>  <I>pair</I> values = sub-style N <I>special</I> which wt1 wt2 wt3
     sub-style = sub-style of <A HREF = "pair_hybrid.html">pair hybrid</A>
     N = which instance of sub-style (only if sub-style is used multiple times)
-  <I>special</I> values = flavor w1 w2 w3
-    flavor = <I>lj/coul</I> or <I>lj</I> or <I>coul</I>
-    w1,w2,w3 = weights from 0.0 to 1.0 inclusive
+    <I>special</I> which wt1 wt2 wt3 = override <I>special_bonds</I> settings (optional)
+    which = <I>lj/coul</I> or <I>lj</I> or <I>coul</I>
+    w1,w2,w3 = 1-2, 1-3, and 1-4 weights from 0.0 to 1.0 inclusive
   <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
   <I>shift</I> value = <I>yes</I> or <I>no</I>
   <I>table</I> value = N
@@ -42,10 +42,12 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_modify shift yes mix geometric
+<P>pair_modify shift yes mix geometric
 pair_modify tail yes
-pair_modify table 12 
-</PRE>
+pair_modify table 12
+pair_modify pair lj/cut compute no
+pair_modify pair lj/cut/coul/long 1 special lj/coul 0.0 0.0 0.0:pre
+</P>
 <P><B>Description:</B>
 </P>
 <P>Modify the parameters of the currently defined pair style.  Not all
@@ -64,13 +66,10 @@ keywords will be applied to.  Note that if the <I>pair</I> keyword is not
 used, and the pair style is <I>hybrid</I> or <I>hybrid/overlay</I>, then all the
 specified keywords will be applied to all sub-styles.
 </P>
-<P>If used, the <I>special</I> keyword must appear second in the list of
-keywords, and must follow the <I>pair</I> keyword.  Like the <I>pair</I>
-keyword, it also can only be used with the <A HREF = "pair_hybrid.html">hybrid and
-hybrid/overlay</A> pair styles.  Its parameters are
-similar to the <A HREF = "special_bonds.html">special_bonds</A> command, and it
-overrides the special_bond settings for the specified sub-style.  More
-details are given below.
+<P>The <I>special</I> keyword can only be used in conjunction with the <I>pair</I>
+keyword and must directly follow it. It allows to override the
+<A HREF = "special_bonds.html">special_bonds</A> settings for the specified sub-style.
+More details are given below.
 </P>
 <P>The <I>mix</I> keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
@@ -216,36 +215,28 @@ pair style be defined.
 
 <H5>Use of <I>special</I> keyword 
 </H5>
-<P>The <I>special</I> keyword requires 4 values similar to those specified
-with the <A HREF = "special_bonds.html">special_bonds</A> command, <I>flavor</I> and
-w1,w2,w3.  The <I>flavor</I> argument can be <I>lj</I> to change the
-Lennard-Jones settings, <I>coul</I> to change the Coulombic settings, or
-<I>lj/coul</I> to change both to the same set of 3 values.  The w1,w2,w3
+<P>The <I>special</I> keyword allows to override the 1-2, 1-3, and 1-4
+exclusion settings for individual sub-styles of a
+<A HREF = "pair_hybrid.html">hybrid pair style</A>. It requires 4 arguments similar
+to the <A HREF = "special_bonds.html">special_bonds</A> command, <I>which</I> and
+wt1,wt2,wt3.  The <I>which</I> argument can be <I>lj</I> to change the
+Lennard-Jones settings, <I>coul</I> to change the Coulombic settings,
+or <I>lj/coul</I> to change both to the same set of 3 values.  The wt1,wt2,wt3
 values are numeric weights from 0.0 to 1.0 inclusive, for the 1-2,
-1-3, and 1-4 bond topology neighbors.  For example, these commands
-</P>
-<PRE>special_bonds lj/coul 0.0 0.0 0.1
-pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
-pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
-pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
-pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.8333 
-</PRE>
-<P>show how to use both the CHARMM and AMBER force fields in a single
-simulation.  The first pair modify command sets the special bonds to
-CHARMM values (all 0.0).  The last 2 pair modify commands set the
-standard AMBER values for LJ and Coulombic weights.
+1-3, and 1-4 bond topology neighbors, respectively. The <I>special</I>
+keyword can only be used in conjunction with the <I>pair</I> keyword
+and has to directly follow it.
 </P>
 <P>IMPORTANT NOTE: The global settings specified by the
 <A HREF = "special_bonds.html">special_bonds</A> command affect the construction of
 neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
 exclude those pairs from the neighbor list entirely.  Weights of 1.0
-store the neighbor with no weighting applied.  The format of the
-neighbor list cannot be changed by setting a sub-style weight to a
-non-zero or non-one value.  Thus an error is generated if the new
-sub-style value is not 0.0 (or 1.0) when the global setting is 0.0 (or
-1.0).  Note that as in the example above, the global factor can simply
-be set a value other than 0.0 or 1.0, then overridden by any of the
-sub-styles with a value that is 0.0 or 1.0.
+store the neighbor with no weighting applied. Thus only global values
+different from exactly 0.0 or 1.0 can be overridden and an error
+is generated if the requested setting is not compatible with the
+global setting. Substituting 1.0e-10 for 0.0 and 0.9999999999 for
+1.0 is usually a sufficient workaround in this case without causing
+a significant error.
 </P>
 <HR>
 

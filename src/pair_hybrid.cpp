@@ -820,17 +820,20 @@ void PairHybrid::modify_params(int narg, char **arg)
     // invoke modify_special() for the sub-style
 
     if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
-      if (iarg+4 < narg) 
+      if (narg < iarg+5)
         error->all(FLERR,"Illegal pair_modify special command");
-      modify_special(m,narg-iarg,&arg[iarg]);
-      iarg += 4;
+      modify_special(m,narg-iarg,&arg[iarg+1]);
+      iarg += 5;
     }
 
-    // apply all keywords (except pair and special) to pair hybrid itself
-    // important for some keywords like tail or compute
+    // apply the remaining keywords to the base pair style itself and the
+    // sub-style except for "pair" and "special".
+    // the former is important for some keywords like "tail" or "compute"
 
-    Pair::modify_params(narg-iarg,&arg[iarg]);
-    styles[m]->modify_params(narg-iarg,&arg[iarg]);
+    if (narg-iarg > 0) {
+      Pair::modify_params(narg-iarg,&arg[iarg]);
+      styles[m]->modify_params(narg-iarg,&arg[iarg]);
+    }
 
   // apply all keywords to pair hybrid itself and every sub-style
 

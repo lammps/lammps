@@ -140,25 +140,25 @@
 </ul>
 <pre class="literal-block">
 <em>sphere</em> args = x y z R
-    x,y,z = initial position of center of indenter (distance units)
-    R = sphere radius of indenter (distance units)
-    any of x,y,z,R can be a variable (see below)
-  <em>cylinder</em> args = dim c1 c2 R
-    dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cylinder
-    c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
-    R = cylinder radius of indenter (distance units)
-    any of c1,c2,R can be a variable (see below)
-  <em>plane</em> args = dim pos side
-    dim = <em>x</em> or <em>y</em> or <em>z</em> = plane perpendicular to this dimension
-    pos = position of plane in dimension x, y, or z (distance units)
-    pos can be a variable (see below)
-    side = <em>lo</em> or <em>hi</em>
-  <em>side</em> value = <em>in</em> or <em>out</em>
-    <em>in</em> = the indenter acts on particles inside the sphere or cylinder
-    <em>out</em> = the indenter acts on particles outside the sphere or cylinder
-  <em>units</em> value = <em>lattice</em> or <em>box</em>
-    lattice = the geometry is defined in lattice units
-    box = the geometry is defined in simulation box units
+  x,y,z = initial position of center of indenter (distance units)
+  R = sphere radius of indenter (distance units)
+  any of x,y,z,R can be a variable (see below)
+<em>cylinder</em> args = dim c1 c2 R
+  dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cylinder
+  c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+  R = cylinder radius of indenter (distance units)
+  any of c1,c2,R can be a variable (see below)
+<em>plane</em> args = dim pos side
+  dim = <em>x</em> or <em>y</em> or <em>z</em> = plane perpendicular to this dimension
+  pos = position of plane in dimension x, y, or z (distance units)
+  pos can be a variable (see below)
+  side = <em>lo</em> or <em>hi</em>
+<em>side</em> value = <em>in</em> or <em>out</em>
+  <em>in</em> = the indenter acts on particles inside the sphere or cylinder
+  <em>out</em> = the indenter acts on particles outside the sphere or cylinder
+<em>units</em> value = <em>lattice</em> or <em>box</em>
+  lattice = the geometry is defined in lattice units
+  box = the geometry is defined in simulation box units
 </pre>
 </div>
 <div class="section" id="examples">

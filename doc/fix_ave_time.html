@@ -141,10 +141,10 @@
 <li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>c_ID = global scalar, vector, or array calculated by a compute with ID
-  c_ID[I] = Ith component of global vector or Ith column of global array calculated by a compute with ID
-  f_ID = global scalar, vector, or array calculated by a fix with ID
-  f_ID[I] = Ith component of global vector or Ith column of global array calculated by a fix with ID
-  v_name = global value calculated by an equal-style variable with name
+c_ID[I] = Ith component of global vector or Ith column of global array calculated by a compute with ID
+f_ID = global scalar, vector, or array calculated by a fix with ID
+f_ID[I] = Ith component of global vector or Ith column of global array calculated by a fix with ID
+v_name = global value calculated by an equal-style variable with name
 </pre></div>
 </div>
 <ul class="simple">
@@ -153,25 +153,25 @@
 </ul>
 <pre class="literal-block">
 <em>mode</em> arg = <em>scalar</em> or <em>vector</em>
-    scalar = all input values are global scalars
-    vector = all input values are global vectors or global arrays
-  <em>ave</em> args = <em>one</em> or <em>running</em> or <em>window M</em>
-    one = output a new average value every Nfreq steps
-    running = output cummulative average of all previous Nfreq steps
-    window M = output average of M most recent Nfreq steps
-  <em>start</em> args = Nstart
-    Nstart = start averaging on this timestep
-  <em>off</em> arg = M = do not average this value
-    M = value # from 1 to Nvalues
-  <em>file</em> arg = filename
-    filename = name of file to output time averages to
-  <em>overwrite</em> arg = none = overwrite output file with only latest output
-  <em>title1</em> arg = string
-    string = text to print as 1st line of output file
-  <em>title2</em> arg = string
-    string = text to print as 2nd line of output file
-  <em>title3</em> arg = string
-    string = text to print as 3rd line of output file, only for vector mode
+  scalar = all input values are global scalars
+  vector = all input values are global vectors or global arrays
+<em>ave</em> args = <em>one</em> or <em>running</em> or <em>window M</em>
+  one = output a new average value every Nfreq steps
+  running = output cummulative average of all previous Nfreq steps
+  window M = output average of M most recent Nfreq steps
+<em>start</em> args = Nstart
+  Nstart = start averaging on this timestep
+<em>off</em> arg = M = do not average this value
+  M = value # from 1 to Nvalues
+<em>file</em> arg = filename
+  filename = name of file to output time averages to
+<em>overwrite</em> arg = none = overwrite output file with only latest output
+<em>title1</em> arg = string
+  string = text to print as 1st line of output file
+<em>title2</em> arg = string
+  string = text to print as 2nd line of output file
+<em>title3</em> arg = string
+  string = text to print as 3rd line of output file, only for vector mode
 </pre>
 </div>
 <div class="section" id="examples">

@@ -150,12 +150,12 @@
 </ul>
 <pre class="literal-block">
 <em>atom</em> args = none
-  <em>atom/mpiio</em> args = none
-  <em>cfg</em> args = same as <em>custom</em> args, see below
-  <em>cfg/mpiio</em> args = same as <em>custom</em> args, see below
-  <em>dcd</em> args = none
-  <em>xtc</em> args = none
-  <em>xyz</em> args = none
+<em>atom/mpiio</em> args = none
+<em>cfg</em> args = same as <em>custom</em> args, see below
+<em>cfg/mpiio</em> args = same as <em>custom</em> args, see below
+<em>dcd</em> args = none
+<em>xtc</em> args = none
+<em>xyz</em> args = none
 </pre>
 <pre class="literal-block">
 <em>xyz/mpiio</em> args = none
@@ -171,53 +171,53 @@
 </pre>
 <pre class="literal-block">
 <em>local</em> args = list of local attributes
-    possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
-      index = enumeration of local values
-      c_ID = local vector calculated by a compute with ID
-      c_ID[N] = Nth column of local array calculated by a compute with ID
-      f_ID = local vector calculated by a fix with ID
-      f_ID[N] = Nth column of local array calculated by a fix with ID
+  possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
+    index = enumeration of local values
+    c_ID = local vector calculated by a compute with ID
+    c_ID[N] = Nth column of local array calculated by a compute with ID
+    f_ID = local vector calculated by a fix with ID
+    f_ID[N] = Nth column of local array calculated by a fix with ID
 </pre>
 <pre class="literal-block">
 <em>custom</em> or <em>custom/mpiio</em> args = list of atom attributes
-    possible attributes = id, mol, proc, procp1, type, element, mass,
-                       x, y, z, xs, ys, zs, xu, yu, zu,
-                       xsu, ysu, zsu, ix, iy, iz,
-                       vx, vy, vz, fx, fy, fz,
-                          q, mux, muy, muz, mu,
-                          radius, diameter, omegax, omegay, omegaz,
-                       angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                       c_ID, c_ID[N], f_ID, f_ID[N], v_name
+  possible attributes = id, mol, proc, procp1, type, element, mass,
+                     x, y, z, xs, ys, zs, xu, yu, zu,
+                     xsu, ysu, zsu, ix, iy, iz,
+                     vx, vy, vz, fx, fy, fz,
+                        q, mux, muy, muz, mu,
+                        radius, diameter, omegax, omegay, omegaz,
+                     angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                     c_ID, c_ID[N], f_ID, f_ID[N], v_name
 </pre>
 <pre class="literal-block">
 id = atom ID
-      mol = molecule ID
-      proc = ID of processor that owns atom
-      procp1 = ID+1 of processor that owns atom
-      type = atom type
-      element = name of atom element, as defined by <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command
-      mass = atom mass
-      x,y,z = unscaled atom coordinates
-      xs,ys,zs = scaled atom coordinates
-      xu,yu,zu = unwrapped atom coordinates
-      xsu,ysu,zsu = scaled unwrapped atom coordinates
-      ix,iy,iz = box image that the atom is in
-      vx,vy,vz = atom velocities
-      fx,fy,fz = forces on atoms
-      q = atom charge
-      mux,muy,muz = orientation of dipole moment of atom
-      mu = magnitude of dipole moment of atom
-      radius,diameter = radius,diameter of spherical particle
-      omegax,omegay,omegaz = angular velocity of spherical particle
-      angmomx,angmomy,angmomz = angular momentum of aspherical particle
-      tqx,tqy,tqz = torque on finite-size particles
-      c_ID = per-atom vector calculated by a compute with ID
-      c_ID[N] = Nth column of per-atom array calculated by a compute with ID
-      f_ID = per-atom vector calculated by a fix with ID
-      f_ID[N] = Nth column of per-atom array calculated by a fix with ID
-      v_name = per-atom vector calculated by an atom-style variable with name
-      d_name = per-atom floating point vector with name, managed by fix property/atom
-      i_name = per-atom integer vector with name, managed by fix property/atom
+mol = molecule ID
+proc = ID of processor that owns atom
+procp1 = ID+1 of processor that owns atom
+type = atom type
+element = name of atom element, as defined by <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> command
+mass = atom mass
+x,y,z = unscaled atom coordinates
+xs,ys,zs = scaled atom coordinates
+xu,yu,zu = unwrapped atom coordinates
+xsu,ysu,zsu = scaled unwrapped atom coordinates
+ix,iy,iz = box image that the atom is in
+vx,vy,vz = atom velocities
+fx,fy,fz = forces on atoms
+q = atom charge
+mux,muy,muz = orientation of dipole moment of atom
+mu = magnitude of dipole moment of atom
+radius,diameter = radius,diameter of spherical particle
+omegax,omegay,omegaz = angular velocity of spherical particle
+angmomx,angmomy,angmomz = angular momentum of aspherical particle
+tqx,tqy,tqz = torque on finite-size particles
+c_ID = per-atom vector calculated by a compute with ID
+c_ID[N] = Nth column of per-atom array calculated by a compute with ID
+f_ID = per-atom vector calculated by a fix with ID
+f_ID[N] = Nth column of per-atom array calculated by a fix with ID
+v_name = per-atom vector calculated by an atom-style variable with name
+d_name = per-atom floating point vector with name, managed by fix property/atom
+i_name = per-atom integer vector with name, managed by fix property/atom
 </pre>
 </div>
 <div class="section" id="examples">

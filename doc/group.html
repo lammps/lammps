@@ -137,32 +137,32 @@
 </ul>
 <pre class="literal-block">
 <em>delete</em> = no args
-  <em>clear</em> = no args
-  <em>region</em> args = region-ID
-  <em>type</em> or <em>id</em> or <em>molecule</em>
-    args = list of one or more atom types, atom IDs, or molecule IDs
-      any entry in list can be a sequence formatted as A:B or A:B:C where
-      A = starting index, B = ending index,
-      C = increment between indices, 1 if not specified
-    args = logical value
-      logical = &quot;&lt;&quot; or &quot;&lt;=&quot; or &quot;&gt;&quot; or &quot;&gt;=&quot; or &quot;==&quot; or &quot;!=&quot;
-      value = an atom type or atom ID or molecule ID (depending on <em>style</em>)
-    args = logical value1 value2
-      logical = &quot;&lt;&gt;&quot;
-      value1,value2 = atom types or atom IDs or molecule IDs (depending on <em>style</em>)
-  <em>variable</em> args = variable-name
-  <em>include</em> args = molecule
-    molecule = add atoms to group with same molecule ID as atoms already in group
-  <em>subtract</em> args = two or more group IDs
-  <em>union</em> args = one or more group IDs
-  <em>intersect</em> args = two or more group IDs
-  <em>dynamic</em> args = parent-ID keyword value ...
-    one or more keyword/value pairs may be appended
-    keyword = <em>region</em> or <em>var</em> or <em>every</em>
-      <em>region</em> value = region-ID
-      <em>var</em> value = name of variable
-      <em>every</em> value = N = update group every this many timesteps
-  <em>static</em> = no args
+<em>clear</em> = no args
+<em>region</em> args = region-ID
+<em>type</em> or <em>id</em> or <em>molecule</em>
+  args = list of one or more atom types, atom IDs, or molecule IDs
+    any entry in list can be a sequence formatted as A:B or A:B:C where
+    A = starting index, B = ending index,
+    C = increment between indices, 1 if not specified
+  args = logical value
+    logical = &quot;&lt;&quot; or &quot;&lt;=&quot; or &quot;&gt;&quot; or &quot;&gt;=&quot; or &quot;==&quot; or &quot;!=&quot;
+    value = an atom type or atom ID or molecule ID (depending on <em>style</em>)
+  args = logical value1 value2
+    logical = &quot;&lt;&gt;&quot;
+    value1,value2 = atom types or atom IDs or molecule IDs (depending on <em>style</em>)
+<em>variable</em> args = variable-name
+<em>include</em> args = molecule
+  molecule = add atoms to group with same molecule ID as atoms already in group
+<em>subtract</em> args = two or more group IDs
+<em>union</em> args = one or more group IDs
+<em>intersect</em> args = two or more group IDs
+<em>dynamic</em> args = parent-ID keyword value ...
+  one or more keyword/value pairs may be appended
+  keyword = <em>region</em> or <em>var</em> or <em>every</em>
+    <em>region</em> value = region-ID
+    <em>var</em> value = name of variable
+    <em>every</em> value = N = update group every this many timesteps
+<em>static</em> = no args
 </pre>
 </div>
 <div class="section" id="examples">

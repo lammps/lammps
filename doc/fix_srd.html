@@ -144,28 +144,28 @@
 </ul>
 <pre class="literal-block">
 <em>lamda</em> value = mean free path of SRD particles (distance units)
-  <em>collision</em> value = <em>noslip</em> or <em>slip</em> = collision model
-  <em>overlap</em> value = <em>yes</em> or <em>no</em> = whether big particles may overlap
-  <em>inside</em> value = <em>error</em> or <em>warn</em> or <em>ignore</em> = how SRD particles which end up inside a big particle are treated
-  <em>exact</em> value = <em>yes</em> or <em>no</em>
-  <em>radius</em> value = rfactor = scale collision radius by this factor
-  <em>bounce</em> value = Nbounce = max # of collisions an SRD particle can undergo in one timestep
-  <em>search</em> value = sgrid = grid spacing for collision partner searching (distance units)
-  <em>cubic</em> values = style tolerance
-    style = <em>error</em> or <em>warn</em>
-    tolerance = fractional difference allowed (0 &lt;= tol &lt;= 1)
-  <em>shift</em> values = flag shiftseed
-    flag = <em>yes</em> or <em>no</em> or <em>possible</em> = SRD bin shifting for better statistics
-      <em>yes</em> = perform bin shifting each time SRD velocities are rescaled
-      <em>no</em> = no shifting
-      <em>possible</em> = shift depending on mean free path and bin size
-    shiftseed = random # seed (positive integer)
-  <em>tstat</em> value = <em>yes</em> or <em>no</em> = thermostat SRD particles or not
-  <em>rescale</em> value = <em>yes</em> or <em>no</em> or <em>rotate</em> or <em>collide</em> = rescaling of SRD velocities
-    <em>yes</em> = rescale during velocity rotation and collisions
-    <em>no</em> = no rescaling
-    <em>rotate</em> = rescale during velocity rotation, but not collisions
-    <em>collide</em> = rescale during collisions, but not velocity rotation
+<em>collision</em> value = <em>noslip</em> or <em>slip</em> = collision model
+<em>overlap</em> value = <em>yes</em> or <em>no</em> = whether big particles may overlap
+<em>inside</em> value = <em>error</em> or <em>warn</em> or <em>ignore</em> = how SRD particles which end up inside a big particle are treated
+<em>exact</em> value = <em>yes</em> or <em>no</em>
+<em>radius</em> value = rfactor = scale collision radius by this factor
+<em>bounce</em> value = Nbounce = max # of collisions an SRD particle can undergo in one timestep
+<em>search</em> value = sgrid = grid spacing for collision partner searching (distance units)
+<em>cubic</em> values = style tolerance
+  style = <em>error</em> or <em>warn</em>
+  tolerance = fractional difference allowed (0 &lt;= tol &lt;= 1)
+<em>shift</em> values = flag shiftseed
+  flag = <em>yes</em> or <em>no</em> or <em>possible</em> = SRD bin shifting for better statistics
+    <em>yes</em> = perform bin shifting each time SRD velocities are rescaled
+    <em>no</em> = no shifting
+    <em>possible</em> = shift depending on mean free path and bin size
+  shiftseed = random # seed (positive integer)
+<em>tstat</em> value = <em>yes</em> or <em>no</em> = thermostat SRD particles or not
+<em>rescale</em> value = <em>yes</em> or <em>no</em> or <em>rotate</em> or <em>collide</em> = rescaling of SRD velocities
+  <em>yes</em> = rescale during velocity rotation and collisions
+  <em>no</em> = no rescaling
+  <em>rotate</em> = rescale during velocity rotation, but not collisions
+  <em>collide</em> = rescale during collisions, but not velocity rotation
 </pre>
 </div>
 <div class="section" id="examples">

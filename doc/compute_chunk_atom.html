@@ -164,30 +164,30 @@ style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>type</em> o
 </ul>
 <pre class="literal-block">
 <em>region</em> value = region-ID
-    region-ID = ID of region atoms must be in to be part of a chunk
-  <em>nchunk</em> value = <em>once</em> or <em>every</em>
-    once = only compute the number of chunks once
-    every = re-compute the number of chunks whenever invoked
-  <em>limit</em> values = 0 or Nc max or Nc exact
-    0 = no limit on the number of chunks
-    Nc max = limit number of chunks to be &lt;= Nc
-    Nc exact = set number of chunks to exactly Nc
-  <em>ids</em> value = <em>once</em> or <em>nfreq</em> or <em>every</em>
-    once = assign chunk IDs to atoms only once, they persist thereafter
-    nfreq = assign chunk IDs to atoms only once every Nfreq steps (if invoked by <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> which sets Nfreq)
-    every = assign chunk IDs to atoms whenever invoked
-  <em>compress</em> value = <em>yes</em> or <em>no</em>
-    yes = compress chunk IDs to eliminate IDs with no atoms
-    no = do not compress chunk IDs even if some IDs have no atoms
-  <em>discard</em> value = <em>yes</em> or <em>no</em> or <em>mixed</em>
-    yes = discard atoms with out-of-range chunk IDs by assigning a chunk ID = 0
-    no = keep atoms with out-of-range chunk IDs by assigning a valid chunk ID
-    mixed = keep or discard such atoms according to spatial binning rule
-  <em>bound</em> values = x/y/z lo hi
-    x/y/z = <em>x</em> or <em>y</em> or <em>z</em> to bound sptial bins in this dimension
-    lo = <em>lower</em> or coordinate value (distance units)
-    hi = <em>upper</em> or coordinate value (distance units)
-  <em>units</em> value = <em>box</em> or <em>lattice</em> or <em>reduced</em>
+  region-ID = ID of region atoms must be in to be part of a chunk
+<em>nchunk</em> value = <em>once</em> or <em>every</em>
+  once = only compute the number of chunks once
+  every = re-compute the number of chunks whenever invoked
+<em>limit</em> values = 0 or Nc max or Nc exact
+  0 = no limit on the number of chunks
+  Nc max = limit number of chunks to be &lt;= Nc
+  Nc exact = set number of chunks to exactly Nc
+<em>ids</em> value = <em>once</em> or <em>nfreq</em> or <em>every</em>
+  once = assign chunk IDs to atoms only once, they persist thereafter
+  nfreq = assign chunk IDs to atoms only once every Nfreq steps (if invoked by <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> which sets Nfreq)
+  every = assign chunk IDs to atoms whenever invoked
+<em>compress</em> value = <em>yes</em> or <em>no</em>
+  yes = compress chunk IDs to eliminate IDs with no atoms
+  no = do not compress chunk IDs even if some IDs have no atoms
+<em>discard</em> value = <em>yes</em> or <em>no</em> or <em>mixed</em>
+  yes = discard atoms with out-of-range chunk IDs by assigning a chunk ID = 0
+  no = keep atoms with out-of-range chunk IDs by assigning a valid chunk ID
+  mixed = keep or discard such atoms according to spatial binning rule
+<em>bound</em> values = x/y/z lo hi
+  x/y/z = <em>x</em> or <em>y</em> or <em>z</em> to bound sptial bins in this dimension
+  lo = <em>lower</em> or coordinate value (distance units)
+  hi = <em>upper</em> or coordinate value (distance units)
+<em>units</em> value = <em>box</em> or <em>lattice</em> or <em>reduced</em>
 </pre>
 </div>
 <div class="section" id="examples">

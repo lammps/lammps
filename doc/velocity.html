@@ -137,21 +137,21 @@
 </ul>
 <pre class="literal-block">
 <em>create</em> args = temp seed
-    temp = temperature value (temperature units)
-    seed = random # seed (positive integer)
-  <em>set</em> args = vx vy vz
-    vx,vy,vz = velocity value or NULL (velocity units)
-    any of vx,vy,vz van be a variable (see below)
-  <em>scale</em> arg = temp
-    temp = temperature value (temperature units)
-  <em>ramp</em> args = vdim vlo vhi dim clo chi
-    vdim = <em>vx</em> or <em>vy</em> or <em>vz</em>
-    vlo,vhi = lower and upper velocity value (velocity units)
-    dim = <em>x</em> or <em>y</em> or <em>z</em>
-    clo,chi = lower and upper coordinate bound (distance units)
-  <em>zero</em> arg = <em>linear</em> or <em>angular</em>
-    <em>linear</em> = zero the linear momentum
-    <em>angular</em> = zero the angular momentum
+  temp = temperature value (temperature units)
+  seed = random # seed (positive integer)
+<em>set</em> args = vx vy vz
+  vx,vy,vz = velocity value or NULL (velocity units)
+  any of vx,vy,vz van be a variable (see below)
+<em>scale</em> arg = temp
+  temp = temperature value (temperature units)
+<em>ramp</em> args = vdim vlo vhi dim clo chi
+  vdim = <em>vx</em> or <em>vy</em> or <em>vz</em>
+  vlo,vhi = lower and upper velocity value (velocity units)
+  dim = <em>x</em> or <em>y</em> or <em>z</em>
+  clo,chi = lower and upper coordinate bound (distance units)
+<em>zero</em> arg = <em>linear</em> or <em>angular</em>
+  <em>linear</em> = zero the linear momentum
+  <em>angular</em> = zero the angular momentum
 </pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
@@ -159,15 +159,15 @@
 </ul>
 <pre class="literal-block">
 <em>dist</em> value = <em>uniform</em> or <em>gaussian</em>
-  <em>sum</em> value = <em>no</em> or <em>yes</em>
-  <em>mom</em> value = <em>no</em> or <em>yes</em>
-  <em>rot</em> value = <em>no</em> or <em>yes</em>
-  <em>temp</em> value = temperature compute ID
-  <em>bias</em> value = <em>no</em> or <em>yes</em>
-  <em>loop</em> value = <em>all</em> or <em>local</em> or <em>geom</em>
-  <em>rigid</em> value = fix-ID
-    fix-ID = ID of rigid body fix
-  <em>units</em> value = <em>box</em> or <em>lattice</em>
+<em>sum</em> value = <em>no</em> or <em>yes</em>
+<em>mom</em> value = <em>no</em> or <em>yes</em>
+<em>rot</em> value = <em>no</em> or <em>yes</em>
+<em>temp</em> value = temperature compute ID
+<em>bias</em> value = <em>no</em> or <em>yes</em>
+<em>loop</em> value = <em>all</em> or <em>local</em> or <em>geom</em>
+<em>rigid</em> value = fix-ID
+  fix-ID = ID of rigid body fix
+<em>units</em> value = <em>box</em> or <em>lattice</em>
 </pre>
 </div>
 <div class="section" id="examples">

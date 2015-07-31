@@ -140,15 +140,15 @@
 </ul>
 <pre class="literal-block">
 <em>pair</em> args = pstyle pparam I J v_name
-    pstyle = pair style name, e.g. lj/cut
-    pparam = parameter to adapt over time
-    I,J = type pair(s) to set parameter for
-    v_name = variable with name that calculates value of pparam
-  <em>kspace</em> arg = v_name
-    v_name = variable with name that calculates scale factor on K-space terms
-  <em>atom</em> args = aparam v_name
-    aparam = parameter to adapt over time
-    v_name = variable with name that calculates value of aparam
+  pstyle = pair style name, e.g. lj/cut
+  pparam = parameter to adapt over time
+  I,J = type pair(s) to set parameter for
+  v_name = variable with name that calculates value of pparam
+<em>kspace</em> arg = v_name
+  v_name = variable with name that calculates scale factor on K-space terms
+<em>atom</em> args = aparam v_name
+  aparam = parameter to adapt over time
+  v_name = variable with name that calculates value of aparam
 </pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
@@ -156,11 +156,11 @@
 </ul>
 <pre class="literal-block">
 <em>scale</em> value = <em>no</em> or <em>yes</em>
-    <em>no</em> = the variable value is the new setting
-    <em>yes</em> = the variable value multiplies the original setting
-  <em>reset</em> value = <em>no</em> or <em>yes</em>
-    <em>no</em> = values will remain altered at the end of a run
-    <em>yes</em> = reset altered values to their original values at the end of a run
+  <em>no</em> = the variable value is the new setting
+  <em>yes</em> = the variable value multiplies the original setting
+<em>reset</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = values will remain altered at the end of a run
+  <em>yes</em> = reset altered values to their original values at the end of a run
 </pre>
 </div>
 <div class="section" id="examples">

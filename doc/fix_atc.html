@@ -138,9 +138,9 @@
 </ul>
 <pre class="literal-block">
 <em>thermal</em> = thermal coupling with fields: temperature
- <em>two_temperature</em> = electron-phonon coupling with field: temperature and electron_temperature
- <em>hardy</em> = on-the-fly post-processing using kernel localization functions (see &quot;related&quot; section for possible fields)
- <em>field</em> = on-the-fly post-processing using mesh-based localization functions (see &quot;related&quot; section for possible fields)
+<em>two_temperature</em> = electron-phonon coupling with field: temperature and electron_temperature
+<em>hardy</em> = on-the-fly post-processing using kernel localization functions (see &quot;related&quot; section for possible fields)
+<em>field</em> = on-the-fly post-processing using mesh-based localization functions (see &quot;related&quot; section for possible fields)
 </pre>
 <ul class="simple">
 <li>parameter_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file</li>
@@ -164,28 +164,28 @@ fix AtC internal atc field
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># initial fix to designate coupling type and group to apply it to
- # tag group physics material_file
- fix AtC internal atc thermal Ar_thermal.mat
+# tag group physics material_file
+fix AtC internal atc thermal Ar_thermal.mat
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># create a uniform 12 x 2 x 2 mesh that covers region contain the group
- # nx ny nz region periodicity
- fix_modify AtC mesh create 12 2 2 mdRegion f p p
+# nx ny nz region periodicity
+fix_modify AtC mesh create 12 2 2 mdRegion f p p
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># specify the control method for the type of coupling
- # physics control_type
- fix_modify AtC thermal control flux
+# physics control_type
+fix_modify AtC thermal control flux
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># specify the initial values for the empirical field &quot;temperature&quot;
- # field node_group value
- fix_modify AtC initial temperature all 30
+# field node_group value
+fix_modify AtC initial temperature all 30
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># create an output stream for nodal fields
- # filename output_frequency
- fix_modify AtC output atc_fe_output 100
+# filename output_frequency
+fix_modify AtC output atc_fe_output 100
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>run 1000
@@ -196,32 +196,32 @@ fix AtC internal atc field
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># initial fix to designate post-processing and the group to apply it to
- # no material file is allowed nor required
- fix AtC internal atc hardy
+# no material file is allowed nor required
+fix AtC internal atc hardy
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># for hardy fix, specific kernel function (function type and range) to # be used as a localization function
- fix AtC kernel quartic_sphere 10.0
+fix AtC kernel quartic_sphere 10.0
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># create a uniform 1 x 1 x 1 mesh that covers region contain the group
- # with periodicity this effectively creats a system average
- fix_modify AtC mesh create 1 1 1 box p p p
+# with periodicity this effectively creats a system average
+fix_modify AtC mesh create 1 1 1 box p p p
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># change from default lagrangian map to eulerian
- # refreshed every 100 steps
- fix_modify AtC atom_element_map eulerian 100
+# refreshed every 100 steps
+fix_modify AtC atom_element_map eulerian 100
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># start with no field defined
- # add mass density, potential energy density, stress and temperature
- fix_modify AtC fields add density energy stress temperature
+# add mass density, potential energy density, stress and temperature
+fix_modify AtC fields add density energy stress temperature
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre># create an output stream for nodal fields
- # filename output_frequency
- fix_modify AtC output nvtFE 100 text
+# filename output_frequency
+fix_modify AtC output nvtFE 100 text
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>run 1000

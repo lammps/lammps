@@ -137,37 +137,37 @@
 </ul>
 <pre class="literal-block">
 <em>delete</em> = no args
-  <em>block</em> args = xlo xhi ylo yhi zlo zhi
-    xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-  <em>cone</em> args = dim c1 c2 radlo radhi lo hi
-    dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cone
-    c1,c2 = coords of cone axis in other 2 dimensions (distance units)
-    radlo,radhi = cone radii at lo and hi end (distance units)
-    lo,hi = bounds of cone in dim (distance units)
-  <em>cylinder</em> args = dim c1 c2 radius lo hi
-    dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cylinder
-    c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
-    radius = cylinder radius (distance units)
-      radius can be a variable (see below)
-    lo,hi = bounds of cylinder in dim (distance units)
-  <em>plane</em> args = px py pz nx ny nz
-    px,py,pz = point on the plane (distance units)
-    nx,ny,nz = direction normal to plane (distance units)
-  <em>prism</em> args = xlo xhi ylo yhi zlo zhi xy xz yz
-    xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
-    xy = distance to tilt y in x direction (distance units)
-    xz = distance to tilt z in x direction (distance units)
-    yz = distance to tilt z in y direction (distance units)
-  <em>sphere</em> args = x y z radius
-    x,y,z = center of sphere (distance units)
-    radius = radius of sphere (distance units)
-      radius can be a variable (see below)
-  <em>union</em> args = N reg-ID1 reg-ID2 ...
-    N = # of regions to follow, must be 2 or greater
-    reg-ID1,reg-ID2, ... = IDs of regions to join together
-  <em>intersect</em> args = N reg-ID1 reg-ID2 ...
-    N = # of regions to follow, must be 2 or greater
-    reg-ID1,reg-ID2, ... = IDs of regions to intersect
+<em>block</em> args = xlo xhi ylo yhi zlo zhi
+  xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
+<em>cone</em> args = dim c1 c2 radlo radhi lo hi
+  dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cone
+  c1,c2 = coords of cone axis in other 2 dimensions (distance units)
+  radlo,radhi = cone radii at lo and hi end (distance units)
+  lo,hi = bounds of cone in dim (distance units)
+<em>cylinder</em> args = dim c1 c2 radius lo hi
+  dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cylinder
+  c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+  radius = cylinder radius (distance units)
+    radius can be a variable (see below)
+  lo,hi = bounds of cylinder in dim (distance units)
+<em>plane</em> args = px py pz nx ny nz
+  px,py,pz = point on the plane (distance units)
+  nx,ny,nz = direction normal to plane (distance units)
+<em>prism</em> args = xlo xhi ylo yhi zlo zhi xy xz yz
+  xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
+  xy = distance to tilt y in x direction (distance units)
+  xz = distance to tilt z in x direction (distance units)
+  yz = distance to tilt z in y direction (distance units)
+<em>sphere</em> args = x y z radius
+  x,y,z = center of sphere (distance units)
+  radius = radius of sphere (distance units)
+    radius can be a variable (see below)
+<em>union</em> args = N reg-ID1 reg-ID2 ...
+  N = # of regions to follow, must be 2 or greater
+  reg-ID1,reg-ID2, ... = IDs of regions to join together
+<em>intersect</em> args = N reg-ID1 reg-ID2 ...
+  N = # of regions to follow, must be 2 or greater
+  reg-ID1,reg-ID2, ... = IDs of regions to intersect
 </pre>
 <ul class="simple">
 <li>zero or more keyword/arg pairs may be appended</li>
@@ -175,17 +175,17 @@
 </ul>
 <pre class="literal-block">
 <em>side</em> value = <em>in</em> or <em>out</em>
-    <em>in</em> = the region is inside the specified geometry
-    <em>out</em> = the region is outside the specified geometry
-  <em>units</em> value = <em>lattice</em> or <em>box</em>
-    <em>lattice</em> = the geometry is defined in lattice units
-    <em>box</em> = the geometry is defined in simulation box units
-  <em>move</em> args = v_x v_y v_z
-    v_x,v_y,v_z = equal-style variables for x,y,z displacement of region over time
-  <em>rotate</em> args = v_theta Px Py Pz Rx Ry Rz
-    v_theta = equal-style variable for rotaton of region over time (in radians)
-    Px,Py,Pz = origin for axis of rotation (distance units)
-    Rx,Ry,Rz = axis of rotation vector
+  <em>in</em> = the region is inside the specified geometry
+  <em>out</em> = the region is outside the specified geometry
+<em>units</em> value = <em>lattice</em> or <em>box</em>
+  <em>lattice</em> = the geometry is defined in lattice units
+  <em>box</em> = the geometry is defined in simulation box units
+<em>move</em> args = v_x v_y v_z
+  v_x,v_y,v_z = equal-style variables for x,y,z displacement of region over time
+<em>rotate</em> args = v_theta Px Py Pz Rx Ry Rz
+  v_theta = equal-style variable for rotaton of region over time (in radians)
+  Px,Py,Pz = origin for axis of rotation (distance units)
+  Rx,Ry,Rz = axis of rotation vector
 </pre>
 </div>
 <div class="section" id="examples">

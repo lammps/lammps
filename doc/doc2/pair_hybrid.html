@@ -196,10 +196,43 @@ interactions bewteen pairs of atoms that are also 1-2, 1-3, and 1-4
 neighbors in the molecular bond topology, as normally set by the
 <A HREF = "special_bonds.html">special_bonds</A> command.  Different weights can be
 assigned to different pair hybrid sub-styles via the <A HREF = "pair_modify.html">pair_modify
-special</A> command.  This allows multiple force fields
-to be used in a model of a hybrid system.  See the
-<A HREF = "pair_modify.html">pair_modify</A> doc page for details.
+special</A> command. This allows multiple force fields
+to be used in a model of a hybrid system, however, there is no consistent
+approach to determine parameters automatically for the interactions
+between the two force fields, this is only recommended when particles
+described by the different force fields do not mix.
 </P>
+<P>Here is an example for mixing CHARMM and AMBER: The global <I>amber</I>
+setting sets the 1-4 interactions to non-zero scaling factors and
+then overrides them with 0.0 only for CHARMM:
+</P>
+<PRE>special_bonds amber
+pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0 
+</PRE>
+<P>The this input achieves the same effect:
+</P>
+<PRE>special_bonds 0.0 0.0 0.1
+pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
+pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333
+pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0 
+</PRE>
+<P>Here is an example for mixing Tersoff with OPLS/AA based on
+a data file that defines bonds for all atoms where for the
+Tersoff part of the system the force constants for the bonded
+interactions have been set to 0. Note the global settings are
+effectively <I>lj/coul 0.0 0.0 0.5</I> as required for OPLS/AA:
+</P>
+<PRE>special_bonds lj/coul 1e-20 1e-20 0.5
+pair_hybrid tersoff lj/cut/coul/long 12.0
+pair_modify pair tersoff special lj/coul 1.0 1.0 1.0 
+</PRE>
+<P>See the <A HREF = "pair_modify.html">pair_modify</A> doc page for details on
+the specific syntax, requirements and restrictions.
+</P>
+<HR>
+
 <P>The potential energy contribution to the overall system due to an
 individual sub-style can be accessed and output via the <A HREF = "compute_pair.html">compute
 pair</A> command.

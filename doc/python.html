@@ -184,7 +184,7 @@ def loop(lmpptr,N,cut0):
 <div class="highlight-python"><div class="highlight"><pre> for i in range(N):
    cut = cut0 + i*0.1
    lmp.set_variable(&quot;cut&quot;,cut)               # set a variable in LAMMPS
-   lmp.command(&quot;pair_style lj/cut $*cut*&quot;)   # LAMMPS commands
+   lmp.command(&quot;pair_style lj/cut ${cut}&quot;)   # LAMMPS commands
    lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)
    lmp.command(&quot;run 100&quot;)
 &quot;&quot;&quot;
@@ -429,7 +429,7 @@ which loads and runs the following function from examples/python/funcs.py:</p>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">lmp</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s">&quot;cut&quot;</span><span class="p">,</span><span class="n">cut</span><span class="p">)</span>                 <span class="c"># set a variable in LAMMPS</span>
-<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s">&quot;pair_style lj/cut $*cut*&quot;</span><span class="p">)</span>     <span class="c"># LAMMPS command</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s">&quot;pair_style lj/cut ${cut}&quot;</span><span class="p">)</span>     <span class="c"># LAMMPS command</span>
 <span class="c">#lmp.command(&quot;pair_style lj/cut %d&quot; % cut)  # LAMMPS command option</span>
 </pre></div>
 </div>

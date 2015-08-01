@@ -164,7 +164,7 @@ needed.  For example:
 
 print "Volume = $v"
 print 'Volume = $v'
-if "${steps} > 1000" then quit
+if "$\{steps\} > 1000" then quit
 variable a string "red green blue &
                    purple orange cyan"
 print """

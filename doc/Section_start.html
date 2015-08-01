@@ -1169,13 +1169,13 @@ current version of the shared library is always available to programs
 that use it.</p>
 <p>For the csh or tcsh shells, you would add something like this to your
 ~/.cshrc file:</p>
-<div class="highlight-python"><div class="highlight"><pre>setenv LD_LIBRARY_PATH $*LD_LIBRARY_PATH*:/home/sjplimp/lammps/src
+<div class="highlight-python"><div class="highlight"><pre>setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src
 </pre></div>
 </div>
 </div>
 <div class="section" id="calling-the-lammps-library">
 <h3>2.5.4. <strong>Calling the LAMMPS library:</strong><a class="headerlink" href="#calling-the-lammps-library" title="Permalink to this headline">¶</a></h3>
-<p>Either flavor of library (static or shared0 allows one or more LAMMPS
+<p>Either flavor of library (static or shared) allows one or more LAMMPS
 objects to be instantiated from the calling program.</p>
 <p>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
 namespace; you can safely use any of its classes and methods from

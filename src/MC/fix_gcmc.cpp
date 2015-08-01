@@ -1687,12 +1687,12 @@ void FixGCMC::attempt_molecule_deletion_full()
     if (atom->molecule[i] == deletion_molecule) {
       tmpmask[i] = atom->mask[i];
       atom->mask[i] = exclusion_group_bit;
+      toggle_intramolecular(i);
       if (atom->q_flag) {
         q_tmp[m] = atom->q[i];
         m++;
         atom->q[i] = 0.0;
       }
-      toggle_intramolecular(i);
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();

@@ -21,8 +21,8 @@ OBJ = 		$(SRC:.c=.o)
 
 # System-specific settings
 
-CC =		gcc
-CCFLAGS =	
+CC =		g++
+CCFLAGS =	-O -fPIC
 ARCHIVE =	ar
 ARCHFLAG =	rs
 

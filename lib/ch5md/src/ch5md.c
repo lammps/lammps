@@ -21,7 +21,6 @@ h5md_file h5md_create_file (const char *filename, const char *author, const char
   hid_t g, g1;
   hid_t a, s, t;
   hsize_t dims[1];
-  herr_t status;
 
   file.version[0] = 1;
   file.version[1] = 0;
@@ -32,43 +31,43 @@ h5md_file h5md_create_file (const char *filename, const char *author, const char
   dims[0] = 2;
   s = H5Screate_simple(1, dims, NULL);
   a = H5Acreate(g, "version", H5T_NATIVE_INT, s, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(a, H5T_NATIVE_INT, file.version);
-  status = H5Aclose(a);
-  status = H5Sclose(s);
+  H5Awrite(a, H5T_NATIVE_INT, file.version);
+  H5Aclose(a);
+  H5Sclose(s);
 
   s = H5Screate(H5S_SCALAR);
 
   g1 = H5Gcreate(g, "author", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   t = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(t, strlen(author));
+  H5Tset_size(t, strlen(author));
   a = H5Acreate(g1, "name", t, s, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(a, t, author);
-  status = H5Aclose(a);
-  status = H5Tclose(t);
+  H5Awrite(a, t, author);
+  H5Aclose(a);
+  H5Tclose(t);
   if (NULL!=author_email) {
     t = H5Tcopy(H5T_C_S1);
-    status = H5Tset_size(t, strlen(author_email));
+    H5Tset_size(t, strlen(author_email));
     a = H5Acreate(g1, "author_email", t, s, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(a, t, author_email);
-    status = H5Aclose(a);
-    status = H5Tclose(t);
+    H5Awrite(a, t, author_email);
+    H5Aclose(a);
+    H5Tclose(t);
   }
-  status = H5Gclose(g1);
+  H5Gclose(g1);
 
   g1 = H5Gcreate(g, "creator", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   t = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(t, strlen(creator));
+  H5Tset_size(t, strlen(creator));
   a = H5Acreate(g1, "name", t, s, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(a, t, creator);
-  status = H5Aclose(a);
-  status = H5Tclose(t);
+  H5Awrite(a, t, creator);
+  H5Aclose(a);
+  H5Tclose(t);
   t = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(t, strlen(creator_version));
+  H5Tset_size(t, strlen(creator_version));
   a = H5Acreate(g1, "version", t, s, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(a, t, creator_version);
-  status = H5Aclose(a);
-  status = H5Tclose(t);
-  status = H5Gclose(g1);
+  H5Awrite(a, t, creator_version);
+  H5Aclose(a);
+  H5Tclose(t);
+  H5Gclose(g1);
 
   file.particles = H5Gcreate(file.id, "particles", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   file.observables = H5Gcreate(file.id, "observables", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -145,7 +144,6 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
 
   hid_t spc, plist;
   hsize_t dims[MAX_RANK], max_dims[MAX_RANK], chunks[MAX_RANK];
-  herr_t status;
 
   int i;
 
@@ -170,7 +168,7 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
   if (NULL==link) {
     spc = H5Screate_simple( 1 , dims, max_dims);
     plist = H5Pcreate(H5P_DATASET_CREATE);
-    status = H5Pset_chunk(plist, 1, chunks);
+    H5Pset_chunk(plist, 1, chunks);
     td.time = H5Dcreate(td.group, "time", H5T_NATIVE_DOUBLE, spc, H5P_DEFAULT, plist, H5P_DEFAULT);
     td.step = H5Dcreate(td.group, "step", H5T_NATIVE_INT, spc, H5P_DEFAULT, plist, H5P_DEFAULT);
     H5Pclose(plist);
@@ -178,16 +176,16 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
     td.link=NULL;
   } else {
     td.link = link;
-    status = H5Lcreate_hard(link->group, "step", td.group, "step", H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Lcreate_hard(link->group, "time", td.group, "time", H5P_DEFAULT, H5P_DEFAULT);
+    H5Lcreate_hard(link->group, "step", td.group, "step", H5P_DEFAULT, H5P_DEFAULT);
+    H5Lcreate_hard(link->group, "time", td.group, "time", H5P_DEFAULT, H5P_DEFAULT);
   }
 
   spc = H5Screate_simple( rank+1 , dims, max_dims) ;
   plist = H5Pcreate(H5P_DATASET_CREATE);
-  status = H5Pset_chunk(plist, rank+1, chunks);
+  H5Pset_chunk(plist, rank+1, chunks);
   td.value = H5Dcreate(td.group, "value", datatype, spc, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Pclose(plist);
-  status = H5Sclose(spc);
+  H5Sclose(spc);
 
   td.datatype = datatype;
   td.is_time = true;
@@ -198,16 +196,14 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
 
 int h5md_close_element(h5md_element e)
 {
-  herr_t status;
-
   if (!e.is_time) return 0;
 
   if (e.link==NULL) {
-    status = H5Dclose(e.step);
-    status = H5Dclose(e.time);
+    H5Dclose(e.step);
+    H5Dclose(e.time);
   }
-  status = H5Dclose(e.value);
-  status = H5Gclose(e.group);
+  H5Dclose(e.value);
+  H5Gclose(e.group);
 
   return 0;
   
@@ -220,7 +216,6 @@ h5md_element h5md_create_fixed_data_simple(hid_t loc, const char *name, int rank
 
   hid_t spc;
   hsize_t dims[H5S_MAX_RANK];
-  herr_t status;
   int i;
 
   for (i=0; i<rank; i++) {
@@ -229,9 +224,9 @@ h5md_element h5md_create_fixed_data_simple(hid_t loc, const char *name, int rank
 
   spc = H5Screate_simple(rank, dims, NULL);
   fd.value = H5Dcreate(loc, name, datatype, spc, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Sclose(spc);
-  status = H5Dwrite(fd.value, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
-  status = H5Dclose(fd.value);
+  H5Sclose(spc);
+  H5Dwrite(fd.value, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+  H5Dclose(fd.value);
 
   fd.is_time = false;
 
@@ -245,13 +240,12 @@ h5md_element h5md_create_fixed_data_scalar(hid_t loc, const char *name, hid_t da
   h5md_element fd;
 
   hid_t spc;
-  herr_t status;
 
   spc = H5Screate(H5S_SCALAR);
   fd.value = H5Dcreate(loc, name, datatype, spc, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Sclose(spc);
-  status = H5Dwrite(fd.value, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
-  status = H5Dclose(fd.value);
+  H5Sclose(spc);
+  H5Dwrite(fd.value, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+  H5Dclose(fd.value);
 
   fd.is_time = false;
 
@@ -365,7 +359,6 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
   hid_t spc, att, t;
   hsize_t dims[1];
   int int_dims[1];
-  herr_t status;
   int i;
   size_t boundary_length, tmp;
   //char *tmp_boundary;
@@ -376,9 +369,9 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
   // Create dimension attribute
   spc = H5Screate(H5S_SCALAR);
   att = H5Acreate(group->box, "dimension", H5T_NATIVE_INT, spc, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(att, H5T_NATIVE_INT, &dim);
-  status = H5Aclose(att);
-  status = H5Sclose(spc);
+  H5Awrite(att, H5T_NATIVE_INT, &dim);
+  H5Aclose(att);
+  H5Sclose(spc);
 
   // Compute the size of the string type for boundary
   dims[0] = dim;
@@ -395,14 +388,14 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
   }
   // Create boundary attribute
   t = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(t, boundary_length);
+  H5Tset_size(t, boundary_length);
   spc = H5Screate_simple(1, dims, NULL);
   att = H5Acreate(group->box, "boundary", t, spc, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(att, t, tmp_boundary);
+  H5Awrite(att, t, tmp_boundary);
   free(tmp_boundary);
-  status = H5Aclose(att);
-  status = H5Sclose(spc);
-  status = H5Tclose(t);
+  H5Aclose(att);
+  H5Sclose(spc);
+  H5Tclose(t);
 
   // Create edges
   // Check if the box is time-dependent or not
@@ -415,7 +408,7 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
     }
   }
 
-  status = H5Gclose(group->box);
+  H5Gclose(group->box);
 
   return 0;
 }
@@ -425,20 +418,19 @@ int h5md_write_string_attribute(hid_t loc, const char *obj_name,
 {
   hid_t obj;
   hid_t s, t, a;
-  herr_t status;
 
   obj = H5Oopen(loc, obj_name, H5P_DEFAULT);
 
   t = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(t, strlen(value));
+  H5Tset_size(t, strlen(value));
   s = H5Screate(H5S_SCALAR);
   a = H5Acreate(obj, att_name, t, s, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(a, t, value);
-  status = H5Aclose(a);
-  status = H5Sclose(s);
-  status = H5Tclose(t);
+  H5Awrite(a, t, value);
+  H5Aclose(a);
+  H5Sclose(s);
+  H5Tclose(t);
 
-  status = H5Oclose(obj);
+  H5Oclose(obj);
 
   return 0;
 }

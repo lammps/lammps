@@ -515,8 +515,6 @@ void DumpH5MD::write_fixed_frame()
   double edges[3];
   int dims[2];
   char *boundary[3];
-  hid_t a, s, t;
-  herr_t status;
 
   for (int i=0; i<3; i++) {
     boundary[i] = new char[9];

@@ -200,7 +200,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (every_species>=0)
     memory->create(dump_species,natoms,"dump:species");
   if (every_charge>=0)
-    memory->create(dump_charge,natoms,"dump:species");
+    memory->create(dump_charge,natoms,"dump:charge");
 
   openfile();
   ntotal = 0;

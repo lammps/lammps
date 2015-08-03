@@ -147,7 +147,8 @@ void BaseThreeT::clear_atomic() {
   #ifdef THREE_CONCURRENT
   ans2->clear();
   assert(ucl_device->num_queues()==_end_command_queue+1);
-  ucl_device->pop_command_queue();
+  // ucl_device will clean up the command queue in its destructor
+//  ucl_device->pop_command_queue();
   #endif
   device->clear();
 }
@@ -183,7 +184,7 @@ int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
 // Build neighbor list on device
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-inline void BaseThreeT::build_nbor_list(const int inum, const int host_inum,
+inline int BaseThreeT::build_nbor_list(const int inum, const int host_inum,
                                          const int nall, double **host_x,
                                          int *host_type, double *sublo,
                                          double *subhi, tagint *tag,
@@ -193,7 +194,7 @@ inline void BaseThreeT::build_nbor_list(const int inum, const int host_inum,
   resize_atom(inum,nall,success);
   resize_local(nall,host_inum,nbor->max_nbors(),success);
   if (!success)
-    return;
+    return 1;
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
@@ -206,6 +207,7 @@ inline void BaseThreeT::build_nbor_list(const int inum, const int host_inum,
   #endif
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
+  return mn;
 }
 
 // ---------------------------------------------------------------------------

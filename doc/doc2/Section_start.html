@@ -1138,11 +1138,11 @@ that use it.
 <P>For the csh or tcsh shells, you would add something like this to your
 ~/.cshrc file:
 </P>
-<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
+<PRE>setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src 
 </PRE>
 <H5><B>Calling the LAMMPS library:</B> 
 </H5>
-<P>Either flavor of library (static or shared0 allows one or more LAMMPS
+<P>Either flavor of library (static or shared) allows one or more LAMMPS
 objects to be instantiated from the calling program.
 </P>
 <P>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS

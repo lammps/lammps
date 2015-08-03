@@ -28,6 +28,8 @@
 #include "geryon/nvd_texture.h"
 #endif
 
+#define THREE_CONCURRENT
+
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
@@ -129,7 +131,7 @@ class BaseThree {
                     int *numj, int **firstneigh, bool &success);
 
   /// Build neighbor list on device
-  void build_nbor_list(const int inum, const int host_inum,
+  int build_nbor_list(const int inum, const int host_inum,
                        const int nall, double **host_x, int *host_type,
                        double *sublo, double *subhi, tagint *tag, int **nspecial, 
                        tagint **special, bool &success);

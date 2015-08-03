@@ -875,6 +875,7 @@ void Neighbor::init()
   // set flags that determine which topology neighboring routines to use
   // bonds,etc can only be broken for atom->molecular = 1, not 2
   // SHAKE sets bonds and angles negative
+  // gcmc sets all bonds, angles, etc negative
   // bond_quartic sets bonds to 0
   // delete_bonds sets all interactions negative
 
@@ -919,6 +920,10 @@ void Neighbor::init()
         if (atom->improper_type[i][m] <= 0) improper_off = 1;
     }
   }
+
+  for (i = 0; i < modify->nfix; i++)
+    if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
+      bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs
 

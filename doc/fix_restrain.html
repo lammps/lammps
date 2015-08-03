@@ -206,11 +206,11 @@ as the following may be useful:</p>
 velocity all create 600.0 8675309 mom yes rot yes dist gaussian
 fix NVE all nve
 fix TFIX all langevin 600.0 0.0 100 24601
-fix REST all restrain dihedral 2 1 3 8 0.0 5000.0 $*angle1* dihedral 3 1 2 9 0.0 5000.0 $*angle2*
+fix REST all restrain dihedral 2 1 3 8 0.0 5000.0 ${angle1} dihedral 3 1 2 9 0.0 5000.0 ${angle2}
 fix_modify REST energy yes
 run 10000
 fix TFIX all langevin 0.0 0.0 100 24601
-fix REST all restrain dihedral 2 1 3 8 5000.0 5000.0 $*angle1* dihedral 3 1 2 9 5000.0 5000.0 $*angle2*
+fix REST all restrain dihedral 2 1 3 8 5000.0 5000.0 ${angle1} dihedral 3 1 2 9 5000.0 5000.0 ${angle2}
 fix_modify REST energy yes
 run 10000
 # sanity check for convergence

@@ -13,7 +13,7 @@ license that can be found in the file LICENSE.
 To use the h5md dump style in lammps, execute make in this directory then 'make
 yes-user-h5md' in the src directory of lammps. Rebuild lammps. 
 
-If HDF5 is not in a standard system location, use `make HDF5_PATH=/path/to/hdf5`.
+If HDF5 is not in a standard system location, edit Makefile.lammps accordingly.
 
 In the case of 2015 and more recent debian and ubuntu systems where concurrent
 serial and mpi are possible, use the full platform depedent path, i.e.

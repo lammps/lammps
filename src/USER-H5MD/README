@@ -1,0 +1,8 @@
+This package provides the h5md dump style.
+
+See the doc page for dump_h5md. This dump style requires building the bundled
+ch5md library and HDF5 (see lib/ch5md/README).
+
+The person who created this package is Pierre de Buyl (KU Leuven), see
+http://pdebuyl.be/ for contact information. Contact him directly if you have
+questions.

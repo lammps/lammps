@@ -1,0 +1,107 @@
+# The "ForceField" object contains a list of atom types, masses, force-field 
+# parameters, and rules for generating 3-body & 4-body bonded interactions.
+# Molecules which use "inherit ForceField" share these rules, and consequently
+# can usually be written in a much more concise way.
+
+
+ForceField {
+
+  # LAMMPS supports a large number of force-field styles. We must select
+  # which ones we need. This information belongs in the "In Init" section (and
+  # (you can specify it anywhere in your LT files, multiple times if you like).
+  # If different molecules use different force-field styles, you can use hybrid
+  # styles.  (In this example the molecules share the same pair_style.)
+
+  write_once("In Init") {
+    units           real
+    atom_style      full
+    bond_style      harmonic
+    angle_style     harmonic
+    dihedral_style  opls
+    pair_style      lj/cut 9.0
+    # If you have charged molecules immersed in a salty implicit
+    # solvent, you might try something like this this instead:
+    #    pair_style      lj/cut/coul/debye 0.1 9.0
+    pair_modify     mix arithmetic
+    dielectric      80.0
+    special_bonds   lj 0.0 0.0 0.0
+  }
+
+  # atom-type   mass
+
+  write_once("Data Masses") {
+    @atom:CA2    12.0
+    @atom:R2     17.0
+    @atom:CA3    12.0
+    @atom:R3     17.0
+  }
+
+
+  # Connect different monomers together with bonds whose type
+  # (length, rigidity, etc) depend on the type of atom at either end.
+
+  write_once("Data Bonds By Type") {
+    @bond:sidechain    @atom:CA*  @atom:R*
+    @bond:two_two      @atom:CA2 @atom:CA2
+    @bond:two_three    @atom:CA2 @atom:CA3
+    @bond:three_three  @atom:CA3 @atom:CA3
+  }
+  # Note: The next line is redundant and unnecessary:
+  #  @bond:two_three   @atom:CA3 @atom:CA2
+
+
+
+  # You can also generate angles and dihedrals and impropers in a similar way:
+
+  #  Rules for determining 3 and 4-body bonded interactions by type
+
+  # angle-type       atomType1 atomType2 atomType3  bondType1 bondType2
+
+  write_once("Data Angles By Type") {
+    @angle:backbone  @atom:CA* @atom:CA* @atom:CA*  @bond:*   @bond:*
+    @angle:sidechain @atom:CA* @atom:CA* @atom:R*   @bond:*   @bond:*
+    @angle:RCR       @atom:R*  @atom:CA* @atom:R*   @bond:*   @bond:*
+  }
+  # Note: The next line is redundant and unnecessary:
+  # @angle:sidechain @atom:R*  @atom:CA* @atom:CA*  @bond:*   @bond:*
+
+
+  # dihedral-type AtomType1 AtomType2 AtomType3 AtomType4 bondType1 btyp2 btyp3
+
+  write_once("Data Dihedrals By Type") {
+   @dihedral:backbone      @atom:CA* @atom:CA* @atom:CA* @atom:CA*  * * *
+   @dihedral:two_two       @atom:R2  @atom:CA* @atom:CA* @atom:R2   * * *
+   @dihedral:two_three     @atom:R2  @atom:CA* @atom:CA* @atom:R3   * * *
+   @dihedral:three_three   @atom:R3  @atom:CA* @atom:CA* @atom:R3   * * *
+  }
+  # Note: The next line is redundant and unnecessary:
+  # @dihedral:two_three    @atom:R3  @atom:CA* @atom:CA* @atom:R2   * * *
+
+  # Force field parameters:
+  write_once("In Settings") {
+    #          atom-type  atom-type   epsilon sigma
+    pair_coeff  @atom:CA2  @atom:CA2   0.05   3.0
+    pair_coeff  @atom:R2   @atom:R2    0.60   4.0
+    pair_coeff  @atom:CA3  @atom:CA3   0.10   2.0
+    pair_coeff  @atom:R3   @atom:R3    0.50   3.0
+
+    #            bond-type          k     r0
+    bond_coeff  @bond:sidechain    20.0   3.4
+    bond_coeff  @bond:two_two      20.0   3.7
+    bond_coeff  @bond:two_three    20.0   3.5
+    bond_coeff  @bond:three_three  20.0   3.3
+
+    #                angle-type          k    theta0
+    angle_coeff     @angle:backbone    40.00  120
+    angle_coeff     @angle:sidechain   40.00  120
+    angle_coeff     @angle:RCR         40.00  120
+
+    #                dihedral-type         K1   K2   K3   K4
+    dihedral_coeff  @dihedral:backbone    0.3   0.0  0.0  0.0
+    dihedral_coeff  @dihedral:two_two     0.08  0.0  0.0  0.0
+    dihedral_coeff  @dihedral:two_three   0.08  0.0 -0.05  0.0
+    dihedral_coeff  @dihedral:three_three 0.08  0.0  0.0  0.05
+  }
+
+} # ForceField
+

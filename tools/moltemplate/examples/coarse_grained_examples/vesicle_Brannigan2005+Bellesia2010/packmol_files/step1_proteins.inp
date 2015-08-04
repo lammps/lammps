@@ -1,0 +1,49 @@
+# Step 1: Create a sphere of proteins lying
+#         (In step 2 we will pack lipids around these proteins
+#
+# ----- Run using: -----
+# packmol < step1_proteins.inp
+#    (This takes about 30 minutes on an Intel i7 processor)
+
+
+# ----- Settings:  -----
+
+# All the atoms from diferent proteins will be at least 50.0 Angstrons apart.
+tolerance 50.0
+# (Setting "discale" to 2.0 increases the typical separation 
+#  distance to approximately 2.0*50.0 = 100.0 Angstroms.)
+discale 2.0
+# The other parameters below are optional:
+nloop 10000
+maxit 20
+seed 12345
+sidemax 3000.0
+# What fraction of the molecules are moved during "large moves"? (default 0.05)
+movefrac 0.05
+
+
+# The output file name
+
+output step1_proteins.xyz
+
+
+# File types are in xyz format
+
+filetype xyz
+
+
+
+# First, specify the protein inclusions
+# We will pack the lipids around these later
+
+structure protein.xyz
+  number 120
+  atoms 68 69 70
+    inside sphere 0. 0. 0. 273.75
+  end atoms
+  atoms 65 66 67 71 72 73
+    outside sphere 0. 0. 0. 325.0
+  end atoms
+end structure 
+
+

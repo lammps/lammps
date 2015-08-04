@@ -1,4 +1,5 @@
 # Default settings common options
+KOKKOS_PATH=../../lib/kokkos
 
 #Options: OpenMP,Serial,Pthreads,Cuda
 #KOKKOS_DEVICES ?= "OpenMP"

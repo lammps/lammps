@@ -740,7 +740,11 @@ template<class ViewType>
 void memset_kokkos (ViewType &view) {
   static MemsetZeroFunctor<typename ViewType::execution_space> f;
   f.ptr = view.ptr_on_device();
+  #ifdef KOKKOS_USING_EXPERIMENTAL_VIEW
+  Kokkos::parallel_for(view.memory_span()/4, f);
+  #else
   Kokkos::parallel_for(view.capacity()*sizeof(typename ViewType::value_type)/4, f);
+  #endif
   ViewType::execution_space::fence();
 }
 

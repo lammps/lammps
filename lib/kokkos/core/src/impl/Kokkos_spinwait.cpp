@@ -47,7 +47,7 @@
 /*--------------------------------------------------------------------------*/
 
 #if ( KOKKOS_ENABLE_ASM )
-  #if defined( __arm__ )
+  #if defined( __arm__ ) || defined( __aarch64__ )
     /* No-operation instruction to idle the thread. */
     #define YIELD   asm volatile("nop")
   #else

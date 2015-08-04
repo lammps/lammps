@@ -573,7 +573,7 @@ void parallel_reduce( const size_t        work_count
 #endif
 
 }
-
+#ifndef KOKKOS_HAVE_CUDA
 template< class ExecPolicy , class FunctorType , class ResultType >
 inline
 void parallel_reduce( const std::string & str
@@ -635,7 +635,7 @@ void parallel_reduce( const std::string & str
   #endif
   (void) str;
 }
-
+#endif
 
 } // namespace Kokkos
 

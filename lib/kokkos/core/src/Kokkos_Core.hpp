@@ -71,7 +71,10 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_hwloc.hpp>
 
-#include <iostream>
+#ifdef KOKKOS_HAVE_CXX11
+#include <Kokkos_Complex.hpp>
+#endif
+
 
 //----------------------------------------------------------------------------
 
@@ -128,6 +131,7 @@ struct MallocHelper
  */
 template< class Arg = DefaultExecutionSpace>
 void* kokkos_malloc(const std::string label, size_t count) {
+  if(count == 0) return NULL;
   typedef typename Arg::memory_space MemorySpace;
   Impl::AllocationTracker tracker = MemorySpace::allocate_and_track(label,count);;
   Impl::MallocHelper::increment_ref_count( tracker );

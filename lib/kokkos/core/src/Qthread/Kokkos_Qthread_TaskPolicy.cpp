@@ -271,11 +271,14 @@ aligned_t Task::qthread_func( void * arg )
   bool close_out = false ;
 
   if ( task->m_apply_team ) {
+    const Kokkos::Impl::QthreadTeamPolicyMember::TaskTeam task_team_tag ;
 
-    Kokkos::Impl::QthreadTeamPolicyMember member ;
+    // Initialize team size and rank with shephered info
+    Kokkos::Impl::QthreadTeamPolicyMember member( task_team_tag );
 
     (*task->m_apply_team)( task , member );
 
+#if 0
 fprintf( stdout
        , "worker(%d.%d) task 0x%.12lx executed by member(%d:%d)\n"
        , qthread_shep()
@@ -285,6 +288,7 @@ fprintf( stdout
        , member.team_size()
        );
 fflush(stdout);
+#endif
 
     member.team_barrier();
 
@@ -400,6 +404,7 @@ void Task::schedule()
 
     int spawn_shepherd = ( this_shepherd + 1 ) % num_shepherd ;
 
+#if 0
 fprintf( stdout
        , "worker(%d.%d) task 0x%.12lx spawning on shepherd(%d) clone(%d)\n"
        , qthread_shep()
@@ -409,6 +414,7 @@ fprintf( stdout
        , num_worker_per_shepherd - 1
        );
 fflush(stdout);
+#endif
 
     qthread_spawn_cloneable
       ( & Task::qthread_func

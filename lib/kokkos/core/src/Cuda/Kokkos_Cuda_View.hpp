@@ -103,7 +103,9 @@ template< typename ValueType
         , class AliasType =
             typename Kokkos::Impl::if_c< ( sizeof(ValueType) ==  4 ) , int ,
             typename Kokkos::Impl::if_c< ( sizeof(ValueType) ==  8 ) , ::int2 ,
-            typename Kokkos::Impl::if_c< ( sizeof(ValueType) == 16 ) , ::int4 , void
+            typename Kokkos::Impl::if_c< ( sizeof(ValueType) == 16 ) , ::int4 ,
+            typename Kokkos::Impl::if_c< ( sizeof(ValueType) == 32 ) , ::float4 ,void
+            >::type
             >::type
             >::type
             >::type
@@ -207,6 +209,119 @@ public:
       #elif defined( __CUDA_ARCH__ ) && ( 300 <= __CUDA_ARCH__ )
         AliasType v = tex1Dfetch<AliasType>( m_obj , i + m_offset );
         return  *(reinterpret_cast<ValueType*> (&v));
+      #else
+        return m_alloc_ptr[ i + m_offset ];
+      #endif
+  }
+};
+
+
+template< typename ValueType, class MemorySpace >
+class CudaTextureFetch< const ValueType, MemorySpace, float4 > {
+private:
+  typedef float4 AliasType;
+  cuda_texture_object_type  m_obj ;
+  const ValueType         * m_alloc_ptr ;
+  int                       m_offset ;
+
+  void attach( const ValueType * const arg_ptr, AllocationTracker const & tracker )
+  {
+    typedef char const * const byte;
+
+    m_alloc_ptr = reinterpret_cast<ValueType *>(tracker.alloc_ptr());
+
+    size_t byte_offset = reinterpret_cast<byte>(arg_ptr) - reinterpret_cast<byte>(m_alloc_ptr);
+    const bool ok_aligned = 0 == byte_offset % sizeof(ValueType);
+
+    const size_t count = tracker.alloc_size() / sizeof(ValueType);
+    const bool ok_contains = (m_alloc_ptr <= arg_ptr) && (arg_ptr < (m_alloc_ptr + count));
+
+    if (ok_aligned && ok_contains) {
+      if (tracker.attribute() == NULL ) {
+        MemorySpace::texture_object_attach(
+            tracker
+            , sizeof(ValueType)
+            , cudaCreateChannelDesc< AliasType >()
+            );
+      }
+      m_obj = dynamic_cast<TextureAttribute*>(tracker.attribute())->m_tex_obj;
+      m_offset = arg_ptr - m_alloc_ptr;
+    }
+    else if( !ok_contains ) {
+      throw_runtime_exception("Error: cannot attach a texture object to a tracker which does not bound the pointer.");
+    }
+    else {
+      throw_runtime_exception("Error: cannot attach a texture object to an incorrectly aligned pointer.");
+    }
+  }
+
+public:
+
+  KOKKOS_INLINE_FUNCTION
+  CudaTextureFetch() : m_obj() , m_alloc_ptr() , m_offset() {}
+
+  KOKKOS_INLINE_FUNCTION
+  ~CudaTextureFetch() {}
+
+  KOKKOS_INLINE_FUNCTION
+  CudaTextureFetch( const CudaTextureFetch & rhs )
+    : m_obj(       rhs.m_obj )
+    , m_alloc_ptr( rhs.m_alloc_ptr )
+    , m_offset(    rhs.m_offset )
+    {}
+
+  KOKKOS_INLINE_FUNCTION
+  CudaTextureFetch & operator = ( const CudaTextureFetch & rhs )
+    {
+      m_obj       = rhs.m_obj ;
+      m_alloc_ptr = rhs.m_alloc_ptr ;
+      m_offset    = rhs.m_offset ;
+      return *this ;
+    }
+
+  KOKKOS_INLINE_FUNCTION explicit
+  CudaTextureFetch( const ValueType * const arg_ptr, AllocationTracker const & tracker )
+    : m_obj( 0 ) , m_alloc_ptr(0) , m_offset(0)
+    {
+      #if defined( KOKKOS_USE_LDG_INTRINSIC )
+        m_alloc_ptr(arg_ptr);
+      #elif defined( __CUDACC__ ) && ! defined( __CUDA_ARCH__ )
+        if ( arg_ptr != NULL ) {
+          if ( tracker.is_valid() ) {
+            attach( arg_ptr, tracker );
+          }
+          else {
+            AllocationTracker found_tracker = AllocationTracker::find<typename MemorySpace::allocator>(arg_ptr);
+            if ( found_tracker.is_valid() ) {
+              attach( arg_ptr, found_tracker );
+            } else {
+              throw_runtime_exception("Error: cannot attach a texture object to an untracked pointer!");
+            }
+          }
+        }
+      #endif
+    }
+
+  KOKKOS_INLINE_FUNCTION
+  operator const ValueType * () const { return m_alloc_ptr + m_offset ; }
+
+
+  template< typename iType >
+  KOKKOS_INLINE_FUNCTION
+  ValueType operator[]( const iType & i ) const
+    {
+      #if defined( KOKKOS_USE_LDG_INTRINSIC ) && defined( __CUDA_ARCH__ ) && ( 300 <= __CUDA_ARCH__ )
+        AliasType v = __ldg(reinterpret_cast<AliasType*>(&m_alloc_ptr[i]));
+        return  *(reinterpret_cast<ValueType*> (&v));
+      #elif defined( __CUDA_ARCH__ ) && ( 300 <= __CUDA_ARCH__ )
+        union Float4ValueType {
+          float4 f4[2];
+          ValueType val;
+        };
+        Float4ValueType convert;
+        convert.f4[0] = tex1Dfetch<AliasType>( m_obj , 2*(i + m_offset) );
+        convert.f4[1] = tex1Dfetch<AliasType>( m_obj , 2*(i + m_offset)+1 );
+        return  convert.val;
       #else
         return m_alloc_ptr[ i + m_offset ];
       #endif

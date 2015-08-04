@@ -365,12 +365,10 @@ TEST_F( serial , task_policy )
   for ( long i = 0 ; i < 25 ; ++i ) TestTaskPolicy::test_fib2< Kokkos::Serial >(i);
 }
 
-#if defined( KOKKOS_HAVE_CXX11 )
 TEST_F( serial , task_team )
 {
   TestTaskPolicy::test_task_team< Kokkos::Serial >(1000);
 }
-#endif
 
 //----------------------------------------------------------------------------
 
@@ -381,7 +379,7 @@ TEST_F( serial , template_meta_functions )
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_CXX11 ) && defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL )
+#if defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL )
 TEST_F( serial , cxx11 )
 {
   if ( Kokkos::Impl::is_same< Kokkos::DefaultExecutionSpace , Kokkos::Serial >::value ) {
@@ -393,7 +391,6 @@ TEST_F( serial , cxx11 )
 }
 #endif
 
-#if defined (KOKKOS_HAVE_CXX11)
 TEST_F( serial , reduction_deduction )
 {
   TestCXX11::test_reduction_deduction< Kokkos::Serial >();
@@ -413,7 +410,6 @@ TEST_F( serial , team_vector )
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(9) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::Serial >(10) ) );
 }
-#endif
 
 } // namespace test
 

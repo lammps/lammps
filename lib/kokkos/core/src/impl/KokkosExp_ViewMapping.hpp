@@ -2012,7 +2012,10 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-struct ALL_t {};
+struct ALL_t {
+  KOKKOS_INLINE_FUNCTION
+  constexpr const ALL_t & operator()() const { return *this ; }
+};
 
 template< class T >
 struct ViewOffsetRange {
@@ -2261,7 +2264,19 @@ public:
 
   template< typename I0 >
   KOKKOS_FORCEINLINE_FUNCTION
-  reference_type reference( const I0 & i0 ) const { return m_handle[i0]; }
+  typename
+    std::enable_if< std::is_integral<I0>::value &&
+                    ! std::is_same< typename Traits::array_layout , Kokkos::LayoutStride >::value
+                  , reference_type >::type
+  reference( const I0 & i0 ) const { return m_handle[i0]; }
+
+  template< typename I0 >
+  KOKKOS_FORCEINLINE_FUNCTION
+  typename
+    std::enable_if< std::is_integral<I0>::value &&
+                    std::is_same< typename Traits::array_layout , Kokkos::LayoutStride >::value
+                  , reference_type >::type
+  reference( const I0 & i0 ) const { return m_handle[ m_offset(i0) ]; }
 
   template< typename I0 , typename I1 >
   KOKKOS_FORCEINLINE_FUNCTION

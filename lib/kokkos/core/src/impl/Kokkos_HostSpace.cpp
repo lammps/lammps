@@ -99,20 +99,6 @@
 #include <impl/Kokkos_Error.hpp>
 #include <Kokkos_Atomic.hpp>
 
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-namespace Impl {
-
-
-DeepCopy<HostSpace,HostSpace>::DeepCopy( void * dst , const void * src , size_t n )
-{
-  memcpy( dst , src , n );
-}
-
-}
-}
-
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 

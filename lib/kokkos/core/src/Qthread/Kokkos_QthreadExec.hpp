@@ -509,7 +509,10 @@ public:
   //----------------------------------------
   // Private driver for task-team parallel
 
+  struct TaskTeam {};
+
   QthreadTeamPolicyMember();
+  explicit QthreadTeamPolicyMember( const TaskTeam & );
 
   //----------------------------------------
   // Private for the driver ( for ( member_type i(exec,team); i ; i.next_team() ) { ... }

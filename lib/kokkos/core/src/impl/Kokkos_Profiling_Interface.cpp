@@ -98,6 +98,13 @@ namespace Kokkos {
         void* firstProfileLibrary;
 
         char* envProfileLibrary  = getenv("KOKKOS_PROFILE_LIBRARY");
+
+	// If we do not find a profiling library in the environment then exit
+	// early.
+	if( NULL == envProfileLibrary ) {
+		return ;
+	}
+
 	char* profileLibraryName = strtok(envProfileLibrary, ";");
 
         if( (NULL != profileLibraryName) && (strcmp(profileLibraryName, "") != 0) ) {
@@ -107,7 +114,7 @@ namespace Kokkos {
                 std::cerr << "Error: Unable to load KokkosP library: " <<
                 profileLibraryName << std::endl;
             } else {
-                std::cout << "KOKKOSP: Library Loaded: " << profileLibraryName << std::endl;
+                std::cout << "KokkosP: Library Loaded: " << profileLibraryName << std::endl;
 
                 beginForCallee = (beginFunction) dlsym(firstProfileLibrary, "kokkosp_begin_parallel_for");
                 beginScanCallee = (beginFunction) dlsym(firstProfileLibrary, "kokkosp_begin_parallel_scan");

@@ -1810,8 +1810,12 @@ inline
 typename Kokkos::Experimental::View<T,A1,A2,A3>::HostMirror
 create_mirror_view( const Kokkos::Experimental::View<T,A1,A2,A3> & src
                   , typename std::enable_if<(
-                      std::is_same< typename Kokkos::Experimental::ViewTraits<T,A1,A2,A3>::memory_space
-                                  , typename Kokkos::Experimental::ViewTraits<T,A1,A2,A3>::host_mirror_space
+                      std::is_same< typename Kokkos::Experimental::View<T,A1,A2,A3>::memory_space
+                                  , typename Kokkos::Experimental::View<T,A1,A2,A3>::HostMirror::memory_space
+                                  >::value
+                      &&
+                      std::is_same< typename Kokkos::Experimental::View<T,A1,A2,A3>::data_type
+                                  , typename Kokkos::Experimental::View<T,A1,A2,A3>::HostMirror::data_type
                                   >::value
                     )>::type * = 0 
                   )
@@ -1823,10 +1827,14 @@ template< class T , class A1 , class A2 , class A3 >
 inline
 typename Kokkos::Experimental::View<T,A1,A2,A3>::HostMirror
 create_mirror_view( const Kokkos::Experimental::View<T,A1,A2,A3> & src
-                  , typename std::enable_if<(
-                      ! std::is_same< typename Kokkos::Experimental::ViewTraits<T,A1,A2,A3>::memory_space
-                                    , typename Kokkos::Experimental::ViewTraits<T,A1,A2,A3>::host_mirror_space
-                                    >::value
+                  , typename std::enable_if< ! (
+                      std::is_same< typename Kokkos::Experimental::View<T,A1,A2,A3>::memory_space
+                                  , typename Kokkos::Experimental::View<T,A1,A2,A3>::HostMirror::memory_space
+                                  >::value
+                      &&
+                      std::is_same< typename Kokkos::Experimental::View<T,A1,A2,A3>::data_type
+                                  , typename Kokkos::Experimental::View<T,A1,A2,A3>::HostMirror::data_type
+                                  >::value
                     )>::type * = 0 
                   )
 {

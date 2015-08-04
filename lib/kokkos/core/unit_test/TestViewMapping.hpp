@@ -679,6 +679,7 @@ void test_view_mapping()
     V a("a",N0,N1);
     M b = Kokkos::Experimental::create_mirror(a);
     M c = Kokkos::Experimental::create_mirror_view(a);
+    M d ;
 
     for ( int i0 = 0 ; i0 < N0 ; ++i0 )
     for ( int i1 = 0 ; i1 < N1 ; ++i1 )
@@ -693,11 +694,14 @@ void test_view_mapping()
 
     Kokkos::Experimental::resize( b , 5 , 6 );
     Kokkos::Experimental::realloc( c , 5 , 6 );
+    Kokkos::Experimental::realloc( d , 5 , 6 );
 
     ASSERT_EQ( b.dimension_0() , 5 );
     ASSERT_EQ( b.dimension_1() , 6 );
     ASSERT_EQ( c.dimension_0() , 5 );
     ASSERT_EQ( c.dimension_1() , 6 );
+    ASSERT_EQ( d.dimension_0() , 5 );
+    ASSERT_EQ( d.dimension_1() , 6 );
   }
 }
 

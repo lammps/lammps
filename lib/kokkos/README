@@ -32,14 +32,22 @@ hcedwar(at)sandia.gov and crtrott(at)sandia.gov
 
 Primary tested compilers are:
   GCC 4.7.2
+  GCC 4.8.4
+  GCC 4.9.2
   GCC 5.1.0
-  Intel 14.0.1
-  Intel 15.0.1
-  Clang 3.7.0
+  Intel 14.0.4
+  Intel 15.0.2
+  Clang 3.5.2
+  Clang 3.6.1
 
 Secondary tested compilers are:
-  CUDA 6.5
-  CUDA 7.0
+  CUDA 6.5 (with gcc 4.7.2)
+  CUDA 7.0 (with gcc 4.7.2)
+
+Other compilers working:
+  PGI 15.4
+  IBM XL 13.1.2
+  Cygwin 2.1.0 64bit with gcc 4.9.3
 
 Primary tested compiler are passing in release mode
 with warnings as errors. We are using the following set
@@ -49,6 +57,8 @@ GCC:   -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits
 Intel: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 Clang: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 
+Secondary compilers are passing without -Werror.
+Other compilers are tested occasionally.
 
 ============================================================================
 ====Getting started=========================================================
@@ -94,4 +104,23 @@ The CMake files contained in this repository require Tribits and are used
 for integration with Trilinos. They do not currently support a standalone
 CMake build.
 
+===========================================================================
+====Kokkos and CUDA UVM====================================================
+===========================================================================
 
+Kokkos does support UVM as a specific memory space called CudaUVMSpace. 
+Allocations made with that space are accessible from host and device. 
+You can tell Kokkos to use that as the default space for Cuda allocations.
+In either case UVM comes with a number of restrictions:
+(i) You can't access allocations on the host while a kernel is potentially 
+running. This will lead to segfaults. To avoid that you either need to 
+call Kokkos::Cuda::fence() (or just Kokkos::fence()), after kernels, or
+you can set the environment variable CUDA_LAUNCH_BLOCKING=1.
+Furthermore in multi socket multi GPU machines, UVM defaults to using 
+zero copy allocations for technical reasons related to using multiple
+GPUs from the same process. If an executable doesn't do that (e.g. each
+MPI rank of an application uses a single GPU [can be the same GPU for 
+multiple MPI ranks]) you can set CUDA_MANAGED_FORCE_DEVICE_ALLOC=1.
+This will enforce proper UVM allocations, but can lead to errors if 
+more than a single GPU is used by a single process.
+ 

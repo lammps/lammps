@@ -214,7 +214,6 @@ TEST_F( defaultdevicetype , compiler_macros )
 
 
 //----------------------------------------------------------------------------
-#if defined (KOKKOS_HAVE_CXX11)
 TEST_F( defaultdevicetype , cxx11 )
 {
   ASSERT_TRUE( ( TestCXX11::Test< Kokkos::DefaultExecutionSpace >(1) ) );
@@ -222,9 +221,7 @@ TEST_F( defaultdevicetype , cxx11 )
   ASSERT_TRUE( ( TestCXX11::Test< Kokkos::DefaultExecutionSpace >(3) ) );
   ASSERT_TRUE( ( TestCXX11::Test< Kokkos::DefaultExecutionSpace >(4) ) );
 }
-#endif
 
-#if defined (KOKKOS_HAVE_CXX11)
 TEST_F( defaultdevicetype , team_vector )
 {
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::DefaultExecutionSpace >(0) ) );
@@ -234,16 +231,17 @@ TEST_F( defaultdevicetype , team_vector )
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::DefaultExecutionSpace >(4) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::DefaultExecutionSpace >(5) ) );
 }
-#endif
 
-#if defined (KOKKOS_HAVE_CXX11)
 TEST_F( defaultdevicetype , malloc )
 {
   int* data = (int*) Kokkos::kokkos_malloc(100*sizeof(int));
   ASSERT_NO_THROW(data = (int*) Kokkos::kokkos_realloc(data,120*sizeof(int)));
   Kokkos::kokkos_free(data);
+
+  int* data2 = (int*) Kokkos::kokkos_malloc(0);
+  ASSERT_TRUE(data2==NULL);
+  Kokkos::kokkos_free(data);
 }
-#endif
 
 } // namespace test
 

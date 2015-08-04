@@ -255,7 +255,7 @@ void PageAlignedAllocator::deallocate( void * ptr, size_t size )
 void * PageAlignedAllocator::reallocate(void * old_ptr, size_t old_size, size_t new_size)
 {
   void * ptr = NULL;
-#if defined( NO_MMAP ) || defined( __APPLE__ )
+#if defined( NO_MMAP ) || defined( __APPLE__ ) || defined( __CYGWIN__ )
 
   if (old_size != new_size) {
     ptr = allocate( new_size );

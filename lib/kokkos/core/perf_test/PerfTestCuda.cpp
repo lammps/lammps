@@ -101,7 +101,7 @@ struct TextureFetch
 
     void apply() const
     {
-      Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::Cuda,int>(0,m_array.size()), *this);
+      Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::Cuda,int>(0,m_array.dimension_0()), *this);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -119,10 +119,10 @@ struct TextureFetch
 
     void apply() const
     {
-      Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::HostSpace::execution_space,int>(0,m_host_indexes.size()), *this);
+      Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::HostSpace::execution_space,int>(0,m_host_indexes.dimension_0()), *this);
       //random shuffle
       Kokkos::HostSpace::execution_space::fence();
-      std::random_shuffle(m_host_indexes.ptr_on_device(), m_host_indexes.ptr_on_device() + m_host_indexes.size());
+      std::random_shuffle(m_host_indexes.ptr_on_device(), m_host_indexes.ptr_on_device() + m_host_indexes.dimension_0());
       Kokkos::deep_copy(m_indexes,m_host_indexes);
     }
 
@@ -141,7 +141,7 @@ struct TextureFetch
 
     void apply(T & reduce) const
     {
-      Kokkos::parallel_reduce( Kokkos::RangePolicy<Kokkos::Cuda,int>(0,m_array.size()), *this, reduce);
+      Kokkos::parallel_reduce( Kokkos::RangePolicy<Kokkos::Cuda,int>(0,m_array.dimension_0()), *this, reduce);
     }
 
     KOKKOS_INLINE_FUNCTION

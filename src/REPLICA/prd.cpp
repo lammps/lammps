@@ -333,11 +333,11 @@ void PRD::command(int narg, char **arg)
     // decrement clock by random time at which 1 or more events occurred
 
     int frac_t_event = t_event;
-    for (int i = 0; i <= fix_event->ncoincident; i++) {
+    for (int i = 0; i < fix_event->ncoincident; i++) {
       int frac_rand = static_cast<int> (random_clock->uniform() * t_event);
       frac_t_event = MIN(frac_t_event,frac_rand);
     }
-    int decrement = frac_t_event*universe->nworlds;
+    int decrement = (t_event - frac_t_event)*universe->nworlds;
     clock -= decrement;
 
     // share event across replicas
@@ -508,6 +508,7 @@ void PRD::dephase()
       if (compute_event->compute_scalar() > 0.0) {
         fix_event->restore_state_dephase();
         update->ntimestep -= t_dephase;
+        log_event();
       } else {
         fix_event->restore_state_quench();
         done = 1;

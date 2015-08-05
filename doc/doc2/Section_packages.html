@@ -645,9 +645,22 @@ questions.
 <P>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:
 </P>
-<P>???
+<P>* Does liquids via traditional Smooth Particle Hydrodynamics (SPH)
 </P>
-<P>See the file doc/USER/smd/SPH_user_guide.pdf to get started.
+<P>* Also solves solids mechanics problems via a state of the art 
+  stabilized meshless method with hourglass control.
+</P>
+<P>* Can specify hydrostatic interactions independently from material 
+  strength models, i.e. pressure and deviatoric stresses are separated.
+</P>
+<P>* Many material models available (Johnson-Cook, plasticity with 
+  hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new 
+  material models.
+</P>
+<P>* Rigid boundary conditions (walls) can be loaded as surface geometries 
+  from *.STL files.
+</P>
+<P>See the file doc/USER/smd/SMD_user_guide.pdf to get started.
 </P>
 <P>There are example scripts for using this package in examples/USER/smd.
 </P>
@@ -663,11 +676,15 @@ LAMMPS.  Currently, the package has the following features:
 </P>
 <P>* Tait, ideal gas, Lennard-Jones equation of states, full support for 
   complete (i.e. internal-energy dependent) equations of state
-* plain or Monaghans XSPH integration of the equations of motion
-* density continuity or density summation to propagate the density field
-* commands to set internal energy and density of particles from the 
+</P>
+<P>* Plain or Monaghans XSPH integration of the equations of motion
+</P>
+<P>* Density continuity or density summation to propagate the density field
+</P>
+<P>* Commands to set internal energy and density of particles from the 
   input script
-* output commands to access internal energy and density for dumping and 
+</P>
+<P>* Output commands to access internal energy and density for dumping and 
   thermo output
 </P>
 <P>See the file doc/USER/sph/SPH_LAMMPS_userguide.pdf to get started.

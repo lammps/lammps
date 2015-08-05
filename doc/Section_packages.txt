@@ -132,6 +132,7 @@ USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, 
 USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix_qbmsst"_fix_qbmsst.html, qtb, -, -
 USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_style quip"_pair_quip.html, USER/quip, -, lib/quip
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
+USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/smd/SMD_user_guide.pdf, USER/smd, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)
 
@@ -625,6 +626,22 @@ Aidan Thompson at Sandia (athomps at sandia.gov), if you have
 questions.
 
 :line
+
+USER-SMD package :h4
+
+This package implements smoothed Mach dynamics (SMD) in
+LAMMPS.  Currently, the package has the following features:
+
+???
+
+See the file doc/USER/smd/SPH_user_guide.pdf to get started.
+
+There are example scripts for using this package in examples/USER/smd.
+
+The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.
 
 USER-SPH package :h4
 

@@ -132,7 +132,7 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>style = <em>angle</em> or <em>atomic</em> or <em>body</em> or <em>bond</em> or <em>charge</em> or <em>dipole</em> or         <em>electron</em> or <em>ellipsoid</em> or <em>full</em> or <em>line</em> or <em>meso</em> or         <em>molecular</em> or <em>peri</em> or <em>sphere</em> or <em>tri</em> or <em>template</em> or <em>hybrid</em></li>
+<li>style = <em>angle</em> or <em>atomic</em> or <em>body</em> or <em>bond</em> or <em>charge</em> or <em>dipole</em> or         <em>electron</em> or <em>ellipsoid</em> or <em>full</em> or <em>line</em> or <em>meso</em> or         <em>molecular</em> or <em>peri</em> or <em>smd</em> or <em>sphere</em> or <em>tri</em> or         <em>template</em> or <em>hybrid</em></li>
 </ul>
 <pre class="literal-block">
 args = none for any style except <em>body</em> and <em>hybrid</em>
@@ -241,19 +241,23 @@ quantities.</p>
 <td>mass, volume</td>
 <td>mesocopic Peridynamic models</td>
 </tr>
-<tr class="row-even"><td><em>sphere</em></td>
+<tr class="row-even"><td><em>smd</em></td>
+<td>volume, kernel diameter, contact radius, mass</td>
+<td>solid and fluid SPH particles</td>
+</tr>
+<tr class="row-odd"><td><em>sphere</em></td>
 <td>diameter, mass, angular velocity</td>
 <td>granular models</td>
 </tr>
-<tr class="row-odd"><td><em>template</em></td>
+<tr class="row-even"><td><em>template</em></td>
 <td>template index, template atom</td>
 <td>small molecules with fixed topology</td>
 </tr>
-<tr class="row-even"><td><em>tri</em></td>
+<tr class="row-odd"><td><em>tri</em></td>
 <td>corner points, angular momentum</td>
 <td>rigid bodies</td>
 </tr>
-<tr class="row-odd"><td><em>wavepacket</em></td>
+<tr class="row-even"><td><em>wavepacket</em></td>
 <td>charge, spin, eradius, etag, cs_re, cs_im</td>
 <td>AWPMD</td>
 </tr>
@@ -293,6 +297,12 @@ per-particle mass and volume.</p>
 <p>The <em>meso</em> style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
 (cv).</p>
+<p>The <em>smd</em> style is for a general formulation of Smooth Particle
+Hydrodynamics.  Both fluids and solids can be modeled.  Particles
+store the mass and volume of an integration point, a kernel diameter
+used for calculating the field variables (e.g. stress and deformation)
+and a contact radius for calculating repulsive forces which prevent
+individual physical bodies from penetretating each other.</p>
 <p>The <em>wavepacket</em> style is similar to <em>electron</em>, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
 cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate

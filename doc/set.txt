@@ -21,7 +21,9 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
 	  {length} or {tri} or {theta} or {angmom} or \
 	  {mass} or {density} or {volume} or {image} or
 	  {bond} or {angle} or {dihedral} or {improper} or
-	  {meso_e} or {meso_cv} or {meso_rho} or {i_name} or {d_name} :l
+	  {meso_e} or {meso_cv} or {meso_rho} or \
+	  {smd_contact_radius} or {smd_mass_density} or \
+          {i_name} or {d_name} :l
   {type} value = atom type
     value can be an atom-style variable (see below)
   {type/fraction} values = type fraction seed
@@ -80,10 +82,12 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
     value can be an atom-style variable (see below)
   {meso_rho} value = density of SPH particles (need units)
     value can be an atom-style variable (see below)
-  {i_name} value = value for custom integer vector with name
+  {smd_contact_radius} = radius for short range interactions, i.e. contact and friction
+    value can be an atom-style variable (see below) 
+  {smd_mass_density} = set particle mass based on volume by providing a mass density
     value can be an atom-style variable (see below)
-  {d_name} value = value for custom floating-point vector with name
-    value can be an atom-style variable (see below) :pre
+  {i_name} value = value for custom integer vector with name
+  {d_name} value = value for custom floating-point vector with name :pre
 :ule
 
 [Examples:]
@@ -312,6 +316,20 @@ assumed to be in mass/distance^2 units).  If none of these cases are
 valid, then the mass is set to the density value directly (the input
 density is assumed to be in mass units).
 
+Keyword {smd_mass_density} also sets the mass of all selected
+particles, but it is only applicable to the Smooth Mach Dynamics
+package USER-SMD.  This command assumes that the particle volume has
+already been correctly set and calculates particle mass from the
+provided mass density value.
+
+Keyword {smd_contact_radius} only applies to simulations with the
+Smooth Mach Dynamics package USER-SMD. This command sets an
+interaction radius for computing short-range interactions,
+e.g. repulsive forces to prevent different individual physical bodies
+from penetrating each other. Note that the SPH smoothing kernel
+diameter used for computing long range, nonlocal interactions, is set
+using the {diameter} keyword.
+
 Keyword {volume} sets the volume of all selected particles.
 Currently, only the "atom_style peri"_atom_style.html command defines
 particles with a volume attribute.  Note that this command does not
@@ -327,7 +345,6 @@ the simulation.  The flags can be output with atom snapshots via the
 nx,ny,nz, then the current image value for that dimension is
 unchanged.  For non-periodic dimensions only a value of 0 can be
 specified.  This keyword does not allow use of atom-style variables.
-
 This command can be useful after a system has been equilibrated and
 atoms have diffused one or more box lengths in various directions.
 This command can then reset the image values for atoms so that they

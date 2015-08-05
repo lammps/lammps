@@ -98,7 +98,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.18. USER-QMMM package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.19. USER-QTB package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.20. USER-REAXC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.21. USER-SPH package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.21. USER-SMD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.22. USER-SPH package</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
@@ -828,7 +829,21 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-SPH</td>
+<tr class="row-odd"><td>USER-SMD</td>
+<td>smoothed Mach dynamics</td>
+<td>Georg Ganzenmuller (EMI)</td>
+<td><a class="reference external" href="USER/smd/SMD_user_guide.pdf">userguide.pdf</a></td>
+<td>USER/smd</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td>USER-SPH</td>
 <td>smoothed particle hydrodynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="USER/sph/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -839,7 +854,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>&nbsp;</td>
+<tr class="row-odd"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -881,7 +896,7 @@ See the src/package/Makefile.lammps file for info on where to download
 the library.  <a class="reference internal" href="Section_start.html#start-3-3"><span>Section start</span></a> of the
 manual also gives details on how to build LAMMPS with both kinds of
 auxiliary libraries.</p>
-<p>More details on each package, from the USER-<a href="#id1"><span class="problematic" id="id2">*</span></a>/README file is given
+<p>More details on each package, from the USER-<a href="#id2"><span class="problematic" id="id3">*</span></a>/README file is given
 below.</p>
 </div>
 <hr class="docutils" />
@@ -1115,7 +1130,7 @@ Western Ontario.  Contact them directly if you have questions.</p>
 <h2>4.14. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
-pair of files (<a href="#id3"><span class="problematic" id="id4">*</span></a>.cpp and <a href="#id5"><span class="problematic" id="id6">*</span></a>.h).</p>
+pair of files (<a href="#id4"><span class="problematic" id="id5">*</span></a>.cpp and <a href="#id6"><span class="problematic" id="id7">*</span></a>.h).</p>
 <p>More information about each feature can be found by reading its doc
 page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
 input script commands is as follows:</p>
@@ -1237,8 +1252,20 @@ Aidan Thompson at Sandia (athomps at sandia.gov), if you have
 questions.</p>
 </div>
 <hr class="docutils" />
+<div class="section" id="user-smd-package">
+<h2>4.21. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
+<p>This package implements smoothed Mach dynamics (SMD) in
+LAMMPS.  Currently, the package has the following features:</p>
+<p>???</p>
+<p>See the file doc/USER/smd/SPH_user_guide.pdf to get started.</p>
+<p>There are example scripts for using this package in examples/USER/smd.</p>
+<p>The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.</p>
+</div>
 <div class="section" id="user-sph-package">
-<h2>4.21. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.22. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">

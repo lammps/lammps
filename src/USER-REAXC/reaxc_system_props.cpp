@@ -31,7 +31,7 @@
 
 void Temperature_Control( control_params *control, simulation_data *data )
 {
-  real tmp;
+  double tmp;
 
   if( control->T_mode == 1 ) {// step-wise temperature control
     if((data->step-data->prev_steps) % ((int)(control->T_freq/control->dt))==0){
@@ -55,7 +55,7 @@ void Compute_Kinetic_Energy( reax_system* system, simulation_data* data,
 {
   int i;
   rvec p;
-  real m;
+  double m;
 
   data->my_en.e_kin = 0.0;
   data->sys_en.e_kin = 0.0;
@@ -82,7 +82,7 @@ void Compute_Kinetic_Energy( reax_system* system, simulation_data* data,
 void Compute_System_Energy( reax_system *system, simulation_data *data,
                             MPI_Comm comm )
 {
-  real my_en[15], sys_en[15];
+  double my_en[15], sys_en[15];
 
   my_en[0] = data->my_en.e_bond;
   my_en[1] = data->my_en.e_ov;
@@ -141,7 +141,7 @@ void Compute_Total_Mass( reax_system *system, simulation_data *data,
                          MPI_Comm comm  )
 {
   int  i;
-  real tmp;
+  double tmp;
 
   tmp = 0;
   for( i = 0; i < system->n; i++ )
@@ -158,8 +158,8 @@ void Compute_Center_of_Mass( reax_system *system, simulation_data *data,
                              mpi_datatypes *mpi_data, MPI_Comm comm )
 {
   int i;
-  real m, det; //xx, xy, xz, yy, yz, zz;
-  real tmp_mat[6], tot_mat[6];
+  double m, det; //xx, xy, xz, yy, yz, zz;
+  double tmp_mat[6], tot_mat[6];
   rvec my_xcm, my_vcm, my_amcm, my_avcm;
   rvec tvec, diff;
   rtensor mat, inv;

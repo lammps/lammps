@@ -82,9 +82,9 @@ int Init_Simulation_Data( reax_system *system, control_params *control,
 
 void Init_Taper( control_params *control,  storage *workspace, MPI_Comm comm )
 {
-  real d1, d7;
-  real swa, swa2, swa3;
-  real swb, swb2, swb3;
+  double d1, d7;
+  double swa, swa2, swa3;
+  double swb, swb2, swb3;
 
   swa = control->nonb_low;
   swb = control->nonb_cut;

@@ -38,7 +38,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   int      c, i, j, k, l, m, n, o, p, cnt;
   int lgflag = control->lgflag;
   int errorflag = 1;
-  real     val;
+  double     val;
   MPI_Comm comm;
 
   comm = MPI_COMM_WORLD;
@@ -64,14 +64,14 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   }
 
   reax->gp.n_global = n;
-  reax->gp.l = (real*) malloc(sizeof(real)*n);
+  reax->gp.l = (double*) malloc(sizeof(double)*n);
 
   /* see reax_types.h for mapping between l[i] and the lambdas used in ff */
   for (i=0; i < n; i++) {
     fgets(s,MAX_LINE,fp);
     c = Tokenize(s,&tmp);
 
-    val = (real) atof(tmp[0]);
+    val = (double) atof(tmp[0]);
     reax->gp.l[i] = val;
   }
 

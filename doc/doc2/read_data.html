@@ -559,6 +559,7 @@ of analysis.
 <TR><TD >meso</TD><TD > atom-ID atom-type rho e cv x y z</TD></TR>
 <TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >peri</TD><TD > atom-ID atom-type volume density x y z</TD></TR>
+<TR><TD >smd</TD><TD > atom-ID atom-type molecule volume mass kernel_radius contact_radius x y z</TD></TR>
 <TR><TD >sphere</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
 <TR><TD >template</TD><TD > atom-ID molecule-ID template-index template-atom atom-type x y z</TD></TR>
 <TR><TD >tri</TD><TD > atom-ID molecule-ID atom-type triangleflag density x y z</TD></TR>
@@ -591,6 +592,8 @@ of analysis.
 <LI>eradius = electron radius (or fixed-core radius)
 <LI>etag = integer ID of electron that each wavepacket belongs to
 <LI>cs_re,cs_im = real/imaginary parts of wavepacket coefficients 
+<LI>kernel_radius = ??? (distance units)
+<LI>contact_radius = ??? (distance units) 
 </UL>
 <P>The units for these quantities depend on the unit style; see the
 <A HREF = "units.html">units</A> command for details.

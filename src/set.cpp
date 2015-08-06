@@ -43,7 +43,7 @@ enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,ANGMOM,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MESO_E,MESO_CV,MESO_RHO,INAME,DNAME};
+     MESO_E,MESO_CV,MESO_RHO,SMD_MASS_DENSITY,SMD_CONTACT_RADIUS,INAME,DNAME};
 
 #define BIG INT_MAX
 
@@ -384,6 +384,24 @@ void Set::command(int narg, char **arg)
       set(MESO_RHO);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"smd_mass_density") == 0) {
+          if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+          if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+          else dvalue = force->numeric(FLERR,arg[iarg+1]);
+          if (!atom->smd_flag)
+            error->all(FLERR,"Cannot set smd_mass_density for this atom style");
+          set(SMD_MASS_DENSITY);
+          iarg += 2;
+
+    } else if (strcmp(arg[iarg],"smd_contact_radius") == 0) {
+          if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+          if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+          else dvalue = force->numeric(FLERR,arg[iarg+1]);
+          if (!atom->smd_flag)
+        	  error->all(FLERR,"Cannot set smd_contact_radius for this atom style");
+          set(SMD_CONTACT_RADIUS);
+          iarg += 2;
+
     } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
@@ -571,6 +589,10 @@ void Set::set(int keyword)
     else if (keyword == MESO_E) atom->e[i] = dvalue;
     else if (keyword == MESO_CV) atom->cv[i] = dvalue;
     else if (keyword == MESO_RHO) atom->rho[i] = dvalue;
+    else if (keyword == SMD_MASS_DENSITY) { // set mass from volume and supplied mass density
+    	atom->rmass[i] = atom->vfrac[i] * dvalue;
+    }
+    else if (keyword == SMD_CONTACT_RADIUS) atom->contact_radius[i] = dvalue;
 
     // set shape of ellipsoidal particle
 

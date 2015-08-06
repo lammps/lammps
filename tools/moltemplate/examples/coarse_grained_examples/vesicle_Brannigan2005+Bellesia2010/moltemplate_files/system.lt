@@ -45,8 +45,8 @@ using namespace 1beadProtSci2010
 #     b)  then we add 9500 DLPC lipids to the inner monolayer
 #
 # step3) Keeping the coordinates from steps 1 and 2 fixed, 
-#     a) first we add 12500 DPPC lipids to the outer monolayer
-#     b)  then we add 12500 DLPC lipids to the outer monolayer
+#     a) first we add 12700 DPPC lipids to the outer monolayer
+#     b)  then we add 12700 DLPC lipids to the outer monolayer
 #
 # The order that molecules are created in moltemplate should match the order
 # they appear in the final XYZ file created by PACKMOL.  (See above.)
@@ -63,9 +63,9 @@ dppc_in = new DPPC [9500]
 dlpc_in = new DLPC [9500]
 
 # Step 3a)                  ---- outer monolayer ----
-dppc_out = new DPPC [12500]
+dppc_out = new DPPC [12700]
 # Step 3b)
-dlpc_out = new DLPC [12500]
+dlpc_out = new DLPC [12700]
 
 
 
@@ -187,6 +187,5 @@ write_once("In Init") {
   pair_style  hybrid table linear 1130 lj/charmm/coul/charmm/inter es4k4l 14.5 15
   pair_modify     mix arithmetic
   special_bonds   lj 0.0 0.0 1.0   # turn off pairs if "less than 3 bonds"
-  communicate multi
 }
 

@@ -50,9 +50,6 @@ CGLipidBr2005 {
                 lj/charmm/coul/charmm/inter es4k4l 14.5 15
     pair_modify     mix arithmetic
     special_bonds   lj 0.0 0.0 1.0   # turn off pairs if "less than 3 bonds"
-
-    neighbor 2.0 multi        # <- perhaps unnecessary
-    comm_modify mode multi    # <- perhaps unnecessary
   }
 
 

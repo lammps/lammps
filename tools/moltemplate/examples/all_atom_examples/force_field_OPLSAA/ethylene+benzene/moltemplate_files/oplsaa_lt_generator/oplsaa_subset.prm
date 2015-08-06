@@ -2,6 +2,8 @@
 # http://dasher.wustl.edu/tinker/distribution/params/oplsaa.prm
 # In this version, all of the lines beginning with "atom" have been deleted 
 # except for the atom types we will be using in this simulation
+# (I also deleted some other lines from that file data to reduce the file size,
+#  but doing that is not necessary.)
 #
 # If you use this file, please also cite the software this file comes from:
 #

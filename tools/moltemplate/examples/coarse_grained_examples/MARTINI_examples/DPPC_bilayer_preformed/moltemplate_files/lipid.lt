@@ -7,7 +7,6 @@ DPPC {
     angle_style     hybrid cosine/squared 
     dihedral_style  none
     improper_style  none
-    #pair_style      hybrid lj/charmm/coul/charmm  9 12 0.000001 12  
     pair_style      hybrid lj/gromacs/coul/gromacs  9 12 0.000001 12  
     special_bonds   lj/coul 0 1 1
     dielectric      15

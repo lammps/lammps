@@ -10,7 +10,7 @@ cd moltemplate_files
   # Create the "oplsaa.lt" file which moltemplate will need
 
   cd oplsaa_lt_generator/
-  ./oplsaa_moltemplate.py  oplsaa_subset.prm
+  oplsaa_moltemplate.py  oplsaa_subset.prm
   mv -f oplsaa.lt ..
   cd ..
 

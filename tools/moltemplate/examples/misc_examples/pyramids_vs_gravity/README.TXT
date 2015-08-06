@@ -17,6 +17,7 @@ to bounce off of.  So I added a graphene surface at the bottom as scenery.
 (It does not exert any force on the atoms.)
 
 (Random comment: This could be a fun example to illustrate the Boltzmann
- distribution.  Because there is no damping, in a small region, the particle
- heights should eventually approach the Boltzmann distribution for some 
- suitable temperature.)
+ distribution.  Because there is no damping, in a small region, I'm guessing 
+ the particle heights should eventually approach the Boltzmann distribution 
+ for some temperature consistent with the initial potential energy of the 
+ system.)

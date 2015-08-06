@@ -1,0 +1,59 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix smd/integrate_tlsph command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID smd/integrate_tlsph keyword values 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>smd/integrate_tlsph = style name of this fix command
+<LI>zero or more keyword/value pairs may be appended 
+</UL>
+<LI>keyword = <I>limit_velocity</I>  
+
+<PRE>  <I>limit_velocity</I> value = max_vel
+    max_vel = maximum allowed velocity 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all smd/integrate_tlsph
+fix 1 all smd/integrate_tlsph limit_velocity 1000 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The fix performs explicit time integration for particles which interact according with the Total-Lagrangian SPH pair style.  
+</P>
+<P>See <A HREF = "USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</A> to using Smooth Mach Dynamics in LAMMPS.
+</P>
+<P>The <I>limit_velocity</I> keyword will control the velocity, scaling the norm of
+the velocity vector to max_vel in case it exceeds this velocity limit. 
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_smd_integrate_ulsph.html">smd/integrate_ulsph</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

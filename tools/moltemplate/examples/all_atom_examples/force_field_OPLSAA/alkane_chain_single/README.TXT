@@ -5,8 +5,7 @@ in a vacuum at room temperature using the OPLSAA force field.
 NOTE: This particular file contains instructions for how to build molecules 
       using the OPLSAA force-field.  However, moltemplate is not limited to
       OPLSAA.  Moltemplate allows users to access any of the force-field 
-      styles available in LAMMPS (including custom, user-defined force-fields 
-      implemented by editing the LAMMPS source code).
+      styles available in LAMMPS (including custom, user-defined force-fields).
 
 
 -------- INSTRUCTIONS FOR USING OPLSAA WITH YOUR OWN MOLECULES: --------
@@ -51,9 +50,8 @@ To do this, type "make yes-user-misc" before compiling LAMMPS.
 
 6) Run LAMMPS in this order:
 
-lmp_g++ -i run.in.min
-lmp_g++ -i run.in.npt
-lmp_g++ -i run.in.nvt
+lmp_g++ -i run.in.min   # minimize the energy (to avoid atom overlap) before...
+lmp_g++ -i run.in.nvt   # running the simulation at constant temperature
 
 (Replace "lmp_g++" with the name of the LAMMPS executable you are using.)
 

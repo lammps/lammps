@@ -148,13 +148,9 @@ coordinates are chosen at a random position within the current
 simulation cell or region, and new atom velocities are randomly chosen from
 the specified temperature distribution given by T.  Relative
 coordinates for atoms in a molecule are taken from the template
-molecule provided by the user, with the origin of the relative 
-coordinates coinciding with the chosen insertion point. This means
-that if the origin of the template molecule coordinate system
-lies far from the center of the template molecule,
-the inserted molecule will lie far from the insertion point. 
-A random initial rotation is used in
-the case of molecule insertions. 
+molecule provided by the user. The center of mass of the molecule
+is placed at the insertion point. The orientation of the molecule
+is chosen at random by rotating about this point.
 </P>
 <P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
 specifies a <I>template-ID</I> previously defined using the
@@ -182,11 +178,9 @@ the angle in degrees. Rotations are performed by generating a random
 point on the unit sphere and a random rotation angle on the
 range [0,maxangle). The molecule is then rotated by that angle about an
 axis passing through the molecule center of mass. The axis is parallel 
-to the unit vector defined by the point on the unit sphere. The
-same procedure is used for randomly rotating molecules when they
-are inserted, except that the rotation axis passes through whatever
-origin is used for the molecule template, and the maximum angle is 
-360 degrees.
+to the unit vector defined by the point on the unit sphere. 
+The same procedure is used for randomly rotating molecules when they
+are inserted, except that the maximum angle is 360 degrees.
 </P>
 <P>Note that fix GCMC does not use configurational bias 
 MC or any other kind of sampling of intramolecular degrees of freedom. 

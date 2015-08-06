@@ -758,12 +758,12 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="18%" />
 <col width="15%" />
+<col width="15%" />
+<col width="20%" />
 <col width="14%" />
-<col width="17%" />
-<col width="17%" />
-<col width="18%" />
+<col width="22%" />
+<col width="14%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="fix_adapt_fep.html"><em>adapt/fep</em></a></td>
@@ -806,12 +806,19 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <td><a class="reference internal" href="fix_reaxc_species.html"><em>reax/c/species</em></a></td>
 <td><a class="reference internal" href="fix_saed_vtk.html"><em>saed/vtk</em></a></td>
 <td><a class="reference internal" href="fix_smd.html"><em>smd</em></a></td>
-<td><a class="reference internal" href="fix_temp_rescale_eff.html"><em>temp/rescale/eff</em></a></td>
+<td><a class="reference internal" href="fix_smd_adjust_dt.html"><em>smd/adjust/dt</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_ti_rs.html"><em>ti/rs</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_smd_integrate_tlsph.html"><em>smd/integrate/tlsph</em></a></td>
+<td><a class="reference internal" href="fix_smd_integrate_ulsph.html"><em>smd/integrate/ulsph</em></a></td>
+<td><a class="reference internal" href="fix_smd_move_triangulated_surface.html"><em>smd/move/triangulated/surface</em></a></td>
+<td><a class="reference internal" href="fix_smd_setvel.html"><em>smd/setvel</em></a></td>
+<td><a class="reference internal" href="fix_smd_tlsph_reference_configuration.html"><em>smd/tlsph/reference/configuration</em></a></td>
+<td><a class="reference internal" href="fix_smd_wall_surface.html"><em>smd/wall/surface</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_temp_rescale_eff.html"><em>temp/rescale/eff</em></a></td>
+<td><a class="reference internal" href="fix_ti_rs.html"><em>ti/rs</em></a></td>
 <td><a class="reference internal" href="fix_ti_spring.html"><em>ti/spring</em></a></td>
 <td><a class="reference internal" href="fix_ttm.html"><em>ttm/mod</em></a></td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
@@ -920,12 +927,12 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 used if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="20%" />
-<col width="17%" />
-<col width="11%" />
 <col width="16%" />
+<col width="15%" />
+<col width="18%" />
 <col width="17%" />
-<col width="20%" />
+<col width="15%" />
+<col width="19%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="compute_ackland_atom.html"><em>ackland/atom</em></a></td>
@@ -938,15 +945,36 @@ used if <a class="reference internal" href="Section_start.html#start-3"><span>LA
 <tr class="row-even"><td><a class="reference internal" href="compute_meso_rho_atom.html"><em>meso_rho/atom</em></a></td>
 <td><a class="reference internal" href="compute_meso_t_atom.html"><em>meso_t/atom</em></a></td>
 <td><a class="reference internal" href="compute_saed.html"><em>saed</em></a></td>
-<td><a class="reference internal" href="compute_temp_drude.html"><em>temp/drude</em></a></td>
-<td><a class="reference internal" href="compute_temp_eff.html"><em>temp/eff</em></a></td>
-<td><a class="reference internal" href="compute_temp_deform_eff.html"><em>temp/deform/eff</em></a></td>
+<td><a class="reference internal" href="compute_smd_contact_radius.html"><em>smd/contact/radius</em></a></td>
+<td><a class="reference internal" href="compute_smd_damage.html"><em>smd/damage</em></a></td>
+<td><a class="reference internal" href="compute_smd_hourglass_error.html"><em>smd/hourglass/error</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="compute_temp_region_eff.html"><em>temp/region/eff</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="compute_smd_internal_energy.html"><em>smd/internal/energy</em></a></td>
+<td><a class="reference internal" href="compute_smd_plastic_strain.html"><em>smd/plastic/strain</em></a></td>
+<td><a class="reference internal" href="compute_smd_plastic_strain_rate.html"><em>smd/plastic/strain/rate</em></a></td>
+<td><a class="reference internal" href="compute_smd_rho.html"><em>smd/rho</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_defgrad.html"><em>smd/tlsph/defgrad</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_dt.html"><em>smd/tlsph/dt</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_smd_tlsph_num_neighs.html"><em>smd/tlsph/num/neighs</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_shape.html"><em>smd/tlsph/shape</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_strain.html"><em>smd/tlsph/strain</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_strain_rate.html"><em>smd/tlsph/strain/rate</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_stress.html"><em>smd/tlsph/stress</em></a></td>
+<td><a class="reference internal" href="compute_smd_triangle_mesh_vertices.html"><em>smd/triangle/mesh/vertices</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_smd_ulsph_num_neighs.html"><em>smd/ulsph/num/neighs</em></a></td>
+<td><a class="reference internal" href="compute_smd_ulsph_strain.html"><em>smd/ulsph/strain</em></a></td>
+<td><code class="xref doc docutils literal"><span class="pre">smd/ulsph/strain/rate</span></code></td>
+<td><code class="xref doc docutils literal"><span class="pre">smd/ulpsh/stress</span></code></td>
+<td><a class="reference internal" href="compute_smd_vol.html"><em>smd/vol</em></a></td>
+<td><a class="reference internal" href="compute_temp_drude.html"><em>temp/drude</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_temp_eff.html"><em>temp/eff</em></a></td>
+<td><a class="reference internal" href="compute_temp_deform_eff.html"><em>temp/deform/eff</em></a></td>
+<td><a class="reference internal" href="compute_temp_region_eff.html"><em>temp/region/eff</em></a></td>
 <td><a class="reference internal" href="compute_temp_rotate.html"><em>temp/rotate</em></a></td>
 <td><a class="reference internal" href="compute_xrd.html"><em>xrd</em></a></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1110,10 +1138,10 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="27%" />
-<col width="24%" />
-<col width="24%" />
 <col width="25%" />
+<col width="29%" />
+<col width="22%" />
+<col width="24%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="pair_awpmd.html"><em>awpmd/cut</em></a></td>
@@ -1144,19 +1172,24 @@ if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS 
 <tr class="row-even"><td><a class="reference internal" href="pair_meam_sw_spline.html"><em>meam/sw/spline</em></a></td>
 <td><a class="reference internal" href="pair_quip.html"><em>quip</em></a></td>
 <td><a class="reference internal" href="pair_reax_c.html"><em>reax/c</em></a></td>
+<td><a class="reference internal" href="pair_smd_hertz.html"><em>smd/hertz</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_smd_tlsph.html"><em>smd/tlsph</em></a></td>
+<td><a class="reference internal" href="pair_smd_triangulated_surface.html"><em>smd/triangulated/surface</em></a></td>
+<td><a class="reference internal" href="pair_smd_ulsph.html"><em>smd/ulsph</em></a></td>
 <td><a class="reference internal" href="pair_sph_heatconduction.html"><em>sph/heatconduction</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_sph_idealgas.html"><em>sph/idealgas</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_sph_idealgas.html"><em>sph/idealgas</em></a></td>
 <td><a class="reference internal" href="pair_sph_lj.html"><em>sph/lj</em></a></td>
 <td><a class="reference internal" href="pair_sph_rhosum.html"><em>sph/rhosum</em></a></td>
 <td><a class="reference internal" href="pair_sph_taitwater.html"><em>sph/taitwater</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_sph_taitwater_morris.html"><em>sph/taitwater/morris</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_sph_taitwater_morris.html"><em>sph/taitwater/morris</em></a></td>
 <td><a class="reference internal" href="pair_srp.html"><em>srp</em></a></td>
 <td><a class="reference internal" href="pair_tersoff.html"><em>tersoff/table (o)</em></a></td>
 <td><a class="reference internal" href="pair_thole.html"><em>thole</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_lj_soft.html"><em>tip4p/long/soft (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><em>tip4p/long/soft (o)</em></a></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>

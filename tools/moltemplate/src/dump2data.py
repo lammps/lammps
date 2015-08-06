@@ -949,7 +949,7 @@ if __name__ == "__main__":
                         if (is_triclinic and (len(tokens) > 2)):
                             frame_xy_str = tokens[2]
                             bvec[0] = float(frame_xy_str)
-                            #See http://lammps.sandia.gov/doc/Section_howto.html#howto_12
+                            #See http://lammps.sandia.gov/doc/Section_howto.html#howto-12
                         #sys.stderr.write('avec='+str(avec)+'\n')
 
                     elif not frame_ylo_str:
@@ -960,7 +960,7 @@ if __name__ == "__main__":
                         if (is_triclinic and (len(tokens) > 2)):
                             frame_xz_str = tokens[2]
                             cvec[0] = float(frame_xz_str)
-                            #See http://lammps.sandia.gov/doc/Section_howto.html#howto_12
+                            #See http://lammps.sandia.gov/doc/Section_howto.html#howto-12
                         #sys.stderr.write('bvec='+str(bvec)+'\n')
 
                     elif not frame_zlo_str:
@@ -971,7 +971,7 @@ if __name__ == "__main__":
                         if (is_triclinic and (len(tokens) > 2)):
                             frame_yz_str = tokens[2]
                             cvec[1] = float(frame_yz_str)
-                            #See http://lammps.sandia.gov/doc/Section_howto.html#howto_12
+                            #See http://lammps.sandia.gov/doc/Section_howto.html#howto-12
                         #sys.stderr.write('cvec='+str(cvec)+'\n')
 
                 elif (section.find('ITEM: ATOMS') == 0):
@@ -1001,9 +1001,6 @@ if __name__ == "__main__":
                         x = float(xlo_str) + xs*avec[0] + ys*bvec[0] + zs*cvec[0]
                         y = float(ylo_str) + xs*avec[1] + ys*bvec[1] + zs*cvec[1]
                         z = float(zlo_str) + xs*avec[2] + ys*bvec[2] + zs*cvec[2]
-
-                    # avec, bvec, cvec described here:
-                    #http://lammps.sandia.gov/doc/Section_howto.html#howto_12
 
                     elif ((i_xsu != -1) and (i_ysu != -1) and (i_zsu != -1)):
                         xsu = float(tokens[i_xsu]) #i_xs determined above

@@ -27,11 +27,11 @@ system.data, system.in.init, system.in.settings.
 
   --- To run LAMMPS, try a command like: ---
 
-lmp_linux -i run.in
+lmp_mpi -i run.in
 
     or (if you have mpi installed)
 
-mpirun -np 4 lmp_linux -i run.in
+mpirun -np 4 lmp_mpi -i run.in
 
 This will create an ordinary LAMMPS dump file you can visualize with VMD
 traj.lammpstrj    (See README_visualize.txt)

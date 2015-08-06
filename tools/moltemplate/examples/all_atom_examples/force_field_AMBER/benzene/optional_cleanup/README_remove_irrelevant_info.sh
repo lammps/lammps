@@ -13,7 +13,15 @@
   # However if you want to eliminate this junk from these files
   # For now, we can strip this out using ltemplify.py to build a new .lt file.
   #
+  # NOTE: If you decide to use this script, it was meant to be run it from 
+  # the parent directory (../)  (If you run it from somewhere else, be sure to
+  # modify the "PATH_TO_DATA_FILE" and "PATH_TO_OUTPUT_TTREE" variables below.)
+  #
   # I suggest you do this in a temporary_directory
+
+  PATH_TO_DATA_FILE="."
+
+  pushd "$PATH_TO_DATA_FILE"
 
   mkdir new_lt_file
   cd new_lt_file/
@@ -21,7 +29,6 @@
   # now run ltemplify.py
 
   ltemplify.py ../system.in.init ../system.in.settings ../system.data > system.lt
-  rm -rf ../system.data ../system.in*  # these old lammps files no longer needed
 
   # This creates a new .LT file named "system.lt" in the local directory.
 
@@ -31,10 +38,13 @@
   # "moltemplate_files/output_ttree/Data Boundary"
   # then you can copy that information from this file into system.lt
 
+  PATH_TO_OUTPUT_TTREE="../moltemplate_files/output_ttree"
+
   echo "write_once(\"Data Boundary\") {" >> system.lt
-  cat "../moltemplate_files/output_ttree/Data Boundary" >> system.lt
+  cat "$PATH_TO_OUTPUT_TTREE/Data Boundary" >> system.lt
   echo "}" >> system.lt
   echo "" >> system.lt
+
   # Now, run moltemplate on this new .LT file.
   moltemplate.sh system.lt
   # This will create: "system.data" "system.in.init" "system.in.settings."
@@ -43,10 +53,11 @@
   # be ready to run in LAMMPS.
 
   # Now copy the system.data and system.in.* files to the place where
-  # you plan to run moltemplate
+  # you plan to run LAMMPS
   mv -f system.data system.in.* ../
   cd ../
 
   # Now delete all of the temporary files we generated
   rm -rf new_lt_file/
+  popd
 

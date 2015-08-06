@@ -53,6 +53,6 @@ fix             fxnpt all npt temp 300.0 300.0 100.0 iso 50.0 50.0 1000.0 drag 1
 thermo          100
 #thermo_modify  flush yes
 
-run             100000
+run             200000
 
 write_data   system_after_npt.data

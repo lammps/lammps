@@ -1,0 +1,61 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute smd/hourglass_error command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID smd/hourglass_error 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>smd/hourglass_error = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all smd/hourglass_error 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation which outputs the error of the approximated
+relative separation with respect to the actual relative separation of
+the particles i and j. Ideally, if the deformation gradient is exact,
+and there exists a unique mapping between all particles' positions
+within the neighborhood of the central node and the deformation gradient,
+the approximated relative separation will coincide with the actual relative
+separation of the particles i and j in the deformed configuration.
+This compute is only really useful for debugging the hourglass control mechanim which is part of the Total-Lagrangian SPH pair style.  
+</P>
+<P>See <A HREF = "USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</A> to use Smooth Mach Dynamics in LAMMPS.
+</P>
+<P><B>Output Info:</B>
+</P>
+<P>This compute calculates a per-particle vector, which can be accessed by
+any command that uses per-particle values from a compute as input.  See
+<A HREF = "Section_howto.html#howto_15">How-to discussions, section 6.15</A>
+for an overview of LAMMPS output options.
+</P>
+<P>The per-particle vector values will are dimensionless. See <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>This quantity will be computed only for particles which interact with tlsph pair style. 
+</P>
+<P><B>Related Commands:</B>
+</P>
+<P><A HREF = "compute_smd_tlsph_defgrad.html">smd/tlsph_defgrad</A>
+</P>
+<P><B>Default:</B>
+</P>
+</HTML>

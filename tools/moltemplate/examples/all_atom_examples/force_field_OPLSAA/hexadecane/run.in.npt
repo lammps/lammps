@@ -16,6 +16,7 @@ read_data       system.data
 # ------------------------------- Settings Section --------------------------
 
 include         system.in.settings
+include         system.in.charges
 
 # ------------------------------- Run Section -------------------------------
 

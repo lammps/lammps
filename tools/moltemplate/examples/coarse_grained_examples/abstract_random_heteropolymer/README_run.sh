@@ -7,8 +7,8 @@
 # If not, carry out the instructions in "README_setup.sh".
 #
 #  -- Instructions: --
-# If "lmp_linux" is the name of the command you use to invoke lammps,
+# If "lmp_mpi" is the name of the command you use to invoke lammps,
 # then you would run lammps on these files this way:
 
 
-lmp_linux -i run.in.nvt
+lmp_mpi -i run.in.nvt

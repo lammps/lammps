@@ -31,10 +31,8 @@ FixStyle(smd/move_tri_surf,FixSMDMoveTriSurf)
 #ifndef LMP_FIX_SMD_INTEGRATE_TRIANGULAR_SURFACE_H
 #define LMP_FIX_SMD_INTEGRATE_TRIANGULAR_SURFACE_H
 
-#include "fix.h"
 #include <Eigen/Eigen>
-
-using namespace Eigen;
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
@@ -53,9 +51,9 @@ protected:
 	double dtv;
 	bool linearFlag, wiggleFlag, rotateFlag;
 	double vx, vy, vz;
-	Vector3d rotation_axis, origin;
+	Eigen::Vector3d rotation_axis, origin;
 	double rotation_period;
-	Matrix3d u_cross, uxu;
+	Eigen::Matrix3d u_cross, uxu;
 	double wiggle_travel, wiggle_max_travel, wiggle_direction;
 };
 

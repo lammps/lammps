@@ -222,7 +222,7 @@ void PairULSPH::PreCompute() {
 	int *ilist, *jlist, *numneigh;
 	int **firstneigh;
 	int nlocal = atom->nlocal;
-	int inum, jnum, ii, jj, i, itype, jtype, j, idim;
+	int inum, jnum, ii, jj, i, itype, j, idim;
 	double wfd, h, irad, r, rSq, wf, ivol, jvol;
 	Vector3d dx, dv, g, du;
 	Matrix3d Ktmp, Ltmp, Ftmp, K3di, D;
@@ -281,7 +281,6 @@ void PairULSPH::PreCompute() {
 			if (rSq < h * h) {
 
 				r = sqrt(rSq);
-				jtype = type[j];
 				jvol = vfrac[j];
 
 				// distance vectors in current and reference configuration, velocity difference
@@ -649,7 +648,6 @@ void PairULSPH::AssembleStressTensor() {
 	double **tlsph_stress = atom->smd_stress;
 	double *e = atom->e;
 	int *type = atom->type;
-	double pFinal;
 	int i, itype;
 	int nlocal = atom->nlocal;
 	Matrix3d D, Ddev, W, V, sigma_diag;
@@ -686,7 +684,6 @@ void PairULSPH::AssembleStressTensor() {
 				error->one(FLERR, "unknown EOS.");
 				break;
 			case NONE:
-				pFinal = 0.0;
 				c0[i] = 1.0;
 				break;
 			case EOS_TAIT:

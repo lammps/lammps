@@ -31,8 +31,8 @@
 #include "error.h"
 #include <Eigen/Eigen>
 #include <stdio.h>
-#include <iostream>
 #include "atom_vec.h"
+#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -60,7 +60,7 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
 	if (narg != 6)
 		error->all(FLERR, "Illegal number of arguments for fix smd/wall_surface");
 
-	filename.assign(arg[3]);
+	filename = strdup(arg[3]);
 	wall_particle_type = force->inumeric(FLERR, arg[4]);
 	wall_molecule_id = force->inumeric(FLERR, arg[5]);
 	if (wall_molecule_id < 65535) {
@@ -69,7 +69,7 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
 
 	if (comm->me == 0) {
 		printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-		printf("fix smd/wall_surface reads trianglulated surface from file: %s\n", filename.c_str());
+		printf("fix smd/wall_surface reads trianglulated surface from file: %s\n", filename);
 		printf("fix smd/wall_surface has particle type %d \n", wall_particle_type);
 		printf("fix smd/wall_surface has molecule id %d \n", wall_molecule_id);
 		printf(">>========>>========>>========>>========>>========>>========>>========>>========\n");
@@ -79,6 +79,8 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 FixSMDWallSurface::~FixSMDWallSurface() {
+        free(filename);
+        filename = NULL;
 	// unregister this fix so atom class doesn't invoke it any more
 
 	//atom->delete_callback(id, 0);
@@ -237,10 +239,10 @@ void FixSMDWallSurface::read_triangles(int pass) {
 	vert = new Vector3d[3];
 	Vector3d normal, center;
 
-	FILE *fp = fopen(filename.c_str(), "r");
+	FILE *fp = fopen(filename, "r");
 	if (fp == NULL) {
 		char str[128];
-		sprintf(str, "Cannot open file %s", filename.c_str());
+		sprintf(str, "Cannot open file %s", filename);
 		error->one(FLERR, str);
 	}
 

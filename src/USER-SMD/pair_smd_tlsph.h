@@ -33,12 +33,7 @@ PairStyle(smd/tlsph,PairTlsph)
 
 #include "pair.h"
 #include <Eigen/Eigen>
-#include <Eigen/Dense>
-#include <Eigen/SVD>
-#include <map>
 
-using namespace std;
-using namespace Eigen;
 namespace LAMMPS_NS {
 
 class PairTlsph: public Pair {
@@ -67,13 +62,13 @@ public:
 	void PreCompute();
 	void ComputeForces(int eflag, int vflag);
 	void effective_longitudinal_modulus(const int itype, const double dt, const double d_iso, const double p_rate,
-			const Matrix3d d_dev, const Matrix3d sigma_dev_rate, const double damage, double &K_eff, double &mu_eff, double &M_eff);
+			const Eigen::Matrix3d d_dev, const Eigen::Matrix3d sigma_dev_rate, const double damage, double &K_eff, double &mu_eff, double &M_eff);
 
 	void ComputePressure(const int i, const double rho, const double mass_specific_energy, const double vol_specific_energy,
 			const double pInitial, const double d_iso, double &pFinal, double &p_rate);
-	void ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, Matrix3d &sigmaFinal_dev,
-			Matrix3d &sigma_dev_rate, double &plastic_strain_increment);
-	void ComputeDamage(const int i, const Matrix3d strain, const Matrix3d sigmaFinal, Matrix3d &sigma_damaged);
+	void ComputeStressDeviator(const int i, const Eigen::Matrix3d sigmaInitial_dev, const Eigen::Matrix3d d_dev, Eigen::Matrix3d &sigmaFinal_dev,
+			Eigen::Matrix3d &sigma_dev_rate, double &plastic_strain_increment);
+	void ComputeDamage(const int i, const Eigen::Matrix3d strain, const Eigen::Matrix3d sigmaFinal, Eigen::Matrix3d &sigma_damaged);
 
 
 protected:
@@ -89,12 +84,12 @@ protected:
 	/*
 	 * per atom arrays
 	 */
-	Matrix3d *K, *PK1, *Fdot, *Fincr;
-	Matrix3d *R; // rotation matrix
-	Matrix3d *FincrInv;
-	Matrix3d *D, *W; // strain rate and spin tensor
-	Vector3d *smoothVelDifference;
-	Matrix3d *CauchyStress;
+	Eigen::Matrix3d *K, *PK1, *Fdot, *Fincr;
+	Eigen::Matrix3d *R; // rotation matrix
+	Eigen::Matrix3d *FincrInv;
+	Eigen::Matrix3d *D, *W; // strain rate and spin tensor
+	Eigen::Vector3d *smoothVelDifference;
+	Eigen::Matrix3d *CauchyStress;
 	double *detF, *particle_dt;
 	double *hourglass_error;
 	int *numNeighsRefConfig;

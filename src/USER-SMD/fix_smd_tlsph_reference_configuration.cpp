@@ -202,7 +202,6 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
 void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
 	int i, j, ii, jj, n, inum, jnum;
 	int *ilist, *jlist, *numneigh, **firstneigh;
-	int itype, jtype;
 	double r, h, wf, wfd;
 	Vector3d dx;
 
@@ -219,7 +218,6 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
 
 	double **x0 = atom->x;
 	double *radius = atom->radius;
-	int *type = atom->type;
 	int *mask = atom->mask;
 	tagint *tag = atom->tag;
 	NeighList *list = pair->list;
@@ -234,14 +232,12 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
 
 	for (ii = 0; ii < inum; ii++) {
 		i = ilist[ii];
-		itype = type[i];
 		jlist = firstneigh[i];
 		jnum = numneigh[i];
 
 		for (jj = 0; jj < jnum; jj++) {
 			j = jlist[jj];
 			j &= NEIGHMASK;
-			jtype = type[j];
 
 			if (INSERT_PREDEFINED_CRACKS) {
 				if (!crack_exclude(i, j))
@@ -284,7 +280,6 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
 
 	for (ii = 0; ii < inum; ii++) {
 		i = ilist[ii];
-		itype = type[i];
 		jlist = firstneigh[i];
 		jnum = numneigh[i];
 
@@ -296,7 +291,6 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
 			dx(1) = x0[i][1] - x0[j][1];
 			dx(2) = x0[i][2] - x0[j][2];
 			r = dx.norm();
-			jtype = type[j];
 			h = radius[i] + radius[j];
 
 			if (INSERT_PREDEFINED_CRACKS) {

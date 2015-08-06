@@ -33,11 +33,7 @@ PairStyle(smd/ulsph,PairULSPH)
 
 #include "pair.h"
 #include <Eigen/Eigen>
-#include <Eigen/Dense>
-#include <Eigen/SVD>
 
-using namespace Eigen;
-using namespace std;
 namespace LAMMPS_NS {
 
 class PairULSPH: public Pair {
@@ -57,10 +53,10 @@ public:
 	void *extract(const char *, int &);
 	void PreCompute();
 	void PreCompute_DensitySummation();
-	double effective_shear_modulus(const Matrix3d d_dev, const Matrix3d deltaStressDev, const double dt, const int itype);
+	double effective_shear_modulus(const Eigen::Matrix3d d_dev, const Eigen::Matrix3d deltaStressDev, const double dt, const int itype);
 
-	Vector3d ComputeHourglassForce(const int i, const int itype, const int j, const int jtype, const Vector3d dv,
-			const Vector3d xij, const Vector3d g, const double c_ij, const double mu_ij, const double rho_ij);
+	Eigen::Vector3d ComputeHourglassForce(const int i, const int itype, const int j, const int jtype, const Eigen::Vector3d dv,
+			const Eigen::Vector3d xij, const Eigen::Vector3d g, const double c_ij, const double mu_ij, const double rho_ij);
 
 protected:
 
@@ -78,10 +74,10 @@ protected:
 
 	int nmax; // max number of atoms on this proc
 	int *numNeighs;
-	Matrix3d *K;
+	Eigen::Matrix3d *K;
 	double *shepardWeight, *c0, *rho;
-	Vector3d *smoothVel;
-	Matrix3d *stressTensor, *L, *F;
+	Eigen::Vector3d *smoothVel;
+	Eigen::Matrix3d *stressTensor, *L, *F;
 
 	double dtCFL;
 

@@ -36,9 +36,9 @@ class DumpCFG : public DumpCustom {
   int unwrapflag;            // 1 if unwrapped coordinates are requested
 
   void init_style();
-  void write_header(bigint);
+  virtual void write_header(bigint);
   int convert_string(int, double *);
-  void write_data(int, double *);
+  virtual void write_data(int, double *);
 
   typedef void (DumpCFG::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;             // ptr to write data functions

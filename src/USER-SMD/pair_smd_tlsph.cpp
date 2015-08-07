@@ -46,7 +46,6 @@
 #include "math_special.h"
 #include <map>
 #include "update.h"
-#include <Eigen/SVD>
 #include <Eigen/Eigen>
 #include "smd_material_models.h"
 #include "smd_kernels.h"

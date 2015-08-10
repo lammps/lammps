@@ -11,17 +11,16 @@ Type "python install.py" for instructions.
 1.  Download the Eigen tarball at http://eigen.tuxfamily.org and
     unpack the tarball either in this /lib/smd directory or somewhere
     else on your system.  It should unpack with into a directory with
-    a name similar to eigen-eigen-bdd17ee3b1b3.  Note that Eigen is a
+    a name similar to eigen-eigen-bdd17ee3b1b3.  You can rename
+    the directory to just "eigen" if you wish.  Note that Eigen is a
     template library, so you do not have to build it.
 
-2.  Create two soft links in this dir (lib/smd)
+2.  Create a soft link in this dir (lib/smd)
     to the eigen directory.  E.g if you unpacked Eigen in this dir:
       % ln -s eigen-eigen-bdd17ee3b1b3 includelink
-      % ln -s eigen-eigen-bdd17ee3b1b3 liblink
-    If you unpackaged Eigen somewhere else and renamed
-    the directory to just eigen, then do something like this:
+    If you unpacked Eigen somewhere else and renamed
+    the resulting directory to just eigen, then do something like this:
       % ln -s /home/sjplimp/tools/eigen includelink
-      % ln -s /home/sjplimp/tools/eigen liblink
 
 When these steps are complete you can build LAMMPS
 with the USER-SMD package installed:

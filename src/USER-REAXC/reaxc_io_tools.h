@@ -49,7 +49,7 @@ void  Print_Far_Neighbors( reax_system*, reax_list**, control_params *);
 void  Print_Sparse_Matrix( reax_system*, sparse_matrix* );
 void  Print_Sparse_Matrix2( reax_system*, sparse_matrix*, char* );
 void  Print_Linear_System( reax_system*, control_params*, storage*, int );
-void  Print_LinSys_Soln( reax_system*, real*, real*, real* );
+void  Print_LinSys_Soln( reax_system*, double*, double*, double* );
 void  Print_Charges( reax_system* );
 void  Print_Bonds( reax_system*, reax_list*, char* );
 void  Print_Bond_List2( reax_system*, reax_list*, char* );

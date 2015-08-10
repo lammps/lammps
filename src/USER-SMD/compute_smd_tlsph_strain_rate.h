@@ -33,8 +33,6 @@ ComputeStyle(smd/tlsph_strain_rate,ComputeSMDTLSPHStrainRate)
 #define LMP_COMPUTE_SMD_TLSPH_STRAIN_RATE_H
 
 #include "compute.h"
-#include <Eigen/Eigen>
-using namespace Eigen;
 
 namespace LAMMPS_NS {
 
@@ -45,7 +43,6 @@ class ComputeSMDTLSPHStrainRate : public Compute {
   void init();
   void compute_peratom();
   double memory_usage();
-  Matrix3d Deviator(Matrix3d);
 
  private:
   int nmax;

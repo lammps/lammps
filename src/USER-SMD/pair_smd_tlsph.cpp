@@ -2102,7 +2102,6 @@ void PairTlsph::ComputeDamage(const int i, const Matrix3d strain, const Matrix3d
 	double *damage = atom->damage;
 	int *type = atom->type;
 	int itype = type[i];
-	bool damage_flag = false;
 	double jc_failure_strain;
 //double damage_gap, damage_rate;
 	Matrix3d eye, stress_deviator;
@@ -2116,16 +2115,15 @@ void PairTlsph::ComputeDamage(const int i, const Matrix3d strain, const Matrix3d
 		/*
 		 * maximum stress failure criterion:
 		 */
-		damage_flag = IsotropicMaxStressDamage(stress, Lookup[FAILURE_MAX_PRINCIPAL_STRESS_THRESHOLD][itype]);
+		IsotropicMaxStressDamage(stress, Lookup[FAILURE_MAX_PRINCIPAL_STRESS_THRESHOLD][itype]);
 	} else if (failureModel[itype].failure_max_principal_strain) {
 		error->one(FLERR, "not yet implemented");
 		/*
 		 * maximum strain failure criterion:
 		 */
-		damage_flag = IsotropicMaxStrainDamage(strain, Lookup[FAILURE_MAX_PRINCIPAL_STRAIN_THRESHOLD][itype]);
+		IsotropicMaxStrainDamage(strain, Lookup[FAILURE_MAX_PRINCIPAL_STRAIN_THRESHOLD][itype]);
 	} else if (failureModel[itype].failure_max_plastic_strain) {
 		if (eff_plastic_strain[i] >= Lookup[FAILURE_MAX_PLASTIC_STRAIN_THRESHOLD][itype]) {
-			damage_flag = true;
 			damage[i] = 1.0;
 			//double damage_gap = 0.5 * Lookup[FAILURE_MAX_PLASTIC_STRAIN_THRESHOLD][itype];
 			//damage[i] = (eff_plastic_strain[i] - Lookup[FAILURE_MAX_PLASTIC_STRAIN_THRESHOLD][itype]) / damage_gap;
@@ -2142,7 +2140,6 @@ void PairTlsph::ComputeDamage(const int i, const Matrix3d strain, const Matrix3d
 		//printf("JC failure strain is: %f\n", jc_failure_strain);
 
 		if (eff_plastic_strain[i] >= jc_failure_strain) {
-			damage_flag = true;
 			double damage_rate = Lookup[SIGNAL_VELOCITY][itype] / (100.0 * radius[i]);
 			damage[i] += damage_rate * update->dt;
 			//damage[i] = 1.0;

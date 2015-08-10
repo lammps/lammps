@@ -21,8 +21,6 @@ FixStyle(smd/wall_surface,FixSMDWallSurface)
 #define LMP_FIX_SMD_WALL_SURFACE_H
 
 #include "fix.h"
-#include <iostream>
-using namespace std;
 
 namespace LAMMPS_NS {
 
@@ -42,7 +40,7 @@ public:
 private:
 	int first;                 // flag for first time initialization
 	double sublo[3], subhi[3];   // epsilon-extended proc sub-box for adding atoms;
-	std::string filename;
+	char *filename;
 	int wall_particle_type;
 	int wall_molecule_id;
 };

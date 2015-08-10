@@ -35,17 +35,17 @@ void Atom_Energy( reax_system *system, control_params *control,
                   output_controls *out_control )
 {
   int i, j, pj, type_i, type_j;
-  real Delta_lpcorr, dfvl;
-  real e_lp, expvd2, inv_expvd2, dElp, CElp, DlpVi;
-  real e_lph, Di, vov3, deahu2dbo, deahu2dsbo;
-  real e_ov, CEover1, CEover2, CEover3, CEover4;
-  real exp_ovun1, exp_ovun2, sum_ovun1, sum_ovun2;
-  real exp_ovun2n, exp_ovun6, exp_ovun8;
-  real inv_exp_ovun1, inv_exp_ovun2, inv_exp_ovun2n, inv_exp_ovun8;
-  real e_un, CEunder1, CEunder2, CEunder3, CEunder4;
-  real p_lp2, p_lp3;
-  real p_ovun2, p_ovun3, p_ovun4, p_ovun5, p_ovun6, p_ovun7, p_ovun8;
-  real eng_tmp;
+  double Delta_lpcorr, dfvl;
+  double e_lp, expvd2, inv_expvd2, dElp, CElp, DlpVi;
+  double e_lph, Di, vov3, deahu2dbo, deahu2dsbo;
+  double e_ov, CEover1, CEover2, CEover3, CEover4;
+  double exp_ovun1, exp_ovun2, sum_ovun1, sum_ovun2;
+  double exp_ovun2n, exp_ovun6, exp_ovun8;
+  double inv_exp_ovun1, inv_exp_ovun2, inv_exp_ovun2n, inv_exp_ovun8;
+  double e_un, CEunder1, CEunder2, CEunder3, CEunder4;
+  double p_lp2, p_lp3;
+  double p_ovun2, p_ovun3, p_ovun4, p_ovun5, p_ovun6, p_ovun7, p_ovun8;
+  double eng_tmp;
   int numbonds;
 
   single_body_parameters *sbp_i;

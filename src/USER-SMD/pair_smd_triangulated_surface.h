@@ -34,7 +34,6 @@ PairStyle(smd/tri_surface,PairTriSurf)
 
 #include "pair.h"
 #include <Eigen/Eigen>
-using namespace Eigen;
 
 
 namespace LAMMPS_NS {
@@ -50,8 +49,8 @@ class PairTriSurf : public Pair {
   void init_style();
   void init_list(int, class NeighList *);
   virtual double memory_usage();
-  void PointTriangleDistance(const Vector3d P, const Vector3d TRI1, const Vector3d TRI2, const Vector3d TRI3,
-  		Vector3d &CP, double &dist);
+  void PointTriangleDistance(const Eigen::Vector3d P, const Eigen::Vector3d TRI1, const Eigen::Vector3d TRI2, const Eigen::Vector3d TRI3,
+  		Eigen::Vector3d &CP, double &dist);
   double clamp(const double a, const double min, const double max);
   void *extract(const char *, int &);
 

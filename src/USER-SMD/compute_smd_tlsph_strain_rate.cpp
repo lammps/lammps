@@ -37,6 +37,7 @@
 using namespace Eigen;
 using namespace LAMMPS_NS;
 
+
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDTLSPHStrainRate::ComputeSMDTLSPHStrainRate(LAMMPS *lmp, int narg, char **arg) :
@@ -73,7 +74,6 @@ void ComputeSMDTLSPHStrainRate::init() {
 
 void ComputeSMDTLSPHStrainRate::compute_peratom() {
 	invoked_peratom = update->ntimestep;
-	int *mol = atom->molecule;
 
 	// grow vector array if necessary
 
@@ -84,8 +84,6 @@ void ComputeSMDTLSPHStrainRate::compute_peratom() {
 		array_atom = strain_rate_array;
 	}
 
-	int ulsph_flag = 0;
-	int tlsph_flag = 0;
 	int itmp = 0;
 	Matrix3d *D = (Matrix3d *) force->pair->extract("smd/tlsph/strain_rate_ptr", itmp);
 	if (D == NULL) {
@@ -113,14 +111,4 @@ void ComputeSMDTLSPHStrainRate::compute_peratom() {
 double ComputeSMDTLSPHStrainRate::memory_usage() {
 	double bytes = size_peratom_cols * nmax * sizeof(double);
 	return bytes;
-}
-
-/*
- * deviator of a tensor
- */
-Matrix3d ComputeSMDTLSPHStrainRate::Deviator(Matrix3d M) {
-	Matrix3d eye;
-	eye.setIdentity();
-	eye *= M.trace() / 3.0;
-	return M - eye;
 }

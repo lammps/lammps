@@ -777,7 +777,7 @@ double PairReaxC::memory_usage()
 
   // From reaxc_allocate: BO
   bytes += 1.0 * system->total_cap * sizeof(reax_atom);
-  bytes += 19.0 * system->total_cap * sizeof(real);
+  bytes += 19.0 * system->total_cap * sizeof(double);
   bytes += 3.0 * system->total_cap * sizeof(int);
 
   // From reaxc_lists

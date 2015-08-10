@@ -430,7 +430,7 @@ void Print_Linear_System( reax_system *system, control_params *control,
 }
 
 
-void Print_LinSys_Soln( reax_system *system, real *x, real *b_prm, real *b )
+void Print_LinSys_Soln( reax_system *system, double *x, double *b_prm, double *b )
 {
   int    i;
   char   fname[100];

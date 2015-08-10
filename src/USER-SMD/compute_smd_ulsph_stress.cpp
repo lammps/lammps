@@ -36,6 +36,16 @@
 using namespace Eigen;
 using namespace LAMMPS_NS;
 
+/*
+ * deviator of a tensor
+ */
+static Matrix3d Deviator(Matrix3d M) {
+	Matrix3d eye;
+	eye.setIdentity();
+	eye *= M.trace() / 3.0;
+	return M - eye;
+}
+
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDULSPHStress::ComputeSMDULSPHStress(LAMMPS *lmp, int narg, char **arg) :
@@ -122,12 +132,3 @@ double ComputeSMDULSPHStress::memory_usage() {
 	return bytes;
 }
 
-/*
- * deviator of a tensor
- */
-Matrix3d ComputeSMDULSPHStress::Deviator(Matrix3d M) {
-	Matrix3d eye;
-	eye.setIdentity();
-	eye *= M.trace() / 3.0;
-	return M - eye;
-}

@@ -36,6 +36,7 @@
 using namespace Eigen;
 using namespace LAMMPS_NS;
 
+
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDULSPHStrainRate::ComputeSMDULSPHStrainRate(LAMMPS *lmp, int narg, char **arg) :
@@ -119,14 +120,4 @@ void ComputeSMDULSPHStrainRate::compute_peratom() {
 double ComputeSMDULSPHStrainRate::memory_usage() {
 	double bytes = size_peratom_cols * nmax * sizeof(double);
 	return bytes;
-}
-
-/*
- * deviator of a tensor
- */
-Matrix3d ComputeSMDULSPHStrainRate::Deviator(Matrix3d M) {
-	Matrix3d eye;
-	eye.setIdentity();
-	eye *= M.trace() / 3.0;
-	return M - eye;
 }

@@ -518,10 +518,15 @@ void FixGCMC::init()
   // otherwise just get the gas mass
   
   if (mode == MOLECULE) {
+
+    // apply gcmc offset to types in molecule template
+
+    for (int i = 0; i < onemols[imol]->natoms; i++)
+      onemols[imol]->type[i] += ngcmc_type;
+
     onemols[imol]->compute_mass();
     onemols[imol]->compute_com();
     gas_mass = onemols[imol]->masstotal;
-
     for (int i = 0; i < onemols[imol]->natoms; i++) {
       onemols[imol]->x[i][0] -= onemols[imol]->com[0];
       onemols[imol]->x[i][1] -= onemols[imol]->com[1];
@@ -1219,7 +1224,7 @@ void FixGCMC::attempt_molecule_insertion()
     
     for (int i = 0; i < natoms_per_molecule; i++) {
       if (procflag[i]) {
-        atom->avec->create_atom(ngcmc_type+onemols[imol]->type[i],atom_coord[i]);
+        atom->avec->create_atom(onemols[imol]->type[i],atom_coord[i]);
         int m = atom->nlocal - 1;
 
 	// add to groups
@@ -1823,7 +1828,7 @@ void FixGCMC::attempt_molecule_insertion_full()
         xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
         xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) {
 
-      atom->avec->create_atom(ngcmc_type+onemols[imol]->type[i],xtmp);
+      atom->avec->create_atom(onemols[imol]->type[i],xtmp);
       int m = atom->nlocal - 1;
 
       // add to groups

@@ -1256,8 +1256,19 @@ questions.</p>
 <h2>4.21. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
-<p>???</p>
-<p>See the file doc/USER/smd/SPH_user_guide.pdf to get started.</p>
+<ul class="simple">
+<li>Does liquids via traditional Smooth Particle Hydrodynamics (SPH)</li>
+<li>Also solves solids mechanics problems via a state of the art
+stabilized meshless method with hourglass control.</li>
+<li>Can specify hydrostatic interactions independently from material
+strength models, i.e. pressure and deviatoric stresses are separated.</li>
+<li>Many material models available (Johnson-Cook, plasticity with
+hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new
+material models.</li>
+<li>Rigid boundary conditions (walls) can be loaded as surface geometries
+from <a href="#id9"><span class="problematic" id="id10">*</span></a>.STL files.</li>
+</ul>
+<p>See the file doc/USER/smd/SMD_user_guide.pdf to get started.</p>
 <p>There are example scripts for using this package in examples/USER/smd.</p>
 <p>The person who created this package is Georg Ganzenmuller at the
 Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
@@ -1271,11 +1282,11 @@ LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">
 <li>Tait, ideal gas, Lennard-Jones equation of states, full support for
 complete (i.e. internal-energy dependent) equations of state</li>
-<li>plain or Monaghans XSPH integration of the equations of motion</li>
-<li>density continuity or density summation to propagate the density field</li>
-<li>commands to set internal energy and density of particles from the
+<li>Plain or Monaghans XSPH integration of the equations of motion</li>
+<li>Density continuity or density summation to propagate the density field</li>
+<li>Commands to set internal energy and density of particles from the
 input script</li>
-<li>output commands to access internal energy and density for dumping and
+<li>Output commands to access internal energy and density for dumping and
 thermo output</li>
 </ul>
 <p>See the file doc/USER/sph/SPH_LAMMPS_userguide.pdf to get started.</p>

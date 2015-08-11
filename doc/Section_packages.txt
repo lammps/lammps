@@ -132,8 +132,8 @@ USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, 
 USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix_qbmsst"_fix_qbmsst.html, qtb, -, -
 USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_style quip"_pair_quip.html, USER/quip, -, lib/quip
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
-USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/smd/SMD_user_guide.pdf, USER/smd, -, -
-USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
+USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, -, -
+USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)
 
 :link(atc,http://lammps.sandia.gov/pictures.html#atc)
@@ -647,7 +647,7 @@ LAMMPS.  Currently, the package has the following features:
 * Rigid boundary conditions (walls) can be loaded as surface geometries 
   from *.STL files.
 
-See the file doc/USER/smd/SMD_user_guide.pdf to get started.
+See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.
 
 There are example scripts for using this package in examples/USER/smd.
 
@@ -674,7 +674,7 @@ LAMMPS.  Currently, the package has the following features:
 * Output commands to access internal energy and density for dumping and 
   thermo output
 
-See the file doc/USER/sph/SPH_LAMMPS_userguide.pdf to get started.
+See the file doc/PDF/SPH_LAMMPS_userguide.pdf to get started.
 
 There are example scripts for using this package in examples/USER/sph.
 

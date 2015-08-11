@@ -826,7 +826,8 @@ Examples are the USER-ATC and MEAM packages.</p>
 <p>A few of the lib sub-directories do not include code, but do include
 instructions and sometimes scripts that automate the process of
 downloading the auxiliary library and installing it so LAMMPS can link
-to it.  Examples are the KIM and VORONOI and USER-MOLFILE packages.</p>
+to it.  Examples are the KIM and VORONOI and USER-MOLFILE and USER-SMD
+packages.</p>
 <p>The lib/python directory (for the PYTHON package) contains only a
 choice of Makefile.lammps.* files.  This is because no auxiliary code
 or libraries are needed, only the Python library and other system libs
@@ -865,11 +866,11 @@ included in the link.  Another example are the BLAS and LAPACK
 libraries needed to use the USER-ATC or USER-AWPMD packages.</p>
 <p>For libraries without provided code, the sub-directory README file has
 information on where to download the library and how to build it,
-e.g. lib/voronoi/README.  The README files also describe how you must
-either (a) create soft links, via the &#8220;ln&#8221; command, in those
-directories to point to where you built or installed the packages,
-or (b) check or edit the Makefile.lammps file in the same directory
-to provide that information.</p>
+e.g. lib/voronoi/README and lib/smd/README.  The README files also
+describe how you must either (a) create soft links, via the &#8220;ln&#8221;
+command, in those directories to point to where you built or installed
+the packages, or (b) check or edit the Makefile.lammps file in the
+same directory to provide that information.</p>
 <p>Some of the sub-directories, e.g. lib/voronoi, also have an install.py
 script which can be used to automate the process of
 downloading/building/installing the auxiliary library, and setting the

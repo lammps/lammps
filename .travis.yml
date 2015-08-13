@@ -4,4 +4,7 @@ env:
   - JOB=serial
 
 script:
+  - make yes-all
+  - make no-lib
+  - make -C src/STUBS
   - make -C src -j2 $JOB

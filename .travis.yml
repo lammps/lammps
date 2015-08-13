@@ -1,0 +1,7 @@
+language: cpp
+
+env:
+  - JOB=serial
+
+script:
+  - make -C src -j2 $JOB

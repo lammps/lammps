@@ -1,0 +1,15 @@
+Integration and regression test collection for LAMMPS
+
+This directory holds multiple collections of tests for
+testing a LAMMPS installation. Each directory contains
+a collection of tests that test similar features in LAMMPS.
+
+Run tests with make test MACH=<build make target> MPICMD=<MPI launch command> LMPFLAGS=<additional flags for LAMMPS> TAG=<tag for logfile>
+
+Example:
+make test MACH=mpi MPICMD="mpirun -np 2" LMPFLAGS="-pkg omp 2 -sf omp" TAG="-2xmpi-2xomp"
+
+This command will recurse through all the subdirectories and will use the
+"make mpi" executable and run all tests with 2 MPI tasks and 2 OpenMP threads.
+
+Remove all log files with "make clean"

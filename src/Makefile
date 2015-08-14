@@ -180,6 +180,13 @@ clean-all:
 clean-%:
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
 
+test-clean:
+	@cd ../test/; $(MAKE) $(MFLAGS) clean; cd ..
+
+test-%:
+	$(MAKE) $(MFLAGS) $(@:test-%=%)
+	@cd ../test/; $(MAKE) $(MFLAGS) test MACH=$(@:test-%=%) MPICMD="$(MPICMD)" LMPFLAGS="$(LMPFLAGS)" TAG=$(TAG) ; cd ..
+
 # Create Makefile.list
 
 makelist:

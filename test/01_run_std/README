@@ -1,0 +1,13 @@
+Integration and regression test collection for LAMMPS: Simple runs
+
+This directory contains simple complete run examples, e.g. the benchmark
+or example inputs that should validate that basic standard MD simulations
+can be run successfully with the selected executable.
+
+Suggested settings: All inputs should use "timers off" to turn of timer
+output and statistics and also use "info all" right before the run 
+command to print out some general internall settings for the input.
+
+All input files should be named in.### (with # standing for a digit) so
+that inputs will always be run in the same sequence. Use the first digits
+to define categories.

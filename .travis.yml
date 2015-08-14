@@ -1,10 +1,20 @@
 language: cpp
 
+compiler:
+  - gcc
+  - clang
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y make mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev
+
 env:
-  - JOB=serial
+  - MACH=serial COMP=$CXX LMPFLAGS="-sf off"
+  - MACH=mpi COMP="env OMPI_CC=${CC} OMPI_CXX=${CXX}" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
 
 script:
-  - make yes-all
-  - make no-lib
+  - make -C src clean-all
+  - make -C src yes-all
+  - make -C src no-lib
   - make -C src/STUBS
-  - make -C src -j2 $JOB
+  - make -C src -j2 ${MACH} CC="$COMP" LINK="$COMP" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}"

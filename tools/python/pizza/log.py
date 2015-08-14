@@ -219,6 +219,8 @@ class log:
     if self.style == 1:
       s1 = txt.find(self.firststr)
       s2 = txt.find("\n--",s1)
+      if (s2 == -1):
+        s2 = txt.find("\nLoop time of",s1)
       pattern = "\s(\S*)\s*="
       keywords = re.findall(pattern,txt[s1:s2])
       keywords.insert(0,"Step")
@@ -270,9 +272,7 @@ class log:
 
       s1 = txt.find(self.firststr,start)
       s2 = txt.find("Loop time of",start+1)
-      if s2 == -1:
-        s2 = txt.find("ERROR",start+1)
-        
+
       if s1 >= 0 and s2 >= 0 and s1 < s2:    # found s1,s2 with s1 before s2
         if self.style == 2:
 	  s1 = txt.find("\n",s1) + 1
@@ -295,9 +295,6 @@ class log:
 
         if txt.find("Loop time of",start) == start:   # end of file, so exit
 	  eof -= len(txt) - start                     # reset eof to "Loop"
-	  break
-        if txt.find("ERROR",start) == start:          # end of file, so exit
-	  eof -= len(txt) - start                     # reset eof to "ERROR"
 	  break
 
 	last = 1                                      # entire read is a chunk
@@ -324,6 +321,7 @@ class log:
           word2 = re.findall(pat2,section)
           words = word1 + word2
           self.data.append(map(float,words))
+
       else:
         lines = chunk.split("\n")
         for line in lines:

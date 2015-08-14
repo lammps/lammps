@@ -514,6 +514,9 @@ protected:
   /// \brief Array of \link cvc \endlink objects
   std::vector<cvc *> cvcs;
 
+  /// \brief Flags to enable or disable cvcs at next colvar evaluation
+  std::vector<bool> cvc_flags;
+
   /// \brief Initialize the sorted list of atom IDs for atoms involved
   /// in all cvcs (called when enabling task_collect_gradients)
   void build_atom_list(void);

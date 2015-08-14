@@ -846,7 +846,22 @@ void colvar::calc()
   if (cvm::debug())
     cvm::log("Collecting data from atom groups.\n");
 
+  // Update the enabled/disabled status of cvcs if necessary
+  if (cvc_flags.size()) {
+    bool any = false;
+    for (i = 0; i < cvcs.size(); i++) {
+      cvcs[i]->b_enabled = cvc_flags[i];
+      any = any || cvc_flags[i];
+    }
+    if (!any) {
+      cvm::error("ERROR: All CVCs are disabled for colvar " + this->name +"\n");
+      return;
+    }
+    cvc_flags.resize(0);
+  }
+
   for (i = 0; i < cvcs.size(); i++) {
+    if (!cvcs[i]->b_enabled) continue;
     for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
       cvm::atom_group &atoms = *(cvcs[i]->atom_groups[ig]);
       atoms.reset_atoms_data();
@@ -1220,12 +1235,13 @@ void colvar::communicate_forces()
       return;
     }
 
+    int grad_index = 0; // index in the scripted gradients, to account for some components being disabled
     for (i = 0; i < cvcs.size(); i++) {
       if (!cvcs[i]->b_enabled) continue;
       cvm::increase_depth();
       // cvc force is colvar force times colvar/cvc Jacobian
       // (vector-matrix product)
-      (cvcs[i])->apply_force(colvarvalue(f.as_vector() * func_grads[i],
+      (cvcs[i])->apply_force(colvarvalue(f.as_vector() * func_grads[grad_index++],
                              cvcs[i]->value().type()));
       cvm::decrease_depth();
     }
@@ -1258,20 +1274,13 @@ void colvar::communicate_forces()
 
 int colvar::set_cvc_flags(std::vector<bool> const &flags) {
 
-  size_t i;
   if (flags.size() != cvcs.size()) {
     cvm::error("ERROR: Wrong number of CVC flags provided.");
     return COLVARS_ERROR;
   }
-  bool e = false;
-  for (i = 0; i < cvcs.size(); i++) {
-    cvcs[i]->b_enabled = flags[i];
-    e = e || flags[i];
-  }
-  if (!e) {
-    cvm::error("ERROR: All CVCs are disabled for this colvar.");
-    return COLVARS_ERROR;
-  }
+  // We cannot enable or disable cvcs in the middle of a timestep or colvar evaluation sequence
+  // so we store the flags that will be enforced at the next call to calc()
+  cvc_flags = flags;
   return COLVARS_OK;
 }
 

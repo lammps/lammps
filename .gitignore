@@ -12,3 +12,4 @@ log.*
 *.exe
 .*.swp
 *.orig
+.vagrant

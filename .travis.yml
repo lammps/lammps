@@ -10,11 +10,13 @@ before_install:
 
 env:
   - MACH=serial LMPFLAGS="-sf off" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
-  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz" TAG="-normal"
+  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL" JPG_LIB="-lfftw3 -ljpeg -lpng -lz" TAG="-small"
+  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_BIGBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz" TAG="-big"
 
 script:
   - make -C src clean-all
   - make -C src yes-all
   - make -C src no-lib
   - /usr/bin/test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
-  - env OMPI_CC=$CC OMPI_CXX=$CXX make -C src test-${MACH} CC="${COMP-$CXX}" LINK="${COMP-$CXX}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="-$CC" LMPFLAGS="${LMPFLAGS}"
+  - env OMPI_CC=$CC OMPI_CXX=$CXX make -C src test-${MACH} CC="${COMP-$CXX}" LINK="${COMP-$CXX}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"

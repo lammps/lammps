@@ -56,6 +56,7 @@ class Pointers {
     infile(ptr->infile),
     screen(ptr->screen),
     logfile(ptr->logfile),
+    thermofile(ptr->thermofile),
     atomKK(ptr->atomKK) {}
   virtual ~Pointers() {}
 
@@ -81,6 +82,7 @@ class Pointers {
   FILE *&infile;
   FILE *&screen;
   FILE *&logfile;
+  FILE *&thermofile;
 
   class AtomKokkos *&atomKK;
 };

@@ -79,6 +79,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   screen = NULL;
   logfile = NULL;
   infile = NULL;
+  thermofile = NULL;
 
   initclock = MPI_Wtime();
 
@@ -87,6 +88,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int inflag = 0;
   int screenflag = 0;
   int logflag = 0;
+  int thermoflag = 0;
   int partscreenflag = 0;
   int partlogflag = 0;
   int cudaflag = 0;
@@ -119,6 +121,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         universe->add_world(arg[iarg]);
         iarg++;
       }
+    } else if (strcmp(arg[iarg],"-thermo") == 0 ||
+               strcmp(arg[iarg],"-t") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      thermoflag = iarg+1;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"-in") == 0 ||
                strcmp(arg[iarg],"-i") == 0) {
       if (iarg+2 > narg)
@@ -296,12 +304,25 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         if (universe->ulogfile == NULL)
           error->universe_warn(FLERR,"Cannot open log.lammps for writing");
       }
-    } else if (strcmp(arg[logflag],"none") == 0)
+
+      if (thermoflag > 0) {
+        universe->uthermofile = fopen(arg[thermoflag], "w");
+        if (universe->uthermofile == NULL)
+          error->universe_warn(FLERR,"Cannot open thermo file for writing");
+      }
+    } else if (strcmp(arg[logflag],"none") == 0) {
       universe->ulogfile = NULL;
-    else {
+      universe->uthermofile = NULL;
+    } else {
       universe->ulogfile = fopen(arg[logflag],"w");
       if (universe->ulogfile == NULL)
         error->universe_one(FLERR,"Cannot open universe log file");
+
+      if (thermoflag > 0) {
+        universe->uthermofile = fopen(arg[thermoflag], "w");
+        if (universe->uthermofile == NULL)
+          error->universe_warn(FLERR,"Cannot open universe thermo file for writing");
+      }
     }
   }
 
@@ -309,6 +330,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     if (screenflag == 0) universe->uscreen = stdout;
     else universe->uscreen = NULL;
     universe->ulogfile = NULL;
+    universe->uthermofile = NULL;
   }
 
   // make universe and single world the same, since no partition switch
@@ -319,6 +341,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (universe->existflag == 0) {
     screen = universe->uscreen;
     logfile = universe->ulogfile;
+    thermofile = universe->uthermofile;
     world = universe->uworld;
 
     if (universe->me == 0) {
@@ -334,6 +357,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     if (universe->me == 0) {
       if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
+      if (thermofile) fprintf(thermofile,"LAMMPS (%s)\n",universe->version);
     }
 
   // universe is one or more worlds, as setup by partition switch
@@ -377,22 +401,48 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
          sprintf(str,"log.lammps.%d",universe->iworld);
          logfile = fopen(str,"w");
          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
-       } else if (strcmp(arg[logflag],"none") == 0)
+         sprintf(str,"%s.%d",arg[thermoflag],universe->iworld);
+
+         if (thermoflag > 0) {
+           thermofile = fopen(str,"w");
+           if (thermofile == NULL)
+             error->one(FLERR,"Cannot open thermo file");
+         }
+       } else if (strcmp(arg[logflag],"none") == 0) {
          logfile = NULL;
-       else {
+         thermofile = NULL;
+       } else {
          char str[128];
          sprintf(str,"%s.%d",arg[logflag],universe->iworld);
          logfile = fopen(str,"w");
          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
+         sprintf(str,"%s.%d",arg[thermoflag],universe->iworld);
+
+         if (thermoflag > 0) {
+           thermofile = fopen(str,"w");
+           if (thermofile == NULL)
+             error->one(FLERR,"Cannot open thermo file");
+         }
        }
-      else if (strcmp(arg[partlogflag],"none") == 0)
+      else if (strcmp(arg[partlogflag],"none") == 0) {
         logfile = NULL;
-      else {
+        thermofile = NULL;
+      } else {
         char str[128];
         sprintf(str,"%s.%d",arg[partlogflag],universe->iworld);
         logfile = fopen(str,"w");
         if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
-      } else logfile = NULL;
+
+        sprintf(str, "%s.%d", arg[thermoflag], universe->iworld);
+        if (thermoflag > 0) {
+          thermofile = fopen(str,"w");
+          if (thermofile == NULL)
+            error->one(FLERR,"Cannot open thermo file");
+        }
+      } else {
+        logfile = NULL;
+        thermofile = NULL;
+      }
 
     if (me == 0) {
       infile = fopen(arg[inflag],"r");
@@ -573,13 +623,18 @@ LAMMPS::~LAMMPS()
   if (universe->nworlds == 1) {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
+    if (thermofile) fclose(thermofile);
     logfile = NULL;
+    thermofile = NULL;
     if (screen != stdout) screen = NULL;
   } else {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
+    if (thermofile) fclose(thermofile);
     if (universe->ulogfile) fclose(universe->ulogfile);
+    if (universe->uthermofile) fclose(universe->uthermofile);
     logfile = NULL;
+    thermofile = NULL;
     if (screen != stdout) screen = NULL;
   }
 

@@ -125,6 +125,7 @@ class Input : protected Pointers {
   void thermo();
   void thermo_modify();
   void thermo_style();
+  void thermo_log();
   void timestep();
   void timers();
   void uncompute();

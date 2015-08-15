@@ -41,6 +41,7 @@ class LAMMPS {
   FILE *infile;                  // infile
   FILE *screen;                  // screen output
   FILE *logfile;                 // logfile
+  FILE *thermofile;              // file for thermo output
 
   double initclock;              // wall clock at instantiation
 

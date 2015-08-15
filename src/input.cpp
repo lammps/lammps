@@ -685,6 +685,7 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo")) thermo();
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
+  else if (!strcmp(command,"thermo_log")) thermo_log();
   else if (!strcmp(command,"timestep")) timestep();
   else if (!strcmp(command,"timers")) timers();
   else if (!strcmp(command,"uncompute")) uncompute();
@@ -971,6 +972,34 @@ void Input::log()
       }
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::thermo_log()
+{
+  if (narg > 2) error->all(FLERR,"Illegal thermo_log command");
+
+  int appendflag = 0;
+  if (narg == 2) {
+    if (strcmp(arg[1],"append") == 0) appendflag = 1;
+    else error->all(FLERR,"Illegal thermo_log command");
+  }
+
+  if (me == 0) {
+    if (thermofile) fclose(thermofile);
+    if (strcmp(arg[0],"none") == 0) thermofile = NULL;
+    else {
+      if (appendflag) thermofile = fopen(arg[0],"a");
+      else thermofile = fopen(arg[0],"w");
+      if (thermofile == NULL) {
+        char str[128];
+        sprintf(str,"Cannot open thermo log file %s",arg[0]);
+        error->one(FLERR,str);
+      }
+    }
+    if (universe->nworlds == 1) universe->uthermofile = thermofile;
   }
 }
 

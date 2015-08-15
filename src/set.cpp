@@ -642,7 +642,7 @@ void Set::set(int keyword)
         double *c1 = avec_tri->bonus[atom->tri[i]].c1;
         double *c2 = avec_tri->bonus[atom->tri[i]].c2;
         double *c3 = avec_tri->bonus[atom->tri[i]].c3;
-        double c2mc1[2],c3mc1[3];
+        double c2mc1[3],c3mc1[3];
         MathExtra::sub3(c2,c1,c2mc1);
         MathExtra::sub3(c3,c1,c3mc1);
         double norm[3];

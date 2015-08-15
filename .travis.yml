@@ -9,12 +9,12 @@ before_install:
   - sudo apt-get install -y mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev
 
 env:
-  - MACH=serial COMP=$CXX LMPFLAGS="-sf off" TAG="-$CC" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
-  - MACH=mpi COMP="env OMPI_CC=${CC} OMPI_CXX=${CXX} mpicxx -fopenmp" TAG="-MPI-$CC" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+  - MACH=serial LMPFLAGS="-sf off" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
+  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
 
 script:
   - make -C src clean-all
   - make -C src yes-all
   - make -C src no-lib
-  - /usr/bin/test "$MACH" = mpi && make yes-mpiio yes-user-lb || true
-  - make -C src test-${MACH} CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}"
+  - /usr/bin/test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
+  - env OMPI_CC=$CC OMPI_CXX=$CXX make -C src test-${MACH} CC="${COMP-$CXX}" LINK="${COMP-$CXX}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="-$CC" LMPFLAGS="${LMPFLAGS}"

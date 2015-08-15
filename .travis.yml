@@ -16,5 +16,5 @@ script:
   - make -C src clean-all
   - make -C src yes-all
   - make -C src no-lib
-  - test "$MACH" = mpi && make yes-mpiio yes-user-lb || :
-  - make -C src test-${MACH} CC="$COMP" LINK="$COMP" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}"
+  - /usr/bin/test "$MACH" = mpi && make yes-mpiio yes-user-lb || true
+  - make -C src test-${MACH} CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}"

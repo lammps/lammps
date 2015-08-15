@@ -6,15 +6,15 @@ compiler:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y make mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev
+  - sudo apt-get install -y mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev
 
 env:
-  - MACH=serial COMP=$CXX LMPFLAGS="-sf off"
-  - MACH=mpi COMP="env OMPI_CC=${CC} OMPI_CXX=${CXX}" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+  - MACH=serial COMP=$CXX LMPFLAGS="-sf off" TAG="-$CC" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
+  - MACH=mpi COMP="env OMPI_CC=${CC} OMPI_CXX=${CXX} mpicxx -fopenmp" TAG="-MPI-$CC" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
 
 script:
   - make -C src clean-all
   - make -C src yes-all
   - make -C src no-lib
-  - make -C src/STUBS
-  - make -C src -j2 ${MACH} CC="$COMP" LINK="$COMP" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}"
+  - test "$MACH" = mpi && make yes-mpiio yes-user-lb || :
+  - make -C src test-${MACH} CC="$COMP" LINK="$COMP" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}"

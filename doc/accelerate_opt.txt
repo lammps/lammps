@@ -41,7 +41,7 @@ To do this in one line, use the src/Make.py script, described in
 src/lmp_opt using src/MAKE/Makefile.mpi as the starting
 Makefile.machine:
 
-Make.py -p opt -o opt file mpi :pre
+Make.py -p opt -o opt -a file mpi :pre
 
 Or you can follow these steps:
 

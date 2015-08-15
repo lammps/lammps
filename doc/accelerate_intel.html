@@ -202,8 +202,8 @@ in <a class="reference internal" href="Section_start.html#start-4"><span>Section
 &#8220;Make.py -h&#8221; for help.  If run from the src directory, these commands
 will create src/lmp_intel_cpu and lmp_intel_phi using
 src/MAKE/Makefile.mpi as the starting Makefile.machine:</p>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p intel omp -intel cpu -o intel_cpu -cc icc file mpi
-Make.py -p intel omp -intel phi -o intel_phi -cc icc file mpi
+<div class="highlight-python"><div class="highlight"><pre>Make.py -p intel omp -intel cpu -o intel_cpu -cc icc -a file mpi
+Make.py -p intel omp -intel phi -o intel_phi -cc icc -a file mpi
 </pre></div>
 </div>
 <p>Note that this assumes that your MPI and its mpicxx wrapper

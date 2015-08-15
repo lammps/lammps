@@ -1307,6 +1307,7 @@ letter abbreviation can be used:
 -i or -in
 -k or -kokkos
 -l or -log
+-t or -thermo
 -nc or -nocite
 -pk or -package
 -p or -partition
@@ -1464,6 +1465,12 @@ file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 "log"_log.html command in the input script will override this setting.
 Option -plog will override the name of the partition log files file.N.
+
+-thermo file :pre
+
+Specify a file for LAMMPS to write thermo output into. If the switch is
+not used, LAMMPS does not create any file. If this switch is used,
+LAMMPS writes to the specified file.
 
 -nocite :pre
 

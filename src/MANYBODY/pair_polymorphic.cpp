@@ -79,7 +79,7 @@ PairPolymorphic::~PairPolymorphic()
 
 void PairPolymorphic::compute(int eflag, int vflag)
 {
-  tagint itag,jtag
+  tagint itag,jtag;
   int i,j,k,ii,jj,kk,inum,jnum;
   int iel,jel,kel,iparam_ij,iparam_ik,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;

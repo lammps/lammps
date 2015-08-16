@@ -1,5 +1,12 @@
 language: cpp
 
+notifications:
+  email:
+    recipients:
+      - akohlmey@gmail.com
+    on_successs: change
+    on_failure: always
+
 compiler:
   - gcc
   - clang
@@ -24,5 +31,9 @@ script:
   - make -C src yes-all
   - make -C src no-lib
   - make -C src yes-user-smd yes-user-molfile yes-compress yes-python
+  - make -C lib/colvars -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/poems -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/voronoi -f Makefile.g++ CXX="${COMP}"
+  - make -C src yes-poems yes-voronoi yes-user-colvars 
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
   - make -C src test-${MACH} CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"

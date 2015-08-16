@@ -6,7 +6,7 @@ compiler:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev
+  - sudo apt-get install -y mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev
 
 env:
   - MACH=serial LMPFLAGS="-sf off" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
@@ -23,6 +23,6 @@ script:
   - make -C src clean-all
   - make -C src yes-all
   - make -C src no-lib
-  - make -C src yes-user-smd yes-user-molfile yes-compress
+  - make -C src yes-user-smd yes-user-molfile yes-compress yes-python
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
   - make -C src test-${MACH} CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"

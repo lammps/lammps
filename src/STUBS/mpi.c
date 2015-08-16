@@ -92,7 +92,7 @@ int MPI_Get_processor_name(char *name, int *resultlen)
 
 /* ---------------------------------------------------------------------- */
 
-/* return MPI version level. v1.2 is not 100% correct, but reasonable approximation */
+/* return MPI version level. v1.2 is not 100% correct, but close enough */
 
 int MPI_Get_version(int *major, int *minor)
 {
@@ -102,24 +102,6 @@ int MPI_Get_version(int *major, int *minor)
   *minor = 2;
   return MPI_SUCCESS;
 }
-
-/* ---------------------------------------------------------------------- */
-
-int MPI_Get_library_version(char *version, int *resultlen)
-{
-  int len;
-#include "../version.h"
-  const char library[] = "LAMMPS MPI STUBS " LAMMPS_VERSION;
-
-  if (!version || !resultlen) return MPI_ERR_ARG;
-
-  len = strlen(library);
-  memcpy(version,library,len+1);
-  *resultlen = len;
-  return MPI_SUCCESS;
-}
-
-
 
 /* ---------------------------------------------------------------------- */
 

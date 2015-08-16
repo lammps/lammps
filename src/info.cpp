@@ -229,14 +229,10 @@ void Info::command(int narg, char **arg)
 
   if (flags & COMM) {
     int major,minor;
-    char mpilib[256];
-
-    MPI_Get_library_version(mpilib,&major);
     MPI_Get_version(&major,&minor);
 
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
-    fprintf(out,"MPI Implementation: %s\n",mpilib);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
             commstyles[comm->style], commlayout[comm->layout]); 
     fprintf(out,"Nprocs = %d    Nthreads = %d\n",

@@ -65,6 +65,7 @@ enum {COMPUTES=1<<0,
       TIME=1<<6,
       VARIABLES=1<<7,
       SYSTEM=1<<8,
+      COMM=1<<9,
       ALL=~0};
 }
 
@@ -73,6 +74,9 @@ static const char *varstyles[] = {
   "file", "atomfile", "format", "equal", "atom", "python", "(unknown)"};
 
 static const char *mapstyles[] = { "none", "array", "hash" };
+
+static const char *commstyles[] = { "brick", "tiled" };
+static const char *commlayout[] = { "uniform", "nonuniform", "irregular" };
 
 static const char bstyles[] = "pfsm";
 
@@ -110,7 +114,10 @@ void Info::command(int narg, char **arg)
                && (strncmp(arg[idx+1],"overwrite",3) == 0)) {
       out = fopen(arg[idx+2],"w");
       idx += 3;
-    } else if (strncmp(arg[idx],"computes",3) == 0) {
+    } else if (strncmp(arg[idx],"communication",4) == 0) {
+      flags |= COMM;
+      ++idx;
+    } else if (strncmp(arg[idx],"computes",4) == 0) {
       flags |= COMPUTES;
       ++idx;
     } else if (strncmp(arg[idx],"dumps",3) == 0) {
@@ -218,6 +225,24 @@ void Info::command(int narg, char **arg)
               (double)ru.ru_maxrss/1024.0);
     }
 #endif
+  }
+
+  if (flags & COMM) {
+    int major,minor;
+    char mpilib[256];
+
+    MPI_Get_version(&major,&minor);
+    MPI_Get_library_version(mpilib,&major);
+
+    fprintf(out,"\nCommunication information:\n");
+    fprintf(out," MPI library level: MPI v%d.%d\n",major,minor);
+    fprintf(out," MPI Implementation: %s\n",mpilib);
+    fprintf(out," Comm style = %s,  Comm layout = %s\n",
+            commstyles[comm->style], commlayout[comm->layout]); 
+    fprintf(out," Nprocs = %d    Nthreads = %d\n",
+            comm->nprocs, comm->nthreads);
+    fprintf(out," Processor grid = %d x %d x %d\n",comm->procgrid[0],
+            comm->procgrid[1], comm->procgrid[2]);
   }
 
   if (flags & SYSTEM) {

@@ -1,7 +1,5 @@
 # 2d circle of particles inside a box with LJ walls
 
-# tiled communication, no load balance
-
 timers		off
 variable        b index 0
 

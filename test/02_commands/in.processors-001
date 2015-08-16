@@ -13,7 +13,7 @@ units		lj
 dimension       2
 atom_style	atomic
 boundary        f f p
-processors	* 1 1
+processors	* * 1
 
 lattice		hex 0.85
 region		box block 0 $x 0 $y -0.5 0.5

@@ -13,7 +13,7 @@ units		lj
 dimension       2
 atom_style	atomic
 boundary        f f p
-processors	* 1 1
+processors	* * 1
 
 lattice		hex 0.85
 region		box block 0 $x 0 $y -0.5 0.5
@@ -36,10 +36,14 @@ fix		1 all nve
 fix             2 all wall/lj93 xlo 0.0 1 1 2.5 xhi $x 1 1 2.5
 fix             3 all wall/lj93 ylo 0.0 1 1 2.5 yhi $y 1 1 2.5
 
-comm_style      brick
+comm_style      tiled
 
 thermo_style    custom step temp epair
 thermo          100
+
+balance		1.0 shift x 20 1.01 
+
+balance		1.0 x uniform y uniform
 
 info		all
 run		1000

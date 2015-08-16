@@ -77,18 +77,49 @@ int MPI_Finalized(int *flag)
 
 /* return "localhost" as name of the processor */
 
-void MPI_Get_processor_name(char *name, int *resultlen)
+int MPI_Get_processor_name(char *name, int *resultlen)
 {
   const char host[] = "localhost";
   int len;
 
-  if (!name || !resultlen) return;
+  if (!name || !resultlen) return MPI_ERR_ARG;
 
   len = strlen(host);
   memcpy(name,host,len+1);
   *resultlen = len;
-  return;
+  return MPI_SUCCESS;
 }
+
+/* ---------------------------------------------------------------------- */
+
+/* return MPI version level. v1.2 is not 100% correct, but reasonable approximation */
+
+int MPI_Get_version(int *major, int *minor)
+{
+  if (!major || !minor) return MPI_ERR_ARG;
+
+  *major = 1;
+  *minor = 2;
+  return MPI_SUCCESS;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Get_library_version(char *version, int *resultlen)
+{
+  int len;
+#include "../version.h"
+  const char library[] = "LAMMPS MPI STUBS " LAMMPS_VERSION;
+
+  if (!version || !resultlen) return MPI_ERR_ARG;
+
+  len = strlen(library);
+  memcpy(version,library,len+1);
+  *resultlen = len;
+  return MPI_SUCCESS;
+}
+
+
 
 /* ---------------------------------------------------------------------- */
 

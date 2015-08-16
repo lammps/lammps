@@ -1,0 +1,13 @@
+Integration and regression test collection for LAMMPS: Command tests
+
+This directory contains simple run examples for testing individual commands.
+The purpose is similar to what would be done with unit tests, but without
+using a unit test framework and rather try to verify that a command has the
+desired effect from LAMMPS script commands.
+
+Suggested settings: All inputs should use "timers off" to turn of timer
+output and statistics and also use "info all" right before the run 
+command to print out some general internall settings for the input.
+
+All input files should be named in.<command>-### (with <command> standing for
+the command to be tested and # standing for a digit).

@@ -21,9 +21,7 @@ DumpStyle(xyz/gz,DumpXYZGZ)
 #define LMP_DUMP_XYZ_GZ_H
 
 #include "dump_xyz.h"
-
-// forward definition from zlib.h
-typedef struct gzFile_s *gzFile;
+#include <zlib.h>
 
 namespace LAMMPS_NS {
 

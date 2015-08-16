@@ -21,9 +21,7 @@ DumpStyle(cfg/gz,DumpCFGGZ)
 #define LMP_DUMP_CFG_GZ_H
 
 #include "dump_cfg.h"
-
-// forward definition from zlib.h
-typedef struct gzFile_s *gzFile;
+#include <zlib.h>
 
 namespace LAMMPS_NS {
 

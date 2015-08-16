@@ -88,7 +88,7 @@ class AtomVecSMD : public AtomVec {
   double **x,**v,**f;
   double *radius,*rmass;
 
-  int *molecule;
+  tagint *molecule;
   double *vfrac,**x0,*contact_radius, **smd_data_9, *e, *de, **vest;
   double **tlsph_stress;
   double *eff_plastic_strain;

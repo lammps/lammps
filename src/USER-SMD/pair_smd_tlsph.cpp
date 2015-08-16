@@ -136,7 +136,7 @@ PairTlsph::~PairTlsph() {
  ---------------------------------------------------------------------- */
 
 void PairTlsph::PreCompute() {
-	int *mol = atom->molecule;
+	tagint *mol = atom->molecule;
 	double *vfrac = atom->vfrac;
 	double *radius = atom->radius;
 	double **x0 = atom->x0;
@@ -144,7 +144,7 @@ void PairTlsph::PreCompute() {
 	double **v = atom->vest; // extrapolated velocities corresponding to current positions
 	double **vint = atom->v; // Velocity-Verlet algorithm velocities
 	double *damage = atom->damage;
-	int *tag = atom->tag;
+	tagint *tag = atom->tag;
 	int *type = atom->type;
 	int nlocal = atom->nlocal;
 	int jnum, jj, i, j, itype, idim;
@@ -416,7 +416,7 @@ void PairTlsph::compute(int eflag, int vflag) {
 }
 
 void PairTlsph::ComputeForces(int eflag, int vflag) {
-	int *mol = atom->molecule;
+	tagint *mol = atom->molecule;
 	double **x = atom->x;
 	double **v = atom->vest;
 	double **x0 = atom->x0;
@@ -701,7 +701,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
  shape matrix correction
  ------------------------------------------------------------------------- */
 void PairTlsph::AssembleStress() {
-	int *mol = atom->molecule;
+	tagint *mol = atom->molecule;
 	double *eff_plastic_strain = atom->eff_plastic_strain;
 	double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
 	double **tlsph_stress = atom->smd_stress;
@@ -1841,7 +1841,7 @@ void *PairTlsph::extract(const char *str, int &i) {
 
 int PairTlsph::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
 	int i, j, m;
-	int *mol = atom->molecule;
+	tagint *mol = atom->molecule;
 	double *damage = atom->damage;
 	double *eff_plastic_strain = atom->eff_plastic_strain;
 	double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
@@ -1884,7 +1884,7 @@ int PairTlsph::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, in
 
 void PairTlsph::unpack_forward_comm(int n, int first, double *buf) {
 	int i, m, last;
-	int *mol = atom->molecule;
+	tagint *mol = atom->molecule;
 	double *damage = atom->damage;
 	double *eff_plastic_strain = atom->eff_plastic_strain;
 	double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;

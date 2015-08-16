@@ -101,7 +101,7 @@ void PairTriSurf::compute(int eflag, int vflag) {
 	else
 		evflag = vflag_fdotr = 0;
 
-	int *mol = atom->molecule;
+	tagint *mol = atom->molecule;
 	double **f = atom->f;
 	double **smd_data_9 = atom->smd_data_9;
 	double **x = atom->x;

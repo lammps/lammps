@@ -146,7 +146,6 @@ void AtomVecSMD::grow_reset() {
 	radius = atom->radius;
 	rmass = atom->rmass;
 
-	molecule = atom->molecule;
 	vfrac = atom->vfrac;
 	x0 = atom->x0;
 	contact_radius = atom->contact_radius;
@@ -657,7 +656,7 @@ void AtomVecSMD::unpack_border_vel(int n, int first, double *buf) {
 		tag[i] = (tagint) ubuf(buf[m++]).i;
 		type[i] = (int) ubuf(buf[m++]).i;
 		mask[i] = (int) ubuf(buf[m++]).i;
-		molecule[i] = (int) ubuf(buf[m++]).i; // 10
+		molecule[i] = (tagint) ubuf(buf[m++]).i; // 10
 
 		radius[i] = buf[m++];
 		rmass[i] = buf[m++];
@@ -698,7 +697,7 @@ int AtomVecSMD::unpack_border_hybrid(int n, int first, double *buf) {
 		x0[i][0] = buf[m++];
 		x0[i][1] = buf[m++];
 		x0[i][2] = buf[m++]; // 3
-		molecule[i] = (int) ubuf(buf[m++]).i; // 4
+		molecule[i] = (tagint) ubuf(buf[m++]).i; // 4
 		radius[i] = buf[m++];
 		rmass[i] = buf[m++];
 		vfrac[i] = buf[m++];
@@ -790,7 +789,7 @@ int AtomVecSMD::unpack_exchange(double *buf) {
 	type[nlocal] = (int) ubuf(buf[m++]).i;
 	mask[nlocal] = (int) ubuf(buf[m++]).i;
 	image[nlocal] = (imageint) ubuf(buf[m++]).i;
-	molecule[nlocal] = (int) ubuf(buf[m++]).i; // 11
+	molecule[nlocal] = (tagint) ubuf(buf[m++]).i; // 11
 
 	radius[nlocal] = buf[m++];
 	rmass[nlocal] = buf[m++];
@@ -920,7 +919,7 @@ int AtomVecSMD::unpack_restart(double *buf) {
 	type[nlocal] = (int) ubuf(buf[m++]).i;
 	mask[nlocal] = (int) ubuf(buf[m++]).i;
 	image[nlocal] = (imageint) ubuf(buf[m++]).i;
-	molecule[nlocal] = (int) ubuf(buf[m++]).i; // 11
+	molecule[nlocal] = (tagint) ubuf(buf[m++]).i; // 11
 
 	radius[nlocal] = buf[m++];
 	rmass[nlocal] = buf[m++];
@@ -1034,7 +1033,7 @@ void AtomVecSMD::data_atom(double *coord, imageint imagetmp, char **values) {
 	if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
 		error->one(FLERR, "Invalid atom type in Atoms section of data file");
 
-	molecule[nlocal] = atoi(values[2]);
+	molecule[nlocal] = ATOTAGINT(values[2]);
 	if (molecule[nlocal] <= 0)
 		error->one(FLERR, "Invalid molecule in Atoms section of data file");
 

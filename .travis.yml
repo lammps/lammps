@@ -1,18 +1,27 @@
+sudo: false
 language: cpp
-
 compiler:
   - gcc
   - clang
-
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev
+addons:
+  apt:
+    packages:
+    - mpi-default-bin
+    - mpi-default-dev
+    - libfftw3-dev
+    - libjpeg-dev
+    - libpng12-dev
 
 env:
   - MACH=serial LMPFLAGS="-sf off" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
-  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz" TAG="-normal"
-  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL" JPG_LIB="-lfftw3 -ljpeg -lpng -lz" TAG="-small"
-  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" COMP="mpicxx -fopenmp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_BIGBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz" TAG="-big"
+  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+  - MACH=mpi LMPFLAGS="-pk omp 2 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_BIGBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+
+install:
+  - export OMPI_CC=$CC
+  - export OMPI_CXX=$CXX
+  - [ "$MACH" = "mpi" ] && export COMP="mpicxx -fopenmp" || export COMP="$CXX"
 
 script:
   - make -C src clean-all
@@ -20,4 +29,4 @@ script:
   - make -C src no-lib
   - make -C src yes-user-smd yes-user-molfile yes-compress
   - /usr/bin/test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
-  - env OMPI_CC=$CC OMPI_CXX=$CXX make -C src test-${MACH} CC="${COMP-$CXX}" LINK="${COMP-$CXX}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
+  - make -C src test-${MACH} CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"

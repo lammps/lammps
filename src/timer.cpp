@@ -165,6 +165,7 @@ double Timer::cpu(enum ttype which)
 
 double Timer::elapsed(enum ttype which)
 {
+  if (_level == OFF) return 0.0;
   double current_wall = MPI_Wtime();
   return (current_wall - wall_array[which]);
 }

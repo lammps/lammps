@@ -437,7 +437,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 			 * due to calling grow() in create_atoms() above;
 			 */
 
-			int *mol = atom->molecule;
+			tagint *mol = atom->molecule;
 			int *type = atom->type;
 			double *radius = atom->radius;
 			double *contact_radius = atom->contact_radius;

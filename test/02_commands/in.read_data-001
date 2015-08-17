@@ -1,0 +1,6 @@
+
+timers	off
+
+read_data few-orth.data
+
+info	all

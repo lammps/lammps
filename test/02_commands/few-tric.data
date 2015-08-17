@@ -1,0 +1,21 @@
+Empty Data file
+
+1 atom types
+3 atoms
+
+-1.0 1.0 xlo xhi
+-1.0 1.0 ylo yhi
+-1.0 1.0 zlo zhi
+ 0.3 0.2 0.1 xy xz yz
+
+Masses
+
+ 1 1.0
+
+
+Atoms # atomic
+
+1 1 0.5 0.0 0.0
+2 1 0.0 0.0 0.0
+3 1 0.0 0.0 0.5
+

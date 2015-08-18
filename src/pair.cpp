@@ -711,7 +711,7 @@ void Pair::add_tally_callback(Compute *ptr)
     found = num_tally_compute;
     ++num_tally_compute;
     void *p = memory->srealloc((void *)list_tally_compute,
-                               sizeof(Compute **) * num_tally_compute,
+                               sizeof(Compute *) * num_tally_compute,
                                "pair:list_tally_compute");
     list_tally_compute = (Compute **) p;
     list_tally_compute[num_tally_compute-1] = ptr;

@@ -92,7 +92,6 @@ double FixTempCSVR::sumnoises(int nn) {
     const double rr = random->gaussian();
     return  2.0 * gamdev((nn-1) / 2) + rr*rr;
   }
-  return 0.0;
 }
 
 /* -------------------------------------------------------------------

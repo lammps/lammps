@@ -780,7 +780,7 @@ void Finish::end(int flag)
     MPI_Allreduce(&tmp,&nall,1,MPI_DOUBLE,MPI_SUM,world);
 
     int nspec;
-    double nspec_all;
+    double nspec_all = 0;
     if (atom->molecular == 1) {
       int **nspecial = atom->nspecial;
       int nlocal = atom->nlocal;

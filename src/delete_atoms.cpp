@@ -722,9 +722,9 @@ void DeleteAtoms::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
-      if (atom->molecular == 0) 
-        error->all(FLERR,"Cannot delete_atoms mol yes for "
-                   "non-molecular systems");
+      if (atom->molecule_flag == 0) 
+        error->all(FLERR,"Delete_atoms mol yes requires "
+                   "atom attribute molecule");
       if (strcmp(arg[iarg+1],"yes") == 0) mol_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) mol_flag = 0;
       else error->all(FLERR,"Illegal delete_atoms command");

@@ -255,7 +255,7 @@ void FixSMDMoveTriSurf::initial_integrate(int vflag) {
 	double **v = atom->v;
 	double **vest = atom->vest;
 	double **smd_data_9 = atom->smd_data_9;
-	int *mol = atom->molecule;
+	tagint *mol = atom->molecule;
 
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;

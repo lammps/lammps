@@ -311,7 +311,7 @@ void FixEvaporate::pre_exchange()
               }
             }
 
-          } else {
+          } else if (molecular == 2) {
             if (molatom[i] == 0) {
               index = molindex[i];
               ndeltopo[0] += onemols[index]->nbonds;

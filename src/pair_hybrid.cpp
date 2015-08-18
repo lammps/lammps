@@ -114,6 +114,7 @@ void PairHybrid::compute(int eflag, int vflag)
   // check if we are running with r-RESPA using the hybrid keyword
 
   Respa *respa = NULL;
+  respaflag = 0;
   if (strstr(update->integrate_style,"respa")) {
     respa = (Respa *) update->integrate;
     if (respa->nhybrid_styles > 0) respaflag = 1;

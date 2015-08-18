@@ -762,11 +762,11 @@ void LAMMPS::destroy()
 
 void help_message(FILE *fp)
 {
+  if (fp == NULL) return;
+
   const int nmax = 500;
   const char *pager = NULL;
   const char **styles = new const char *[nmax];
-
-  if (fp == NULL) return;
 
   // if output is stdout, use pipe to pager
 

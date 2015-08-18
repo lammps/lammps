@@ -159,7 +159,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
         atom4 = atom->map(improper_atom4[atom2][i]);
       } else {
         if (tag[atom2] != onemols[imol]->improper_atom2[atom2][i]) continue;
-        tagprev = tag[atom1] - iatom - 1;
+        tagprev = tag[atom2] - iatom - 1;
         atom1 = atom->map(onemols[imol]->improper_atom1[atom2][i]+tagprev);
         atom3 = atom->map(onemols[imol]->improper_atom3[atom2][i]+tagprev);
         atom4 = atom->map(onemols[imol]->improper_atom4[atom2][i]+tagprev);

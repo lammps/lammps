@@ -182,7 +182,7 @@ void CommTiled::setup()
   if (cut == 0.0) {
     cutzero = 1;
     cut = MIN(prd[0],prd[1]);
-    if (dimension == 3) cut = MIN(cut,prd[3]);
+    if (dimension == 3) cut = MIN(cut,prd[2]);
     cut *= EPSILON*EPSILON;
   }
 

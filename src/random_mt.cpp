@@ -36,7 +36,7 @@ RanMT::RanMT(LAMMPS *lmp, int seed) : Pointers(lmp)
 {
   int i;
   const uint32_t f = 1812433253UL;
-  _save = 0;
+  _save = _second = 0;
 
   if (seed <= 0 || seed > 900000000)
     error->one(FLERR,"Invalid seed for Mersenne Twister random # generator");
@@ -50,20 +50,20 @@ RanMT::RanMT(LAMMPS *lmp, int seed) : Pointers(lmp)
   // to seed the RNG some more using a second RNG
   RanMars rng(lmp,seed);
 
-  for (i=0; i < MT_N; ++i)
+  for (i=0; i < MT_N-1; ++i)
     _m[i+1] = (_m[i+1] ^ ((_m[i] ^ (_m[i] >> 30)) * 1664525UL))
       + (uint32_t) (rng.uniform()* (1U<<31)) + i;
 
   _m[0] = _m[MT_N-1];
 
-  for (i=0; i < MT_N; ++i)
+  for (i=0; i < MT_N-1; ++i)
     _m[i+1] = (_m[i+1] ^ ((_m[i] ^ (_m[i] >> 30)) * 1566083941UL))-i-1;
 
   _m[0] = 0x80000000UL;
 
   // randomize one more turn
   _idx = 0;
-  for (i=0; i < MT_N; ++i) _randomize();
+  for (i=0; i < MT_N-1; ++i) _randomize();
 }
 
 /* ----------------------------------------------------------------------

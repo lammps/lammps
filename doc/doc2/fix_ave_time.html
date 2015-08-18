@@ -53,6 +53,8 @@
   <I>file</I> arg = filename
     filename = name of file to output time averages to
   <I>overwrite</I> arg = none = overwrite output file with only latest output
+  <I>format</I> arg = string
+    string = C-style format string
   <I>title1</I> arg = string
     string = text to print as 1st line of output file
   <I>title2</I> arg = string
@@ -253,6 +255,11 @@ array sections.
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the <I>ave running</I> setting.
 </P>
+<P>The <I>format</I> keyword sets the numeric format of each value when it is
+printed to a file via the <I>file</I> keyword.  Note that all values are
+floating point quantities.  The default format is %g.  You can specify
+a higher precision if desired, e.g. %20.16g.
+</P>
 <P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
 the strings that will be printed as the first 2 or 3 lines of the
 output file, assuming the <I>file</I> keyword was used.  LAMMPS uses
@@ -328,7 +335,7 @@ ave/spatial</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>,
 <P><B>Default:</B>
 </P>
 <P>The option defaults are mode = scalar, ave = one, start = 0, no file
-output, title 1,2,3 = strings as described above, and no off settings
-for any input values.
+output, format = %g, title 1,2,3 = strings as described above, and no
+off settings for any input values.
 </P>
 </HTML>

@@ -108,10 +108,12 @@ void Info::command(int narg, char **arg)
       idx += 2;
     } else if ((idx+2 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"append",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = fopen(arg[idx+2],"a");
       idx += 3;
     } else if ((idx+2 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"overwrite",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = fopen(arg[idx+2],"w");
       idx += 3;
     } else if (strncmp(arg[idx],"communication",4) == 0) {

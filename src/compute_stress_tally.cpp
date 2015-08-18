@@ -44,6 +44,7 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
+  did_compute = 0;
   nmax = -1;
   stress = NULL;
   vector = new double[size_peratom_cols];

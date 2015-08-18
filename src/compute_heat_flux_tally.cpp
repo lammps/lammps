@@ -43,6 +43,7 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 6;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
+  did_compute = 0;
   nmax = -1;
   stress = NULL;
   eatom = NULL;

@@ -44,6 +44,7 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
+  did_compute = 0;
   nmax = -1;
   fatom = NULL;
   vector = new double[size_peratom_cols];

@@ -565,6 +565,8 @@ double PairHybrid::init_one(int i, int j)
   // perform mixing only if I,I sub-style = J,J sub-style
   // also require I,I and J,J are both assigned to single sub-style
 
+  printf("IJ %d %d\n",i,j);
+
   if (setflag[i][j] == 0) {
     if (nmap[i][i] != 1 || nmap[j][j] != 1 || map[i][i][0] != map[j][j][0])
       error->one(FLERR,"All pair coeffs are not set");

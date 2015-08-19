@@ -13,7 +13,7 @@ compiler:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y gfortran mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev libblas-dev libblapack-dev
+  - sudo apt-get install -y gfortran mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev libblas-dev liblapack-dev
 
 env:
   - MACH=serial LMPFLAGS="-sf off" LMP_INC="-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"

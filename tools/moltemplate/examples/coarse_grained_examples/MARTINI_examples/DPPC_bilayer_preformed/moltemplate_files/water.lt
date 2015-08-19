@@ -1,0 +1,17 @@
+MW {
+     write_once("In Init") {
+     units         real
+     atom_style    full
+     pair_style    hybrid  lj/gromacs/coul/gromacs  9 12 0.000001 12
+  }
+
+  write("Data Atoms") {
+    $atom:1  $mol:. @atom:P4  0  0   0   0 
+  }
+  write_once("Data Masses") {
+    @atom:P4  72.0
+  }
+  write_once("In Settings") {
+    pair_coeff @atom:P4 @atom:P4  lj/gromacs/coul/gromacs  1.1950286806883 4.7
+  }
+} #MW   

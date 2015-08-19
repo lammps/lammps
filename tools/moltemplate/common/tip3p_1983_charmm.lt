@@ -1,0 +1,119 @@
+#############################################################
+# WARNING: THIS FILE HAS NOT BEEN TESTED!
+# (If you use this file in a simulation, please email me to let me know
+#  if it worked.  -Andrew 2014-5,   (jewett dot aij at gmail dot com))
+#########################################################
+# There are two different versions of TIP3P:
+#
+# tip3p_1983.lt   # The implementation of TIP3P used by CHARMM (I think).
+# tip3p_2004.lt   # The newer Price & Brooks, J. Chem Phys 2004 model 
+#                 # which uses long-range coulombics
+#########################################################
+
+# file "tip3p_1983_charmm.lt" 
+#
+#    H1     H2
+#      \   /
+#        O
+#
+# I think this is the TIP3P water model used by CHARMM (and AMBER?).  See:
+# Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem Phys, 79, 926 (1983)
+
+
+TIP3P_1983_CHARMM {
+
+  write("Data Atoms") {
+    $atom:O  $mol:. @atom:O -0.834   0.0000000   0.00000 0.000000
+    $atom:H1 $mol:. @atom:H  0.417   0.756950327 0.00000 0.5858822766
+    $atom:H2 $mol:. @atom:H  0.417  -0.756950327 0.00000 0.5858822766
+  }
+
+  write_once("Data Masses") {
+    @atom:O 15.9994
+    @atom:H 1.008
+  }
+
+  write("Data Bonds") {
+    $bond:OH1 @bond:OH $atom:O $atom:H1
+    $bond:OH2 @bond:OH $atom:O $atom:H2
+  }
+
+  write("Data Angles") {
+    $angle:HOH @angle:HOH $atom:H1 $atom:O $atom:H2
+  }
+
+  write_once("In Settings") {
+    bond_coeff   @bond:OH         harmonic       450.0  0.9572
+    angle_coeff  @angle:HOH       harmonic       55.0   104.52
+
+    #########################################################################
+    ####  There are two choices for for the O-O interactions
+    #########################################################################
+    ####  O-O nonbonded interactions
+
+    #   For the 1983 Jorgensen version of TIP3P use:
+    pair_coeff  @atom:O  @atom:O   lj/charmm/coul/charmm 0.1521 3.1507
+
+    #   For the 2004 Price & Brooks version of TIP3P use:
+    #pair_coeff  @atom:O  @atom:O   lj/charmm/coul/long 0.102 3.188
+
+    #########################################################################
+    ####  There are three choices for for the O-H and H-H interactions
+    #########################################################################
+    #### 1) The original Jorgensen 1983 and 2004 Price & Brooks models have no
+    #     mixed OH or HH interactions. For this behavior, uncomment these lines:
+    #pair_coeff  @atom:H  @atom:H   lj/charmm/coul/charmm  0.00 0.4000
+    #pair_coeff  @atom:O  @atom:H   lj/charmm/coul/charmm  0.00 1.7753
+    #########################################################################
+    #### 2) CHARMM uses an arithmetic mixing-rule for the O-H sigma parameter
+    pair_coeff @atom:H  @atom:H  lj/charmm/coul/charmm 0.0460 0.4000
+    pair_coeff @atom:O  @atom:H  lj/charmm/coul/charmm 0.0836 1.7753 #arithmetic
+    #########################################################################
+    #### 3) OPLS-AA uses geometric a mixing-fule for the O-H sigma parameter,
+    ####    If you want to use this, uncomment the following two lines:
+    #pair_coeff @atom:H  @atom:H  lj/charmm/coul/charmm 0.0460 0.4000
+    #pair_coeff @atom:O  @atom:H  lj/charmm/coul/charmm 0.0836 1.1226 #geometric
+    #########################################################################
+
+    # Define a group for the tip3p water molecules:
+    group tip3p type  @atom:O  @atom:H
+
+    # Optional: Constrain the angles and distances.
+    #           (Most implementations use this, but it is optional.)
+    fix fShakeTIP3P tip3p shake 0.0001 10 100 b @bond:OH a @angle:HOH
+    # (Remember to "unfix" fShakeTIP3P during minimization.)
+  }
+
+
+  write_once("In Init") {
+    # -- Default styles (for solo "TIP3P_1983_CHARMM" water) --
+    units        real
+    atom_style   full
+
+    # I'm not sure exactly which cutoffs distances are traditionally used in
+    # in the 1983 "TIP3P" model by Jorgensen model, (used by CHARMM).
+    # (See the Price JCP 2004 paper for a review.)
+    #   My first guess was this:
+    pair_style   hybrid lj/charmm/coul/charmm 7.5 8.0 10.0 10.5
+
+    # However, in the LAMMPS "peptide" example, they use these parameters:
+    # pair_style   hybrid lj/charmm/coul/long 8.0 10.0 10.0
+
+    bond_style   hybrid harmonic
+    angle_style  hybrid harmonic
+    #pair_modify  mix arithmetic  # LEAVE THIS UNSPECIFIED!
+  }
+
+} # "TIP3P_1983_CHARMM" water molecule type
+
+
+
+
+#   (note to self:)
+# In the LAMMPS "peptide" example, these (nearly identical) parameters were used
+# and they left the O-H parameters to be determined by the default mixing rules
+#pair_style lj/charmm/coul/long 8.0 10.0 10.0
+#pair_coeff @atom:H @atom:H 0.046 0.400014 0.046 0.400014
+#pair_coeff @atom:O @atom:O 0.1521 3.15057 0.1521 3.15057
+#angle_style charmm
+#angle_coeff @angle:HOH 55.0 104.52 0.0 0.0

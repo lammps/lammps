@@ -259,7 +259,7 @@ void FixAveHistoWeight::end_of_step()
     if (atom->nlocal > maxatom) {
       memory->destroy(vector);
       maxatom = atom->nmax;
-      memory->create(vector,maxatom,"ave/histo/weights:vector");
+      memory->create(vector,maxatom,"ave/histo/weight:vector");
     }
     input->variable->compute_atom(m,igroup,vector,1,0);
     weights = vector;
@@ -388,7 +388,7 @@ void FixAveHistoWeight::end_of_step()
     if (atom->nlocal > maxatom) {
       memory->destroy(vector);
       maxatom = atom->nmax;
-      memory->create(vector,maxatom,"ave/histo/weights:vector");
+      memory->create(vector,maxatom,"ave/histo/weight:vector");
     }
     input->variable->compute_atom(m,igroup,vector,1,0);
     bin_atoms_weights(vector,1,weights,stride);

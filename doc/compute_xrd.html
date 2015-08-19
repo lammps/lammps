@@ -159,15 +159,15 @@
 compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre>fix 1 all ave/histo/weights 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
-fix 2 all ave/histo/weights 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all ave/histo/weight 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
+fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Define a computation that calculates x-ray diffraction intensity as described
-in <a class="reference internal" href="fix_saed_vtk.html#coleman"><span>(Coleman)</span></a> on a mesh of reciprocal lattice nodes defined
+in <a class="reference internal" href="#coleman"><span>(Coleman)</span></a> on a mesh of reciprocal lattice nodes defined
 by the entire simulation domain (or manually) using a simulated radiation
 of wavelength lambda.</p>
 <p>The x-ray diffraction intensity, I, at each reciprocal lattice point, k,

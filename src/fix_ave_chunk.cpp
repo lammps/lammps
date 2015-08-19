@@ -132,6 +132,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
+  if (nvalues == 0) error->all(FLERR,"No values in fix ave/chunk command");
+
   // optional args
 
   normflag = ALL;
@@ -144,6 +146,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   adof = domain->dimension;
   cdof = 0.0;
   overwrite = 0;
+  format_user = NULL;
+  format = (char *) " %g";
   char *title1 = NULL;
   char *title2 = NULL;
   char *title3 = NULL;
@@ -208,6 +212,14 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"format") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
+      delete [] format_user;
+      int n = strlen(arg[iarg+1]) + 2;
+      format_user = new char[n];
+      sprintf(format_user," %s",arg[iarg+1]);
+      format = format_user;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title1;
@@ -881,7 +893,7 @@ void FixAveChunk::end_of_step()
         for (m = 0; m < nchunk; m++) {
           fprintf(fp,"  %d %g",m+1,count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 1) {
@@ -889,7 +901,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %g %g",m+1,coord[m][0],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 2) {
@@ -897,7 +909,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %g %g %g",m+1,coord[m][0],coord[m][1],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 3) {
@@ -905,7 +917,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %g %g %g %g",m+1,
                   coord[m][0],coord[m][1],coord[m][2],count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       }
@@ -915,7 +927,7 @@ void FixAveChunk::end_of_step()
         for (m = 0; m < nchunk; m++) {
           fprintf(fp,"  %d %d %g",m+1,chunkID[m],count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 1) {
@@ -924,7 +936,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %d %g %g",m+1,j,coord[j-1][0],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 2) {
@@ -933,7 +945,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %d %g %g %g",m+1,j,coord[j-1][0],coord[j-1][1],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 3) {
@@ -942,7 +954,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %d %g %g %g %g",m+1,j,coord[j-1][0],
                   coord[j-1][1],coord[j-1][2],count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       }

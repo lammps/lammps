@@ -1051,6 +1051,7 @@ void Molecule::special_generate()
     for (int i = 0; i < natoms; i++) {
       nspecial[i][0] = num_bond[i];
       for (int j = 0; j < num_bond[i]; j++) {
+        atom1 = i;
         atom2 = bond_atom[i][j];
         if (count[atom1] >= maxspecial)
           error->one(FLERR,"");

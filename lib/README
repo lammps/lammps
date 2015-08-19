@@ -21,6 +21,8 @@ awpmd         antisymmetrized wave packet molecular dynamics, AWPMD package
                 from Ilya Valuev (JIHT RAS)
 colvars	      collective variable module (Metadynamics, ABF and more)
                 from Giacomo Fiorin and Jerome Henin (ICMS, Temple U)
+compress      hook to system lib for performing I/O compression, COMPRESS pkg
+	        from Axel Kohlmeyer (Temple U)
 cuda	      NVIDIA GPU routines, USER-CUDA package
                 from Christian Trott (U Tech Ilmenau)
 gpu	      general GPU routines, GPU package

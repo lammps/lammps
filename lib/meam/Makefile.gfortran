@@ -27,6 +27,7 @@ OBJ =   $(SRC:.F=.o) fm_exp.o
 # ------ SETTINGS ------
 
 F90 =           gfortran
+CC  =		gcc
 F90FLAGS =      -O3 -fPIC -ffast-math -ftree-vectorize -fexpensive-optimizations -fno-second-underscore -g
 #F90FLAGS =      -O 
 ARCHIVE =	ar

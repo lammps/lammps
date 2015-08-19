@@ -26,8 +26,6 @@
 #include "stdio.h"
 
 #include <Eigen/Eigen>
-#include <Eigen/Dense>
-#include <Eigen/SVD>
 
 using namespace LAMMPS_NS::MathSpecial;
 using namespace std;

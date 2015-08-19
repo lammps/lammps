@@ -50,7 +50,6 @@ using namespace std;
 using namespace LAMMPS_NS;
 using namespace SMD_Math;
 
-#include <Eigen/SVD>
 #include <Eigen/Eigen>
 using namespace Eigen;
 

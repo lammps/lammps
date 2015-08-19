@@ -62,7 +62,8 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
   if (lbstyle == SHIFT) {
     if (iarg+4 > narg) error->all(FLERR,"Illegal fix balance command");
-    strncpy(bstr,arg[iarg+1],3);
+    if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal fix balance command");
+    strcpy(bstr,arg[iarg+1]);
     nitermax = force->inumeric(FLERR,arg[iarg+2]);
     if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
     stopthresh = force->numeric(FLERR,arg[iarg+3]);

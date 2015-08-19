@@ -746,7 +746,7 @@ char *Variable::retrieve(char *name)
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
-  char *str;
+  char *str = NULL;
   if (style[ivar] == INDEX || style[ivar] == WORLD ||
       style[ivar] == UNIVERSE || style[ivar] == STRING || 
       style[ivar] == SCALARFILE) {

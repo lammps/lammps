@@ -131,6 +131,10 @@ class Compute : protected Pointers {
 
   virtual double memory_usage() {return 0.0;}
 
+  virtual void pair_tally_callback(int, int, int, int,
+                                   double, double, double,
+                                   double, double, double) {}
+
   virtual int unsigned data_mask() {return datamask;}
   virtual int unsigned data_mask_ext() {return datamask_ext;}
 

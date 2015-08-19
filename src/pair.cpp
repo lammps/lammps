@@ -32,6 +32,8 @@
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
+#include "modify.h"
+#include "compute.h"
 #include "accelerator_cuda.h"
 #include "suffix.h"
 #include "atom_masks.h"
@@ -96,6 +98,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   eatom = NULL;
   vatom = NULL;
 
+  num_tally_compute = 0;
+  list_tally_compute = NULL;
+
   // CUDA and KOKKOS per-fix data masks
 
   datamask = ALL_MASK;
@@ -112,6 +117,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
 Pair::~Pair()
 {
+  num_tally_compute = 0;
+  memory->sfree((void *)list_tally_compute);
+
   if (copymode) return;
 
   memory->destroy(eatom);
@@ -685,6 +693,53 @@ void Pair::compute_dummy(int eflag, int vflag)
   else evflag = 0;
 }
 
+/* -------------------------------------------------------------------
+   register a callback to a compute, so it can compute and accumulate
+   additional properties during the pair computation from within
+   Pair::ev_tally(). ensure each compute instance is registered only once
+---------------------------------------------------------------------- */
+void Pair::add_tally_callback(Compute *ptr)
+{
+  int i,found=-1;
+
+  for (i=0; i < num_tally_compute; ++i) {
+    if (list_tally_compute[i] == ptr)
+      found = i;
+  }
+
+  if (found < 0) {
+    found = num_tally_compute;
+    ++num_tally_compute;
+    void *p = memory->srealloc((void *)list_tally_compute,
+                               sizeof(Compute **) * num_tally_compute,
+                               "pair:list_tally_compute");
+    list_tally_compute = (Compute **) p;
+    list_tally_compute[num_tally_compute-1] = ptr;
+  }
+}
+
+/* -------------------------------------------------------------------
+   unregister a callback to a fix for additional pairwise tallying
+---------------------------------------------------------------------- */
+void Pair::del_tally_callback(Compute *ptr)
+{
+  int i,found=-1;
+
+  for (i=0; i < num_tally_compute; ++i) {
+    if (list_tally_compute[i] == ptr)
+      found = i;
+  }
+
+  if (found < 0)
+    return;
+
+  // compact the list of active computes
+  --num_tally_compute;
+  for (i=found; i < num_tally_compute; ++i) {
+    list_tally_compute[i] = list_tally_compute[i+1];
+  }
+}
+
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
@@ -864,6 +919,14 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
         vatom[j][4] += 0.5*v[4];
         vatom[j][5] += 0.5*v[5];
       }
+    }
+  }
+
+  if (num_tally_compute > 0) {
+    for (int k=0; k < num_tally_compute; ++k) {
+      Compute *c = list_tally_compute[k];
+      c->pair_tally_callback(i, j, nlocal, newton_pair,
+                             evdwl, ecoul, fpair, delx, dely, delz);
     }
   }
 }

@@ -1,0 +1,18 @@
+Created by AJB
+
+2 atoms
+2 atom types
+
+-0.529177 0.529177 xlo xhi
+-0.529177 0.529177 ylo yhi
+-0.529177 0.529177 zlo zhi
+
+Masses
+
+1 1.000794	            # H nuclei mass
+2 0.000544616997098749	# electron mass
+
+Atoms 
+
+1 1  1.0  0  0.000000 0 1.0 0.0 0.0 0.0 0.0   # 0-tag 1-type 2-q 3-spin 4-eradius 5-etag 6-cs_re 7-cs_im 8-x 9-y 10-z
+2 2 -1.0  1  0.861555 1 1.0 0.0 0.0 0.0 0.0 

@@ -13,7 +13,7 @@ compiler:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev
+  - sudo apt-get install -y gfortran mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev libblas-dev libblapack-dev
 
 env:
   - MACH=serial LMPFLAGS="-sf off" LMP_INC="-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
@@ -34,6 +34,8 @@ script:
   - make -C lib/colvars -f Makefile.g++ CXX="${COMP}"
   - make -C lib/poems -f Makefile.g++ CXX="${COMP}"
   - make -C lib/voronoi -f Makefile.g++ CXX="${COMP}"
-  - make -C src yes-poems yes-voronoi yes-user-colvars 
+  - make -C lib/awpmd -f Makefile.mpicc CC="$(COMP)"
+  - make -C lib/meam -f Makefile.gfortran CC="$(COMP)"
+  - make -C src yes-poems yes-voronoi yes-user-colvars yes-user-awpmd yes-meam
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
   - make -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"

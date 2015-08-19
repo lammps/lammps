@@ -17,7 +17,6 @@
 #include "update.h"
 
 #include <string.h>
-#include <zlib.h>
 
 using namespace LAMMPS_NS;
 

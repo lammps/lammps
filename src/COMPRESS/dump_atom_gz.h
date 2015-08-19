@@ -21,9 +21,7 @@ DumpStyle(atom/gz,DumpAtomGZ)
 #define LMP_DUMP_ATOM_GZ_H
 
 #include "dump_atom.h"
-
-// forward definition from zlib.h
-typedef struct gzFile_s *gzFile;
+#include <zlib.h>
 
 namespace LAMMPS_NS {
 

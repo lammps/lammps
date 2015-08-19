@@ -60,6 +60,6 @@ namespace ATC {
 
   };
 
-};
+}
 
 #endif

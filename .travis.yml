@@ -34,7 +34,7 @@ script:
   - make -C lib/colvars -f Makefile.g++ CXX="${COMP}"
   - make -C lib/poems -f Makefile.g++ CXX="${COMP}"
   - make -C lib/voronoi -f Makefile.g++ CXX="${COMP}"
-  - make -C lib/awpmd -f Makefile.mpicc CC="$(COMP)"
+  - make -C lib/awpmd -f Makefile.mpicc CC="${COMP}"
   - make -C lib/meam -f Makefile.gfortran CC="${COMP}"
   - make -C src yes-poems yes-voronoi yes-user-colvars yes-user-awpmd yes-meam
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true

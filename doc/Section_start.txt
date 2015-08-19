@@ -266,8 +266,16 @@ within the LAMMPS code.  The options that are currently recogized are:
 
 The read_data and dump commands will read/write gzipped files if you
 compile with -DLAMMPS_GZIP.  It requires that your machine supports
-the "popen" function in the standard runtime library and that a gzip
+the "popen()" function in the standard runtime library and that a gzip
 executable can be found by LAMMPS during a run.
+
+IMPORTANT NOTE: on some clusters with high-speed networks, using the
+fork() library calls (required by popen()) can interfere with the fast
+communication library and lead to simulations using compressed output
+or input to hang or crash. For selected operations, compressed file
+I/O is also available using a compression library instead, which are
+provided in the COMPRESS package. From more details about compiling
+LAMMPS with packages, please see below.
 
 If you use -DLAMMPS_JPEG, the "dump image"_dump_image.html command
 will be able to write out JPEG image files. For JPEG files, you must
@@ -283,6 +291,9 @@ will be available to support on-the-fly generation of rendered movies
 the need to store intermediate image files. It requires that your
 machines supports the "popen" function in the standard runtime library
 and that an FFmpeg executable can be found by LAMMPS during the run.
+
+IMPORTANT NOTE: Similar to the note above, this option can conflict
+with high-speed networks, because it uses popen().
 
 Using -DLAMMPS_MEMALIGN=<bytes> enables the use of the
 posix_memalign() call instead of malloc() when large chunks or memory

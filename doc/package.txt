@@ -51,6 +51,8 @@ args = arguments specific to the style :l
         Nthreads = # of GPU threads used per atom
       {device} value = device_type
         device_type = {kepler} or {fermi} or {cypress} or {generic}
+      {blocksize} value = size
+        size = thread block size for pair force computation
   {intel} args = NPhi keyword value ...
     Nphi = # of coprocessors per node
     zero or more keyword/value pairs may be appended 

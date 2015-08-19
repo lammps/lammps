@@ -89,17 +89,18 @@
 <li class="toctree-l2"><a class="reference internal" href="#user-drude-package">4.9. USER-DRUDE package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-eff-package">4.10. USER-EFF package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-fep-package">4.11. USER-FEP package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-intel-package">4.12. USER-INTEL package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-lb-package">4.13. USER-LB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-misc-package">4.14. USER-MISC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-molfile-package">4.15. USER-MOLFILE package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-omp-package">4.16. USER-OMP package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-phonon-package">4.17. USER-PHONON package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.18. USER-QMMM package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.19. USER-QTB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.20. USER-REAXC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.21. USER-SMD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.22. USER-SPH package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-h5md-package">4.12. USER-H5MD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-intel-package">4.13. USER-INTEL package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-lb-package">4.14. USER-LB package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-misc-package">4.15. USER-MISC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-molfile-package">4.16. USER-MOLFILE package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-omp-package">4.17. USER-OMP package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-phonon-package">4.18. USER-PHONON package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.19. USER-QMMM package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.20. USER-QTB package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.21. USER-REAXC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.22. USER-SMD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.23. USER-SPH package</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
@@ -255,7 +256,20 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>CORESHELL</td>
+<tr class="row-even"><td>COMPRESS</td>
+<td>I/O compression</td>
+<td>Axel Kohlmeyer (Temple U)</td>
+<td><a class="reference internal" href="dump.html"><em>dump */gz</em></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>CORESHELL</td>
 <td>adiabatic core/shell model</td>
 <td>Hendrik Heenen (Technical U of Munich)</td>
 <td><a class="reference internal" href="Section_howto.html#howto-25"><span>Section_howto 6.25</span></a></td>
@@ -265,7 +279,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>DIPOLE</td>
+<tr class="row-even"><td>DIPOLE</td>
 <td>point dipole particles</td>
 <td><ul class="first last simple">
 <li></li>
@@ -278,7 +292,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>FLD</td>
+<tr class="row-odd"><td>FLD</td>
 <td>Fast Lubrication Dynamics</td>
 <td>Kumar &amp; Bybee &amp; Higdon (1)</td>
 <td><a class="reference internal" href="pair_lubricateU.html"><em>pair_style lubricateU</em></a></td>
@@ -291,14 +305,14 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>GPU</td>
+<tr class="row-even"><td>GPU</td>
 <td>GPU-enabled styles</td>
 <td>Mike Brown (ORNL)</td>
 <td><a class="reference internal" href="accelerate_gpu.html"><em>Section accelerate</em></a></td>
 <td>gpu</td>
 <td>lib/gpu</td>
 </tr>
-<tr class="row-even"><td>GRANULAR</td>
+<tr class="row-odd"><td>GRANULAR</td>
 <td>granular systems</td>
 <td><ul class="first last simple">
 <li></li>
@@ -311,21 +325,21 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>KIM</td>
+<tr class="row-even"><td>KIM</td>
 <td>openKIM potentials</td>
 <td>Smirichinski &amp; Elliot &amp; Tadmor (3)</td>
 <td><a class="reference internal" href="pair_kim.html"><em>pair_style kim</em></a></td>
 <td>kim</td>
 <td>KIM</td>
 </tr>
-<tr class="row-even"><td>KOKKOS</td>
+<tr class="row-odd"><td>KOKKOS</td>
 <td>Kokkos-enabled styles</td>
 <td>Trott &amp; Edwards (4)</td>
 <td><a class="reference internal" href="accelerate_kokkos.html"><em>Section_accelerate</em></a></td>
 <td>kokkos</td>
 <td>lib/kokkos</td>
 </tr>
-<tr class="row-odd"><td>KSPACE</td>
+<tr class="row-even"><td>KSPACE</td>
 <td>long-range Coulombic solvers</td>
 <td><ul class="first last simple">
 <li></li>
@@ -338,7 +352,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>MANYBODY</td>
+<tr class="row-odd"><td>MANYBODY</td>
 <td>many-body potentials</td>
 <td><ul class="first last simple">
 <li></li>
@@ -351,14 +365,14 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>MEAM</td>
+<tr class="row-even"><td>MEAM</td>
 <td>modified EAM potential</td>
 <td>Greg Wagner (Sandia)</td>
 <td><a class="reference internal" href="pair_meam.html"><em>pair_style meam</em></a></td>
 <td>meam</td>
 <td>lib/meam</td>
 </tr>
-<tr class="row-even"><td>MC</td>
+<tr class="row-odd"><td>MC</td>
 <td>Monte Carlo options</td>
 <td><ul class="first last simple">
 <li></li>
@@ -374,7 +388,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>MOLECULE</td>
+<tr class="row-even"><td>MOLECULE</td>
 <td>molecular system force fields</td>
 <td><ul class="first last simple">
 <li></li>
@@ -387,7 +401,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>OPT</td>
+<tr class="row-odd"><td>OPT</td>
 <td>optimized pair styles</td>
 <td>Fischer &amp; Richie &amp; Natoli (2)</td>
 <td><a class="reference internal" href="accelerate_opt.html"><em>Section accelerate</em></a></td>
@@ -400,7 +414,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>PERI</td>
+<tr class="row-even"><td>PERI</td>
 <td>Peridynamics models</td>
 <td>Mike Parks (Sandia)</td>
 <td><a class="reference internal" href="pair_peri.html"><em>pair_style peri</em></a></td>
@@ -410,14 +424,14 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>POEMS</td>
+<tr class="row-odd"><td>POEMS</td>
 <td>coupled rigid body motion</td>
 <td>Rudra Mukherjee (JPL)</td>
 <td><a class="reference internal" href="fix_poems.html"><em>fix poems</em></a></td>
 <td>rigid</td>
 <td>lib/poems</td>
 </tr>
-<tr class="row-odd"><td>PYTHON</td>
+<tr class="row-even"><td>PYTHON</td>
 <td>embed Python code in an input script</td>
 <td><ul class="first last simple">
 <li></li>
@@ -427,14 +441,14 @@ packages, more details are provided.</p>
 <td>python</td>
 <td>lib/python</td>
 </tr>
-<tr class="row-even"><td>REAX</td>
+<tr class="row-odd"><td>REAX</td>
 <td>ReaxFF potential</td>
 <td>Aidan Thompson (Sandia)</td>
 <td><a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a></td>
 <td>reax</td>
 <td>lib/reax</td>
 </tr>
-<tr class="row-odd"><td>REPLICA</td>
+<tr class="row-even"><td>REPLICA</td>
 <td>multi-replica methods</td>
 <td><ul class="first last simple">
 <li></li>
@@ -447,7 +461,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>RIGID</td>
+<tr class="row-odd"><td>RIGID</td>
 <td>rigid bodies</td>
 <td><ul class="first last simple">
 <li></li>
@@ -460,7 +474,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>SHOCK</td>
+<tr class="row-even"><td>SHOCK</td>
 <td>shock loading methods</td>
 <td><ul class="first last simple">
 <li></li>
@@ -476,7 +490,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>SNAP</td>
+<tr class="row-odd"><td>SNAP</td>
 <td>quantum-fit potential</td>
 <td>Aidan Thompson (Sandia)</td>
 <td><a class="reference internal" href="pair_snap.html"><em>pair snap</em></a></td>
@@ -486,7 +500,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>SRD</td>
+<tr class="row-even"><td>SRD</td>
 <td>stochastic rotation dynamics</td>
 <td><ul class="first last simple">
 <li></li>
@@ -499,7 +513,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>VORONOI</td>
+<tr class="row-odd"><td>VORONOI</td>
 <td>Voronoi tesselations</td>
 <td>Daniel Schwen (LANL)</td>
 <td><a class="reference internal" href="compute_voronoi_atom.html"><em>compute voronoi/atom</em></a></td>
@@ -509,7 +523,7 @@ packages, more details are provided.</p>
 </td>
 <td>Voro++</td>
 </tr>
-<tr class="row-odd"><td>XTC</td>
+<tr class="row-even"><td>XTC</td>
 <td>dumps in XTC format</td>
 <td><ul class="first last simple">
 <li></li>
@@ -525,7 +539,7 @@ packages, more details are provided.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>&nbsp;</td>
+<tr class="row-odd"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -686,7 +700,21 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-INTEL</td>
+<tr class="row-odd"><td>USER-H5MD</td>
+<td>dump output via HDF5</td>
+<td>Pierre de Buyl (KU Leuven)</td>
+<td><a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>h5md</td>
+</tr>
+<tr class="row-even"><td>USER-INTEL</td>
 <td>Vectorized CPU and Intel(R) coprocessor styles</td>
 <td><ol class="first last upperalpha simple" start="23">
 <li>Michael Brown (Intel)</li>
@@ -703,7 +731,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-LB</td>
+<tr class="row-odd"><td>USER-LB</td>
 <td>Lattice Boltzmann fluid</td>
 <td>Colin Denniston (U Western Ontario)</td>
 <td><a class="reference internal" href="fix_lb_fluid.html"><em>fix lb/fluid</em></a></td>
@@ -717,7 +745,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-MISC</td>
+<tr class="row-even"><td>USER-MISC</td>
 <td>single-file contributions</td>
 <td>USER-MISC/README</td>
 <td>USER-MISC/README</td>
@@ -734,7 +762,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-MOLFILE</td>
+<tr class="row-odd"><td>USER-MOLFILE</td>
 <td><a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molfile plug-ins</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="dump_molfile.html"><em>dump molfile</em></a></td>
@@ -748,7 +776,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </td>
 <td>VMD-MOLFILE</td>
 </tr>
-<tr class="row-odd"><td>USER-OMP</td>
+<tr class="row-even"><td>USER-OMP</td>
 <td>OpenMP threaded styles</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="accelerate_omp.html"><em>Section accelerate</em></a></td>
@@ -765,7 +793,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-PHONON</td>
+<tr class="row-odd"><td>USER-PHONON</td>
 <td>phonon dynamical matrix</td>
 <td>Ling-Ti Kong (Shanghai Jiao Tong U)</td>
 <td><a class="reference internal" href="fix_phonon.html"><em>fix phonon</em></a></td>
@@ -779,7 +807,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-QMMM</td>
+<tr class="row-even"><td>USER-QMMM</td>
 <td>QM/MM coupling</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="fix_qmmm.html"><em>fix qmmm</em></a></td>
@@ -790,7 +818,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </td>
 <td>lib/qmmm</td>
 </tr>
-<tr class="row-even"><td>USER-QTB</td>
+<tr class="row-odd"><td>USER-QTB</td>
 <td>quantum nuclear effects</td>
 <td>Yuan Shen (Stanford)</td>
 <td><a class="reference internal" href="fix_qtb.html"><em>fix qtb</em></a> <a class="reference internal" href="fix_qbmsst.html"><em>fix_qbmsst</em></a></td>
@@ -804,7 +832,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-QUIP</td>
+<tr class="row-even"><td>USER-QUIP</td>
 <td>QUIP/libatoms interface</td>
 <td>Albert Bartok-Partay (U Cambridge)</td>
 <td><a class="reference internal" href="pair_quip.html"><em>pair_style quip</em></a></td>
@@ -815,7 +843,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </td>
 <td>lib/quip</td>
 </tr>
-<tr class="row-even"><td>USER-REAXC</td>
+<tr class="row-odd"><td>USER-REAXC</td>
 <td>C version of ReaxFF</td>
 <td>Metin Aktulga (LBNL)</td>
 <td><a class="reference internal" href="pair_reax_c.html"><em>pair_style reaxc</em></a></td>
@@ -829,7 +857,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-SMD</td>
+<tr class="row-even"><td>USER-SMD</td>
 <td>smoothed Mach dynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -843,7 +871,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-SPH</td>
+<tr class="row-odd"><td>USER-SPH</td>
 <td>smoothed particle hydrodynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -854,7 +882,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>&nbsp;</td>
+<tr class="row-even"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -1102,8 +1130,22 @@ Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
 Contact him directly if you have questions.</p>
 </div>
 <hr class="docutils" />
+<div class="section" id="user-h5md-package">
+<h2>4.12. USER-H5MD package<a class="headerlink" href="#user-h5md-package" title="Permalink to this headline">¶</a></h2>
+<p>This package contains a <a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a> command for
+performing a dump of atom properties in HDF5 format.  <a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5 files</a> are binary, portable and self-describing and can be
+examined and used by a variety of auxiliary tools.  The output HDF5
+files are structured in a format called H5MD, which was designed to
+store molecular data, and can be used and produced by various MD and
+MD-related codes.  The <code class="xref doc docutils literal"><span class="pre">dump</span> <span class="pre">h5md</span></code> command gives a
+citation to a paper describing the format.</p>
+<p>The person who created this package and the underlying H5MD format is
+Pierre de Buyl at KU Leuven (see <a class="reference external" href="http://pdebuyl.be">http://pdebuyl.be</a>).  Contact him
+directly if you have questions.</p>
+</div>
+<hr class="docutils" />
 <div class="section" id="user-intel-package">
-<h2>4.12. USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.13. USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides options for performing neighbor list and
 non-bonded force calculations in single, mixed, or double precision
 and also a capability for accelerating calculations with an
@@ -1115,7 +1157,7 @@ Intel(R) Xeon Phi(TM) coprocessor.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-lb-package">
-<h2>4.13. USER-LB package<a class="headerlink" href="#user-lb-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.14. USER-LB package<a class="headerlink" href="#user-lb-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a LAMMPS implementation of a background
 Lattice-Boltzmann fluid, which can be used to model MD particles
 influenced by hydrodynamic forces.</p>
@@ -1127,7 +1169,7 @@ Western Ontario.  Contact them directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-misc-package">
-<h2>4.14. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.15. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
 pair of files (<a href="#id4"><span class="problematic" id="id5">*</span></a>.cpp and <a href="#id6"><span class="problematic" id="id7">*</span></a>.h).</p>
@@ -1144,7 +1186,7 @@ about the feature or its coding.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-molfile-package">
-<h2>4.15. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.16. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
 <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molecular visualization and
@@ -1163,7 +1205,7 @@ application itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-omp-package">
-<h2>4.16. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.17. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides OpenMP multi-threading support and
 other optimizations of various LAMMPS pair styles, dihedral
 styles, and fix styles.</p>
@@ -1174,7 +1216,7 @@ styles, and fix styles.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-phonon-package">
-<h2>4.17. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.18. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.</p>
@@ -1186,7 +1228,7 @@ if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qmmm-package">
-<h2>4.18. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.19. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a fix qmmm command which allows LAMMPS to be
 used in a QM/MM simulation, currently only in combination with pw.x
 code from the <a class="reference external" href="http://www.quantum-espresso.org">Quantum ESPRESSO</a> package.</p>
@@ -1203,7 +1245,7 @@ without changes to LAMMPS itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qtb-package">
-<h2>4.19. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.20. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a self-consistent quantum treatment of the
 vibrational modes in a classical molecular dynamics simulation.  By
 coupling the MD simulation to a colored thermostat, it introduces zero
@@ -1225,7 +1267,7 @@ have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-reaxc-package">
-<h2>4.20. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.21. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a implementation for LAMMPS of the ReaxFF force
 field.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
@@ -1253,7 +1295,7 @@ questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-smd-package">
-<h2>4.21. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.22. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">
@@ -1276,7 +1318,7 @@ Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
 you have questions.</p>
 </div>
 <div class="section" id="user-sph-package">
-<h2>4.22. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.23. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">

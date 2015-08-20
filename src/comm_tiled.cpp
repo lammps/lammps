@@ -52,6 +52,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
   style = 1;
   layout = LAYOUT_UNIFORM;
+  pbc_flag = NULL;
   init_buffers();
 }
 

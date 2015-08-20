@@ -55,6 +55,7 @@ CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
 {
   style = 0;
   layout = LAYOUT_UNIFORM;
+  pbc_flag = NULL;
   init_buffers();
 }
 

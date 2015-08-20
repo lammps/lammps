@@ -259,109 +259,243 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template<> struct DeepCopy< CudaSpace , CudaSpace >
+void DeepCopyAsyncCuda( void * dst , const void * src , size_t n);
+
+template<> struct DeepCopy< CudaSpace , CudaSpace , Cuda>
 {
   DeepCopy( void * dst , const void * src , size_t );
   DeepCopy( const Cuda & , void * dst , const void * src , size_t );
 };
 
-template<> struct DeepCopy< CudaSpace , HostSpace >
+template<> struct DeepCopy< CudaSpace , HostSpace , Cuda >
 {
   DeepCopy( void * dst , const void * src , size_t );
   DeepCopy( const Cuda & , void * dst , const void * src , size_t );
 };
 
-template<> struct DeepCopy< HostSpace , CudaSpace >
+template<> struct DeepCopy< HostSpace , CudaSpace , Cuda >
 {
   DeepCopy( void * dst , const void * src , size_t );
   DeepCopy( const Cuda & , void * dst , const void * src , size_t );
 };
 
-template<> struct DeepCopy< CudaSpace , CudaUVMSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaSpace , CudaSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaSpace , CudaHostPinnedSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaSpace , HostSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , HostSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda>( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace>
+struct DeepCopy< HostSpace , CudaSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace>
+struct DeepCopy< CudaSpace , CudaUVMSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace>
+struct DeepCopy< CudaSpace , CudaHostPinnedSpace , ExecutionSpace>
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
 
-template<> struct DeepCopy< CudaUVMSpace , CudaSpace >
+template<class ExecutionSpace>
+struct DeepCopy< CudaUVMSpace , CudaSpace , ExecutionSpace>
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaUVMSpace , CudaUVMSpace >
+template<class ExecutionSpace>
+struct DeepCopy< CudaUVMSpace , CudaUVMSpace , ExecutionSpace>
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaUVMSpace , CudaHostPinnedSpace >
+template<class ExecutionSpace>
+struct DeepCopy< CudaUVMSpace , CudaHostPinnedSpace , ExecutionSpace>
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , HostSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaUVMSpace , HostSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaUVMSpace , HostSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , HostSpace >( dst , src , n ); }
-};
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda >( dst , src , n ); }
 
-
-template<> struct DeepCopy< CudaHostPinnedSpace , CudaSpace >
-{
   inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , CudaSpace >( dst , src , n ); }
-};
-
-template<> struct DeepCopy< CudaHostPinnedSpace , CudaUVMSpace >
-{
-  inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , CudaSpace >( dst , src , n ); }
-};
-
-template<> struct DeepCopy< CudaHostPinnedSpace , CudaHostPinnedSpace >
-{
-  inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , HostSpace >( dst , src , n ); }
-};
-
-template<> struct DeepCopy< CudaHostPinnedSpace , HostSpace >
-{
-  inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , HostSpace >( dst , src , n ); }
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
 
-template<> struct DeepCopy< HostSpace , CudaUVMSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , CudaSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< HostSpace , CudaHostPinnedSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , CudaUVMSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , HostSpace >( dst , src , n ); }
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , CudaHostPinnedSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , HostSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+
+template<class ExecutionSpace> struct DeepCopy< HostSpace , CudaUVMSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace> struct DeepCopy< HostSpace , CudaHostPinnedSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
 } // namespace Impl

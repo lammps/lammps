@@ -217,8 +217,8 @@ def BelongsToSel(i, sel):
 try:
 
     g_program_name = __file__.split('/')[-1]  # = 'ltemplify.py'
-    g_version_str  = '0.48'
-    g_date_str     = '2015-8-02'
+    g_version_str  = '0.49'
+    g_date_str     = '2015-8-11'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     non_empty_output = False
@@ -452,6 +452,12 @@ try:
             atomid_selection += LammpsSelectToIntervals(argv[i+1])
             min_sel_atomid, max_sel_atomid = IntervalListToMinMax(atomid_selection)
             del argv[i:i+2]
+        elif ((argv[i].lower() == '-datacoeffs') or 
+              (argv[i].lower() == '-datacoeff') or 
+              (argv[i].lower() == '-Coeff') or 
+              (argv[i].lower() == '-Coeffs')):
+            remove_coeffs_from_data_file = False
+            del argv[i:i+1]
         elif ((argv[i].lower() == '-type') or 
               #(argv[i].lower() == '-t') or 
               (argv[i].lower() == '-atomtype') or 
@@ -822,10 +828,11 @@ try:
 
                         comment_text = ''
                         ic = line_orig.find('#')
-                        line = line_orig[:ic]
                         if ic != -1:
+                            line = line_orig[:ic]
                             comment_text = line_orig[ic+1:].strip()
-                                
+                        line = line.rstrip()
+
                         if line.strip() in data_file_header_names:
                             lex.push_raw_text(line) # <- Save line for later
                             break

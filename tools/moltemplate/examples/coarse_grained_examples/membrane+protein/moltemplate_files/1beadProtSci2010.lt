@@ -116,9 +116,9 @@
 
   # Those coordinates in the commands above are a little too large.
   # To make it easier to type them in, I was using sigma=6.0 Angstroms.
-  # Instead, here I'll try using sigma=5.5 Angstroms.   5.5/6 = 0.916667)
+  # Instead, here I'll try using sigma=4.8 Angstroms.   4.8/6 = 0.8)
 
-  4HelixInsideOut.scale(0.9166666666666666)
+  4HelixInsideOut.scale(0.8)
 
   # Note: "scale()" only effects the initial coordinates of
   #       the molecule, not the force field parameters.
@@ -146,7 +146,7 @@
 
   #  --- Distance Units ---
   # In this version of the model, sigma (the bond-length 
-  # and particle diameter) is rounded to 5.5 Angstroms.
+  # and particle diameter) is rounded to 4.8 Angstroms.
   #
   #  --- Energy & Temperature Units ---
   #   In this protein model, "epsilon" represents the free energy 
@@ -170,9 +170,9 @@
   #              i       j            pairstylename            eps sig K L
   #
   write_once("In Settings") {
-    pair_coeff @atom:sH @atom:sH lj/charmm/coul/charmm/inter  1.8065518 5.5 1 -1
-    pair_coeff @atom:sL @atom:sL lj/charmm/coul/charmm/inter  1.8065518 5.5 1 0
-    pair_coeff @atom:tN @atom:tN lj/charmm/coul/charmm/inter  1.8065518 5.5 1 0
+    pair_coeff @atom:sH @atom:sH lj/charmm/coul/charmm/inter  1.8065518 4.8 1 -1
+    pair_coeff @atom:sL @atom:sL lj/charmm/coul/charmm/inter  1.8065518 4.8 1 0
+    pair_coeff @atom:tN @atom:tN lj/charmm/coul/charmm/inter  1.8065518 4.8 1 0
   }
 
   # The exact value of the bond_coeff does not matter too much as long as 
@@ -183,7 +183,7 @@
   #   bond_coeff     bondType            bondstylename    k    r0
 
   write_once("In Settings") {
-    bond_coeff @bond:1beadProtSci2010/backbone harmonic  10.0  5.5
+    bond_coeff @bond:1beadProtSci2010/backbone harmonic  10.0  4.8
   }
 
 

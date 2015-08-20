@@ -272,6 +272,29 @@ private:
   KOKKOS_INLINE_FUNCTION
   static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , const ArgMember & , T & , bool ) const ) {}
 
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( ArgMember , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const ArgMember & , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , ArgMember , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , const ArgMember & , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , ArgMember , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , const ArgMember & , T & , const bool& ) const ) {}
   //----------------------------------------
   // parallel_scan operator with a tag:
 
@@ -291,6 +314,21 @@ private:
   KOKKOS_INLINE_FUNCTION
   static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , const ArgMember& , T & , bool ) const ) {}
 
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , ArgMember , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , ArgMember , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , const ArgMember& , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , const ArgMember& , T & , const bool& ) const ) {}
   //----------------------------------------
 
   typedef decltype( deduce_reduce_type( tag_type() , & FunctorType::operator() ) ) ValueType ;

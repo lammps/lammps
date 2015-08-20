@@ -147,11 +147,6 @@ struct ModifiedGramSchmidt
   static double factorization( const multivector_type Q_ ,
                                const multivector_type R_ )
   {
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
-    using Kokkos::Experimental::ALL ;
-#else
-    const Kokkos::ALL ALL ;
-#endif
     const size_type count  = Q_.dimension_1();
     value_view tmp("tmp");
     value_view one("one");
@@ -163,7 +158,7 @@ struct ModifiedGramSchmidt
     for ( size_type j = 0 ; j < count ; ++j ) {
       // Reduction   : tmp = dot( Q(:,j) , Q(:,j) );
       // PostProcess : tmp = sqrt( tmp ); R(j,j) = tmp ; tmp = 1 / tmp ;
-      const vector_type Qj  = Kokkos::subview( Q_ , ALL , j );
+      const vector_type Qj  = Kokkos::subview( Q_ , Kokkos::ALL() , j );
       const value_view  Rjj = Kokkos::subview( R_ , j , j );
 
       invnorm2( Qj , Rjj , tmp );
@@ -172,7 +167,7 @@ struct ModifiedGramSchmidt
       Kokkos::scale( tmp , Qj );
 
       for ( size_t k = j + 1 ; k < count ; ++k ) {
-        const vector_type Qk = Kokkos::subview( Q_ , ALL , k );
+        const vector_type Qk = Kokkos::subview( Q_ , Kokkos::ALL() , k );
         const value_view  Rjk = Kokkos::subview( R_ , j , k );
 
         // Reduction   : R(j,k) = dot( Q(:,j) , Q(:,k) );

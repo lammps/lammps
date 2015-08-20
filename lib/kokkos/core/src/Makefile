@@ -40,6 +40,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
 	CONDITIONAL_COPIES += copy-threads
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_QTHREAD), 1)
+	KOKKOS_HEADERS_QTHREAD += $(wildcard $(KOKKOS_PATH)/core/src/Qthread/*.hpp)
+	CONDITIONAL_COPIES += copy-qthread
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	KOKKOS_HEADERS_OPENMP += $(wildcard $(KOKKOS_PATH)/core/src/OpenMP/*.hpp)
 	CONDITIONAL_COPIES += copy-openmp
@@ -96,6 +101,10 @@ copy-cuda: mkdir
 copy-threads: mkdir
 	mkdir -p $(PREFIX)/include/Threads
 	cp $(KOKKOS_HEADERS_THREADS) $(PREFIX)/include/Threads
+
+copy-qthread: mkdir
+	mkdir -p $(PREFIX)/include/Qthread
+	cp $(KOKKOS_HEADERS_QTHREAD) $(PREFIX)/include/Qthread
 
 copy-openmp: mkdir
 	mkdir -p $(PREFIX)/include/OpenMP

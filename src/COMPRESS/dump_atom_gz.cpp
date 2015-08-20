@@ -29,7 +29,6 @@ DumpAtomGZ::DumpAtomGZ(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Dump atom/gz only writes compressed files");
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 DumpAtomGZ::~DumpAtomGZ()
@@ -38,7 +37,6 @@ DumpAtomGZ::~DumpAtomGZ()
   gzFp = NULL;
   fp = NULL;
 }
-
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
@@ -91,6 +89,8 @@ void DumpAtomGZ::openfile()
 
   if (multifile) delete [] filecurrent;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void DumpAtomGZ::write_header(bigint ndump)
 {

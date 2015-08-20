@@ -127,6 +127,9 @@
   <div class="section" id="dump-command">
 <span id="index-0"></span><h1>dump command<a class="headerlink" href="#dump-command" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="dump-h5md-command">
+<h1><a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a> command<a class="headerlink" href="#dump-h5md-command" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="dump-image-command">
 <h1><a class="reference internal" href="dump_image.html"><em>dump image</em></a> command<a class="headerlink" href="#dump-image-command" title="Permalink to this headline">¶</a></h1>
 </div>
@@ -143,22 +146,30 @@
 <ul class="simple">
 <li>ID = user-assigned name for the dump</li>
 <li>group-ID = ID of the group of atoms to be dumped</li>
-<li>style = <em>atom</em> or <em>atom/mpiio</em> or <em>cfg</em> or <em>cfg/mpiio</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>xyz/mpiio</em> or <em>image</em> or <em>movie</em> or <em>molfile</em> or <em>local</em> or <em>custom</em> or <em>custom/mpiio</em></li>
+<li>style = <em>atom</em> or <em>atom/gz</em> or <em>atom/mpiio</em> or <em>cfg</em> or <em>cfg/gz</em> or <em>cfg/mpiio</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>xyz/gz</em> or <em>xyz/mpiio</em> or <em>h5md</em> or <em>image</em> or <em>movie</em> or <em>molfile</em> or <em>local</em> or <em>custom</em> or <em>custom/gz</em> or <em>custom/mpiio</em></li>
 <li>N = dump every this many timesteps</li>
 <li>file = name of file to write dump info to</li>
 <li>args = list of arguments for a particular style</li>
 </ul>
 <pre class="literal-block">
 <em>atom</em> args = none
+<em>atom/gz</em> args = none
 <em>atom/mpiio</em> args = none
 <em>cfg</em> args = same as <em>custom</em> args, see below
+<em>cfg/gz</em> args = same as <em>custom</em> args, see below
 <em>cfg/mpiio</em> args = same as <em>custom</em> args, see below
 <em>dcd</em> args = none
 <em>xtc</em> args = none
 <em>xyz</em> args = none
 </pre>
 <pre class="literal-block">
+<em>xyz/gz</em> args = none
+</pre>
+<pre class="literal-block">
 <em>xyz/mpiio</em> args = none
+</pre>
+<pre class="literal-block">
+<em>h5md</em> args = discussed on <a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a> doc page
 </pre>
 <pre class="literal-block">
 <em>image</em> args = discussed on <a class="reference internal" href="dump_image.html"><em>dump image</em></a> doc page
@@ -179,7 +190,7 @@
     f_ID[N] = Nth column of local array calculated by a fix with ID
 </pre>
 <pre class="literal-block">
-<em>custom</em> or <em>custom/mpiio</em> args = list of atom attributes
+<em>custom</em> or <em>custom/gz</em> or <em>custom/mpiio</em> args = list of atom attributes
   possible attributes = id, mol, proc, procp1, type, element, mass,
                      x, y, z, xs, ys, zs, xu, yu, zu,
                      xsu, ysu, zsu, ix, iy, iz,
@@ -224,6 +235,7 @@ i_name = per-atom integer vector with name, managed by fix property/atom
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>dump myDump all atom 100 dump.atom
 dump myDump all atom/mpiio 100 dump.atom.mpiio
+dump myDump all atom/gz 100 dump.atom.gz
 dump 2 subgroup atom 50 dump.run.bin
 dump 2 subgroup atom 50 dump.run.mpiio.bin
 dump 4a all custom 100 dump.myforce.* id type x y vx fx
@@ -274,6 +286,16 @@ multiple processors, each of which owns a subset of the atoms.</p>
 default.  For the <em>dcd</em>, <em>xtc</em>, <em>xyz</em>, and <em>molfile</em> styles, sorting by
 atom ID is on by default. See the <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a> doc
 page for details.</p>
+<p>The <em>atom/gz</em>, <em>cfg/gz</em>, <em>custom/gz</em>, and <em>xyz/gz</em> styles are identical
+in command syntax to the corresponding styles without &#8220;gz&#8221;, however,
+they generate compressed files using the zlib library. Thus the filename
+suffix &#8221;.gz&#8221; is mandatory. This is an alternative approach to writing
+compressed files via a pipe, as done by the regular dump styles, which
+may be required on clusters where the interface to the high-speed network
+disallows using the fork() library call (which is needed for a pipe).
+For the remainder of this doc page, you should thus consider the <em>atom</em>
+and <em>atom/gz</em> styles (etc) to be inter-changeable, with the exception
+of the required filename suffix.</p>
 <p>As explained below, the <em>atom/mpiio</em>, <em>cfg/mpiio</em>, <em>custom/mpiio</em>, and
 <em>xyz/mpiio</em> styles are identical in command syntax and in the format
 of the dump files they create, to the corresponding styles without
@@ -645,8 +667,13 @@ per-atom quantities which could then be output into dump files.</p>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>To write gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the <a class="reference internal" href="Section_start.html#start-2"><span>Making LAMMPS</span></a> section of the documentation.</p>
+<p>To write gzipped dump files, you must either compile LAMMPS with the
+-DLAMMPS_GZIP option or use the styles from the COMPRESS package
+- see the <a class="reference internal" href="Section_start.html#start-2"><span>Making LAMMPS</span></a> section of
+the documentation.</p>
+<p>The <em>atom/gz</em>, <em>cfg/gz</em>, <em>custom/gz</em>, and <em>xyz/gz</em> styles are part
+of the COMPRESS package.  They are only enabled if LAMMPS was built
+with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 <p>The <em>atom/mpiio</em>, <em>cfg/mpiio</em>, <em>custom/mpiio</em>, and <em>xyz/mpiio</em> styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
 built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
@@ -668,7 +695,8 @@ machines.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="dump_image.html"><em>dump image</em></a>, <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a>,
+<p><a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a>, <a class="reference internal" href="dump_image.html"><em>dump image</em></a>,
+<a class="reference internal" href="dump_molfile.html"><em>dump molfile</em></a>, <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a>,
 <a class="reference internal" href="undump.html"><em>undump</em></a></p>
 </div>
 <div class="section" id="default">

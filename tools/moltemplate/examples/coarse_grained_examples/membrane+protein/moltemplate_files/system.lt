@@ -100,39 +100,39 @@ delete lipids[4][6][*]
 write_once("In Settings") {
 
   # Interactions between the protein and lipid atoms are usually
-  # determined by mixing rules.  (However this is not possible some 
-  # for atoms, such as the "int" atoms in the lipid model which 
-  # interact using -1/r^2 attraction.)  Mixing rules do not make
-  # sense for these atoms so we must explicitly define their 
-  # interaction with all other atoms.
+  # determined by mixing rules.  However this is not possible some 
+  # for atoms (such as the "int" atoms in the lipid model which 
+  # interact using -1/r^2 attraction).  Lorentz-Berthelot mixing 
+  # rules do not make sense for these atoms so we must explicitly 
+  # define their interaction with all other atoms.
 
   #                  i                      j                   pairstylename                  eps   sig K L
 
-  pair_coeff @atom:CGLipidBr2005/int @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 6.0 1 -1
-  pair_coeff @atom:CGLipidBr2005/int @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
-  pair_coeff @atom:CGLipidBr2005/int @atom:1beadProtSci2010/tN lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
+  pair_coeff @atom:CGLipidBr2005/int @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 7.5 1 -1
+  pair_coeff @atom:CGLipidBr2005/int @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
+  pair_coeff @atom:CGLipidBr2005/int @atom:1beadProtSci2010/tN lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
 
   # We want the interactions between hydrophobic residues and atoms in
-  # the interior of the lipd to be energetically similar to the attractive
+  # the interior of the lipid to be energetically similar to the attractive
   # interactions between hydrophobic residues. (See 1beadProtSci2010.)
 
-  pair_coeff @atom:CGLipidBr2005/tail @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 6.0 1 -1
+  pair_coeff @atom:CGLipidBr2005/tail @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 7.5 1 -1
+
+  # All other interactions between proteins and lipids are steric.
+  pair_coeff @atom:CGLipidBr2005/tail @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
+  pair_coeff @atom:CGLipidBr2005/tail @atom:1beadProtSci2010/tN lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
+  pair_coeff @atom:CGLipidBr2005/DPPC/head @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
+  pair_coeff @atom:CGLipidBr2005/DPPC/head @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
+  pair_coeff @atom:CGLipidBr2005/DLPC/head @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
+  pair_coeff @atom:CGLipidBr2005/DLPC/head @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 7.5 1 0
+
 
   # We also add an artificial attractive interaction between the 
   # turn residues of the protein and the lipid head groups in
-  # order to keep the protein upright.  Probably not necessary.
-
+  # order to keep the protein upright. This might not be necessary
+  
   pair_coeff @atom:CGLipidBr2005/DPPC/head @atom:1beadProtSci2010/tN lj/charmm/coul/charmm/inter 1.8065518 6.0 1 -1
   pair_coeff @atom:CGLipidBr2005/DLPC/head @atom:1beadProtSci2010/tN lj/charmm/coul/charmm/inter 1.8065518 6.0 1 -1
-
-  # All other interactions between proteins and lipids are steric.
-  pair_coeff @atom:CGLipidBr2005/tail @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
-  pair_coeff @atom:CGLipidBr2005/tail @atom:1beadProtSci2010/tN lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
-  pair_coeff @atom:CGLipidBr2005/DPPC/head @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
-  pair_coeff @atom:CGLipidBr2005/DPPC/head @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
-  pair_coeff @atom:CGLipidBr2005/DLPC/head @atom:1beadProtSci2010/sH lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
-  pair_coeff @atom:CGLipidBr2005/DLPC/head @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter 1.8065518 6.0 1 0
-
 
   # Add a weak attractive interaction between hydrophilic "sL" beads 
   # (Whose strength mimics the strength of interaction between tail beads
@@ -144,7 +144,7 @@ write_once("In Settings") {
   #  tails leaving the hydrophilic amino acids of the protein in the interior.
   #  In reality, these polar groups form hydrogen bonds with each other.)
 
-  pair_coeff @atom:1beadProtSci2010/sL @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter  0.3286 7.5 0.4 -1
+  pair_coeff @atom:1beadProtSci2010/sL @atom:1beadProtSci2010/sL lj/charmm/coul/charmm/inter  0.3286 6.0 0.4 -1
 
   # However these hydrophilic amino acids are not attrected to 
   # the bilayer interior.

@@ -61,7 +61,7 @@ fix fxnve all nve
 
 #restart       500000
 
-run           10000000
+run           50000000
 
 
 write_data   system_after_nvt.data

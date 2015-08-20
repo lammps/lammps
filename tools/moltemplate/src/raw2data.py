@@ -63,6 +63,11 @@ try:
             frame_coords[str(n_crds+1)] = line.split()
             line = in_coord_file.readline()
 
+        # Check to see if there are any blank lines at this location in the file
+        # If there are, it means we are at a new "frame" (in the trajectory).
+        # Skip over any blank line(s) separating this frame from the next frame
+        # so that the next time we enter the loop, we are at the beginning
+        # of a new frame.
         while (line != '') and (line.strip() == ''):
             line = in_coord_file.readline()
 

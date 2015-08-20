@@ -52,6 +52,8 @@
 
 /*--------------------------------------------------------------------------*/
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
 namespace Test {
 
 struct EmbedArray {};
@@ -170,8 +172,6 @@ public:
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
-
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
 
 namespace Kokkos {
 namespace Impl {
@@ -677,8 +677,6 @@ public:
 
 } // namespace Kokkos
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
-
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 
@@ -687,9 +685,6 @@ namespace Test {
 template< class DeviceType >
 int TestViewAggregate()
 {
-
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
-
   typedef Kokkos::View< Test::Array<double,32> * , DeviceType > a32_type ;
   typedef typename a32_type::array_type a32_base_type ;
 
@@ -705,12 +700,54 @@ int TestViewAggregate()
   a32_base = a32 ;
   a0_base = a0 ;
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
   return 0 ;
 }
 
 }
 
+/*--------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+#else /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+
+namespace Test {
+
+template< class DeviceType >
+int TestViewAggregate()
+{
+/*
+  typedef Kokkos::ViewTraits< Kokkos::Array<double,32> ** , DeviceType > a32_traits ;
+  typedef Kokkos::ViewTraits< typename a32_traits::array_scalar_type , DeviceType > flat_traits ;
+
+  static_assert( std::is_same< typename a32_traits::specialize , Kokkos::Array<> >::value , "" );
+  static_assert( a32_traits::rank == 2 , "" );
+  static_assert( a32_traits::rank_dynamic == 2 , "" );
+
+  static_assert( std::is_same< typename flat_traits::specialize , void >::value , "" );
+  static_assert( flat_traits::rank == 3 , "" );
+  static_assert( flat_traits::rank_dynamic == 2 , "" );
+  static_assert( flat_traits::dimension::N2 == 32 , "" );
+
+
+
+
+  typedef Kokkos::View< Kokkos::Array<double,32> ** , DeviceType > a32_type ;
+  typedef typename a32_type::array_type  a32_flat_type ;
+
+
+  static_assert( a32_type::Rank == 2 , "" );
+  static_assert( a32_flat_type::Rank == 3 , "" );
+*/
+
+  return 0 ;
+}
+
+}
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+
+/*--------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
 
 #endif /* #ifndef TEST_AGGREGATE_HPP */

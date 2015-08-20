@@ -142,9 +142,6 @@ struct my_complex {
   }
 };
 
-#if defined (KOKKOS_HAVE_CXX11)
-
-
 template<typename Scalar, class ExecutionSpace>
 struct functor_team_for {
   typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
@@ -587,7 +584,6 @@ struct functor_reduce {
     sum += team.league_rank() * 100 + team.thread_rank();
   }
 };
-#endif
 
 template<typename Scalar,class ExecutionSpace>
 bool test_scalar(int nteams, int team_size, int test) {
@@ -595,7 +591,7 @@ bool test_scalar(int nteams, int team_size, int test) {
   typename Kokkos::View<int,Kokkos::LayoutLeft,ExecutionSpace>::HostMirror h_flag("h_flag");
   h_flag() = 0 ;
   Kokkos::deep_copy(d_flag,h_flag);
-  #ifdef KOKKOS_HAVE_CXX11
+  
   if(test==0)
   Kokkos::parallel_for( std::string("A") , Kokkos::TeamPolicy<ExecutionSpace>(nteams,team_size,8),
       functor_vec_red<Scalar, ExecutionSpace>(d_flag));
@@ -629,7 +625,7 @@ bool test_scalar(int nteams, int team_size, int test) {
   if(test==10)
   Kokkos::parallel_for( Kokkos::TeamPolicy<ExecutionSpace>(nteams,team_size,8),
       functor_team_vector_reduce_join<Scalar, ExecutionSpace>(d_flag));
-  #endif
+  
   Kokkos::deep_copy(h_flag,d_flag);
 
   return (h_flag() == 0);

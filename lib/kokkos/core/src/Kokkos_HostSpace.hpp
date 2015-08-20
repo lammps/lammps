@@ -255,11 +255,17 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template< class , class > struct DeepCopy ;
+template< class DstSpace, class SrcSpace, class ExecutionSpace = typename DstSpace::execution_space> struct DeepCopy ;
 
-template<>
-struct DeepCopy<HostSpace,HostSpace> {
-  DeepCopy( void * dst , const void * src , size_t n );
+template<class ExecutionSpace>
+struct DeepCopy<HostSpace,HostSpace,ExecutionSpace> {
+  DeepCopy( void * dst , const void * src , size_t n ) {
+    memcpy( dst , src , n );
+  }
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n ) {
+    exec.fence();
+    memcpy( dst , src , n );
+  }
 };
 
 } // namespace Impl

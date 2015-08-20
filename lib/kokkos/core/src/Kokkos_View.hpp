@@ -44,6 +44,7 @@
 #ifndef KOKKOS_VIEW_HPP
 #define KOKKOS_VIEW_HPP
 
+#include <type_traits>
 #include <string>
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_HostSpace.hpp>
@@ -55,10 +56,13 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Shape.hpp>
 #include <impl/Kokkos_AnalyzeShape.hpp>
+#include <impl/Kokkos_Tags.hpp>
+
+// Must define before includng <impl/Kokkos_ViewOffset.hpp>
+namespace Kokkos { struct ALL ; }
+
 #include <impl/Kokkos_ViewOffset.hpp>
 #include <impl/Kokkos_ViewSupport.hpp>
-#include <impl/Kokkos_Tags.hpp>
-#include <type_traits>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -94,7 +98,7 @@ template< class DstViewSpecialize ,
           class Enable = void >
 struct ViewAssignment ;
 
-template< class DstMemorySpace , class SrcMemorySpace >
+template< class DstMemorySpace , class SrcMemorySpace , class ExecutionSpace>
 struct DeepCopy ;
 
 } /* namespace Impl */
@@ -1556,8 +1560,192 @@ void deep_copy( const View< DT, DL, DD, DM, DS > & dst ,
   Impl::ViewRemap< dst_type , src_type >( dst , src );
 }
 
+}
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+namespace Kokkos {
+
+//----------------------------------------------------------------------------
+/** \brief  Deep copy a value into a view.
+ */
+template< class ExecSpace, class DT , class DL , class DD , class DM , class DS >
+inline
+void deep_copy( const ExecSpace&, const View<DT,DL,DD,DM,DS> & dst ,
+                typename Impl::enable_if<(
+                  Impl::is_same< typename ViewTraits<DT,DL,DD,DM>::non_const_value_type ,
+                                 typename ViewTraits<DT,DL,DD,DM>::value_type >::value
+                ), typename ViewTraits<DT,DL,DD,DM>::const_value_type >::type & value )
+{
+  Impl::ViewFill< View<DT,DL,DD,DM,DS> >( dst , value );
+}
+
+template< class ExecSpace, class ST , class SL , class SD , class SM , class SS >
+inline
+typename Impl::enable_if<( ViewTraits<ST,SL,SD,SM>::rank == 0 )>::type
+deep_copy( const ExecSpace& exec,  ST & dst , const View<ST,SL,SD,SM,SS> & src )
+{
+  typedef  ViewTraits<ST,SL,SD,SM>  src_traits ;
+  typedef typename src_traits::memory_space  src_memory_space ;
+  Impl::DeepCopy< HostSpace , src_memory_space , ExecSpace >( exec , & dst , src.ptr_on_device() , sizeof(ST) );
+}
+
+//----------------------------------------------------------------------------
+/** \brief  A deep copy between views of compatible type, and rank zero.
+ */
+template< class ExecSpace ,
+          class DT , class DL , class DD , class DM , class DS ,
+          class ST , class SL , class SD , class SM , class SS >
+inline
+void deep_copy( const ExecSpace& exec,
+                const View<DT,DL,DD,DM,DS> & dst ,
+                const View<ST,SL,SD,SM,SS> & src ,
+                typename Impl::enable_if<(
+                  // Same type and destination is not constant:
+                  Impl::is_same< typename View<DT,DL,DD,DM,DS>::value_type ,
+                                 typename View<ST,SL,SD,SM,SS>::non_const_value_type >::value
+                  &&
+                  // Rank zero:
+                  ( unsigned(View<DT,DL,DD,DM,DS>::rank) == unsigned(0) ) &&
+                  ( unsigned(View<ST,SL,SD,SM,SS>::rank) == unsigned(0) )
+                )>::type * = 0 )
+{
+  typedef  View<DT,DL,DD,DM,DS>  dst_type ;
+  typedef  View<ST,SL,SD,SM,SS>  src_type ;
+
+  typedef typename dst_type::memory_space  dst_memory_space ;
+  typedef typename src_type::memory_space  src_memory_space ;
+  typedef typename src_type::value_type    value_type ;
+
+  if ( dst.ptr_on_device() != src.ptr_on_device() ) {
+    Impl::DeepCopy< dst_memory_space , src_memory_space , ExecSpace >( exec , dst.ptr_on_device() , src.ptr_on_device() , sizeof(value_type) );
+  }
+}
+
+//----------------------------------------------------------------------------
+/** \brief  A deep copy between views of the default specialization, compatible type,
+ *          same non-zero rank, same contiguous layout.
+ */
+template< class ExecSpace ,
+          class DT , class DL , class DD , class DM ,
+          class ST , class SL , class SD , class SM >
+inline
+void deep_copy( const ExecSpace & exec,
+                const View<DT,DL,DD,DM,Impl::ViewDefault> & dst ,
+                const View<ST,SL,SD,SM,Impl::ViewDefault> & src ,
+                typename Impl::enable_if<(
+                  // Same type and destination is not constant:
+                  Impl::is_same< typename View<DT,DL,DD,DM,Impl::ViewDefault>::value_type ,
+                                 typename View<ST,SL,SD,SM,Impl::ViewDefault>::non_const_value_type >::value
+                  &&
+                  // Same non-zero rank:
+                  ( unsigned(View<DT,DL,DD,DM,Impl::ViewDefault>::rank) ==
+                    unsigned(View<ST,SL,SD,SM,Impl::ViewDefault>::rank) )
+                  &&
+                  ( 0 < unsigned(View<DT,DL,DD,DM,Impl::ViewDefault>::rank) )
+                  &&
+                  // Same layout:
+                  Impl::is_same< typename View<DT,DL,DD,DM,Impl::ViewDefault>::array_layout ,
+                                 typename View<ST,SL,SD,SM,Impl::ViewDefault>::array_layout >::value
+                )>::type * = 0 )
+{
+  typedef  View<DT,DL,DD,DM,Impl::ViewDefault>  dst_type ;
+  typedef  View<ST,SL,SD,SM,Impl::ViewDefault>  src_type ;
+
+  typedef typename dst_type::memory_space  dst_memory_space ;
+  typedef typename src_type::memory_space  src_memory_space ;
+
+  enum { is_contiguous = // Contiguous (e.g., non-strided, non-tiled) layout
+           Impl::is_same< typename View<DT,DL,DD,DM,Impl::ViewDefault>::array_layout , LayoutLeft >::value ||
+           Impl::is_same< typename View<DT,DL,DD,DM,Impl::ViewDefault>::array_layout , LayoutRight >::value };
+
+  if ( dst.ptr_on_device() != src.ptr_on_device() ) {
+
+    // Same shape (dimensions)
+
+    const bool shapes_are_equal = dst.shape() == src.shape();
+
+    if ( shapes_are_equal && is_contiguous && dst.capacity() == src.capacity() ) {
+
+      // Views span equal length contiguous range.
+      // Assuming can perform a straight memory copy over this range.
+
+      const size_t nbytes = sizeof(typename dst_type::value_type) * dst.capacity();
+
+      Impl::DeepCopy< dst_memory_space , src_memory_space , ExecSpace >( exec , dst.ptr_on_device() , src.ptr_on_device() , nbytes );
+    }
+    else {
+      // Destination view's execution space must be able to directly access source memory space
+      // in order for the ViewRemap functor run in the destination memory space's execution space.
+      size_t stride[8];
+      src.stride(stride);
+      size_t size_stride = stride[0]*src.dimension_0();
+      size_t size_dim = src.dimension_0();
+      for(int i = 1; i<src.rank; i++) {
+        if(stride[i]*src.dimension(i)>size_stride)
+          size_stride = stride[i]*src.dimension(i);
+        size_dim*=src.dimension(i);
+      }
+
+      if( shapes_are_equal && size_stride == size_dim) {
+        const size_t nbytes = sizeof(typename dst_type::value_type) * dst.capacity();
+
+        Impl::DeepCopy< dst_memory_space , src_memory_space , ExecSpace >( exec , dst.ptr_on_device() , src.ptr_on_device() , nbytes );
+      } else {
+        Impl::ViewRemap< dst_type , src_type >( dst , src );
+      }
+    }
+  }
+}
+
+
+/** \brief Deep copy equal dimension arrays in the same space which
+ *         have different layouts or specializations.
+ */
+template< class ExecSpace ,
+          class DT , class DL , class DD , class DM , class DS ,
+          class ST , class SL , class SD , class SM , class SS >
+inline
+void deep_copy( const ExecSpace& ,
+                const View< DT, DL, DD, DM, DS > & dst ,
+                const View< ST, SL, SD, SM, SS > & src ,
+                const typename Impl::enable_if<(
+                  // Same type and destination is not constant:
+                  Impl::is_same< typename View<DT,DL,DD,DM,DS>::value_type ,
+                                 typename View<DT,DL,DD,DM,DS>::non_const_value_type >::value
+                  &&
+                  // Source memory space is accessible to destination memory space
+                  Impl::VerifyExecutionCanAccessMemorySpace< typename View<DT,DL,DD,DM,DS>::memory_space
+                                                           , typename View<ST,SL,SD,SM,SS>::memory_space >::value
+                  &&
+                  // Same non-zero rank
+                  ( unsigned( View<DT,DL,DD,DM,DS>::rank ) ==
+                    unsigned( View<ST,SL,SD,SM,SS>::rank ) )
+                  &&
+                  ( 0 < unsigned( View<DT,DL,DD,DM,DS>::rank ) )
+                  &&
+                  // Different layout or different specialization:
+                  ( ( ! Impl::is_same< typename View<DT,DL,DD,DM,DS>::array_layout ,
+                                       typename View<ST,SL,SD,SM,SS>::array_layout >::value )
+                    ||
+                    ( ! Impl::is_same< DS , SS >::value )
+                  )
+                )>::type * = 0 )
+{
+  typedef View< DT, DL, DD, DM, DS > dst_type ;
+  typedef View< ST, SL, SD, SM, SS > src_type ;
+
+  assert_shapes_equal_dimension( dst.shape() , src.shape() );
+
+  Impl::ViewRemap< dst_type , src_type >( dst , src );
+}
+
+}
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
 
 template< class T , class L , class D , class M , class S >
 typename Impl::enable_if<(
@@ -1692,9 +1880,6 @@ void realloc( View<T,L,D,M,S> & v ,
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-
-/** \brief  Tag denoting that a subview should capture all of a dimension */
-struct ALL { KOKKOS_INLINE_FUNCTION ALL(){} };
 
 template< class D , class A1 , class A2 , class A3 , class S ,
           class ArgType0 , class ArgType1 , class ArgType2 , class ArgType3 ,
@@ -1896,17 +2081,37 @@ subview( const View<D,A1,A2,A3,S> & src ,
 #include <impl/Kokkos_ViewDefault.hpp>
 #include <impl/Kokkos_Atomic_View.hpp>
 
+#include <impl/Kokkos_ViewOffset.hpp>
+#include <impl/Kokkos_ViewSupport.hpp>
+
+namespace Kokkos {
+/** \brief  Tag denoting that a subview should capture all of a dimension */
+struct ALL { KOKKOS_INLINE_FUNCTION ALL(){} };
+}
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#include <KokkosExp_View.hpp>
+
 #else
+
+// Must define before includng <impl/Kokkos_ViewOffset.hpp>
+namespace Kokkos {
+namespace Experimental {
+namespace Impl {
+struct ALL_t ;
+}
+}
+using ALL = Experimental::Impl::ALL_t ;
+}
 
 #include <impl/Kokkos_ViewOffset.hpp>
 #include <impl/Kokkos_ViewSupport.hpp>
 
-#endif /* #if defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
-
 #include <KokkosExp_View.hpp>
+
+#endif /* #if defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

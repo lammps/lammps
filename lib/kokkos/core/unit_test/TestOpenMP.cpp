@@ -338,7 +338,7 @@ TEST_F( openmp , template_meta_functions )
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_HAVE_CXX11 ) && defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
+#if defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
 TEST_F( openmp , cxx11 )
 {
   if ( Kokkos::Impl::is_same< Kokkos::DefaultExecutionSpace , Kokkos::OpenMP >::value ) {
@@ -350,7 +350,6 @@ TEST_F( openmp , cxx11 )
 }
 #endif
 
-#if defined (KOKKOS_HAVE_CXX11)
 TEST_F( openmp , reduction_deduction )
 {
   TestCXX11::test_reduction_deduction< Kokkos::OpenMP >();
@@ -370,6 +369,5 @@ TEST_F( openmp , team_vector )
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(9) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(10) ) );
 }
-#endif
 } // namespace test
 

@@ -1792,6 +1792,69 @@ void parallel_reduce( const size_t        work_count
 #endif
 }
 
+#ifdef KOKKOS_HAVE_CUDA
+template< class ExecPolicy , class FunctorType , class ResultType >
+inline
+void parallel_reduce( const std::string & str
+                    , const ExecPolicy  & policy
+                    , const FunctorType & functor
+                    , ResultType * result)
+{
+  #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
+  Kokkos::fence();
+  std::cout << "KOKKOS_DEBUG Start parallel_reduce kernel: " << str << std::endl;
+  #endif
+
+  parallel_reduce(policy,functor,result,str);
+
+  #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
+  Kokkos::fence();
+  std::cout << "KOKKOS_DEBUG End   parallel_reduce kernel: " << str << std::endl;
+  #endif
+  (void) str;
+}
+
+template< class ExecPolicy , class FunctorType , class ResultType >
+inline
+void parallel_reduce( const std::string & str
+                    , const ExecPolicy  & policy
+                    , const FunctorType & functor
+                    , ResultType & result)
+{
+  #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
+  Kokkos::fence();
+  std::cout << "KOKKOS_DEBUG Start parallel_reduce kernel: " << str << std::endl;
+  #endif
+
+  parallel_reduce(policy,functor,result,str);
+
+  #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
+  Kokkos::fence();
+  std::cout << "KOKKOS_DEBUG End   parallel_reduce kernel: " << str << std::endl;
+  #endif
+  (void) str;
+}
+
+template< class ExecPolicy , class FunctorType >
+inline
+void parallel_reduce( const std::string & str
+                    , const ExecPolicy  & policy
+                    , const FunctorType & functor)
+{
+  #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
+  Kokkos::fence();
+  std::cout << "KOKKOS_DEBUG Start parallel_reduce kernel: " << str << std::endl;
+  #endif
+
+  parallel_reduce(policy,functor,str);
+
+  #if KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES
+  Kokkos::fence();
+  std::cout << "KOKKOS_DEBUG End   parallel_reduce kernel: " << str << std::endl;
+  #endif
+  (void) str;
+}
+#endif
 } // namespace Kokkos
 #endif /* defined( __CUDACC__ ) */
 

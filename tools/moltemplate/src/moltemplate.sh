@@ -9,8 +9,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.31"
-G_DATE="2015-8-02"
+G_VERSION="1.32"
+G_DATE="2015-8-17"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -1638,11 +1638,12 @@ if [ -s "$data_atoms" ]; then
     else
 	echo "Atoms # full" >> "$OUT_FILE_DATA"
     fi
-    if [ -s "$tmp_atom_coords" ]; then
-        echo "# (Note: x,y,z coordinates may overlap and can be modified later.)" >> "$OUT_FILE_DATA"
-    else
-        echo "" >> "$OUT_FILE_DATA"
-    fi
+    #if [ -s "$tmp_atom_coords" ]; then
+    #    echo "# (Note: x,y,z coordinates may overlap and can be modified later.)" >> "$OUT_FILE_DATA"
+    #else
+    #    echo "" >> "$OUT_FILE_DATA"
+    #fi
+    echo "" >> "$OUT_FILE_DATA"
     cat "$data_atoms" >> "$OUT_FILE_DATA"
     echo "" >> "$OUT_FILE_DATA"
 else
@@ -1776,6 +1777,7 @@ if [ -s "$tmp_atom_coords" ]; then
         ERR_INTERNAL
     fi
     mv -f "$OUT_FILE_COORDS" "$OUT_FILE_DATA"
+    echo "copied atomic coordinates into $OUT_FILE_DATA"
 
     # Previously, in earlier versions of moltemplate, we used to 
     # create a new input script containing "set" commands which the

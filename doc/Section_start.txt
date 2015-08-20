@@ -292,7 +292,8 @@ the need to store intermediate image files. It requires that your
 machines supports the "popen" function in the standard runtime library
 and that an FFmpeg executable can be found by LAMMPS during the run.
 
-IMPORTANT NOTE: also this option can conflict with high-speed networks.
+IMPORTANT NOTE: Similar to the note above, this option can conflict
+with high-speed networks, because it uses popen().
 
 Using -DLAMMPS_MEMALIGN=<bytes> enables the use of the
 posix_memalign() call instead of malloc() when large chunks or memory

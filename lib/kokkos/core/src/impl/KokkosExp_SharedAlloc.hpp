@@ -244,7 +244,12 @@ public:
 
   template< class MemorySpace >
   std::string get_label() const
-    { return static_cast< SharedAllocationRecord< MemorySpace , void > * >( m_record )->get_label(); }
+    {
+      return ( m_record_bits & DO_NOT_DEREF_FLAG )
+             ? std::string()
+             : static_cast< SharedAllocationRecord< MemorySpace , void > * >( m_record )->get_label()
+             ;
+    }
 
   KOKKOS_INLINE_FUNCTION
   SharedAllocationTracker( Record * arg_record )

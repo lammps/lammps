@@ -47,8 +47,6 @@
 
 namespace TestCXX11 {
 
-#if defined( KOKKOS_HAVE_CXX11 )
-
 struct TestReductionDeductionTagA {};
 struct TestReductionDeductionTagB {};
 
@@ -89,13 +87,6 @@ void test_reduction_deduction()
   Kokkos::parallel_reduce( Kokkos::RangePolicy<ExecSpace,TestReductionDeductionTagB>(0,N) , Functor() , result );
   ASSERT_EQ( answerB , result );
 }
-
-#else /* ! defined( KOKKOS_HAVE_CXX11 ) */
-
-template< class ExecSpace >
-void test_reduction_deduction() {}
-
-#endif /* ! defined( KOKKOS_HAVE_CXX11 ) */
 
 }
 

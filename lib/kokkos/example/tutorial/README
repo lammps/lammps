@@ -1,0 +1,17 @@
+Build the examples by typing in each directory: 
+make -j 16
+
+To specify a target device:
+make openmp -j 16
+make pthreads -j 16
+make serial -j 16
+make cuda -j 16
+
+The lambda variants can not be build with CUDA=yes at the moment, since
+CUDA does not support lambdas from the host. 
+Some of the advanced topics try to highlight performance impacts by timing 
+different variants of doing the same thing.
+Also some of the advanced topics (in particular hierarchical parallelism)
+require C++11 even with out using host side lambdas. CUDA 6.5 can be used 
+to compile those. 
+

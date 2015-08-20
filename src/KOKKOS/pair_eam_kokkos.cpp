@@ -342,67 +342,138 @@ void PairEAMKokkos<DeviceType>::file2array()
 template<class DeviceType>
 void PairEAMKokkos<DeviceType>::array2spline()
 {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   rdr = 1.0/dr;
   rdrho = 1.0/drho;
 
-  tdual_ffloat_2d_n7 k_frho_spline = tdual_ffloat_2d_n7("pair:frho",nfrho,nrho+1);
-  tdual_ffloat_2d_n7 k_rhor_spline = tdual_ffloat_2d_n7("pair:rhor",nrhor,nr+1);
-  tdual_ffloat_2d_n7 k_z2r_spline = tdual_ffloat_2d_n7("pair:z2r",nz2r,nr+1);
+  tdual_ffloat4 k_frho_spline_a = tdual_ffloat4("pair:frho_a",nfrho,nrho+1);
+  tdual_ffloat4 k_rhor_spline_a = tdual_ffloat4("pair:rhor_a",nrhor,nr+1);
+  tdual_ffloat4 k_z2r_spline_a = tdual_ffloat4("pair:z2r_a",nz2r,nr+1);
+  tdual_ffloat4 k_frho_spline_b = tdual_ffloat4("pair:frho_b",nfrho,nrho+1);
+  tdual_ffloat4 k_rhor_spline_b = tdual_ffloat4("pair:rhor_b",nrhor,nr+1);
+  tdual_ffloat4 k_z2r_spline_b = tdual_ffloat4("pair:z2r_b",nz2r,nr+1);
 
-  t_host_ffloat_2d_n7 h_frho_spline = k_frho_spline.h_view;
-  t_host_ffloat_2d_n7 h_rhor_spline = k_rhor_spline.h_view;
-  t_host_ffloat_2d_n7 h_z2r_spline = k_z2r_spline.h_view;
+  t_host_ffloat4 h_frho_spline_a = k_frho_spline_a.h_view;
+  t_host_ffloat4 h_rhor_spline_a = k_rhor_spline_a.h_view;
+  t_host_ffloat4 h_z2r_spline_a =  k_z2r_spline_a.h_view;
+  t_host_ffloat4 h_frho_spline_b = k_frho_spline_b.h_view;
+  t_host_ffloat4 h_rhor_spline_b = k_rhor_spline_b.h_view;
+  t_host_ffloat4 h_z2r_spline_b =  k_z2r_spline_b.h_view;
 
   for (int i = 0; i < nfrho; i++)
-    interpolate(nrho,drho,frho[i],h_frho_spline,i);
-  k_frho_spline.template modify<LMPHostType>();
-  k_frho_spline.template sync<DeviceType>();
+    interpolate(nrho,drho,frho[i],h_frho_spline_a,h_frho_spline_b,i);
+  k_frho_spline_a.template modify<LMPHostType>();
+  k_frho_spline_a.template sync<DeviceType>();
+  k_frho_spline_b.template modify<LMPHostType>();
+  k_frho_spline_b.template sync<DeviceType>();
 
   for (int i = 0; i < nrhor; i++)
-    interpolate(nr,dr,rhor[i],h_rhor_spline,i);
-  k_rhor_spline.template modify<LMPHostType>();
-  k_rhor_spline.template sync<DeviceType>();
+    interpolate(nr,dr,rhor[i],h_rhor_spline_a,h_rhor_spline_b,i);
+  k_rhor_spline_a.template modify<LMPHostType>();
+  k_rhor_spline_a.template sync<DeviceType>();
+  k_rhor_spline_b.template modify<LMPHostType>();
+  k_rhor_spline_b.template sync<DeviceType>();
 
   for (int i = 0; i < nz2r; i++)
-    interpolate(nr,dr,z2r[i],h_z2r_spline,i);
-  k_z2r_spline.template modify<LMPHostType>();
-  k_z2r_spline.template sync<DeviceType>();
+    interpolate(nr,dr,z2r[i],h_z2r_spline_a,h_z2r_spline_b,i);
+  k_z2r_spline_a.template modify<LMPHostType>();
+  k_z2r_spline_a.template sync<DeviceType>();
+  k_z2r_spline_b.template modify<LMPHostType>();
+  k_z2r_spline_b.template sync<DeviceType>();
 
-  d_frho_spline = k_frho_spline.d_view;
-  d_rhor_spline = k_rhor_spline.d_view;
-  d_z2r_spline = k_z2r_spline.d_view;
+  d_frho_spline_a = k_frho_spline_a.d_view;
+  d_rhor_spline_a = k_rhor_spline_a.d_view;
+  d_z2r_spline_a = k_z2r_spline_a.d_view;
+  d_frho_spline_b = k_frho_spline_b.d_view;
+  d_rhor_spline_b = k_rhor_spline_b.d_view;
+  d_z2r_spline_b = k_z2r_spline_b.d_view;
+
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairEAMKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_host_ffloat_2d_n7 h_spline, int i)
+void PairEAMKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_host_ffloat4 h_spline_a, t_host_ffloat4 h_spline_b, int i)
 {
-  for (int m = 1; m <= n; m++) h_spline(i,m,6) = f[m];
+  for (int m = 1; m <= n; m++) h_spline_b(i,m).w = f[m];
 
-  h_spline(i,1,5) = h_spline(i,2,6) - h_spline(i,1,6);
-  h_spline(i,2,5) = 0.5 * (h_spline(i,3,6)-h_spline(i,1,6));
-  h_spline(i,n-1,5) = 0.5 * (h_spline(i,n,6)-h_spline(i,n-2,6));
-  h_spline(i,n,5) = h_spline(i,n,6) - h_spline(i,n-1,6);
+  h_spline_b(i,1).z = h_spline_b(i,2).w - h_spline_b(i,1).w;
+  h_spline_b(i,2).z = 0.5 * (h_spline_b(i,3).w-h_spline_b(i,1).w);
+  h_spline_b(i,n-1).z = 0.5 * (h_spline_b(i,n).w-h_spline_b(i,n-2).w);
+  h_spline_b(i,n).z = h_spline_b(i,n).w - h_spline_b(i,n-1).w;
 
   for (int m = 3; m <= n-2; m++)
-    h_spline(i,m,5) = ((h_spline(i,m-2,6)-h_spline(i,m+2,6)) +
-                    8.0*(h_spline(i,m+1,6)-h_spline(i,m-1,6))) / 12.0;
+    h_spline_b(i,m).z = ((h_spline_b(i,m-2).w-h_spline_b(i,m+2).w) +
+                    8.0*(h_spline_b(i,m+1).w-h_spline_b(i,m-1).w)) / 12.0;
 
   for (int m = 1; m <= n-1; m++) {
-    h_spline(i,m,4) = 3.0*(h_spline(i,m+1,6)-h_spline(i,m,6)) -
-      2.0*h_spline(i,m,5) - h_spline(i,m+1,5);
-    h_spline(i,m,3) = h_spline(i,m,5) + h_spline(i,m+1,5) -
-      2.0*(h_spline(i,m+1,6)-h_spline(i,m,6));
+    h_spline_b(i,m).y = 3.0*(h_spline_b(i,m+1).w-h_spline_b(i,m).w) -
+      2.0*h_spline_b(i,m).z - h_spline_b(i,m+1).z;
+    h_spline_b(i,m).x = h_spline_b(i,m).z + h_spline_b(i,m+1).z -
+      2.0*(h_spline_b(i,m+1).w-h_spline_b(i,m).w);
   }
 
-  h_spline(i,n,4) = 0.0;
-  h_spline(i,n,3) = 0.0;
+  h_spline_b(i,n).y = 0.0;
+  h_spline_b(i,n).x = 0.0;
 
   for (int m = 1; m <= n; m++) {
-    h_spline(i,m,2) = h_spline(i,m,5)/delta;
-    h_spline(i,m,1) = 2.0*h_spline(i,m,4)/delta;
-    h_spline(i,m,0) = 3.0*h_spline(i,m,3)/delta;
+    h_spline_a(i,m).z = h_spline_b(i,m).z/delta;
+    h_spline_a(i,m).y = 2.0*h_spline_b(i,m).y/delta;
+    h_spline_a(i,m).x = 3.0*h_spline_b(i,m).x/delta;
   }
 }
 
@@ -546,12 +617,13 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
       p -= m;
       p = MIN(p,1.0);
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p + 
-                  d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
+      const F_FLOAT4 rhor = d_rhor_spline_b(d_type2rhor_ji,m);
+      rhotmp += ((rhor.x*p + rhor.y)*p + rhor.z)*p + rhor.w;
+
       if (NEWTON_PAIR || j < nlocal) {
         const int d_type2rhor_ij = d_type2rhor(itype,jtype);
-        rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p + 
-                    d_rhor_spline(d_type2rhor_ij,m,5))*p + d_rhor_spline(d_type2rhor_ij,m,6);
+        const F_FLOAT4 rhor = d_rhor_spline_b(d_type2rhor_ij,m);
+        rho[j] += ((rhor.x*p + rhor.y)*p + rhor.z)*p + rhor.w;
       }
     }
   
@@ -581,15 +653,15 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelB<EFLAG>, const int &
   p -= m;
   p = MIN(p,1.0);
   const int d_type2frho_i = d_type2frho[itype];
-  d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
+  const F_FLOAT4 frho = d_frho_spline_a(d_type2frho_i,m);
+  d_fp[i] = (frho.x*p + frho.y)*p + frho.z;
   if (EFLAG) {
-    F_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p + 
-                    d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
+    const F_FLOAT4 frho_b = d_frho_spline_b(d_type2frho_i,m);
+    F_FLOAT phi = ((frho_b.x*p + frho_b.y)*p + frho_b.z)*p + frho_b.w;
     if (d_rho[i] > rhomax) phi += d_fp[i] * (d_rho[i]-rhomax);
     if (eflag_global) ev.evdwl += phi;
     if (eflag_atom) d_eatom[i] += phi;
   }
-
 }
 
 template<class DeviceType>
@@ -639,8 +711,8 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
       p -= m;
       p = MIN(p,1.0);
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p + 
-                  d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
+      const F_FLOAT4 rhor = d_rhor_spline_b(d_type2rhor_ji,m);
+      rhotmp += ((rhor.x*p + rhor.y)*p + rhor.z)*p + rhor.w;
     }
   
   }
@@ -657,10 +729,11 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
   p -= m;
   p = MIN(p,1.0);
   const int d_type2frho_i = d_type2frho[itype];
-  d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
+  const F_FLOAT4 frho = d_frho_spline_a(d_type2frho_i,m);
+  d_fp[i] = (frho.x*p + frho.y)*p + frho.z;
   if (EFLAG) {
-    F_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p + 
-                    d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
+    const F_FLOAT4 frho_b = d_frho_spline_b(d_type2frho_i,m);
+    F_FLOAT phi = ((frho_b.x*p + frho_b.y)*p + frho_b.z)*p + frho_b.w;
     if (d_rho[i] > rhomax) phi += d_fp[i] * (d_rho[i]-rhomax);
     if (eflag_global) ev.evdwl += phi;
     if (eflag_atom) d_eatom[i] += phi;
@@ -729,16 +802,18 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
       //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
 
       const int d_type2rhor_ij = d_type2rhor(itype,jtype);
-      const F_FLOAT rhoip = (d_rhor_spline(d_type2rhor_ij,m,0)*p + d_rhor_spline(d_type2rhor_ij,m,1))*p +
-                             d_rhor_spline(d_type2rhor_ij,m,2);
+      const F_FLOAT4 rhor_ij = d_rhor_spline_a(d_type2rhor_ij,m);
+      const F_FLOAT rhoip = (rhor_ij.x*p + rhor_ij.y)*p + rhor_ij.z;
+
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      const F_FLOAT rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p + 
-                             d_rhor_spline(d_type2rhor_ji,m,2);
+      const F_FLOAT4 rhor_ji = d_rhor_spline_a(d_type2rhor_ji,m);
+      const F_FLOAT rhojp = (rhor_ji.x*p + rhor_ji.y)*p + rhor_ji.z;
+
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
-      const F_FLOAT z2p = (d_z2r_spline(d_type2z2r_ij,m,0)*p + d_z2r_spline(d_type2z2r_ij,m,1))*p + 
-                           d_z2r_spline(d_type2z2r_ij,m,2);
-      const F_FLOAT z2 = ((d_z2r_spline(d_type2z2r_ij,m,3)*p + d_z2r_spline(d_type2z2r_ij,m,4))*p + 
-                           d_z2r_spline(d_type2z2r_ij,m,5))*p + d_z2r_spline(d_type2z2r_ij,m,6);
+      const F_FLOAT4 z2r_a = d_z2r_spline_a(d_type2z2r_ij,m);
+      const F_FLOAT z2p = (z2r_a.x*p + z2r_a.y)*p + z2r_a.z;
+      const F_FLOAT4 z2r_b = d_z2r_spline_b(d_type2z2r_ij,m);
+      const F_FLOAT z2 = ((z2r_b.x*p + z2r_b.y)*p + z2r_b.z)*p + z2r_b.w;
 
       const F_FLOAT recip = 1.0/r;
       const F_FLOAT phi = z2*recip;

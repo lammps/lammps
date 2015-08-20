@@ -214,15 +214,18 @@ public:
   static
   TaskMember * create_team( const typename DerivedTaskType::functor_type &  arg_functor
                           , volatile int &                                  arg_active_count
-                          , const unsigned                                  arg_dependence_capacity )
+                          , const unsigned                                  arg_dependence_capacity
+                          , const bool                                      arg_is_team )
     {
       typedef typename DerivedTaskType::functor_type  functor_type ;
       typedef typename functor_type::value_type       value_type ;
 
+      const function_apply_single_type flag = reinterpret_cast<function_apply_single_type>( arg_is_team ? 0 : 1 );
+
       DerivedTaskType * const task =
         new( allocate( sizeof(DerivedTaskType) , arg_dependence_capacity ) )
           DerivedTaskType( & TaskMember::template deallocate< DerivedTaskType >
-                         , 0
+                         , flag
                          , & TaskMember::template apply_team< functor_type , value_type >
                          , arg_active_count
                          , sizeof(DerivedTaskType)
@@ -474,29 +477,20 @@ private:
     }
 
   const unsigned  m_default_dependence_capacity ;
+  const unsigned  m_team_size ;
   volatile int    m_active_count_root ;
   volatile int &  m_active_count ;
 
 public:
 
-  KOKKOS_INLINE_FUNCTION
-  TaskPolicy()
-    : m_default_dependence_capacity(4)
-    , m_active_count_root(0)
-    , m_active_count( m_active_count_root )
-    {}
-
-  KOKKOS_INLINE_FUNCTION
   explicit
-  TaskPolicy( const unsigned arg_default_dependence_capacity )
-    : m_default_dependence_capacity( arg_default_dependence_capacity )
-    , m_active_count_root(0)
-    , m_active_count( m_active_count_root )
-    {}
+  TaskPolicy( const unsigned arg_default_dependence_capacity = 4
+            , const unsigned arg_team_size = 0 /* assign default */ );
 
   KOKKOS_INLINE_FUNCTION
   TaskPolicy( const TaskPolicy & rhs )
     : m_default_dependence_capacity( rhs.m_default_dependence_capacity )
+    , m_team_size( m_team_size )
     , m_active_count_root(0)
     , m_active_count( rhs.m_active_count )
     {}
@@ -505,6 +499,7 @@ public:
   TaskPolicy( const TaskPolicy & rhs
             , const unsigned arg_default_dependence_capacity )
     : m_default_dependence_capacity( arg_default_dependence_capacity )
+    , m_team_size( m_team_size )
     , m_active_count_root(0)
     , m_active_count( rhs.m_active_count )
     {}
@@ -558,6 +553,7 @@ public:
           ( functor
           , m_active_count
           , ( ~0u == dependence_capacity ? m_default_dependence_capacity : dependence_capacity )
+          , 1 < m_team_size
           )
 #endif
         );

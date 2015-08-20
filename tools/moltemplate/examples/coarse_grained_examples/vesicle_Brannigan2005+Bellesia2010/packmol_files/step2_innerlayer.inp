@@ -51,7 +51,7 @@ structure DPPC.xyz
     inside sphere 0. 0. 0. 270.0
   end atoms
   atoms 5
-    outside sphere 0. 0. 0. 292.0
+    outside sphere 0. 0. 0. 295.0
   end atoms
 end structure 
 
@@ -61,10 +61,10 @@ end structure
 structure DLPC.xyz
   number 9500
   atoms 1
-    inside sphere 0. 0. 0. 272.0 
+    inside sphere 0. 0. 0. 273.0 
   end atoms
   atoms 4
-    outside sphere 0. 0. 0. 294.0
+    outside sphere 0. 0. 0. 295.0
   end atoms
 end structure 
 

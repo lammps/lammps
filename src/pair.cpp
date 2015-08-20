@@ -192,7 +192,7 @@ void Pair::modify_params(int narg, char **arg)
 void Pair::init()
 {
   int i,j;
-    
+
   if (offset_flag && tail_flag)
     error->all(FLERR,"Cannot have both pair_modify shift and tail set to yes");
   if (tail_flag && domain->dimension == 2)

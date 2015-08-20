@@ -50,6 +50,7 @@
 //----------------------------------------------------------------------------
 
 #include <impl/Kokkos_ViewTileLeft.hpp>
+#include <TestTile.hpp>
 
 //----------------------------------------------------------------------------
 
@@ -61,7 +62,6 @@
 
 #include <TestViewAPI.hpp>
 #include <TestViewSubview.hpp>
-#include <TestTile.hpp>
 
 #include <TestReduce.hpp>
 #include <TestScan.hpp>
@@ -433,7 +433,6 @@ TEST_F( cuda, tile_layout)
   TestTile::test< Kokkos::Cuda , 8 , 8 >( 9 , 11 );
 }
 
-
 TEST_F( cuda , view_aggregate )
 {
   TestViewAggregate< Kokkos::Cuda >();
@@ -466,8 +465,6 @@ TEST_F( cuda , template_meta_functions )
 
 //----------------------------------------------------------------------------
 
-#ifdef KOKKOS_HAVE_CXX11
-
 namespace Test {
 
 TEST_F( cuda , reduction_deduction )
@@ -491,5 +488,4 @@ TEST_F( cuda , team_vector )
 }
 
 }
-#endif
 

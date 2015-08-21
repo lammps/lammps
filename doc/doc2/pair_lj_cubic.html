@@ -26,16 +26,15 @@ pair_coeff * * 1.0 0.8908987
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>lj/cubic</I> style computes a truncated LJ interaction potential whose
-energy and force are continuous everywhere. 
-Inside the inflection point the interaction is identical to the 
-standard 12/6 <A HREF = "pair_lj.html">Lennard-Jones</A> potential.
-The LJ function outside the inflection point is replaced 
-with a cubic function of distance. The energy, force, and second
-derivative are continuous at the inflection point. 
-The cubic coefficient A3 is chosen so
-that both energy and force go to zero at the cutoff distance. 
-Outside the cutoff distance the energy and force are zero.
+<P>The <I>lj/cubic</I> style computes a truncated LJ interaction potential
+whose energy and force are continuous everywhere.  Inside the
+inflection point the interaction is identical to the standard 12/6
+<A HREF = "pair_lj.html">Lennard-Jones</A> potential.  The LJ function outside the
+inflection point is replaced with a cubic function of distance. The
+energy, force, and second derivative are continuous at the inflection
+point.  The cubic coefficient A3 is chosen so that both energy and
+force go to zero at the cutoff distance.  Outside the cutoff distance
+the energy and force are zero.
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj_cubic.jpg">
 </CENTER>
@@ -47,12 +46,12 @@ the cubic coefficient
 A3*rmin^3/epsilon = 27.93... is given in the paper by
 Holian and Ravelo <A HREF = "#Holian">(Holian)</A>.
 </P>
-<P>This potential is commonly used to study the shock mechanics
-of FCC solids, as in Ravelo et al. <A HREF = "#Ravelo">(Ravelo)</A>.
+<P>This potential is commonly used to study the shock mechanics of FCC
+solids, as in Ravelo et al. <A HREF = "#Ravelo">(Ravelo)</A>.
 </P>
-<P>The following coefficients must be defined for each pair of atom
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example
-above, or in the data file or restart files read by the
+<P>The following coefficients must be defined for each pair of atom types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example above,
+or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
 commands, or by mixing as described below:
 </P>
@@ -60,9 +59,9 @@ commands, or by mixing as described below:
 <LI>sigma (distance units) 
 </UL>
 <P>Note that sigma is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum, which
-is located at rmin = 2^(1/6)*sigma. In the above example, sigma = 0.8908987,
-so rmin = 1.
+distance for the potential, not as the energy minimum, which is
+located at rmin = 2^(1/6)*sigma. In the above example, sigma =
+0.8908987, so rmin = 1.
 </P>
 <HR>
 

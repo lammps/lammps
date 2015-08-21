@@ -412,7 +412,7 @@ interactively from the bench directory:
 on a single processor appear on the screen, the same as if you had
 typed something like:
 </P>
-<PRE>lmp_g++ < in.lj 
+<PRE>lmp_g++ -in in.lj 
 </PRE>
 <H5><B>Test LAMMPS and Python in parallel:</B> 
 </H5>
@@ -433,7 +433,7 @@ pypar.finalize()
 </PRE>
 <P>and you should see the same output as if you had typed
 </P>
-<PRE>% mpirun -np 4 lmp_g++ < in.lj 
+<PRE>% mpirun -np 4 lmp_g++ -in in.lj 
 </PRE>
 <P>Note that if you leave out the 3 lines from test.py that specify Pypar
 commands you will instantiate and run LAMMPS independently on each of

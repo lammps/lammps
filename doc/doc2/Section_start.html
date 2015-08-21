@@ -1213,7 +1213,7 @@ Linux box, using mpirun to launch a parallel job:
 make linux
 cp lmp_linux ../bench
 cd ../bench
-mpirun -np 4 lmp_linux < in.lj 
+mpirun -np 4 lmp_linux -in in.lj 
 </PRE>
 <P>See <A HREF = "http://lammps.sandia.gov/bench.html">this page</A> for timings for this and the other benchmarks on
 various platforms.  Note that some of the example scripts require
@@ -1329,8 +1329,8 @@ letter abbreviation can be used:
 </UL>
 <P>For example, lmp_ibm might be launched as follows:
 </P>
-<PRE>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none < in.alloy
-mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy 
+<PRE>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none -in in.alloy
+mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none -in in.alloy 
 </PRE>
 <P>Here are the details on the options:
 </P>

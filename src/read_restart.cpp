@@ -187,7 +187,10 @@ void ReadRestart::command(int narg, char **arg)
 
   // close header file if in multiproc mode
 
-  if (multiproc && me == 0) fclose(fp);
+  if (multiproc && me == 0 && fp != NULL) {
+    fclose(fp);
+    fp = NULL;
+  }
 
   // read per-proc info
 
@@ -263,7 +266,10 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (me == 0) fclose(fp);
+    if (me == 0 && fp != NULL) {
+      fclose(fp);
+      fp = NULL;
+    }
   }
 
   // input of multiple native files with procs <= files
@@ -311,6 +317,7 @@ void ReadRestart::command(int narg, char **arg)
       }
 
       fclose(fp);
+      fp = NULL;
     }
 
     delete [] procfile;
@@ -412,7 +419,10 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (filereader) fclose(fp);
+    if (filereader && fp != NULL) {
+      fclose(fp);
+      fp = NULL;
+    }
     MPI_Comm_free(&clustercomm);
   }
 

@@ -90,6 +90,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   pad = NULL;
   reader = NULL;
   data = NULL;
+  fp = NULL;
 
   eval_in_progress = NULL;
 
@@ -262,8 +263,11 @@ void Variable::set(int narg, char **arg)
 
     if (universe->me == 0) {
       FILE *fp = fopen("tmp.lammps.variable","w");
+      if (fp == NULL)
+        error->one(FLERR,"Cannot open temporary file for world counter.");
       fprintf(fp,"%d\n",universe->nworlds);
       fclose(fp);
+      fp = NULL;
     }
 
     for (int jvar = 0; jvar < nvar; jvar++)
@@ -614,6 +618,7 @@ int Variable::next(int narg, char **arg)
       fprintf(fp,"%d\n",nextindex+1);
       //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
+      fp = NULL;
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
         fprintf(universe->uscreen,
@@ -4453,7 +4458,10 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
 VarReader::~VarReader()
 {
-  if (me == 0) fclose(fp);
+  if (me == 0) {
+    fclose(fp);
+    fp = NULL;
+  }
 
   // check modify in case all fixes have already been deleted
 

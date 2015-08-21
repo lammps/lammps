@@ -522,7 +522,6 @@ void FixQBMSST::initial_integrate(int vflag)
   int *type = atom->type;
   double **x = atom->x;
   double boltz = force->boltz;
-  double hplanck = force->hplanck;
 
   // check to see if old_velocity is correctly allocated
   check_alloc(nlocal);

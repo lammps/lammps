@@ -886,7 +886,7 @@ void ReadData::header()
     } else if (strstr(line,"dihedrals")) {
       sscanf(line,BIGINT_FORMAT,&ndihedrals);
       if (addflag == NONE) atom->ndihedrals = ndihedrals;
-      else atom->ndihedrals += natoms;
+      else atom->ndihedrals += ndihedrals;
     } else if (strstr(line,"impropers")) {
       sscanf(line,BIGINT_FORMAT,&nimpropers);
       if (addflag == NONE) atom->nimpropers = nimpropers;
@@ -1812,7 +1812,8 @@ void ReadData::parse_keyword(int first)
 void ReadData::skip_lines(bigint n)
 {
   if (me) return;
-  char *eof;
+  if (n <= 0) return;
+  char *eof = NULL;
   for (bigint i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 }

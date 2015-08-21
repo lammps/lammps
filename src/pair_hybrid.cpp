@@ -114,6 +114,7 @@ void PairHybrid::compute(int eflag, int vflag)
   // check if we are running with r-RESPA using the hybrid keyword
 
   Respa *respa = NULL;
+  respaflag = 0;
   if (strstr(update->integrate_style,"respa")) {
     respa = (Respa *) update->integrate;
     if (respa->nhybrid_styles > 0) respaflag = 1;
@@ -564,8 +565,6 @@ double PairHybrid::init_one(int i, int j)
   // if I,J is not set explicitly:
   // perform mixing only if I,I sub-style = J,J sub-style
   // also require I,I and J,J are both assigned to single sub-style
-
-  printf("IJ %d %d\n",i,j);
 
   if (setflag[i][j] == 0) {
     if (nmap[i][i] != 1 || nmap[j][j] != 1 || map[i][i][0] != map[j][j][0])

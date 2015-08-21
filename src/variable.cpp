@@ -316,6 +316,7 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     data[nvar][1] = new char[VALUELENGTH];
+    strcpy(data[nvar][1],"(undefined)");
 
   // SCALARFILE for strings or numbers
   // which = 1st value
@@ -370,6 +371,7 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     copy(2,&arg[2],data[nvar]);
     data[nvar][2] = new char[VALUELENGTH];
+    strcpy(data[nvar][2],"(undefined)");
 
   // EQUAL
   // replace pre-existing var if also style EQUAL (allows it to be reset)
@@ -394,6 +396,7 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(1,&arg[2],data[nvar]);
       data[nvar][1] = new char[VALUELENGTH];
+      strcpy(data[nvar][1],"(undefined)");
     }
 
   // ATOM
@@ -445,6 +448,7 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(1,&arg[2],data[nvar]);
       data[nvar][1] = new char[VALUELENGTH];
+      strcpy(data[nvar][1],"(undefined)");
     }
 
   } else error->all(FLERR,"Illegal variable command");
@@ -742,7 +746,7 @@ char *Variable::retrieve(char *name)
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
-  char *str;
+  char *str = NULL;
   if (style[ivar] == INDEX || style[ivar] == WORLD ||
       style[ivar] == UNIVERSE || style[ivar] == STRING || 
       style[ivar] == SCALARFILE) {

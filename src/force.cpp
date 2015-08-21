@@ -415,7 +415,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
 #undef DIHEDRAL_CLASS
     }
 
-    if (lmp->suffix) {
+    if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);

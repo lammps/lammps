@@ -796,6 +796,15 @@ void Neighbor::init()
     if (me == 0) {
       const double cutghost = MAX(cutneighmax,comm->cutghostuser);
 
+      double binsize, bbox[3];
+      bbox[0] =  bboxhi[0]-bboxlo[0];
+      bbox[1] =  bboxhi[1]-bboxlo[1];
+      bbox[2] =  bboxhi[2]-bboxlo[2];
+      if (binsizeflag) binsize = binsize_user;
+      else if (style == BIN) binsize = 0.5*cutneighmax;
+      else binsize = 0.5*cutneighmin;
+      if (binsize == 0.0) binsize = bbox[0];
+
       if (logfile) {
         fprintf(logfile,"Neighbor list info ...\n");
         fprintf(logfile,"  %d neighbor list requests\n",nrequest);
@@ -803,6 +812,9 @@ void Neighbor::init()
                 every,delay,dist_check ? "yes" : "no");
         fprintf(logfile,"  master list distance cutoff = %g\n",cutneighmax);
         fprintf(logfile,"  ghost atom cutoff = %g\n",cutghost);
+        if (style != NSQ)
+          fprintf(logfile,"  binsize = %g -> bins = %g %g %g\n",binsize,
+	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize), ceil(bbox[2]/binsize));
       }
       if (screen) {
         fprintf(screen,"Neighbor list info ...\n");
@@ -811,6 +823,9 @@ void Neighbor::init()
                 every,delay,dist_check ? "yes" : "no");
         fprintf(screen,"  master list distance cutoff = %g\n",cutneighmax);
         fprintf(screen,"  ghost atom cutoff = %g\n",cutghost);
+        if (style != NSQ)
+          fprintf(screen,"  binsize = %g, bins = %g %g %g\n",binsize,
+	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize), ceil(bbox[2]/binsize));
       }
     }
   }

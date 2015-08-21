@@ -337,7 +337,7 @@ void Comm::set_processors(int narg, char **arg)
                strcmp(arg[iarg+1],"zxy") == 0 ||
                strcmp(arg[iarg+1],"zyx") == 0) {
         mapflag = XYZ;
-        strcpy(xyz,arg[iarg+1]);
+        strncpy(xyz,arg[iarg+1],3);
       } else error->all(FLERR,"Illegal processors command");
       iarg += 2;
 

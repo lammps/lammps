@@ -65,6 +65,7 @@ enum {COMPUTES=1<<0,
       TIME=1<<6,
       VARIABLES=1<<7,
       SYSTEM=1<<8,
+      COMM=1<<9,
       ALL=~0};
 }
 
@@ -73,6 +74,9 @@ static const char *varstyles[] = {
   "file", "atomfile", "format", "equal", "atom", "python", "(unknown)"};
 
 static const char *mapstyles[] = { "none", "array", "hash" };
+
+static const char *commstyles[] = { "brick", "tiled" };
+static const char *commlayout[] = { "uniform", "nonuniform", "irregular" };
 
 static const char bstyles[] = "pfsm";
 
@@ -104,13 +108,18 @@ void Info::command(int narg, char **arg)
       idx += 2;
     } else if ((idx+2 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"append",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = fopen(arg[idx+2],"a");
       idx += 3;
     } else if ((idx+2 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"overwrite",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = fopen(arg[idx+2],"w");
       idx += 3;
-    } else if (strncmp(arg[idx],"computes",3) == 0) {
+    } else if (strncmp(arg[idx],"communication",4) == 0) {
+      flags |= COMM;
+      ++idx;
+    } else if (strncmp(arg[idx],"computes",4) == 0) {
       flags |= COMPUTES;
       ++idx;
     } else if (strncmp(arg[idx],"dumps",3) == 0) {
@@ -220,6 +229,20 @@ void Info::command(int narg, char **arg)
 #endif
   }
 
+  if (flags & COMM) {
+    int major,minor;
+    MPI_Get_version(&major,&minor);
+
+    fprintf(out,"\nCommunication information:\n");
+    fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
+    fprintf(out,"Comm style = %s,  Comm layout = %s\n",
+            commstyles[comm->style], commlayout[comm->layout]); 
+    fprintf(out,"Nprocs = %d    Nthreads = %d\n",
+            comm->nprocs, comm->nthreads);
+    fprintf(out,"Processor grid = %d x %d x %d\n",comm->procgrid[0],
+            comm->procgrid[1], comm->procgrid[2]);
+  }
+
   if (flags & SYSTEM) {
     fprintf(out,"\nSystem information:\n");
     fprintf(out,"Units      = %s\n",update->unit_style);
@@ -230,32 +253,32 @@ void Info::command(int narg, char **arg)
       msg = (atom->molecular == 2) ? "template" : "standard";
       fprintf(out,"Molecule type = %s\n",msg);
     }
-    fprintf(out,"Atoms: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
+    fprintf(out,"Atoms = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
             atom->natoms, atom->ntypes, force->pair_style);
 
     if (atom->molecular > 0) {
       const char *msg;
       msg = force->bond_style ? force->bond_style : "none";
-      fprintf(out,"Bonds: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
+      fprintf(out,"Bonds = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
               atom->nbonds, atom->nbondtypes, msg);
 
       msg = force->angle_style ? force->angle_style : "none";
-      fprintf(out,"Angles: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
+      fprintf(out,"Angles = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
               atom->nangles, atom->nangletypes, msg);
 
       msg = force->dihedral_style ? force->dihedral_style : "none";
-      fprintf(out,"Dihedrals: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
+      fprintf(out,"Dihedrals = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
               atom->ndihedrals, atom->ndihedraltypes, msg);
 
       msg = force->improper_style ? force->improper_style : "none";
-      fprintf(out,"Impropers: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
+      fprintf(out,"Impropers = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
               atom->nimpropers, atom->nimpropertypes, msg);
 
       const double * const special_lj   = force->special_lj;
       const double * const special_coul = force->special_coul;
 
-      fprintf(out,"Special bond factors lj:   %-10g %-10g %-10g\n"
-              "Special bond factors coul: %-10g %-10g %-10g\n",
+      fprintf(out,"Special bond factors lj =   %-10g %-10g %-10g\n"
+              "Special bond factors coul = %-10g %-10g %-10g\n",
               special_lj[1],special_lj[2],special_lj[3],
               special_coul[1],special_coul[2],special_coul[3]);
     }
@@ -264,7 +287,8 @@ void Info::command(int narg, char **arg)
             force->kspace ? force->kspace_style : "none");
 
     if (domain->box_exist) {
-      fprintf(out,"\n%s box: (%g x %g %g)\n",
+      fprintf(out,"\nDimensions = %d\n",domain->dimension);
+      fprintf(out,"%s box = %g x %g x %g\n",
               domain->triclinic ? "Triclinic" : "Orthogonal",
               domain->xprd, domain->yprd, domain->zprd);
       fprintf(out,"Boundaries = %c,%c %c,%c %c,%c\n",
@@ -298,7 +322,7 @@ void Info::command(int narg, char **arg)
     Region **regs = domain->regions;
     fprintf(out,"\nRegion information:\n");
     for (int i=0; i < nreg; ++i) {
-      fprintf(out,"Region[%3d]: %s,  style: %s,  side: %s\n",
+      fprintf(out,"Region[%3d]: %s,  style = %s,  side = %s\n",
               i, regs[i]->id, regs[i]->style,
               regs[i]->interior ? "in" : "out");
     }
@@ -310,7 +334,7 @@ void Info::command(int narg, char **arg)
     char **names = group->names;
     fprintf(out,"\nCompute information:\n");
     for (int i=0; i < ncompute; ++i) {
-      fprintf(out,"Compute[%3d]: %s,  style: %s,  group: %s\n",
+      fprintf(out,"Compute[%3d]: %s,  style = %s,  group = %s\n",
               i, compute[i]->id, compute[i]->style,
               names[compute[i]->igroup]);
     }
@@ -324,13 +348,13 @@ void Info::command(int narg, char **arg)
     char **names = group->names;
     fprintf(out,"\nDump information:\n");
     for (int i=0; i < ndump; ++i) {
-      fprintf(out,"Dump[%3d]: %s,  file: %s,  style: %s,  group: %s,  ",
+      fprintf(out,"Dump[%3d]: %s,  file = %s,  style = %s,  group = %s,  ",
               i, dump[i]->id, dump[i]->filename,
               dump[i]->style, names[dump[i]->igroup]);
       if (nevery[i]) {
-        fprintf(out,"every: %d\n", nevery[i]);
+        fprintf(out,"every = %d\n", nevery[i]);
       } else {
-        fprintf(out,"every: %s\n", vnames[i]);
+        fprintf(out,"every = %s\n", vnames[i]);
       }
     }
   }
@@ -341,7 +365,7 @@ void Info::command(int narg, char **arg)
     char **names = group->names;
     fprintf(out,"\nFix information:\n");
     for (int i=0; i < nfix; ++i) {
-      fprintf(out,"Fix[%3d]: %s,  style: %s,  group: %s\n",
+      fprintf(out,"Fix[%3d]: %s,  style = %s,  group = %s\n",
               i, fix[i]->id, fix[i]->style, names[fix[i]->igroup]);
     }
   }

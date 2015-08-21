@@ -182,7 +182,7 @@ void CommTiled::setup()
   if (cut == 0.0) {
     cutzero = 1;
     cut = MIN(prd[0],prd[1]);
-    if (dimension == 3) cut = MIN(cut,prd[3]);
+    if (dimension == 3) cut = MIN(cut,prd[2]);
     cut *= EPSILON*EPSILON;
   }
 
@@ -920,9 +920,9 @@ void CommTiled::borders()
         }
       }
       if (sendself[iswap]) {
-        n = avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                                  buf_send,pbc_flag[iswap][nsend],
-                                  pbc[iswap][nsend]);
+        avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                              buf_send,pbc_flag[iswap][nsend],
+                              pbc[iswap][nsend]);
         avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                                 buf_send);
       }
@@ -949,9 +949,8 @@ void CommTiled::borders()
         }
       }
       if (sendself[iswap]) {
-        n = avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                              buf_send,pbc_flag[iswap][nsend],
-                              pbc[iswap][nsend]);
+        avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                          buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
         avec->unpack_border(recvnum[iswap][nsend],firstrecv[iswap][nsend],
                             buf_send);
       }

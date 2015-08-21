@@ -89,7 +89,7 @@ public:
 
 public:
   AWPMD_split():s_add(0),spl_add(0){}
-  virtual ~AWPMD_split() {};
+  //virtual ~AWPMD_split() {}; this line causes a segmentation fault, temporarily disabling
   
  
   ///\en Prepares to setup a new system of particles using \ref add_ion(),

@@ -13,7 +13,7 @@ timestep command :h3
 timers args :pre
 
 {args} = one or more of {off} or {loop} or {normal} or {full} or {sync} or {nosync} :l
-  {off} = do not collect timing information
+  {off} = do not collect and print timing information
   {loop} = collect only the total time for the simulation loop
   {normal} = collect timer information broken down in sections (default)
   {full} = like {normal} but also include CPU and thread utilzation 
@@ -31,12 +31,10 @@ Select to which level of detail LAMMPS is performing internal profiling.
 
 During regular runs LAMMPS will collect information about how much time is
 spent in different sections of the code and thus can provide valuable
-information for determining performance and load imbalance problems. This
-can be done at different levels of detail and accuracy and the associated
-impact on the performance (which can become a factor when running across
-a very large number of processors). For more information about the timing
-output, please have a look at the "discussion of screen
-output"_Section_start.html#start_8.
+information for determining performance and load imbalance problems.  This
+can be done at different levels of detail and accuracy.  For more 
+information about the timing output, please have a look at the "discussion
+of screen output"_Section_start.html#start_8.
 
 The {off} setting will turn all time measurements off. The {loop} setting
 will only measure the total time of run loop and not collect any detailed
@@ -54,7 +52,14 @@ off (which is the default).
 Multiple keywords can be provided and for keywords that are mutually
 exclusive, the last one in that group is taking effect.
 
- start_8
+IMPORTANT NOTE: Using the {full} and {sync} options provides the most
+detailed and accurate timing information, but also can have a significant
+negative performance impact due to the overhead of the many required system
+calls. It is thus recommended to use these settings only when making tests
+to identify the performance. For calculations with few atoms or a very
+large number of performance, even using the {normal} setting can have
+a measurable performance impact. It is recommended in those cases to use
+the {loop} or {off} setting.
 
 [Restrictions:] none
 

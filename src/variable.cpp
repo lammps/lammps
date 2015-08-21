@@ -90,7 +90,6 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   pad = NULL;
   reader = NULL;
   data = NULL;
-  fp = NULL;
 
   eval_in_progress = NULL;
 
@@ -4412,6 +4411,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 {
   me = comm->me;
   style = flag;
+  fp = NULL;
 
   if (me == 0) {
     fp = fopen(file,"r");
@@ -4420,7 +4420,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       sprintf(str,"Cannot open file variable file %s",file);
       error->one(FLERR,str);
     }
-  } else fp = NULL;
+  }
 
   // if atomfile-style variable, must store per-atom values read from file
   // allocate a new fix STORE, so they persist

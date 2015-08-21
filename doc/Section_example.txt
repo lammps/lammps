@@ -85,7 +85,7 @@ Here is how you might run and visualize one of the sample problems:
 
 cd indent
 cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
-lmp_linux < in.indent              # run the problem :pre
+lmp_linux -in in.indent            # run the problem :pre
 
 Running the simulation produces the files {dump.indent} and
 {log.lammps}.  You can visualize the dump file as follows:

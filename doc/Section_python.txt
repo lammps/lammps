@@ -408,7 +408,7 @@ Either way, you should see the results of running the in.lj benchmark
 on a single processor appear on the screen, the same as if you had
 typed something like:
 
-lmp_g++ < in.lj :pre
+lmp_g++ -in in.lj :pre
 
 [Test LAMMPS and Python in parallel:] :h5
 
@@ -429,7 +429,7 @@ You can then run it in parallel as:
 
 and you should see the same output as if you had typed
 
-% mpirun -np 4 lmp_g++ < in.lj :pre
+% mpirun -np 4 lmp_g++ -in in.lj :pre
 
 Note that if you leave out the 3 lines from test.py that specify Pypar
 commands you will instantiate and run LAMMPS independently on each of

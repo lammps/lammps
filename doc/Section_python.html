@@ -510,7 +510,7 @@ interactively from the bench directory:</p>
 <p>Either way, you should see the results of running the in.lj benchmark
 on a single processor appear on the screen, the same as if you had
 typed something like:</p>
-<div class="highlight-python"><div class="highlight"><pre>lmp_g++ &lt; in.lj
+<div class="highlight-python"><div class="highlight"><pre>lmp_g++ -in in.lj
 </pre></div>
 </div>
 </div>
@@ -532,7 +532,7 @@ pypar.finalize()
 </pre></div>
 </div>
 <p>and you should see the same output as if you had typed</p>
-<div class="highlight-python"><div class="highlight"><pre>% mpirun -np 4 lmp_g++ &lt; in.lj
+<div class="highlight-python"><div class="highlight"><pre>% mpirun -np 4 lmp_g++ -in in.lj
 </pre></div>
 </div>
 <p>Note that if you leave out the 3 lines from test.py that specify Pypar

@@ -1205,7 +1205,7 @@ cd src
 make linux
 cp lmp_linux ../bench
 cd ../bench
-mpirun -np 4 lmp_linux < in.lj :pre
+mpirun -np 4 lmp_linux -in in.lj :pre
 
 See "this page"_bench for timings for this and the other benchmarks on
 various platforms.  Note that some of the example scripts require
@@ -1321,8 +1321,8 @@ letter abbreviation can be used:
 
 For example, lmp_ibm might be launched as follows:
 
-mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none < in.alloy
-mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy :pre
+mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none -in in.alloy
+mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none -in in.alloy :pre
 
 Here are the details on the options:
 

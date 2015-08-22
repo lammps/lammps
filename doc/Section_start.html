@@ -1242,7 +1242,7 @@ Linux box, using mpirun to launch a parallel job:</p>
 make linux
 cp lmp_linux ../bench
 cd ../bench
-mpirun -np 4 lmp_linux &lt; in.lj
+mpirun -np 4 lmp_linux -in in.lj
 </pre></div>
 </div>
 <p>See <a class="reference external" href="http://lammps.sandia.gov/bench.html">this page</a> for timings for this and the other benchmarks on
@@ -1338,8 +1338,8 @@ letter abbreviation can be used:</p>
 <li>-v or -var</li>
 </ul>
 <p>For example, lmp_ibm might be launched as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none &lt; in.alloy
-mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none &lt; in.alloy
+<div class="highlight-python"><div class="highlight"><pre>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none -in in.alloy
+mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none -in in.alloy
 </pre></div>
 </div>
 <p>Here are the details on the options:</p>

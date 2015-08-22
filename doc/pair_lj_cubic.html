@@ -147,16 +147,15 @@ pair_coeff * * 1.0 0.8908987
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>The <em>lj/cubic</em> style computes a truncated LJ interaction potential whose
-energy and force are continuous everywhere.
-Inside the inflection point the interaction is identical to the
-standard 12/6 <a class="reference internal" href="pair_lj.html"><em>Lennard-Jones</em></a> potential.
-The LJ function outside the inflection point is replaced
-with a cubic function of distance. The energy, force, and second
-derivative are continuous at the inflection point.
-The cubic coefficient A3 is chosen so
-that both energy and force go to zero at the cutoff distance.
-Outside the cutoff distance the energy and force are zero.</p>
+<p>The <em>lj/cubic</em> style computes a truncated LJ interaction potential
+whose energy and force are continuous everywhere.  Inside the
+inflection point the interaction is identical to the standard 12/6
+<a class="reference internal" href="pair_lj.html"><em>Lennard-Jones</em></a> potential.  The LJ function outside the
+inflection point is replaced with a cubic function of distance. The
+energy, force, and second derivative are continuous at the inflection
+point.  The cubic coefficient A3 is chosen so that both energy and
+force go to zero at the cutoff distance.  Outside the cutoff distance
+the energy and force are zero.</p>
 <img alt="_images/pair_lj_cubic.jpg" class="align-center" src="_images/pair_lj_cubic.jpg" />
 <p>The location of the inflection point rs is defined
 by the LJ diameter, rs/sigma = (26/7)^1/6. The cutoff distance
@@ -165,11 +164,11 @@ The analytic expression for the
 the cubic coefficient
 A3*rmin^3/epsilon = 27.93... is given in the paper by
 Holian and Ravelo <a class="reference internal" href="#holian"><span>(Holian)</span></a>.</p>
-<p>This potential is commonly used to study the shock mechanics
-of FCC solids, as in Ravelo et al. <a class="reference internal" href="#ravelo"><span>(Ravelo)</span></a>.</p>
-<p>The following coefficients must be defined for each pair of atom
-types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the example
-above, or in the data file or restart files read by the
+<p>This potential is commonly used to study the shock mechanics of FCC
+solids, as in Ravelo et al. <a class="reference internal" href="#ravelo"><span>(Ravelo)</span></a>.</p>
+<p>The following coefficients must be defined for each pair of atom types
+via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the example above,
+or in the data file or restart files read by the
 <a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
 commands, or by mixing as described below:</p>
 <ul class="simple">
@@ -177,9 +176,9 @@ commands, or by mixing as described below:</p>
 <li>sigma (distance units)</li>
 </ul>
 <p>Note that sigma is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum, which
-is located at rmin = 2^(1/6)*sigma. In the above example, sigma = 0.8908987,
-so rmin = 1.</p>
+distance for the potential, not as the energy minimum, which is
+located at rmin = 2^(1/6)*sigma. In the above example, sigma =
+0.8908987, so rmin = 1.</p>
 <hr class="docutils" />
 <p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.

@@ -32,8 +32,8 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*ch5md[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/ch5md\/include |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/ch5md |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/h5md\/include |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/h5md |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lch5md |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(ch5md_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(ch5md_SYSLIB) |' ../Makefile.package
@@ -44,7 +44,7 @@ if (test $1 = 1) then
     sed -i -e '/^include.*ch5md.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/..\/lib\/ch5md\/Makefile.lammps
+include ..\/..\/lib\/h5md\/Makefile.lammps
 ' ../Makefile.package.settings
 
   fi

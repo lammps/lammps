@@ -138,6 +138,10 @@ void FixTempBerendsen::end_of_step()
   double t_current = temperature->compute_scalar();
   double tdof = temperature->dof;
 
+  // there is nothing to do, if there are no degrees of freedom
+
+  if (tdof < 1) return;
+
   if (t_current == 0.0)
     error->all(FLERR,
                "Computed temperature for fix temp/berendsen cannot be 0.0");

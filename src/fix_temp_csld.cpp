@@ -183,6 +183,10 @@ void FixTempCSLD::end_of_step()
   double t_current = temperature->compute_scalar();
   double ekin_old = t_current * 0.5 * temperature->dof * force->boltz;
 
+  // there is nothing to do, if there are no degrees of freedom
+
+  if (temperature->dof < 1) return;
+
   double * const * const v = atom->v;
   const int * const mask = atom->mask;
   const int * const type = atom->type;

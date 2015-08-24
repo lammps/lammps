@@ -37,7 +37,7 @@ script:
   - make -C lib/awpmd -f Makefile.mpicc CC="${COMP}"
   - make -C lib/meam -f Makefile.gfortran CC=gcc F90=gfortran
   - make -C src yes-poems yes-voronoi yes-user-colvars yes-user-awpmd yes-meam
-  - make -C lib/ch5md
+  - make -C lib/h5md
   - make -C src yes-user-h5md
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
   - make -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"

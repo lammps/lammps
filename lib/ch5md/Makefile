@@ -1,7 +1,9 @@
 EXTRAMAKE=Makefile.lammps.empty
 
 CC=h5cc
-CFLAGS=-D_DEFAULT_SOURCE -O2
+# -DH5_NO_DEPRECATED_SYMBOLS is required to force using the v1.8 API
+# on HDF5 installations configured to default to using the v1.6 API.
+CFLAGS=-D_DEFAULT_SOURCE -O2 -DH5_NO_DEPRECATED_SYMBOLS 
 HDF5_PATH=/usr
 INC=-I include
 AR=ar

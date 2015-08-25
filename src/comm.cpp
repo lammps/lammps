@@ -56,6 +56,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   mode = 0;
   bordergroup = 0;
   cutghostuser = 0.0;
+  cutusermulti = NULL;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -114,6 +115,7 @@ Comm::~Comm()
   memory->destroy(xsplit);
   memory->destroy(ysplit);
   memory->destroy(zsplit);
+  memory->destroy(cutusermulti);
   delete [] customfile;
   delete [] outfile;
 }
@@ -253,6 +255,26 @@ void Comm::modify_params(int narg, char **arg)
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"cutoff/multi") == 0) {
+      int i,nlo,nhi;
+      double cut;
+      if (domain->box_exist == 0)
+        error->all(FLERR,
+                   "Cannot set cutoff/multi before simulation box is defined");
+      const int ntypes = atom->ntypes;
+      if (iarg+3 > narg)
+        error->all(FLERR,"Illegal comm_modify command");
+      if (cutusermulti == NULL)
+        memory->create(cutusermulti,ntypes+1,"comm:cutusermulti");
+      for (i=0; i < ntypes+1; ++i)
+        cutusermulti[i] = -1.0;
+      force->bounds(arg[iarg+1],ntypes,nlo,nhi,1);
+      cut = force->numeric(FLERR,arg[iarg+2]);
+      if (cut < 0.0)
+        error->all(FLERR,"Invalid cutoff in comm_modify command");
+      for (i=nlo; i<nhi; ++i)
+        cutusermulti[i] = cut;
+      iarg += 3;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;

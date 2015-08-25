@@ -25,24 +25,39 @@ neighbor        2.0 bin
 fix		1 all shake 0.0001 20 0 b 1 a 1
 fix		2 all nvt temp 300.0 300.0 100.0
 
-compute		spa all group/group all pair yes kspace no boundary no
-compute		c1 all pe/tally all
+group		oxy type 1
+group		hyd type 2
+
+# the following section shows equivalences between using the pe/tally compute and other computes and thermo keywords
+
+# compute pairwise energy between all oxygen and all hydrogen
+compute		epa oxy group/group hyd pair yes kspace no boundary no
+# tally pairwise energy between all oygen and all hydrogen
+compute		c1 oxy pe/tally hyd
+# tally pairwise energy beween all atoms to compare with globals
 compute		c2 all pe/tally all
-compute		red all reduce sum c_c1[1] c_c1[2]
-variable	ref equal c_spa
-variable	new equal c_red[1]+c_red[2]
+# collect per atom energies
+compute		c3 all pe/atom pair
+# reduce over the first group only the per-atom data is storing VDW and Coulomb separately...
+compute		oxy oxy reduce sum c_c1[1] c_c1[2]
+compute		red all reduce sum c_c2[1] c_c2[2] c_c3
+# ... thus to get the same as compute group/group, we need to add the two
+# ... and multiply by 2.0 since compute group/group sums the pair energy, while we collect only for the first group.
+variable	epa equal 2.0*(c_oxy[1]+c_oxy[2])
+# compute equivalent values to globals
+variable	vdwl equal c_red[1]
+variable	coul equal c_red[2]
+variable	pe   equal c_red[3]
+variable	pair equal v_vdwl+v_coul
+variable	eref equal epair-elong
 
 velocity	all create 300 432567 dist uniform
 
 timestep	2.0
 
-thermo_style    custom step c_c1 v_ref v_new evdwl c_red[1] ecoul c_red[2]
+# c_epa and v_epa, evdwl and v_vdwl, ecoul and v_coul, and the last 4 columns each should have identical value
+thermo_style    custom step c_epa v_epa evdwl v_vdwl ecoul v_coul v_eref v_pe c_c2 v_pair
 thermo		10
 
-run 0 post no
-compute		c3 all force/tally all
-run 1 post no
-run 1 pre no post no
-uncompute c2
 run 50
 

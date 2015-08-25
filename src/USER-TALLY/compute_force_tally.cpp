@@ -67,6 +67,13 @@ void ComputeForceTally::init()
   else
     force->pair->add_tally_callback(this);
 
+  if (force->pair->single_enable == 0 || force->pair->manybody_flag)
+    error->all(FLERR,"Compute force/tally used with incompatible pair style.");
+
+  if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
+                          || force->improper || force->kspace))
+    error->warning(FLERR,"Compute force/tally only called from pair style");
+
   did_compute = -1;
 }
 
@@ -114,14 +121,24 @@ void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton
        || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
 
     if (newton || i < nlocal) {
-      ftotal[0] += fpair*dx; fatom[i][0] += fpair*dx;
-      ftotal[1] += fpair*dy; fatom[i][1] += fpair*dy;
-      ftotal[2] += fpair*dz; fatom[i][2] += fpair*dz;
+      if (mask[i] & groupbit) {
+        ftotal[0] += fpair*dx;
+        ftotal[1] += fpair*dy;
+        ftotal[2] += fpair*dz;
+      }
+      fatom[i][0] += fpair*dx;
+      fatom[i][1] += fpair*dy;
+      fatom[i][2] += fpair*dz;
     }
     if (newton || j < nlocal) {
-      ftotal[0] -= fpair*dx; fatom[i][0] -= fpair*dx;
-      ftotal[1] -= fpair*dy; fatom[i][1] -= fpair*dy;
-      ftotal[2] -= fpair*dz; fatom[i][2] -= fpair*dz;
+      if (mask[j] & groupbit) {
+        ftotal[0] -= fpair*dx;
+        ftotal[1] -= fpair*dy;
+        ftotal[2] -= fpair*dz;
+      }
+      fatom[j][0] -= fpair*dx;
+      fatom[j][1] -= fpair*dy;
+      fatom[j][2] -= fpair*dz;
     }
   }
 }

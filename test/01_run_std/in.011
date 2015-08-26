@@ -41,5 +41,6 @@ thermo_style 	custom step etotal ke temp pe ebond eangle edihed eimp evdwl ecoul
 velocity	all create 300.0 87287 loop geom
 fix		f1 all nve
 
+run 		0 post no
 info		all
 run 1000

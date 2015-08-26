@@ -241,10 +241,11 @@ void Info::command(int narg, char **arg)
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",
             comm->ghost_velocity ? "yes" : "no");
 
-    if (comm->mode == 0)
+    if (comm->mode == 0) {
       fprintf(out,"Communication mode = single\n");
       fprintf(out,"Communication cutoff = %g\n",
               MAX(comm->cutghostuser,neighbor->cutneighmax));
+    }
 
     if (comm->mode == 1) {
       fprintf(out,"Communication mode = multi\n");

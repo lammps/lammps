@@ -79,7 +79,7 @@ CommBrick::~CommBrick()
 
 /* ---------------------------------------------------------------------- */
 
-CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
+CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(lmp)
 {
   if (oldcomm->layout == LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");

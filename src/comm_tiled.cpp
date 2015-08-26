@@ -58,7 +58,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
+CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(lmp)
 {
   if (lmp->cuda)
     error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");

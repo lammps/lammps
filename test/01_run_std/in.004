@@ -48,5 +48,6 @@ thermo_style	custom step temp epair etotal press vol
 thermo		1000
 
 timestep	0.005
+run 0 post no
 info		all
 run		50000

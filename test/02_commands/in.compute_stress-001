@@ -3,7 +3,7 @@ units		real
 atom_style	full
 timers		off
 
-read_data	data.spce
+read_data	spce.data
 
 pair_style	lj/cut/coul/long 12.0 12.0
 kspace_style	pppm 1.0e-4

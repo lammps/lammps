@@ -54,7 +54,7 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeStressTally::~ComputeStressTally()
 {
-  if (force->pair) force->pair->del_tally_callback(this);
+  if (force && force->pair) force->pair->del_tally_callback(this);
   delete[] vector;
 }
 

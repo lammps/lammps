@@ -54,7 +54,7 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeHeatFluxTally::~ComputeHeatFluxTally()
 {
-  if (force->pair) force->pair->del_tally_callback(this);
+  if (force && force->pair) force->pair->del_tally_callback(this);
   delete[] vector;
 }
 

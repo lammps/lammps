@@ -174,9 +174,11 @@ void CommBrick::setup()
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
-        cutghostmulti[i][0] = MAX(cutusermulti[i],cuttype[i]);
-        cutghostmulti[i][1] = MAX(cutusermulti[i],cuttype[i]);
-        cutghostmulti[i][2] = MAX(cutusermulti[i],cuttype[i]);
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
       }
     }
 
@@ -196,9 +198,11 @@ void CommBrick::setup()
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
-        cutghostmulti[i][0] = length0 * MAX(cutusermulti[i],cuttype[i]);
-        cutghostmulti[i][1] = length1 * MAX(cutusermulti[i],cuttype[i]);
-        cutghostmulti[i][2] = length2 * MAX(cutusermulti[i],cuttype[i]);
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
       }
     }
   }

@@ -130,6 +130,9 @@ Comm::~Comm()
 void Comm::copy_arrays(Comm *oldcomm)
 {
   if (oldcomm->grid2proc) {
+    procgrid[0] = oldcomm->procgrid[0];
+    procgrid[1] = oldcomm->procgrid[1];
+    procgrid[2] = oldcomm->procgrid[2];
     memory->create(grid2proc,procgrid[0],procgrid[1],procgrid[2],
                    "comm:grid2proc");
     memcpy(&grid2proc[0][0][0],&oldcomm->grid2proc[0][0][0],

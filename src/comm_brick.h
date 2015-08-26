@@ -73,7 +73,9 @@ class CommBrick : public Comm {
   int bufextra;                     // extra space beyond maxsend in send buffer
   int smax,rmax;             // max size in atoms of single borders send/recv
 
+  // NOTE: init_buffers is called from a constructor and must not be made virtual
   void init_buffers();
+
   int updown(int, int, int, double, int, double *);
                                             // compare cutoff to procs
   virtual void grow_send(int, int);         // reallocate send buffer

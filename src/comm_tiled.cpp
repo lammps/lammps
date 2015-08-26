@@ -57,8 +57,13 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 }
 
 /* ---------------------------------------------------------------------- */
-
-CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(lmp)
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
+//
+CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
   if (lmp->cuda)
     error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");
@@ -67,7 +72,7 @@ CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(lmp)
 
   style = 1;
   layout = oldcomm->layout;
-  copy_arrays(oldcomm);
+  Comm::copy_arrays(oldcomm);
   init_buffers();
 }
 

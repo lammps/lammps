@@ -78,15 +78,20 @@ CommBrick::~CommBrick()
 }
 
 /* ---------------------------------------------------------------------- */
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
 
-CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(lmp)
+CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
   if (oldcomm->layout == LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
 
   style = 0;
   layout = oldcomm->layout;
-  copy_arrays(oldcomm);
+  Comm::copy_arrays(oldcomm);
   init_buffers();
 }
 

@@ -130,12 +130,6 @@ Comm::~Comm()
 void Comm::copy_arrays(Comm *oldcomm)
 {
   if (oldcomm->grid2proc) {
-    procgrid[0] = oldcomm->procgrid[0];
-    procgrid[1] = oldcomm->procgrid[1];
-    procgrid[2] = oldcomm->procgrid[2];
-    myloc[0] = oldcomm->myloc[0];
-    myloc[1] = oldcomm->myloc[1];
-    myloc[2] = oldcomm->myloc[2];
     memory->create(grid2proc,procgrid[0],procgrid[1],procgrid[2],
                    "comm:grid2proc");
     memcpy(&grid2proc[0][0][0],&oldcomm->grid2proc[0][0][0],
@@ -147,6 +141,11 @@ void Comm::copy_arrays(Comm *oldcomm)
     memcpy(xsplit,oldcomm->xsplit,(procgrid[0]+1)*sizeof(double));
     memcpy(ysplit,oldcomm->ysplit,(procgrid[1]+1)*sizeof(double));
     memcpy(zsplit,oldcomm->zsplit,(procgrid[2]+1)*sizeof(double));
+  }
+
+  if (oldcomm->cutusermulti) {
+    memory->create(cutusermulti,atom->ntypes+1,"comm:cutusermulti");
+    memcpy(cutusermulti,oldcomm->cutusermulti,atom->ntypes+1);
   }
 
   if (customfile) {

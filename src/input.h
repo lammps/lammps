@@ -28,7 +28,7 @@ class Input : protected Pointers {
   class Variable *variable;    // defined variables
 
   Input(class LAMMPS *, int, char **);
-  ~Input();
+  virtual ~Input();
   void file();                   // process all input
   void file(const char *);       // process an input script
   char *one(const char *);       // process a single command

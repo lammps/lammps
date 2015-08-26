@@ -25,6 +25,7 @@ namespace LAMMPS_NS {
 class Memory : protected Pointers {
  public:
   Memory(class LAMMPS *);
+  virtual ~Memory() {}
 
   void *smalloc(bigint n, const char *);
   void *srealloc(void *, bigint n, const char *);

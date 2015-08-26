@@ -55,7 +55,7 @@ class LAMMPS {
   class CiteMe *citeme;          // citation info
 
   LAMMPS(int, char **, MPI_Comm);
-  ~LAMMPS();
+  virtual ~LAMMPS();
   void create();
   void post_create(int, int *, int *, char **);
   void init();

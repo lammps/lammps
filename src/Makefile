@@ -187,7 +187,7 @@ test-clean:
 
 test-%:
 	$(MAKE) $(MFLAGS) $(@:test-%=%)
-	@cd ../test/; $(MAKE) $(MFLAGS) test MACH=$(@:test-%=%) MPICMD="$(MPICMD)" LMPFLAGS="$(LMPFLAGS)" TAG=$(TAG) ; cd ..
+	@cd ../test/; $(MAKE) $(MFLAGS) test MACH=$(@:test-%=%) MPICMD="$(MPICMD)" LMPFLAGS="$(LMPFLAGS)" TAG=$(TAG) || exit 1 ; cd ..
 
 # Create Makefile.list
 

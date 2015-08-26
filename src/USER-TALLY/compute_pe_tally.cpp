@@ -44,7 +44,7 @@ ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
-  did_compute = 0;
+  did_compute = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
   eatom = NULL;
   vector = new double[size_peratom_cols];
@@ -163,7 +163,7 @@ void ComputePETally::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputePETally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
-  if (update->eflag_global != invoked_scalar)
+  if ((did_compute != invoked_scalar) || (update->eflag_global != invoked_scalar))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // sum accumulated energies across procs
@@ -179,7 +179,7 @@ double ComputePETally::compute_scalar()
 void ComputePETally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
-  if (update->eflag_global != invoked_peratom)
+  if ((did_compute != invoked_peratom) || (update->eflag_global != invoked_peratom))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms

@@ -45,6 +45,7 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
   did_compute = 0;
+  invoked_peratom = invoked_scalar = -1;
   nmax = -1;
   fatom = NULL;
   vector = new double[size_peratom_cols];
@@ -179,7 +180,7 @@ void ComputeForceTally::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputeForceTally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
-  if (update->eflag_global != invoked_scalar)
+  if ((did_compute != invoked_scalar) || (update->eflag_global != invoked_scalar))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // sum accumulated forces across procs
@@ -195,7 +196,7 @@ double ComputeForceTally::compute_scalar()
 void ComputeForceTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
-  if (update->eflag_global != invoked_peratom)
+  if ((did_compute != invoked_peratom) || (update->eflag_global != invoked_peratom))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms

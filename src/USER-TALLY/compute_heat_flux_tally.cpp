@@ -44,6 +44,7 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
   did_compute = 0;
+  invoked_peratom = invoked_scalar = -1;
   nmax = -1;
   stress = NULL;
   eatom = NULL;
@@ -209,7 +210,7 @@ void ComputeHeatFluxTally::unpack_reverse_comm(int n, int *list, double *buf)
 void ComputeHeatFluxTally::compute_vector()
 {
   invoked_vector = update->ntimestep;
-  if (update->eflag_global != invoked_vector)
+  if ((did_compute != invoked_vector) || (update->eflag_global != invoked_vector))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms

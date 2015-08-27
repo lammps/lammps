@@ -232,6 +232,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   // print file comment lines
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Time-correlated data for fix %s\n",id);
     if (title2) fprintf(fp,"%s\n",title2);
@@ -264,6 +265,9 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
             fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing file header");
+
     filepos = ftell(fp);
   }
 
@@ -479,6 +483,7 @@ void FixAveCorrelate::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrepeat);
     for (i = 0; i < nrepeat; i++) {
@@ -491,10 +496,14 @@ void FixAveCorrelate::end_of_step()
           fprintf(fp," 0.0");
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing out correlation data");
+
     fflush(fp);
+
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 

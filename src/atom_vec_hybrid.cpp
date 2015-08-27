@@ -144,7 +144,7 @@ void AtomVecHybrid::grow(int n)
   if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0 || nmax > MAXSMALLINT)
+  if (nmax < 0)
     error->one(FLERR,"Per-processor system is too big");
 
   // sub-styles perform all reallocation

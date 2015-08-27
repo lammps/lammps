@@ -118,13 +118,13 @@ void Run::command(int narg, char **arg)
   // error check
 
   if (startflag) {
-    if (start < 0 || start > MAXBIGINT)
+    if (start < 0)
       error->all(FLERR,"Invalid run command start/stop value");
     if (start > update->ntimestep)
       error->all(FLERR,"Run command start value is after start of run");
   }
   if (stopflag) {
-    if (stop < 0 || stop > MAXBIGINT)
+    if (stop < 0)
       error->all(FLERR,"Invalid run command start/stop value");
     if (stop < update->ntimestep + nsteps)
       error->all(FLERR,"Run command stop value is before end of run");
@@ -157,7 +157,7 @@ void Run::command(int narg, char **arg)
     update->nsteps = nsteps;
     update->firststep = update->ntimestep;
     update->laststep = update->ntimestep + nsteps;
-    if (update->laststep < 0 || update->laststep > MAXBIGINT)
+    if (update->laststep < 0 || update->laststep < update->firststep)
       error->all(FLERR,"Too many timesteps");
 
     if (startflag) update->beginstep = start;
@@ -195,7 +195,7 @@ void Run::command(int narg, char **arg)
       update->nsteps = nsteps;
       update->firststep = update->ntimestep;
       update->laststep = update->ntimestep + nsteps;
-      if (update->laststep < 0 || update->laststep > MAXBIGINT)
+      if (update->laststep < 0 || update->laststep < update->firststep)
         error->all(FLERR,"Too many timesteps");
 
       if (startflag) update->beginstep = start;

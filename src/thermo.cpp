@@ -378,7 +378,7 @@ bigint Thermo::lost_check()
   bigint ntotal;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (ntotal < 0 || ntotal > MAXBIGINT)
+  if (ntotal < 0)
     error->all(FLERR,"Too many total atoms");
   if (ntotal == atom->natoms) return ntotal;
 

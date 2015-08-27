@@ -187,7 +187,7 @@ void ReadRestart::command(int narg, char **arg)
 
   // close header file if in multiproc mode
 
-  if (multiproc && me == 0 && fp != NULL) {
+  if (multiproc && me == 0) {
     fclose(fp);
     fp = NULL;
   }
@@ -266,7 +266,7 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (me == 0 && fp != NULL) {
+    if (me == 0) {
       fclose(fp);
       fp = NULL;
     }

@@ -1175,22 +1175,22 @@ char *ReadRestart::read_string()
 
 /* ----------------------------------------------------------------------
    read vector of N ints from restart file and bcast them
-   do not bcast them, caller does that if required
 ------------------------------------------------------------------------- */
 
 void ReadRestart::read_int_vec(int n, int *vec)
 {
+  if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
   if (me == 0) fread(vec,sizeof(int),n,fp);
   MPI_Bcast(vec,n,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
    read vector of N doubles from restart file and bcast them
-   do not bcast them, caller does that if required
 ------------------------------------------------------------------------- */
 
 void ReadRestart::read_double_vec(int n, double *vec)
 {
+  if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
   if (me == 0) fread(vec,sizeof(double),n,fp);
   MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

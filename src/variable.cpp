@@ -521,7 +521,7 @@ int Variable::next(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
-    if (ivar == -1) error->all(FLERR,"Invalid variable in next command");
+    if (ivar < 0) error->all(FLERR,"Invalid variable in next command");
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
@@ -720,7 +720,7 @@ int Variable::atomstyle(int ivar)
 char *Variable::pythonstyle(char *name, char *funcname)
 {
   int ivar = find(name);
-  if (ivar == -1) return NULL;
+  if (ivar < 0) return NULL;
   if (style[ivar] != PYTHON) return NULL;
   if (strcmp(data[ivar][0],funcname) != 0) return NULL;
   return data[ivar][1];
@@ -743,7 +743,7 @@ char *Variable::pythonstyle(char *name, char *funcname)
 char *Variable::retrieve(char *name)
 {
   int ivar = find(name);
-  if (ivar == -1) return NULL;
+  if (ivar < 0) return NULL;
   if (which[ivar] >= num[ivar]) return NULL;
 
   if (eval_in_progress[ivar]) 
@@ -1143,15 +1143,10 @@ double Variable::evaluate(char *str, Tree **tree)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
 
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
-
-        int icompute = modify->find_compute(id);
+        int icompute = modify->find_compute(word+2);
         if (icompute < 0) 
           error->all(FLERR,"Invalid compute ID in variable formula");
         Compute *compute = modify->compute[icompute];
-        delete [] id;
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
@@ -1370,14 +1365,9 @@ double Variable::evaluate(char *str, Tree **tree)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
 
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
-
-        int ifix = modify->find_fix(id);
+        int ifix = modify->find_fix(word+2);
         if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
         Fix *fix = modify->fix[ifix];
-        delete [] id;
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
@@ -1549,11 +1539,8 @@ double Variable::evaluate(char *str, Tree **tree)
       // ----------------
 
       } else if (strncmp(word,"v_",2) == 0) {
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
 
-        int ivar = find(id);
+        int ivar = find(word+2);
         if (ivar < 0)
           error->all(FLERR,"Invalid variable name in variable formula");
         if (eval_in_progress[ivar])
@@ -1578,7 +1565,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
         if (nbracket == 0 && style[ivar] != ATOM && style[ivar] != ATOMFILE) {
 
-          char *var = retrieve(id);
+          char *var = retrieve(word+2);
           if (var == NULL)
             error->all(FLERR,"Invalid variable evaluation in variable formula");
           if (tree) {
@@ -1639,8 +1626,6 @@ double Variable::evaluate(char *str, Tree **tree)
                          tree,treestack,ntreestack,argstack,nargstack);
 
         } else error->all(FLERR,"Mismatched variable in variable formula");
-
-        delete [] id;
 
       // ----------------
       // math/group/special function or atom value/vector or
@@ -3761,7 +3746,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       error->all(FLERR,"Invalid special function in variable formula");
 
     int ivar = find(args[0]);
-    if (ivar == -1)
+    if (ivar < 0)
       error->all(FLERR,"Variable ID in variable formula does not exist");
 
     // SCALARFILE has single current value, read next one
@@ -4360,17 +4345,11 @@ unsigned int Variable::data_mask(char *str)
         error->all(FLERR,
                    "Variable evaluation before simulation box is defined");
 
-      n = strlen(word) - 2 + 1;
-      char *id = new char[n];
-      strcpy(id,&word[2]);
-
-      int icompute = modify->find_compute(id);
+      int icompute = modify->find_compute(word+2);
       if (icompute < 0) 
         error->all(FLERR,"Invalid compute ID in variable formula");
 
       datamask &= modify->compute[icompute]->data_mask();
-
-      delete [] id;
     }
 
     if ((strncmp(word,"f_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
@@ -4378,19 +4357,15 @@ unsigned int Variable::data_mask(char *str)
         error->all(FLERR,
                    "Variable evaluation before simulation box is defined");
       
-      n = strlen(word) - 2 + 1;
-      char *id = new char[n];
-      strcpy(id,&word[2]);
-      
-      int ifix = modify->find_fix(id);
+      int ifix = modify->find_fix(word+2);
       if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
       
       datamask &= modify->fix[ifix]->data_mask();
-      delete [] id;
     }
     
     if ((strncmp(word,"v_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      int ivar = find(word);
+      int ivar = find(word+2);
+      if (ivar < 0) error->all(FLERR,"Invalid variable name in variable formula");
       datamask &= data_mask(ivar);
     }
 

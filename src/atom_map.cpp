@@ -369,7 +369,7 @@ int Atom::next_prime(int n)
   if (nprime % 2 == 0) nprime++;
   int root = static_cast<int> (sqrt(1.0*n)) + 2;
 
-  while (nprime <= MAXSMALLINT) {
+  while (nprime < MAXSMALLINT) {
     for (factor = 3; factor < root; factor++)
       if (nprime % factor == 0) break;
     if (factor == root) return nprime;

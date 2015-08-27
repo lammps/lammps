@@ -651,7 +651,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
 void ReadRestart::header(int incompatible)
 {
-  int xperiodic,yperiodic,zperiodic;
+  int xperiodic(-1),yperiodic(-1),zperiodic(-1);
 
   // read flags and fields until flag = -1
 
@@ -792,6 +792,9 @@ void ReadRestart::header(int incompatible)
       domain->boundary[1][1] = boundary[1][1];
       domain->boundary[2][0] = boundary[2][0];
       domain->boundary[2][1] = boundary[2][1];
+
+      if (xperiodic < 0 || yperiodic < 0 || zperiodic < 0)
+        error->all(FLERR,"Illegal of unset periodicity in restart");
 
       domain->periodicity[0] = domain->xperiodic = xperiodic;
       domain->periodicity[1] = domain->yperiodic = yperiodic;

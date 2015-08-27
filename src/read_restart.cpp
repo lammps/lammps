@@ -1099,9 +1099,7 @@ void ReadRestart::magic_string()
 
 void ReadRestart::endian()
 {
-  int endian;
-  if (me == 0) fread(&endian,sizeof(int),1,fp);
-  MPI_Bcast(&endian,1,MPI_INT,0,world);
+  int endian = read_int();
   if (endian == ENDIAN) return;
   if (endian == ENDIANSWAP)
     error->all(FLERR,"Restart file byte ordering is swapped");
@@ -1164,9 +1162,8 @@ double ReadRestart::read_double()
 
 char *ReadRestart::read_string()
 {
-  int n;
-  if (me == 0) fread(&n,sizeof(int),1,fp);
-  MPI_Bcast(&n,1,MPI_INT,0,world);
+  int n = read_int();
+  if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
   if (me == 0) fread(value,sizeof(char),n,fp);
   MPI_Bcast(value,n,MPI_CHAR,0,world);

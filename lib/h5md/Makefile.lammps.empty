@@ -2,6 +2,6 @@
 # The default settings assume that HDF5 support is integrated into the standard
 # distribution and search paths and thus only needs to link the HDF5 library.
 
-ch5md_SYSINC =
-ch5md_SYSLIB = -lhdf5
-ch5md_SYSPATH =
+h5md_SYSINC =
+h5md_SYSLIB = -lhdf5
+h5md_SYSPATH =

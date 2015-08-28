@@ -7,6 +7,7 @@
 :line
 
 compute force/tally command :h3
+compute heat/flux/tally command :h3
 compute pe/tally command :h3
 compute stress/tally command :h3
 

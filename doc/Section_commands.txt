@@ -452,6 +452,7 @@ in the command's documentation.
 "thermo"_thermo.html,
 "thermo_modify"_thermo_modify.html,
 "thermo_style"_thermo_style.html,
+"timer"_timer.html,
 "timestep"_timestep.html,
 "uncompute"_uncompute.html,
 "undump"_undump.html,

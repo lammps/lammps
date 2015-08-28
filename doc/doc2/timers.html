@@ -1,0 +1,77 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>timestep command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>timers args 
+</PRE>
+<LI><I>args</I> = one or more of <I>off</I> or <I>loop</I> or <I>normal</I> or <I>full</I> or <I>sync</I> or <I>nosync</I> 
+
+<PRE>  <I>off</I> = do not collect and print timing information
+  <I>loop</I> = collect only the total time for the simulation loop
+  <I>normal</I> = collect timer information broken down in sections (default)
+  <I>full</I> = like <I>normal</I> but also include CPU and thread utilzation 
+  <I>sync</I> = explicitly synchronize MPI tasks between sections
+  <I>nosync</I> = do not synchronize MPI tasks when collecting timer info (default) 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>timers full sync
+timers loop 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Select to which level of detail LAMMPS is performing internal profiling.
+</P>
+<P>During regular runs LAMMPS will collect information about how much time is
+spent in different sections of the code and thus can provide valuable
+information for determining performance and load imbalance problems.  This
+can be done at different levels of detail and accuracy.  For more 
+information about the timing output, please have a look at the <A HREF = "Section_start.html#start_8">discussion
+of screen output</A>.
+</P>
+<P>The <I>off</I> setting will turn all time measurements off. The <I>loop</I> setting
+will only measure the total time of run loop and not collect any detailed
+per section information. With the <I>normal</I> setting, timing information for
+individual sections of the code are collected and also information about
+load imbalances inside those sections presented. The <I>full</I> setting adds
+information about CPU utilization and thread utilization, when multi-threading
+is enabled.
+</P>
+<P>With the <I>sync</I> setting, all MPI tasks are synchronized at each timer call
+and thus allowing to study load imbalance more accuractly, but this usually
+has some performance impact. Using the <I>nosync</I> setting this can be turned
+off (which is the default).
+</P>
+<P>Multiple keywords can be provided and for keywords that are mutually
+exclusive, the last one in that group is taking effect.
+</P>
+<P>IMPORTANT NOTE: Using the <I>full</I> and <I>sync</I> options provides the most
+detailed and accurate timing information, but also can have a significant
+negative performance impact due to the overhead of the many required system
+calls. It is thus recommended to use these settings only when making tests
+to identify the performance. For calculations with few atoms or a very
+large number of performance, even using the <I>normal</I> setting can have
+a measurable performance impact. It is recommended in those cases to use
+the <I>loop</I> or <I>off</I> setting.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+<A HREF = "run.html">run post no</A>, <A HREF = "kspace_modify.html">kspace_modify fftbench</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>timers normal nosync
+</P>
+</HTML>

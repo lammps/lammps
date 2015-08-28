@@ -274,11 +274,11 @@ void FixAveHistoWeight::end_of_step()
 
   // atom attributes
 
-  if (which[i] == X)
+  if (which[i] == X && weights != NULL)
     bin_atoms_weights(&atom->x[0][j],3,weights,stride);
-  else if (which[i] == V)
+  else if (which[i] == V && weights != NULL)
     bin_atoms_weights(&atom->v[0][j],3,weights,stride);
-  else if (which[i] == F)
+  else if (which[i] == F && weights != NULL)
     bin_atoms_weights(&atom->f[0][j],3,weights,stride);
   
   // invoke compute if not previously invoked

@@ -57,6 +57,7 @@ h5md_file h5md_create_file (const char *filename, const char *author, const char
 int h5md_close_file(h5md_file file);
 hid_t h5md_open_file (const char *filename);
 h5md_particles_group h5md_create_particles_group(h5md_file file, const char *name);
+hid_t h5md_open_particles_group(hid_t particles, const char *name);
 h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int int_dims[], hid_t datatype, h5md_element *link);
 int h5md_close_element(h5md_element e);
 h5md_element h5md_create_fixed_data_simple(hid_t loc, const char *name, int rank, int int_dims[], hid_t datatype, void *data);

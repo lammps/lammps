@@ -137,6 +137,15 @@ h5md_particles_group h5md_create_particles_group(h5md_file file, const char *nam
   return group;
 }
 
+hid_t h5md_open_particles_group(hid_t particles, const char *name)
+{
+  hid_t group;
+  
+  group = H5Gopen(particles, name, H5P_DEFAULT);
+
+  return group;
+}
+
 h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int int_dims[], hid_t datatype, h5md_element *link)
 {
 

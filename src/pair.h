@@ -188,7 +188,7 @@ class Pair : protected Pointers {
 
   // management of callbacks to be run from ev_tally()
 
- private:
+ protected:
   int num_tally_compute;
   class Compute **list_tally_compute;
  public:

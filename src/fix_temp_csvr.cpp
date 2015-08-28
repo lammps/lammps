@@ -244,7 +244,12 @@ void FixTempCSVR::end_of_step()
   const double ekin_old = t_current * efactor;
   const double ekin_new = t_target * efactor;
 
+  // there is nothing to do, if there are no degrees of freedom
+
+  if (temperature->dof < 1) return;
+
   // compute velocity scaling factor on root node and broadcast
+
   double lamda;
   if (comm->me == 0) {
     lamda = resamplekin(ekin_old, ekin_new);

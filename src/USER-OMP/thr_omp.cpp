@@ -513,6 +513,18 @@ void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int
 
     v_tally_thr(pair, i, j, nlocal, newton_pair, v, thr);
   }
+
+  if (pair->num_tally_compute > 0) {
+    // ev_tally callbacks are not thread safe and thus have to be protected
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    for (int k=0; k < pair->num_tally_compute; ++k) {
+      Compute *c = pair->list_tally_compute[k];
+      c->pair_tally_callback(i, j, nlocal, newton_pair,
+                             evdwl, ecoul, fpair, delx, dely, delz);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -410,12 +410,12 @@ be set explicitly with this keyword to fine-tune performance.  For
 large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.</p>
-<p>The <em>blocksize</em> keyword allows to tweak the number of threads used
+<p>The <em>blocksize</em> keyword allows you to tweak the number of threads used
 per thread block. This number should be a multiple of 32 (for GPUs)
 and its maximum depends on the specific GPU hardware. Typical choices
-are 64, 128, or 256. A larger blocksize increases occupancy of individual
-GPU cores, but reduces the total number of thread blocks, thus may lead
-to load imbalance.</p>
+are 64, 128, or 256. A larger blocksize increases occupancy of
+individual GPU cores, but reduces the total number of thread blocks,
+thus may lead to load imbalance.</p>
 <p>The <em>device</em> keyword can be used to tune parameters optimized for a
 specific accelerator, when using OpenCL.  For CUDA, the <em>device</em>
 keyword is ignored.  Currently, the device type is limited to NVIDIA

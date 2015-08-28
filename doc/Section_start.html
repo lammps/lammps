@@ -1739,40 +1739,91 @@ timesteps.  When the run concludes, LAMMPS prints the final
 thermodynamic state and a total run time for the simulation.  It then
 appends statistics about the CPU time and storage requirements for the
 simulation.  An example set of statistics is shown here:</p>
-<div class="highlight-python"><div class="highlight"><pre>Loop time of 49.002 on 2 procs for 2004 atoms
+<div class="highlight-python"><div class="highlight"><pre>Loop time of 2.81192 on 4 procs for 300 steps with 2004 atoms
+97.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 18.436 ns/day  1.302 hours/ns  106.689 timesteps/s
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre>Pair   time (%) = 35.0495 (71.5267)
-Bond   time (%) = 0.092046 (0.187841)
-Kspce  time (%) = 6.42073 (13.103)
-Neigh  time (%) = 2.73485 (5.5811)
-Comm   time (%) = 1.50291 (3.06703)
-Outpt  time (%) = 0.013799 (0.0281601)
-Other  time (%) = 2.13669 (4.36041)
+<div class="highlight-python"><div class="highlight"><pre>MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.9808     | 2.0134     | 2.0318     |   1.4 | 71.60
+Bond    | 0.0021894  | 0.0060319  | 0.010058   |   4.7 |  0.21
+Kspace  | 0.3207     | 0.3366     | 0.36616    |   3.1 | 11.97
+Neigh   | 0.28411    | 0.28464    | 0.28516    |   0.1 | 10.12
+Comm    | 0.075732   | 0.077018   | 0.07883    |   0.4 |  2.74
+Output  | 0.00030518 | 0.00042665 | 0.00078821 |   1.0 |  0.02
+Modify  | 0.086606   | 0.086631   | 0.086668   |   0.0 |  3.08
+Other   |            | 0.007178   |            |       |  0.26
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre>Nlocal:    1002 ave, 1015 max, 989 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
-Nghost:    8720 ave, 8724 max, 8716 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
-Neighs:    354141 ave, 361422 max, 346860 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
+<div class="highlight-python"><div class="highlight"><pre>Nlocal:    501 ave 508 max 490 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+Nghost:    6586.25 ave 6628 max 6548 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Neighs:    177007 ave 180562 max 170212 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre>Total # of neighbors = 708282
-Ave neighs/atom = 353.434
+<div class="highlight-python"><div class="highlight"><pre>Total # of neighbors = 708028
+Ave neighs/atom = 353.307
 Ave special neighs/atom = 2.34032
-Number of reneighborings = 42
-Dangerous reneighborings = 2
+Neighbor list builds = 26
+Dangerous builds = 0
 </pre></div>
 </div>
-<p>The first section gives the breakdown of the CPU run time (in seconds)
-into major categories.  The second section lists the number of owned
-atoms (Nlocal), ghost atoms (Nghost), and pair-wise neighbors stored
-per processor.  The max and min values give the spread of these values
-across processors with a 10-bin histogram showing the distribution.
-The total number of histogram counts is equal to the number of
-processors.</p>
+<p>The first section provides a global loop timing summary. The loop time
+is the total wall time for the section. The second line provides the
+CPU utilzation per MPI task; it should be close to 100% times the number
+of OpenMP threads (or 1). Lower numbers correspond to delays due to
+file i/o or unsufficient thread utilization. The <em>Performance</em> line is
+provided for convenience to help predicting the number of loop
+continuations required and for comparing performance with other similar
+MD codes.</p>
+<p>The second section gives the breakdown of the CPU run time (in seconds)
+into major categories:</p>
+<ul class="simple">
+<li><em>Pair</em> stands for all non-bonded force computation</li>
+<li><em>Bond</em> stands for bonded interactions: bonds, angles, dihedrals, impropers</li>
+<li><em>Kspace</em> stands for reciprocal space interactions: Ewald, PPPM, MSM</li>
+<li><em>Neigh</em> stands for neighbor list construction</li>
+<li><em>Comm</em> stands for communicating atoms and their properties</li>
+<li><em>Output</em> stands for writing dumps and thermo output</li>
+<li><em>Modify</em> stands for fixes and computes called by them</li>
+<li><em>Other</em> is the remaining time</li>
+</ul>
+<p>For each category, there is a breakdown of the least, average and most
+amount of wall time a processor spent on this section. Also you have the
+variation from the average time. Together these numbers allow to gauge
+the amount of load imbalance in this segment of the calculation. Ideally
+the difference between minimum, maximum and average is small and thus
+the variation from the average close to zero. The final column shows
+the percentage of the total loop time is spent in this section.</p>
+<p>When using the <code class="xref doc docutils literal"><span class="pre">timers</span> <span class="pre">full</span></code> setting, and additional column
+is present that also prints the CPU utilization in percent. In addition,
+when using <em>timers full</em> and the <a class="reference internal" href="package.html"><em>package omp</em></a> command are
+active, a similar timing summary of time spent in threaded regions to
+monitor thread utilization and load balance is provided. A new enrty is
+the <em>Reduce</em> section, which lists the time spend in reducing the per-thread
+data elements to the storage for non-threaded computation. These thread
+timings are taking from the first MPI rank only and and thus, as the
+breakdown for MPI tasks can change from MPI rank to MPI rank, this
+breakdown can be very different for individual ranks. Here is an example
+output for this optional output section:</p>
+<p>Thread timings breakdown (MPI rank 0):
+Total threaded time 0.6846 / 90.6%
+Section |  min time  |  avg time  |  max time  <a href="#id17"><span class="problematic" id="id18">|%varavg|</span></a> %total
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;
+Pair    | 0.5127     | 0.5147     | 0.5167     |   0.3 | 75.18
+Bond    | 0.0043139  | 0.0046779  | 0.0050418  |   0.5 |  0.68
+Kspace  | 0.070572   | 0.074541   | 0.07851    |   1.5 | 10.89
+Neigh   | 0.084778   | 0.086969   | 0.089161   |   0.7 | 12.70
+Reduce  | 0.0036485  | 0.003737   | 0.0038254  |   0.1 |  0.55</p>
+<p>The third section lists the number of owned atoms (Nlocal), ghost atoms
+(Nghost), and pair-wise neighbors stored per processor.  The max and min
+values give the spread of these values across processors with a 10-bin
+histogram showing the distribution. The total number of histogram counts
+is equal to the number of processors.</p>
 <p>The last section gives aggregate statistics for pair-wise neighbors
 and special neighbors that LAMMPS keeps track of (see the
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command).  The number of times
@@ -1789,21 +1840,24 @@ takes place.</p>
 <a class="reference internal" href="minimize.html"><em>minimize</em></a> command, additional information is printed,
 e.g.</p>
 <div class="highlight-python"><div class="highlight"><pre>Minimization stats:
-  E initial, next-to-last, final = -0.895962 -2.94193 -2.94342
-  Gradient 2-norm init/final= 1920.78 20.9992
-  Gradient inf-norm init/final= 304.283 9.61216
-  Iterations = 36
-  Force evaluations = 177
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final =
+         -6372.3765206     -8328.46998942     -8328.46998942
+  Force two-norm initial, final = 1059.36 5.36874
+  Force max component initial, final = 58.6026 1.46872
+  Final line search alpha, max atom move = 2.7842e-10 4.0892e-10
+  Iterations, force evaluations = 701 1516
 </pre></div>
 </div>
-<p>The first line lists the initial and final energy, as well as the
-energy on the next-to-last iteration.  The next 2 lines give a measure
-of the gradient of the energy (force on all atoms).  The 2-norm is the
-&#8220;length&#8221; of this force vector; the inf-norm is the largest component.
-The last 2 lines are statistics on how many iterations and
-force-evaluations the minimizer required.  Multiple force evaluations
-are typically done at each iteration to perform a 1d line minimization
-in the search direction.</p>
+<p>The first line prints the criterion that determined the minimization
+to be completed. The third line lists the initial and final energy,
+as well as the energy on the next-to-last iteration.  The next 2 lines
+give a measure of the gradient of the energy (force on all atoms).
+The 2-norm is the &#8220;length&#8221; of this force vector; the inf-norm is the
+largest component. Then some information about the line search and
+statistics on how many iterations and force-evaluations the minimizer
+required.  Multiple force evaluations are typically done at each
+iteration to perform a 1d line minimization in the search direction.</p>
 <p>If a <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> long-range Coulombics solve was
 performed during the run (PPPM, Ewald), then additional information is
 printed, e.g.</p>

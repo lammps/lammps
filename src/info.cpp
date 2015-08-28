@@ -27,6 +27,7 @@
 #include "group.h"
 #include "input.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "output.h"
 #include "region.h"
 #include "universe.h"
@@ -237,6 +238,24 @@ void Info::command(int narg, char **arg)
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
             commstyles[comm->style], commlayout[comm->layout]); 
+    fprintf(out,"Communicate velocities for ghost atoms = %s\n",
+            comm->ghost_velocity ? "yes" : "no");
+
+    if (comm->mode == 0) {
+      fprintf(out,"Communication mode = single\n");
+      fprintf(out,"Communication cutoff = %g\n",
+              MAX(comm->cutghostuser,neighbor->cutneighmax));
+    }
+
+    if (comm->mode == 1) {
+      fprintf(out,"Communication mode = multi\n");
+      double cut;
+      for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
+        cut = neighbor->cuttype[i];
+        if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
+        fprintf(out,"Communication cutoff for type %d = %g\n", i, cut);
+      }
+    }
     fprintf(out,"Nprocs = %d    Nthreads = %d\n",
             comm->nprocs, comm->nthreads);
     fprintf(out,"Processor grid = %d x %d x %d\n",comm->procgrid[0],

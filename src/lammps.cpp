@@ -546,6 +546,20 @@ LAMMPS::~LAMMPS()
 
   delete citeme;
 
+  int me = comm->me;
+  double totalclock = MPI_Wtime() - initclock;
+  if ((me == 0) && (screen || logfile)) {
+    char outtime[128];
+    int seconds = fmod(totalclock,60.0);
+    totalclock  = (totalclock - seconds) / 60.0;
+    int minutes = fmod(totalclock,60.0);
+    int hours = (totalclock - minutes) / 60.0;
+    sprintf(outtime,"Total wall time: "
+            "%d:%02d:%02d\n", hours, minutes, seconds);
+    if (screen) fputs(outtime,screen);
+    if (logfile) fputs(outtime,logfile);
+  }
+
   if (universe->nworlds == 1) {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
@@ -716,21 +730,37 @@ void LAMMPS::init()
 void LAMMPS::destroy()
 {
   delete update;
+  update = NULL;
+
   delete neighbor;
+  neighbor = NULL;
+
   delete comm;
+  comm = NULL;
+
   delete force;
+  force = NULL;
+
   delete group;
+  group = NULL;
+
   delete output;
+  output = NULL;
+
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
+  modify = NULL;
+
   delete domain;          // domain must come after modify
                           //   since fix destructors access domain
+  domain = NULL;
+
   delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
-  delete timer;
+  atom = NULL;
 
-  modify = NULL;          // necessary since input->variable->varreader
-                          // will be destructed later
+  delete timer;
+  timer = NULL;
 }
 
 /* ----------------------------------------------------------------------

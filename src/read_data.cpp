@@ -298,6 +298,7 @@ void ReadData::command(int narg, char **arg)
   nbonds = nangles = ndihedrals = nimpropers = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   triclinic = 0;
+  keyword[0] = '\0';
 
   int nlocal_previous = atom->nlocal;
   int firstpass = 1;
@@ -1763,7 +1764,10 @@ void ReadData::parse_keyword(int first)
         if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
       } else done = 1;
     }
-    if (fgets(buffer,MAXLINE,fp) == NULL) eof = 1;
+    if (fgets(buffer,MAXLINE,fp) == NULL) {
+      eof = 1;
+      buffer[0] = '\0';
+    }
   }
 
   // if eof, set keyword empty and return

@@ -686,7 +686,7 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
-  else if (!strcmp(command,"timers")) timers();
+  else if (!strcmp(command,"timer")) timer_command();
   else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
@@ -1744,7 +1744,7 @@ void Input::thermo_style()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::timers()
+void Input::timer_command()
 {
   timer->modify_params(narg,arg);
 }

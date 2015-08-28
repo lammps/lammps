@@ -758,6 +758,7 @@ package"_Section_start.html#start_3.
 "smd/ulsph/strain/rate"_compute_smd_ulsph_strain_rate.html,
 "smd/ulsph/stress"_compute_smd_ulsph_stress.html,
 "smd/vol"_compute_smd_vol.html,
+"tally"_compute_tally.html,
 "temp/drude"_compute_temp_drude.html,
 "temp/eff"_compute_temp_eff.html,
 "temp/deform/eff"_compute_temp_deform_eff.html,

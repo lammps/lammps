@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>timer command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute force/tally command &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>timer command</li>
+    <li>compute force/tally command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,79 +124,80 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="timer-command">
-<span id="index-0"></span><h1>timer command<a class="headerlink" href="#timer-command" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="compute-force-tally-command">
+<span id="index-0"></span><h1>compute force/tally command<a class="headerlink" href="#compute-force-tally-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="compute-pe-tally-command">
+<h1>compute pe/tally command<a class="headerlink" href="#compute-pe-tally-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="compute-stress-tally-command">
+<h1>compute stress/tally command<a class="headerlink" href="#compute-stress-tally-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>timer args
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID style group2-ID
 </pre></div>
 </div>
 <ul class="simple">
-<li><em>args</em> = one or more of <em>off</em> or <em>loop</em> or <em>normal</em> or <em>full</em> or <em>sync</em> or <em>nosync</em></li>
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>style = <em>force/tally</em> or <em>pe/tally</em> or <em>stress/tally</em></li>
+<li>group2-ID = group ID of second (or same) group</li>
 </ul>
-<pre class="literal-block">
-<em>off</em> = do not collect or print any timing information
-<em>loop</em> = collect only the total time for the simulation loop
-<em>normal</em> = collect timer information broken down by sections (default)
-<em>full</em> = like <em>normal</em> but also include CPU and thread utilzation
-<em>sync</em> = explicitly synchronize MPI tasks between sections
-<em>nosync</em> = do not synchronize MPI tasks between sections (default)
-</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>timer full sync
-timer loop
+<div class="highlight-python"><div class="highlight"><pre>compute 1 lower force/tally upper
+compute 1 left pe/tally right
+compute 1 lower stress/tally lower
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Select the level of detail LAMMPS performs its CPU timings.</p>
-<p>During a simulation run LAMMPS collects information about how much
-time is spent in different sections of the code and thus can provide
-valuable information for determining performance and load imbalance
-problems.  This can be done at different levels of detail and
-accuracy.  For more information about the timing output, see this
-<a class="reference internal" href="Section_start.html#start-8"><span>discussion of screen output</span></a>.</p>
-<p>The <em>off</em> setting will turn all time measurements off. The <em>loop</em>
-setting will only measure the total time for a run and not collect any
-detailed per section information.  With the <em>normal</em> setting, timing
-information for portions of the timestep (pairwise calculations,
-neighbor list construction, output, etc) are collected as well as
-information about load imbalances for those sections across
-procsessors.  The <em>full</em> setting adds information about CPU
-utilization and thread utilization, when multi-threading is enabled.</p>
-<p>With the <em>sync</em> setting, all MPI tasks are synchronized at each timer
-call which meaures load imbalance more accuractly, though it can also
-slow down the simulation.  Using the <em>nosync</em> setting (which is the
-default) turns off this synchronization.</p>
-<p>Multiple keywords can be specified.  For keywords that are mutually
-exclusive, the last one specified takes effect.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Using the <em>full</em> and <em>sync</em> options provides the most
-detailed and accurate timing information, but can also have a negative
-performance impact due to the overhead of the many required system
-calls. It is thus recommended to use these settings only when testing
-tests to identify performance bottlenecks. For calculations with few
-atoms or a very large number of processors, even the <em>normal</em> setting
-can have a measurable negative performance impact. In those cases you
-can just use the <em>loop</em> or <em>off</em> setting.</p>
-</div>
+<p>Define a computation that calculates properties between two groups of
+atoms by accumulating them from pairwise non-bonded computations.  The
+two groups can be the same. This is similar to <a class="reference internal" href="compute_group_group.html"><em>compute group/group</em></a> only that the data is
+accumulated directly during the non-bonded force computation. The
+computes <em>force/tally</em>, <em>pe/tally</em>, <em>stress/tally</em>, and
+<em>heat/flux/tally</em> are primarily provided as example how to program
+additional, more sophisticated computes using the tally mechanism.</p>
+<hr class="docutils" />
+<p>The pairwise contributions are computing via a callback that the
+compute registers with the non-bonded pairwise force computation.
+This limits the use to systems that have no bonds, no Kspace, and no
+manybody interactions. On the other hand, the computation does not
+have to compute forces or energies a second time and thus can be much
+more efficient. The callback mechanism allows to write more complex
+pairwise property computations.</p>
+<hr class="docutils" />
+<p><strong>Output info:</strong></p>
+<p>Compute <em>pe/tally</em> calculates a global scalar (the energy) and a per
+atom scalar (the contributions of the single atom to the global
+scalar).  Compute <em>force/tally</em> calculates a global scalar (the force
+magnitude) and a per atom 3-element vector (force contribution from
+each atom).  Compute <em>stress/tally</em> calculates a global scalar
+(average of the diagonal elements of the stress tensor) and a per atom
+vector (the 6 elements of stress tensor contributions from the
+individual atom).</p>
+<p>Both the scalar and vector values calculated by this compute are
+&#8220;extensive&#8221;.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
+<p>This compute is part of the USER-TALLY package.  It is only enabled
+if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>Not all pair styles can be evaluated in a pairwise mode as required by
+this compute.  For example, 3-body and other many-body potentials,
+such as <a class="reference internal" href="pair_tersoff.html"><em>Tersoff</em></a> and
+<a class="reference internal" href="pair_sw.html"><em>Stillinger-Weber</em></a> cannot be used.  <a class="reference internal" href="pair_eam.html"><em>EAM</em></a>
+potentials only include the pair potential portion of the EAM
+interaction when used by this compute, not the embedding term.  Also
+bonded or Kspace interactions do not contribute to this compute.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="run.html"><em>run post no</em></a>, <a class="reference internal" href="kspace_modify.html"><em>kspace_modify fftbench</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>timer normal nosync</p>
+<p><a href="#id1"><span class="problematic" id="id2">*</span></a>compute group/group*_compute_group_group.html, <a href="#id3"><span class="problematic" id="id4">*</span></a>compute
+heat/flux*_compute_heat_flux.html</p>
+<p><strong>Default:</strong> none</p>
 </div>
 </div>
 

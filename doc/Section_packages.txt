@@ -123,7 +123,7 @@ USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"c
 USER-DRUDE, Drude oscillators, Dequidt & Devemy & Padua (3), "tutorial"_tutorial_drude.html, USER/drude, -, -
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
-USER-H5MD, dump output via HDF5, Pierre de Buyl (KU Leuven), "dump h5md"_dump_h5md.html, -, -, h5md
+USER-H5MD, dump output via HDF5, Pierre de Buyl (KU Leuven), "dump h5md"_dump_h5md.html, -, -, lib/h5md
 USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
@@ -136,6 +136,7 @@ USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_st
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
+USER-TALLY, Pairwise tallied computes, Axel Kohlmeyer (Temple U), "compute <...>/tally"_compute_tally.html, USER/tally, -, -
 :tb(ea=c)
 
 :link(atc,http://lammps.sandia.gov/pictures.html#atc)

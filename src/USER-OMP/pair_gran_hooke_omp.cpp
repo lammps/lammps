@@ -74,6 +74,7 @@ void PairGranHookeOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag)
@@ -83,6 +84,7 @@ void PairGranHookeOMP::compute(int eflag, int vflag)
       if (force->newton_pair) eval<0,1>(ifrom, ito, thr);
       else eval<0,0>(ifrom, ito, thr);
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -90,7 +92,7 @@ void PairGranHookeOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int NEWTON_PAIR>
 void PairGranHookeOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;

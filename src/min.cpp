@@ -459,9 +459,13 @@ double Min::energy_force(int resetflag)
   if (nflag == 0) {
     timer->stamp();
     comm->forward_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
   } else {
-    if (modify->n_min_pre_exchange) modify->min_pre_exchange();
+    if (modify->n_min_pre_exchange) {
+      timer->stamp();
+      modify->min_pre_exchange();
+      timer->stamp(Timer::MODIFY);
+    }
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     if (domain->box_change) {
@@ -475,20 +479,24 @@ double Min::energy_force(int resetflag)
         update->ntimestep >= atom->nextsort) atom->sort();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
     neighbor->build();
-    timer->stamp(TIME_NEIGHBOR);
+    timer->stamp(Timer::NEIGH);
   }
 
   ev_set(update->ntimestep);
   force_clear();
-  if (modify->n_min_pre_force) modify->min_pre_force(vflag);
 
   timer->stamp();
 
+  if (modify->n_min_pre_force) {
+    modify->min_pre_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
+
   if (pair_compute_flag) {
     force->pair->compute(eflag,vflag);
-    timer->stamp(TIME_PAIR);
+    timer->stamp(Timer::PAIR);
   }
 
   if (atom->molecular) {
@@ -496,17 +504,17 @@ double Min::energy_force(int resetflag)
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
     if (force->improper) force->improper->compute(eflag,vflag);
-    timer->stamp(TIME_BOND);
+    timer->stamp(Timer::BOND);
   }
 
   if (kspace_compute_flag) {
     force->kspace->compute(eflag,vflag);
-    timer->stamp(TIME_KSPACE);
+    timer->stamp(Timer::KSPACE);
   }
 
   if (force->newton) {
     comm->reverse_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
   }
 
   // update per-atom minimization variables stored by pair styles
@@ -517,7 +525,11 @@ double Min::energy_force(int resetflag)
 
   // fixes that affect minimization
 
-  if (modify->n_min_post_force) modify->min_post_force(vflag);
+  if (modify->n_min_post_force) {
+     timer->stamp();
+     modify->min_post_force(vflag);
+     timer->stamp(Timer::MODIFY);
+  }
 
   // compute potential energy of system
   // normalize if thermo PE does

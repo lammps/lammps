@@ -295,7 +295,7 @@ void FixGPU::post_force(int vflag)
   force->pair->virial[5] += lvirial[5];
 
   if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
-  timer->stamp(TIME_PAIR);
+  timer->stamp(Timer::PAIR);
 }
 
 /* ---------------------------------------------------------------------- */

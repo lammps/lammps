@@ -107,7 +107,7 @@ void VerletKokkos::setup()
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
     force->pair->compute(eflag,vflag);
-    timer->stamp(TIME_PAIR);
+    timer->stamp(Timer::PAIR);
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
@@ -133,7 +133,7 @@ void VerletKokkos::setup()
       atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
       force->improper->compute(eflag,vflag);
     }
-    timer->stamp(TIME_BOND);
+    timer->stamp(Timer::BOND);
   }
 
   if(force->kspace) {
@@ -142,7 +142,7 @@ void VerletKokkos::setup()
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
       force->kspace->compute(eflag,vflag);
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
     } else force->kspace->compute_dummy(eflag,vflag);
   }
 
@@ -209,7 +209,7 @@ void VerletKokkos::setup_minimal(int flag)
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
     force->pair->compute(eflag,vflag);
-    timer->stamp(TIME_PAIR);
+    timer->stamp(Timer::PAIR);
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
@@ -235,7 +235,7 @@ void VerletKokkos::setup_minimal(int flag)
       atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
       force->improper->compute(eflag,vflag);
     }
-    timer->stamp(TIME_BOND);
+    timer->stamp(Timer::BOND);
   }
 
   if(force->kspace) {
@@ -244,7 +244,7 @@ void VerletKokkos::setup_minimal(int flag)
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
       force->kspace->compute(eflag,vflag);
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
     } else force->kspace->compute_dummy(eflag,vflag);
   }
 
@@ -286,9 +286,11 @@ void VerletKokkos::run(int n)
     // initial time integration
 
     ktimer.reset();
+    timer->stamp();
     modify->initial_integrate(vflag);
     time += ktimer.seconds();
     if (n_post_integrate) modify->post_integrate();
+    timer->stamp(Timer::MODIFY);
 
     // regular communication vs neighbor list rebuild
 
@@ -297,13 +299,17 @@ void VerletKokkos::run(int n)
     if (nflag == 0) {
       timer->stamp();
       comm->forward_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     } else {
       // added debug
       //atomKK->sync(Host,ALL_MASK);
       //atomKK->modified(Host,ALL_MASK);
 
-      if (n_pre_exchange) modify->pre_exchange();
+      if (n_pre_exchange) {
+        timer->stamp();
+        modify->pre_exchange();
+        timer->stamp(Timer::MODIFY);
+      }
       // debug
       //atomKK->sync(Host,ALL_MASK);
       //atomKK->modified(Host,ALL_MASK);
@@ -330,10 +336,13 @@ void VerletKokkos::run(int n)
 
       if (triclinic) domain->lamda2x(atomKK->nlocal+atomKK->nghost);
 
-      timer->stamp(TIME_COMM);
-      if (n_pre_neighbor) modify->pre_neighbor();
+      timer->stamp(Timer::COMM);
+      if (n_pre_neighbor) {
+        modify->pre_neighbor();
+        timer->stamp(Timer::MODIFY);
+      }
       neighbor->build();
-      timer->stamp(TIME_NEIGHBOR);
+      timer->stamp(Timer::NEIGH);
     }
 
     // force computations
@@ -342,19 +351,24 @@ void VerletKokkos::run(int n)
     // and Pair:ev_tally() needs to be called before any tallying
 
     force_clear();
+
+    timer->stamp();
+
     // added for debug
     //atomKK->k_x.sync<LMPHostType>();
     //atomKK->k_f.sync<LMPHostType>();
     //atomKK->k_f.modify<LMPHostType>();
-    if (n_pre_force) modify->pre_force(vflag);
+    if (n_pre_force) {
+      modify->pre_force(vflag);
+      timer->stamp(Timer::MODIFY);
+    }
 
-    timer->stamp();
 
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       force->pair->compute(eflag,vflag);
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
 
     if (atomKK->molecular) {
@@ -378,20 +392,20 @@ void VerletKokkos::run(int n)
         atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
         force->improper->compute(eflag,vflag);
       }
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
 
     if (kspace_compute_flag) {
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
       force->kspace->compute(eflag,vflag);
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
     }
 
     // reverse communication of forces
 
     if (force->newton) comm->reverse_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
 
     // force modifications, final time integration, diagnostics
 
@@ -400,6 +414,7 @@ void VerletKokkos::run(int n)
     if (n_post_force) modify->post_force(vflag);
     modify->final_integrate();
     if (n_end_of_step) modify->end_of_step();
+    timer->stamp(Timer::MODIFY);
 
     time += ktimer.seconds();
 
@@ -410,7 +425,7 @@ void VerletKokkos::run(int n)
 
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 }

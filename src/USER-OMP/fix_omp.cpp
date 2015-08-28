@@ -26,6 +26,7 @@
 #include "update.h"
 #include "integrate.h"
 #include "min.h"
+#include "timer.h"
 
 #include "fix_omp.h"
 #include "thr_data.h"
@@ -65,7 +66,7 @@ static int get_tid()
 
 /* ---------------------------------------------------------------------- */
 
-FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) 
+FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   :  Fix(lmp, narg, arg),
      thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
      _nthr(-1), _neighbor(true), _mixed(false), _reduced(true)
@@ -130,7 +131,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
       fprintf(screen,"using %s neighbor list subroutines\n", nmode);
       fprintf(screen,"prefer %s precision OpenMP force kernels\n", kmode);
     }
-    
+
     if (logfile) {
       if (reset_thr)
 	fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
@@ -146,11 +147,12 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(lmp)
 #endif
   {
     const int tid = get_tid();
-    thr[tid] = new ThrData(tid);
+    Timer *t = new Timer(lmp);
+    thr[tid] = new ThrData(tid,t);
   }
 }
 
@@ -196,10 +198,16 @@ int FixOMP::setmask()
 void FixOMP::init()
 {
   // USER-OMP package cannot be used with atom_style template
-  
-  if (atom->molecular == 2) 
+  if (atom->molecular == 2)
     error->all(FLERR,"USER-OMP package does not (yet) work with "
                "atom_style template");
+
+  // reset per thread timer
+  for (int i=0; i < comm->nthreads; ++i) {
+    thr[i]->_timer_active=1;
+    thr[i]->timer(Timer::RESET);
+    thr[i]->_timer_active=-1;
+  }
 
   if ((strstr(update->integrate_style,"respa") != NULL)
       && (strstr(update->integrate_style,"respa/omp") == NULL))
@@ -272,7 +280,7 @@ void FixOMP::init()
     CheckStyleForOMP(improper);
     CheckHybridForOMP(improper,Improper);
   }
-  
+
   if (kspace_split >= 0) {
     CheckStyleForOMP(kspace);
   }
@@ -321,6 +329,15 @@ void FixOMP::set_neighbor_omp()
 
   for (int i = 0; i < nrequest; ++i)
     neighbor->requests[i]->omp = neigh_omp;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixOMP::setup(int)
+{
+  // we are post the force compute in setup. turn on timers
+  for (int i=0; i < comm->nthreads; ++i)
+    thr[i]->_timer_active=0;
 }
 
 /* ---------------------------------------------------------------------- */

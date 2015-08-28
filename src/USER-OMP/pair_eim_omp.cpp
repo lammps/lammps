@@ -66,6 +66,7 @@ void PairEIMOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (force->newton_pair)
@@ -86,6 +87,7 @@ void PairEIMOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -162,6 +164,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
   // communicate and sum densities
   if (NEWTON_PAIR) {
     // reduce per thread density
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nall, nthreads, 1, tid);
 
     // wait until reduction is complete
@@ -176,6 +179,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
     }
 
   } else {
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete
@@ -234,6 +238,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
   // communicate and sum modified densities
   if (NEWTON_PAIR) {
     // reduce per thread density
+    thr->timer(Timer::PAIR);
     data_reduce_thr(fp, nall, nthreads, 1, tid);
 
     // wait until reduction is complete
@@ -248,6 +253,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
     }
 
   } else {
+    thr->timer(Timer::PAIR);
     data_reduce_thr(fp, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete

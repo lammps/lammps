@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "timer.h"
 
 #include "thr_omp.h"
 
@@ -183,7 +184,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           // pair_style hybrid will compute fdotr for us
           // but we first need to reduce the forces
           data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-	  fix->did_reduce();
+          fix->did_reduce();
           need_force_reduce = 0;
         }
       }
@@ -402,6 +403,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
   }
+  thr->timer(Timer::COMM);
 }
 
 /* ----------------------------------------------------------------------

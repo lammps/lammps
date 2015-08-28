@@ -62,6 +62,7 @@ void PairLJCutCoulDSFOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -77,6 +78,7 @@ void PairLJCutCoulDSFOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -156,7 +158,6 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
                                    r*f_shift) * r;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-          fpair = forcecoul * r2inv;
         } else forcecoul = 0.0;
 
         fpair = (forcecoul + factor_lj*forcelj) * r2inv;

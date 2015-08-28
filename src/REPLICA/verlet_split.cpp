@@ -279,7 +279,7 @@ void VerletSplit::run(int n)
 
   MPI_Barrier(universe->uworld);
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
 
   // setup initial Rspace <-> Kspace comm params
 
@@ -325,7 +325,7 @@ void VerletSplit::run(int n)
       if (nflag == 0) {
         timer->stamp();
         comm->forward_comm();
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
       } else {
         if (n_pre_exchange) modify->pre_exchange();
         if (triclinic) domain->x2lamda(atom->nlocal);
@@ -340,10 +340,10 @@ void VerletSplit::run(int n)
         if (sortflag && ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
         if (n_pre_neighbor) modify->pre_neighbor();
         neighbor->build();
-        timer->stamp(TIME_NEIGHBOR);
+        timer->stamp(Timer::NEIGH);
       }
     }
 
@@ -363,7 +363,7 @@ void VerletSplit::run(int n)
       timer->stamp();
       if (force->pair) {
         force->pair->compute(eflag,vflag);
-        timer->stamp(TIME_PAIR);
+        timer->stamp(Timer::PAIR);
       }
 
       if (atom->molecular) {
@@ -371,12 +371,12 @@ void VerletSplit::run(int n)
         if (force->angle) force->angle->compute(eflag,vflag);
         if (force->dihedral) force->dihedral->compute(eflag,vflag);
         if (force->improper) force->improper->compute(eflag,vflag);
-        timer->stamp(TIME_BOND);
+        timer->stamp(Timer::BOND);
       }
 
       if (force->newton) {
         comm->reverse_comm();
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
       }
 
     } else {
@@ -388,14 +388,14 @@ void VerletSplit::run(int n)
       if (force->kspace) {
         timer->stamp();
         force->kspace->compute(eflag,vflag);
-        timer->stamp(TIME_KSPACE);
+        timer->stamp(Timer::KSPACE);
       }
 
       // TIP4P PPPM puts forces on ghost atoms, so must reverse_comm()
 
       if (tip4p_flag && force->newton) {
         comm->reverse_comm();
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
       }
     }
 
@@ -407,14 +407,16 @@ void VerletSplit::run(int n)
     // all output
 
     if (master) {
+      timer->stamp();
       if (n_post_force) modify->post_force(vflag);
       modify->final_integrate();
       if (n_end_of_step) modify->end_of_step();
+      timer->stamp(Timer::MODIFY);
 
       if (ntimestep == output->next) {
         timer->stamp();
         output->write(ntimestep);
-        timer->stamp(TIME_OUTPUT);
+        timer->stamp(Timer::OUTPUT);
       }
     }
   }
@@ -486,7 +488,7 @@ void VerletSplit::rk_setup()
       atom->map_clear();
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
   }
 }
@@ -535,7 +537,7 @@ void VerletSplit::r2k_comm()
   if (tip4p_flag && !master) {
     timer->stamp();
     comm->forward_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
   }
 }
 

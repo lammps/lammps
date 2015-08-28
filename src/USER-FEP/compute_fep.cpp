@@ -305,11 +305,11 @@ void ComputeFEP::compute_vector()
   timer->stamp();
   if (force->pair && force->pair->compute_flag) {
     force->pair->compute(eflag,vflag);
-    timer->stamp(TIME_PAIR);
+    timer->stamp(Timer::PAIR);
   }
   if (chgflag && force->kspace && force->kspace->compute_flag) {
     force->kspace->compute(eflag,vflag);
-    timer->stamp(TIME_KSPACE);
+    timer->stamp(Timer::KSPACE);
   }
 
   // accumulate force/energy/virial from /gpu pair styles
@@ -322,11 +322,11 @@ void ComputeFEP::compute_vector()
   timer->stamp();
   if (force->pair && force->pair->compute_flag) {
     force->pair->compute(eflag,vflag);
-    timer->stamp(TIME_PAIR);
+    timer->stamp(Timer::PAIR);
   }
   if (chgflag && force->kspace && force->kspace->compute_flag) {
     force->kspace->compute(eflag,vflag);
-    timer->stamp(TIME_KSPACE);
+    timer->stamp(Timer::KSPACE);
   }
 
   // accumulate force/energy/virial from /gpu pair styles

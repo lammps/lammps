@@ -53,6 +53,7 @@ void PairLJCharmmCoulLongSoftOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -68,6 +69,7 @@ void PairLJCharmmCoulLongSoftOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -127,7 +129,6 @@ void PairLJCharmmCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr
       const int jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        const double r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
           const double A1 =  0.254829592;

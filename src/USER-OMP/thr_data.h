@@ -22,6 +22,8 @@
 #include <omp.h>
 #endif
 
+#include "timer.h"
+
 namespace LAMMPS_NS {
 
 // per thread data accumulators
@@ -32,11 +34,16 @@ class ThrData {
   friend class ThrOMP;
 
  public:
-  ThrData(int tid);
+  ThrData(int tid, class Timer *t);
   ~ThrData() {};
 
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
+
+  // inline wrapper, to make this more efficient
+  // when per-thread timers are off
+  void timer(enum Timer::ttype flag) { if (_timer) _stamp(flag); };
+  double get_time(enum Timer::ttype flag);
 
   // erase accumulator contents and hook up force arrays
   void init_force(int, double **, double **, double *, double *, double *);
@@ -118,6 +125,12 @@ class ThrData {
   void *_drho1d_6;
   // my thread id
   const int _tid;
+  // timer info
+  int _timer_active;
+  class Timer *_timer;
+
+ private:
+  void _stamp(enum Timer::ttype flag);
 
  public:
   // compute global per thread virial contribution from global forces and positions

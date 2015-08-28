@@ -1,0 +1,90 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute force/tally command 
+</H3>
+<H3>compute pe/tally command 
+</H3>
+<H3>compute stress/tally command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID style group2-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>style = <I>force/tally</I> or <I>pe/tally</I> or <I>stress/tally</I>
+<LI>group2-ID = group ID of second (or same) group 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 lower force/tally upper
+compute 1 left pe/tally right
+compute 1 lower stress/tally lower 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates properties between two groups of
+atoms by accumulating them from pairwise non-bonded computations.  The
+two groups can be the same. This is similar to <A HREF = "compute_group_group.html">compute
+group/group</A> only that the data is
+accumulated directly during the non-bonded force computation. The
+computes <I>force/tally</I>, <I>pe/tally</I>, <I>stress/tally</I>, and
+<I>heat/flux/tally</I> are primarily provided as example how to program
+additional, more sophisticated computes using the tally mechanism.
+</P>
+<HR>
+
+<P>The pairwise contributions are computing via a callback that the
+compute registers with the non-bonded pairwise force computation.
+This limits the use to systems that have no bonds, no Kspace, and no
+manybody interactions. On the other hand, the computation does not
+have to compute forces or energies a second time and thus can be much
+more efficient. The callback mechanism allows to write more complex
+pairwise property computations.
+</P>
+<HR>
+
+<P><B>Output info:</B>
+</P>
+<P>Compute <I>pe/tally</I> calculates a global scalar (the energy) and a per
+atom scalar (the contributions of the single atom to the global
+scalar).  Compute <I>force/tally</I> calculates a global scalar (the force
+magnitude) and a per atom 3-element vector (force contribution from
+each atom).  Compute <I>stress/tally</I> calculates a global scalar
+(average of the diagonal elements of the stress tensor) and a per atom
+vector (the 6 elements of stress tensor contributions from the
+individual atom).
+</P>
+<P>Both the scalar and vector values calculated by this compute are
+"extensive".
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the USER-TALLY package.  It is only enabled
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Not all pair styles can be evaluated in a pairwise mode as required by
+this compute.  For example, 3-body and other many-body potentials,
+such as <A HREF = "pair_tersoff.html">Tersoff</A> and
+<A HREF = "pair_sw.html">Stillinger-Weber</A> cannot be used.  <A HREF = "pair_eam.html">EAM</A>
+potentials only include the pair potential portion of the EAM
+interaction when used by this compute, not the embedding term.  Also
+bonded or Kspace interactions do not contribute to this compute.
+</P>
+<P><B>Related commands:</B> 
+</P>
+<P><I>compute group/group</I>_compute_group_group.html, <I>compute
+heat/flux</I>_compute_heat_flux.html
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

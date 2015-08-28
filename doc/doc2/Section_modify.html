@@ -282,9 +282,18 @@ class.  See compute.h for details.
 <TR><TD >remove_bias_all</TD><TD > remove velocity bias from all atoms in group (optional)</TD></TR>
 <TR><TD >restore_bias</TD><TD > restore velocity bias for one atom after remove_bias (optional)</TD></TR>
 <TR><TD >restore_bias_all</TD><TD > same as before, but for all atoms in group (optional)</TD></TR>
+<TR><TD >pair_tally_callback</TD><TD > callback function for <I>tally</I>-style computes (optional).</TD></TR>
 <TR><TD >memory_usage</TD><TD > tally memory usage (optional) 
 </TD></TR></TABLE></DIV>
 
+<P>Tally-style computes are a special case, as their computation is done
+in two stages: the callback function is registered with the pair style
+and then called from the Pair::ev_tally() function, which is called for
+each pair after force and energy has been computed for this pair. Then
+the tallied values are retrieved with the standard compute_scalar or
+compute_vector or compute_peratom methods. The USER-TALLY package
+provides <I>examples</I>_compute_tally.html for utilizing this mechanism.
+</P>
 <HR>
 
 <A NAME = "mod_4"></A><H4>10.4 Dump styles 

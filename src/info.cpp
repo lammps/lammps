@@ -252,7 +252,8 @@ void Info::command(int narg, char **arg)
       double cut;
       for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
         cut = neighbor->cuttype[i];
-        if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
+        // AXEL: this variable does not exist?
+        //if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
         fprintf(out,"Communication cutoff for type %d = %g\n", i, cut);
       }
     }

@@ -279,7 +279,7 @@ void DumpH5MD::openfile()
       if (create_group) {
 	particles_data = h5md_create_particles_group(datafile, group_name);
       } else {
-	particles_data.group = H5Gopen(datafile.particles, group_name, H5P_DEFAULT);
+	particles_data.group = h5md_open_particles_group(datafile.particles, group_name);
       }
       delete [] group_name;
       dims[0] = natoms;

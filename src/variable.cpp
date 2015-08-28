@@ -861,6 +861,11 @@ void Variable::compute_atom(int ivar, int igroup,
     collapse_tree(tree);
   } else vstore = reader[ivar]->fixstore->vstore;
 
+  if (result == NULL) {
+    eval_in_progress[ivar] = 0;
+    return;
+  }
+  
   int groupbit = group->bitmask[igroup];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

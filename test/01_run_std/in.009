@@ -1,6 +1,6 @@
 # sample surface deposition script for molecules
 
-timers		off
+timer		off
 units		lj
 atom_style      bond
 boundary        p p f

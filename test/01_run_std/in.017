@@ -1,6 +1,6 @@
 # 2d micelle simulation
 
-timers		off
+timer		off
 dimension	2
 
 neighbor	0.3 bin

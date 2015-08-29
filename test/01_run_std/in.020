@@ -1,6 +1,6 @@
 # 2d LJ obstacle flow
 
-timers		off
+timer		off
 dimension	2
 boundary	p s p
 

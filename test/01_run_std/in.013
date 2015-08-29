@@ -1,6 +1,6 @@
 # 2-d LJ flow simulation
 
-timers		off
+timer		off
 dimension	2
 boundary	p s p
 

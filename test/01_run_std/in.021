@@ -1,6 +1,6 @@
 variable	sname index h_atom
 
-timers		off
+timer		off
 
 units 		real
 newton		on

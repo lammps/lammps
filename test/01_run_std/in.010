@@ -1,6 +1,6 @@
 # Point dipoles in a 2d box
 
-timers		off
+timer		off
 units		lj
 atom_style	hybrid sphere dipole
 dimension	2

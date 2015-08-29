@@ -1,6 +1,6 @@
 # Test of MEAM potential for SiC system
 
-timers		off
+timer		off
 units		metal
 boundary	p p p
 

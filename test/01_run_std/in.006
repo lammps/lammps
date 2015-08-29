@@ -1,6 +1,6 @@
 # 2d LJ crack simulation
 
-timers		off
+timer		off
 dimension	2
 boundary	s s p
 

@@ -1,6 +1,6 @@
 # 2d polygon nparticle bodies
 
-timers		off
+timer		off
 units		lj
 dimension       2
 atom_style	body nparticle 2 6

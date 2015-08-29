@@ -1,7 +1,7 @@
 
 units		real	
 atom_style	full
-timers		off
+timer		off
 
 read_data	spce.data
 

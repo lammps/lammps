@@ -1,6 +1,6 @@
 # 2d circle of particles inside a box with LJ walls
 
-timers		off
+timer		off
 variable        b index 0
 
 variable	x index 50

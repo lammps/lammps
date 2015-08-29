@@ -1,6 +1,6 @@
 # 2d indenter simulation with minimization instead of dynamics
 
-timers	      off
+timer	      off
 dimension     2
 boundary      p s p
 

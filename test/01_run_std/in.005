@@ -1,7 +1,7 @@
 # Testsystem for core-shell model compared to Mitchel and Finchham
 # Hendrik Heenen, June 2014
 
-timers		off
+timer		off
 # ------------------------ INITIALIZATION ----------------------------
 
 units 		metal

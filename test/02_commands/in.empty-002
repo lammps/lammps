@@ -1,5 +1,5 @@
 
-timers	off
+timer	off
 
 read_data empty-tric.data
 

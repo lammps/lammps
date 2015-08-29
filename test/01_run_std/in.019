@@ -1,6 +1,6 @@
 # 3d metal shear simulation
 
-timers		off
+timer		off
 units		metal
 boundary	s s p
 

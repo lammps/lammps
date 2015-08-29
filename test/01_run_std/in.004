@@ -1,6 +1,6 @@
 # Big colloid particles and small LJ particles
 
-timers		off
+timer		off
 units		lj
 atom_style	sphere
 dimension	2

@@ -1,5 +1,5 @@
 # 3d Lennard-Jones melt
-timers		off
+timer		off
 units		lj
 atom_style	atomic
 

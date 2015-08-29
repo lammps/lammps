@@ -2,7 +2,7 @@
 units		real	
 atom_style	full
 newton		off off
-timers		off
+timer		off
 
 read_data	spce.data
 

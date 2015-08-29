@@ -3,7 +3,7 @@
 dimension	2
 boundary	p s p
 
-timers		off
+timer		off
 
 atom_style	atomic
 neighbor	0.3 bin

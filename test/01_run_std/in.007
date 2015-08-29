@@ -1,6 +1,6 @@
 # sample surface deposition script for atoms
 
-timers		off
+timer		off
 units		lj
 atom_style      atomic
 boundary        p p f

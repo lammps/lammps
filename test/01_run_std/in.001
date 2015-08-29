@@ -4,7 +4,7 @@ variable	x index 10
 variable	y index 10
 variable	z index 10
 
-timers		off
+timer		off
 
 units		lj
 atom_style	atomic

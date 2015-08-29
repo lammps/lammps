@@ -1,5 +1,5 @@
 
-timers		off
+timer		off
 units           real
 atom_style      full
 boundary        p p p

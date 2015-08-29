@@ -26,18 +26,10 @@ int main(int argc, char **argv)
 {
   MPI_Init(&argc,&argv);
 
-  try {
-    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+  LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
 
-    lammps->input->file();
-    delete lammps;
-  }
-
-  catch(...) {
-    int me;
-    MPI_Comm_rank(MPI_COMM_WORLD,&me);
-    fprintf(stderr,"Unknown exception caught on rank %d\n",me);
-  }
+  lammps->input->file();
+  delete lammps;
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();

@@ -1753,9 +1753,10 @@ thermodynamic state and a total run time for the simulation.  It then
 appends statistics about the CPU time and storage requirements for the
 simulation.  An example set of statistics is shown here:
 </P>
-<PRE>Loop time of 2.81192 on 4 procs for 300 steps with 2004 atoms
-97.0% CPU use with 4 MPI tasks x no OpenMP threads
-Performance: 18.436 ns/day  1.302 hours/ns  106.689 timesteps/s 
+<P>Loop time of 2.81192 on 4 procs for 300 steps with 2004 atoms
+</P>
+<PRE>Performance: 18.436 ns/day  1.302 hours/ns  106.689 timesteps/s
+97.0% CPU use with 4 MPI tasks x no OpenMP threads 
 </PRE>
 <PRE>MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -1783,16 +1784,16 @@ Neighbor list builds = 26
 Dangerous builds = 0 
 </PRE>
 <P>The first section provides a global loop timing summary. The loop time
-is the total wall time for the section. The second line provides the
-CPU utilzation per MPI task; it should be close to 100% times the number
-of OpenMP threads (or 1). Lower numbers correspond to delays due to
-file i/o or unsufficient thread utilization. The <I>Performance</I> line is
+is the total wall time for the section.  The <I>Performance</I> line is
 provided for convenience to help predicting the number of loop
-continuations required and for comparing performance with other similar
-MD codes.
+continuations required and for comparing performance with other
+similar MD codes.  The CPU use line provides the CPU utilzation per
+MPI task; it should be close to 100% times the number of OpenMP
+threads (or 1). Lower numbers correspond to delays due to file I/O or
+insufficient thread utilization.
 </P>
-<P>The second section gives the breakdown of the CPU run time (in seconds)
-into major categories:
+<P>The MPI task section gives the breakdown of the CPU run time (in
+seconds) into major categories:
 </P>
 <UL><LI><I>Pair</I> stands for all non-bonded force computation
 <LI><I>Bond</I> stands for bonded interactions: bonds, angles, dihedrals, impropers
@@ -1811,17 +1812,17 @@ the difference between minimum, maximum and average is small and thus
 the variation from the average close to zero. The final column shows
 the percentage of the total loop time is spent in this section.
 </P>
-<P>When using the <A HREF = "timers.html">timers full</A> setting, and additional column
-is present that also prints the CPU utilization in percent. In addition,
-when using <I>timers full</I> and the <A HREF = "package.html">package omp</A> command are
-active, a similar timing summary of time spent in threaded regions to 
-monitor thread utilization and load balance is provided. A new enrty is
-the <I>Reduce</I> section, which lists the time spend in reducing the per-thread
-data elements to the storage for non-threaded computation. These thread
-timings are taking from the first MPI rank only and and thus, as the
-breakdown for MPI tasks can change from MPI rank to MPI rank, this
-breakdown can be very different for individual ranks. Here is an example
-output for this optional output section:
+<P>When using the <A HREF = "timers.html">timers full</A> setting, an additional column
+is present that also prints the CPU utilization in percent. In
+addition, when using <I>timers full</I> and the <A HREF = "package.html">package omp</A>
+command are active, a similar timing summary of time spent in threaded
+regions to monitor thread utilization and load balance is provided. A
+new entry is the <I>Reduce</I> section, which lists the time spend in
+reducing the per-thread data elements to the storage for non-threaded
+computation. These thread timings are taking from the first MPI rank
+only and and thus, as the breakdown for MPI tasks can change from MPI
+rank to MPI rank, this breakdown can be very different for individual
+ranks. Here is an example output for this section:
 </P>
 <P>Thread timings breakdown (MPI rank 0):
 Total threaded time 0.6846 / 90.6%

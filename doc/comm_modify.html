@@ -133,11 +133,14 @@
 </div>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>mode</em> or <em>cutoff</em> or <em>group</em> or <em>vel</em></li>
+<li>keyword = <em>mode</em> or <em>cutoff</em> or <em>cutoff/multi</em> or <em>group</em> or <em>vel</em></li>
 </ul>
 <pre class="literal-block">
 <em>mode</em> value = <em>single</em> or <em>multi</em> = communicate atoms within a single or multiple distances
 <em>cutoff</em> value = Rcut (distance units) = communicate atoms from this far away
+<em>cutoff/multi</em> type value
+   type = atom type or type range (supports asterisk notation)
+   value = Rcut (distance units) = communicate atoms for the selected types from this far away
 <em>group</em> value = group-ID = only communicate atoms in the group
 <em>vel</em> value = <em>yes</em> or <em>no</em> = do or do not communicate velocity info with ghost atoms
 </pre>
@@ -146,8 +149,10 @@
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>comm_modify mode multi
 comm_modify mode multi group solvent
+comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
 comm_modify vel yes
-comm_modify cutoff 5.0 vel yes
+comm_modify mode single cutoff 5.0 vel yes
+comm_modify cutoff/multi * 0.0
 </pre></div>
 </div>
 </div>
@@ -170,8 +175,8 @@ command after it.</p>
 distances are used to determine which atoms to communicate.</p>
 <p>The default mode is <em>single</em> which means each processor acquires
 information for ghost atoms that are within a single distance from its
-sub-domain.  The distance is the maximum of the neighbor cutoff for
-all atom type pairs.</p>
+sub-domain.  The distance is by default the maximum of the neighbor
+cutoff across all atom type pairs.</p>
 <p>For many systems this is an efficient algorithm, but for systems with
 widely varying cutoffs for different type pairs, the <em>multi</em> mode can
 be faster.  In this case, each atom type is assigned its own distance
@@ -179,14 +184,21 @@ cutoff for communication purposes, and fewer atoms will be
 communicated.  See the <a class="reference internal" href="neighbor.html"><em>neighbor multi</em></a> command for a
 neighbor list construction option that may also be beneficial for
 simulations of this kind.</p>
-<p>The <em>cutoff</em> keyword allows you to set a ghost cutoff distance, which
-is the distance from the borders of a processor&#8217;s sub-domain at which
-ghost atoms are acquired from other processors.  By default the ghost
-cutoff = neighbor cutoff = pairwise force cutoff + neighbor skin.  See
-the <a class="reference internal" href="neighbor.html"><em>neighbor</em></a> command for more information about the
-skin distance.  If the specified Rcut is greater than the neighbor
-cutoff, then extra ghost atoms will be acquired.  If it is smaller,
-the ghost cutoff is set to the neighbor cutoff.</p>
+<p>The <em>cutoff</em> keyword allows you to extend the ghost cutoff distance
+for communication mode <em>single</em>, which is the distance from the borders
+of a processor&#8217;s sub-domain at which ghost atoms are acquired from other
+processors.  By default the ghost cutoff = neighbor cutoff = pairwise
+force cutoff + neighbor skin.  See the <a class="reference internal" href="neighbor.html"><em>neighbor</em></a> command
+for more information about the skin distance.  If the specified Rcut is
+greater than the neighbor cutoff, then extra ghost atoms will be acquired.
+If the provided cutoff is smaller, the provided value will be ignored
+and the ghost cutoff is set to the neighbor cutoff. Specifying a
+cutoff value of 0.0 will reset any previous value to the default.</p>
+<p>The <em>cutoff/multi</em> option is equivalent to <em>cutoff</em>, but applies to
+communication mode <em>multi</em> instead. Since in this case the communication
+cutoffs are determined per atom type, a type specifier is needed and
+cutoff for one or multiple types can be extended. Also ranges of types
+using the usual asterisk notation can be given.</p>
 <p>These are simulation scenarios in which it may be useful or even
 necessary to set a ghost cutoff &gt; neighbor cutoff:</p>
 <ul class="simple">
@@ -249,8 +261,8 @@ that boundary (e.g. due to dilation or shear).</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>none</div></blockquote>
+<p>Communication mode <em>multi</em> is currently only available for
+<a class="reference internal" href="comm_style.html"><em>comm_style</em></a> <em>brick</em>.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>

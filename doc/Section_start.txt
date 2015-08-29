@@ -1804,9 +1804,9 @@ the difference between minimum, maximum and average is small and thus
 the variation from the average close to zero. The final column shows
 the percentage of the total loop time is spent in this section.
 
-When using the "timers full"_timers.html setting, an additional column
+When using the "timer full"_timer.html setting, an additional column
 is present that also prints the CPU utilization in percent. In
-addition, when using {timers full} and the "package omp"_package.html
+addition, when using {timer full} and the "package omp"_package.html
 command are active, a similar timing summary of time spent in threaded
 regions to monitor thread utilization and load balance is provided. A
 new entry is the {Reduce} section, which lists the time spend in

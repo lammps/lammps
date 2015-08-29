@@ -558,7 +558,7 @@ LAMMPS::~LAMMPS()
   delete citeme;
 
   double totalclock = MPI_Wtime() - initclock;
-  if ((me == 0) & (screen || logfile)) {
+  if ((me == 0) && (screen || logfile)) {
     char outtime[128];
     int seconds = fmod(totalclock,60.0);
     totalclock  = (totalclock - seconds) / 60.0;

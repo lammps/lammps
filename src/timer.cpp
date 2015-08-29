@@ -12,12 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "string.h"
 #include "timer.h"
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
-
-#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>

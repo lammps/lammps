@@ -285,7 +285,6 @@ void Verlet::run(int n)
       timer->stamp(Timer::MODIFY);
     }
 
-
     if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);
       timer->stamp(Timer::PAIR);

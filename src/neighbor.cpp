@@ -815,7 +815,8 @@ void Neighbor::init()
         fprintf(logfile,"  ghost atom cutoff = %g\n",cutghost);
         if (style != NSQ)
           fprintf(logfile,"  binsize = %g -> bins = %g %g %g\n",binsize,
-	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize), ceil(bbox[2]/binsize));
+	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize), 
+                  ceil(bbox[2]/binsize));
       }
       if (screen) {
         fprintf(screen,"Neighbor list info ...\n");
@@ -826,7 +827,8 @@ void Neighbor::init()
         fprintf(screen,"  ghost atom cutoff = %g\n",cutghost);
         if (style != NSQ)
           fprintf(screen,"  binsize = %g, bins = %g %g %g\n",binsize,
-	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize), ceil(bbox[2]/binsize));
+	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
+                  ceil(bbox[2]/binsize));
       }
     }
   }

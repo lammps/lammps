@@ -551,12 +551,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
 LAMMPS::~LAMMPS()
 {
-  const int me = comm->me;
-
   destroy();
 
   delete citeme;
 
+  int me = comm->me;
   double totalclock = MPI_Wtime() - initclock;
   if ((me == 0) && (screen || logfile)) {
     char outtime[128];
@@ -566,7 +565,7 @@ LAMMPS::~LAMMPS()
     int hours = (totalclock - minutes) / 60.0;
     sprintf(outtime,"Total wall time: "
             "%d:%02d:%02d\n", hours, minutes, seconds);
-    if (screen)  fputs(outtime,screen);
+    if (screen) fputs(outtime,screen);
     if (logfile) fputs(outtime,logfile);
   }
 

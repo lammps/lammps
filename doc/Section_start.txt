@@ -1746,8 +1746,9 @@ appends statistics about the CPU time and storage requirements for the
 simulation.  An example set of statistics is shown here:
 
 Loop time of 2.81192 on 4 procs for 300 steps with 2004 atoms
-97.0% CPU use with 4 MPI tasks x no OpenMP threads
-Performance: 18.436 ns/day  1.302 hours/ns  106.689 timesteps/s :pre
+
+Performance: 18.436 ns/day  1.302 hours/ns  106.689 timesteps/s
+97.0% CPU use with 4 MPI tasks x no OpenMP threads :pre
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -1775,16 +1776,16 @@ Neighbor list builds = 26
 Dangerous builds = 0 :pre
 
 The first section provides a global loop timing summary. The loop time
-is the total wall time for the section. The second line provides the
-CPU utilzation per MPI task; it should be close to 100% times the number
-of OpenMP threads (or 1). Lower numbers correspond to delays due to
-file i/o or unsufficient thread utilization. The {Performance} line is
+is the total wall time for the section.  The {Performance} line is
 provided for convenience to help predicting the number of loop
-continuations required and for comparing performance with other similar
-MD codes.
+continuations required and for comparing performance with other
+similar MD codes.  The CPU use line provides the CPU utilzation per
+MPI task; it should be close to 100% times the number of OpenMP
+threads (or 1). Lower numbers correspond to delays due to file I/O or
+insufficient thread utilization.
 
-The second section gives the breakdown of the CPU run time (in seconds)
-into major categories:
+The MPI task section gives the breakdown of the CPU run time (in
+seconds) into major categories:
 
 {Pair} stands for all non-bonded force computation
 {Bond} stands for bonded interactions: bonds, angles, dihedrals, impropers
@@ -1803,17 +1804,17 @@ the difference between minimum, maximum and average is small and thus
 the variation from the average close to zero. The final column shows
 the percentage of the total loop time is spent in this section.
 
-When using the "timers full"_timers.html setting, and additional column
-is present that also prints the CPU utilization in percent. In addition,
-when using {timers full} and the "package omp"_package.html command are
-active, a similar timing summary of time spent in threaded regions to 
-monitor thread utilization and load balance is provided. A new enrty is
-the {Reduce} section, which lists the time spend in reducing the per-thread
-data elements to the storage for non-threaded computation. These thread
-timings are taking from the first MPI rank only and and thus, as the
-breakdown for MPI tasks can change from MPI rank to MPI rank, this
-breakdown can be very different for individual ranks. Here is an example
-output for this optional output section:
+When using the "timers full"_timers.html setting, an additional column
+is present that also prints the CPU utilization in percent. In
+addition, when using {timers full} and the "package omp"_package.html
+command are active, a similar timing summary of time spent in threaded
+regions to monitor thread utilization and load balance is provided. A
+new entry is the {Reduce} section, which lists the time spend in
+reducing the per-thread data elements to the storage for non-threaded
+computation. These thread timings are taking from the first MPI rank
+only and and thus, as the breakdown for MPI tasks can change from MPI
+rank to MPI rank, this breakdown can be very different for individual
+ranks. Here is an example output for this section:
 
 Thread timings breakdown (MPI rank 0):
 Total threaded time 0.6846 / 90.6%
@@ -1824,7 +1825,6 @@ Bond    | 0.0043139  | 0.0046779  | 0.0050418  |   0.5 |  0.68
 Kspace  | 0.070572   | 0.074541   | 0.07851    |   1.5 | 10.89
 Neigh   | 0.084778   | 0.086969   | 0.089161   |   0.7 | 12.70
 Reduce  | 0.0036485  | 0.003737   | 0.0038254  |   0.1 |  0.55
-
 
 The third section lists the number of owned atoms (Nlocal), ghost atoms
 (Nghost), and pair-wise neighbors stored per processor.  The max and min

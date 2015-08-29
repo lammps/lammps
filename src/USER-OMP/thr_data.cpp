@@ -84,27 +84,27 @@ void ThrData::init_force(int nall, double **f, double **torque,
   eatom_pair=eatom_bond=eatom_angle=eatom_dihed=eatom_imprp=eatom_kspce=NULL;
   vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=NULL;
 
-  if (nall > 0 && f) {
+  if (nall >= 0 && f) {
     _f = f + _tid*nall;
     memset(&(_f[0][0]),0,nall*3*sizeof(double));
   } else _f = NULL;
 
-  if (nall > 0 && torque) {
+  if (nall >= 0 && torque) {
     _torque = torque + _tid*nall;
     memset(&(_torque[0][0]),0,nall*3*sizeof(double));
   } else _torque = NULL;
 
-  if (nall > 0 && erforce) {
+  if (nall >= 0 && erforce) {
     _erforce = erforce + _tid*nall;
     memset(&(_erforce[0]),0,nall*sizeof(double));
   } else _erforce = NULL;
 
-  if (nall > 0 && de) {
+  if (nall >= 0 && de) {
     _de = de + _tid*nall;
     memset(&(_de[0]),0,nall*sizeof(double));
   } else _de = NULL;
 
-  if (nall > 0 && drho) {
+  if (nall >= 0 && drho) {
     _drho = drho + _tid*nall;
     memset(&(_drho[0]),0,nall*sizeof(double));
   } else _drho = NULL;

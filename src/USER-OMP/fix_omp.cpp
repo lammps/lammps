@@ -106,16 +106,6 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
       else if (strcmp(arg[iarg]+1,"no") == 0) _neighbor = false;
       else error->all(FLERR,"Illegal package omp command");
       iarg += 2;
-    }
-
-    // undocumented options
-
-    else if (strcmp(arg[iarg],"mixed") == 0) {
-      _mixed = true;
-      iarg++;
-    } else if (strcmp(arg[iarg],"double") == 0) {
-      _mixed = false;
-      iarg++;
     } else error->all(FLERR,"Illegal package omp command");
   }
 
@@ -123,20 +113,17 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 
   if (comm->me == 0) {
     const char * const nmode = _neighbor ? "multi-threaded" : "serial";
-    const char * const kmode = _mixed ? "mixed" : "double";
 
     if (screen) {
       if (reset_thr)
 	fprintf(screen,"set %d OpenMP thread(s) per MPI task\n", nthreads);
       fprintf(screen,"using %s neighbor list subroutines\n", nmode);
-      fprintf(screen,"prefer %s precision OpenMP force kernels\n", kmode);
     }
 
     if (logfile) {
       if (reset_thr)
 	fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
       fprintf(logfile,"using %s neighbor list subroutines\n", nmode);
-      fprintf(logfile,"prefer %s precision OpenMP force kernels\n", kmode);
     }
   }
 

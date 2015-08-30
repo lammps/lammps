@@ -132,7 +132,7 @@
 </pre></div>
 </div>
 <dl class="docutils">
-<dt>args = one or more of the following keywords: <em>out</em>, <em>all</em>, <em>system</em>, <em>computes</em>, <em>dumps</em>, <em>fixes</em>, <em>groups</em>, <em>regions</em>, <em>variables</em>, <em>time</em>, or <em>configuration</em></dt>
+<dt>args = one or more of the following keywords: <em>out</em>, <em>all</em>, <em>system</em>, <em>communication</em>, <em>computes</em>, <em>dumps</em>, <em>fixes</em>, <em>groups</em>, <em>regions</em>, <em>variables</em>, <em>time</em>, or <em>configuration</em></dt>
 <dd><em>out</em> values = <em>screen</em>, <em>log</em>, <em>append</em> filename, <em>overwrite</em> filename:ul</dd>
 </dl>
 </div>
@@ -161,6 +161,11 @@ to that file, which is either appended to or overwritten, respectively.</p>
 includes the unit style, atom style, number of atoms, bonds, angles,
 dihedrals, and impropers and the number of the respective types, box
 dimensions and properties, force computing styles and more.</p>
+<p>The <em>communication</em> category prints a variety of information about
+communication and parallelization: the MPI library version level,
+the number of MPI ranks and OpenMP threads, the communication style
+and layout, the processor grid dimensions, ghost atom communication
+mode, cutoff, and related settings.</p>
 <p>The <em>computes</em> category prints a list of all currently defined
 computes, their IDs and styles and groups they operate on.</p>
 <p>The <em>dumps</em> category prints a list of all currently active dumps,

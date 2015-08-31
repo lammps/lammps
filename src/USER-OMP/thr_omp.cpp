@@ -33,6 +33,7 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
+#include "compute.h"
 
 #include "math_const.h"
 

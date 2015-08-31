@@ -161,7 +161,8 @@ void Info::command(int narg, char **arg)
 
   if (flags & CONFIG) {
 
-    fprintf(out,"\nLAMMPS version: %s\n", universe->version);
+    fprintf(out,"\nLAMMPS version: %s / %s\n",
+            universe->version, universe->num_ver);
     fprintf(out,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
     fprintf(out,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
     fprintf(out,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);

@@ -3975,23 +3975,25 @@ void Variable::atom_vector(char *word, Tree **tree,
 /* ----------------------------------------------------------------------
    check if word matches a constant
    return 1 if yes, else 0
-   customize by adding a constant: PI
+   customize by adding a constant: PI, version
 ------------------------------------------------------------------------- */
 
 int Variable::is_constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return 1;
+  if (strcmp(word,"version") == 0) return 1;
   return 0;
 }
 
 /* ----------------------------------------------------------------------
    process a constant in formula
-   customize by adding a constant: PI
+   customize by adding a constant: PI, version
 ------------------------------------------------------------------------- */
 
 double Variable::constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return MY_PI;
+  if (strcmp(word,"version") == 0) return atof(universe->num_ver);
   return 0.0;
 }
 

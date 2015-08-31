@@ -490,7 +490,7 @@ void ComputeFEP::deallocate_storage()
   memory->destroy(pvatom_orig);
   if (chgflag) {
     memory->destroy(q_orig);
-    if (force->kspace) {
+    if (force && force->kspace) {
       memory->destroy(keatom_orig);
       memory->destroy(kvatom_orig);
     }

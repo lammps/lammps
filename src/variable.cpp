@@ -67,7 +67,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE,ISDEF};
+enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
 
 #define INVOKED_SCALAR 1
 #define INVOKED_VECTOR 2
@@ -3499,7 +3499,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
       strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"slope") &&
-      strcmp(word,"isdef") && strcmp(word,"gmask") && strcmp(word,"rmask") &&
+      strcmp(word,"gmask") && strcmp(word,"rmask") && 
       strcmp(word,"grmask") && strcmp(word,"next"))
     return 0;
 
@@ -3731,18 +3731,6 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     newtree->first = newtree->second = NULL;
     newtree->nextra = 0;
     treestack[ntreestack++] = newtree;
-
-  // check if a variable is defined
-
-  } else if (strcmp(word,"isdef") == 0) {
-
-    if (narg != 1)
-      error->all(FLERR,"Invalid special function isdef in variable formula");
-
-    if (find(args[0]) == -1)
-      argstack[nargstack++] = 0.0;
-    else 
-      argstack[nargstack++] = 1.0;
 
   // special function for file-style or atomfile-style variables
 

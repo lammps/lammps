@@ -675,7 +675,7 @@ void WriteRestart::write_double(int flag, double value)
    write a flag and a char string (including NULL) into restart file
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write_string(int flag, char *value)
+void WriteRestart::write_string(int flag, const char *value)
 {
   int n = strlen(value) + 1;
   fwrite(&flag,sizeof(int),1,fp);

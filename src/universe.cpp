@@ -211,7 +211,9 @@ char *date2num(const char *version)
 
   if (version) {
 
-    while (*version != '\0' && isdigit(*version))
+    day = atoi(version);
+
+    while (*version != '\0' && (isdigit(*version) || *version == ' '))
       ++version;
 
     if (strncmp(version,"Jan",3) == 0) month = 1;
@@ -235,5 +237,6 @@ char *date2num(const char *version)
 
   char *ver = new char[10];
   sprintf(ver,"%04d%02d%02d", year % 10000, month, day % 100);
+
   return ver;
 }

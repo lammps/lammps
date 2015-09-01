@@ -70,6 +70,9 @@ class lammps:
     if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
 
+  def version(self):
+    return self.lib.lammps_version(self.lmp)
+
   def file(self,file):
     self.lib.lammps_file(self.lmp,file)
 

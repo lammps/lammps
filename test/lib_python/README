@@ -1,0 +1,8 @@
+Integration and regression test collection for LAMMPS: Python wrapper tests.
+
+This directory contains simple run examples for testing the LAMMPS python
+wrapper and through it the library interface. It contains some simple run
+tests (that simply have to complete) and some more thorough unit tests using
+the PyUnit framework to exercise the python code in lammps.py.
+
+All runnable python input files should be named in.<name>-###.py

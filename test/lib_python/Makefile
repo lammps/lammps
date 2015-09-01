@@ -14,5 +14,5 @@ log.%-$(MACH)$(TAG): in.%.py $(LIB)
 	mv log.lammps $@
 
 clean:
-	-rm -f log.*
+	-rm -f log.* lammps.py *.pyc liblammps*.so
 	

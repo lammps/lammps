@@ -44,7 +44,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or
   {python} arg = function
   {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
-    constants = PI
+    constants = PI, version
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
                      x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
@@ -415,7 +415,7 @@ values, atom vectors, compute references, fix references, and
 references to other variables.
 
 Number: 0.2, 100, 1.0e20, -15.4, etc
-Constant: PI
+Constant: PI, version
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, 
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
@@ -456,6 +456,16 @@ that define a "group"_group.html on which they operate, e.g. a
 When they invoke the atom-style variable, only atoms in the group are
 inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
 atoms not in the group.
+
+Constants are set at compile time and cannot be changed. {PI} will
+return the number 3.14159265358979323846, {version} will return a
+numeric version code of the current LAMMPS version (e.g. version
+2 Sep 2015 will return the number 20150902). The corresponding value
+for newer versions of LAMMPS will be larger, for older versions of
+LAMMPS will be smaller. This can be used to make input scripts adapt
+automatically to LAMMPS versions, for example:
+
+if $(version<20140513) then "communicate vel yes" else "comm_modify vel yes" :pre
 
 The thermo keywords allowed in a formula are those defined by the
 "thermo_style custom"_thermo_style.html command.  Thermo keywords that

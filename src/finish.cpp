@@ -121,9 +121,9 @@ void Finish::end(int flag)
       const char fmt1[] = "Loop time of %g on %d procs "
         "for %d steps with " BIGINT_FORMAT " atoms\n\n";
       if (screen) fprintf(screen,fmt1,time_loop,ntasks,update->nsteps,
-                          atom->natoms,cpu_loop);
+                          atom->natoms);
       if (logfile) fprintf(logfile,fmt1,time_loop,ntasks,update->nsteps,
-                           atom->natoms,cpu_loop);
+                           atom->natoms);
 
       // Gromacs/NAMD-style performance metric for suitable unit settings
 

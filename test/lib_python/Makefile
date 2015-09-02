@@ -10,7 +10,7 @@ default:
 test: $(LIB) $(OUTPUTS)
 
 log.%-$(MACH)$(TAG): in.%.py $(LIB)
-	$(MPICMD) python  $(LMPFLAGS)  $<
+	$(MPICMD) python  $< $(LMPFLAGS)
 	mv log.lammps $@
 
 clean:

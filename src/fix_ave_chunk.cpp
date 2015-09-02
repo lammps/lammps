@@ -325,6 +325,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   // print file comment lines
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n",
                  id,arg[1]);
@@ -350,6 +351,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[7+i]);
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing file header");
+
     filepos = ftell(fp);
   }
 
@@ -878,6 +882,7 @@ void FixAveChunk::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
@@ -959,11 +964,14 @@ void FixAveChunk::end_of_step()
         }
       }
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing averaged chunk data");
 
     fflush(fp);
+
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 }

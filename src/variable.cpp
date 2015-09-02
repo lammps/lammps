@@ -262,8 +262,11 @@ void Variable::set(int narg, char **arg)
 
     if (universe->me == 0) {
       FILE *fp = fopen("tmp.lammps.variable","w");
+      if (fp == NULL)
+        error->one(FLERR,"Cannot open temporary file for world counter.");
       fprintf(fp,"%d\n",universe->nworlds);
       fclose(fp);
+      fp = NULL;
     }
 
     for (int jvar = 0; jvar < nvar; jvar++)
@@ -518,7 +521,7 @@ int Variable::next(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
-    if (ivar == -1) error->all(FLERR,"Invalid variable in next command");
+    if (ivar < 0) error->all(FLERR,"Invalid variable in next command");
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
@@ -614,6 +617,7 @@ int Variable::next(int narg, char **arg)
       fprintf(fp,"%d\n",nextindex+1);
       //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
+      fp = NULL;
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
         fprintf(universe->uscreen,
@@ -716,7 +720,7 @@ int Variable::atomstyle(int ivar)
 char *Variable::pythonstyle(char *name, char *funcname)
 {
   int ivar = find(name);
-  if (ivar == -1) return NULL;
+  if (ivar < 0) return NULL;
   if (style[ivar] != PYTHON) return NULL;
   if (strcmp(data[ivar][0],funcname) != 0) return NULL;
   return data[ivar][1];
@@ -739,7 +743,7 @@ char *Variable::pythonstyle(char *name, char *funcname)
 char *Variable::retrieve(char *name)
 {
   int ivar = find(name);
-  if (ivar == -1) return NULL;
+  if (ivar < 0) return NULL;
   if (which[ivar] >= num[ivar]) return NULL;
 
   if (eval_in_progress[ivar]) 
@@ -857,6 +861,11 @@ void Variable::compute_atom(int ivar, int igroup,
     collapse_tree(tree);
   } else vstore = reader[ivar]->fixstore->vstore;
 
+  if (result == NULL) {
+    eval_in_progress[ivar] = 0;
+    return;
+  }
+  
   int groupbit = group->bitmask[igroup];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1139,15 +1148,10 @@ double Variable::evaluate(char *str, Tree **tree)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
 
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
-
-        int icompute = modify->find_compute(id);
+        int icompute = modify->find_compute(word+2);
         if (icompute < 0) 
           error->all(FLERR,"Invalid compute ID in variable formula");
         Compute *compute = modify->compute[icompute];
-        delete [] id;
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
@@ -1366,14 +1370,9 @@ double Variable::evaluate(char *str, Tree **tree)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
 
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
-
-        int ifix = modify->find_fix(id);
+        int ifix = modify->find_fix(word+2);
         if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
         Fix *fix = modify->fix[ifix];
-        delete [] id;
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
@@ -1545,11 +1544,8 @@ double Variable::evaluate(char *str, Tree **tree)
       // ----------------
 
       } else if (strncmp(word,"v_",2) == 0) {
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
 
-        int ivar = find(id);
+        int ivar = find(word+2);
         if (ivar < 0)
           error->all(FLERR,"Invalid variable name in variable formula");
         if (eval_in_progress[ivar])
@@ -1574,7 +1570,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
         if (nbracket == 0 && style[ivar] != ATOM && style[ivar] != ATOMFILE) {
 
-          char *var = retrieve(id);
+          char *var = retrieve(word+2);
           if (var == NULL)
             error->all(FLERR,"Invalid variable evaluation in variable formula");
           if (tree) {
@@ -1635,8 +1631,6 @@ double Variable::evaluate(char *str, Tree **tree)
                          tree,treestack,ntreestack,argstack,nargstack);
 
         } else error->all(FLERR,"Mismatched variable in variable formula");
-
-        delete [] id;
 
       // ----------------
       // math/group/special function or atom value/vector or
@@ -3745,7 +3739,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       error->all(FLERR,"Invalid special function in variable formula");
 
     int ivar = find(args[0]);
-    if (ivar == -1)
+    if (ivar < 0)
       error->all(FLERR,"Variable ID in variable formula does not exist");
 
     // SCALARFILE has single current value, read next one
@@ -3981,23 +3975,25 @@ void Variable::atom_vector(char *word, Tree **tree,
 /* ----------------------------------------------------------------------
    check if word matches a constant
    return 1 if yes, else 0
-   customize by adding a constant: PI
+   customize by adding a constant: PI, version
 ------------------------------------------------------------------------- */
 
 int Variable::is_constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return 1;
+  if (strcmp(word,"version") == 0) return 1;
   return 0;
 }
 
 /* ----------------------------------------------------------------------
    process a constant in formula
-   customize by adding a constant: PI
+   customize by adding a constant: PI, version
 ------------------------------------------------------------------------- */
 
 double Variable::constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return MY_PI;
+  if (strcmp(word,"version") == 0) return atof(universe->num_ver);
   return 0.0;
 }
 
@@ -4344,17 +4340,11 @@ unsigned int Variable::data_mask(char *str)
         error->all(FLERR,
                    "Variable evaluation before simulation box is defined");
 
-      n = strlen(word) - 2 + 1;
-      char *id = new char[n];
-      strcpy(id,&word[2]);
-
-      int icompute = modify->find_compute(id);
+      int icompute = modify->find_compute(word+2);
       if (icompute < 0) 
         error->all(FLERR,"Invalid compute ID in variable formula");
 
       datamask &= modify->compute[icompute]->data_mask();
-
-      delete [] id;
     }
 
     if ((strncmp(word,"f_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
@@ -4362,19 +4352,15 @@ unsigned int Variable::data_mask(char *str)
         error->all(FLERR,
                    "Variable evaluation before simulation box is defined");
       
-      n = strlen(word) - 2 + 1;
-      char *id = new char[n];
-      strcpy(id,&word[2]);
-      
-      int ifix = modify->find_fix(id);
+      int ifix = modify->find_fix(word+2);
       if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
       
       datamask &= modify->fix[ifix]->data_mask();
-      delete [] id;
     }
     
     if ((strncmp(word,"v_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      int ivar = find(word);
+      int ivar = find(word+2);
+      if (ivar < 0) error->all(FLERR,"Invalid variable name in variable formula");
       datamask &= data_mask(ivar);
     }
 
@@ -4395,6 +4381,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 {
   me = comm->me;
   style = flag;
+  fp = NULL;
 
   if (me == 0) {
     fp = fopen(file,"r");
@@ -4403,7 +4390,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       sprintf(str,"Cannot open file variable file %s",file);
       error->one(FLERR,str);
     }
-  } else fp = NULL;
+  }
 
   // if atomfile-style variable, must store per-atom values read from file
   // allocate a new fix STORE, so they persist
@@ -4441,7 +4428,10 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
 VarReader::~VarReader()
 {
-  if (me == 0) fclose(fp);
+  if (me == 0) {
+    fclose(fp);
+    fp = NULL;
+  }
 
   // check modify in case all fixes have already been deleted
 

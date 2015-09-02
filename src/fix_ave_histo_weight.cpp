@@ -274,11 +274,11 @@ void FixAveHistoWeight::end_of_step()
 
   // atom attributes
 
-  if (which[i] == X)
+  if (which[i] == X && weights != NULL)
     bin_atoms_weights(&atom->x[0][j],3,weights,stride);
-  else if (which[i] == V)
+  else if (which[i] == V && weights != NULL)
     bin_atoms_weights(&atom->v[0][j],3,weights,stride);
-  else if (which[i] == F)
+  else if (which[i] == F && weights != NULL)
     bin_atoms_weights(&atom->f[0][j],3,weights,stride);
   
   // invoke compute if not previously invoked
@@ -479,6 +479,7 @@ void FixAveHistoWeight::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
@@ -489,10 +490,14 @@ void FixAveHistoWeight::end_of_step()
     else
       for (i = 0; i < nbins; i++)
         fprintf(fp,"%d %g %g %g\n",i+1,coord[i],0.0,0.0);
+
+    if (ferror(fp))
+      error->one(FLERR,"Error writing out histogram data");
+
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 }

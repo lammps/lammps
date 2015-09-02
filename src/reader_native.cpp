@@ -141,10 +141,16 @@ bigint ReaderNative::read_header(double box[3][3], int &triclinic,
   nwords = atom->count_words(labelline);
   char **labels = new char*[nwords];
   labels[0] = strtok(labelline," \t\n\r\f");
-  if (labels[0] == NULL) return 1;
+  if (labels[0] == NULL) {
+    delete[] labels;
+    return 1;
+  }
   for (int m = 1; m < nwords; m++) {
     labels[m] = strtok(NULL," \t\n\r\f");
-    if (labels[m] == NULL) return 1;
+    if (labels[m] == NULL) {
+      delete[] labels;
+      return 1;
+    }
   }
 
   // match each field with a column of per-atom data

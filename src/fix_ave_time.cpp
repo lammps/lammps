@@ -294,6 +294,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // since array args may have been expanded to multiple vectors
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Time-averaged data for fix %s\n",id);
     if (title2) fprintf(fp,"%s\n",title2);
@@ -313,6 +314,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       }
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing file header");
+
     filepos = ftell(fp);
   }
 
@@ -692,14 +696,19 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT,ntimestep);
     for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
     fprintf(fp,"\n");
+    if (ferror(fp))
+      error->one(FLERR,"Error writing out time averaged data");
+
     fflush(fp);
+
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 }

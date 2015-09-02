@@ -78,6 +78,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   buffer = new char[CHUNK*MAXLINE];
   narg = maxarg = 0;
   arg = NULL;
+  fp = NULL;
 
   // customize for new sections
   // pointers to atom styles that store extra info
@@ -618,6 +619,7 @@ void ReadData::command(int narg, char **arg)
     if (me == 0) {
       if (compressed) pclose(fp);
       else fclose(fp);
+      fp = NULL;
     }
 
     // done if this was 2nd pass

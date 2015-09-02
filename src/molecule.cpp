@@ -409,11 +409,13 @@ void Molecule::read(int flag)
     else break;
   }
 
-  // error check
+  // error checks
 
-  if (flag == 0) {
-    if (natoms == 0) error->all(FLERR,"No atom count in molecule file");
-  }
+  if (natoms < 1) error->all(FLERR,"No or invalid atom count in molecule file");
+  if (nbonds < 0) error->all(FLERR,"Invalid bond count in molecule file");
+  if (nangles < 0) error->all(FLERR,"Invalid angle count in molecule file");
+  if (ndihedrals < 0) error->all(FLERR,"Invalid dihedral count in molecule file");
+  if (nimpropers < 0) error->all(FLERR,"Invalid improper count in molecule file");
 
   // count = vector for tallying bonds,angles,etc per atom
 

@@ -14,7 +14,7 @@ python: lib_python/lammps.py lib_python/liblammps.so  $(LIB)
 	for dir in lib_python; do cd $$dir ; $(MAKE) $(MFLAGS) MACH=$(MACH) MPICMD="$(MPICMD)" LMPFLAGS="$(LMPFLAGS)" test || exit 1; cd ..; done
 
 lib_python/lammps.py lib_python/liblammps.so : ../python/install.py ../python/lammps.py $(LIB)
-	python ../python/install.py $(PWD)/lib_python
+	python ../python/install.py lib_python
 
 clean:
 	for dir in $(DIRS) lib_python; do cd $$dir ; $(MAKE) $(MFLAGS) clean; cd ..; done

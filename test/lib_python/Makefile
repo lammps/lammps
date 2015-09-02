@@ -10,8 +10,8 @@ default:
 test: $(LIB) $(OUTPUTS)
 
 log.%-$(MACH)$(TAG): in.%.py $(LIB)
-	$(MPICMD) python  $< $(LMPFLAGS)
-	mv log.lammps $@
+	$(MPICMD) python  $< $(LMPFLAGS) -log none -screen $@ -echo screen 
+	test -f log.lammps && mv log.lammps $@ || true
 
 clean:
 	-rm -f log.* lammps.py *.pyc liblammps*.so

@@ -1,10 +1,18 @@
 #!/usr/bin/env python -i
+# preceeding line should have path for Python on your machine
+
+# simple.py
+# Purpose: mimic operation of couple/simple/simple.cpp via Python
+# Syntax:  simple.py in.lammps
+#          in.lammps = LAMMPS input script
+
+import sys
 
 infile = 'in.simple'
 me = 0
 
 from lammps import lammps
-lmp = lammps()
+lmp = lammps(cmdargs=sys.argv[1:])
 
 # run infile one line at a time
 

@@ -154,7 +154,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"langevin") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      if (strcmp(style,"rigid/small") != 0)
+      if ((strcmp(style,"rigid/small") != 0) &&
+          (strcmp(style,"rigid/nve/small") != 0) &&
+          (strcmp(style,"rigid/nph/small") != 0))
         error->all(FLERR,"Illegal fix rigid/small command");
       langflag = 1;
       t_start = force->numeric(FLERR,arg[iarg+1]);

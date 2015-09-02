@@ -187,7 +187,10 @@ void ReadRestart::command(int narg, char **arg)
 
   // close header file if in multiproc mode
 
-  if (multiproc && me == 0) fclose(fp);
+  if (multiproc && me == 0) {
+    fclose(fp);
+    fp = NULL;
+  }
 
   // read per-proc info
 
@@ -263,7 +266,10 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (me == 0) fclose(fp);
+    if (me == 0) {
+      fclose(fp);
+      fp = NULL;
+    }
   }
 
   // input of multiple native files with procs <= files
@@ -311,6 +317,7 @@ void ReadRestart::command(int narg, char **arg)
       }
 
       fclose(fp);
+      fp = NULL;
     }
 
     delete [] procfile;
@@ -412,7 +419,10 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (filereader) fclose(fp);
+    if (filereader && fp != NULL) {
+      fclose(fp);
+      fp = NULL;
+    }
     MPI_Comm_free(&clustercomm);
   }
 
@@ -641,7 +651,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
 void ReadRestart::header(int incompatible)
 {
-  int xperiodic,yperiodic,zperiodic;
+  int xperiodic(-1),yperiodic(-1),zperiodic(-1);
 
   // read flags and fields until flag = -1
 
@@ -782,6 +792,9 @@ void ReadRestart::header(int incompatible)
       domain->boundary[1][1] = boundary[1][1];
       domain->boundary[2][0] = boundary[2][0];
       domain->boundary[2][1] = boundary[2][1];
+
+      if (xperiodic < 0 || yperiodic < 0 || zperiodic < 0)
+        error->all(FLERR,"Illegal or unset periodicity in restart");
 
       domain->periodicity[0] = domain->xperiodic = xperiodic;
       domain->periodicity[1] = domain->yperiodic = yperiodic;
@@ -1089,9 +1102,7 @@ void ReadRestart::magic_string()
 
 void ReadRestart::endian()
 {
-  int endian;
-  if (me == 0) fread(&endian,sizeof(int),1,fp);
-  MPI_Bcast(&endian,1,MPI_INT,0,world);
+  int endian = read_int();
   if (endian == ENDIAN) return;
   if (endian == ENDIANSWAP)
     error->all(FLERR,"Restart file byte ordering is swapped");
@@ -1103,9 +1114,7 @@ void ReadRestart::endian()
 
 int ReadRestart::version_numeric()
 {
-  int vn;
-  if (me == 0) fread(&vn,sizeof(int),1,fp);
-  MPI_Bcast(&vn,1,MPI_INT,0,world);
+  int vn = read_int();
   if (vn != VERSION_NUMERIC) return 1;
   return 0;
 }
@@ -1117,7 +1126,8 @@ int ReadRestart::version_numeric()
 int ReadRestart::read_int()
 {
   int value;
-  if (me == 0) fread(&value,sizeof(int),1,fp);
+  if ((me == 0) && (fread(&value,sizeof(int),1,fp) < sizeof(int)))
+    value = -1;
   MPI_Bcast(&value,1,MPI_INT,0,world);
   return value;
 }
@@ -1129,7 +1139,8 @@ int ReadRestart::read_int()
 bigint ReadRestart::read_bigint()
 {
   bigint value;
-  if (me == 0) fread(&value,sizeof(bigint),1,fp);
+  if ((me == 0) && (fread(&value,sizeof(bigint),1,fp) < sizeof(bigint)))
+    value = -1;
   MPI_Bcast(&value,1,MPI_LMP_BIGINT,0,world);
   return value;
 }
@@ -1141,7 +1152,8 @@ bigint ReadRestart::read_bigint()
 double ReadRestart::read_double()
 {
   double value;
-  if (me == 0) fread(&value,sizeof(double),1,fp);
+  if ((me == 0) && (fread(&value,sizeof(double),1,fp) < sizeof(double)))
+    value = 0.0;
   MPI_Bcast(&value,1,MPI_DOUBLE,0,world);
   return value;
 }
@@ -1153,9 +1165,8 @@ double ReadRestart::read_double()
 
 char *ReadRestart::read_string()
 {
-  int n;
-  if (me == 0) fread(&n,sizeof(int),1,fp);
-  MPI_Bcast(&n,1,MPI_INT,0,world);
+  int n = read_int();
+  if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
   if (me == 0) fread(value,sizeof(char),n,fp);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
@@ -1164,22 +1175,22 @@ char *ReadRestart::read_string()
 
 /* ----------------------------------------------------------------------
    read vector of N ints from restart file and bcast them
-   do not bcast them, caller does that if required
 ------------------------------------------------------------------------- */
 
 void ReadRestart::read_int_vec(int n, int *vec)
 {
+  if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
   if (me == 0) fread(vec,sizeof(int),n,fp);
   MPI_Bcast(vec,n,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
    read vector of N doubles from restart file and bcast them
-   do not bcast them, caller does that if required
 ------------------------------------------------------------------------- */
 
 void ReadRestart::read_double_vec(int n, double *vec)
 {
+  if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
   if (me == 0) fread(vec,sizeof(double),n,fp);
   MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

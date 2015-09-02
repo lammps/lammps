@@ -72,6 +72,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
+  fp = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -308,7 +309,10 @@ void WriteRestart::write(char *file)
   //   write PROCSPERFILE into new file
 
   if (multiproc) {
-    if (me == 0) fclose(fp);
+    if (me == 0 && fp) {
+      fclose(fp);
+      fp = NULL;
+    }
 
     char *multiname = new char[strlen(file) + 16];
     char *ptr = strchr(file,'%');
@@ -387,7 +391,10 @@ void WriteRestart::write(char *file)
   // MPI-IO output to single file
 
   if (mpiioflag) {
-    if (me == 0) fclose(fp);
+    if (me == 0 && fp) {
+      fclose(fp);
+      fp = NULL;
+    }
     mpiio->openForWrite(file);
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
@@ -415,6 +422,7 @@ void WriteRestart::write(char *file)
         write_double_vec(PERPROC,recv_size,buf);
       }
       fclose(fp);
+      fp = NULL;
 
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
@@ -667,7 +675,7 @@ void WriteRestart::write_double(int flag, double value)
    write a flag and a char string (including NULL) into restart file
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write_string(int flag, char *value)
+void WriteRestart::write_string(int flag, const char *value)
 {
   int n = strlen(value) + 1;
   fwrite(&flag,sizeof(int),1,fp);

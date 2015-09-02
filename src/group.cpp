@@ -301,6 +301,7 @@ void Group::assign(int narg, char **arg)
       tagint start,stop,delta;
 
       for (int iarg = 2; iarg < narg; iarg++) {
+        delta = 1;
         if (strchr(arg[iarg],':')) {
           ptr = strtok(arg[iarg],":"); 
           start = force->tnumeric(FLERR,ptr); 
@@ -308,11 +309,11 @@ void Group::assign(int narg, char **arg)
           stop = force->tnumeric(FLERR,ptr); 
           ptr = strtok(NULL,":");
           if (ptr) delta = force->tnumeric(FLERR,ptr);
-          else delta = 1;
         } else {
           start = stop = force->tnumeric(FLERR,arg[iarg]);
-          delta = 1;
         }
+        if (delta < 1)
+          error->all(FLERR,"Illegal range increment value");
 
         // add to group if attribute matches value or sequence
       

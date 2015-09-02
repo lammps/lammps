@@ -659,6 +659,7 @@ int Balance::shift()
     if (bdim[idim] == X) split = comm->xsplit;
     else if (bdim[idim] == Y) split = comm->ysplit;
     else if (bdim[idim] == Z) split = comm->zsplit;
+    else continue;
 
     // intial count and sum
 

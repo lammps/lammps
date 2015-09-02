@@ -823,7 +823,7 @@ void Finish::stats(int n, double *data,
 
 /* ---------------------------------------------------------------------- */
 
-static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
+void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
                         MPI_Comm world, const int nprocs, const int nthreads,
                         const int me, double time_loop, FILE *scr, FILE *log)
 {
@@ -876,7 +876,7 @@ static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
 /* ---------------------------------------------------------------------- */
 
 #ifdef LMP_USER_OMP
-static void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
+void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads,FILE *scr, FILE *log)
 {
   const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.1f |%6.2f\n";

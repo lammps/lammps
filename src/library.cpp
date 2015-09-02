@@ -19,6 +19,7 @@
 #include "stdlib.h"
 #include "library.h"
 #include "lammps.h"
+#include "universe.h"
 #include "input.h"
 #include "atom.h"
 #include "domain.h"
@@ -77,6 +78,16 @@ void lammps_close(void *ptr)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
   delete lmp;
+}
+
+/* ----------------------------------------------------------------------
+   get the numerical representation of the current LAMMPS version
+------------------------------------------------------------------------- */
+
+int lammps_version(void *ptr)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  return atoi(lmp->universe->num_ver);
 }
 
 /* ----------------------------------------------------------------------

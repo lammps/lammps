@@ -794,7 +794,7 @@ void ReadRestart::header(int incompatible)
       domain->boundary[2][1] = boundary[2][1];
 
       if (xperiodic < 0 || yperiodic < 0 || zperiodic < 0)
-        error->all(FLERR,"Illegal of unset periodicity in restart");
+        error->all(FLERR,"Illegal or unset periodicity in restart");
 
       domain->periodicity[0] = domain->xperiodic = xperiodic;
       domain->periodicity[1] = domain->yperiodic = yperiodic;

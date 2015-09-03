@@ -166,7 +166,7 @@
 <em>python</em> arg = function
 <em>equal</em> or <em>atom</em> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
   numbers = 0.0, 100, -5.4, 2.8e-4, etc
-  constants = PI
+  constants = PI, version
   thermo keywords = vol, ke, press, etc from <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>
   math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
                    x == y, x != y, x &amp;lt y, x &amp;lt= y, x &amp;gt y, x &amp;gt= y, x &amp;&amp; y, x || y, !x
@@ -525,6 +525,16 @@ that define a <a class="reference internal" href="group.html"><em>group</em></a>
 When they invoke the atom-style variable, only atoms in the group are
 inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
 atoms not in the group.</p>
+<p>Constants are set at compile time and cannot be changed. <em>PI</em> will
+return the number 3.14159265358979323846, <em>version</em> will return a
+numeric version code of the current LAMMPS version (e.g. version
+2 Sep 2015 will return the number 20150902). The corresponding value
+for newer versions of LAMMPS will be larger, for older versions of
+LAMMPS will be smaller. This can be used to make input scripts adapt
+automatically to LAMMPS versions, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre>if $(version&lt;20140513) then &quot;communicate vel yes&quot; else &quot;comm_modify vel yes&quot;
+</pre></div>
+</div>
 <p>The thermo keywords allowed in a formula are those defined by the
 <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command.  Thermo keywords that
 require a <a class="reference internal" href="compute.html"><em>compute</em></a> to calculate their values such as

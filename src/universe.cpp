@@ -200,9 +200,9 @@ int Universe::consistent()
   else return 0;
 }
 
-// helper function to convert LAMMPS data string to version id
+// helper function to convert the LAMMPS date string to a version id
 // that can be used for both string and numerical comparisons
-// where newer versions are "larger" than older ones.
+// where newer versions are larger than older ones.
 
 char *date2num(const char *version)
 {

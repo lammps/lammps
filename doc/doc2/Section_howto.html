@@ -1865,10 +1865,11 @@ internal LAMMPS operations.  Note that LAMMPS classes are defined
 within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
 application.
 </P>
-<P>Library.cpp contains these 4 functions:
+<P>Library.cpp contains these 5 basic functions:
 </P>
 <PRE>void lammps_open(int, char **, MPI_Comm, void **)
 void lammps_close(void *)
+int lammps_version(void *)
 void lammps_file(void *, char *)
 char *lammps_command(void *, char *) 
 </PRE>
@@ -1892,6 +1893,14 @@ instances of LAMMPS to perform different calculations.
 </P>
 <P>The lammps_close() function is used to shut down an instance of LAMMPS
 and free all its memory.
+</P>
+<P>The lammps_version() function can be used to determined the specific
+version of the underlying LAMMPS code. This is particularly useful
+when loading LAMMPS as a shared library via dlopen(). The code using
+the library interface can than use this information to adapt to changes
+to the LAMMPS command syntax between versions. The returned LAMMPS
+version code is an integer (e.g. 2 Sep 2015 results in 20150902) that
+is growing with every new LAMMPS version.
 </P>
 <P>The lammps_file() and lammps_command() functions are used to pass a
 file or string to LAMMPS as if it were an input script or single

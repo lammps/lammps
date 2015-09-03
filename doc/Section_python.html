@@ -600,6 +600,7 @@ from a C++ or C or Fortran program.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">lmp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>              <span class="c"># destroy a LAMMPS object</span>
 </pre></div>
 </div>
+<p>version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 2015 -&gt; 20150902</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>           <span class="c"># run an entire input script, file = &quot;in.lj&quot;</span>
 <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>         <span class="c"># invoke a single LAMMPS command, cmd = &quot;run 100&quot;</span>
 </pre></div>

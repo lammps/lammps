@@ -503,6 +503,8 @@ lmp = lammps("g++",list)
 </PRE>
 <PRE>lmp.close()              # destroy a LAMMPS object 
 </PRE>
+<P>version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
+</P>
 <PRE>lmp.file(file)           # run an entire input script, file = "in.lj"
 lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" 
 </PRE>

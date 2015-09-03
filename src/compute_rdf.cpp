@@ -275,7 +275,7 @@ void ComputeRDF::compute_array()
   // convert counts to g(r) and coord(r) and copy into output array
   // vfrac = fraction of volume in shell m
   // npairs = number of pairs, corrected for duplicates
-  // (i.e., pairs in which both atoms are the same)
+  // duplicates = pairs in which both atoms are the same
 
   double constant,vfrac,gr,ncoord,rlower,rupper;
   int pairtot;

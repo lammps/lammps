@@ -752,7 +752,7 @@ void Finish::end(int flag)
         if (neighbor->dist_check)
           fprintf(screen,"Dangerous builds = " BIGINT_FORMAT "\n",
                   neighbor->ndanger);
-        else fprintf(screen,"Dangerous builds = not checked\n");
+        else fprintf(screen,"Dangerous builds not checked\n");
       }
       if (logfile) {
         if (nall < 2.0e9)
@@ -769,7 +769,7 @@ void Finish::end(int flag)
         if (neighbor->dist_check)
           fprintf(logfile,"Dangerous builds = " BIGINT_FORMAT "\n",
                   neighbor->ndanger);
-        else fprintf(logfile,"Dangerous builds = not checked\n");
+        else fprintf(logfile,"Dangerous builds not checked\n");
       }
     }
   }

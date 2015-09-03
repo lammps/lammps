@@ -1126,7 +1126,7 @@ int ReadRestart::version_numeric()
 int ReadRestart::read_int()
 {
   int value;
-  if ((me == 0) && (fread(&value,sizeof(int),1,fp) < sizeof(int)))
+  if ((me == 0) && (fread(&value,sizeof(int),1,fp) < 1))
     value = -1;
   MPI_Bcast(&value,1,MPI_INT,0,world);
   return value;
@@ -1139,7 +1139,7 @@ int ReadRestart::read_int()
 bigint ReadRestart::read_bigint()
 {
   bigint value;
-  if ((me == 0) && (fread(&value,sizeof(bigint),1,fp) < sizeof(bigint)))
+  if ((me == 0) && (fread(&value,sizeof(bigint),1,fp) < 1))
     value = -1;
   MPI_Bcast(&value,1,MPI_LMP_BIGINT,0,world);
   return value;
@@ -1152,7 +1152,7 @@ bigint ReadRestart::read_bigint()
 double ReadRestart::read_double()
 {
   double value;
-  if ((me == 0) && (fread(&value,sizeof(double),1,fp) < sizeof(double)))
+  if ((me == 0) && (fread(&value,sizeof(double),1,fp) < 1))
     value = 0.0;
   MPI_Bcast(&value,1,MPI_DOUBLE,0,world);
   return value;

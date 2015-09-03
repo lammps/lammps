@@ -43,7 +43,7 @@ class FixSRP : public Fix {
   int unpack_exchange(int, double *);
   int pack_border(int, int *, double *);
   int unpack_border(int, int, double *);
-  void post_run();
+  void post_run(); 
 
   int pack_restart(int, double*);
   void unpack_restart(int, int);

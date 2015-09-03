@@ -81,7 +81,7 @@ void FixNHSphereOMP::nve_v()
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
-  // standard nve_v velocity update. for efficiency the loop is
+  // standard nve_v velocity update. for efficiency the loop is 
   // merged with FixNHOMP instead of calling it for the COM update.
 
   // update omega for all particles

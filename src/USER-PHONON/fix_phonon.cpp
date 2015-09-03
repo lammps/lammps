@@ -666,10 +666,9 @@ void FixPhonon::postprocess( )
   }
 
   // to get Phi = KT.G^-1; normalization of FFTW data is done here
-  double boltz = force->boltz, *kbtsqrt, TempAve = 0.;
+  double boltz = force->boltz, kbtsqrt[sysdim], TempAve = 0.;
   double TempFac = inv_neval*inv_nTemp;
   double NormFac = TempFac*double(ntotal);
-  kbtsqrt = new double[sysdim];
 
   for (idim = 0; idim < sysdim; ++idim){
     kbtsqrt[idim] = sqrt(TempSum[idim]*NormFac);
@@ -683,7 +682,6 @@ void FixPhonon::postprocess( )
     for (idim = 0; idim < fft_dim; ++idim)
     for (jdim = 0; jdim < fft_dim; ++jdim) Phi_q[idq][ndim++] *= kbtsqrt[idim%sysdim]*kbtsqrt[jdim%sysdim];
   }
-  delete[] kbtsqrt;
 
   // to collect all local Phi_q to root
   displs[0]=0;
@@ -692,8 +690,7 @@ void FixPhonon::postprocess( )
   MPI_Gatherv(Phi_q[0],mynq*fft_dim2*2,MPI_DOUBLE,Phi_all[0],recvcnts,displs,MPI_DOUBLE,0,world);
   
   // to collect all basis info and averaged it on root
-  double *basis_root;
-  basis_root = new double[fft_dim];
+  double basis_root[fft_dim];
   if (fft_dim > sysdim) MPI_Reduce(&basis[1][0], &basis_root[sysdim], fft_dim-sysdim, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (me == 0){ // output dynamic matrix by root
@@ -733,7 +730,6 @@ void FixPhonon::postprocess( )
     fwrite(M_inv_sqrt,    sizeof(double),nucell, fp_bin);
 
     fclose(fp_bin);
-    delete[] basis_root;
 
     // write log file, here however, it is the dynamical matrix that is written
     for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");

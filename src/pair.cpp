@@ -223,10 +223,10 @@ void Pair::init()
   // I,I coeffs must be set
   // init_one() will check if I,J is set explicitly or inferred by mixing
 
-  if (!allocated) error->all(FLERR,"Not all pair coeffs are set");
+  if (!allocated) error->all(FLERR,"All pair coeffs are not set");
 
   for (i = 1; i <= atom->ntypes; i++)
-    if (setflag[i][i] == 0) error->all(FLERR,"Not all pair coeffs are set");
+    if (setflag[i][i] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   // style-specific initialization
 

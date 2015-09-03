@@ -120,10 +120,9 @@ class FixNH : public Fix {
   double fixedpoint[3];            // location of dilation fixed-point
 
   void couple();
+  void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();
-
-  virtual void remap();
 
   virtual void nve_x();            // may be overwritten by child classes
   virtual void nve_v();

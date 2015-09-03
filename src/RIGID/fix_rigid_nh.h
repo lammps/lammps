@@ -72,7 +72,7 @@ class FixRigidNH : public FixRigid {
   int tcomputeflag,pcomputeflag;
 
   void couple();
-  virtual void remap();  
+  void remap();  
   void nhc_temp_integrate();
   void nhc_press_integrate();
 

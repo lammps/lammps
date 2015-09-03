@@ -47,7 +47,7 @@ class Update : protected Pointers {
   char *minimize_style;
 
   Update(class LAMMPS *);
-  virtual ~Update();
+  ~Update();
   void init();
   void set_units(const char *);
   void create_integrate(int, char **, int);

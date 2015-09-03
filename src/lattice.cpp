@@ -18,8 +18,8 @@
 #include "update.h"
 #include "domain.h"
 #include "comm.h"
-#include "memory.h"
 #include "force.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

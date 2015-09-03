@@ -22,7 +22,6 @@
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "compute.h"
 #include "neighbor.h"
 #include "timer.h"
 

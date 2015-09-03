@@ -204,10 +204,8 @@ void ComputeBasalAtom::compute_peratom()
       double bond_angle;
       double norm_j, norm_k;
       chi[0] = chi[1] = chi[2] = chi[3] = chi[4] = chi[5] = chi[6] = chi[7] = 0;
-      double x_ij, y_ij, z_ij, x_ik, y_ik, z_ik,
+      double x_ij, y_ij, z_ij, x_ik, y_ik, z_ik,x3[n0],y3[n0],z3[n0],
         xmean5, ymean5, zmean5, xmean6, ymean6, zmean6, xmean7, ymean7, zmean7;
-      double *x3,*y3,*z3; 
-      x3 = new double[n0]; y3 = new double[n0]; z3 = new double[n0];
       for (j = 0; j < n0; j++) {
 	x_ij = x[i][0]-x[nearest_n0[j]][0];
 	y_ij = x[i][1]-x[nearest_n0[j]][1];
@@ -415,7 +413,6 @@ void ComputeBasalAtom::compute_peratom()
       //if there are less than two ~180 degree bond angles, the algorithm returns null
       else BPV[i][0] = BPV[i][1] = BPV[i][2] = 0.0;
 
-      delete[] x3; delete[] y3; delete[] z3;
       //normalize BPV:
       double Mag = sqrt(BPV[i][0]*BPV[i][0] + 
                         BPV[i][1]*BPV[i][1] + BPV[i][2]*BPV[i][2]);

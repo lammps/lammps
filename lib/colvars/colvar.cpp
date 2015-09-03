@@ -9,11 +9,17 @@
 #include <algorithm>
 
 
+/// Compare two cvcs using their names
+/// Used to sort CVC array in scripted coordinates
+bool compare(colvar::cvc *i, colvar::cvc *j) {
+  return i->name < j->name;
+}
+
 
 colvar::colvar(std::string const &conf)
   : colvarparse(conf)
 {
-  size_t i, j;
+  size_t i;
   cvm::log("Initializing a new collective variable.\n");
 
   get_keyval(conf, "name", this->name,
@@ -81,9 +87,12 @@ colvar::colvar(std::string const &conf)
           return;                                                       \
         }                                                               \
       }                                                                 \
-      if ( ! cvcs.back()->name.size())                                  \
-        cvcs.back()->name = std::string(def_config_key)+               \
-          (cvm::to_str(++def_count));                                  \
+      if ( ! cvcs.back()->name.size()){                                 \
+        std::ostringstream s;                                           \
+        s << def_config_key << std::setfill('0') << std::setw(4) << ++def_count;\
+        cvcs.back()->name = s.str();                                    \
+          /* pad cvc number for correct ordering when sorting by name */\
+      }                                                                 \
       if (cvm::debug())                                                 \
         cvm::log("Done initializing a \""+                             \
                   std::string(def_config_key)+                         \
@@ -193,27 +202,21 @@ colvar::colvar(std::string const &conf)
       x.vector1d_value.resize(size);
     }
 
-    // Sort array of cvcs based on values of componentExp
-    std::vector<cvc *> temp_vec;
-    for (i = 1; i <= cvcs.size(); i++) {
-      for (j = 0; j < cvcs.size(); j++) {
-        if (cvcs[j]->sup_np == int(i)) {
-          temp_vec.push_back(cvcs[j]);
-          break;
-        }
+    // Sort array of cvcs based on their names
+    // Note: default CVC names are in input order for same type of CVC
+    std::sort(cvcs.begin(), cvcs.end(), compare);
+
+    if(cvcs.size() > 1) {
+      cvm::log("Sorted list of components for this scripted colvar:");
+      for (i = 0; i < cvcs.size(); i++) {
+        cvm::log(cvm::to_str(i+1) + " " + cvcs[i]->name);
       }
     }
-    if (temp_vec.size() != cvcs.size()) {
-      cvm::error("Could not find order numbers for all components "
-                  "in componentExp values.");
-      return;
-    }
-    cvcs = temp_vec;
 
     // Build ordered list of component values that will be
     // passed to the script
-    for (j = 0; j < cvcs.size(); j++) {
-      sorted_cvc_values.push_back(&(cvcs[j]->value()));
+    for (i = 0; i < cvcs.size(); i++) {
+      sorted_cvc_values.push_back(&(cvcs[i]->value()));
     }
 
     b_homogeneous = false;
@@ -1116,9 +1119,9 @@ cvm::real colvar::update()
     // closer one (on a periodic colvar, both walls may be applicable
     // at the same time)
     if ( (!tasks[task_upper_wall]) ||
-         (this->dist2(x, lower_wall) < this->dist2(x, upper_wall)) ) {
+         (this->dist2(x_reported, lower_wall) < this->dist2(x_reported, upper_wall)) ) {
 
-      cvm::real const grad = this->dist2_lgrad(x, lower_wall);
+      cvm::real const grad = this->dist2_lgrad(x_reported, lower_wall);
       if (grad < 0.0) {
         fw = -0.5 * lower_wall_k * grad;
         if (cvm::debug())
@@ -1130,7 +1133,7 @@ cvm::real colvar::update()
 
     } else {
 
-      cvm::real const grad = this->dist2_lgrad(x, upper_wall);
+      cvm::real const grad = this->dist2_lgrad(x_reported, upper_wall);
       if (grad > 0.0) {
         fw = -0.5 * upper_wall_k * grad;
         if (cvm::debug())

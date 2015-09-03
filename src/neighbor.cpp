@@ -811,6 +811,8 @@ void Neighbor::init()
         fprintf(logfile,"  %d neighbor list requests\n",nrequest);
         fprintf(logfile,"  update every %d steps, delay %d steps, check %s\n",
                 every,delay,dist_check ? "yes" : "no");
+        fprintf(logfile,"  max neighbors/atom: %d, page size: %d\n",
+                oneatom, pgsize);
         fprintf(logfile,"  master list distance cutoff = %g\n",cutneighmax);
         fprintf(logfile,"  ghost atom cutoff = %g\n",cutghost);
         if (style != NSQ)
@@ -823,6 +825,8 @@ void Neighbor::init()
         fprintf(screen,"  %d neighbor list requests\n",nrequest);
         fprintf(screen,"  update every %d steps, delay %d steps, check %s\n",
                 every,delay,dist_check ? "yes" : "no");
+        fprintf(screen,"  max neighbors/atom: %d, page size: %d\n",
+                oneatom, pgsize);
         fprintf(screen,"  master list distance cutoff = %g\n",cutneighmax);
         fprintf(screen,"  ghost atom cutoff = %g\n",cutghost);
         if (style != NSQ)

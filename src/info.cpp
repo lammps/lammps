@@ -17,6 +17,8 @@
 
 #include "string.h"
 #include "info.h"
+#include "accelerator_cuda.h"
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
@@ -448,4 +450,94 @@ void Info::command(int narg, char **arg)
   // close output file pointer if opened locally thus forcing a hard sync.
   if ((out != screen) && (out != logfile))
     fclose(out);
+}
+
+/* ---------------------------------------------------------------------- */
+
+// the is_active() function returns true if the selected style or name
+// in the selected category is currently in use.
+
+bool Info::is_active(const char *category, const char *name, int match)
+{
+  if ((category == NULL) || (name == NULL)) return false;
+
+  if (strcmp(category,"package") == 0) {
+    if (match != MATCH_EXACT)
+      error->all(FLERR,"Only exact matches allowed with package category");
+    if (strcmp(name,"cuda") == 0) {
+      return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
+    } else if (strcmp(name,"gpu") == 0) {
+      return (modify->find_fix("package_gpu") >= 0) ? true : false;
+    } else if (strcmp(name,"intel") == 0) {
+      return (modify->find_fix("package_intel") >= 0) ? true : false;
+    } else if (strcmp(name,"kokkos") == 0) {
+      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+    } else if (strcmp(name,"omp") == 0) {
+      return (modify->find_fix("package_omp") >= 0) ? true : false;
+    } else error->all(FLERR,"Unknown name for package category");
+  } else if (strcmp(category,"pair") == 0) {
+
+  } else error->all(FLERR,"Unknown category for is_active()");
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+// the is_available() function returns true if the selected style
+// or name in the selected category is available for use (but need
+// not be currently active).
+
+bool Info::is_available(const char *category, const char *name, int match)
+{
+  if ((category == NULL) || (name == NULL)) return false;
+
+  if (strcmp(category,"package") == 0) {
+    if (match != MATCH_EXACT)
+      error->all(FLERR,"Only exact matches allowed with package category");
+    if (strcmp(name,"cuda") == 0) {
+      return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
+    } else if (strcmp(name,"gpu") == 0) {
+      return (modify->find_fix("package_gpu") >= 0) ? true : false;
+    } else if (strcmp(name,"intel") == 0) {
+      return (modify->find_fix("package_intel") >= 0) ? true : false;
+    } else if (strcmp(name,"kokkos") == 0) {
+      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+    } else if (strcmp(name,"omp") == 0) {
+      return (modify->find_fix("package_omp") >= 0) ? true : false;
+    } else error->all(FLERR,"Unknown name for package category");
+  } else if (strcmp(category,"pair") == 0) {
+
+  } else error->all(FLERR,"Unknown category for is_active()");
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+// the is_defined() function returns true if a particular ID of the
+// selected category (e.g. fix ID, group ID, region ID etc.) has been
+// defined and thus can be accessed. It does *NOT* check whether a
+// particular ID has a particular style.
+
+bool Info::is_defined(const char *category, const char *name, int match)
+{
+  if ((category == NULL) || (name == NULL)) return false;
+
+  if (strcmp(category,"package") == 0) {
+    if (match != MATCH_EXACT)
+      error->all(FLERR,"Only exact matches allowed with package category");
+    if (strcmp(name,"cuda") == 0) {
+      return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
+    } else if (strcmp(name,"gpu") == 0) {
+      return (modify->find_fix("package_gpu") >= 0) ? true : false;
+    } else if (strcmp(name,"intel") == 0) {
+      return (modify->find_fix("package_intel") >= 0) ? true : false;
+    } else if (strcmp(name,"kokkos") == 0) {
+      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+    } else if (strcmp(name,"omp") == 0) {
+      return (modify->find_fix("package_omp") >= 0) ? true : false;
+    } else error->all(FLERR,"Unknown name for package category");
+  } else if (strcmp(category,"pair") == 0) {
+
+  } else error->all(FLERR,"Unknown category for is_active()");
+
 }

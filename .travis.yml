@@ -16,7 +16,7 @@ before_install:
   - sudo apt-get install -y gfortran mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
 
 env:
-  - MACH=serial LMPFLAGS="-sf off" LMP_INC="-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-ljpeg -lpng -lz"
+  - MACH=serial LMPFLAGS="-sf off" LMP_INC="-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz"
   - MACH=mpi MPICMD="mpirun -np 2" LMPFLAGS="-pk omp 2 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
   - MACH=mpi MPICMD="mpirun -np 4" LMPFLAGS="-pk omp 1 -sf omp" LMP_INC="-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL" JPG_LIB="-ljpeg -lpng -lz"
   - MACH=mpi MPICMD="mpirun -np 1" LMPFLAGS="-pk omp 4 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_BIGBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"

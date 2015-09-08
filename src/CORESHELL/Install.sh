@@ -32,3 +32,5 @@ action pair_born_coul_long_cs.h pair_born_coul_long.h
 action pair_buck_coul_long_cs.h pair_buck_coul_long.h
 action pair_coul_long_cs.cpp pair_coul_long.cpp
 action pair_coul_long_cs.h pair_coul_long.h
+action pair_lj_cut_coul_long_cs.cpp pair_lj_cut_coul_long.cpp
+action pair_ljc_cut_coul_long_cs.h pair_lj_cut_coul_long.h

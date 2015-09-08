@@ -11,9 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Added epsilon for use with CORESHELL and USER-DRUDE
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
-PairStyle(coul/long/cs,PairCoulLongCS)
+PairStyle(coul/long/cs/,PairCoulLongCS)
 
 #else
 
@@ -47,7 +51,7 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style lj/cut/coul/long/drude requires atom attribute q
+E: Pair style lj/cut/coul/long requires atom attribute q
 
 The atom style defined does not have this attribute.
 

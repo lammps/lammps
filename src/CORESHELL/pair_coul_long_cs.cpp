@@ -43,9 +43,18 @@ using namespace LAMMPS_NS;
 #define B4       -5.80844129e-3
 #define B5        1.14652755e-1
 
+#define EPSILON 1.0e-20
+#define EPS_EWALD 1.0e-6
+#define EPS_EWALD_SQR 1.0e-12
+
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongCS::PairCoulLongCS(LAMMPS *lmp) : PairCoulLong(lmp) {}
+PairCoulLongCS::PairCoulLongCS(LAMMPS *lmp) : PairCoulLong(lmp)
+{
+  ewaldflag = pppmflag = 1;
+  ftable = NULL;
+  qdist = 0.0;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -101,18 +110,34 @@ void PairCoulLongCS::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cut_coulsq) {
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
         if (!ncoultablebits || rsq <= tabinnersq) {
+          r = sqrt(rsq);
           prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j];
-          grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-	  u = 1. - t;
-          erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-          prefactor /= r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          if (factor_coul < 1.0) {
+            // When bonded parts are being calculated a minimal distance (EPS_EWALD) 
+            // has to be added to the prefactor and erfc in order to make the 
+            // used approximation functions for the Ewald correction valid
+            grij = g_ewald * (r+EPS_EWALD);
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+	        u = 1. - t;
+            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= (r+EPS_EWALD);
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
+            // Additionally r2inv needs to be accordingly modified since the later
+            // scaling of the overall force shall be consistent
+            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
+          } else {
+            grij = g_ewald * r;
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+	        u = 1. - t;
+            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          }
         } else {
           union_int_float_t rsq_lookup;
           rsq_lookup.f = rsq;
@@ -157,3 +182,4 @@ void PairCoulLongCS::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
+

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Hendrik Heenen (hendrik.heenen@mytum.com)
+   Added epsilon for use with CORESHELL and USER-DRUDE
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS

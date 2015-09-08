@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
+   Added epsilon for use with CORESHELL and USER-DRUDE
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -34,12 +34,13 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+#define EWALD_P   9.95473818e-1
+#define B0       -0.1335096380159268
+#define B1       -2.57839507e-1
+#define B2       -1.37203639e-1
+#define B3       -8.88822059e-3
+#define B4       -5.80844129e-3
+#define B5        1.14652755e-1
 
 #define EPSILON 1.0e-20
 #define EPS_EWALD 1.0e-6
@@ -62,7 +63,7 @@ void PairBuckCoulLongCS::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double rsq,r2inv,r6inv,forcecoul,forcebuck,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,t,erfc,u;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -123,7 +124,8 @@ void PairBuckCoulLongCS::compute(int eflag, int vflag)
               grij = g_ewald * (r+EPS_EWALD);
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-              erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	          u = 1. - t;
+              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
               prefactor /= (r+EPS_EWALD);
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
               // Additionally r2inv needs to be accordingly modified since the later
@@ -133,7 +135,8 @@ void PairBuckCoulLongCS::compute(int eflag, int vflag)
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-              erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	          u = 1. - t;
+              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
               prefactor /= r;
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             }

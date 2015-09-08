@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Added epsilon for use with CORESHELL and USER-DRUDE
+   Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -130,7 +130,7 @@ void PairLJCutCoulLongCS::compute(int eflag, int vflag)
               grij = g_ewald * (r+EPS_EWALD);
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-	          u = 1. - t;
+              u = 1.0 - t;
               erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
               prefactor /= (r+EPS_EWALD);
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
@@ -141,7 +141,7 @@ void PairLJCutCoulLongCS::compute(int eflag, int vflag)
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-	          u = 1. - t;
+              u = 1.0 - t;
               erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
               prefactor /= r;
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);

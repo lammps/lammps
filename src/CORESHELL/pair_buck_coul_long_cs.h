@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Added epsilon for use with CORESHELL and USER-DRUDE
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 
 PairStyle(buck/coul/long/cs,PairBuckCoulLongCS)

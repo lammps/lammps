@@ -460,6 +460,8 @@ void Info::command(int narg, char **arg)
 bool Info::is_active(const char *category, const char *name, int match)
 {
   if ((category == NULL) || (name == NULL)) return false;
+  const char *style = "none";
+  const int len = strlen(name);
 
   if (strcmp(category,"package") == 0) {
     if (match != MATCH_EXACT)
@@ -475,10 +477,44 @@ bool Info::is_active(const char *category, const char *name, int match)
     } else if (strcmp(name,"omp") == 0) {
       return (modify->find_fix("package_omp") >= 0) ? true : false;
     } else error->all(FLERR,"Unknown name for package category");
-  } else if (strcmp(category,"pair") == 0) {
 
+  } else if (strcmp(category,"newton") == 0) {
+    if (match != MATCH_EXACT)
+      error->all(FLERR,"Only exact matches allowed with newton category");
+    if (strcmp(name,"pair") == 0) return (force->newton_pair != 0);
+    else if (strcmp(name,"bond") == 0) return (force->newton_bond != 0);
+    else if (strcmp(name,"any") == 0) return (force->newton != 0);
+    else error->all(FLERR,"Unknown name for newton category");
+
+  } else if (strcmp(category,"comm_style") == 0) {
+    style = commstyles[comm->style];
+  } else if (strcmp(category,"min_style") == 0) {
+    style = update->minimize_style;
+  } else if (strcmp(category,"run_style") == 0) {
+    style = update->integrate_style;
+  } else if (strcmp(category,"atom_style") == 0) {
+    style = atom->atom_style;
+  } else if (strcmp(category,"pair_style") == 0) {
+    style = force->pair_style;
+  } else if (strcmp(category,"bond_style") == 0) {
+    style = force->bond_style;
+  } else if (strcmp(category,"angle_style") == 0) {
+    style = force->angle_style;
+  } else if (strcmp(category,"dihedral_style") == 0) {
+    style = force->dihedral_style;
+  } else if (strcmp(category,"improper_style") == 0) {
+    style = force->improper_style;
+  } else if (strcmp(category,"kspace_style") == 0) {
+    style = force->kspace_style;
   } else error->all(FLERR,"Unknown category for is_active()");
 
+  if (match == MATCH_EXACT) {
+    return (strcmp(style,name) == 0) ? true : false;
+  } else if (match == MATCH_LEAD) {
+    return (strncmp(style,name,len) == 0) ? true : false;
+  } else if (match == MATCH_SUBSTR) {
+    return (strstr(style,name) != NULL) ? true : false;
+  } else return false;
 }
 
 /* ---------------------------------------------------------------------- */

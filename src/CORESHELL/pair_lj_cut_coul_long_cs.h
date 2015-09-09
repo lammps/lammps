@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,21 +13,25 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(buck/coul/long/cs,PairBuckCoulLongCS)
+PairStyle(lj/cut/coul/long/cs,PairLJCutCoulLongCS)
 
 #else
 
-#ifndef LMP_PAIR_BUCK_COUL_LONG_CS_H
-#define LMP_PAIR_BUCK_COUL_LONG_CS_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_LONG_CS_H
+#define LMP_PAIR_LJ_CUT_COUL_LONG_CS_H
 
-#include "pair_buck_coul_long.h"
+#include "pair_lj_cut_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairBuckCoulLongCS : public PairBuckCoulLong {
+class PairLJCutCoulLongCS : public PairLJCutCoulLong {
+
  public:
-  PairBuckCoulLongCS(class LAMMPS *);
+  PairLJCutCoulLongCS(class LAMMPS *);
   virtual void compute(int, int);
+  void compute_inner();
+  void compute_middle();
+  virtual void compute_outer(int, int);
 };
 
 }
@@ -47,17 +51,17 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: All pair coeffs are not set
+E: Pair style lj/cut/coul/long requires atom attribute q
 
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Pair style buck/coul/long requires atom attribute q
-
-The atom style defined does not have these attributes.
+The atom style defined does not have this attribute.
 
 E: Pair style requires a KSpace style
 
 No kspace style is defined.
+
+E: Pair cutoff < Respa interior cutoff
+
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 */

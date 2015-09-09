@@ -598,7 +598,7 @@ atoms and the water molecule to run a rigid TIP3P-CHARMM model with a
 cutoff.  The K values can be used if a flexible TIP3P model (without
 fix shake) is desired.  If the LJ epsilon and sigma for HH and OH are
 set to 0.0, it corresponds to the original 1983 TIP3P model
-<a class="reference internal" href="#jorgensen"><span>(Jorgensen)</span></a>.</p>
+<a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>.</p>
 <div class="line-block">
 <div class="line">O mass = 15.9994</div>
 <div class="line">H mass = 1.008</div>
@@ -656,7 +656,7 @@ for a cutoff model:</p>
 using the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command.</p>
 <p>These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
-<a class="reference internal" href="#jorgensen"><span>(Jorgensen)</span></a>.  Note that the OM distance is specified in
+<a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>.  Note that the OM distance is specified in
 the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command, not as part of the pair
 coefficients.</p>
 <div class="line-block">
@@ -1963,10 +1963,10 @@ and free all its memory.</p>
 <p>The lammps_version() function can be used to determined the specific
 version of the underlying LAMMPS code. This is particularly useful
 when loading LAMMPS as a shared library via dlopen(). The code using
-the library interface can than use this information to adapt to changes
-to the LAMMPS command syntax between versions. The returned LAMMPS
-version code is an integer (e.g. 2 Sep 2015 results in 20150902) that
-is growing with every new LAMMPS version.</p>
+the library interface can than use this information to adapt to
+changes to the LAMMPS command syntax between versions. The returned
+LAMMPS version code is an integer (e.g. 2 Sep 2015 results in
+20150902) that grows with every new LAMMPS version.</p>
 <p>The lammps_file() and lammps_command() functions are used to pass a
 file or string to LAMMPS as if it were an input script or single
 command in an input script.  Thus the calling code can read or
@@ -2541,7 +2541,7 @@ well.</p>
 </div>
 <div class="section" id="adiabatic-core-shell-model">
 <span id="howto-26"></span><h2>6.26. Adiabatic core/shell model<a class="headerlink" href="#adiabatic-core-shell-model" title="Permalink to this headline">¶</a></h2>
-<p>The adiabatic core-shell model by <a class="reference internal" href="#mitchellfinchham"><span>Mitchell and Finchham</span></a> is a simple method for adding
+<p>The adiabatic core-shell model by <a class="reference internal" href="compute_temp_cs.html#mitchellfinchham"><span>Mitchell and Finchham</span></a> is a simple method for adding
 polarizability to a system.  In order to mimic the electron shell of
 an ion, a satellite particle is attached to it. This way the ions are
 split into a core and a shell where the latter is meant to react to
@@ -2606,10 +2606,16 @@ specified between cores.</p>
 turn-off the Coulombic interaction within core/shell pairs, since that
 interaction is set by the bond spring.  This is done using the
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command with a 1-2 weight = 0.0,
-which is the default value.</p>
+which is the default value.  It needs to be considered whether one has
+to adjust the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> weighting according
+to the molecular topology since the interactions of the shells are
+bypassed over an extra bond.</p>
+<p>Note that this core/shell implementation does not require all ions to
+be polarized.  One can mix core/shell pairs and ions without a
+satellite particle if desired.</p>
 <p>Since the core/shell model permits distances of r = 0.0 between the
 core and shell, a pair style with a &#8220;cs&#8221; suffix needs to be used to
-implement a valid long-range Coulombic correction.  Several such pair
+implement a valid long-rangeCoulombic correction.  Several such pair
 styles are provided in the CORESHELL package.  See <a class="reference internal" href="pair_cs.html"><em>this doc page</em></a> for details.  All of the core/shell enabled pair
 styles require the use of a long-range Coulombic solver, as specified
 by the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command.  Either the PPPM or
@@ -2638,14 +2644,20 @@ core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the <a class="reference internal" href="compute_temp_cs.html"><em>compute temp/cs</em></a> command can be used, in conjunction with
 any of the thermostat fixes, such as <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference external" href="fix_langevin">fix langevin</a>.  This compute uses the center-of-mass velocity
 of the core/shell pairs to calculate a temperature, and insures that
-velocity is what is rescaled for thermostatting purposes.  The
+velocity is what is rescaled for thermostatting purposes.  This
+compute also works for a system with both core/shell pairs and
+non-polarized ions (ions without an attached satellite particle).  The
 <a class="reference internal" href="compute_temp_cs.html"><em>compute temp/cs</em></a> command requires input of two
-groups, one for the core atoms, another for the shell atoms.  These
-can be defined using the <a class="reference internal" href="group.html"><em>group *type*</em></a> command.  Note that
-to perform thermostatting using this definition of temperature, the
-<a class="reference internal" href="fix_modify.html"><em>fix modify temp</em></a> command should be used to assign the
-comptue to the thermostat fix.  Likewise the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify temp</em></a> command can be used to make this temperature
-be output for the overall system.</p>
+groups, one for the core atoms, another for the shell atoms.
+Non-polarized ions which might also be included in the treated system
+should not be included into either of these groups, they are taken
+into account by the <em>group-ID</em> (2nd argument) of the compute.  The
+groups can be defined using the <a class="reference internal" href="group.html"><em>group *type*</em></a> command.
+Note that to perform thermostatting using this definition of
+temperature, the <a class="reference internal" href="fix_modify.html"><em>fix modify temp</em></a> command should be
+used to assign the comptue to the thermostat fix.  Likewise the
+<a class="reference internal" href="thermo_modify.html"><em>thermo_modify temp</em></a> command can be used to make
+this temperature be output for the overall system.</p>
 <p>For the NaCl example, this can be done as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre>group cores type 1 2
 group shells type 3 4
@@ -2679,18 +2691,18 @@ imaginary degrees of freedom.  However, this transfer will typically
 lead to a a small drift in total energy over time.  This internal
 energy can be monitored using the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> and <a class="reference internal" href="compute_temp_chunk.html"><em>compute temp/chunk</em></a> commands.  The internal kinetic
 energies of each core/shell pair can then be summed using the sum()
-special functino of the <a class="reference internal" href="variable.html"><em>variable</em></a> command.  Or they can
+special function of the <a class="reference internal" href="variable.html"><em>variable</em></a> command.  Or they can
 be time/averaged and output using the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>
 command.  To use these commands, each core/shell pair must be defined
 as a &#8220;chunk&#8221;.  If each core/shell pair is defined as its own molecule,
 the molecule ID can be used to define the chunks.  If cores are bonded
-to each other to form larger molecules, then another way to define the
-chunks is to use the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> to
-assign a core/shell ID to each atom via a special field in the data
-file read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.  This field can
-then be accessed by the <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a> command, to use as input to
-the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command to define the
-core/shell pairs as chunks.</p>
+to each other to form larger molecules, the chunks can be identified
+by the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> via assigning a
+core/shell ID to each atom using a special field in the data file read
+by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.  This field can then be
+accessed by the <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a>
+command, to use as input to the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command to define the core/shell
+pairs as chunks.</p>
 <p>For example,</p>
 <div class="highlight-python"><div class="highlight"><pre>fix csinfo all property/atom i_CSID                       # property/atom command
 read_data NaCl_CS_x0.1_prop.data fix csinfo NULL CS-Info  # atom property added in the data-file

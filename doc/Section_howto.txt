@@ -1884,10 +1884,10 @@ and free all its memory.
 The lammps_version() function can be used to determined the specific
 version of the underlying LAMMPS code. This is particularly useful
 when loading LAMMPS as a shared library via dlopen(). The code using
-the library interface can than use this information to adapt to changes
-to the LAMMPS command syntax between versions. The returned LAMMPS
-version code is an integer (e.g. 2 Sep 2015 results in 20150902) that
-is growing with every new LAMMPS version.
+the library interface can than use this information to adapt to
+changes to the LAMMPS command syntax between versions. The returned
+LAMMPS version code is an integer (e.g. 2 Sep 2015 results in
+20150902) that grows with every new LAMMPS version.
 
 The lammps_file() and lammps_command() functions are used to pass a
 file or string to LAMMPS as if it were an input script or single
@@ -2549,11 +2549,18 @@ The "special_bonds"_special_bonds.html command should be used to
 turn-off the Coulombic interaction within core/shell pairs, since that
 interaction is set by the bond spring.  This is done using the
 "special_bonds"_special_bonds.html command with a 1-2 weight = 0.0,
-which is the default value.
+which is the default value.  It needs to be considered whether one has
+to adjust the "special_bonds"_special_bonds.html weighting according
+to the molecular topology since the interactions of the shells are
+bypassed over an extra bond.
+
+Note that this core/shell implementation does not require all ions to
+be polarized.  One can mix core/shell pairs and ions without a
+satellite particle if desired.
 
 Since the core/shell model permits distances of r = 0.0 between the
 core and shell, a pair style with a "cs" suffix needs to be used to
-implement a valid long-range Coulombic correction.  Several such pair
+implement a valid long-rangeCoulombic correction.  Several such pair
 styles are provided in the CORESHELL package.  See "this doc
 page"_pair_cs.html for details.  All of the core/shell enabled pair
 styles require the use of a long-range Coulombic solver, as specified
@@ -2585,15 +2592,20 @@ temp/cs"_compute_temp_cs.html command can be used, in conjunction with
 any of the thermostat fixes, such as "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.  This compute uses the center-of-mass velocity
 of the core/shell pairs to calculate a temperature, and insures that
-velocity is what is rescaled for thermostatting purposes.  The
+velocity is what is rescaled for thermostatting purposes.  This
+compute also works for a system with both core/shell pairs and
+non-polarized ions (ions without an attached satellite particle).  The
 "compute temp/cs"_compute_temp_cs.html command requires input of two
-groups, one for the core atoms, another for the shell atoms.  These
-can be defined using the "group {type}"_group.html command.  Note that
-to perform thermostatting using this definition of temperature, the
-"fix modify temp"_fix_modify.html command should be used to assign the
-comptue to the thermostat fix.  Likewise the "thermo_modify
-temp"_thermo_modify.html command can be used to make this temperature
-be output for the overall system.
+groups, one for the core atoms, another for the shell atoms.
+Non-polarized ions which might also be included in the treated system
+should not be included into either of these groups, they are taken
+into account by the {group-ID} (2nd argument) of the compute.  The
+groups can be defined using the "group {type}"_group.html command.
+Note that to perform thermostatting using this definition of
+temperature, the "fix modify temp"_fix_modify.html command should be
+used to assign the comptue to the thermostat fix.  Likewise the
+"thermo_modify temp"_thermo_modify.html command can be used to make
+this temperature be output for the overall system.
 
 For the NaCl example, this can be done as follows:
 
@@ -2632,19 +2644,19 @@ energy can be monitored using the "compute
 chunk/atom"_compute_chunk_atom.html and "compute
 temp/chunk"_compute_temp_chunk.html commands.  The internal kinetic
 energies of each core/shell pair can then be summed using the sum()
-special functino of the "variable"_variable.html command.  Or they can
+special function of the "variable"_variable.html command.  Or they can
 be time/averaged and output using the "fix ave/time"_fix_ave_time.html
 command.  To use these commands, each core/shell pair must be defined
 as a "chunk".  If each core/shell pair is defined as its own molecule,
 the molecule ID can be used to define the chunks.  If cores are bonded
-to each other to form larger molecules, then another way to define the
-chunks is to use the "fix property/atom"_fix_property_atom.html to
-assign a core/shell ID to each atom via a special field in the data
-file read by the "read_data"_read_data.html command.  This field can
-then be accessed by the "compute
-property/atom"_compute_property_atom.html command, to use as input to
-the "compute chunk/atom"_compute_chunk_atom.html command to define the
-core/shell pairs as chunks.
+to each other to form larger molecules, the chunks can be identified
+by the "fix property/atom"_fix_property_atom.html via assigning a
+core/shell ID to each atom using a special field in the data file read
+by the "read_data"_read_data.html command.  This field can then be
+accessed by the "compute property/atom"_compute_property_atom.html
+command, to use as input to the "compute
+chunk/atom"_compute_chunk_atom.html command to define the core/shell
+pairs as chunks.
 
 For example,
 

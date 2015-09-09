@@ -187,6 +187,9 @@
 <div class="section" id="pair-style-lj-cut-coul-long-command">
 <h1>pair_style lj/cut/coul/long command<a class="headerlink" href="#pair-style-lj-cut-coul-long-command" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="pair-style-lj-cut-coul-long-cs-command">
+<h1>pair_style lj/cut/coul/long/cs command<a class="headerlink" href="#pair-style-lj-cut-coul-long-cs-command" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="pair-style-lj-cut-coul-long-cuda-command">
 <h1>pair_style lj/cut/coul/long/cuda command<a class="headerlink" href="#pair-style-lj-cut-coul-long-cuda-command" title="Permalink to this headline">¶</a></h1>
 </div>
@@ -231,7 +234,7 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>style = <em>lj/cut</em> or <em>lj/cut/coul/cut</em> or <em>lj/cut/coul/debye</em> or <em>lj/cut/coul/dsf</em> or <em>lj/cut/coul/long</em> or <em>lj/cut/coul/msm</em> or <em>lj/cut/tip4p/long</em></li>
+<li>style = <em>lj/cut</em> or <em>lj/cut/coul/cut</em> or <em>lj/cut/coul/debye</em> or <em>lj/cut/coul/dsf</em> or <em>lj/cut/coul/long</em> or <em>lj/cut/coul/long/cs</em> or <em>lj/cut/coul/msm</em> or <em>lj/cut/tip4p/long</em></li>
 <li>args = list of arguments for a particular style</li>
 </ul>
 <pre class="literal-block">
@@ -295,7 +298,9 @@ pair_coeff 1 1 1.0 1.0 2.5
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut/coul/long 10.0
+pair_style lj/cut/coul/long/cs 10.0
 pair_style lj/cut/coul/long 10.0 8.0
+pair_style lj/cut/coul/long/cs 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0
 </pre></div>
@@ -360,6 +365,9 @@ command and its <em>ewald</em> or <em>pppm</em> option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.</p>
+<p>Style <em>lj/cut/coul/long/cs</em> is identical to <em>lj/cut/coul/long</em> except
+that a term is added for the <a class="reference internal" href="Section_howto.html#howto-25"><span>core/shell model</span></a> to allow charges on core and shell
+particles to be separated by r = 0.0.</p>
 <p>Styles <em>lj/cut/tip4p/cut</em> and <em>lj/cut/tip4p/long</em> implement the TIP4P
 water model of <a class="reference internal" href="#jorgensen"><span>(Jorgensen)</span></a>, which introduces a massless
 site located a short distance away from the oxygen atom along the

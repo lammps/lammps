@@ -51,6 +51,8 @@
 </H3>
 <H3>pair_style lj/cut/coul/long command 
 </H3>
+<H3>pair_style lj/cut/coul/long/cs command 
+</H3>
 <H3>pair_style lj/cut/coul/long/cuda command 
 </H3>
 <H3>pair_style lj/cut/coul/long/gpu command 
@@ -81,7 +83,7 @@
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/dsf</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/msm</I> or <I>lj/cut/tip4p/long</I>
+<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/dsf</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/cs</I> or <I>lj/cut/coul/msm</I> or <I>lj/cut/tip4p/long</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/cut</I> args = cutoff
@@ -139,7 +141,9 @@ pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.0 2.5 
 </PRE>
 <PRE>pair_style lj/cut/coul/long 10.0
+pair_style lj/cut/coul/long/cs 10.0
 pair_style lj/cut/coul/long 10.0 8.0
+pair_style lj/cut/coul/long/cs 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
 </PRE>
@@ -211,6 +215,11 @@ command and its <I>ewald</I> or <I>pppm</I> option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
+</P>
+<P>Style <I>lj/cut/coul/long/cs</I> is identical to <I>lj/cut/coul/long</I> except
+that a term is added for the <A HREF = "Section_howto.html#howto_25">core/shell
+model</A> to allow charges on core and shell
+particles to be separated by r = 0.0.
 </P>
 <P>Styles <I>lj/cut/tip4p/cut</I> and <I>lj/cut/tip4p/long</I> implement the TIP4P
 water model of <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless

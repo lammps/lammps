@@ -843,6 +843,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "lj/cut/coul/debye (cgko)"_pair_lj.html,
 "lj/cut/coul/dsf (gko)"_pair_lj.html,
 "lj/cut/coul/long (cgikot)"_pair_lj.html,
+"lj/cut/coul/long/cs"_pair_lj.html,
 "lj/cut/coul/msm (go)"_pair_lj.html,
 "lj/cut/dipole/cut (go)"_pair_dipole.html,
 "lj/cut/dipole/long"_pair_dipole.html,

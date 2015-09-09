@@ -91,7 +91,7 @@ Phi: on one or more Intel Phi coprocessors (per node)
 GPU: on the GPUs of a node with additional OpenMP threading on the CPUs :ul
 
 Kokkos support within LAMMPS must be built with a C++11 compatible
-compiler.  For example, gcc 4.7.2 or later.
+compiler.  If using gcc, version 4.8.1 or later is required.
 
 Note that Intel Xeon Phi coprocessors are supported in "native" mode,
 not "offload" mode like the USER-INTEL package supports.

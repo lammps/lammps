@@ -154,7 +154,7 @@ void Error::message(const char *file, int line, const char *str, int logflag)
    no abort, so insure all procs in world call, else will hang
 ------------------------------------------------------------------------- */
 
-void Error::done()
+void Error::done(int status)
 {
   MPI_Barrier(world);
 
@@ -163,5 +163,5 @@ void Error::done()
   if (logfile) fclose(logfile);
 
   MPI_Finalize();
-  exit(1);
+  exit(status);
 }

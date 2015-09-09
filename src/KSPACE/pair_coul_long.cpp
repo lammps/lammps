@@ -70,6 +70,9 @@ PairCoulLong::~PairCoulLong()
 
 void PairCoulLong::compute(int eflag, int vflag)
 {
+
+  if(cut_coulsq == 0.0) return;
+
   int i,j,ii,jj,inum,jnum,itable,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double fraction,table;

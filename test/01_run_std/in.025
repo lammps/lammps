@@ -40,14 +40,14 @@ reset_timestep  0
 #----------------------------------------------------------------------------#
 
 #set DPD pair coefficients
-pair_style dpd 1.0 3.0 34387
-pair_coeff 1 1 78.0 4.5 1.0 
-pair_coeff 1 2 50.0 4.5 1.0 
-pair_coeff 2 2 78.0 4.5 1.0
+pair_style hybrid/overlay soft 1.12246 dpd/tstat 1.0 1.5 3.0 34387
+pair_coeff * * soft 1.12246
+pair_coeff 2 2 dpd/tstat 0.1 1.0 
+
 
 fix		3 all nve
 
-thermo_style 	custom step temp etotal evdwl
+thermo_style 	custom step temp etotal evdwl v_prefactor
 thermo          10
 run             200
 

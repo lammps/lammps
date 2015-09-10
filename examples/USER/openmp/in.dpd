@@ -16,14 +16,15 @@ pair_coeff	* * 0.0 1.12246
 velocity	all zero linear
 
 timestep	0.02
-communicate single vel yes
+comm_modify vel yes
+#communicate single vel yes
 
 # integration ensemble
 fix		1 all nve
 # thermostat
 fix		2 all temp/rescale 1 0.0 1.0 0.01 1.0
 # grow soft interaction potential
-fix             3 all adapt 1 pair soft a * * prefactor
+fix             3 all adapt 1 pair soft a * * v_prefactor
 
 # output thermodynamic data
 thermo_style 	custom step temp etotal evdwl v_prefactor

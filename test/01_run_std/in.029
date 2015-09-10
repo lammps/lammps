@@ -1,0 +1,54 @@
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 20 0 20 0 20
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	table bitmap 12
+pair_coeff	1 1 lj_table.txt lj_bitmap 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 2 delay 2 check yes
+
+fix		1 all nve
+
+thermo		50
+
+run		250
+
+pair_style	table linear 1000
+pair_coeff	1 1 lj_table.txt lj_rsq 2.5
+
+run		250
+
+pair_style	table spline 1000
+pair_coeff	1 1 lj_table.txt lj_rsq 2.5
+
+run		250
+
+pair_style	table lookup 1000
+pair_coeff	1 1 lj_table.txt lj_r 2.5
+
+run		250
+
+pair_style	table linear 1000
+pair_coeff	1 1 lj_table.txt lj_r 2.5
+
+run		250
+
+pair_style	table spline 1000
+pair_coeff	1 1 lj_table.txt lj_r 2.5
+
+run		250
+
+pair_style	table bitmap 12
+pair_coeff	1 1 lj_table.txt lj_bitmap 2.5
+
+run		250

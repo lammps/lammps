@@ -1019,7 +1019,7 @@ void Variable::copy(int narg, char **from, char **to)
    recursive evaluation of a string str
    str is an equal-style or atom-style formula containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
-     constant = PI
+     constant = PI, version, yes, no, on, off
      thermo keyword = ke, vol, atoms, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       x==y,x!=y,x<y,x<=y,x>y,x>=y,x&&y,x||y,
@@ -3792,9 +3792,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     Info info(lmp);
 
     if (narg == 2) {
-      value = (info.is_active(args[0],args[1])) ? 1.0 : 0.0;
-    } else value = 0.0;
-
+      value = (info.is_active(args[0],args[1]),Info::MATCH_EXACT) ? 1.0 : 0.0;
+    } else {
+      value = 0.0;
+    }
     // save value in tree or on argstack
 
     if (tree) {
@@ -4003,6 +4004,10 @@ int Variable::is_constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return 1;
   if (strcmp(word,"version") == 0) return 1;
+  if (strcmp(word,"yes") == 0) return 1;
+  if (strcmp(word,"no") == 0) return 1;
+  if (strcmp(word,"on") == 0) return 1;
+  if (strcmp(word,"off") == 0) return 1;
   return 0;
 }
 
@@ -4015,6 +4020,10 @@ double Variable::constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return MY_PI;
   if (strcmp(word,"version") == 0) return atof(universe->num_ver);
+  if (strcmp(word,"yes") == 0) return 1.0;
+  if (strcmp(word,"no") == 0) return 0.0;
+  if (strcmp(word,"on") == 0) return 1.0;
+  if (strcmp(word,"off") == 0) return 0.0;
   return 0.0;
 }
 

@@ -1,5 +1,7 @@
 # 3d Lennard-Jones melt
 
+if $(is_active(pair,respa) == 0) then "quit 0"
+
 timers          off
 units		lj
 atom_style	atomic
@@ -16,14 +18,15 @@ pair_style	lj/cut 5.0
 pair_coeff	1 1 1.0 1.0
 
 neighbor	0.3 bin
-neigh_modify	every 4 delay 0 check no
+neigh_modify	every 1 delay 0 check no
 
 fix		1 all nve
 
-run_style	respa 2 1 inner 1 2.0 2.6 outer 1
-timestep	0.001
+run_style	respa 3 2 2 inner 1 1.5 2.0 middle 2 2.7 3.3 outer 3
+timestep	0.004
 
-thermo		40
+
+thermo		10
 
 info            all
-run		200
+run		50

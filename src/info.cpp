@@ -26,6 +26,7 @@
 #include "dump.h"
 #include "fix.h"
 #include "force.h"
+#include "pair.h"
 #include "group.h"
 #include "input.h"
 #include "modify.h"
@@ -486,6 +487,17 @@ bool Info::is_active(const char *category, const char *name, int match)
     else if (strcmp(name,"any") == 0) return (force->newton != 0);
     else error->all(FLERR,"Unknown name for newton category");
 
+  } else if (strcmp(category,"pair") == 0) {
+    if (force->pair == NULL) return false;
+    if (match != MATCH_EXACT)
+      error->all(FLERR,"Only exact matches allowed with pair category");
+    if (strcmp(name,"single") == 0) return (force->pair->single_enable != 0);
+    else if (strcmp(name,"respa") == 0) return (force->pair->respa_enable != 0);
+    else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
+    else if (strcmp(name,"tail") == 0) return (force->pair->tail_flag != 0);
+    else if (strcmp(name,"shift") == 0) return (force->pair->offset_flag != 0);
+    else error->all(FLERR,"Unknown name for pair category");
+
   } else if (strcmp(category,"comm_style") == 0) {
     style = commstyles[comm->style];
   } else if (strcmp(category,"min_style") == 0) {
@@ -528,21 +540,7 @@ bool Info::is_available(const char *category, const char *name, int match)
   if ((category == NULL) || (name == NULL)) return false;
 
   if (strcmp(category,"package") == 0) {
-    if (match != MATCH_EXACT)
-      error->all(FLERR,"Only exact matches allowed with package category");
-    if (strcmp(name,"cuda") == 0) {
-      return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
-    } else if (strcmp(name,"gpu") == 0) {
-      return (modify->find_fix("package_gpu") >= 0) ? true : false;
-    } else if (strcmp(name,"intel") == 0) {
-      return (modify->find_fix("package_intel") >= 0) ? true : false;
-    } else if (strcmp(name,"kokkos") == 0) {
-      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
-    } else if (strcmp(name,"omp") == 0) {
-      return (modify->find_fix("package_omp") >= 0) ? true : false;
-    } else error->all(FLERR,"Unknown name for package category");
-  } else if (strcmp(category,"pair") == 0) {
-
+    return false;
   } else error->all(FLERR,"Unknown category for is_active()");
 
 }
@@ -559,21 +557,7 @@ bool Info::is_defined(const char *category, const char *name, int match)
   if ((category == NULL) || (name == NULL)) return false;
 
   if (strcmp(category,"package") == 0) {
-    if (match != MATCH_EXACT)
-      error->all(FLERR,"Only exact matches allowed with package category");
-    if (strcmp(name,"cuda") == 0) {
-      return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
-    } else if (strcmp(name,"gpu") == 0) {
-      return (modify->find_fix("package_gpu") >= 0) ? true : false;
-    } else if (strcmp(name,"intel") == 0) {
-      return (modify->find_fix("package_intel") >= 0) ? true : false;
-    } else if (strcmp(name,"kokkos") == 0) {
-      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
-    } else if (strcmp(name,"omp") == 0) {
-      return (modify->find_fix("package_omp") >= 0) ? true : false;
-    } else error->all(FLERR,"Unknown name for package category");
-  } else if (strcmp(category,"pair") == 0) {
-
+    return false;
   } else error->all(FLERR,"Unknown category for is_active()");
 
 }

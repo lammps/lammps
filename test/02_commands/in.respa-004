@@ -1,5 +1,7 @@
 # 3d Lennard-Jones melt
 
+if $(is_active(pair,respa) == 0) then "quit 0"
+
 timers          off
 units		lj
 atom_style	atomic

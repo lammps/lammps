@@ -36,6 +36,7 @@
 #include "atom_masks.h"
 #include "python_wrapper.h"
 #include "memory.h"
+#include "info.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -63,6 +64,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
+     IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY};
 
 // customize by adding a special function
@@ -3500,7 +3502,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
       strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"slope") &&
       strcmp(word,"gmask") && strcmp(word,"rmask") && 
-      strcmp(word,"grmask") && strcmp(word,"next"))
+      strcmp(word,"grmask") && strcmp(word,"next") &&
+      strcmp(word,"is_active") && strcmp(word,"is_defined") &&
+      strcmp(word,"is_available"))
     return 0;
 
   // parse contents for comma-separated args
@@ -3784,6 +3788,23 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       treestack[ntreestack++] = newtree;
 
     } else error->all(FLERR,"Invalid variable style in special function next");
+  } else if (strcmp(word,"is_active") == 0) {
+    Info info(lmp);
+
+    if (narg == 2) {
+      value = (info.is_active(args[0],args[1])) ? 1.0 : 0.0;
+    } else value = 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
   }
 
   // delete stored args

@@ -83,8 +83,8 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   if (seed <= 0) error->all(FLERR,"Illegal fix atom/swap command");
 
   memory->create(type_list,atom->ntypes,"atom/swap:type_list");
-  memory->create(delta_mu,atom->ntypes+1,"atom/swap:delta_mu");
-  for (int i = 1; i <= atom->ntypes; i++) delta_mu[i] = 0.0;
+  memory->create(mu,atom->ntypes+1,"atom/swap:mu");
+  for (int i = 1; i <= atom->ntypes; i++) mu[i] = 0.0;
   
   // read options from end of input line
 
@@ -132,7 +132,7 @@ void FixAtomSwap::options(int narg, char **arg)
   conserve_ke_flag = 1;
   semi_grand_flag = 0;
   nswaptypes = 0;
-  ndeltamutypes = 0;
+  nmutypes = 0;
   iregion = -1; 
   
   int iarg = 0;
@@ -169,14 +169,14 @@ void FixAtomSwap::options(int narg, char **arg)
 	nswaptypes++;
         iarg++;
       }
-    } else if (strcmp(arg[iarg],"delta_mu") == 0) {
+    } else if (strcmp(arg[iarg],"mu") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
       iarg++;
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
-        ndeltamutypes++;
-	if (ndeltamutypes > atom->ntypes) error->all(FLERR,"Illegal fix atom/swap command");
-        delta_mu[ndeltamutypes] = force->numeric(FLERR,arg[iarg]);
+        nmutypes++;
+	if (nmutypes > atom->ntypes) error->all(FLERR,"Illegal fix atom/swap command");
+        mu[nmutypes] = force->numeric(FLERR,arg[iarg]);
         iarg++;
       }
     } else error->all(FLERR,"Illegal fix atom/swap command");
@@ -188,7 +188,7 @@ void FixAtomSwap::options(int narg, char **arg)
 FixAtomSwap::~FixAtomSwap()
 {
   memory->destroy(type_list);
-  memory->destroy(delta_mu);
+  memory->destroy(mu);
   memory->destroy(qtype);
   memory->destroy(sqrt_mass_ratio);
   if (regionflag) delete [] idregion;
@@ -219,13 +219,13 @@ void FixAtomSwap::init()
     error->all(FLERR,"Must specify at least 2 types in fix atom/swap command");
     
   if (semi_grand_flag) {
-    if (nswaptypes != ndeltamutypes)
-      error->all(FLERR,"Need nswaptypes delta_mu values in fix atom/swap command");
+    if (nswaptypes != nmutypes)
+      error->all(FLERR,"Need nswaptypes mu values in fix atom/swap command");
   } else {
     if (nswaptypes != 2)
       error->all(FLERR,"Only 2 types allowed when not using semi-grand in fix atom/swap command");
-    if (ndeltamutypes != 0)
-      error->all(FLERR,"Delta_mu not allowed when not using semi-grand in fix atom/swap command");
+    if (nmutypes != 0)
+      error->all(FLERR,"Mu not allowed when not using semi-grand in fix atom/swap command");
   }
   
   for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++)
@@ -256,7 +256,7 @@ void FixAtomSwap::init()
 	  MPI_Allreduce(&qtype[iswaptype],&qmax,1,MPI_DOUBLE,MPI_MAX,world);
 	  if (first) qtype[iswaptype] = DBL_MAX;
 	  MPI_Allreduce(&qtype[iswaptype],&qmin,1,MPI_DOUBLE,MPI_MIN,world);
-	  if (qmax != qmin) error->all(FLERR,"All atoms of each swapped type must have same charge.");
+	  if (qmax != qmin) error->all(FLERR,"All atoms of a swapped type must have same charge.");
 	}
       }
     }
@@ -377,7 +377,7 @@ int FixAtomSwap::attempt_semi_grand()
   if (i >= 0) 
     if (random_unequal->uniform() < 
       exp(-beta*(energy_after - energy_before
-            + delta_mu[jtype] - delta_mu[itype]))) success = 1;
+            + mu[jtype] - mu[itype]))) success = 1;
   
   int success_all = 0;
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
@@ -599,6 +599,11 @@ void FixAtomSwap::update_semi_grand_atoms_list()
     for (int i = 0; i < nlocal; i++) {
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 1) {
         if (atom->mask[i] & groupbit) {
+	  int itype = atom->type[i];
+	  int iswaptype;
+	  for (iswaptype = 0; iswaptype < nswaptypes; iswaptype++)
+	    if (itype == type_list[iswaptype]) break;
+	  if (iswaptype == nswaptypes) continue;
           local_swap_atom_list[nswap_local] = i;
           nswap_local++;
         }
@@ -608,6 +613,11 @@ void FixAtomSwap::update_semi_grand_atoms_list()
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (atom->mask[i] & groupbit) {
+	  int itype = atom->type[i];
+	  int iswaptype;
+	  for (iswaptype = 0; iswaptype < nswaptypes; iswaptype++)
+	    if (itype == type_list[iswaptype]) break;
+	  if (iswaptype == nswaptypes) continue;
         local_swap_atom_list[nswap_local] = i;
         nswap_local++;
       }

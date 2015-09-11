@@ -139,7 +139,7 @@
 <li><p class="first">one or more keyword/value pairs may be appended</p>
 </li>
 <li><dl class="first docutils">
-<dt>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>angmom</em> or     <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or</dt>
+<dt>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>angmom</em> or <em>omega</em> or          <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or</dt>
 <dd><p class="first last"><em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or
 <em>meso_e</em> or <em>meso_cv</em> or <em>meso_rho</em> or          <em>smd_contact_radius</em> or <em>smd_mass_density</em> or           <em>i_name</em> or <em>d_name</em></p>
 </dd>
@@ -187,6 +187,9 @@
 <em>angmom</em> values = Lx Ly Lz
   Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
   any of Lx,Ly,Lz can be an atom-style variable (see below)
+<em>omega</em> values = Wx Wy Wz
+  Wx,Wy,Wz = components of angular velocity vector (radians/time units)
+  any of wx,wy,wz can be an atom-style variable (see below)
 <em>mass</em> value = per-atom mass (mass units)
   value can be an atom-style variable (see below)
 <em>density</em> value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
@@ -387,6 +390,10 @@ orientation angle of the line segments with respect to the x axis.</p>
 particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> command or triangles as defined by the
 <a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> command.  The angular momentum vector
 of the particles is set to the 3 specified components.</p>
+<p>Keyword <em>omega</em> sets the angular velocity of selected atoms.  The
+particles must be spheres as defined by the &#8220;atom_style sphere&#8221;_
+atom_style.html command.  The angular velocity vector of the particles
+is set to the 3 specified components.</p>
 <p>Keyword <em>mass</em> sets the mass of all selected particles.  The particles
 must have a per-atom mass attribute, as defined by the
 <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> command.  See the &#8220;mass&#8221; command for how

@@ -29,10 +29,10 @@
 
 <LI>one or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>types</I> or <I>delta_mu</I> or <I>ke</I> or <I>semi-grand</I> or <I>region</I> 
+<LI>keyword = <I>types</I> or <I>mu</I> or <I>ke</I> or <I>semi-grand</I> or <I>region</I> 
 
 <PRE>  <I>types</I> values = two or more atom types
-  <I>delta_mu</I> values = chemical potential of swap types (energy units)
+  <I>mu</I> values = chemical potential of swap types (energy units)
   <I>ke</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = no conservation of kinetic energy after atom swaps
     <I>yes</I> = kinetic energy is conserved after atom swaps
@@ -48,7 +48,7 @@
 </P>
 <PRE>fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
 fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6 
-fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 delta_mu 4.3 -5.0 
+fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 mu 4.3 -5.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -94,13 +94,14 @@ conversion. An attempt is made to switch
 the selected atom (if eligible) to one of the other listed types 
 with equal probability. Acceptance of each attempt depends upon the Metropolis criterion.
 </P>
-<P>The <I>delta_mu</I> keyword allows users to specify non-zero chemical
-potentials for each of the atom types. All chemical potentials are
-absolute, so there should be one for each swap type listed following
-the <I>types</I> keyword. 
-These parameters are required for semi-grand canonical
-ensemble simulations where it may be desirable to actively control the
-composition of the system.  
+<P>The <I>mu</I> keyword allows users to specify chemical
+potentials. This is required and allowed only when using <I>semi-grand</I>. 
+All chemical potentials are absolute, so there is one for 
+each swap type listed following the <I>types</I> keyword. 
+In semi-grand canonical ensemble simulations the chemical composition 
+of the system is controlled by the difference in these values. So
+shifting all values by a constant amount will have no effect
+on the simulation.
 </P>
 <P>This command may optionally use the <I>region</I> keyword to define swap
 volume.  The specified region must have been previously defined with a
@@ -187,7 +188,7 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are ke = yes, semi-grand = no, delta_mu = 0.0 for 
+<P>The option defaults are ke = yes, semi-grand = no, mu = 0.0 for 
 all atom types.
 </P>
 <HR>

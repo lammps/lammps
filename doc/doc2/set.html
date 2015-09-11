@@ -21,7 +21,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat</I> or 	  <I>quat/random</I> or <I>diameter</I> or <I>shape</I> or 	  <I>length</I> or <I>tri</I> or <I>theta</I> or <I>angmom</I> or 	  <I>mass</I> or <I>density</I> or <I>volume</I> or <I>image</I> or
+<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat</I> or 	  <I>quat/random</I> or <I>diameter</I> or <I>shape</I> or 	  <I>length</I> or <I>tri</I> or <I>theta</I> or <I>angmom</I> or <I>omega</I> or 	  <I>mass</I> or <I>density</I> or <I>volume</I> or <I>image</I> or
 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or
 	  <I>meso_e</I> or <I>meso_cv</I> or <I>meso_rho</I> or 	  <I>smd_contact_radius</I> or <I>smd_mass_density</I> or           <I>i_name</I> or <I>d_name</I> 
 
@@ -65,6 +65,9 @@
   <I>angmom</I> values = Lx Ly Lz
     Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
     any of Lx,Ly,Lz can be an atom-style variable (see below)
+  <I>omega</I> values = Wx Wy Wz
+    Wx,Wy,Wz = components of angular velocity vector (radians/time units)
+    any of wx,wy,wz can be an atom-style variable (see below)
   <I>mass</I> value = per-atom mass (mass units)
     value can be an atom-style variable (see below)
   <I>density</I> value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
@@ -294,6 +297,11 @@ particles must be ellipsoids as defined by the <A HREF = "atom_style.html">atom_
 ellipsoid</A> command or triangles as defined by the
 <A HREF = "atom_style.html">atom_style tri</A> command.  The angular momentum vector
 of the particles is set to the 3 specified components.
+</P>
+<P>Keyword <I>omega</I> sets the angular velocity of selected atoms.  The
+particles must be spheres as defined by the <A HREF = "">atom_style sphere</A>
+atom_style.html command.  The angular velocity vector of the particles
+is set to the 3 specified components.
 </P>
 <P>Keyword <I>mass</I> sets the mass of all selected particles.  The particles
 must have a per-atom mass attribute, as defined by the

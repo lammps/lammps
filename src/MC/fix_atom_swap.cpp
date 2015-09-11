@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "float.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_atom_swap.h"
@@ -67,6 +68,8 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   restart_global = 1;
   time_depend = 1;
+  type_list = NULL;
+  qtype = NULL;
 
   // required args
 
@@ -79,6 +82,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   if (ncycles < 0) error->all(FLERR,"Illegal fix atom/swap command");
   if (seed <= 0) error->all(FLERR,"Illegal fix atom/swap command");
 
+  memory->create(type_list,atom->ntypes,"atom/swap:type_list");
   memory->create(delta_mu,atom->ntypes+1,"atom/swap:delta_mu");
   for (int i = 1; i <= atom->ntypes; i++) delta_mu[i] = 0.0;
   
@@ -127,8 +131,8 @@ void FixAtomSwap::options(int narg, char **arg)
   regionflag = 0; 
   conserve_ke_flag = 1;
   semi_grand_flag = 0;
-  ndeltamutypes = 0;
   nswaptypes = 0;
+  ndeltamutypes = 0;
   iregion = -1; 
   
   int iarg = 0;
@@ -158,10 +162,11 @@ void FixAtomSwap::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"types") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix atom/swap command");
       iarg++;
-      memory->create(type_list,atom->ntypes,"atom/swap:type_list");
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
-        type_list[nswaptypes++] = force->numeric(FLERR,arg[iarg]);
+	if (nswaptypes >= atom->ntypes) error->all(FLERR,"Illegal fix atom/swap command");
+        type_list[nswaptypes] = force->numeric(FLERR,arg[iarg]);
+	nswaptypes++;
         iarg++;
       }
     } else if (strcmp(arg[iarg],"delta_mu") == 0) {
@@ -169,8 +174,9 @@ void FixAtomSwap::options(int narg, char **arg)
       iarg++;
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
-        delta_mu[ndeltamutypes+2] = force->numeric(FLERR,arg[iarg]);
         ndeltamutypes++;
+	if (ndeltamutypes > atom->ntypes) error->all(FLERR,"Illegal fix atom/swap command");
+        delta_mu[ndeltamutypes] = force->numeric(FLERR,arg[iarg]);
         iarg++;
       }
     } else error->all(FLERR,"Illegal fix atom/swap command");
@@ -213,8 +219,8 @@ void FixAtomSwap::init()
     error->all(FLERR,"Must specify at least 2 types in fix atom/swap command");
     
   if (semi_grand_flag) {
-    if (atom->ntypes-1 != ndeltamutypes)
-      error->all(FLERR,"Need ntypes-1 delta_mu values in fix atom/swap command");
+    if (nswaptypes != ndeltamutypes)
+      error->all(FLERR,"Need nswaptypes delta_mu values in fix atom/swap command");
   } else {
     if (nswaptypes != 2)
       error->all(FLERR,"Only 2 types allowed when not using semi-grand in fix atom/swap command");
@@ -226,17 +232,32 @@ void FixAtomSwap::init()
     if (type_list[iswaptype] <= 0 || type_list[iswaptype] > atom->ntypes)
       error->all(FLERR,"Invalid atom type in fix atom/swap command");
 
-  memory->create(qtype,nswaptypes,"atom/swap:qtype");
-  for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++) {
-    if (atom->q_flag) {
-      bool first = true;
+  // this is only required for non-semi-grand
+  // in which case, nswaptypes = 2
+
+  if (atom->q_flag && !semi_grand_flag) {
+    double qmax,qmin;
+    int firstall,first;
+    memory->create(qtype,nswaptypes,"atom/swap:qtype");
+    for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++) {
+      first = 1;
       for (int i = 0; i < atom->nlocal; i++) {
-        if (type[i] == type_list[iswaptype]) {
-          if (first) qtype[iswaptype] = atom->q[i];
-          first = false;
-          if (qtype[iswaptype] != atom->q[i])
-            error->all(FLERR,"All atoms of a swapped type must have the same charge.");
-        }
+        if (atom->mask[i] & groupbit) {
+	  if (type[i] == type_list[iswaptype]) {
+	    if (first) {
+	      qtype[iswaptype] = atom->q[i];
+	      first = 0;
+	    } else if (qtype[iswaptype] != atom->q[i])
+	      error->one(FLERR,"All atoms of a swapped type must have the same charge.");
+	  }
+	  MPI_Allreduce(&first,&firstall,1,MPI_INT,MPI_MIN,world);
+	  if (firstall) error->all(FLERR,"At least one atom of each swapped type must be present to define charges.");
+	  if (first) qtype[iswaptype] = -DBL_MAX;
+	  MPI_Allreduce(&qtype[iswaptype],&qmax,1,MPI_DOUBLE,MPI_MAX,world);
+	  if (first) qtype[iswaptype] = DBL_MAX;
+	  MPI_Allreduce(&qtype[iswaptype],&qmin,1,MPI_DOUBLE,MPI_MIN,world);
+	  if (qmax != qmin) error->all(FLERR,"All atoms of each swapped type must have same charge.");
+	}
       }
     }
   }
@@ -313,6 +334,7 @@ void FixAtomSwap::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
+Note: atom charges are assumed equal and so are not updated
 ------------------------------------------------------------------------- */
 
 int FixAtomSwap::attempt_semi_grand()
@@ -334,10 +356,6 @@ int FixAtomSwap::attempt_semi_grand()
       jtype = type_list[jswaptype];
     }
     atom->type[i] = jtype;
-    if (atom->q_flag) { 
-      qtmp = atom->q[i];
-      atom->q[i] = qtype[jswaptype];
-    }
   }
   
   if (unequal_cutoffs) {
@@ -378,7 +396,6 @@ int FixAtomSwap::attempt_semi_grand()
   } else {
     if (i >= 0) {
       atom->type[i] = itype;
-      if (atom->q_flag) atom->q[i] = qtmp;
     }
     if (force->kspace) force->kspace->qsum_qsq();
     energy_stored = energy_before;

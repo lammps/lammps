@@ -1079,8 +1079,9 @@ void Input::python()
 
 void Input::quit()
 {
-  if (narg) error->all(FLERR,"Illegal quit command");
-  error->done();
+  if (narg == 0) error->done(0); // 1 would be fully backwards compatible
+  if (narg == 1) error->done(force->inumeric(FLERR,arg[0]));
+  error->all(FLERR,"Illegal quit command");
 }
 
 /* ---------------------------------------------------------------------- */

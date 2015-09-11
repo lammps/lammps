@@ -507,11 +507,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   memory->destroy(pfirst);
   memory->destroy(plast);
 
-  // if helpflag set, print help and quit
+  // if helpflag set, print help and quit with "success" status
 
   if (helpflag) {
     if (universe->me == 0 && screen) help();
-    error->done();
+    error->done(0);
   }
 
   // if restartflag set, invoke 2 commands and quit
@@ -528,7 +528,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
     strcat(cmd," noinit\n");
     input->one(cmd);
-    error->done();
+    error->done(0);
   }
 }
 

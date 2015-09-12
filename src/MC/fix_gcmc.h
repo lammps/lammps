@@ -128,6 +128,7 @@ class FixGCMC : public Fix {
   class Fix *fixshake;
   int shakeflag;
   char *idshake;
+  int triclinic;                         // 0 = orthog box, 1 = triclinic
   
   class Compute *c_pe;
 

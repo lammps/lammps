@@ -41,7 +41,7 @@ using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
-     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,ANGMOM,
+     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MESO_E,MESO_CV,MESO_RHO,SMD_MASS_DENSITY,SMD_CONTACT_RADIUS,INAME,DNAME};
 
@@ -259,6 +259,19 @@ void Set::command(int narg, char **arg)
       if (!atom->ellipsoid_flag && !atom->tri_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(ANGMOM);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"omega") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else xvalue = force->numeric(FLERR,arg[iarg+1]);
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) varparse(arg[iarg+2],2);
+      else yvalue = force->numeric(FLERR,arg[iarg+2]);
+      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) varparse(arg[iarg+3],3);
+      else zvalue = force->numeric(FLERR,arg[iarg+3]);
+      if (!atom->sphere_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(OMEGA);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"diameter") == 0) {
@@ -698,6 +711,13 @@ void Set::set(int keyword)
       atom->angmom[i][1] = yvalue;
       atom->angmom[i][2] = zvalue;
     }
+
+    else if (keyword == OMEGA) {
+      atom->omega[i][0] = xvalue;
+      atom->omega[i][1] = yvalue;
+      atom->omega[i][2] = zvalue;
+    }
+
 
     // reset any or all of 3 image flags
 

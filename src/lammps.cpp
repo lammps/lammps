@@ -103,7 +103,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int wdfirst,wdlast;
   int kkfirst,kklast;
 
- int npack = 0;
+  int npack = 0;
   int *pfirst = NULL;
   int *plast = NULL;
 

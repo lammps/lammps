@@ -18,7 +18,7 @@ one or more keyword/value pairs may be appended :l
 keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
           {charge} or {dipole} or {dipole/random} or {quat} or \
 	  {quat/random} or {diameter} or {shape} or \
-	  {length} or {tri} or {theta} or {angmom} or \
+	  {length} or {tri} or {theta} or {angmom} or {omega} or \
 	  {mass} or {density} or {volume} or {image} or
 	  {bond} or {angle} or {dihedral} or {improper} or
 	  {meso_e} or {meso_cv} or {meso_rho} or \
@@ -64,6 +64,9 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {angmom} values = Lx Ly Lz
     Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
     any of Lx,Ly,Lz can be an atom-style variable (see below)
+  {omega} values = Wx Wy Wz
+    Wx,Wy,Wz = components of angular velocity vector (radians/time units)
+    any of wx,wy,wz can be an atom-style variable (see below)
   {mass} value = per-atom mass (mass units)
     value can be an atom-style variable (see below)
   {density} value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
@@ -292,6 +295,11 @@ particles must be ellipsoids as defined by the "atom_style
 ellipsoid"_atom_style.html command or triangles as defined by the
 "atom_style tri"_atom_style.html command.  The angular momentum vector
 of the particles is set to the 3 specified components.
+
+Keyword {omega} sets the angular velocity of selected atoms.  The
+particles must be spheres as defined by the "atom_style sphere"_
+atom_style.html command.  The angular velocity vector of the particles
+is set to the 3 specified components.
 
 Keyword {mass} sets the mass of all selected particles.  The particles
 must have a per-atom mass attribute, as defined by the

@@ -527,6 +527,7 @@ void FixGCMC::init()
     onemols[imol]->compute_mass();
     onemols[imol]->compute_com();
     gas_mass = onemols[imol]->masstotal;
+    printf("gas_mass = %g\n",gas_mass);
     for (int i = 0; i < onemols[imol]->natoms; i++) {
       onemols[imol]->x[i][0] -= onemols[imol]->com[0];
       onemols[imol]->x[i][1] -= onemols[imol]->com[1];
@@ -613,8 +614,13 @@ void FixGCMC::pre_exchange()
   yhi = domain->boxhi[1];
   zlo = domain->boxlo[2];
   zhi = domain->boxhi[2];
-  sublo = domain->sublo;
-  subhi = domain->subhi;
+  if (domain->triclinic) {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  } else {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  }
 
   if (regionflag) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
@@ -1438,6 +1444,13 @@ void FixGCMC::attempt_atomic_insertion_full()
   domain->remap(coord);
   if (!domain->inside(coord)) 
     error->one(FLERR,"Fix gcmc put atom outside box");
+
+  // if triclinic, convert to lamda coords (0-1)
+
+  double lamda[3];
+  if (domain->triclinic) {
+    domain->x2lamda(coord,coord);
+  }
 
   int proc_flag = 0;
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&

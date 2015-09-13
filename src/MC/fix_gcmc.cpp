@@ -377,6 +377,9 @@ int FixGCMC::setmask()
 
 void FixGCMC::init()
 { 
+
+  triclinic = domain->triclinic;
+
   // decide whether to switch to the full_energy option
 
   if (!full_flag) {
@@ -385,7 +388,7 @@ void FixGCMC::init()
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
         (force->pair_match("eam",0)) ||
-        (domain->triclinic == 1)
+        (triclinic == 1)
 	) {
       full_flag = true;
       if (comm->me == 0) 
@@ -614,7 +617,7 @@ void FixGCMC::pre_exchange()
   yhi = domain->boxhi[1];
   zlo = domain->boxlo[2];
   zhi = domain->boxhi[2];
-  if (domain->triclinic) {
+  if (triclinic) {
     sublo = domain->sublo_lamda;
     subhi = domain->subhi_lamda;
   } else {
@@ -625,12 +628,12 @@ void FixGCMC::pre_exchange()
   if (regionflag) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
 
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
   atom->nghost = 0;
   comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   update_gas_atoms_list();
 
   if (full_flag) {
@@ -660,12 +663,12 @@ void FixGCMC::pre_exchange()
         }
       }
     }
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     
   } else {
     
@@ -756,12 +759,12 @@ void FixGCMC::attempt_atomic_translation()
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
 
   if (success_all) {
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
-    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
   }
@@ -809,7 +812,11 @@ void FixGCMC::attempt_atomic_deletion()
 
 void FixGCMC::attempt_atomic_insertion()
 {
+  double lamda[3];
+
   ninsertion_attempts += 1.0;
+
+  // pick coordinates for insertion point
 
   double coord[3];
   if (regionflag) {
@@ -824,31 +831,49 @@ void FixGCMC::attempt_atomic_insertion()
       region_attempt++;
       if (region_attempt >= max_region_attempts) return;
     }
+    if (triclinic) domain->x2lamda(coord,lamda);
   } else {
-    coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
-    coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
-    coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    if (triclinic == 0) {
+      coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
+      coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
+      coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    } else {
+      lamda[0] = random_equal->uniform();
+      lamda[1] = random_equal->uniform();
+      lamda[2] = random_equal->uniform();
+
+      // wasteful, but necessary
+
+      if (lamda[0] == 1.0) lamda[0] = 0.0;
+      if (lamda[1] == 1.0) lamda[1] = 0.0;
+      if (lamda[2] == 1.0) lamda[2] = 0.0;
+
+      domain->lamda2x(lamda,coord);
+    }
   }
 
-  // apply remap to protect against rounding errors
-
-  domain->remap(coord);
-  if (!domain->inside(coord)) 
-    error->one(FLERR,"Fix gcmc put atom outside box");
-
   int proc_flag = 0;
-  if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-      coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-      coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
+  if (triclinic == 0) {
+    domain->remap(coord);
+    if (!domain->inside(coord)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
+    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+	coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
+  } else {
+    if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
+	lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+	lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
+  }
 
   int success = 0;
   if (proc_flag) {
-      int ii = -1;
-     if (charge_flag) {
-      	ii = atom->nlocal + atom->nghost;
-      	if (ii >= atom->nmax) atom->avec->grow(0);
-      	atom->q[ii] = charge;
-      }
+    int ii = -1;
+    if (charge_flag) {
+      ii = atom->nlocal + atom->nghost;
+      if (ii >= atom->nmax) atom->avec->grow(0);
+      atom->q[ii] = charge;
+    }
     double insertion_energy = energy(ii,ngcmc_type,-1,coord);
     if (random_unequal->uniform() <
         zz*volume*exp(-beta*insertion_energy)/(ngas+1)) {
@@ -974,12 +999,12 @@ void FixGCMC::attempt_molecule_translation()
         x[i][2] += com_displace[2];
       }
     }
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
-    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
   }
@@ -1072,12 +1097,12 @@ void FixGCMC::attempt_molecule_rotation()
         n++;
       }
     }
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
-    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     nrotation_successes += 1.0;
   }
@@ -1120,6 +1145,7 @@ void FixGCMC::attempt_molecule_deletion()
 
 void FixGCMC::attempt_molecule_insertion()
 {
+  double lamda[3];
   ninsertion_attempts += 1.0;
 
   double com_coord[3];
@@ -1142,10 +1168,25 @@ void FixGCMC::attempt_molecule_insertion()
       region_attempt++;
       if (region_attempt >= max_region_attempts) return;
     }
+    if (triclinic) domain->x2lamda(com_coord,lamda);
   } else {
-    com_coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
-    com_coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
-    com_coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    if (triclinic == 0) {
+      com_coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
+      com_coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
+      com_coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    } else {
+      lamda[0] = random_equal->uniform();
+      lamda[1] = random_equal->uniform();
+      lamda[2] = random_equal->uniform();
+      
+      // wasteful, but necessary
+      
+      if (lamda[0] == 1.0) lamda[0] = 0.0;
+      if (lamda[1] == 1.0) lamda[1] = 0.0; 
+      if (lamda[2] == 1.0) lamda[2] = 0.0;
+
+      domain->lamda2x(lamda,com_coord);
+    }
   }
 
   // generate point in unit cube
@@ -1168,7 +1209,6 @@ void FixGCMC::attempt_molecule_insertion()
   double insertion_energy = 0.0;
   bool procflag[natoms_per_molecule];
 
-
   for (int i = 0; i < natoms_per_molecule; i++) {
     MathExtra::matvec(rotmat,onemols[imol]->x[i],atom_coord[i]);
     atom_coord[i][0] += com_coord[0];
@@ -1187,10 +1227,18 @@ void FixGCMC::attempt_molecule_insertion()
       error->one(FLERR,"Fix gcmc put atom outside box");
 
     procflag[i] = false;
-    if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
-        xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
-        xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) {
-      procflag[i] = true;
+    if (triclinic == 0) {
+      if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
+	  xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
+	  xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) procflag[i] = true;
+    } else {
+      domain->x2lamda(xtmp,lamda);
+      if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
+	  lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+	  lamda[2] >= sublo[2] && lamda[2] < subhi[2]) procflag[i] = true;
+    }
+
+    if (procflag[i]) {
       int ii = -1;
       if (onemols[imol]->qflag == 1) {
 	ii = atom->nlocal + atom->nghost;
@@ -1416,6 +1464,7 @@ void FixGCMC::attempt_atomic_deletion_full()
 
 void FixGCMC::attempt_atomic_insertion_full()
 {
+  double lamda[3];
   ninsertion_attempts += 1.0;
 
   double energy_before = energy_stored;
@@ -1433,30 +1482,42 @@ void FixGCMC::attempt_atomic_insertion_full()
       region_attempt++;
       if (region_attempt >= max_region_attempts) return;
     }
+    if (triclinic) domain->x2lamda(coord,lamda);
   } else {
-    coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
-    coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
-    coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    if (triclinic == 0) {
+      coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
+      coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
+      coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    } else {
+      lamda[0] = random_equal->uniform();
+      lamda[1] = random_equal->uniform();
+      lamda[2] = random_equal->uniform();
+
+      // wasteful, but necessary
+
+      if (lamda[0] == 1.0) lamda[0] = 0.0;
+      if (lamda[1] == 1.0) lamda[1] = 0.0;
+      if (lamda[2] == 1.0) lamda[2] = 0.0;
+
+      domain->lamda2x(lamda,coord);
+    }
   }
   
-  // apply remap to protect against rounding errors
-
-  domain->remap(coord);
-  if (!domain->inside(coord)) 
-    error->one(FLERR,"Fix gcmc put atom outside box");
-
-  // if triclinic, convert to lamda coords (0-1)
-
-  double lamda[3];
-  if (domain->triclinic) {
-    domain->x2lamda(coord,coord);
+  int proc_flag = 0;
+  if (triclinic == 0) {
+    domain->remap(coord);
+    if (!domain->inside(coord)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
+    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+	coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
+  } else {
+    if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
+	lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+	lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
   }
 
-  int proc_flag = 0;
-  if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-      coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-      coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-    proc_flag = 1;
+  if (proc_flag) {
     atom->avec->create_atom(ngcmc_type,coord);
     int m = atom->nlocal - 1;
 
@@ -1755,6 +1816,7 @@ void FixGCMC::attempt_molecule_deletion_full()
 
 void FixGCMC::attempt_molecule_insertion_full()
 {
+  double lamda[3];
   ninsertion_attempts += 1.0;
   
   double energy_before = energy_stored;
@@ -1795,10 +1857,26 @@ void FixGCMC::attempt_molecule_insertion_full()
       region_attempt++;
       if (region_attempt >= max_region_attempts) return;
     }
+    if (triclinic) domain->x2lamda(com_coord,lamda);
   } else {
-    com_coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
-    com_coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
-    com_coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    if (triclinic == 0) {
+      com_coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
+      com_coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
+      com_coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+    } else {
+      lamda[0] = random_equal->uniform();
+      lamda[1] = random_equal->uniform();
+      lamda[2] = random_equal->uniform();
+      
+      // wasteful, but necessary
+      
+      if (lamda[0] == 1.0) lamda[0] = 0.0;
+      if (lamda[1] == 1.0) lamda[1] = 0.0; 
+      if (lamda[2] == 1.0) lamda[2] = 0.0;
+
+      domain->lamda2x(lamda,com_coord);
+    }
+
   }
   
   // generate point in unit cube
@@ -1837,10 +1915,19 @@ void FixGCMC::attempt_molecule_insertion_full()
     if (!domain->inside(xtmp)) 
       error->one(FLERR,"Fix gcmc put atom outside box");
 
-    if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
-        xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
-        xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) {
+    int proc_flag = 0;
+    if (triclinic == 0) {
+      if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
+	  xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
+	  xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) proc_flag = 1;
+    } else {
+      domain->x2lamda(xtmp,lamda);
+      if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
+	  lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+	  lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
+    }
 
+    if (proc_flag) {
       atom->avec->create_atom(onemols[imol]->type[i],xtmp);
       int m = atom->nlocal - 1;
 
@@ -1980,12 +2067,12 @@ double FixGCMC::molecule_energy(tagint gas_molecule_id)
 
 double FixGCMC::energy_full()
 { 
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
   atom->nghost = 0;
   comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
   neighbor->build();
   int eflag = 1;

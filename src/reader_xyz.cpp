@@ -56,6 +56,8 @@ int ReaderXYZ::read_time(bigint &ntimestep)
 {
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
+  int n = strlen(line);
+  if (n > 0) line[n-1] = '\0'; // strip newline
 
   // first line has to have the number of atoms
 

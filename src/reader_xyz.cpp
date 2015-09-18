@@ -58,7 +58,14 @@ int ReaderXYZ::read_time(bigint &ntimestep)
   if (eof == NULL) return 1;
 
   // first line has to have the number of atoms
-
+  // truncate the string to the first whitespace,
+  // so force->bnumeric() does not abend.
+  for (int i=0; (i < MAXLINE) && (eof[i] != '\0'); ++i) {
+    if (eof[i] == '\n' || eof[i] == '\r' || eof[i] == ' ') {
+      eof[i] = '\0';
+      break;
+    }
+  }
   natoms = force->bnumeric(FLERR,line);
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");

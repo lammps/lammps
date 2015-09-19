@@ -1,0 +1,66 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix drag command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID drag x y z fmag delta 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>drag = style name of this fix command
+<LI>x,y,z = coord to drag atoms towards
+<LI>fmag = magnitude of force to apply to each atom (force units)
+<LI>delta = cutoff distance inside of which force         is not applied (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix center small-molecule drag 0.0 10.0 0.0 5.0 2.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a force to each atom in a group to drag it towards the point
+(x,y,z).  The magnitude of the force is specified by fmag.  If an atom
+is closer than a distance delta to the point, then the force is not
+applied.
+</P>
+<P>Any of the x,y,z values can be specified as NULL which means do not
+include that dimension in the distance calculation or force
+application.
+</P>
+<P>This command can be used to steer one or more atoms to a new location
+in the simulation.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>This fix computes a global 3-vector of forces, which can be accessed
+by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  This is the
+total force on the group of atoms by the drag force.  The vector
+values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> 
+</P>
+<P><A HREF = "fix_spring.html">fix spring</A>, <A HREF = "fix_spring_self.html">fix spring/self</A>, 
+<A HREF = "fix_spring_rg.html">fix spring/rg</A>, <A HREF = "fix_smd.html">fix smd</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

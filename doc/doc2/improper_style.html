@@ -1,0 +1,99 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>improper_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>improper_style style 
+</PRE>
+<UL><LI>style = <I>none</I> or <I>hybrid</I> or <I>class2</I> or <I>cvff</I> or <I>harmonic</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>improper_style harmonic
+improper_style cvff
+improper_style hybrid cvff harmonic 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the formula(s) LAMMPS uses to compute improper interactions
+between quadruplets of atoms, which remain in force for the duration
+of the simulation.  The list of improper quadruplets is read in by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A> command
+from a data or restart file.  Note that the ordering of the 4 atoms in
+an improper quadruplet determines the the definition of the improper
+angle used in the formula for each style.  See the doc pages of
+individual styles for details.
+</P>
+<P>Hybrid models where impropers are computed using different improper
+potentials can be setup using the <I>hybrid</I> improper style.
+</P>
+<P>The coefficients associated with an improper style can be specified in
+a data or restart file or via the <A HREF = "improper_coeff.html">improper_coeff</A>
+command.
+</P>
+<P>All improper potentials store their coefficient data in binary restart
+files which means improper_style and
+<A HREF = "improper_coeff.html">improper_coeff</A> commands do not need to be
+re-specified in an input script that restarts a simulation.  See the
+<A HREF = "read_restart.html">read_restart</A> command for details on how to do
+this.  The one exception is that improper_style <I>hybrid</I> only stores
+the list of sub-styles in the restart file; improper coefficients need
+to be re-specified.
+</P>
+<P>IMPORTANT NOTE: When both an improper and pair style is defined, the
+<A HREF = "special_bonds.html">special_bonds</A> command often needs to be used to
+turn off (or weight) the pairwise interaction that would otherwise
+exist between a group of 4 bonded atoms.
+</P>
+<HR>
+
+<P>Here is an alphabetic list of improper styles defined in LAMMPS.
+Click on the style to display the formula it computes and coefficients
+specified by the associated <A HREF = "improper_coeff.html">improper_coeff</A>
+command.
+</P>
+<P>Note that there are also additional improper styles submitted by users
+which are included in the LAMMPS distribution.  The list of these with
+links to the individual styles are given in the improper section of
+<A HREF = "Section_commands.html#cmd_5">this page</A>.
+</P>
+<UL><LI><A HREF = "improper_none.html">improper_style none</A> - turn off improper interactions
+<LI><A HREF = "improper_hybrid.html">improper_style hybrid</A> - define multiple styles of improper interactions 
+</UL>
+<UL><LI><A HREF = "improper_class2.html">improper_style class2</A> - COMPASS (class 2) improper
+<LI><A HREF = "improper_cvff.html">improper_style cvff</A> - CVFF improper
+<LI><A HREF = "improper_harmonic.html">improper_style harmonic</A> - harmonic improper
+<LI><A HREF = "improper_umbrella.html">improper_style umbrella</A> - DREIDING improper 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>Improper styles can only be set for atom_style choices that allow
+impropers to be defined.
+</P>
+<P>Most improper styles are part of the MOLECULE package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info on packages.
+The doc pages for individual improper potentials tell if it is part of
+a package.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "improper_coeff.html">improper_coeff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>improper_style none 
+</PRE>
+</HTML>

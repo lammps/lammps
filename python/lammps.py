@@ -15,20 +15,25 @@
 
 import sys,traceback,types
 from ctypes import *
+from os.path import dirname,abspath,join
+from inspect import getsourcefile
 
 class lammps:
   def __init__(self,name="",cmdargs=None,ptr=None):
+
+    # determine module location
+    modpath = dirname(abspath(getsourcefile(lambda:0)))
 
     # load liblammps.so by default
     # if name = "g++", load liblammps_g++.so
 
     try:
-      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
-      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+      if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
+      else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
     except:
       type,value,tb = sys.exc_info()
       traceback.print_exception(type,value,tb)
-      raise OSError,"Could not load LAMMPS dynamic library"
+      raise OSError,"Could not load LAMMPS dynamic library from %s" % modpath
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -64,6 +69,9 @@ class lammps:
   def close(self):
     if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
+
+  def version(self):
+    return self.lib.lammps_version(self.lmp)
 
   def file(self,file):
     self.lib.lammps_file(self.lmp,file)

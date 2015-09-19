@@ -106,6 +106,13 @@ Force::~Force()
   if (improper) delete improper;
   if (kspace) delete kspace;
 
+  pair = NULL;
+  bond = NULL;
+  angle = NULL;
+  dihedral = NULL;
+  improper = NULL;
+  kspace = NULL;
+
   delete pair_map;
 }
 
@@ -408,7 +415,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
 #undef DIHEDRAL_CLASS
     }
 
-    if (lmp->suffix) {
+    if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
@@ -905,7 +912,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(name,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
     return fp;
   }
@@ -934,7 +941,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(newpath,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
   }
 

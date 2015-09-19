@@ -77,7 +77,7 @@ Type "Make.py -h" for help.  If run from the src directory, this
 command will create src/lmp_cuda using src/MAKE/Makefile.mpi as the
 starting Makefile.machine:
 
-Make.py -p cuda -cuda mode=single arch=20 -o cuda lib-cuda file mpi :pre
+Make.py -p cuda -cuda mode=single arch=20 -o cuda -a lib-cuda file mpi :pre
 
 Or you can follow these two (a,b) steps:
 

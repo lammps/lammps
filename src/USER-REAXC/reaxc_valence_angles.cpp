@@ -30,9 +30,9 @@
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
-static real Dot( real* v1, real* v2, int k )
+static double Dot( double* v1, double* v2, int k )
 {
-  real ret = 0.0;
+  double ret = 0.0;
 
   for( int i=0; i < k; ++i )
     ret +=  v1[i] * v2[i];
@@ -40,8 +40,8 @@ static real Dot( real* v1, real* v2, int k )
   return ret;
 }
 
-void Calculate_Theta( rvec dvec_ji, real d_ji, rvec dvec_jk, real d_jk,
-                      real *theta, real *cos_theta )
+void Calculate_Theta( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_jk,
+                      double *theta, double *cos_theta )
 {
   (*cos_theta) = Dot( dvec_ji, dvec_jk, 3 ) / ( d_ji * d_jk );
   if( *cos_theta > 1. ) *cos_theta  = 1.0;
@@ -50,18 +50,18 @@ void Calculate_Theta( rvec dvec_ji, real d_ji, rvec dvec_jk, real d_jk,
   (*theta) = acos( *cos_theta );
 }
 
-void Calculate_dCos_Theta( rvec dvec_ji, real d_ji, rvec dvec_jk, real d_jk,
+void Calculate_dCos_Theta( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_jk,
                            rvec* dcos_theta_di,
                            rvec* dcos_theta_dj,
                            rvec* dcos_theta_dk )
 {
   int t;
-  real sqr_d_ji = SQR(d_ji);
-  real sqr_d_jk = SQR(d_jk);
-  real inv_dists = 1.0 / (d_ji * d_jk);
-  real inv_dists3 = pow( inv_dists, 3.0 );
-  real dot_dvecs = Dot( dvec_ji, dvec_jk, 3 );
-  real Cdot_inv3 = dot_dvecs * inv_dists3;
+  double sqr_d_ji = SQR(d_ji);
+  double sqr_d_jk = SQR(d_jk);
+  double inv_dists = 1.0 / (d_ji * d_jk);
+  double inv_dists3 = pow( inv_dists, 3.0 );
+  double dot_dvecs = Dot( dvec_ji, dvec_jk, 3 );
+  double Cdot_inv3 = dot_dvecs * inv_dists3;
 
   for( t = 0; t < 3; ++t ) {
     (*dcos_theta_di)[t] = dvec_jk[t] * inv_dists -
@@ -83,27 +83,27 @@ void Valence_Angles( reax_system *system, control_params *control,
   int start_j, end_j, start_pk, end_pk;
   int cnt, num_thb_intrs;
 
-  real temp, temp_bo_jt, pBOjt7;
-  real p_val1, p_val2, p_val3, p_val4, p_val5;
-  real p_val6, p_val7, p_val8, p_val9, p_val10;
-  real p_pen1, p_pen2, p_pen3, p_pen4;
-  real p_coa1, p_coa2, p_coa3, p_coa4;
-  real trm8, expval6, expval7, expval2theta, expval12theta, exp3ij, exp3jk;
-  real exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
-  real dSBO1, dSBO2, SBO, SBO2, CSBO2, SBOp, prod_SBO, vlpadj;
-  real CEval1, CEval2, CEval3, CEval4, CEval5, CEval6, CEval7, CEval8;
-  real CEpen1, CEpen2, CEpen3;
-  real e_ang, e_coa, e_pen;
-  real CEcoa1, CEcoa2, CEcoa3, CEcoa4, CEcoa5;
-  real Cf7ij, Cf7jk, Cf8j, Cf9j;
-  real f7_ij, f7_jk, f8_Dj, f9_Dj;
-  real Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
-  real BOA_ij, BOA_jk;
+  double temp, temp_bo_jt, pBOjt7;
+  double p_val1, p_val2, p_val3, p_val4, p_val5;
+  double p_val6, p_val7, p_val8, p_val9, p_val10;
+  double p_pen1, p_pen2, p_pen3, p_pen4;
+  double p_coa1, p_coa2, p_coa3, p_coa4;
+  double trm8, expval6, expval7, expval2theta, expval12theta, exp3ij, exp3jk;
+  double exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
+  double dSBO1, dSBO2, SBO, SBO2, CSBO2, SBOp, prod_SBO, vlpadj;
+  double CEval1, CEval2, CEval3, CEval4, CEval5, CEval6, CEval7, CEval8;
+  double CEpen1, CEpen2, CEpen3;
+  double e_ang, e_coa, e_pen;
+  double CEcoa1, CEcoa2, CEcoa3, CEcoa4, CEcoa5;
+  double Cf7ij, Cf7jk, Cf8j, Cf9j;
+  double f7_ij, f7_jk, f8_Dj, f9_Dj;
+  double Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
+  double BOA_ij, BOA_jk;
   rvec force, ext_press;
 
   // Tallying variables
-  real eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
-  real delij[3], delkj[3];
+  double eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  double delij[3], delkj[3];
 
   three_body_header *thbh;
   three_body_parameters *thbp;

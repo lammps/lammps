@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <cassert>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -233,9 +234,8 @@ static void cyc_spline(double const *xa,
                  ((ya[i] - ya[im1]) / (xa[i] - xa_im1));
   }
 
-  // Ordinarily we would have to invert a large matrix (with potentially
-  // thousands of rows and columns).  However because this matix happens
-  // to be tridiagonal (and cyclic), we can use the following cheap method:
+  // Because this matix is tridiagonal (and cyclic), we can use the following
+  // cheap method to invert it.
   solve_cyc_tridiag(diag, 1,
                     offdiag, 1,
                     rhs, 1,
@@ -292,6 +292,45 @@ static double cyc_splint(double const *xa,
   return y;
 
 } // cyc_splint()
+
+
+static double cyc_lin(double const *xa,
+                      double const *ya,
+                      int n,
+                      double period,
+                      double x)
+{
+  int klo = -1;
+  int khi = n;
+  int k;
+  double xlo = xa[n-1] - period;
+  double xhi = xa[0] + period;
+  while (khi-klo > 1) {
+    k = (khi+klo) >> 1; //(k=(khi+klo)/2)
+    if (xa[k] > x) {
+      khi = k;
+      xhi = xa[k];
+    }
+    else {
+      klo = k;
+      xlo = xa[k];
+    }
+  }
+
+  if (khi == n) khi = 0;
+  if (klo ==-1) klo = n-1;
+
+  double h = xhi-xlo;
+  double a = (xhi-x) / h;
+  double b = (x-xlo) / h;
+  double y = a*ya[klo] + b*ya[khi];
+
+  return y;
+
+} // cyc_lin()
+
+
+
 
 // cyc_splintD(): Evaluate the deriviative of a cyclic spline at position x,
 //           with n control points at xa[], ya[], with parameters y2a[].
@@ -777,9 +816,15 @@ void DihedralTable::coeff(int narg, char **arg)
   // --- check the angle data for range errors ---
   // ---  and resolve issues with periodicity  ---
 
-  if (tb->ninput < 3) {
+  if (tb->ninput < 2) {
     string err_msg;
     err_msg = string("Invalid dihedral table length (")
+      + string(arg[2]) + string(").");
+    error->one(FLERR,err_msg.c_str());
+  }
+  else if ((tb->ninput == 2) && (tabstyle == SPLINE)) {
+    string err_msg;
+    err_msg = string("Invalid dihedral spline table length. (Try linear)\n (")
       + string(arg[2]) + string(").");
     error->one(FLERR,err_msg.c_str());
   }
@@ -823,7 +868,7 @@ void DihedralTable::coeff(int narg, char **arg)
     for (int i=0; i < tb->ninput; i++) {
       tb->phifile[i] *= MY_PI/180.0;
       // I assume that if angles are in degrees, then the forces (f=dU/dphi)
-      // are specified with "phi" in radians as well.
+      // are specified with "phi" in degrees as well.
       tb->ffile[i] *= 180.0/MY_PI;
     }
   }
@@ -1049,7 +1094,9 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 
   int itmp;
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
+    // Read the next line.  Make sure the file is long enough.
+    if (! fgets(line,MAXLINE,fp))
+      error->one(FLERR, "Dihedral table does not contain enough entries.");
     // Skip blank lines and delete text following a '#' character
     char *pe = strchr(line, '#');
     if (pe != NULL) *pe = '\0'; //terminate string at '#' character
@@ -1084,7 +1131,7 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
     }
     else //if it is a blank line, then skip it.
       i--;
-  }
+  } //for (int i = 0; (i < tb->ninput) && fp; i++) {
 
   fclose(fp);
 }
@@ -1108,9 +1155,6 @@ void DihedralTable::spline_table(Table *tb)
 
   // CHECK to help make sure the user calculated forces in a way
   // which is grossly numerically consistent with the energy table.
-  //  --------------------------------------------------
-  //             This is an ugly piece of code
-  //  --------------------------------------------------
   if (! tb->f_unspecified) {
     int num_disagreements = 0;
     for (int i=0; i<tb->ninput; i++) {
@@ -1120,7 +1164,7 @@ void DihedralTable::spline_table(Table *tb)
 
       double phi_i = tb->phifile[i];
 
-      // First deal with periodicity (I hate this part)
+      // First deal with periodicity
       double phi_im1, phi_ip1;
       int im1 = i-1;
       if (im1 < 0) {
@@ -1174,7 +1218,7 @@ void DihedralTable::spline_table(Table *tb)
       }
     } // for (int i=0; i<tb->ninput; i++)
 
-    if (num_disagreements > tb->ninput/2) {
+    if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2)) {
       string msg("Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
       error->all(FLERR,msg.c_str());
     }
@@ -1208,22 +1252,35 @@ void DihedralTable::compute_table(Table *tb)
   memory->create(tb->e2,tablength,"dihedral:e2");
   memory->create(tb->f2,tablength,"dihedral:f2");
 
-  // Use cubic spline interpolation to calculate the entries in the
-  // internal table. (This is true regardless...even if tabstyle!=SPLINE.)
-  for (int i = 0; i < tablength; i++) {
-    double phi = i*tb->delta;
-    tb->phi[i] = phi;
-    tb->e[i]= cyc_splint(tb->phifile,tb->efile,tb->e2file,tb->ninput,MY_2PI,phi);
-    if (! tb->f_unspecified)
-      tb->f[i] = cyc_splint(tb->phifile,tb->ffile,tb->f2file,tb->ninput,MY_2PI,phi);
-  }
-
-  if (tabstyle == LINEAR) {
-    if (tb->f_unspecified)
-    {
+  if (tabstyle == SPLINE) {
+    // Use cubic spline interpolation to calculate the entries in the
+    // internal table. (This is true regardless...even if tabstyle!=SPLINE.)
+    for (int i = 0; i < tablength; i++) {
+      double phi = i*tb->delta;
+      tb->phi[i] = phi;
+      tb->e[i]= cyc_splint(tb->phifile,tb->efile,tb->e2file,tb->ninput,MY_2PI,phi);
+      if (! tb->f_unspecified)
+        tb->f[i] = cyc_splint(tb->phifile,tb->ffile,tb->f2file,tb->ninput,MY_2PI,phi);
+    }
+  } // if (tabstyle == SPLINE)
+  else if (tabstyle == LINEAR) {
+    if (! tb->f_unspecified) {
+      for (int i = 0; i < tablength; i++) {
+        double phi = i*tb->delta;
+        tb->phi[i] = phi;
+        tb->e[i]= cyc_lin(tb->phifile,tb->efile,tb->ninput,MY_2PI,phi);
+        tb->f[i]= cyc_lin(tb->phifile,tb->ffile,tb->ninput,MY_2PI,phi);
+      }
+    }
+    else {
+      for (int i = 0; i < tablength; i++) {
+        double phi = i*tb->delta;
+        tb->phi[i] = phi;
+        tb->e[i]= cyc_lin(tb->phifile,tb->efile,tb->ninput,MY_2PI,phi);
+      }
       // In the linear case, if the user did not specify the forces, then we
-      // must generate the "f" array. Do this using linear interpolation of the
-      // e array (which itself was generated using spline interpolation above).
+      // must generate the "f" array. Do this using linear interpolation 
+      // of the e array (which itself was generated above)
       for (int i = 0; i < tablength; i++) {
         int im1 = i-1; if (im1 < 0) im1 += tablength;
         int ip1 = i+1; if (ip1 >= tablength) ip1 -= tablength;
@@ -1234,13 +1291,16 @@ void DihedralTable::compute_table(Table *tb)
       }
     }
 
+
     // Fill the linear interpolation tables (de, df)
     for (int i = 0; i < tablength; i++) {
       int ip1 = i+1; if (ip1 >= tablength) ip1 -= tablength;
       tb->de[i] = tb->e[ip1] - tb->e[i];
       tb->df[i] = tb->f[ip1] - tb->f[i];
     }
-  } // if (tabstyle == LINEAR)
+  } // else if (tabstyle == LINEAR)
+
+
 
   cyc_spline(tb->phi, tb->e, tablength, MY_2PI, tb->e2);
   if (! tb->f_unspecified)

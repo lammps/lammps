@@ -1,0 +1,7 @@
+The Makefile.lammps file in this dir contains the settings to build
+and link LAMMPS with # support for data compression libraries.
+
+You should not normally need to edit Makefile.lammps unless the
+LAMMPS build cannot find the system library file it specifies.
+
+See the top of Makefile.lammps for more details.

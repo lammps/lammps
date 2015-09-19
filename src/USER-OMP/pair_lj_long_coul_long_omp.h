@@ -55,7 +55,7 @@ class PairLJLongCoulLongOMP : public PairLJLongCoulLong, public ThrOMP {
   void eval_inner(int, int, ThrData *const);
   void eval_middle(int, int, ThrData *const);
 
-  
+
 
 };
 

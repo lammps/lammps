@@ -73,6 +73,7 @@ void WriteData::command(int narg, char **arg)
   // noinit is a hidden arg, only used by -r command-line switch
 
   pairflag = II;
+  coeffflag = 1;
   int noinit = 0;
 
   int iarg = 1;
@@ -85,6 +86,9 @@ void WriteData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"noinit") == 0) {
       noinit = 1;
+      iarg++;
+    } else if (strcmp(arg[iarg],"nocoeff") == 0) {
+      coeffflag = 0;
       iarg++;
     } else error->all(FLERR,"Illegal write_data command");
   }
@@ -176,7 +180,7 @@ void WriteData::write(char *file)
   if (me == 0) {
     header();
     type_arrays();
-    force_fields();
+    if (coeffflag) force_fields();
   }
 
   // per atom info

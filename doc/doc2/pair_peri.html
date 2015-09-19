@@ -1,0 +1,231 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style peri/pmb command 
+</H3>
+<H3>pair_style peri/pmb/omp command 
+</H3>
+<H3>pair_style peri/lps command 
+</H3>
+<H3>pair_style peri/lps/omp command 
+</H3>
+<H3>pair_style peri/ves command 
+</H3>
+<H3>pair_style peri/eps command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style 
+</PRE>
+<P>style = <I>peri/pmb</I> or <I>peri/lps</I> or <I>peri/ves</I> or <I>peri/eps</I>:ul
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style peri/pmb
+pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25 
+</PRE>
+<PRE>pair_style peri/lps
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 
+</PRE>
+<PRE>pair_style peri/ves
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001 
+</PRE>
+<PRE>pair_style peri/eps
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The peridynamic pair styles implement material models that can be used
+at the mescscopic and macroscopic scales.  See <A HREF = "PDF/PDLammps_overview.pdf">this
+document</A> for an overview of LAMMPS commands
+for Peridynamics modeling.
+</P>
+<P>Style <I>peri/pmb</I> implements the Peridynamic bond-based prototype
+microelastic brittle (PMB) model.
+</P>
+<P>Style <I>peri/lps</I> implements the Peridynamic state-based linear
+peridynamic solid (LPS) model.
+</P>
+<P>Style <I>peri/ves</I> implements the Peridynamic state-based linear
+peridynamic viscoelastic solid (VES) model.
+</P>
+<P>Style <I>peri/eps</I> implements the Peridynamic state-based elastic-plastic 
+solid (EPS) model.
+</P>
+<P>The canonical papers on Peridynamics are <A HREF = "#Silling2000">(Silling 2000)</A>
+and <A HREF = "#Silling2007">(Silling 2007)</A>.  The implementation of Peridynamics
+in LAMMPS is described in <A HREF = "#Parks">(Parks)</A>.  Also see the <A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS
+user guide</A> for
+more details about its implementation.
+</P>
+<P>The peridynamic VES and EPS models in PDLAMMPS were implemented by
+R. Rahman and J. T. Foster at University of Texas at San Antonio.  The
+original VES formulation is described in "(Mitchell2011)" and the
+original EPS formulation is in "(Mitchell2011a)".  Additional PDF docs
+that describe the VES and EPS implementations are include in the
+LAMMPS distro in <A HREF = "PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</A> and
+<A HREF = "PDF/PDLammps_EPS.pdf">doc/PDF/PDLammps_EPS.pdf</A>.  For questions
+regarding the VES and EPS models in LAMMPS you can contact R. Rahman
+(rezwanur.rahman at utsa.edu).
+</P>
+<P>The following coefficients must be defined for each pair of atom types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
+or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below.
+</P>
+<P>For the <I>peri/pmb</I> style:
+</P>
+<UL><LI>c (energy/distance/volume^2 units)
+<LI>horizon (distance units)
+<LI>s00 (unitless)
+<LI>alpha (unitless) 
+</UL>
+<P>C is the effectively a spring constant for Peridynamic bonds, the
+horizon is a cutoff distance for truncating interactions, and s00 and
+alpha are used as a bond breaking criteria.  The units of c are such
+that c/distance = stiffness/volume^2, where stiffness is
+energy/distance^2 and volume is distance^3.  See the users guide for
+more details.
+</P>
+<P>For the <I>peri/lps</I> style:
+</P>
+<UL><LI>K (force/area units)
+<LI>G (force/area units)
+<LI>horizon (distance units)
+<LI>s00 (unitless)
+<LI>alpha (unitless) 
+</UL>
+<P>K is the bulk modulus and G is the shear modulus.  The horizon is a
+cutoff distance for truncating interactions, and s00 and alpha are
+used as a bond breaking criteria. See the users guide for more
+details.
+</P>
+<P>For the <I>peri/ves</I> style:
+</P>
+<UL><LI>K (force/area units)
+<LI>G (force/area units)
+<LI>horizon (distance units)
+<LI>s00 (unitless)
+<LI>alpha (unitless) 
+<LI>m_lambdai (unitless)
+<LI>m_taubi (unitless) 
+</UL>
+<P>K is the bulk modulus and G is the shear modulus. The horizon is a
+cutoff distance for truncating interactions, and s00 and alpha are
+used as a bond breaking criteria. m_lambdai and m_taubi are the
+viscoelastic relaxation parameter and time constant,
+respectively. m_lambdai varies within zero to one. For very small
+values of m_lambdai the viscoelsatic model responds very similar to a
+linear elastic model. For details please see the description in
+"(Mtchell2011)".
+</P>
+<P>For the <I>peri/eps</I> style:
+</P>
+<P>K (force/area units)
+G (force/area units)
+horizon (distance units)
+s00 (unitless)
+alpha (unitless) 
+m_yield_stress (force/area units)
+</P>
+<P>K is the bulk modulus and G is the shear modulus. The horizon is a
+cutoff distance and s00 and alpha are used as a bond breaking
+criteria.  m_yield_stress is the yield stress of the material. For
+details please see the description in "(Mtchell2011a)".
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>These pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
+relevant for these pair styles.
+</P>
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>All of these styles are part of the PERI package. They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Parks"></A>
+
+<P><B>(Parks)</B> Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11),
+777-783 (2008).
+</P>
+<A NAME = "Silling2000"></A>
+
+<P><B>(Silling 2000)</B> Silling, J Mech Phys Solids, 48, 175-209 (2000).
+</P>
+<A NAME = "Silling2007"></A>
+
+<P><B>(Silling 2007)</B> Silling, Epton, Weckner, Xu, Askari, J Elasticity,
+88, 151-184 (2007).
+</P>
+<A NAME = "Mitchell2011"></A>
+
+<P><B>(Mitchell2011)</B> Mitchell. A non-local, ordinary-state-based
+viscoelasticity model for peridynamics. Sandia National Lab Report,
+8064:1-28 (2011).
+</P>
+<A NAME = "Mitchell2011a"></A>
+
+<P><B>(Mitchell2011a)</B> Mitchell. A Nonlocal, Ordinary, State-Based
+Plasticity Model for Peridynamics. Sandia National Lab Report,
+3166:1-34 (2011).
+</P>
+</HTML>

@@ -98,7 +98,7 @@ nearby periodic images.  The only way this should happen is if the
 pairwise cutoff is so short that atoms that are part of the same
 interaction are not communicated as ghost atoms.  This is an unusual
 model (e.g. no pair interactions at all) and the problem can be fixed
-by use of the "communicate cutoff"_communicate.html command.  Note
+by use of the "comm_modify cutoff"_comm_modify.html command.  Note
 that to save time, the default {cluster} setting is {no}, so that this
 check is not performed.
 

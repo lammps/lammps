@@ -38,10 +38,10 @@ void Bonds( reax_system *system, control_params *control,
   int i, j, pj, natoms;
   int start_i, end_i;
   int type_i, type_j;
-  real ebond, pow_BOs_be2, exp_be12, CEbo;
-  real gp3, gp4, gp7, gp10, gp37;
-  real exphu, exphua1, exphub1, exphuov, hulpov, estriph;
-  real decobdbo, decobdboua, decobdboub;
+  double ebond, pow_BOs_be2, exp_be12, CEbo;
+  double gp3, gp4, gp7, gp10, gp37;
+  double exphu, exphua1, exphub1, exphuov, hulpov, estriph;
+  double decobdbo, decobdboua, decobdboub;
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;
   bond_order_data *bo_ij;

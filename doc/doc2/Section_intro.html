@@ -1,0 +1,551 @@
+<HTML>
+<CENTER><A HREF = "Manual.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_start.html">Next Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>1. Introduction 
+</H3>
+<P>This section provides an overview of what LAMMPS can and can't do,
+describes what it means for LAMMPS to be an open-source code, and
+acknowledges the funding and people who have contributed to LAMMPS
+over the years.
+</P>
+1.1 <A HREF = "#intro_1">What is LAMMPS</A><BR>
+1.2 <A HREF = "#intro_2">LAMMPS features</A><BR>
+1.3 <A HREF = "#intro_3">LAMMPS non-features</A><BR>
+1.4 <A HREF = "#intro_4">Open source distribution</A><BR>
+1.5 <A HREF = "#intro_5">Acknowledgments and citations</A> <BR>
+
+<HR>
+
+<HR>
+
+<A NAME = "intro_1"></A><H4>1.1 What is LAMMPS 
+</H4>
+<P>LAMMPS is a classical molecular dynamics code that models an ensemble
+of particles in a liquid, solid, or gaseous state.  It can model
+atomic, polymeric, biological, metallic, granular, and coarse-grained
+systems using a variety of force fields and boundary conditions.
+</P>
+<P>For examples of LAMMPS simulations, see the Publications page of the
+<A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A>.
+</P>
+<P>LAMMPS runs efficiently on single-processor desktop or laptop
+machines, but is designed for parallel computers.  It will run on any
+parallel machine that compiles C++ and supports the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPI</A>
+message-passing library.  This includes distributed- or shared-memory
+parallel machines and Beowulf-style clusters.
+</P>
+
+
+<P>LAMMPS can model systems with only a few particles up to millions or
+billions.  See <A HREF = "Section_perf.html">Section_perf</A> for information on
+LAMMPS performance and scalability, or the Benchmarks section of the
+<A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A>.
+</P>
+<P>LAMMPS is a freely-available open-source code, distributed under the
+terms of the <A HREF = "http://www.gnu.org/copyleft/gpl.html">GNU Public License</A>, which means you can use or
+modify the code however you wish.  See <A HREF = "#intro_4">this section</A> for a
+brief discussion of the open-source philosophy.
+</P>
+
+
+<P>LAMMPS is designed to be easy to modify or extend with new
+capabilities, such as new force fields, atom types, boundary
+conditions, or diagnostics.  See <A HREF = "Section_modify.html">Section_modify</A>
+for more details.
+</P>
+<P>The current version of LAMMPS is written in C++.  Earlier versions
+were written in F77 and F90.  See
+<A HREF = "Section_history.html">Section_history</A> for more information on
+different versions.  All versions can be downloaded from the <A HREF = "http://lammps.sandia.gov">LAMMPS
+WWW Site</A>.
+</P>
+<P>LAMMPS was originally developed under a US Department of Energy CRADA
+(Cooperative Research and Development Agreement) between two DOE labs
+and 3 companies.  It is distributed by <A HREF = "http://www.sandia.gov">Sandia National Labs</A>.
+See <A HREF = "#intro_5">this section</A> for more information on LAMMPS funding and
+individuals who have contributed to LAMMPS.
+</P>
+
+
+<P>In the most general sense, LAMMPS integrates Newton's equations of
+motion for collections of atoms, molecules, or macroscopic particles
+that interact via short- or long-range forces with a variety of
+initial and/or boundary conditions.  For computational efficiency
+LAMMPS uses neighbor lists to keep track of nearby particles.  The
+lists are optimized for systems with particles that are repulsive at
+short distances, so that the local density of particles never becomes
+too large.  On parallel machines, LAMMPS uses spatial-decomposition
+techniques to partition the simulation domain into small 3d
+sub-domains, one of which is assigned to each processor.  Processors
+communicate and store "ghost" atom information for atoms that border
+their sub-domain.  LAMMPS is most efficient (in a parallel sense) for
+systems whose particles fill a 3d rectangular box with roughly uniform
+density.  Papers with technical details of the algorithms used in
+LAMMPS are listed in <A HREF = "#intro_5">this section</A>.
+</P>
+<HR>
+
+<A NAME = "intro_2"></A><H4>1.2 LAMMPS features 
+</H4>
+<P>This section highlights LAMMPS features, with pointers to specific
+commands which give more details.  If LAMMPS doesn't have your
+favorite interatomic potential, boundary condition, or atom type, see
+<A HREF = "Section_modify.html">Section_modify</A>, which describes how you can add
+it to LAMMPS.
+</P>
+<H5>General features 
+</H5>
+<UL><LI>  runs on a single processor or in parallel
+<LI>  distributed-memory message-passing parallelism (MPI)
+<LI>  spatial-decomposition of simulation domain for parallelism
+<LI>  open-source distribution
+<LI>  highly portable C++
+<LI>  optional libraries used: MPI and single-processor FFT
+<LI>  GPU (CUDA and OpenCL), Intel(R) Xeon Phi(TM) coprocessors, and OpenMP support for many code features
+<LI>  easy to extend with new features and functionality
+<LI>  runs from an input script
+<LI>  syntax for defining and using variables and formulas
+<LI>  syntax for looping over runs and breaking out of loops
+<LI>  run one or multiple simulations simultaneously (in parallel) from one script
+<LI>  build as library, invoke LAMMPS thru library interface or provided Python wrapper
+<LI>  couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both 
+</UL>
+<H5>Particle and model types 
+</H5>
+<P>(<A HREF = "atom_style.html">atom style</A> command)
+</P>
+<UL><LI>  atoms
+<LI>  coarse-grained particles (e.g. bead-spring polymers)
+<LI>  united-atom polymers or organic molecules
+<LI>  all-atom polymers, organic molecules, proteins, DNA
+<LI>  metals
+<LI>  granular materials
+<LI>  coarse-grained mesoscale models
+<LI>  finite-size spherical and ellipsoidal particles
+<LI>  finite-size  line segment (2d) and triangle (3d) particles
+<LI>  point dipole particles
+<LI>  rigid collections of particles
+<LI>  hybrid combinations of these 
+</UL>
+<H5>Force fields 
+</H5>
+<P>(<A HREF = "pair_style.html">pair style</A>, <A HREF = "bond_style.html">bond style</A>,
+<A HREF = "angle_style.html">angle style</A>, <A HREF = "dihedral_style.html">dihedral style</A>,
+<A HREF = "improper_style.html">improper style</A>, <A HREF = "kspace_style.html">kspace style</A>
+commands)
+</P>
+<UL><LI>  pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins,     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
+<LI>  charged pairwise potentials: Coulombic, point-dipole
+<LI>  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff,     REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire, 3-body polymorphic
+<LI>  long-range interactions for charge, point-dipoles, and LJ dispersion:     Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
+<LI>  polarization models: <A HREF = "fix_qeq.html">QEq</A>,     <A HREF = "Section_howto.html#howto_26">core/shell model</A>,     <A HREF = "Section_howto.html#howto_27">Drude dipole model</A>
+<LI>  charge equilibration (QEq via dynamic, point, shielded, Slater methods)
+<LI>  coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
+<LI>  mesoscopic potentials: granular, Peridynamics, SPH
+<LI>  electron force field (eFF, AWPMD)
+<LI>  bond potentials: harmonic, FENE, Morse, nonlinear, class 2,     quartic (breakable)
+<LI>  angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic,     class 2 (COMPASS)
+<LI>  dihedral potentials: harmonic, CHARMM, multi-harmonic, helix,     class 2 (COMPASS), OPLS
+<LI>  improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS)
+<LI>  polymer potentials: all-atom, united-atom, bead-spring, breakable
+<LI>  water potentials: TIP3P, TIP4P, SPC
+<LI>  implicit solvent potentials: hydrodynamic lubrication, Debye
+<LI>  force-field compatibility with common CHARMM, AMBER, DREIDING,     OPLS, GROMACS, COMPASS options
+<LI>  access to <A HREF = "http://openkim.org">KIM archive</A> of potentials via     <A HREF = "pair_kim.html">pair kim</A>
+<LI>  hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
+<LI>  overlaid potentials: superposition of multiple pair potentials 
+</UL>
+<H5>Atom creation 
+</H5>
+<P>(<A HREF = "read_data.html">read_data</A>, <A HREF = "lattice.html">lattice</A>,
+<A HREF = "create_atoms.html">create_atoms</A>, <A HREF = "delete_atoms.html">delete_atoms</A>,
+<A HREF = "displace_atoms.html">displace_atoms</A>, <A HREF = "replicate.html">replicate</A> commands)
+</P>
+<UL><LI>  read in atom coords from files
+<LI>  create atoms on one or more lattices (e.g. grain boundaries)
+<LI>  delete geometric or logical groups of atoms (e.g. voids)
+<LI>  replicate existing atoms multiple times
+<LI>  displace atoms 
+</UL>
+<H5>Ensembles, constraints, and boundary conditions 
+</H5>
+<P>(<A HREF = "fix.html">fix</A> command) 
+</P>
+<UL><LI>  2d or 3d systems
+<LI>  orthogonal or non-orthogonal (triclinic symmetry) simulation domains
+<LI>  constant NVE, NVT, NPT, NPH, Parinello/Rahman integrators
+<LI>  thermostatting options for groups and geometric regions of atoms
+<LI>  pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
+<LI>  simulation box deformation (tensile and shear)
+<LI>  harmonic (umbrella) constraint forces
+<LI>  rigid body constraints
+<LI>  SHAKE bond and angle constraints
+<LI>  Monte Carlo bond breaking, formation, swapping
+<LI>  atom/molecule insertion and deletion
+<LI>  walls of various kinds
+<LI>  non-equilibrium molecular dynamics (NEMD)
+<LI>  variety of additional boundary conditions and constraints 
+</UL>
+<H5>Integrators 
+</H5>
+<P>(<A HREF = "run.html">run</A>, <A HREF = "run_style.html">run_style</A>, <A HREF = "minimize.html">minimize</A> commands) 
+</P>
+<UL><LI>  velocity-Verlet integrator
+<LI>  Brownian dynamics
+<LI>  rigid body integration
+<LI>  energy minimization via conjugate gradient or steepest descent relaxation
+<LI>  rRESPA hierarchical timestepping
+<LI>  rerun command for post-processing of dump files 
+</UL>
+<H5>Diagnostics 
+</H5>
+<UL><LI>  see the various flavors of the <A HREF = "fix.html">fix</A> and <A HREF = "compute.html">compute</A> commands 
+</UL>
+<H5>Output 
+</H5>
+<P>(<A HREF = "dump.html">dump</A>, <A HREF = "restart.html">restart</A> commands) 
+</P>
+<UL><LI>  log file of thermodynamic info
+<LI>  text dump files of atom coords, velocities, other per-atom quantities
+<LI>  binary restart files
+<LI>  parallel I/O of dump and restart files
+<LI>  per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc)
+<LI>  user-defined system-wide (log file) or per-atom (dump file) calculations
+<LI>  spatial and time averaging of per-atom quantities
+<LI>  time averaging of system-wide quantities
+<LI>  atom snapshots in native, XYZ, XTC, DCD, CFG formats 
+</UL>
+<H5>Multi-replica models 
+</H5>
+<P><A HREF = "neb.html">nudged elastic band</A>
+<A HREF = "prd.html">parallel replica dynamics</A>
+<A HREF = "tad.html">temperature accelerated dynamics</A>
+<A HREF = "temper.html">parallel tempering</A>
+</P>
+<H5>Pre- and post-processing 
+</H5>
+<UL><LI>Various pre- and post-processing serial tools are packaged
+with LAMMPS; see these <A HREF = "Section_tools.html">doc pages</A>. 
+
+<LI>Our group has also written and released a separate toolkit called
+<A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which provides tools for doing setup, analysis,
+plotting, and visualization for LAMMPS simulations.  Pizza.py is
+written in <A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">the
+Pizza.py WWW site</A>. 
+</UL>
+
+
+
+
+<H5>Specialized features 
+</H5>
+<P>These are LAMMPS capabilities which you may not think of as typical
+molecular dynamics options:
+</P>
+<UL><LI><A HREF = "balance.html">static</A> and <A HREF = "fix_balance.html">dynamic load-balancing</A>
+<LI><A HREF = "body.html">generalized aspherical particles</A>
+<LI><A HREF = "fix_srd.html">stochastic rotation dynamics (SRD)</A>
+<LI><A HREF = "fix_imd.html">real-time visualization and interactive MD</A>
+<LI>calculate <A HREF = "compute_xrd.html">virtual diffraction patterns</A>
+<LI><A HREF = "fix_atc.html">atom-to-continuum coupling</A> with finite elements
+<LI>coupled rigid body integration via the <A HREF = "fix_poems.html">POEMS</A> library
+<LI><A HREF = "fix_qmmm.html">QM/MM coupling</A>
+<LI><A HREF = "fix_ipi.html">path-integral molecular dynamics (PIMD)</A> and <A HREF = "fix_pimd.html">this as well</A>
+<LI>Monte Carlo via <A HREF = "fix_gcmc.html">GCMC</A> and <A HREF = "fix_tfmc.html">tfMC</A> and <A HREF = "fix_swap.html">atom swapping</A>
+<LI><A HREF = "pair_dsmc.html">Direct Simulation Monte Carlo</A> for low-density fluids
+<LI><A HREF = "pair_peri.html">Peridynamics mesoscale modeling</A>
+<LI><A HREF = "fix_lb_fluid.html">Lattice Boltzmann fluid</A>
+<LI><A HREF = "fix_tmd.html">targeted</A> and <A HREF = "fix_smd.html">steered</A> molecular dynamics
+<LI><A HREF = "fix_ttm.html">two-temperature electron model</A> 
+</UL>
+<HR>
+
+<A NAME = "intro_3"></A><H4>1.3 LAMMPS non-features 
+</H4>
+<P>LAMMPS is designed to efficiently compute Newton's equations of motion
+for a system of interacting particles.  Many of the tools needed to
+pre- and post-process the data for such simulations are not included
+in the LAMMPS kernel for several reasons:
+</P>
+<UL><LI>the desire to keep LAMMPS simple
+<LI>they are not parallel operations
+<LI>other codes already do them
+<LI>limited development resources 
+</UL>
+<P>Specifically, LAMMPS itself does not:
+</P>
+<UL><LI>run thru a GUI
+<LI>build molecular systems
+<LI>assign force-field coefficients automagically
+<LI>perform sophisticated analyses of your MD simulation
+<LI>visualize your MD simulation
+<LI>plot your output data 
+</UL>
+<P>A few tools for pre- and post-processing tasks are provided as part of
+the LAMMPS package; they are described in <A HREF = "Section_tools.html">this
+section</A>.  However, many people use other codes or
+write their own tools for these tasks.
+</P>
+<P>As noted above, our group has also written and released a separate
+toolkit called <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which addresses some of the listed
+bullets.  It provides tools for doing setup, analysis, plotting, and
+visualization for LAMMPS simulations.  Pizza.py is written in
+<A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">the Pizza.py WWW
+site</A>.
+</P>
+<P>LAMMPS requires as input a list of initial atom coordinates and types,
+molecular topology information, and force-field coefficients assigned
+to all atoms and bonds.  LAMMPS will not build molecular systems and
+assign force-field parameters for you.
+</P>
+<P>For atomic systems LAMMPS provides a <A HREF = "create_atoms.html">create_atoms</A>
+command which places atoms on solid-state lattices (fcc, bcc,
+user-defined, etc).  Assigning small numbers of force field
+coefficients can be done via the <A HREF = "pair_coeff.html">pair coeff</A>, <A HREF = "bond_coeff.html">bond
+coeff</A>, <A HREF = "angle_coeff.html">angle coeff</A>, etc commands.
+For molecular systems or more complicated simulation geometries, users
+typically use another code as a builder and convert its output to
+LAMMPS input format, or write their own code to generate atom
+coordinate and molecular topology for LAMMPS to read in.
+</P>
+<P>For complicated molecular systems (e.g. a protein), a multitude of
+topology information and hundreds of force-field coefficients must
+typically be specified.  We suggest you use a program like
+<A HREF = "http://www.scripps.edu/brooks">CHARMM</A> or <A HREF = "http://amber.scripps.edu">AMBER</A> or other molecular builders to setup
+such problems and dump its information to a file.  You can then
+reformat the file as LAMMPS input.  Some of the tools in <A HREF = "Section_tools.html">this
+section</A> can assist in this process.
+</P>
+<P>Similarly, LAMMPS creates output files in a simple format.  Most users
+post-process these files with their own analysis tools or re-format
+them for input into other programs, including visualization packages.
+If you are convinced you need to compute something on-the-fly as
+LAMMPS runs, see <A HREF = "Section_modify.html">Section_modify</A> for a discussion
+of how you can use the <A HREF = "dump.html">dump</A> and <A HREF = "compute.html">compute</A> and
+<A HREF = "fix.html">fix</A> commands to print out data of your choosing.  Keep in
+mind that complicated computations can slow down the molecular
+dynamics timestepping, particularly if the computations are not
+parallel, so it is often better to leave such analysis to
+post-processing codes.
+</P>
+<P>A very simple (yet fast) visualizer is provided with the LAMMPS
+package - see the <A HREF = "Section_tools.html#xmovie">xmovie</A> tool in <A HREF = "Section_tools.html">this
+section</A>.  It creates xyz projection views of
+atomic coordinates and animates them.  We find it very useful for
+debugging purposes.  For high-quality visualization we recommend the
+following packages:
+</P>
+<UL><LI><A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A>
+<LI><A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A>
+<LI><A HREF = "http://pymol.sourceforge.net">PyMol</A>
+<LI><A HREF = "http://www.bmsc.washington.edu/raster3d/raster3d.html">Raster3d</A>
+<LI><A HREF = "http://www.openrasmol.org">RasMol</A> 
+</UL>
+<P>Other features that LAMMPS does not yet (and may never) support are
+discussed in <A HREF = "Section_history.html">Section_history</A>.
+</P>
+<P>Finally, these are freely-available molecular dynamics codes, most of
+them parallel, which may be well-suited to the problems you want to
+model.  They can also be used in conjunction with LAMMPS to perform
+complementary modeling tasks.
+</P>
+<UL><LI><A HREF = "http://www.scripps.edu/brooks">CHARMM</A>
+<LI><A HREF = "http://amber.scripps.edu">AMBER</A>
+<LI><A HREF = "http://www.ks.uiuc.edu/Research/namd/">NAMD</A>
+<LI><A HREF = "http://www.emsl.pnl.gov/docs/nwchem/nwchem.html">NWCHEM</A>
+<LI><A HREF = "http://www.cse.clrc.ac.uk/msi/software/DL_POLY">DL_POLY</A>
+<LI><A HREF = "http://dasher.wustl.edu/tinker">Tinker</A> 
+</UL>
+
+
+
+
+
+
+
+
+
+
+
+
+<P>CHARMM, AMBER, NAMD, NWCHEM, and Tinker are designed primarily for
+modeling biological molecules.  CHARMM and AMBER use
+atom-decomposition (replicated-data) strategies for parallelism; NAMD
+and NWCHEM use spatial-decomposition approaches, similar to LAMMPS.
+Tinker is a serial code.  DL_POLY includes potentials for a variety of
+biological and non-biological materials; both a replicated-data and
+spatial-decomposition version exist.
+</P>
+<HR>
+
+<A NAME = "intro_4"></A><H4>1.4 Open source distribution 
+</H4>
+<P>LAMMPS comes with no warranty of any kind.  As each source file states
+in its header, it is a copyrighted code that is distributed free-of-
+charge, under the terms of the <A HREF = "http://www.gnu.org/copyleft/gpl.html">GNU Public License</A> (GPL).  This
+is often referred to as open-source distribution - see
+<A HREF = "http://www.gnu.org">www.gnu.org</A> or <A HREF = "http://www.opensource.org">www.opensource.org</A> for more
+details.  The legal text of the GPL is in the LICENSE file that is
+included in the LAMMPS distribution.
+</P>
+
+
+
+
+<P>Here is a summary of what the GPL means for LAMMPS users:
+</P>
+<P>(1) Anyone is free to use, modify, or extend LAMMPS in any way they
+choose, including for commercial purposes.
+</P>
+<P>(2) If you distribute a modified version of LAMMPS, it must remain
+open-source, meaning you distribute it under the terms of the GPL.
+You should clearly annotate such a code as a derivative version of
+LAMMPS.
+</P>
+<P>(3) If you release any code that includes LAMMPS source code, then it
+must also be open-sourced, meaning you distribute it under the terms
+of the GPL.
+</P>
+<P>(4) If you give LAMMPS files to someone else, the GPL LICENSE file and
+source file headers (including the copyright and GPL notices) should
+remain part of the code.
+</P>
+<P>In the spirit of an open-source code, these are various ways you can
+contribute to making LAMMPS better.  You can send email to the
+<A HREF = "http://lammps.sandia.gov/authors.html">developers</A> on any of these
+items.
+</P>
+<UL><LI>Point prospective users to the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A>.  Mention it in
+talks or link to it from your WWW site. 
+
+<LI>If you find an error or omission in this manual or on the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW
+Site</A>, or have a suggestion for something to clarify or include,
+send an email to the
+<A HREF = "http://lammps.sandia.gov/authors.html">developers</A>. 
+
+<LI>If you find a bug, <A HREF = "Section_errors.html#err_2">Section_errors 2</A>
+describes how to report it. 
+
+<LI>If you publish a paper using LAMMPS results, send the citation (and
+any cool pictures or movies if you like) to add to the Publications,
+Pictures, and Movies pages of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A>, with links
+and attributions back to you. 
+
+<LI>Create a new Makefile.machine that can be added to the src/MAKE
+directory. 
+
+<LI>The tools sub-directory of the LAMMPS distribution has various
+stand-alone codes for pre- and post-processing of LAMMPS data.  More
+details are given in <A HREF = "Section_tools.html">Section_tools</A>.  If you write
+a new tool that users will find useful, it can be added to the LAMMPS
+distribution. 
+
+<LI>LAMMPS is designed to be easy to extend with new code for features
+like potentials, boundary conditions, diagnostic computations, etc.
+<A HREF = "Section_modify.html">This section</A> gives details.  If you add a
+feature of general interest, it can be added to the LAMMPS
+distribution. 
+
+<LI>The Benchmark page of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> lists LAMMPS
+performance on various platforms.  The files needed to run the
+benchmarks are part of the LAMMPS distribution.  If your machine is
+sufficiently different from those listed, your timing data can be
+added to the page. 
+
+<LI>You can send feedback for the User Comments page of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW
+Site</A>.  It might be added to the page.  No promises. 
+
+<LI>Cash.  Small denominations, unmarked bills preferred.  Paper sack OK.
+Leave on desk.  VISA also accepted.  Chocolate chip cookies
+encouraged. 
+</UL>
+<HR>
+
+<H4><A NAME = "intro_5"></A>1.5 Acknowledgments and citations 
+</H4>
+<P>LAMMPS development has been funded by the <A HREF = "http://www.doe.gov">US Department of
+Energy</A> (DOE), through its CRADA, LDRD, ASCI, and Genomes-to-Life
+programs and its <A HREF = "http://www.sc.doe.gov/ascr/home.html">OASCR</A> and <A HREF = "http://www.er.doe.gov/production/ober/ober_top.html">OBER</A> offices.
+</P>
+<P>Specifically, work on the latest version was funded in part by the US
+Department of Energy's Genomics:GTL program
+(<A HREF = "http://www.doegenomestolife.org">www.doegenomestolife.org</A>) under the <A HREF = "http://www.genomes2life.org">project</A>, "Carbon
+Sequestration in Synechococcus Sp.: From Molecular Machines to
+Hierarchical Modeling".
+</P>
+
+
+
+
+
+
+
+
+
+
+<P>The following paper describe the basic parallel algorithms used in
+LAMMPS.  If you use LAMMPS results in your published work, please cite
+this paper and include a pointer to the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A>
+(http://lammps.sandia.gov):
+</P>
+<P>S. J. Plimpton, <B>Fast Parallel Algorithms for Short-Range Molecular
+Dynamics</B>, J Comp Phys, 117, 1-19 (1995).
+</P>
+<P>Other papers describing specific algorithms used in LAMMPS are listed
+under the <A HREF = "http://lammps.sandia.gov/cite.html">Citing LAMMPS link</A> of
+the LAMMPS WWW page.
+</P>
+<P>The <A HREF = "http://lammps.sandia.gov/papers.html">Publications link</A> on the
+LAMMPS WWW page lists papers that have cited LAMMPS.  If your paper is
+not listed there for some reason, feel free to send us the info.  If
+the simulations in your paper produced cool pictures or animations,
+we'll be pleased to add them to the
+<A HREF = "http://lammps.sandia.gov/pictures.html">Pictures</A> or
+<A HREF = "http://lammps.sandia.gov/movies.html">Movies</A> pages of the LAMMPS WWW
+site.
+</P>
+<P>The core group of LAMMPS developers is at Sandia National Labs:
+</P>
+<UL><LI>Steve Plimpton, sjplimp at sandia.gov
+<LI>Aidan Thompson, athomps at sandia.gov
+<LI>Paul Crozier, pscrozi at sandia.gov 
+</UL>
+<P>The following folks are responsible for significant contributions to
+the code, or other aspects of the LAMMPS development effort.  Many of
+the packages they have written are somewhat unique to LAMMPS and the
+code would not be as general-purpose as it is without their expertise
+and efforts.
+</P>
+<UL><LI>Axel Kohlmeyer (Temple U), akohlmey at gmail.com, SVN and Git repositories, indefatigable mail list responder, USER-CG-CMM and USER-OMP packages
+<LI>Roy Pollock (LLNL), Ewald and PPPM solvers
+<LI>Mike Brown (ORNL), brownw at ornl.gov, GPU package
+<LI>Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential
+<LI>Mike Parks (Sandia), mlparks at sandia.gov, PERI package for Peridynamics
+<LI>Rudra Mukherjee (JPL), Rudranarayan.M.Mukherjee at jpl.nasa.gov, POEMS package for articulated rigid body motion
+<LI>Reese Jones (Sandia) and collaborators, rjones at sandia.gov, USER-ATC package for atom/continuum coupling
+<LI>Ilya Valuev (JIHT), valuev at physik.hu-berlin.de, USER-AWPMD package for wave-packet MD
+<LI>Christian Trott (U Tech Ilmenau), christian.trott at tu-ilmenau.de, USER-CUDA package
+<LI>Andres Jaramillo-Botero (Caltech), ajaramil at wag.caltech.edu, USER-EFF package for electron force field
+<LI>Christoph Kloss (JKU), Christoph.Kloss at jku.at, USER-LIGGGHTS package for granular models and granular/fluid coupling
+<LI>Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF
+<LI>Georg Gunzenmuller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SPH package 
+</UL>
+<P>As discussed in <A HREF = "Section_history.html">Section_history</A>, LAMMPS
+originated as a cooperative project between DOE labs and industrial
+partners. Folks involved in the design and testing of the original
+version of LAMMPS were the following:
+</P>
+<UL><LI>John Carpenter (Mayo Clinic, formerly at Cray Research)
+<LI>Terry Stouch (Lexicon Pharmaceuticals, formerly at Bristol Myers Squibb)
+<LI>Steve Lustig (Dupont)
+<LI>Jim Belak (LLNL) 
+</UL>
+</HTML>

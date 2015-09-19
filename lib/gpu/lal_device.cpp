@@ -337,7 +337,7 @@ void DeviceT::init_message(FILE *screen, const char *name,
   #else
   std::string fs=toa(gpu->free_gigabytes())+"/";
   #endif
-  
+
   if (_replica_me == 0 && screen) {
     fprintf(screen,"\n-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
@@ -362,7 +362,7 @@ void DeviceT::init_message(FILE *screen, const char *name,
         sname=gpu->name(i)+", "+toa(gpu->cus(i))+" CUs, "+fs+
               toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+" GHZ (";
       else              
-        sname=gpu->name(i)+", "+toa(gpu->cus(i))+" CUs, "+fs+
+        sname=gpu->name(i)+", "+toa(gpu->cus(i))+" CUs, "+
               toa(gpu->clock_rate(i))+" GHZ (";
       if (sizeof(PRECISION)==4) {
         if (sizeof(ACC_PRECISION)==4)

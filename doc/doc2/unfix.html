@@ -1,0 +1,39 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>unfix command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>unfix fix-ID 
+</PRE>
+<UL><LI>fix-ID = ID of a previously defined fix 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>unfix 2
+unfix lower-boundary 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Delete a fix that was previously defined with a <A HREF = "fix.html">fix</A>
+command.  This also wipes out any additional changes made to the fix
+via the <A HREF = "fix_modify.html">fix_modify</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix.html">fix</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

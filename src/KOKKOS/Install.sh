@@ -155,19 +155,20 @@ if (test $1 = 1) then
     sed -i -e 's/[^ \t]*KOKKOS[^ \t]* //g' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_KOKKOS |' ../Makefile.package
 #    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/kokkos\/core\/src |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-lkokkoscore |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(KOKKOS_INC) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(KOKKOS_LINK) |' ../Makefile.package
+    sed -i -e 's|^PKG_CPP_DEPENDS =[ \t]*|&$(KOKKOS_CPP_DEPENDS) |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&$(KOKKOS_LIBS) |' ../Makefile.package
+    sed -i -e 's|^PKG_LINK_DEPENDS =[ \t]*|&$(KOKKOS_LINK_DEPENDS) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(KOKKOS_LDFLAGS) |' ../Makefile.package
 #    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(kokkos_SYSPATH) |' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then
+    sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
     sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-include ..\/..\/lib\/kokkos\/Makefile.lammps
-' ../Makefile.package.settings
-
+    sed -i -e '4 i \CXX = $(CC)' ../Makefile.package.settings
+    sed -i -e '5 i \include ..\/..\/lib\/kokkos\/Makefile.kokkos' ../Makefile.package.settings
   fi
 
 elif (test $1 = 0) then
@@ -178,6 +179,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
+    sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
     sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 

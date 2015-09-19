@@ -48,7 +48,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   // fix # group lb/fluid nevery typeLB viscosity densityinit_real
   //  
   //  where: nevery:            call this fix every nevery timesteps. 
-  //		                 (nevery generally set to 1).
+  //		                 (keep this set to 1 for now).
   //         typeLB:            there are two different integrators 
   //                             in the code labelled "1" and "2".
   //         viscosity:         the viscosity of the fluid. 
@@ -87,7 +87,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
 
   if(narg <7) error->all(FLERR,"Illegal fix lb/fluid command");
 
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"Fix lb/fluid can only currently be used with "
                         "comm_style brick");
 
@@ -180,11 +180,6 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
     }
     else if(strcmp(arg[iarg],"calcforce")==0){
       force_diagnostic = atoi(arg[iarg+1]);
-      if(force_diagnostic % nevery != 0){
-	char str[200];
-	sprintf(str,"Requesting calcforce output every %i timesteps. Will only print output for those timesteps that are a multiple of nevery.",force_diagnostic);
-	error->warning(FLERR,str);	
-      }
       igroupforce=group->find(arg[iarg+2]);
       iarg += 3;
     }
@@ -203,11 +198,6 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
     }
     else if(strcmp(arg[iarg],"write_restart")==0){
       printrestart = atoi(arg[iarg+1]);
-      if(printrestart % nevery != 0){
-	char str[200];
-	sprintf(str,"Requesting restart files every %i timesteps. Will only print restart files for those timesteps that are a multiple of nevery.",printrestart);
-	error->warning(FLERR,str);	
-      }
       iarg += 2;
     }
     else if(strcmp(arg[iarg],"zwall_velocity")==0){
@@ -407,7 +397,7 @@ a z wall velocity without implementing fixed BCs in z");
   // Create the MPI datatypes used to pass portions of arrays:
   // datatypes to pass the f and feq arrays.
   //--------------------------------------------------------------------------
-  MPI_Aint lb, sizeofdouble;
+  MPI_Aint lb,sizeofdouble;
   MPI_Type_get_extent(MPI_DOUBLE,&lb,&sizeofdouble);
   
   MPI_Type_vector(subNbz-2,numvel,numvel,MPI_DOUBLE,&oneslice);
@@ -572,7 +562,7 @@ void FixLbFluid::init(void)
 {
   int i,j;
 
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"Fix lb/fluid can only currently be used with "
                         "comm_style brick");
 
@@ -667,78 +657,68 @@ void FixLbFluid::setup(int vflag)
 
 void FixLbFluid::initial_integrate(int vflag)
 {
-  // only call every nevery timesteps (by default nevery only affects how
-  // often end_of_step is called.
-  if(update->ntimestep % nevery == 0){
-    //--------------------------------------------------------------------------
-    // Print a header labelling any output printed to the screen.
-    //--------------------------------------------------------------------------
-    static int printheader = 1;
-    
-    if(printheader == 1){
-      if(force_diagnostic > 0 && me == 0){
-	printf("-------------------------------------------------------------------------------\n");
-	printf("     F_x          F_y          F_z          T_x          T_y          T_z\n");
-	printf("-------------------------------------------------------------------------------\n");
-      }
-      
-      if(printfluid > 0 && me == 0){
-	printf("---------------------------------------------------------------------\n");
-	printf("     density            u_x              u_y              u_z \n");
-	printf("---------------------------------------------------------------------\n");
-      }
-      printheader = 0;
+  //--------------------------------------------------------------------------
+  // Print a header labelling any output printed to the screen.
+  //--------------------------------------------------------------------------
+  static int printheader = 1;
+
+  if(printheader == 1){
+    if(force_diagnostic > 0 && me == 0){
+      printf("-------------------------------------------------------------------------------\n");
+      printf("     F_x          F_y          F_z          T_x          T_y          T_z\n");
+      printf("-------------------------------------------------------------------------------\n");
     }
     
-    //--------------------------------------------------------------------------
-    // Determine the equilibrium distribution on the local subgrid.
-    //--------------------------------------------------------------------------
-    (*this.*equilibriumdist)(1,subNbx-1,1,subNby-1,1,subNbz-1);
-    
-    //--------------------------------------------------------------------------
-    // Using the equilibrium distribution, calculate the new
-    // distribution function.
-    //--------------------------------------------------------------------------
-    (*this.*update_full)();
-    
-    std::swap(f_lb,fnew); 
-    
-    //--------------------------------------------------------------------------
-    // Calculate moments of the distribution function.
-    //--------------------------------------------------------------------------
-    parametercalc_full();
-    
-    //--------------------------------------------------------------------------
-    // Store the equilibrium distribution function, it is needed in
-    // the next time step by the update routine.
-    //--------------------------------------------------------------------------
-    if(typeLB == 2){
-      std::swap(feqold,feq);
-      std::swap(feqoldn,feqn);
+    if(printfluid > 0 && me == 0){
+      printf("---------------------------------------------------------------------\n");
+      printf("     density            u_x              u_y              u_z \n");
+      printf("---------------------------------------------------------------------\n");
     }
+    printheader = 0;
+  }
+
+  //--------------------------------------------------------------------------
+  // Determine the equilibrium distribution on the local subgrid.
+  //--------------------------------------------------------------------------
+  (*this.*equilibriumdist)(1,subNbx-1,1,subNby-1,1,subNbz-1);
+
+  //--------------------------------------------------------------------------
+  // Using the equilibrium distribution, calculate the new
+  // distribution function.
+  //--------------------------------------------------------------------------
+  (*this.*update_full)();
   
-  }  
- 
+  std::swap(f_lb,fnew); 
+
+  //--------------------------------------------------------------------------
+  // Calculate moments of the distribution function.
+  //--------------------------------------------------------------------------
+  parametercalc_full();
+
+  //--------------------------------------------------------------------------
+  // Store the equilibrium distribution function, it is needed in
+  // the next time step by the update routine.
+  //--------------------------------------------------------------------------
+  if(typeLB == 2){
+    std::swap(feqold,feq);
+    std::swap(feqoldn,feqn);
+  }
+
   //--------------------------------------------------------------------------
   // Perform diagnostics, and print output for the graphics program
   //--------------------------------------------------------------------------
   if(printfluid > 0 && update->ntimestep > 0 && (update->ntimestep % printfluid == 0))
     streamout();
-   
+  
 }
 void FixLbFluid::post_force(int vflag)
 {
-  // only call every nevery timesteps (by default nevery only affects how
-  // often end_of_step is called.
-  if(update->ntimestep % nevery == 0){
-    if(fixviscouslb==1)
-      calc_fluidforce();
-  }
+  if(fixviscouslb==1)
+    calc_fluidforce();
 }
 
 void FixLbFluid::end_of_step()
 {  
-  // end_of_step is only called every nevery timesteps
   if(fixviscouslb==0)
     calc_fluidforce();
  
@@ -952,7 +932,7 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Irecv(&Fftempz[0][0][2][0],1,passztemp,comm->procneigh[2][0],30,world,&requests[7]);
   MPI_Irecv(&Fftempz[0][0][3][0],1,passztemp,comm->procneigh[2][0],40,world,&requests[8]);
   MPI_Irecv(&Fftempz[0][0][4][0],1,passztemp,comm->procneigh[2][0],50,world,&requests[9]);
-  MPI_Waitall(10,requests,MPI_STATUS_IGNORE);  
+  MPI_Waitall(10,requests,MPI_STATUS_IGNORE);
 
   for(i=0; i<subNbx+3; i++){
     for(j=0; j<subNby+3; j++){
@@ -2434,7 +2414,7 @@ void FixLbFluid::parametercalc_full(void)
       requestcount=requestcount+3;
     }
   }    
-  MPI_Waitall(requestcount,requests2,MPI_STATUS_IGNORE); 
+  MPI_Waitall(requestcount,requests2,MPI_STATUS_IGNORE);
 
 }
 

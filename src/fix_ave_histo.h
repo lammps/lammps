@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class FixAveHisto : public Fix {
  public:
   FixAveHisto(class LAMMPS *, int, char **);
-  ~FixAveHisto();
+  virtual ~FixAveHisto();
   int setmask();
   void init();
   void setup(int);
-  void end_of_step();
+  virtual void end_of_step();
   double compute_vector(int);
   double compute_array(int,int);
 
- private:
+ protected:
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
   bigint nvalid,nvalid_last;

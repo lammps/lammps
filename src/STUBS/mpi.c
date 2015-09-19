@@ -77,17 +77,30 @@ int MPI_Finalized(int *flag)
 
 /* return "localhost" as name of the processor */
 
-void MPI_Get_processor_name(char *name, int *resultlen)
+int MPI_Get_processor_name(char *name, int *resultlen)
 {
   const char host[] = "localhost";
   int len;
 
-  if (!name || !resultlen) return;
+  if (!name || !resultlen) return MPI_ERR_ARG;
 
   len = strlen(host);
   memcpy(name,host,len+1);
   *resultlen = len;
-  return;
+  return MPI_SUCCESS;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* return MPI version level. v1.2 is not 100% correct, but close enough */
+
+int MPI_Get_version(int *major, int *minor)
+{
+  if (!major || !minor) return MPI_ERR_ARG;
+
+  *major = 1;
+  *minor = 2;
+  return MPI_SUCCESS;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -361,7 +374,7 @@ int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
 int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
                         MPI_Datatype *newtype)
 {
-  if (nextra_datatype = MAXEXTRA_DATATYPE) return -1;
+  if (nextra_datatype == MAXEXTRA_DATATYPE) return -1;
   ptr_datatype[nextra_datatype] = newtype;
   index_datatype[nextra_datatype] = -(nextra_datatype + 1);
   size_datatype[nextra_datatype] = count * stubtypesize(oldtype);

@@ -1,78 +1,257 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>partition command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>partition command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>partition style N command ... 
-</PRE>
-<UL><LI>style = <I>yes</I> or <I>no</I>
-<LI>N = partition number (see asterisk form below)
-<LI>command = any LAMMPS command 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>partition yes 1 processors 4 10 6
-partition no 5 print "Active partition"
-partition yes *5 fix all nve
-partition yes 6* fix all nvt temp 1.0 1.0 0.1 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command invokes the specified command on a subset of the
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>partition command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="partition-command">
+<span id="index-0"></span><h1>partition command<a class="headerlink" href="#partition-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>partition style N command ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>yes</em> or <em>no</em></li>
+<li>N = partition number (see asterisk form below)</li>
+<li>command = any LAMMPS command</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<pre class="literal-block">
+partition yes 1 processors 4 10 6
+partition no 5 print &quot;Active partition&quot;
+partition yes <em>5 fix all nve
+partition yes 6</em> fix all nvt temp 1.0 1.0 0.1
+</pre>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command invokes the specified command on a subset of the
 partitions of processors you have defined via the -partition
-command-line switch.  See <A HREF = "Section_start.html#start_7">Section_start 6</A>
-for an explanation of the switch.
-</P>
-<P>Normally, every input script command in your script is invoked by
+command-line switch.  See <a class="reference internal" href="Section_start.html#start-7"><span>Section_start 6</span></a>
+for an explanation of the switch.</p>
+<p>Normally, every input script command in your script is invoked by
 every partition.  This behavior can be modified by defining world- or
-universe-style <A HREF = "variable.html">variables</A> that have different values
+universe-style <a class="reference internal" href="variable.html"><em>variables</em></a> that have different values
 for each partition.  This mechanism can be used to cause your script
 to jump to different input script files on different partitions, if
-such a variable is used in a <A HREF = "jump.html">jump</A> command.
-</P>
-<P>The "partition" command is another mechanism for having as input
+such a variable is used in a <a class="reference internal" href="jump.html"><em>jump</em></a> command.</p>
+<p>The &#8220;partition&#8221; command is another mechanism for having as input
 script operate differently on different partitions.  It is basically a
 prefix on any LAMMPS command.  The commmand will only be invoked on
-the partition(s) specified by the <I>style</I> and <I>N</I> arguments.
-</P>
-<P>If the <I>style</I> is <I>yes</I>, the command will be invoked on any partition
-which matches the <I>N</I> argument.  If the <I>style</I> is <I>no</I> the command
+the partition(s) specified by the <em>style</em> and <em>N</em> arguments.</p>
+<p>If the <em>style</em> is <em>yes</em>, the command will be invoked on any partition
+which matches the <em>N</em> argument.  If the <em>style</em> is <em>no</em> the command
 will be invoked on all the partitions which do not match the Np
-argument.
-</P>
-<P>Partitions are numbered from 1 to Np, where Np is the number of
-partitions specified by the <A HREF = "Section_start.html#start_7">-partition command-line
-switch</A>.
-</P>
-<P><I>N</I> can be specified in one of two ways.  An explicit numeric value
+argument.</p>
+<p>Partitions are numbered from 1 to Np, where Np is the number of
+partitions specified by the <a class="reference internal" href="Section_start.html#start-7"><span>-partition command-line switch</span></a>.</p>
+<p><em>N</em> can be specified in one of two ways.  An explicit numeric value
 can be used, as in the 1st example above.  Or a wild-card asterisk can
-be used to span a range of partition numbers.  This takes the form "*"
-or "*n" or "n*" or "m*n".  An asterisk with no numeric values means
+be used to span a range of partition numbers.  This takes the form &#8220;*&#8221;
+or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  An asterisk with no numeric values means
 all partitions from 1 to Np.  A leading asterisk means all partitions
 from 1 to n (inclusive).  A trailing asterisk means all partitions
 from n to Np (inclusive).  A middle asterisk means all partitions from
-m to n (inclusive).
-</P>
-<P>This command can be useful for the "run_style verlet/split" command
-which imposed requirements on how the <A HREF = "processors.html">processors</A>
-command lays out a 3d grid of processors in each of 2 partitions.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "run_style.html">run_style verlet/split</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+m to n (inclusive).</p>
+<p>This command can be useful for the &#8220;run_style verlet/split&#8221; command
+which imposed requirements on how the <a class="reference internal" href="processors.html"><em>processors</em></a>
+command lays out a 3d grid of processors in each of 2 partitions.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="run_style.html"><em>run_style verlet/split</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

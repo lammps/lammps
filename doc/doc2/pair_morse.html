@@ -1,0 +1,114 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style morse command 
+</H3>
+<H3>pair_style morse/cuda command 
+</H3>
+<H3>pair_style morse/gpu command 
+</H3>
+<H3>pair_style morse/omp command 
+</H3>
+<H3>pair_style morse/opt command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style morse cutoff 
+</PRE>
+<UL><LI>cutoff = global cutoff for Morse interactions (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style morse 2.5
+pair_coeff * * 100.0 2.0 1.5
+pair_coeff 1 1 100.0 2.0 1.5 3.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>morse</I> computes pairwise interactions with the formula
+</P>
+<CENTER><IMG SRC = "Eqs/pair_morse.jpg">
+</CENTER>
+<P>Rc is the cutoff.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>D0 (energy units)
+<LI>alpha (1/distance units)
+<LI>r0 (distance units)
+<LI>cutoff (distance units) 
+</UL>
+<P>The last coefficient is optional.  If not specified, the global morse
+cutoff is used.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>None of these pair styles support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>All of these pair styles support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table options is not relevant for
+the Morse pair styles.
+</P>
+<P>None of these pair styles support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>All of these pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -256,6 +256,29 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     return COLVARSCRIPT_OK;
   }
 
+  if (subcmd == "cvcflags") {
+    if (argc < 4) {
+      result = "cvcflags: missing parameter: vector of flags";
+      return COLVARSCRIPT_ERROR;
+    }
+    std::string flags_str = argv[3];
+    std::istringstream is(flags_str);
+    std::vector<bool> flags;
+
+    int flag;
+    while (is >> flag) {
+      flags.push_back(flag != 0);
+    }
+
+    int res = cv->set_cvc_flags(flags);
+    if (res != COLVARS_OK) {
+      result = "Error setting CVC flags";
+      return COLVARSCRIPT_ERROR;
+    }
+    result = "0";
+    return COLVARSCRIPT_OK;
+  }
+
   result = "Syntax error\n" + help_string();
   return COLVARSCRIPT_ERROR;
 }

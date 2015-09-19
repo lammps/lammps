@@ -1,0 +1,81 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix_modify fix-ID keyword value ... 
+</PRE>
+<UL><LI>fix-ID = ID of the fix to modify 
+
+<LI>one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>temp</I> or <I>press</I> or <I>energy</I> 
+
+<PRE>  <I>temp</I> value = compute ID that calculates a temperature
+  <I>press</I> value = compute ID that calculates a pressure
+  <I>energy</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix_modify 3 temp myTemp press myPress
+fix_modify 1 energy yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Modify one or more parameters of a previously defined fix.  Only
+specific fix styles support specific parameters.  See the doc pages
+for individual fix commands for info on which ones support which
+fix_modify parameters.
+</P>
+<P>The <I>temp</I> keyword is used to determine how a fix computes
+temperature.  The specified compute ID must have been previously
+defined by the user via the <A HREF = "compute.html">compute</A> command and it must
+be a style of compute that calculates a temperature.  All fixes that
+compute temperatures define their own compute by default, as described
+in their documentation.  Thus this option allows the user to override
+the default method for computing T.
+</P>
+<P>The <I>press</I> keyword is used to determine how a fix computes pressure.
+The specified compute ID must have been previously defined by the user
+via the <A HREF = "compute.html">compute</A> command and it must be a style of
+compute that calculates a pressure.  All fixes that compute pressures
+define their own compute by default, as described in their
+documentation.  Thus this option allows the user to override the
+default method for computing P.
+</P>
+<P>For fixes that calculate a contribution to the potential energy of the
+system, the <I>energy</I> keyword will include that contribution in
+thermodynamic output of potential energy.  See the
+<A HREF = "thermo_style.html">thermo_style</A> command for info on how potential
+energy is output.  The contribution by itself can be printed by using
+the keyword f_ID in the thermo_style custom command, where ID is the
+fix-ID of the appropriate fix.  Note that you must use this setting
+for a fix if you are using it when performing an <A HREF = "minimize.html">energy
+minimization</A> and if you want the energy and forces it
+produces to be part of the optimization criteria.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix.html">fix</A>, <A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_pressure.html">compute
+pressure</A>, <A HREF = "thermo_style.html">thermo_style</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are temp = ID defined by fix, press = ID defined
+by fix, energy = no.
+</P>
+</HTML>

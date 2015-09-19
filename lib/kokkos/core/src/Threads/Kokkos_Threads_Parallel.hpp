@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -144,7 +144,7 @@ private:
   {
     const ParallelFor & self = * ((const ParallelFor *) arg );
 
-    typename Policy::member_type member( exec , self.m_policy , self.m_shared );
+    typename Policy::member_type member( & exec , self.m_policy , self.m_shared );
 
     for ( ; member.valid() ; member.next() ) {
       self.ParallelFor::template driver< typename Policy::work_tag >( member );
@@ -294,7 +294,7 @@ private:
     // Initialize thread-local value
     reference_type update = ValueInit::init( self.m_func , exec.reduce_memory() );
 
-    typename Policy::member_type member( exec , self.m_policy , self.m_shared );
+    typename Policy::member_type member( & exec , self.m_policy , self.m_shared );
     for ( ; member.valid() ; member.next() ) {
       self.ParallelReduce::template driver< work_tag >( member , update );
     }

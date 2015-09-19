@@ -12,73 +12,201 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "string.h"
 #include "timer.h"
+#include "comm.h"
+#include "error.h"
 #include "memory.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#include <stdint.h>
+#else
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 using namespace LAMMPS_NS;
+
+// Return the CPU time for the current process in seconds very
+// much in the same way as MPI_Wtime() returns the wall time.
+
+static double CPU_Time()
+{
+  double rv = 0.0;
+
+#ifdef _WIN32
+
+  // from MSD docs.
+  FILETIME ct,et,kt,ut;
+  union { FILETIME ft; uint64_t ui; } cpu;
+  if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
+    cpu.ft = ut;
+    rv = cpu.ui * 0.0000001;
+  }
+
+#else /* ! _WIN32 */
+
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0) {
+    rv = (double) ru.ru_utime.tv_sec;
+    rv += (double) ru.ru_utime.tv_usec * 0.000001;
+  }
+
+#endif /* ! _WIN32 */
+
+  return rv;
+}
 
 /* ---------------------------------------------------------------------- */
 
 Timer::Timer(LAMMPS *lmp) : Pointers(lmp)
 {
-  memory->create(array,TIME_N,"array");
-}
-
-/* ---------------------------------------------------------------------- */
-
-Timer::~Timer()
-{
-  memory->destroy(array);
+  _level = NORMAL;
+  _sync  = OFF;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Timer::init()
 {
-  for (int i = 0; i < TIME_N; i++) array[i] = 0.0;
+  for (int i = 0; i < NUM_TIMER; i++) {
+    cpu_array[i] = 0.0;
+    wall_array[i] = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Timer::stamp()
+void Timer::_stamp(enum ttype which)
 {
-  // uncomment if want synchronized timing
-  // MPI_Barrier(world);
-  previous_time = MPI_Wtime();
+  double current_cpu=0.0, current_wall=0.0;
+
+  if (_level > NORMAL) current_cpu = CPU_Time();
+  current_wall = MPI_Wtime();
+
+  if ((which > TOTAL) && (which < NUM_TIMER)) {
+    const double delta_cpu = current_cpu - previous_cpu;
+    const double delta_wall = current_wall - previous_wall;
+    
+    cpu_array[which]  += delta_cpu;
+    wall_array[which] += delta_wall;
+    cpu_array[ALL]    += delta_cpu;
+    wall_array[ALL]   += delta_wall;
+  }
+
+  previous_cpu  = current_cpu;
+  previous_wall = current_wall;
+
+  if (which == RESET) {
+    this->init();
+    cpu_array[TOTAL] = current_cpu;
+    wall_array[TOTAL] = current_wall;
+  }
+
+  if (_sync) {
+    MPI_Barrier(world);
+    if (_level > NORMAL) current_cpu = CPU_Time();
+    current_wall = MPI_Wtime();
+
+    cpu_array[SYNC]  += current_cpu - previous_cpu;
+    wall_array[SYNC] += current_wall - previous_wall;
+    previous_cpu  = current_cpu;
+    previous_wall = current_wall;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Timer::stamp(int which)
+void Timer::barrier_start()
 {
-  // uncomment if want synchronized timing
-  // MPI_Barrier(world);
-  double current_time = MPI_Wtime();
-  array[which] += current_time - previous_time;
-  previous_time = current_time;
-}
+  double current_cpu=0.0, current_wall=0.0;
 
-/* ---------------------------------------------------------------------- */
-
-void Timer::barrier_start(int which)
-{
   MPI_Barrier(world);
-  array[which] = MPI_Wtime();
+
+  if (_level < LOOP) return;
+
+  current_cpu = CPU_Time();
+  current_wall = MPI_Wtime();
+
+  cpu_array[TOTAL]  = current_cpu;
+  wall_array[TOTAL] = current_wall;
+  previous_cpu  = current_cpu;
+  previous_wall = current_wall;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Timer::barrier_stop(int which)
+void Timer::barrier_stop()
 {
+  double current_cpu=0.0, current_wall=0.0;
+
   MPI_Barrier(world);
-  double current_time = MPI_Wtime();
-  array[which] = current_time - array[which];
+
+  if (_level < LOOP) return;
+
+  current_cpu = CPU_Time();
+  current_wall = MPI_Wtime();
+
+  cpu_array[TOTAL]  = current_cpu - cpu_array[TOTAL];
+  wall_array[TOTAL] = current_wall - wall_array[TOTAL];
 }
 
 /* ---------------------------------------------------------------------- */
 
-double Timer::elapsed(int which)
+double Timer::cpu(enum ttype which)
 {
-  double current_time = MPI_Wtime();
-  return (current_time - array[which]);
+  double current_cpu = CPU_Time();
+  return (current_cpu - cpu_array[which]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double Timer::elapsed(enum ttype which)
+{
+  if (_level == OFF) return 0.0;
+  double current_wall = MPI_Wtime();
+  return (current_wall - wall_array[which]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Timer::set_wall(enum ttype which, double newtime)
+{
+  wall_array[which] = newtime;
+}
+
+/* ----------------------------------------------------------------------
+   modify parameters of the Timer class
+------------------------------------------------------------------------- */
+static const char *timer_style[] = { "off", "loop", "normal", "full" };
+static const char *timer_mode[]  = { "nosync", "(dummy)", "sync" };
+static const char  timer_fmt[]   = "New timer settings: style=%s  mode=%s\n";
+
+void Timer::modify_params(int narg, char **arg)
+{
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],timer_style[OFF])           == 0) {
+      _level = OFF;
+    } else if (strcmp(arg[iarg],timer_style[LOOP]) == 0) {
+      _level = LOOP;
+    } else if (strcmp(arg[iarg],timer_style[NORMAL]) == 0) {
+      _level = NORMAL;
+    } else if (strcmp(arg[iarg],timer_style[FULL])   == 0) {
+      _level = FULL;
+    } else if (strcmp(arg[iarg],timer_mode[OFF])     == 0) {
+      _sync  = OFF;
+    } else if (strcmp(arg[iarg],timer_mode[NORMAL])  == 0) {
+      _sync  = NORMAL;
+    } else error->all(FLERR,"Illegal timers command");
+    ++iarg;  
+  }
+
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,timer_fmt,timer_style[_level],timer_mode[_sync]);
+    if (logfile)
+      fprintf(logfile,timer_fmt,timer_style[_level],timer_mode[_sync]);
+  }
 }

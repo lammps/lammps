@@ -47,8 +47,8 @@ class FixPIMD : public Fix {
   int size_restart(int);
   double compute_vector(int);
       
-  int pack_comm(int, int*, double *, int, int*);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int*, double *, int, int*);
+  void unpack_forward_comm(int, int, double *);
       
   int method;
   int np;

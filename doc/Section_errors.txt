@@ -10600,7 +10600,7 @@ The fix_modify command is specifying a temperature computation that
 computes a temperature on a different group of atoms than the fix
 itself operates on.  This is probably not what you want to do. :dd
 
-{H matrix size has been exceeded: m_fill=%d H.m=%d\n} :dt
+{H matrix size has been exceeded: m_fill=%d H.m=%d\\n} :dt
 
 This is the size of the matrix. :dd
 

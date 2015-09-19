@@ -23,6 +23,7 @@ class Molecule : protected Pointers {
   char *id;   // template id of this molecule, same for all molecules in set
   int nset;   // if first in set, # of molecules in this set
               // else 0 if not first in set
+  int last;   // 1 if last molecule in set, else 0
 
   // number of atoms,bonds,etc in molecule
 
@@ -101,7 +102,7 @@ class Molecule : protected Pointers {
   double **dxbody;     // displacement of each atom relative to COM
                        // in body frame (diagonalized interia tensor)
 
-  Molecule(class LAMMPS *, char *, char *);
+  Molecule(class LAMMPS *, int, char **, int);
   ~Molecule();
   void compute_center();
   void compute_mass();
@@ -113,6 +114,8 @@ class Molecule : protected Pointers {
   int me;
   FILE *fp;
   int *count;
+  int toffset,boffset,aoffset,doffset,ioffset;
+  int autospecial;
 
   void read(int);
   void coords(char *);
@@ -126,6 +129,7 @@ class Molecule : protected Pointers {
   void impropers(int, char *);
   void nspecial_read(int, char *);
   void special_read(char *);
+  void special_generate();
   void shakeflag_read(char *);
   void shakeatom_read(char *);
   void shaketype_read(char *);

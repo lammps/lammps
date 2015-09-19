@@ -1,0 +1,102 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>improper_coeff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>improper_coeff N args 
+</PRE>
+<UL><LI>N = improper type (see asterisk form below)
+<LI>args = coefficients for one or more improper types 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>improper_coeff 1 300.0 0.0
+improper_coeff * 80.2 -1 2
+improper_coeff *4 80.2 -1 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify the improper force field coefficients for one or more improper
+types.  The number and meaning of the coefficients depends on the
+improper style.  Improper coefficients can also be set in the data
+file read by the <A HREF = "read_data.html">read_data</A> command or in a restart
+file.
+</P>
+<P>N can be specified in one of two ways.  An explicit numeric value can
+be used, as in the 1st example above.  Or a wild-card asterisk can be
+used to set the coefficients for multiple improper types.  This takes
+the form "*" or "*n" or "n*" or "m*n".  If N = the number of improper
+types, then an asterisk with no numeric values means all types from 1
+to N.  A leading asterisk means all types from 1 to n (inclusive).  A
+trailing asterisk means all types from n to N (inclusive).  A middle
+asterisk means all types from m to n (inclusive).
+</P>
+<P>Note that using an improper_coeff command can override a previous
+setting for the same improper type.  For example, these commands set
+the coeffs for all improper types, then overwrite the coeffs for just
+improper type 2:
+</P>
+<PRE>improper_coeff * 300.0 0.0
+improper_coeff 2 50.0 0.0 
+</PRE>
+<P>A line in a data file that specifies improper coefficients uses the
+exact same format as the arguments of the improper_coeff command in an
+input script, except that wild-card asterisks should not be used since
+coefficients for all N types must be listed in the file.  For example,
+under the "Improper Coeffs" section of a data file, the line that
+corresponds to the 1st example above would be listed as
+</P>
+<PRE>1 300.0 0.0 
+</PRE>
+<P>The <A HREF = "improper_class2.html">improper_style class2</A> is an exception to
+this rule, in that an additional argument is used in the input script
+to allow specification of the cross-term coefficients.  See its doc
+page for details.
+</P>
+<HR>
+
+<P>Here is an alphabetic list of improper styles defined in LAMMPS.  Click on
+the style to display the formula it computes and coefficients
+specified by the associated <A HREF = "improper_coeff.html">improper_coeff</A> command.
+</P>
+<P>Note that there are also additional improper styles submitted by users
+which are included in the LAMMPS distribution.  The list of these with
+links to the individual styles are given in the improper section of
+<A HREF = "Section_commands.html#cmd_5">this page</A>.
+</P>
+<UL><LI><A HREF = "improper_none.html">improper_style none</A> - turn off improper interactions
+<LI><A HREF = "improper_hybrid.html">improper_style hybrid</A> - define multiple styles of improper interactions 
+</UL>
+<UL><LI><A HREF = "improper_class2.html">improper_style class2</A> - COMPASS (class 2) improper
+<LI><A HREF = "improper_cvff.html">improper_style cvff</A> - CVFF improper
+<LI><A HREF = "improper_harmonic.html">improper_style harmonic</A> - harmonic improper
+<LI><A HREF = "improper_umbrella.html">improper_style umbrella</A> - DREIDING improper 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command must come after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
+<A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>An improper style must be defined before any improper coefficients are
+set, either in the input script or in a data file.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "improper_style.html">improper_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

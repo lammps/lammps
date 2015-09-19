@@ -221,8 +221,8 @@ If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
 this to your ~/.cshrc file, one line for each of the two files:
 
-setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
-setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src :pre
+setenv PYTHONPATH $\{PYTHONPATH\}:/home/sjplimp/lammps/python
+setenv LD_LIBRARY_PATH $\{LD_LIBRARY_PATH\}:/home/sjplimp/lammps/src :pre
 
 If you use the python/install.py script, you need to invoke it every
 time you rebuild LAMMPS (as a shared library) or make changes to the
@@ -408,7 +408,7 @@ Either way, you should see the results of running the in.lj benchmark
 on a single processor appear on the screen, the same as if you had
 typed something like:
 
-lmp_g++ < in.lj :pre
+lmp_g++ -in in.lj :pre
 
 [Test LAMMPS and Python in parallel:] :h5
 
@@ -429,7 +429,7 @@ You can then run it in parallel as:
 
 and you should see the same output as if you had typed
 
-% mpirun -np 4 lmp_g++ < in.lj :pre
+% mpirun -np 4 lmp_g++ -in in.lj :pre
 
 Note that if you leave out the 3 lines from test.py that specify Pypar
 commands you will instantiate and run LAMMPS independently on each of
@@ -497,6 +497,8 @@ lmp = lammps("",list)    # ditto, with command-line args, e.g. list = \["-echo",
 lmp = lammps("g++",list) :pre
 
 lmp.close()              # destroy a LAMMPS object :pre
+
+version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
 
 lmp.file(file)           # run an entire input script, file = "in.lj"
 lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" :pre

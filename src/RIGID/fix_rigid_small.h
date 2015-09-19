@@ -81,6 +81,7 @@ class FixRigidSmall : public Fix {
   int setupflag;            // 1 if body properties are setup, else 0
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
+  int nlinear;              // total # of linear rigid bodies
   tagint maxmol;            // max mol-ID
   double maxextent;         // furthest distance from body owner to body atom
 

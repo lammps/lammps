@@ -94,8 +94,8 @@ g_filename    = __file__.split('/')[-1]
 g_module_name  = g_filename
 if g_filename.rfind('.py') != -1:
     g_module_name = g_filename[:g_filename.rfind('.py')]
-g_date_str     = '2014-12-19'
-g_version_str  = '0.79'
+g_date_str     = '2015-8-17'
+g_version_str  = '0.80'
 
 
 
@@ -4161,44 +4161,6 @@ def AssignStaticVarPtrs(context_node, search_instance_commands = False):
 
 
 
-
-#def AssignVarOrderByFile(context_node, search_instance_commands=False):
-#    """
-#    For each category in context_node, and each variable in that category,
-#    set the order of each variable equal to the position of that variable 
-#    in the user's input file.
-#
-#    """
-#
-#    if search_instance_commands:
-#        assert(isinstance(context_node, StaticObj))
-#        commands = context_node.instance_commands_push + \
-#                   context_node.instance_commands + \
-#                   context_node.instance_commands_pop
-#    else:
-#        commands = context_node.commands
-#    for command in commands:
-#        if isinstance(command, WriteFileCommand):
-#            tmpl_list = command.tmpl_list
-#            for var_ref in tmpl_list:
-#                if isinstance(var_ref, VarRef):
-#                    if (((var_ref.prefix == '@') and
-#                         isinstance(context_node, StaticObj)) or
-#                        ((var_ref.prefix == '$') and
-#                         isinstance(context_node, InstanceObjBasic))):
-#                    #if ((var_ref.prefix == '@') or
-#                    #    (not search_instance_commands)):
-#                        if ((var_ref.binding.order == -1) or 
-#                            (var_ref.binding.order > var_ref.srcloc.order)):
-#                            var_ref.binding.order = var_ref.srcloc.order
-#
-#    for child in context_node.children.values():
-#        AssignVarOrderByFile(child, search_instance_commands)
-
-
-
-
-
 def AssignVarOrderByCommand(command_list, prefix_filter):
     """
     For each category in context_node, and each variable in that category,
@@ -4218,6 +4180,54 @@ def AssignVarOrderByCommand(command_list, prefix_filter):
                         if ((var_ref.binding.order is None) or 
                             (var_ref.binding.order > count)):
                             var_ref.binding.order = count
+
+
+#def AssignVarOrderByFile(command_list, prefix_filter):
+#    """
+#    For each category in context_node, and each variable in that category,
+#    set the order of each variable equal to the position of that variable 
+#    in the user's input file.
+#
+#    """
+#
+#    for command in command_list:
+#        if isinstance(command, WriteFileCommand):
+#            tmpl_list = command.tmpl_list
+#            for var_ref in tmpl_list:
+#                if isinstance(var_ref, VarRef):
+#                    if var_ref.prefix in prefix_filter:
+#                        if ((var_ref.binding.order is None) or 
+#                            (var_ref.binding.order > var_ref.srcloc.order)):
+#                            var_ref.binding.order = var_ref.srcloc.order
+
+
+def AssignVarOrderByFile(context_node, prefix_filter, search_instance_commands=False):
+    """
+    For each category in context_node, and each variable in that category,
+    set the order of each variable equal to the position of that variable 
+    in the user's input file.
+
+    """
+
+    commands = context_node.commands 
+    if search_instance_commands:
+        assert(isinstance(context_node, StaticObj))
+        commands.append(context_node.instance_commands_push + \
+                        context_node.instance_commands + \
+                        context_node.instance_commands_pop)
+
+    for command in commands:
+        if isinstance(command, WriteFileCommand):
+            tmpl_list = command.tmpl_list
+            for var_ref in tmpl_list:
+                if (isinstance(var_ref, VarRef) and 
+                    (var_ref.prefix in prefix_filter)):
+                    if ((var_ref.binding.order == -1) or 
+                        (var_ref.binding.order > var_ref.srcloc.order)):
+                        var_ref.binding.order = var_ref.srcloc.order
+
+    for child in context_node.children.values():
+        AssignVarOrderByFile(child, prefix_filter, search_instance_commands)
 
 
 
@@ -4941,9 +4951,7 @@ def BasicUI(settings,
     #         And, by default instance variables ($) 
     #         are assigned in the order they are created during instantiation.
     #sys.stderr.write(' done\ndetermining variable count order...')
-    AssignVarOrderByCommand(static_commands, '@')
-    #AssignVarOrderByFile(static_tree_root, search_instance_commands=False)
-    #AssignVarOrderByFile(static_tree_root, search_instance_commands=True)
+    AssignVarOrderByFile(static_tree_root, '@', search_instance_commands=True)
     AssignVarOrderByCommand(instance_commands, '$')
 
 

@@ -106,6 +106,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style bop"_pair_bop.html - BOP potential of Pettifor
 "pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulombics
+"pair_style born/coul/long/cs"_pair_born.html - Born-Mayer-Huggins with long-range Coulombics and core/shell
 "pair_style born/coul/msm"_pair_born.html - Born-Mayer-Huggins with long-range MSM Coulombics
 "pair_style born/coul/wolf"_pair_born.html - Born-Mayer-Huggins with Coulombics via Wolf potential
 "pair_style brownian"_pair_brownian.html - Brownian potential for Fast Lubrication Dynamics
@@ -113,6 +114,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckingham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulombics
+"pair_style buck/coul/long/cs"_pair_buck.html - Buckingham with long-range Coulombics and core/shell
 "pair_style buck/coul/msm"_pair_buck.html - Buckingham long-range MSM Coulombics
 "pair_style buck/long/coul/long"_pair_buck_long.html - long-range Buckingham with long-range Coulombics
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
@@ -122,7 +124,9 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
 "pair_style coul/dsf"_pair_coul.html - Coulombics via damped shifted forces
 "pair_style coul/long"_pair_coul.html - long-range Coulombic potential
+"pair_style coul/long/cs"_pair_coul.html - long-range Coulombic potential and core/shell
 "pair_style coul/msm"_pair_coul.html - long-range MSM Coulombics
+"pair_style coul/msm"_pair_coul_streitz.html - Coulombics via Streitz/Mintmire Slater orbitals
 "pair_style coul/wolf"_pair_coul.html - Coulombics via Wolf potential
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
 "pair_style dpd/tstat"_pair_dpd.html - DPD thermostatting
@@ -182,6 +186,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style peri/lps"_pair_peri.html - peridynamic LPS potential
 "pair_style peri/pmb"_pair_peri.html - peridynamic PMB potential
 "pair_style peri/ves"_pair_peri.html - peridynamic VES potential
+"pair_style polymorphic"_pair_polymorphic.html - polymorphic 3-body potential
 "pair_style reax"_pair_reax.html - ReaxFF potential
 "pair_style rebo"_pair_airebo.html - 2nd generation REBO potential of Brenner
 "pair_style resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential

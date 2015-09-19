@@ -1,0 +1,77 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix store/force command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID store/force 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>store/force = style name of this fix command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all store/force 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Store the forces on atoms in the group at the point during each
+timestep when the fix is invoked, as described below.  This is useful
+for storing forces before constraints or other boundary conditions are
+computed which modify the forces, so that unmodified forces can be
+<A HREF = "dump.html">written to a dump file</A> or accessed by other <A HREF = "Section_howto.html#howto_15">output
+commands</A> that use per-atom quantities.
+</P>
+<P>This fix is invoked at the point in the velocity-Verlet timestepping
+immediately after <A HREF = "pair_style.html">pair</A>, <A HREF = "bond_style.html">bond</A>,
+<A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
+<A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
+forces have been calculated.  It is the point in the timestep when
+various fixes that compute constraint forces are calculated and
+potentially modify the force on each atom.  Examples of such fixes are
+<A HREF = "fix_shake.html">fix shake</A>, <A HREF = "fix_wall.html">fix wall</A>, and <A HREF = "fix_indent.html">fix
+indent</A>.
+</P>
+<P>IMPORTANT NOTE: The order in which various fixes are applied which
+operate at the same point during the timestep, is the same as the
+order they are specified in the input script.  Thus normally, if you
+want to store per-atom forces due to force field interactions, before
+constraints are applied, you should list this fix first within that
+set of fixes, i.e. before other fixes that apply constraints.
+However, if you wish to include certain constraints (e.g. fix shake)
+in the stored force, then it could be specified after some fixes and
+before others.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>This fix produces a per-atom array which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The number of columns
+for each atom is 3, and the columns store the x,y,z forces on each
+atom.  The per-atom values be accessed on any timestep.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_store_state.html">fix store_state</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

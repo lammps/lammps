@@ -84,6 +84,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   cluster_check = 0;
   binatomflag = 1;
 
+  cutneighmax = 0.0;
   cutneighsq = NULL;
   cutneighghostsq = NULL;
   cuttype = NULL;
@@ -310,6 +311,7 @@ void Neighbor::init()
   // flag = 1 if both LJ/Coulomb special values are 1.0
   // flag = 2 otherwise or if KSpace solver is enabled
   // pairwise portion of KSpace solver uses all 1-2,1-3,1-4 neighbors
+  // or selected Coulomb-approixmation pair styles require it
 
   if (force->special_lj[1] == 0.0 && force->special_coul[1] == 0.0)
     special_flag[1] = 0;
@@ -329,8 +331,8 @@ void Neighbor::init()
     special_flag[3] = 1;
   else special_flag[3] = 2;
 
-  if (force->kspace || force->pair_match("coul/wolf",0)
-      || force->pair_match("coul/dsf",0))
+  if (force->kspace || force->pair_match("coul/wolf",0) ||
+      force->pair_match("coul/dsf",0) || force->pair_match("thole",0))
      special_flag[1] = special_flag[2] = special_flag[3] = 2;
 
   // maxwt = max multiplicative factor on atom indices stored in neigh list
@@ -793,19 +795,44 @@ void Neighbor::init()
   if (!same || every != old_every || delay != old_delay || 
       old_check != dist_check || old_cutoff != cutneighmax) {
     if (me == 0) {
+      const double cutghost = MAX(cutneighmax,comm->cutghostuser);
+
+      double binsize, bbox[3];
+      bbox[0] =  bboxhi[0]-bboxlo[0];
+      bbox[1] =  bboxhi[1]-bboxlo[1];
+      bbox[2] =  bboxhi[2]-bboxlo[2];
+      if (binsizeflag) binsize = binsize_user;
+      else if (style == BIN) binsize = 0.5*cutneighmax;
+      else binsize = 0.5*cutneighmin;
+      if (binsize == 0.0) binsize = bbox[0];
+
       if (logfile) {
         fprintf(logfile,"Neighbor list info ...\n");
         fprintf(logfile,"  %d neighbor list requests\n",nrequest);
         fprintf(logfile,"  update every %d steps, delay %d steps, check %s\n",
                 every,delay,dist_check ? "yes" : "no");
+        fprintf(logfile,"  max neighbors/atom: %d, page size: %d\n",
+                oneatom, pgsize);
         fprintf(logfile,"  master list distance cutoff = %g\n",cutneighmax);
+        fprintf(logfile,"  ghost atom cutoff = %g\n",cutghost);
+        if (style != NSQ)
+          fprintf(logfile,"  binsize = %g -> bins = %g %g %g\n",binsize,
+	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize), 
+                  ceil(bbox[2]/binsize));
       }
       if (screen) {
         fprintf(screen,"Neighbor list info ...\n");
         fprintf(screen,"  %d neighbor list requests\n",nrequest);
         fprintf(screen,"  update every %d steps, delay %d steps, check %s\n",
                 every,delay,dist_check ? "yes" : "no");
+        fprintf(screen,"  max neighbors/atom: %d, page size: %d\n",
+                oneatom, pgsize);
         fprintf(screen,"  master list distance cutoff = %g\n",cutneighmax);
+        fprintf(screen,"  ghost atom cutoff = %g\n",cutghost);
+        if (style != NSQ)
+          fprintf(screen,"  binsize = %g, bins = %g %g %g\n",binsize,
+	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
+                  ceil(bbox[2]/binsize));
       }
     }
   }
@@ -870,6 +897,7 @@ void Neighbor::init()
   // set flags that determine which topology neighboring routines to use
   // bonds,etc can only be broken for atom->molecular = 1, not 2
   // SHAKE sets bonds and angles negative
+  // gcmc sets all bonds, angles, etc negative
   // bond_quartic sets bonds to 0
   // delete_bonds sets all interactions negative
 
@@ -914,6 +942,10 @@ void Neighbor::init()
         if (atom->improper_type[i][m] <= 0) improper_off = 1;
     }
   }
+
+  for (i = 0; i < modify->nfix; i++)
+    if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
+      bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs
 

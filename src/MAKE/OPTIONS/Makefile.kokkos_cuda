@@ -1,17 +1,19 @@
-# kokkos_cuda = KOKKOS package with CUDA support, nvcc/mpicxx compiler
+# kokkos_cuda = KOKKOS package with CUDA support, OpenMPI, nvcc/mpicxx compiler
 
 SHELL = /bin/sh
+
+export OMPI_CXX = ../../lib/config/nvcc_wrapper
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		nvcc -ccbin=mpicxx
-CCFLAGS =	-g -O3 -arch=sm_20
+CC =		mpicxx
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		nvcc -ccbin=mpicxx
+LINK =		mpicxx
 LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size
@@ -19,8 +21,8 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-CUDA =		yes
-OMP =		yes
+KOKKOS_DEVICES = Cuda, OpenMP
+KOKKOS_ARCH = Kepler35
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -77,6 +79,8 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
+EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
 
 # Path to src files
 
@@ -85,28 +89,28 @@ vpath %.h ..
 
 # Link target
 
-$(EXE):	$(OBJ)
+$(EXE):	$(OBJ) $(EXTRA_LINK_DEPENDS)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library targets
 
-lib:	$(OBJ)
+lib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
-shlib:	$(OBJ)
+shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
         $(OBJ) $(EXTRA_LIB) $(LIB)
 
 # Compilation rules
 
-%.o:%.cpp
+%.o:%.cpp $(EXTRA_CPP_DEPENDS)
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
-%.d:%.cpp
+%.d:%.cpp $(EXTRA_CPP_DEPENDS)
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
-%.o:%.cu
+%.o:%.cu $(EXTRA_CPP_DEPENDS)
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 # Individual dependencies

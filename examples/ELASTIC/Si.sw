@@ -1,3 +1,4 @@
+# DATE: 2007-06-11 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Stillinger and Weber,  Phys Rev B, 31, 5262, (1985)
 # Stillinger-Weber parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 # these entries are in LAMMPS "metal" units:

@@ -1,0 +1,125 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>displace_atoms command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>displace_atoms group-ID style args keyword value ... 
+</PRE>
+<UL><LI>group-ID = ID of group of atoms to displace 
+
+<LI>style = <I>move</I> or <I>ramp</I> or <I>random</I> or <I>rotate</I> 
+
+<PRE>  <I>move</I> args = delx dely delz
+    delx,dely,delz = distance to displace in each dimension (distance units)
+  <I>ramp</I> args = ddim dlo dhi dim clo chi
+    ddim = <I>x</I> or <I>y</I> or <I>z</I>
+    dlo,dhi = displacement distance between dlo and dhi (distance units)
+    dim = <I>x</I> or <I>y</I> or <I>z</I>
+    clo,chi = lower and upper bound of domain to displace (distance units)
+  <I>random</I> args = dx dy dz seed
+    dx,dy,dz = random displacement magnitude in each dimension (distance units)
+    seed = random # seed (positive integer)
+  <I>rotate</I> args = Px Py Pz Rx Ry Rz theta
+    Px,Py,Pz = origin point of axis of rotation (distance units)
+    Rx,Ry,Rz = axis of rotation vector
+    theta = angle of rotation (degrees) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>  keyword = <I>units</I>
+    value = <I>box</I> or <I>lattice</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>displace_atoms top move 0 -5 0 units box
+displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Displace a group of atoms.  This can be used to move atoms a large
+distance before beginning a simulation or to randomize atoms initially
+on a lattice.  For example, in a shear simulation, an initial strain
+can be imposed on the system.  Or two groups of atoms can be brought
+into closer proximity.
+</P>
+<P>The <I>move</I> style displaces the group of atoms by the specified 3d
+distance.
+</P>
+<P>The <I>ramp</I> style displaces atoms a variable amount in one dimension
+depending on the atom's coordinate in a (possibly) different
+dimension.  For example, the second example command displaces atoms in
+the x-direction an amount between 0.0 and 5.0 distance units.  Each
+atom's displacement depends on the fractional distance its y
+coordinate is between 2.0 and 20.5.  Atoms with y-coordinates outside
+those bounds will be moved the minimum (0.0) or maximum (5.0) amount.
+</P>
+<P>The <I>random</I> style independently moves each atom in the group by a
+random displacement, uniformly sampled from a value between -dx and
++dx in the x dimension, and similarly for y and z.  Random numbers are
+used in such a way that the displacement of a particular atom is the
+same, regardless of how many processors are being used.
+</P>
+<P>The <I>rotate</I> style rotates each atom in the group by the angle <I>theta</I>
+around a rotation axis <I>R</I> = (Rx,Ry,Rz) that goes thru a point <I>P</I> =
+(Px,Py,Pz).  The direction of rotation for the atoms around the
+rotation axis is consistent with the right-hand rule: if your
+right-hand's thumb points along <I>R</I>, then your fingers wrap around the
+axis in the direction of positive theta.
+</P>
+<P>Distance units for displacements and the origin point of the <I>rotate</I>
+style are determined by the setting of <I>box</I> or <I>lattice</I> for the
+<I>units</I> keyword.  <I>Box</I> means distance units as defined by the
+<A HREF = "units.html">units</A> command - e.g. Angstroms for <I>real</I> units.
+<I>Lattice</I> means distance units are in lattice spacings.  The
+<A HREF = "lattice.html">lattice</A> command must have been previously used to
+define the lattice spacing.
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: Care should be taken not to move atoms on top of other
+atoms.  After the move, atoms are remapped into the periodic
+simulation box if needed, and any shrink-wrap boundary conditions (see
+the <A HREF = "boundary.html">boundary</A> command) are enforced which may change
+the box size.  Other than this effect, this command does not change
+the size or shape of the simulation box.  See the
+<A HREF = "change_box.html">change_box</A> command if that effect is desired.
+</P>
+<P>IMPORTANT NOTE: Atoms can be moved arbitrarily long distances by this
+command.  If the simulation box is non-periodic and shrink-wrapped
+(see the <A HREF = "boundary.html">boundary</A> command), this can change its size
+or shape.  This is not a problem, except that the mapping of
+processors to the simulation box is not changed by this command from
+its initial 3d configuration; see the <A HREF = "processors.html">processors</A>
+command.  Thus, if the box size/shape changes dramatically, the
+mapping of processors to the simulation box may not end up as optimal
+as the initial mapping attempted to be.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>You cannot rotate around any rotation vector except the z-axis for a
+2d simulation.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "lattice.html">lattice</A>, <A HREF = "change_box.html">change_box</A>,
+<A HREF = "fix_move.html">fix_move</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are units = lattice.
+</P>
+</HTML>

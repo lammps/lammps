@@ -380,6 +380,8 @@ void FixAveAtom::end_of_step()
   nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
+  if (array == NULL) return;
+
   // average the final result for the Nfreq timestep
 
   double repeat = nrepeat;

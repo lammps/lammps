@@ -149,6 +149,9 @@ int FixPIMD::setmask()
 
 void FixPIMD::init()
 {
+  if (atom->map_style == 0)
+    error->all(FLERR,"Fix pimd requires an atom map, see atom_modify");
+
   if(universe->me==0 && screen) fprintf(screen,"Fix pimd initializing Path-Integral ...\n");
   
   // prepare the constants
@@ -270,7 +273,7 @@ void FixPIMD::nhc_init()
       nhc_eta_dot[i][ichain]    = 0.0;
       nhc_eta_dotdot[i][ichain] = 0.0;
       nhc_eta_mass[i][ichain]   = mass0;
-      nhc_eta_mass[i][ichain] *= fmass; 
+      if((method==CMD || method==NMPIMD) && universe->iworld==0) ; else nhc_eta_mass[i][ichain]  *= fmass; 
     }
       
     nhc_eta_dot[i][nhc_nchain]    = 0.0;
@@ -656,8 +659,8 @@ void FixPIMD::comm_exec(double **ptr)
       {
         char error_line[256];
       
-        sprintf(error_line, "Atom %d is missing at world [%d] rank [%d] required by  rank [%d].\n",
-          tag_send[i], universe->iworld, comm->me, plan_recv[iplan]);
+        sprintf(error_line, "Atom %d is missing at world [%d] rank [%d] required by  rank [%d] (%d, %d, %d).\n",
+          tag_send[i], universe->iworld, comm->me, plan_recv[iplan], atom->tag[0], atom->tag[1], atom->tag[2]);
 	  
         error->universe_one(FLERR,error_line);
       }
@@ -679,7 +682,7 @@ void FixPIMD::comm_exec(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::pack_comm(int n, int *list, double *buf,
+int FixPIMD::pack_forward_comm(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -693,12 +696,12 @@ int FixPIMD::pack_comm(int n, int *list, double *buf,
     buf[m++] = comm_ptr[j][2];
   }
   
-  return 3;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::unpack_comm(int n, int first, double *buf)
+void FixPIMD::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

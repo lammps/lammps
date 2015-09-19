@@ -20,7 +20,7 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
     n1, n2, ... = loop factor between rRESPA levels (N-1 values)
     zero or more keyword/value pairings may be appended to the loop factors
     keyword = {bond} or {angle} or {dihedral} or {improper} or
-	      {pair} or {inner} or {middle} or {outer} or {kspace}
+	      {pair} or {inner} or {middle} or {outer} or {hybrid} or {kspace}
       {bond} value = M
         M = which level (1-N) to compute bond forces in
       {angle} value = M
@@ -43,6 +43,10 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
 	cut2 = outer cutoff between pair middle and pair outer (distance units)
       {outer} value = M
         M = which level (1-N) to compute pair outer forces in
+      {hybrid} values = M1 \[M2 ...\] (as many values as there are hybrid sub-styles 
+        M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
+        M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
+        ...
       {kspace} value = M
         M = which level (1-N) to compute kspace forces in :pre
 :ule
@@ -52,6 +56,7 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
 run_style verlet
 run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
 run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4 :pre
+run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3 :pre
 
 [Description:]
 
@@ -163,7 +168,17 @@ Only some pair potentials support the use of the {inner} and {middle}
 and {outer} keywords.  If not, only the {pair} keyword can be used
 with that pair style, meaning all pairwise forces are computed at the
 same rRESPA level.  See the doc pages for individual pair styles for
-details.
+details.i
+
+Another variant to use pair potentials in rRESPA is with the {hybrid}
+keyword, which requires the use of a "hybrid pair_style"_pair_hybrid.html
+In this scenario, different sub-styles of the hybrid pair style are
+evaluated at different rRESPA levels. Thus the hybrid keyword requires
+as many level assignments as there are hybrid substyles which designate
+the respective sub-styles to the rRESPA level according to their order
+of definition in the pair_style command. Since the {hybrid} designates
+pair force computations, it is mututally exclusive with either the {pair}
+or the {inner}/{middle}/{outer} keywords.
 
 When using rRESPA (or for any MD simulation) care must be taken to
 choose a timestep size(s) that insures the Hamiltonian for the chosen
@@ -232,15 +247,11 @@ run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 :pre
 
 The {respa/omp} styles is a variant of {respa} adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an {omp}
-suffix. It is functionally to {respa} but performs additional required
-operations. For more on {omp} styles see the
-"Section_accelerate"_Section_accelerate.html of the manual.
+suffix. It is functionally equivalent to {respa} but performs additional
+operations required for managing {omp} styles. For more on {omp} styles
+see the "Section_accelerate"_Section_accelerate.html of the manual.
 Accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
-
-The {respa/omp} style is part of the USER-OMP packages.  It is only
-enabled if LAMMPS was built with this package included.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify {respa/omp} explicitly in your input script, or
 you can use the "-suffix command-line switch"_Section_start.html#start_7
@@ -255,7 +266,8 @@ more instructions on how to use the accelerated styles effectively.
 [Restrictions:]
 
 The {verlet/split} style can only be used if LAMMPS was built with the
-REPLICA package.  See the "Making LAMMPS"_Section_start.html#start_3
+REPLICA package. Correspondingly the {respa/omp} style is available only
+if the USER-OMP package was included. See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
 
 Whenever using rRESPA, the user should experiment with trade-offs in

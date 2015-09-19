@@ -55,6 +55,7 @@ CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
 {
   style = 0;
   layout = LAYOUT_UNIFORM;
+  pbc_flag = NULL;
   init_buffers();
 }
 
@@ -77,6 +78,11 @@ CommBrick::~CommBrick()
 }
 
 /* ---------------------------------------------------------------------- */
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
 
 CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
@@ -85,7 +91,7 @@ CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 
   style = 0;
   layout = oldcomm->layout;
-  copy_arrays(oldcomm);
+  Comm::copy_arrays(oldcomm);
   init_buffers();
 }
 
@@ -172,9 +178,13 @@ void CommBrick::setup()
 
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++)
-        cutghostmulti[i][0] = cutghostmulti[i][1] = cutghostmulti[i][2] =
-          cuttype[i];
+      for (i = 1; i <= ntypes; i++) {
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
+      }
     }
 
   } else {
@@ -193,9 +203,11 @@ void CommBrick::setup()
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
-        cutghostmulti[i][0] = cuttype[i] * length0;
-        cutghostmulti[i][1] = cuttype[i] * length1;
-        cutghostmulti[i][2] = cuttype[i] * length2;
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
       }
     }
   }
@@ -1403,6 +1415,7 @@ void CommBrick::free_multi()
 {
   memory->destroy(multilo);
   memory->destroy(multihi);
+  multilo = multihi = NULL;
 }
 
 /* ----------------------------------------------------------------------

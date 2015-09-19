@@ -65,12 +65,14 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     FREBO_thr(ifrom,ito,evflag,eflag,vflag_atom,thr);
     if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,thr);
     if (torflag) TORSION_thr(ifrom,ito,evflag,eflag,thr);
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }

@@ -359,7 +359,7 @@ double PairZBL::e_zbl(double r, int i, int j) {
   double result = zzeij*sum*rinv;
 
   return result;
-};
+}
 
 
 /* ----------------------------------------------------------------------
@@ -393,7 +393,7 @@ double PairZBL::dzbldr(double r, int i, int j) {
   double result = zzeij*(sum_p - sum*rinv)*rinv;
   
   return result;
-};
+}
 
 /* ----------------------------------------------------------------------
    compute ZBL second derivative
@@ -432,5 +432,5 @@ double PairZBL::d2zbldr2(double r, int i, int j) {
 			 2.0*sum*rinv*rinv)*rinv;
   
   return result;
-};
+}
 

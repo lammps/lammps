@@ -1,0 +1,193 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lj/class2 command 
+</H3>
+<H3>pair_style lj/class2/cuda command 
+</H3>
+<H3>pair_style lj/class2/gpu command 
+</H3>
+<H3>pair_style lj/class2/kk command 
+</H3>
+<H3>pair_style lj/class2/omp command 
+</H3>
+<H3>pair_style lj/class2/coul/cut command 
+</H3>
+<H3>pair_style lj/class2/coul/cut/cuda command 
+</H3>
+<H3>pair_style lj/class2/coul/cut/kk command 
+</H3>
+<H3>pair_style lj/class2/coul/cut/omp command 
+</H3>
+<H3>pair_style lj/class2/coul/long command 
+</H3>
+<H3>pair_style lj/class2/coul/long/cuda command 
+</H3>
+<H3>pair_style lj/class2/coul/long/gpu command 
+</H3>
+<H3>pair_style lj/class2/coul/long/kk command 
+</H3>
+<H3>pair_style lj/class2/coul/long/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = <I>lj/class2</I> or <I>lj/class2/coul/cut</I> or <I>lj/class2/coul/long</I>
+<LI>args = list of arguments for a particular style 
+</UL>
+<PRE>  <I>lj/class2</I> args = cutoff
+    cutoff = global cutoff for class 2 interactions (distance units)
+  <I>lj/class2/coul/cut</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for class 2 (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>lj/class2/coul/long</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for class 2 (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lj/class2 10.0
+pair_coeff * * 100.0 2.5
+pair_coeff 1 2* 100.0 2.5 9.0 
+</PRE>
+<PRE>pair_style lj/class2/coul/cut 10.0
+pair_style lj/class2/coul/cut 10.0 8.0
+pair_coeff * * 100.0 3.0
+pair_coeff 1 1 100.0 3.5 9.0
+pair_coeff 1 1 100.0 3.5 9.0 9.0 
+</PRE>
+<PRE>pair_style lj/class2/coul/long 10.0
+pair_style lj/class2/coul/long 10.0 8.0
+pair_coeff * * 100.0 3.0
+pair_coeff 1 1 100.0 3.5 9.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>lj/class2</I> styles compute a 6/9 Lennard-Jones potential given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_class2.jpg">
+</CENTER>
+<P>Rc is the cutoff.
+</P>
+<P>The <I>lj/class2/coul/cut</I> and <I>lj/class2/coul/long</I> styles add a
+Coulombic term as described for the <A HREF = "pair_lj.html">lj/cut</A> pair styles.
+</P>
+<P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>cutoff1 (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>The latter 2 coefficients are optional.  If not specified, the global
+class 2 and Coulombic cutoffs are used.  If only one cutoff is
+specified, it is used as the cutoff for both class 2 and Coulombic
+interactions for this type pair.  If both coefficients are specified,
+they are used as the class 2 and Coulombic cutoffs for this type pair.
+You cannot specify 2 cutoffs for style <I>lj/class2</I>, since it has no
+Coulombic terms.
+</P>
+<P>For <I>lj/class2/coul/long</I> only the class 2 cutoff can be specified
+since a Coulombic cutoff cannot be specified for an individual I,J
+type pair.  All type pairs use the same global Coulombic cutoff
+specified in the pair_style command.
+</P>
+<HR>
+
+<P>If the pair_coeff command is not used to define coefficients for a
+particular I != J type pair, the mixing rule for epsilon and sigma for
+all class2 potentials is to use the <I>sixthpower</I> formulas documented
+by the <A HREF = "pair_modify.html">pair_modify</A> command.  The <A HREF = "pair_modify.html">pair_modify
+mix</A> setting is thus ignored for class2 potentials
+for epsilon and sigma.  However it is still followed for mixing the
+cutoff distance.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the lj/class2 pair styles can be mixed.
+Epsilon and sigma are always mixed with the value <I>sixthpower</I>.  The
+cutoff distance is mixed by whatever option is set by the pair_modify
+command (default = geometric).  See the "pair_modify" command for
+details.
+</P>
+<P>All of the lj/class2 pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the
+Lennard-Jones portion of the pair interaction.
+</P>
+<P>The <I>lj/class2/coul/long</I> pair style does not support the
+<A HREF = "pair_modify.html">pair_modify</A> table option since a tabulation
+capability has not yet been added to this potential.
+</P>
+<P>All of the lj/class2 pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> tail option for adding a long-range
+tail correction to the energy and pressure of the Lennard-Jones
+portion of the pair interaction.
+</P>
+<P>All of the lj/class2 pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
+<P>All of the lj/class2 pair styles can only be used via the <I>pair</I>
+keyword of the <A HREF = "run_style.html">run_style respa</A> command.  They do not
+support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>These styles are part of the CLASS2 package.  They are only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Sun"></A>
+
+<P><B>(Sun)</B> Sun, J Phys Chem B 102, 7338-7364 (1998).
+</P>
+</HTML>

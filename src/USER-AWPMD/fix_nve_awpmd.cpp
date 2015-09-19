@@ -88,12 +88,8 @@ void FixNVEAwpmd::initial_integrate(int vflag)
   double *erforce = atom->erforce;
   double *vforce=atom->vforce;
   double *ervelforce=atom->ervelforce;
-  double *cs=atom->cs;
-  double *csforce=atom->csforce;
-
 
   double *mass = atom->mass;
-  int *spin = atom->spin;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

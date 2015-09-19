@@ -7,10 +7,10 @@
 # If not, carry out the instructions in "README_run_moltemplate.sh".
 #
 #  -- Instructions: --
-# If "lmp_linux" is the name of the command you use to invoke lammps,
+# If "lmp_mpi" is the name of the command you use to invoke lammps,
 # then you would run lammps this way:
 
-lmp_linux -i run.in.nvt
+lmp_mpi -i run.in.nvt
 
 # NOTE: BECAUSE ALL OF THE ORIGINAL FORCE FIELD PARAMETERS WERE INTENTIONALLY
 #       REMOVED, THE SYSTEM WILL MOVE IN A VERY UNREALISTIC WAY.

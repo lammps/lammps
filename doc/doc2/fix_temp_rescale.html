@@ -1,0 +1,184 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix temp/rescale command 
+</H3>
+<H3>fix temp/rescale/cuda command 
+</H3>
+<H3>fix temp/rescale/limit/cuda command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID temp/rescale N Tstart Tstop window fraction 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>temp/rescale = style name of this fix command 
+
+<LI>N = perform rescaling every N steps  
+
+<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
+
+<PRE>  Tstart can be a variable (see below) 
+</PRE>
+<LI>window = only rescale if temperature is outside this window (temperature units) 
+
+<LI>fraction = rescale to target temperature by this fraction 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 flow temp/rescale 100 1.0 1.1 0.02 0.5
+fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0
+fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Reset the temperature of a group of atoms by explicitly rescaling
+their velocities.
+</P>
+<P>The rescaling is applied to only the translational degrees of freedom
+for the particles, which is an important consideration if finite-size
+particles which have rotational degrees of freedom are being
+thermostatted with this fix.  The translational degrees of freedom can
+also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
+</P>
+<P>Rescaling is performed every N timesteps.  The target temperature is a
+ramped value between the <I>Tstart</I> and <I>Tstop</I> temperatures at the
+beginning and end of the run.
+</P>
+<P><I>Tstart</I> can be specified as an equal-style <A HREF = "variable.html">variable</A>.
+In this case, the <I>Tstop</I> setting is ignored.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the target temperature.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+</P>
+<P>Rescaling is only performed if the difference between the current and
+desired temperatures is greater than the <I>window</I> value.  The amount
+of rescaling that is applied is a <I>fraction</I> (from 0.0 to 1.0) of the
+difference between the actual and desired temperature.  E.g. if
+<I>fraction</I> = 1.0, the temperature is reset to exactly the desired
+value.
+</P>
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt</A> command which
+performs Nose/Hoover thermostatting AND time integration, this fix
+does NOT perform time integration.  It only modifies velocities to
+effect thermostatting.  Thus you must use a separate time integration
+fix, like <A HREF = "fix_nve.html">fix nve</A> to actually update the positions of
+atoms using the modified velocities.  Likewise, this fix should not
+normally be used on atoms that also have their temperature controlled
+by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
+langevin</A> commands.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostatting.
+</P>
+<P>This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style "temp", as if one of this command had
+been issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> for details.  Note that the
+ID of the new compute is the fix-ID + underscore + "temp", and the
+group for the new compute is the same as the fix group.
+</P>
+<P>Note that this is NOT the compute used by thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>.
+This means you can change the attributes of this fix's temperature
+(e.g. its degrees-of-freedom) via the
+<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
+during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> command using the appropriate compute-ID.
+It also means that changing attributes of <I>thermo_temp</I> will have no
+effect on this fix.
+</P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
+accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change implied by a velocity rescaling to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_langevin.html">fix langevin</A>, <A HREF = "fix_nh.html">fix nvt</A>,
+<A HREF = "fix_modify.html">fix_modify</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

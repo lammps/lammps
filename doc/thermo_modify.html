@@ -1,173 +1,355 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>thermo_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>thermo_modify command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>thermo_modify keyword value ... 
-</PRE>
-<UL><LI>one or more keyword/value pairs may be listed 
-
-<PRE>keyword = <I>lost</I> or <I>lost/bond</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I>:l
-  <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
-  <I>lost/bond</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
-  <I>norm</I> value = <I>yes</I> or <I>no</I>
-  <I>flush</I> value = <I>yes</I> or <I>no</I>
-  <I>line</I> value = <I>one</I> or <I>multi</I>
-  <I>format</I> values = <I>int</I> string or <I>float</I> string or M string
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>thermo_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="thermo-modify-command">
+<span id="index-0"></span><h1>thermo_modify command<a class="headerlink" href="#thermo-modify-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>thermo_modify keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>one or more keyword/value pairs may be listed</li>
+</ul>
+<pre class="literal-block">
+keyword = <em>lost</em> or <em>lost/bond</em> or <em>norm</em> or <em>flush</em> or <em>line</em> or <em>format</em> or <em>temp</em> or <em>press</em>:l
+  <em>lost</em> value = <em>error</em> or <em>warn</em> or <em>ignore</em>
+  <em>lost/bond</em> value = <em>error</em> or <em>warn</em> or <em>ignore</em>
+  <em>norm</em> value = <em>yes</em> or <em>no</em>
+  <em>flush</em> value = <em>yes</em> or <em>no</em>
+  <em>line</em> value = <em>one</em> or <em>multi</em>
+  <em>format</em> values = <em>int</em> string or <em>float</em> string or M string
     M = integer from 1 to N, where N = # of quantities being printed
     string = C-style format string
-  <I>temp</I> value = compute ID that calculates a temperature
-  <I>press</I> value = compute ID that calculates a pressure 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>thermo_modify lost ignore flush yes
+  <em>temp</em> value = compute ID that calculates a temperature
+  <em>press</em> value = compute ID that calculates a pressure
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>thermo_modify lost ignore flush yes
 thermo_modify temp myTemp format 3 %15.8g
-thermo_modify line multi format float %g 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set options for how thermodynamic information is computed and printed
-by LAMMPS.
-</P>
-<P>IMPORTANT NOTE: These options apply to the currently defined thermo
-style.  When you specify a <A HREF = "thermo_style.html">thermo_style</A> command,
+thermo_modify line multi format float %g
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set options for how thermodynamic information is computed and printed
+by LAMMPS.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">These options apply to the currently defined thermo
+style.  When you specify a <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command,
 all thermodynamic settings are restored to their default values,
 including those previously reset by a thermo_modify command.  Thus if
 your input script specifies a thermo_style command, you should use the
-thermo_modify command after it.
-</P>
-<P>The <I>lost</I> keyword determines whether LAMMPS checks for lost atoms
+thermo_modify command after it.</p>
+</div>
+<p>The <em>lost</em> keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are
-lost.  An atom can be "lost" if it moves across a non-periodic
-simulation box <A HREF = "boundary.html">boundary</A> or if it moves more than a box
+lost.  An atom can be &#8220;lost&#8221; if it moves across a non-periodic
+simulation box <a class="reference internal" href="boundary.html"><em>boundary</em></a> or if it moves more than a box
 length outside the simulation domain (or more than a processor
 sub-domain length) before reneighboring occurs.  The latter case is
 typically due to bad dynamics, e.g. too large a timestep or huge
-forces and velocities.  If the value is <I>ignore</I>, LAMMPS does not
-check for lost atoms.  If the value is <I>error</I> or <I>warn</I>, LAMMPS
+forces and velocities.  If the value is <em>ignore</em>, LAMMPS does not
+check for lost atoms.  If the value is <em>error</em> or <em>warn</em>, LAMMPS
 checks and either issues an error or warning.  The code will exit with
 an error and continue with a warning.  A warning will only be issued
 once, the first time an atom is lost.  This can be a useful debugging
-option.
-</P>
-<P>The <I>lost/bond</I> keyword determines whether LAMMPS throws an error or
+option.</p>
+<p>The <em>lost/bond</em> keyword determines whether LAMMPS throws an error or
 not if an atom in a bonded interaction (bond, angle, etc) cannot be
 found when it creates bonded neighbor lists.  By default this is a
 fatal error.  However in some scenarios it may be desirable to only
 issue a warning or ignore it and skip the computation of the missing
 bond, angle, etc.  An example would be when gas molecules in a vapor
 are drifting out of the box through a fixed boundary condition (see
-the <A HREF = "boundary.html">boundary</A> command).  In this case one atom may be
-deleted before the rest of the molecule is, on a later timestep.
-</P>
-<P>The <I>norm</I> keyword determines whether various thermodynamic output
+the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command).  In this case one atom may be
+deleted before the rest of the molecule is, on a later timestep.</p>
+<p>The <em>norm</em> keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on
-whether it is set to <I>yes</I> or <I>no</I>.  Different unit styles have
-different defaults for this setting (see below).  Even if <I>norm</I> is
-set to <I>yes</I>, a value is only normalized if it is an "extensive"
+whether it is set to <em>yes</em> or <em>no</em>.  Different unit styles have
+different defaults for this setting (see below).  Even if <em>norm</em> is
+set to <em>yes</em>, a value is only normalized if it is an &#8220;extensive&#8221;
 quantity, meaning that it scales with the number of atoms in the
 system.  For the thermo keywords described by the doc page for the
-<A HREF = "thermo_style.html">thermo_style</A> command, all energy-related keywords
-are extensive, such as <I>pe</I> or <I>ebond</I> or <I>enthalpy</I>.  Other keywords
-such as <I>temp</I> or <I>press</I> are "intensive" meaning their value is
+<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command, all energy-related keywords
+are extensive, such as <em>pe</em> or <em>ebond</em> or <em>enthalpy</em>.  Other keywords
+such as <em>temp</em> or <em>press</em> are &#8220;intensive&#8221; meaning their value is
 independent (in a statistical sense) of the number of atoms in the
 system and thus are never normalized.  For thermodynamic output values
-extracted from fixes and computes in a <A HREF = "thermo_style.html">thermo_style
-custom</A> command, the doc page for the individual
-<A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A> lists whether the value is
-"extensive" or "intensive" and thus whether it is normalized.
+extracted from fixes and computes in a <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command, the doc page for the individual
+<a class="reference internal" href="fix.html"><em>fix</em></a> or <a class="reference internal" href="compute.html"><em>compute</em></a> lists whether the value is
+&#8220;extensive&#8221; or &#8220;intensive&#8221; and thus whether it is normalized.
 Thermodynamic output values calculated by a variable formula are
-assumed to be "intensive" and thus are never normalized.  You can
+assumed to be &#8220;intensive&#8221; and thus are never normalized.  You can
 always include a divide by the number of atoms in the variable formula
-if this is not the case.
-</P>
-<P>The <I>flush</I> keyword invokes a flush operation after thermodynamic info
+if this is not the case.</p>
+<p>The <em>flush</em> keyword invokes a flush operation after thermodynamic info
 is written to the log file.  This insures the output in that file is
 current (no buffering by the OS), even if LAMMPS halts before the
-simulation completes.
-</P>
-<P>The <I>line</I> keyword determines whether thermodynamics will be printed
+simulation completes.</p>
+<p>The <em>line</em> keyword determines whether thermodynamics will be printed
 as a series of numeric values on one line or in a multi-line format
 with 3 quantities with text strings per line and a dashed-line header
 containing the timestep and CPU time.  This modify option overrides
-the <I>one</I> and <I>multi</I> thermo_style settings.
-</P>
-<P>The <I>format</I> keyword sets the numeric format of individual printed
-quantities.  The <I>int</I> and <I>float</I> keywords set the format for all
+the <em>one</em> and <em>multi</em> thermo_style settings.</p>
+<p>The <em>format</em> keyword sets the numeric format of individual printed
+quantities.  The <em>int</em> and <em>float</em> keywords set the format for all
 integer or floating-point quantities printed.  The setting with a
 numeric value M (e.g. format 5 %10.4g) sets the format of the Mth
 value printed in each output line, e.g. the 5th column of output in
 this case.  If the format for a specific column has been set, it will
-take precedent over the <I>int</I> or <I>float</I> setting.
-</P>
-<P>IMPORTANT NOTE: The thermo output values <I>step</I> and <I>atoms</I> are stored
+take precedent over the <em>int</em> or <em>float</em> setting.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The thermo output values <em>step</em> and <em>atoms</em> are stored
 internally as 8-byte signed integers, rather than the usual 4-byte
-signed integers.  When specifying the "format int" keyword you can use
-a "%d"-style format identifier in the format string and LAMMPS will
-convert this to the corresponding "%lu" form when it is applied to
-those keywords.  However, when specifying the "format M string"
-keyword for <I>step</I> and <I>natoms</I>, you should specify a string
-appropriate for an 8-byte signed integer, e.g. one with "%ld".
-</P>
-<P>The <I>temp</I> keyword is used to determine how thermodynamic temperature
+signed integers.  When specifying the &#8220;format int&#8221; keyword you can use
+a &#8220;%d&#8221;-style format identifier in the format string and LAMMPS will
+convert this to the corresponding &#8220;%lu&#8221; form when it is applied to
+those keywords.  However, when specifying the &#8220;format M string&#8221;
+keyword for <em>step</em> and <em>natoms</em>, you should specify a string
+appropriate for an 8-byte signed integer, e.g. one with &#8220;%ld&#8221;.</p>
+</div>
+<p>The <em>temp</em> keyword is used to determine how thermodynamic temperature
 is calculated, which is used by all thermo quantities that require a
-temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx", etc).
+temperature (&#8220;temp&#8221;, &#8220;press&#8221;, &#8220;ke&#8221;, &#8220;etotal&#8221;, &#8220;enthalpy&#8221;, &#8220;pxx&#8221;, etc).
 The specified compute ID must have been previously defined by the user
-via the <A HREF = "compute.html">compute</A> command and it must be a style of
+via the <a class="reference internal" href="compute.html"><em>compute</em></a> command and it must be a style of
 compute that calculates a temperature.  As described in the
-<A HREF = "thermo_style.html">thermo_style</A> command, thermo output uses a default
-compute for temperature with ID = <I>thermo_temp</I>.  This option allows
-the user to override the default.
-</P>
-<P>The <I>press</I> keyword is used to determine how thermodynamic pressure is
+<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command, thermo output uses a default
+compute for temperature with ID = <em>thermo_temp</em>.  This option allows
+the user to override the default.</p>
+<p>The <em>press</em> keyword is used to determine how thermodynamic pressure is
 calculated, which is used by all thermo quantities that require a
-pressure ("press", "enthalpy", "pxx", etc).  The specified compute ID
+pressure (&#8220;press&#8221;, &#8220;enthalpy&#8221;, &#8220;pxx&#8221;, etc).  The specified compute ID
 must have been previously defined by the user via the
-<A HREF = "compute.html">compute</A> command and it must be a style of compute that
+<a class="reference internal" href="compute.html"><em>compute</em></a> command and it must be a style of compute that
 calculates a pressure.  As described in the
-<A HREF = "thermo_style.html">thermo_style</A> command, thermo output uses a default
-compute for pressure with ID = <I>thermo_press</I>.  This option allows the
-user to override the default.
-</P>
-<P>IMPORTANT NOTE: If both the <I>temp</I> and <I>press</I> keywords are used in a
+<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command, thermo output uses a default
+compute for pressure with ID = <em>thermo_press</em>.  This option allows the
+user to override the default.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If both the <em>temp</em> and <em>press</em> keywords are used in a
 single thermo_modify command (or in two separate commands), then the
 order in which the keywords are specified is important.  Note that a
-<A HREF = "compute_pressure.html">pressure compute</A> defines its own temperature
-compute as an argument when it is specified.  The <I>temp</I> keyword will
+<a class="reference internal" href="compute_pressure.html"><em>pressure compute</em></a> defines its own temperature
+compute as an argument when it is specified.  The <em>temp</em> keyword will
 override this (for the pressure compute being used by thermodynamics),
-but only if the <I>temp</I> keyword comes after the <I>press</I> keyword.  If
-the <I>temp</I> keyword comes before the <I>press</I> keyword, then the new
-pressure compute specified by the <I>press</I> keyword will be unaffected
-by the <I>temp</I> setting.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "thermo.html">thermo</A>, <A HREF = "thermo_style.html">thermo_style</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are lost = error, norm = yes for unit style of
-<I>lj</I>, norm = no for unit style of <I>real</I> and <I>metal</I>, flush = no,
-and temp/press = compute IDs defined by thermo_style.
-</P>
-<P>The defaults for the line and format options depend on the thermo
-style.  For styles "one" and "custom", the line and format defaults
-are "one", "%8d", and "%12.8g".  For style "multi", the line and
-format defaults are "multi", "%8d", and "%14.4f".
-</P>
-</HTML>
+but only if the <em>temp</em> keyword comes after the <em>press</em> keyword.  If
+the <em>temp</em> keyword comes before the <em>press</em> keyword, then the new
+pressure compute specified by the <em>press</em> keyword will be unaffected
+by the <em>temp</em> setting.</p>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="thermo.html"><em>thermo</em></a>, <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are lost = error, norm = yes for unit style of
+<em>lj</em>, norm = no for unit style of <em>real</em> and <em>metal</em>, flush = no,
+and temp/press = compute IDs defined by thermo_style.</p>
+<p>The defaults for the line and format options depend on the thermo
+style.  For styles &#8220;one&#8221; and &#8220;custom&#8221;, the line and format defaults
+are &#8220;one&#8221;, &#8220;%8d&#8221;, and &#8220;%12.8g&#8221;.  For style &#8220;multi&#8221;, the line and
+format defaults are &#8220;multi&#8221;, &#8220;%8d&#8221;, and &#8220;%14.4f&#8221;.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

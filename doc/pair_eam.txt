@@ -82,11 +82,11 @@ to model alloy systems by invoking the {eam/alloy} or {eam/cd} or
 {eam/fs} styles as described below.  These files require no mixing
 since they specify alloy interactions explicitly.
 
-Note that unlike for other potentials, cutoffs for EAM potentials are
-not set in the pair_style or pair_coeff command; they are specified in
-the EAM potential files themselves.  Likewise, the EAM potential files
-list atomic masses; thus you do not need to use the "mass"_mass.html
-command to specify them.
+IMPORTANT NOTE: Note that unlike for other potentials, cutoffs for EAM
+potentials are not set in the pair_style or pair_coeff command; they
+are specified in the EAM potential files themselves.  Likewise, the
+EAM potential files list atomic masses; thus you do not need to use
+the "mass"_mass.html command to specify them.
 
 There are several WWW sites that distribute and document EAM
 potentials stored in DYNAMO or other formats:

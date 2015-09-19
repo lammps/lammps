@@ -1,0 +1,93 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dihedral_style opls command 
+</H3>
+<H3>dihedral_style opls/kk command 
+</H3>
+<H3>dihedral_style opls/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dihedral_style opls 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>dihedral_style opls
+dihedral_coeff 1 1.740 -0.157 0.279 0.00   # CT-CT-CT-CT
+dihedral_coeff 2 0.000 0.000 0.366 0.000   # CT-CT-CT-HC
+dihedral_coeff 3 0.000 0.000 0.318 0.000   # HC-CT-CT-HC 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>opls</I> dihedral style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/dihedral_opls.jpg">
+</CENTER>
+<P>Note that the usual 1/2 factor is not included in the K values.
+</P>
+<P>This dihedral potential is used in the OPLS force field and is
+described in <A HREF = "#Watkins">(Watkins)</A>.
+</P>
+<P>The following coefficients must be defined for each dihedral type via the
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>K1 (energy)
+<LI>K2 (energy)
+<LI>K3 (energy)
+<LI>K4 (energy) 
+</UL>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This dihedral style can only be used if LAMMPS was built with the
+MOLECULE package (which it is by default).  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Watkins"></A>
+
+<P><B>(Watkins)</B> Watkins and Jorgensen, J Phys Chem A, 105, 4118-4125 (2001).
+</P>
+</HTML>

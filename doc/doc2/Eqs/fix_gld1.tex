@@ -1,0 +1,13 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+
+\begin{document}
+ 
+\begin{align*}
+ &{\bf F}_{j}(t) = {\bf F}^C_j(t)-\int \limits_{0}^{t} \Gamma_j(t-s) {\bf v}_j(s)~\text{d}s + {\bf F}^R_j(t) \\
+ &\Gamma_j(t-s) = \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\ 
+ &\langle{\bf F}^R_j(t),{\bf F}^R_j(s)\rangle = \text{k$_\text{B}$T} ~\Gamma_j(t-s)
+\end{align*}
+
+\end{document}

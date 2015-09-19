@@ -19,7 +19,7 @@ public:
 
   /// Retrieve colvar values and calculate their biasing forces
   /// Return bias energy
-  virtual cvm::real update() = 0;
+  virtual cvm::real update();
 
   // TODO: move update_bias here (share with metadynamics)
 

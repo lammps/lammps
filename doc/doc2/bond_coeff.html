@@ -1,0 +1,100 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>bond_coeff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>bond_coeff N args 
+</PRE>
+<UL><LI>N = bond type (see asterisk form below)
+<LI>args = coefficients for one or more bond types 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>bond_coeff 5 80.0 1.2
+bond_coeff * 30.0 1.5 1.0 1.0
+bond_coeff 1*4 30.0 1.5 1.0 1.0
+bond_coeff 1 harmonic 200.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify the bond force field coefficients for one or more bond types.
+The number and meaning of the coefficients depends on the bond style.
+Bond coefficients can also be set in the data file read by the
+<A HREF = "read_data.html">read_data</A> command or in a restart file.
+</P>
+<P>N can be specified in one of two ways.  An explicit numeric value can
+be used, as in the 1st example above.  Or a wild-card asterisk can be
+used to set the coefficients for multiple bond types.  This takes the
+form "*" or "*n" or "n*" or "m*n".  If N = the number of bond types,
+then an asterisk with no numeric values means all types from 1 to N.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to N (inclusive).  A middle asterisk
+means all types from m to n (inclusive).
+</P>
+<P>Note that using a bond_coeff command can override a previous setting
+for the same bond type.  For example, these commands set the coeffs
+for all bond types, then overwrite the coeffs for just bond type 2:
+</P>
+<PRE>bond_coeff * 100.0 1.2
+bond_coeff 2 200.0 1.2 
+</PRE>
+<P>A line in a data file that specifies bond coefficients uses the exact
+same format as the arguments of the bond_coeff command in an input
+script, except that wild-card asterisks should not be used since
+coefficients for all N types must be listed in the file.  For example,
+under the "Bond Coeffs" section of a data file, the line that
+corresponds to the 1st example above would be listed as
+</P>
+<PRE>5 80.0 1.2 
+</PRE>
+<HR>
+
+<P>Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
+the style to display the formula it computes and coefficients
+specified by the associated <A HREF = "bond_coeff.html">bond_coeff</A> command.
+</P>
+<P>Note that here are also additional bond styles submitted by users
+which are included in the LAMMPS distribution.  The list of these with
+links to the individual styles are given in the bond section of <A HREF = "Section_commands.html#cmd_5">this
+page</A>.
+</P>
+<UL><LI><A HREF = "bond_none.html">bond_style none</A> - turn off bonded interactions
+<LI><A HREF = "bond_hybrid.html">bond_style hybrid</A> - define multiple styles of bond interactions 
+</UL>
+<UL><LI><A HREF = "bond_class2.html">bond_style class2</A> - COMPASS (class 2) bond
+<LI><A HREF = "bond_fene.html">bond_style fene</A> - FENE (finite-extensible non-linear elastic) bond
+<LI><A HREF = "bond_fene_expand.html">bond_style fene/expand</A> - FENE bonds with variable size particles
+<LI><A HREF = "bond_harmonic.html">bond_style harmonic</A> - harmonic bond
+<LI><A HREF = "bond_morse.html">bond_style morse</A> - Morse bond
+<LI><A HREF = "bond_nonlinear.html">bond_style nonlinear</A> - nonlinear bond
+<LI><A HREF = "bond_quartic.html">bond_style quartic</A> - breakable quartic bond
+<LI><A HREF = "bond_table.html">bond_style table</A> - tabulated by bond length 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command must come after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
+<A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>A bond style must be defined before any bond coefficients are set,
+either in the input script or in a data file.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "bond_style.html">bond_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

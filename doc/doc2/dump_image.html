@@ -1,0 +1,566 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dump image command 
+</H3>
+<H3>dump movie command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dump ID group-ID style N file color diameter keyword value ... 
+</PRE>
+<UL><LI>ID = user-assigned name for the dump 
+
+<LI>group-ID = ID of the group of atoms to be imaged 
+
+<LI>style = <I>image</I> or <I>movie</I> = style of dump command (other styles <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>local</I> or <I>custom</I> are discussed on the <A HREF = "dump.html">dump</A> doc page) 
+
+<LI>N = dump every this many timesteps 
+
+<LI>file = name of file to write image to 
+
+<LI>color = atom attribute that determines color of each atom 
+
+<LI>diameter = atom attribute that determines size of each atom 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>adiam</I> or <I>atom</I> or <I>bond</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>subbox</I> or <I>shiny</I> or <I>ssao</I> 
+
+<PRE>  <I>adiam</I> value = number = numeric value for atom diameter (distance units)
+  <I>atom</I> = yes/no = do or do not draw atoms
+  <I>bond</I> values = color width = color and width of bonds
+    color = <I>atom</I> or <I>type</I> or <I>none</I>
+    width = number or <I>atom</I> or <I>type</I> or <I>none</I>
+      number = numeric value for bond width (distance units)
+  <I>size</I> values = width height = size of images
+    width = width of image in # of pixels
+    height = height of image in # of pixels
+  <I>view</I> values = theta phi = view of simulation box
+    theta = view angle from +z axis (degrees)
+    phi = azimuthal view angle (degrees)
+    theta or phi can be a variable (see below)
+  <I>center</I> values = flag Cx Cy Cz = center point of image
+    flag = "s" for static, "d" for dynamic
+    Cx,Cy,Cz = center point of image as fraction of box dimension (0.5 = center of box)
+    Cx,Cy,Cz can be variables (see below)
+  <I>up</I> values = Ux Uy Uz = direction that is "up" in image
+    Ux,Uy,Uz = components of up vector
+    Ux,Uy,Uz can be variables (see below)
+  <I>zoom</I> value = zfactor = size that simulation box appears in image
+    zfactor = scale image size by factor > 1 to enlarge, factor < 1 to shrink
+    zfactor can be a variable (see below)
+  <I>persp</I> value = pfactor = amount of "perspective" in image
+    pfactor = amount of perspective (0 = none, < 1 = some, > 1 = highly skewed)
+    pfactor can be a variable (see below)
+  <I>box</I> values = yes/no diam = draw outline of simulation box
+    yes/no = do or do not draw simulation box lines
+    diam = diameter of box lines as fraction of shortest box length
+  <I>axes</I> values = yes/no length diam = draw xyz axes
+    yes/no = do or do not draw xyz axes lines next to simulation box
+    length = length of axes lines as fraction of respective box lengths
+    diam = diameter of axes lines as fraction of shortest box length
+  <I>subbox</I> values = yes/no diam = draw outline of processor sub-domains
+    yes/no = do or do not draw sub-domain lines
+    diam = diameter of sub-domain lines as fraction of shortest box length
+  <I>shiny</I> value = sfactor = shinyness of spheres and cylinders
+    sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
+  <I>ssao</I> value = yes/no seed dfactor = SSAO depth shading
+    yes/no = turn depth shading on/off
+    seed = random # seed (positive integer)
+    dfactor = strength of shading from 0.0 to 1.0 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dump d0 all image 100 dump.*.jpg type type
+dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6
+dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720
+dump m0 all movie 1000 movie.mpg type type size 640 480
+dump m1 all movie 1000 movie.avi type type size 640 480
+dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Dump a high-quality rendered image of the atom configuration every N
+timesteps and save the images either as a sequence of JPEG or PNG or
+PPM files, or as a single movie file.  The options for this command as
+well as the <A HREF = "dump_modify.html">dump_modify</A> command control what is
+included in the image or movie and how it appears.  A series of such
+images can easily be manually converted into an animated movie of your
+simulation or the process can be automated without writing the
+intermediate files using the dump movie style; see further details
+below.  Other dump styles store snapshots of numerical data asociated
+with atoms in various formats, as discussed on the <A HREF = "dump.html">dump</A>
+doc page.
+</P>
+<P>Note that a set of images or a movie can be made after a simulation
+has been run, using the <A HREF = "rerun.html">rerun</A> command to read snapshots
+from an existing dump file, and using these dump commands in the rerun
+script to generate the images/movie.
+</P>
+<P>Here are two sample images, rendered as 1024x1024 JPEG files.  Click
+to see the full-size images:
+</P>
+<DIV ALIGN=center>
+
+<A HREF = "JPG/dump1.jpg"><IMG SRC = "JPG/dump1_small.jpg"></A>
+
+<A HREF = "JPG/dump2.jpg"><IMG SRC = "JPG/dump2_small.jpg"></A>
+
+</DIV>
+
+<P>Only atoms in the specified group are rendered in the image.  The
+<A HREF = "dump_modify.html">dump_modify region and thresh</A> commands can also
+alter what atoms are included in the image.</P>
+<P>The filename suffix determines whether a JPEG, PNG, or PPM file is
+created with the <I>image</I> dump style.  If the suffix is ".jpg" or
+".jpeg", then a JPEG format file is created, if the suffix is ".png",
+then a PNG format is created, else a PPM (aka NETPBM) format file is
+created.  The JPEG and PNG files are binary; PPM has a text mode
+header followed by binary data. JPEG images have lossy compression;
+PNG has lossless compression; and PPM files are uncompressed but can
+be compressed with gzip, if LAMMPS has been compiled with
+-DLAMMPS_GZIP and a ".gz" suffix is used.
+</P>
+<P>Similarly, the format of the resulting movie is chosen with the
+<I>movie</I> dump style. This is handled by the underlying FFmpeg converter
+and thus details have to be looked up in the FFmpeg documentation.
+Typical examples are: .avi, .mpg, .m4v, .mp4, .mkv, .flv, .mov, .gif
+Additional settings of the movie compression like bitrate and
+framerate can be set using the <A HREF = "dump_modify.html">dump_modify</A> command.
+</P>
+<P>To write out JPEG and PNG format files, you must build LAMMPS with
+support for the corresponding JPEG or PNG library. To convert images
+into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
+flag. See <A HREF = "Section_start.html#start_2_4">this section</A> of the manual
+for instructions on how to do this.
+</P>
+<P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
+on timesteps when neighbor lists are rebuilt, the coordinates of an
+atom in the image may be slightly outside the simulation box.
+</P>
+<HR>
+
+<P>Dumps are performed on timesteps that are a multiple of N (including
+timestep 0) and on the last timestep of a minimization if the
+minimization converges.  Note that this means a dump will not be
+performed on the initial timestep after the dump command is invoked,
+if the current timestep is not a multiple of N.  This behavior can be
+changed via the <A HREF = "dump_modify.html">dump_modify first</A> command, which
+can be useful if the dump command is invoked after a minimization
+ended on an arbitrary timestep.  N can be changed between runs by
+using the <A HREF = "dump_modify.html">dump_modify every</A> command.
+</P>
+<P>Dump <I>image</I> filenames must contain a wildcard character "*", so that
+one image file per snapshot is written.  The "*" character is replaced
+with the timestep value.  For example, tmp.dump.*.jpg becomes
+tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
+that the <A HREF = "dump_modify.html">dump_modify pad</A> command can be used to
+insure all timestep numbers are the same length (e.g. 00010), which
+can make it easier to convert a series of images into a movie in the
+correct ordering.
+</P>
+<P>Dump <I>movie</I> filenames on the other hand, must not have any wildcard
+character since only one file combining all images into a single
+movie will be written by the movie encoder.
+</P>
+<HR>
+
+<P>The <I>color</I> and <I>diameter</I> settings determine the color and size of
+atoms rendered in the image.  They can be any atom attribute defined
+for the <A HREF = "dump.html">dump custom</A> command, including <I>type</I> and
+<I>element</I>.  This includes per-atom quantities calculated by a
+<A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or <A HREF = "variable.html">variable</A>,
+which are prefixed by "c_", "f_", or "v_" respectively.  Note that the
+<I>diameter</I> setting can be overridden with a numeric value by the
+optional <I>adiam</I> keyword, in which case you can specify the <I>diameter</I>
+setting with any valid atom attribute.
+</P>
+<P>If <I>type</I> is specified for the <I>color</I> setting, then the color of each
+atom is determined by its atom type.  By default the mapping of types
+to colors is as follows:
+</P>
+<UL><LI>type 1 = red
+<LI>type 2 = green
+<LI>type 3 = blue
+<LI>type 4 = yellow
+<LI>type 5 = aqua
+<LI>type 6 = cyan 
+</UL>
+<P>and repeats itself for types > 6.  This mapping can be changed by the
+<A HREF = "dump_modify.html">dump_modify acolor</A> command.
+</P>
+<P>If <I>type</I> is specified for the <I>diameter</I> setting then the diameter of
+each atom is determined by its atom type.  By default all types have
+diameter 1.0.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
+adiam</A> command.
+</P>
+<P>If <I>element</I> is specified for the <I>color</I> and/or <I>diameter</I> setting,
+then the color and/or diameter of each atom is determined by which
+element it is, which in turn is specified by the element-to-type
+mapping specified by the "dump_modify element" command.  By default
+every atom type is C (carbon).  Every element has a color and diameter
+associated with it, which is the same as the colors and sizes used by
+the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
+</P>
+
+
+<P>If other atom attributes are used for the <I>color</I> or <I>diameter</I>
+settings, they are interpreted in the following way.
+</P>
+<P>If "vx", for example, is used as the <I>color</I> setting, then the color
+of the atom will depend on the x-component of its velocity.  The
+association of a per-atom value with a specific color is determined by
+a "color map", which can be specified via the
+<A HREF = "dump_modify.html">dump_modify</A> command.  The basic idea is that the
+atom-attribute will be within a range of values, and every value
+within the range is mapped to a specific color.  Depending on how the
+color map is defined, that mapping can take place via interpolation so
+that a value of -3.2 is halfway between "red" and "blue", or
+discretely so that the value of -3.2 is "orange".
+</P>
+<P>If "vx", for example, is used as the <I>diameter</I> setting, then the atom
+will be rendered using the x-component of its velocity as the
+diameter.  If the per-atom value <= 0.0, them the atom will not be
+drawn.  Note that finite-size spherical particles, as defined by
+<A HREF = "atom_style.html">atom_style sphere</A> define a per-particle radius or
+diameter, which can be used as the <I>diameter</I> setting.
+</P>
+<HR>
+
+<P>The various kewords listed above control how the image is rendered.
+As listed below, all of the keywords have defaults, most of which you
+will likely not need to change.  The <A HREF = "dump_modify.html">dump modify</A>
+also has options specific to the dump image style, particularly for
+assigning colors to atoms, bonds, and other image features.
+</P>
+<HR>
+
+<P>The <I>adiam</I> keyword allows you to override the <I>diameter</I> setting to a
+per-atom attribute with a specified numeric value.  All atoms will be
+drawn with that diameter, e.g. 1.5, which is in whatever distance
+<A HREF = "units.html">units</A> the input script defines, e.g. Angstroms.
+</P>
+<P>The <I>atom</I> keyword allow you to turn off the drawing of all atoms,
+if the specified value is <I>no</I>.
+</P>
+<P>The <I>bond</I> keyword allows to you to alter how bonds are drawn.  A bond
+is only drawn if both atoms in the bond are being drawn due to being
+in the specified group and due to other selection criteria
+(e.g. region, threshhold settings of the
+<A HREF = "dump_modify.html">dump_modify</A> command).  By default, bonds are drawn
+if they are defined in the input data file as read by the
+<A HREF = "read_data.html">read_data</A> command.  Using <I>none</I> for both the bond
+<I>color</I> and <I>width</I> value will turn off the drawing of all bonds.
+</P>
+<P>If <I>atom</I> is specified for the bond <I>color</I> value, then each bond is
+drawn in 2 halves, with the color of each half being the color of the
+atom at that end of the bond.
+</P>
+<P>If <I>type</I> is specified for the <I>color</I> value, then the color of each
+bond is determined by its bond type.  By default the mapping of bond
+types to colors is as follows:
+</P>
+<UL><LI>type 1 = red
+<LI>type 2 = green
+<LI>type 3 = blue
+<LI>type 4 = yellow
+<LI>type 5 = aqua
+<LI>type 6 = cyan 
+</UL>
+<P>and repeats itself for bond types > 6.  This mapping can be changed by
+the <A HREF = "dump_modify.html">dump_modify bcolor</A> command.
+</P>
+<P>The bond <I>width</I> value can be a numeric value or <I>atom</I> or <I>type</I> (or
+<I>none</I> as indicated above).
+</P>
+<P>If a numeric value is specified, then all bonds will be drawn as
+cylinders with that diameter, e.g. 1.0, which is in whatever distance
+<A HREF = "units.html">units</A> the input script defines, e.g. Angstroms.
+</P>
+<P>If <I>atom</I> is specified for the <I>width</I> value, then each bond
+will be drawn with a width corresponding to the minimum diameter
+of the 2 atoms in the bond.
+</P>
+<P>If <I>type</I> is specified for the <I>width</I> value then the diameter of each
+bond is determined by its bond type.  By default all types have
+diameter 0.5.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
+bdiam</A> command.
+</P>
+<HR>
+
+<P>The <I>size</I> keyword sets the width and height of the created images,
+i.e. the number of pixels in each direction.
+</P>
+<HR>
+
+<P>The <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> values determine how
+3d simulation space is mapped to the 2d plane of the image.  Basically
+they control how the simulation box appears in the image.
+</P>
+<P>All of the <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> values can be
+specified as numeric quantities, whose meaning is explained below.
+Any of them can also be specified as an <A HREF = "variable.html">equal-style
+variable</A>, by using v_name as the value, where "name" is
+the variable name.  In this case the variable will be evaluated on the
+timestep each image is created to create a new value.  If the
+equal-style variable is time-dependent, this is a means of changing
+the way the simulation box appears from image to image, effectively
+doing a pan or fly-by view of your simulation.
+</P>
+<P>The <I>view</I> keyword determines the viewpoint from which the simulation
+box is viewed, looking towards the <I>center</I> point.  The <I>theta</I> value
+is the vertical angle from the +z axis, and must be an angle from 0 to
+180 degrees.  The <I>phi</I> value is an azimuthal angle around the z axis
+and can be positive or negative.  A value of 0.0 is a view along the
++x axis, towards the <I>center</I> point.  If <I>theta</I> or <I>phi</I> are
+specified via variables, then the variable values should be in
+degrees.
+</P>
+<P>The <I>center</I> keyword determines the point in simulation space that
+will be at the center of the image.  <I>Cx</I>, <I>Cy</I>, and <I>Cz</I> are
+speficied as fractions of the box dimensions, so that (0.5,0.5,0.5) is
+the center of the simulation box.  These values do not have to be
+between 0.0 and 1.0, if you want the simulation box to be offset from
+the center of the image.  Note, however, that if you choose strange
+values for <I>Cx</I>, <I>Cy</I>, or <I>Cz</I> you may get a blank image.  Internally,
+<I>Cx</I>, <I>Cy</I>, and <I>Cz</I> are converted into a point in simulation space.
+If <I>flag</I> is set to "s" for static, then this conversion is done once,
+at the time the dump command is issued.  If <I>flag</I> is set to "d" for
+dynamic then the conversion is performed every time a new image is
+created.  If the box size or shape is changing, this will adjust the
+center point in simulation space.
+</P>
+<P>The <I>up</I> keyword determines what direction in simulation space will be
+"up" in the image.  Internally it is stored as a vector that is in the
+plane perpendicular to the view vector implied by the <I>theta</I> and
+<I>pni</I> values, and which is also in the plane defined by the view
+vector and user-specified up vector.  Thus this internal vector is
+computed from the user-specified <I>up</I> vector as
+</P>
+<PRE>up_internal = view cross (up cross view) 
+</PRE>
+<P>This means the only restriction on the specified <I>up</I> vector is that
+it cannot be parallel to the <I>view</I> vector, implied by the <I>theta</I> and
+<I>phi</I> values.
+</P>
+<P>The <I>zoom</I> keyword scales the size of the simulation box as it appears
+in the image.  The default <I>zfactor</I> value of 1 should display an
+image mostly filled by the atoms in the simulation box.  A <I>zfactor</I> >
+1 will make the simulation box larger; a <I>zfactor</I> < 1 will make it
+smaller.  <I>Zfactor</I> must be a value > 0.0.
+</P>
+<P>The <I>persp</I> keyword determines how much depth perspective is present
+in the image.  Depth perspective makes lines that are parallel in
+simulation space appear non-parallel in the image.  A <I>pfactor</I> value
+of 0.0 means that parallel lines will meet at infininty (1.0/pfactor),
+which is an orthographic rendering with no persepctive.  A <I>pfactor</I>
+value between 0.0 and 1.0 will introduce more perspective.  A <I>pfactor</I>
+value > 1 will create a highly skewed image with a large amount of
+perspective.
+</P>
+<P>IMPORTANT NOTE: The <I>persp</I> keyword is not yet supported as an option.
+</P>
+<HR>
+
+<P>The <I>box</I> keyword determines if and how the simulation box boundaries
+are rendered as thin cylinders in the image.  If <I>no</I> is set, then the
+box boundaries are not drawn and the <I>diam</I> setting is ignored.  If
+<I>yes</I> is set, the 12 edges of the box are drawn, with a diameter that
+is a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
+2d).  The color of the box boundaries can be set with the <A HREF = "dump_modify.html">dump_modify
+boxcolor</A> command.
+</P>
+<P>The <I>axes</I> keyword determines if and how the coordinate axes are
+rendered as thin cylinders in the image.  If <I>no</I> is set, then the
+axes are not drawn and the <I>length</I> and <I>diam</I> settings are ignored.
+If <I>yes</I> is set, 3 thin cylinders are drawn to represent the x,y,z
+axes in colors red,green,blue.  The origin of these cylinders will be
+offset from the lower left corner of the box by 10%.  The <I>length</I>
+setting determines how long the cylinders will be as a fraction of the
+respective box lengths.  The <I>diam</I> setting determines their thickness
+as a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
+2d).
+</P>
+<P>The <I>subbox</I> keyword determines if and how processor sub-domain
+boundaries are rendered as thin cylinders in the image.  If <I>no</I> is
+set (default), then the sub-domain boundaries are not drawn and the
+<I>diam</I> setting is ignored.  If <I>yes</I> is set, the 12 edges of each
+processor sub-domain are drawn, with a diameter that is a fraction of
+the shortest box length in x,y,z (for 3d) or x,y (for 2d).  The color
+of the sub-domain boundaries can be set with the <A HREF = "dump_modify.html">dump_modify
+boxcolor</A> command.
+</P>
+<HR>
+
+<P>The <I>shiny</I> keyword determines how shiny the objects rendered in the
+image will appear.  The <I>sfactor</I> value must be a value 0.0 <=
+<I>sfactor</I> <= 1.0, where <I>sfactor</I> = 1 is a highly reflective surface
+and <I>sfactor</I> = 0 is a rough non-shiny surface.
+</P>
+<P>The <I>ssao</I> keyword turns on/off a screen space ambient occlusion
+(SSAO) model for depth shading.  If <I>yes</I> is set, then atoms further
+away from the viewer are darkened via a randomized process, which is
+perceived as depth.  The calculation of this effect can increase the
+cost of computing the image by roughly 2x.  The strength of the effect
+can be scaled by the <I>dfactor</I> parameter.  If <I>no</I> is set, no depth
+shading is performed.
+</P>
+<HR>
+
+<P>A series of JPEG, PNG, or PPM images can be converted into a movie
+file and then played as a movie using commonly available tools. Using
+dump style <I>movie</I> automates this step and avoids the intermediate
+step of writing (many) image snapshot file. But LAMMPS has to be
+compiled with -DLAMMPS_FFMPEG and an FFmpeg executable have to be
+installed.
+</P>
+<P>To manually convert JPEG, PNG or PPM files into an animated GIF or
+MPEG or other movie file you can use:
+</P>
+<UL><LI>a) Use the ImageMagick convert program. 
+
+<PRE>% convert *.jpg foo.gif
+% convert -loop 1 *.ppm foo.mpg 
+</PRE>
+<P>Animated GIF files from ImageMagick are unoptimized. You can use a
+program like gifsicle to optimize and massively shrink them.
+MPEG files created by ImageMagick are in MPEG-1 format with rather
+inefficient compression and low quality.
+</P>
+<LI>b) Use QuickTime. 
+
+<P>Select "Open Image Sequence" under the File menu Load the images into
+QuickTime to animate them Select "Export" under the File menu Save the
+movie as a QuickTime movie (*.mov) or in another format.  QuickTime
+can generate very high quality and efficiently compressed movie
+files. Some of the supported formats require to buy a license and some
+are not readable on all platforms until specific runtime libraries are
+installed.
+</P>
+<LI>c) Use FFmpeg  
+
+<P>FFmpeg is a command line tool that is available on many platforms and
+allows extremely flexible encoding and decoding of movies.
+</P>
+<PRE>cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
+cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi 
+</PRE>
+<P>Frontends for FFmpeg exist for multiple platforms. For more
+information see the <A HREF = "http://www.ffmpeg.org/">FFmpeg homepage</A>
+</P>
+
+</UL>
+<HR>
+
+<P>Play the movie:
+</P>
+<UL><LI>a) Use your browser to view an animated GIF movie. 
+
+<P>Select "Open File" under the File menu
+Load the animated GIF file
+</P>
+<LI>b) Use the freely available mplayer or ffplay tool to view a
+movie. Both are available for multiple OSes and support a large
+variety of file formats and decoders. 
+
+<PRE>% mplayer foo.mpg 
+% ffplay bar.avi 
+</PRE>
+<LI>c) Use the <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A>
+<A HREF = "http://www.sandia.gov/~sjplimp/pizza/doc/animate.html">animate tool</A>,
+which works directly on a series of image files. 
+
+<PRE>a = animate("foo*.jpg") 
+</PRE>
+<LI>d) QuickTime and other Windows- or MacOS-based media players can
+obviously play movie files directly. Similarly for corresponding tools
+bundled with Linux desktop environments.  However, due to licensing
+issues with some file formats, the formats may require installing
+additional libraries, purchasing a license, or may not be
+supported. 
+</UL>
+<HR>
+
+<P>See <A HREF = "Section_modify.html">Section_modify</A> of the manual for information
+on how to add new compute and fix styles to LAMMPS to calculate
+per-atom quantities which could then be output into dump files.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To write JPEG images, you must use the -DLAMMPS_JPEG switch when
+building LAMMPS and link with a JPEG library. To write PNG images, you
+must use the -DLAMMPS_PNG switch when building LAMMPS and link with a
+PNG library.
+</P>
+<P>To write <I>movie</I> dumps, you must use the -DLAMMPS_FFMPEG switch when
+building LAMMPS and have the FFmpeg executable available on the
+machine where LAMMPS is being run.  Typically it's name is lowercase,
+i.e. ffmpeg.
+</P>
+<P>See the <A HREF = "Section_start.html#start_2_4">Making LAMMPS</A> section of the
+documentation for details on how to compile with optional switches.
+</P>
+<P>Note that since FFmpeg is run as an external program via a pipe,
+LAMMPS has limited control over its execution and no knowledge about
+errors and warnings printed by it. Those warnings and error messages
+will be printed to the screen only. Due to the way image data is
+communicated to FFmpeg, it will often print the message 
+</P>
+<PRE>pipe:: Input/output error 
+</PRE>
+<P>which can be safely ignored. Other warnings
+and errors have to be addressed according to the FFmpeg documentation.
+One known issue is that certain movie file formats (e.g. MPEG level 1
+and 2 format streams) have video bandwith limits that can be crossed
+when rendering too large of image sizes. Typical warnings look like
+this:
+</P>
+<PRE>[mpeg @ 0x98b5e0] packet too large, ignoring buffer limits to mux it
+[mpeg @ 0x98b5e0] buffer underflow st=0 bufi=281407 size=285018
+[mpeg @ 0x98b5e0] buffer underflow st=0 bufi=283448 size=285018 
+</PRE>
+<P>In this case it is recommended to either reduce the size of the image
+or encode in a different format that is also supported by your copy of
+FFmpeg, and which does not have this limitation (e.g. .avi, .mkv,
+mp4).
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The defaults for the keywords are as follows:
+</P>
+<UL><LI>adiam = not specified (use diameter setting)
+<LI>atom = yes
+<LI>bond = none none (if no bonds in system)
+<LI>bond = atom 0.5 (if bonds in system)
+<LI>size = 512 512
+<LI>view = 60 30 (for 3d)
+<LI>view = 0 0 (for 2d)
+<LI>center = s 0.5 0.5 0.5
+<LI>up = 0 0 1 (for 3d)
+<LI>up = 0 1 0 (for 2d)
+<LI>zoom = 1.0
+<LI>persp = 0.0
+<LI>box = yes 0.02
+<LI>axes = no 0.0 0.0
+<LI>subbox no 0.0
+<LI>shiny = 1.0
+<LI>ssao = no 
+</UL>
+</HTML>

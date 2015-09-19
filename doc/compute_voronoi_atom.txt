@@ -134,7 +134,7 @@ systems, but may lead to underestimation of Voronoi volumes in low
 density systems.  By default, the set of ghost atoms stored by each
 processor is determined by the cutoff used for
 "pair_style"_pair_style.html interactions.  The cutoff can be set
-explicitly via the "communicate cutoff"_communicate.html command.
+explicitly via the "comm_modify cutoff"_comm_modify.html command.
 
 IMPORTANT NOTE: The Voro++ package performs its calculation in 3d.
 This should still work for a 2d LAMMPS simulation, to effectively

@@ -1,209 +1,370 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix qeq/point command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix qeq/point command 
-</H3>
-<H3>fix qeq/shielded command 
-</H3>
-<H3>fix qeq/slater command 
-</H3>
-<H3>fix qeq/dynamic command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID style Nevery cutoff tolerance maxiter qfile 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>style = <I>qeq/point</I> or <I>qeq/shielded</I> or <I>qeq/slater</I> or <I>qeq/dynamic</I>
-<LI>Nevery = perform charge equilibration every this many steps
-<LI>cutoff = global cutoff for charge-charge interactions (distance unit)
-<LI>tolerance = precision to which charges will be equilibrated
-<LI>maxiter = maximum iterations to perform charge equilibration
-<LI>qfile = a filename with QEq parameters 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix qeq/point command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-qeq-point-command">
+<span id="index-0"></span><h1>fix qeq/point command<a class="headerlink" href="#fix-qeq-point-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-qeq-shielded-command">
+<h1>fix qeq/shielded command<a class="headerlink" href="#fix-qeq-shielded-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-qeq-slater-command">
+<h1>fix qeq/slater command<a class="headerlink" href="#fix-qeq-slater-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-qeq-dynamic-command">
+<h1>fix qeq/dynamic command<a class="headerlink" href="#fix-qeq-dynamic-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID style Nevery cutoff tolerance maxiter qfile
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>style = <em>qeq/point</em> or <em>qeq/shielded</em> or <em>qeq/slater</em> or <em>qeq/dynamic</em></li>
+<li>Nevery = perform charge equilibration every this many steps</li>
+<li>cutoff = global cutoff for charge-charge interactions (distance unit)</li>
+<li>tolerance = precision to which charges will be equilibrated</li>
+<li>maxiter = maximum iterations to perform charge equilibration</li>
+<li>qfile = a filename with QEq parameters</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
 fix 1 qeq qeq/shielded 1 8 1.0e-6 100 param.qeq2
 fix 1 all qeq/slater 5 10 1.0e-6 100 params
-fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Perform the charge equilibration (QEq) method as described in <A HREF = "#Rappe">(Rappe
-and Goddard)</A> and formulated in <A HREF = "#Nakano">(Nakano)</A> (also known
-as the matrix inversion method) and in <A HREF = "#Rick">(Rick and Stuart)</A> (also
+fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Perform the charge equilibration (QEq) method as described in <a class="reference internal" href="fix_qeq_reax.html#rappe"><span>(Rappe and Goddard)</span></a> and formulated in <a class="reference internal" href="neb.html#nakano"><span>(Nakano)</span></a> (also known
+as the matrix inversion method) and in <a class="reference internal" href="pair_comb.html#rick"><span>(Rick and Stuart)</span></a> (also
 known as the extended Lagrangian method) based on the
-electronegativity equilization principle.
-</P>
-<P>These fixes can be used with any <A HREF = "pair_style.html">pair style</A> in
+electronegativity equilization principle.</p>
+<p>These fixes can be used with any <a class="reference internal" href="pair_style.html"><em>pair style</em></a> in
 LAMMPS, so long as per-atom charges are defined.  The most typical
-use-case is in conjunction with a <A HREF = "pair_style.html">pair style</A> that
+use-case is in conjunction with a <a class="reference internal" href="pair_style.html"><em>pair style</em></a> that
 performs charge equilibration periodically (e.g. every timestep), such
 as the ReaxFF or Streitz-Mintmire potential (the latter is not yet
 implemented in LAMMPS).  But these fixes can also be used with
 potentials that normally assume per-atom charges are fixed, e.g. a
-<A HREF = "pair_buck.html">Buckingham</A> or <A HREF = "pair_lj.html">LJ/Coulombic</A> potential.
-</P>
-<P>Because the charge equilibration calculation is effectively
+<a class="reference internal" href="pair_buck.html"><em>Buckingham</em></a> or <a class="reference internal" href="pair_lj.html"><em>LJ/Coulombic</em></a> potential.</p>
+<p>Because the charge equilibration calculation is effectively
 independent of the pair style, these fixes can also be used to perform
 a one-time assignment of charges to atoms.  For example, you could
-define the QEq fix, perform a zero-timestep run via the <A HREF = "run.html">run</A>
+define the QEq fix, perform a zero-timestep run via the <a class="reference internal" href="run.html"><em>run</em></a>
 command without any pair style defined which would set per-atom
 charges (based on the current atom configuration), then remove the fix
-via the <A HREF = "unfix.html">unfix</A> command before performing further dynamics.
-</P>
-<P>IMPORTANT NOTE: Computing and using charge values different from
+via the <a class="reference internal" href="unfix.html"><em>unfix</em></a> command before performing further dynamics.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Computing and using charge values different from
 published values defined for a fixed-charge potential like Buckingham
 or CHARMM or AMBER, can have a strong effect on energies and forces,
-and produces a different model than the published versions.
-</P>
-<P>IMPORTANT NOTE: The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command must
-still be used to perform charge equliibration with the <A HREF = "pair_comb.html">COMB
-potential</A>.  The <A HREF = "fix_qeq_reax.html">fix qeq/reax</A>
-command can be used to perform charge equilibration with the <A HREF = "pair_reax_c.html">ReaxFF
-force field</A>, although fix qeq/shielded yields the
-same results as fix qeq/reax if <I>Nevery</I>, <I>cutoff</I>, and <I>tolerance</I> are
-the same.  Eventually the fix qeq/reax command will be deprecated.
-</P>
-<P>The QEq method minimizes the electrostatic energy of the system (or
+and produces a different model than the published versions.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <a class="reference internal" href="fix_qeq_comb.html"><em>fix qeq/comb</em></a> command must
+still be used to perform charge equliibration with the <a class="reference internal" href="pair_comb.html"><em>COMB potential</em></a>.  The <a class="reference internal" href="fix_qeq_reax.html"><em>fix qeq/reax</em></a>
+command can be used to perform charge equilibration with the <a class="reference internal" href="pair_reax_c.html"><em>ReaxFF force field</em></a>, although fix qeq/shielded yields the
+same results as fix qeq/reax if <em>Nevery</em>, <em>cutoff</em>, and <em>tolerance</em> are
+the same.  Eventually the fix qeq/reax command will be deprecated.</p>
+</div>
+<p>The QEq method minimizes the electrostatic energy of the system (or
 equalizes the derivative of energy with respect to charge of all the
 atoms) by adjusting the partial charge on individual atoms based on
-interactions with their neighbors within <I>cutoff</I>.  It reqires a few
-parameters, in <I>metal</I> units, for each atom type which provided in a 
-file specified by <I>qfile</I>.  The file has the following format
-</P>
-<PRE>1 chi eta gamma zeta qcore
+interactions with their neighbors within <em>cutoff</em>.  It reqires a few
+parameters, in <em>metal</em> units, for each atom type which provided in a
+file specified by <em>qfile</em>.  The file has the following format</p>
+<div class="highlight-python"><div class="highlight"><pre>1 chi eta gamma zeta qcore
 2 chi eta gamma zeta qcore
 ...
-Ntype chi eta gamma zeta qcore 
-</PRE>
-<P>There is one line per atom type with the following parameters.
+Ntype chi eta gamma zeta qcore
+</pre></div>
+</div>
+<p>There is one line per atom type with the following parameters.
 Only a subset of the parameters is used by each QEq style as descibed
-below, thus the others can be set to 0.0 if desired.
-</P>
-<UL><LI><I>chi</I> = electronegativity in energy units
-<LI><I>eta</I> = self-Coulomb potential in energy units
-<LI><I>gamma</I> = shielded Coulomb constant defined by <A HREF = "#vanDuin">ReaxFF force field</A> in distance units
-<LI><I>zeta</I> = Slater type orbital exponent defined by the <A HREF = "#Streitz">Streitz-Mintmire</A> potential in reverse distance units
-<LI><I>qcore</I> = charge of the nucleus defined by the <A HREF = "#Streitz">Streitz-Mintmire potential</A> potential in charge units 
-</UL>
-<P>The <I>qeq/point</I> style describes partial charges on atoms as point
+below, thus the others can be set to 0.0 if desired.</p>
+<ul class="simple">
+<li><em>chi</em> = electronegativity in energy units</li>
+<li><em>eta</em> = self-Coulomb potential in energy units</li>
+<li><em>gamma</em> = shielded Coulomb constant defined by <a class="reference internal" href="#vanduin"><span>ReaxFF force field</span></a> in distance units</li>
+<li><em>zeta</em> = Slater type orbital exponent defined by the <a class="reference internal" href="pair_coul.html#streitz"><span>Streitz-Mintmire</span></a> potential in reverse distance units</li>
+<li><em>qcore</em> = charge of the nucleus defined by the <a class="reference internal" href="pair_coul.html#streitz"><span>Streitz-Mintmire potential</span></a> potential in charge units</li>
+</ul>
+<p>The <em>qeq/point</em> style describes partial charges on atoms as point
 charges.  Interaction between a pair of charged particles is 1/r,
 which is the simplest description of the interaction between charges.
-Only the <I>chi</I> and <I>eta</I> parameters from the <I>qfile</I> file are used.
+Only the <em>chi</em> and <em>eta</em> parameters from the <em>qfile</em> file are used.
 Note that Coulomb catastrophe can occur if repulsion between the pair
 of charged particles is too weak.  This style solves partial charges
 on atoms via the matrix inversion method.  A tolerance of 1.0e-6 is
-usually a good number.
-</P>
-<P>The <I>qeq/shielded</I> style describes partial charges on atoms also as
+usually a good number.</p>
+<p>The <em>qeq/shielded</em> style describes partial charges on atoms also as
 point charges, but uses a shielded Coulomb potential to describe the
 interaction between a pair of charged particles.  Interaction through
-the shielded Coulomb is given by equation (13) of the <A HREF = "#vanDuin">ReaxFF force
-field</A> paper.  The shielding accounts for charge overlap
+the shielded Coulomb is given by equation (13) of the <a class="reference internal" href="#vanduin"><span>ReaxFF force field</span></a> paper.  The shielding accounts for charge overlap
 between charged particles at small separation.  This style is the same
-as <A HREF = "fix_qeq_reax.html">fix qeq/reax</A>, and can be used with <A HREF = "pair_reax_c.html">pair_style
-reax/c</A>.  Only the <I>chi</I>, <I>eta</I>, and <I>gamma</I>
-parameters from the <I>qfile</I> file are used.  This style solves partial
+as <a class="reference internal" href="fix_qeq_reax.html"><em>fix qeq/reax</em></a>, and can be used with <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>.  Only the <em>chi</em>, <em>eta</em>, and <em>gamma</em>
+parameters from the <em>qfile</em> file are used.  This style solves partial
 charges on atoms via the matrix inversion method.  A tolerance of
-1.0e-6 is usually a good number.
-</P>
-<P>The <I>qeq/slater</I> style describes partial charges on atoms as spherical
-charge densities centered around atoms via the Slater 1<I>s</I> orbital, so
+1.0e-6 is usually a good number.</p>
+<p>The <em>qeq/slater</em> style describes partial charges on atoms as spherical
+charge densities centered around atoms via the Slater 1*s* orbital, so
 that the interaction between a pair of charged particles is the
-product of two Slater 1<I>s</I> orbitals.  The expression for the Slater
-1<I>s</I> orbital is given under equation (6) of the
-<A HREF = "#Streitz">Streitz-Mintmire</A> paper.  Only the <I>chi</I>, <I>eta</I>, <I>zeta</I>, and
-<I>qcore</I> parameters from the <I>qfile</I> file are used.  This style solves
+product of two Slater 1*s* orbitals.  The expression for the Slater
+1*s* orbital is given under equation (6) of the
+<a class="reference internal" href="pair_coul.html#streitz"><span>Streitz-Mintmire</span></a> paper.  Only the <em>chi</em>, <em>eta</em>, <em>zeta</em>, and
+<em>qcore</em> parameters from the <em>qfile</em> file are used.  This style solves
 partial charges on atoms via the matrix inversion method.  A tolerance
-of 1.0e-6 is usually a good number.
-</P>
-<P>The <I>qeq/dynamic</I> style describes partial charges on atoms as point
+of 1.0e-6 is usually a good number.</p>
+<p>The <em>qeq/dynamic</em> style describes partial charges on atoms as point
 charges that interact through 1/r, but the extended Lagrangian method
-is used to solve partial charges on atoms.  Only the <I>chi</I> and <I>eta</I>
-parameters from the <I>qfile</I> file are used.  Note that Coulomb
+is used to solve partial charges on atoms.  Only the <em>chi</em> and <em>eta</em>
+parameters from the <em>qfile</em> file are used.  Note that Coulomb
 catastrophe can occur if repulsion between the pair of charged
 particles is too weak.  A tolerance of 1.0e-3 is usually a good
-number.
-</P>
-<P>Note that <I>qeq/point</I>, <I>qeq/shielded</I>, and <I>qeq/slater</I> describe
+number.</p>
+<p>Note that <em>qeq/point</em>, <em>qeq/shielded</em>, and <em>qeq/slater</em> describe
 different charge models, whereas the matrix inversion method and the
-extended Lagrangian method (<I>qeq/dynamic</I>) are different solvers.
-</P>
-<P>Note that the <I>qeq/point</I> and the <I>qeq/dynamic</I> styles both describe
+extended Lagrangian method (<em>qeq/dynamic</em>) are different solvers.</p>
+<p>Note that the <em>qeq/point</em> and the <em>qeq/dynamic</em> styles both describe
 charges as point charges that interact through 1/r relationship, but
 solve partial charges on atoms using different solvers.  Styles
-<I>qeq/point</I> and the <I>qeq/dynamic</I> should yield comparable results if
-the QEq parameters and <I>Nevery</I>, <I>cutoff</I>, and <I>tolerance</I> are the
-same.  Style <I>qeq/point</I> is typically faster, but <I>qeq/dynamic</I> scales
-better on larger sizes.
-</P>
-<P>IMPORTANT NOTE: To avoid the evaluation of the derivative of charge
+<em>qeq/point</em> and the <em>qeq/dynamic</em> should yield comparable results if
+the QEq parameters and <em>Nevery</em>, <em>cutoff</em>, and <em>tolerance</em> are the
+same.  Style <em>qeq/point</em> is typically faster, but <em>qeq/dynamic</em> scales
+better on larger sizes.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">To avoid the evaluation of the derivative of charge
 with respect to position, which is typically ill-defined, the system
-should have a zero net charge.
-</P>
-<P>IMPORTANT NOTE: Developing QEq parameters (chi, eta, gamma, zeta, and
-qcore) is an "art".  Charges on atoms are not guaranteed to
+should have a zero net charge.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Developing QEq parameters (chi, eta, gamma, zeta, and
+qcore) is an &#8220;art&#8221;.  Charges on atoms are not guaranteed to
 equilibrate with arbitrary choices of these parameters.  We do not
 develop these QEq paramters.  See the examples/qeq directory for some
-examples.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about these fixes is written to <A HREF = "restart.html">binary restart
-files</A>.  No global scalar or vector or per-atom
-quantities are stored by these fixes for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of these fixes
-can be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A>
-command.
-</P>
-<P>Thexe fixes are invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>These fixes are part of the QEQ package.  They are only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_qeq_reax.html">fix qeq/reax</A>, <A HREF = "fix_qeq_comb.html">fix qeq/comb</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+examples.</p>
+</div>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about these fixes is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  No global scalar or vector or per-atom
+quantities are stored by these fixes for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of these fixes
+can be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a>
+command.</p>
+<p>Thexe fixes are invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>These fixes are part of the QEQ package.  They are only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_qeq_reax.html"><em>fix qeq/reax</em></a>, <a class="reference internal" href="fix_qeq_comb.html"><em>fix qeq/comb</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="rappe"><strong>(Rappe and Goddard)</strong> A. K. Rappe and W. A. Goddard III, J Physical
+Chemistry, 95, 3358-3363 (1991).</p>
+<p id="nakano"><strong>(Nakano)</strong> A. Nakano, Computer Physics Communications, 104, 59-69 (1997).</p>
+<p id="rick"><strong>(Rick and Stuart)</strong> S. W. Rick, S. J. Stuart, B. J. Berne, J Chemical Physics
+101, 16141 (1994).</p>
+<p id="streitz"><strong>(Streitz-Mintmire)</strong> F. H. Streitz, J. W. Mintmire, Physical Review B, 50,
+16, 11996 (1994)</p>
+<p id="vanduin"><strong>(ReaxFF)</strong> A. C. T. van Duin, S. Dasgupta, F. Lorant, W. A. Goddard III, J
+Physical Chemistry, 105, 9396-9049 (2001)</p>
+</div>
+</div>
 
-<A NAME = "Rappe"></A>
 
-<P><B>(Rappe and Goddard)</B> A. K. Rappe and W. A. Goddard III, J Physical
-Chemistry, 95, 3358-3363 (1991).
-</P>
-<A NAME = "Nakano"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Nakano)</B> A. Nakano, Computer Physics Communications, 104, 59-69 (1997).
-</P>
-<A NAME = "Rick"></A>
+  <hr/>
 
-<P><B>(Rick and Stuart)</B> S. W. Rick, S. J. Stuart, B. J. Berne, J Chemical Physics
-101, 16141 (1994).
-</P>
-<A NAME = "Streitz"></A>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-<P><B>(Streitz-Mintmire)</B> F. H. Streitz, J. W. Mintmire, Physical Review B, 50, 
-16, 11996 (1994)
-</P>
-<A NAME = "vanDuin"></A>
+</footer>
 
-<P><B>(ReaxFF)</B> A. C. T. van Duin, S. Dasgupta, F. Lorant, W. A. Goddard III, J 
-Physical Chemistry, 105, 9396-9049 (2001)
-</P>
-</HTML>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

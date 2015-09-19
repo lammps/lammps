@@ -30,7 +30,7 @@
 void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
 {
   int i, j;
-  real tmp;
+  double tmp;
 
   if (flag > 0) {
     for (i=0; i < 3; i++) {
@@ -79,16 +79,16 @@ void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
 }
 
 struct timeval tim;
-real t_end;
+double t_end;
 
-real Get_Time( )
+double Get_Time( )
 {
   gettimeofday(&tim, NULL );
   return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
 }
 
 
-real Get_Timing_Info( real t_start )
+double Get_Timing_Info( double t_start )
 {
   gettimeofday(&tim, NULL );
   t_end = tim.tv_sec + (tim.tv_usec / 1000000.0);
@@ -96,7 +96,7 @@ real Get_Timing_Info( real t_start )
 }
 
 
-void Update_Timing_Info( real *t_start, real *timing )
+void Update_Timing_Info( double *t_start, double *timing )
 {
   gettimeofday(&tim, NULL );
   t_end = tim.tv_sec + (tim.tv_usec / 1000000.0);
@@ -238,76 +238,4 @@ void sfree( void *ptr, const char *name )
   free( ptr );
   ptr = NULL;
 }
-
-/* ----------------------------------------------------------------------
-   strip off leading part of path, return just the filename
-------------------------------------------------------------------------- */
-
-static const char *potname(const char *path)
-{
-  const char *pot;
-
-  if (path == NULL) return NULL;
-
-#if defined(_WIN32)
-  // skip over the disk drive part of windows pathnames
-  if (isalpha(path[0]) && path[1] == ':') 
-    path += 2;
-#endif
-
-  for (pot = path; *path != '\0'; ++path) {
-#if defined(_WIN32)
-    if ((*path == '\\') || (*path == '/')) pot = path + 1;
-#else
-    if (*path == '/') pot = path + 1;
-#endif
-  }
-
-  return pot;
-}
-
-/* ----------------------------------------------------------------------
-   open a potential file as specified by name; failing that,
-   search in dir specified by env variable LAMMPS_POTENTIALS
-------------------------------------------------------------------------- */
-
-FILE *lmp_open_potential(const char *name)
-{
-  FILE *fp;
-
-  if (name == NULL) return NULL;
-
-  // attempt to open file directly
-  // if successful, return ptr
-
-  fp = fopen(name,"r");
-  if (fp) return fp;
-
-  // try the environment variable directory
-
-  const char *path = getenv("LAMMPS_POTENTIALS");
-  if (path == NULL) return NULL;
-
-  const char *pot = potname(name);
-  if (pot == NULL) return NULL;
-
-  size_t len1 = strlen(path);
-  size_t len2 = strlen(pot);
-  char *newpath = new char[len1+len2+2];
-
-  strcpy(newpath,path);
-#if defined(_WIN32)
-  newpath[len1] = '\\';
-  newpath[len1+1] = 0;
-#else
-  newpath[len1] = '/';
-  newpath[len1+1] = 0;
-#endif
-  strcat(newpath,pot);
-
-  fp = fopen(newpath,"r");
-  delete[] newpath;
-  return fp;
-}
-
 

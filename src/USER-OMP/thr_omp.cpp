@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "timer.h"
 
 #include "thr_omp.h"
 
@@ -32,6 +33,7 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
+#include "compute.h"
 
 #include "math_const.h"
 
@@ -183,7 +185,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           // pair_style hybrid will compute fdotr for us
           // but we first need to reduce the forces
           data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-	  fix->did_reduce();
+          fix->did_reduce();
           need_force_reduce = 0;
         }
       }
@@ -402,6 +404,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
   }
+  thr->timer(Timer::COMM);
 }
 
 /* ----------------------------------------------------------------------
@@ -510,6 +513,18 @@ void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int
     v[5] = dely*delz*fpair;
 
     v_tally_thr(pair, i, j, nlocal, newton_pair, v, thr);
+  }
+
+  if (pair->num_tally_compute > 0) {
+    // ev_tally callbacks are not thread safe and thus have to be protected
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    for (int k=0; k < pair->num_tally_compute; ++k) {
+      Compute *c = pair->list_tally_compute[k];
+      c->pair_tally_callback(i, j, nlocal, newton_pair,
+                             evdwl, ecoul, fpair, delx, dely, delz);
+    }
   }
 }
 

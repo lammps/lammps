@@ -1,0 +1,310 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix wall/lj93 command 
+</H3>
+<H3>fix wall/lj126 command 
+</H3>
+<H3>fix wall/lj1043 command 
+</H3>
+<H3>fix wall/colloid command 
+</H3>
+<H3>fix wall/harmonic command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID style face args ... keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>style = <I>wall/lj93</I> or <I>wall/lj126</I> or <I>wall/lj1043</I> or <I>wall/colloid</I> or <I>wall/harmonic</I> 
+
+<LI>one or more face/arg pairs may be appended 
+
+<LI>face = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> 
+
+<PRE>  args = coord epsilon sigma cutoff
+    coord = position of wall = EDGE or constant or variable
+      EDGE = current lo or hi edge of simulation box
+      constant = number like 0.0 or -30.0 (distance units)
+      variable = <A HREF = "variable.html">equal-style variable</A> like v_x or v_wiggle
+    epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
+      epsilon can be a variable (see below)
+    sigma = size factor for wall-particle interaction (distance units)
+      sigma can be a variable (see below)
+    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>units</I> or <I>fld</I> 
+
+<PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
+    <I>lattice</I> = the wall position is defined in lattice units
+    <I>box</I> = the wall position is defined in simulation box units
+  <I>fld</I> value = <I>yes</I> or <I>no</I>
+    <I>yes</I> = invoke the wall constraint to be compatible with implicit FLD
+    <I>no</I> = invoke the wall constraint in the normal way
+  <I>pbc</I> value = <I>yes</I> or <I>no</I>
+    <I>yes</I> = allow periodic boundary in a wall dimension
+    <I>no</I> = require non-perioidic boundaries in any wall dimension 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix wallhi all wall/lj93 xlo -1.0 1.0 1.0 2.5 units box
+fix wallhi all wall/lj93 xhi EDGE 1.0 1.0 2.5
+fix wallhi all wall/lj126 v_wiggle 23.2 1.0 1.0 2.5
+fix zwalls all wall/colloid zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Bound the simulation domain on one or more of its faces with a flat
+wall that interacts with the atoms in the group by generating a force
+on the atom in a direction perpendicular to the wall.  The energy of
+wall-particle interactions depends on the style.
+</P>
+<P>For style <I>wall/lj93</I>, the energy E is given by the 9/3 potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_lj93.jpg">
+</CENTER>
+<P>For style <I>wall/lj126</I>, the energy E is given by the 12/6 potential:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_lj.jpg">
+</CENTER>
+<P>For style <I>wall/lj1043</I>, the energy E is given by the 10/4/3 potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_lj1043.jpg">
+</CENTER>
+<P>For style <I>wall/colloid</I>, the energy E is given by an integrated form
+of the <A HREF = "pair_colloid.html">pair_style colloid</A> potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_colloid.jpg">
+</CENTER>
+<P>For style <I>wall/harmonic</I>, the energy E is given by a harmonic spring
+potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_harmonic.jpg">
+</CENTER>
+<P>In all cases, <I>r</I> is the distance from the particle to the wall at
+position <I>coord</I>, and Rc is the <I>cutoff</I> distance at which the
+particle and wall no longer interact.  The energy of the wall
+potential is shifted so that the wall-particle interaction energy is
+0.0 at the cutoff distance.
+</P>
+<P>Up to 6 walls or faces can be specified in a single command: <I>xlo</I>,
+<I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  A <I>lo</I> face interacts with
+particles near the lower side of the simulation box in that dimension.
+A <I>hi</I> face interacts with particles near the upper side of the
+simulation box in that dimension.
+</P>
+<P>The position of each wall can be specified in one of 3 ways: as the
+EDGE of the simulation box, as a constant value, or as a variable.  If
+EDGE is used, then the corresponding boundary of the current
+simulation box is used.  If a numeric constant is specified then the
+wall is placed at that position in the appropriate dimension (x, y, or
+z).  In both the EDGE and constant cases, the wall will never move.
+If the wall position is a variable, it should be specified as v_name,
+where name is an <A HREF = "variable.html">equal-style variable</A> name.  In this
+case the variable is evaluated each timestep and the result becomes
+the current position of the reflecting wall.  Equal-style variables
+can specify formulas with various mathematical functions, and include
+<A HREF = "thermo_style.html">thermo_style</A> command keywords for the simulation
+box parameters and timestep and elapsed time.  Thus it is easy to
+specify a time-dependent wall position.  See examples below.
+</P>
+<P>For the <I>wall/lj93</I> and <I>wall/lj126</I> and <I>wall/lj1043</I> styles,
+<I>epsilon</I> and <I>sigma</I> are the usual Lennard-Jones parameters, which
+determine the strength and size of the particle as it interacts with
+the wall.  Epsilon has energy units.  Note that this <I>epsilon</I> and
+<I>sigma</I> may be different than any <I>epsilon</I> or <I>sigma</I> values defined
+for a pair style that computes particle-particle interactions.
+</P>
+<P>The <I>wall/lj93</I> interaction is derived by integrating over a 3d
+half-lattice of Lennard-Jones 12/6 particles.  The <I>wall/lj126</I>
+interaction is effectively a harder, more repulsive wall interaction.
+The <I>wall/lj1043</I> interaction is yet a different form of wall
+interaction, described in Magda et al in <A HREF = "#Magda">(Magda)</A>.
+</P>
+<P>For the <I>wall/colloid</I> style, <I>R</I> is the radius of the colloid
+particle, <I>D</I> is the distance from the surface of the colloid particle
+to the wall (r-R), and <I>sigma</I> is the size of a constituent LJ
+particle inside the colloid particle and wall.  Note that the cutoff
+distance Rc in this case is the distance from the colloid particle
+center to the wall.  The prefactor <I>epsilon</I> can be thought of as an
+effective Hamaker constant with energy units for the strength of the
+colloid-wall interaction.  More specifically, the <I>epsilon</I> pre-factor
+= 4 * pi^2 * rho_wall * rho_colloid * epsilon * sigma^6, where epsilon
+and sigma are the LJ parameters for the constituent LJ
+particles. Rho_wall and rho_colloid are the number density of the
+constituent particles, in the wall and colloid respectively, in units
+of 1/volume.
+</P>
+<P>The <I>wall/colloid</I> interaction is derived by integrating over
+constituent LJ particles of size <I>sigma</I> within the colloid particle
+and a 3d half-lattice of Lennard-Jones 12/6 particles of size <I>sigma</I>
+in the wall.  As mentioned in the preceeding paragraph, the density of
+particles in the wall and colloid can be different, as specified by
+the <I>epsilon</I> pre-factor.
+</P>
+<P>For the <I>wall/harmonic</I> style, <I>epsilon</I> is effectively the spring
+constant K, and has units (energy/distance^2).  The input parameter
+<I>sigma</I> is ignored.  The minimum energy position of the harmonic
+spring is at the <I>cutoff</I>.  This is a repulsive-only spring since the
+interaction is truncated at the <I>cutoff</I>
+</P>
+<P>For any wall, the <I>epsilon</I> and/or <I>sigma</I> parameter can be specified
+as an <A HREF = "variable.html">equal-style variable</A>, in which case it should be
+specified as v_name, where name is the variable name.  As with a
+variable wall position, the variable is evaluated each timestep and
+the result becomes the current epsilon or sigma of the wall.
+Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent wall interaction.
+</P>
+<P>IMPORTANT NOTE: For all of the styles, you must insure that r is
+always > 0 for all particles in the group, or LAMMPS will generate an
+error.  This means you cannot start your simulation with particles at
+the wall position <I>coord</I> (r = 0) or with particles on the wrong side
+of the wall (r < 0).  For the <I>wall/lj93</I> and <I>wall/lj126</I> styles, the
+energy of the wall/particle interaction (and hence the force on the
+particle) blows up as r -> 0.  The <I>wall/colloid</I> style is even more
+restrictive, since the energy blows up as D = r-R -> 0.  This means
+the finite-size particles of radius R must be a distance larger than R
+from the wall position <I>coord</I>.  The <I>harmonic</I> style is a softer
+potential and does not blow up as r -> 0, but you must use a large
+enough <I>epsilon</I> that particles always reamin on the correct side of
+the wall (r > 0).
+</P>
+<P>The <I>units</I> keyword determines the meaning of the distance units used
+to define a wall position, but only when a numeric constant or
+variable is used.  It is not relevant when EDGE is used to specify a
+face position.  In the variable case, the variable is assumed to
+produce a value compatible with the <I>units</I> setting you specify.
+</P>
+<P>A <I>box</I> value selects standard distance units as defined by the
+<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
+A <I>lattice</I> value means the distance units are in lattice spacings.
+The <A HREF = "lattice.html">lattice</A> command must have been previously used to
+define the lattice spacings.
+</P>
+<P>The <I>fld</I> keyword can be used with a <I>yes</I> setting to invoke the wall
+constraint before pairwise interactions are computed.  This allows an
+implicit FLD model using <A HREF = "pair_lubricateU.html">pair_style lubricateU</A>
+to include the wall force in its calculations.  If the setting is
+<I>no</I>, wall forces are imposed after pairwise interactions, in the
+usual manner.
+</P>
+<P>The <I>pbc</I> keyword can be used with a <I>yes</I> setting to allow walls to
+be specified in a periodic dimension.  See the
+<A HREF = "boundary.html">boundary</A> command for options on simulation box
+boundaries.  The default for <I>pbc</I> is <I>no</I>, which means the system
+must be non-periodic when using a wall.  But you may wish to use a
+periodic box.  E.g. to allow some particles to interact with the wall
+via the fix group-ID, and others to pass through it and wrap around a
+periodic box.  In this case you should insure that the wall if
+sufficiently far enough away from the box boundary.  If you do not,
+then particles may interact with both the wall and with periodic
+images on the other side of the box, which is probably not what you
+want.
+</P>
+<HR>
+
+<P>Here are examples of variable definitions that move the wall position
+in a time-dependent fashion using equal-style
+<A HREF = "variable.html">variables</A>.  The wall interaction parameters (epsilon,
+sigma) could be varied with additional variable definitions.
+</P>
+<PRE>variable ramp equal ramp(0,10)
+fix 1 all wall xlo v_ramp 1.0 1.0 2.5 
+</PRE>
+<PRE>variable linear equal vdisplace(0,20)
+fix 1 all wall xlo v_linear 1.0 1.0 2.5 
+</PRE>
+<PRE>variable wiggle equal swiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+</PRE>
+<PRE>variable wiggle equal cwiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+</PRE>
+<P>The ramp(lo,hi) function adjusts the wall position linearly from lo to
+hi over the course of a run.  The vdisplace(c0,velocity) function does
+something similar using the equation position = c0 + velocity*delta,
+where delta is the elapsed time.
+</P>
+<P>The swiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, where omega = 2 PI
+/ period:
+</P>
+<PRE>position = c0 + A sin(omega*delta) 
+</PRE>
+<P>The cwiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, which will have an
+initial wall velocity of 0.0, and thus may impose a gentler
+perturbation on the particles:
+</P>
+<PRE>position = c0 + A (1 - cos(omega*delta)) 
+</PRE>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy of interaction between atoms and each wall to
+the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes a global scalar energy and a global vector of
+forces, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  Note that the scalar energy is
+the sum of interactions with all defined walls.  If you want the
+energy on a per-wall basis, you need to use multiple fix wall
+commands.  The length of the vector is equal to the number of walls
+defined by the fix.  Each vector value is the normal force on a
+specific wall.  Note that an outward force on a wall will be a
+negative value for <I>lo</I> walls and a positive value for <I>hi</I> walls.
+The scalar and vector values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P>IMPORTANT NOTE: If you want the atom/wall interaction energy to be
+included in the total potential energy of the system (the quantity
+being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
+<I>energy</I> option for this fix.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_wall_reflect.html">fix wall/reflect</A>,
+<A HREF = "fix_wall_gran.html">fix wall/gran</A>,
+<A HREF = "fix_wall_region.html">fix wall/region</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults units = lattice, fld = no, and pbc = no.
+</P>
+<HR>
+
+<A NAME = "Magda"></A>
+
+<P><B>(Magda)</B> Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
+erratum in JCP 84, 2901 (1986).
+</P>
+</HTML>

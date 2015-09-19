@@ -1,102 +1,266 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style quip command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style quip command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style quip 
-</PRE>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style      quip
-pair_coeff      * * gap_example.xml "Potential xml_label=GAP_2014_5_8_60_17_10_38_466" 14
-pair_coeff      * * sw_example.xml "IP SW" 14 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Style <I>quip</I> provides an interface for calling potential routines from
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style quip command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-quip-command">
+<span id="index-0"></span><h1>pair_style quip command<a class="headerlink" href="#pair-style-quip-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style quip
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style      quip
+pair_coeff      * * gap_example.xml &quot;Potential xml_label=GAP_2014_5_8_60_17_10_38_466&quot; 14
+pair_coeff      * * sw_example.xml &quot;IP SW&quot; 14
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>quip</em> provides an interface for calling potential routines from
 the QUIP package. QUIP is built separately, and then linked to
 LAMMPS. The most recent version of the QUIP package can be downloaded
 from GitHub:
-<A HREF = "https://github.com/libAtoms/QUIP">https://github.com/libAtoms/QUIP</A>. The
+<a class="reference external" href="https://github.com/libAtoms/QUIP">https://github.com/libAtoms/QUIP</a>. The
 interface is chiefly intended to be used to run Gaussian Approximation
 Potentials (GAP), which are described in the following publications:
-<A HREF = "#Bartok_2010">(Bartok et al)</A> and <A HREF = "#Bartok_PhD">(PhD thesis of
-Bartok)</A>.
-</P>
-<P>Only a single pair_coeff command is used with the <I>quip</I> style that
+<a class="reference internal" href="#bartok-2010"><span>(Bartok et al)</span></a> and <a class="reference internal" href="#bartok-phd"><span>(PhD thesis of Bartok)</span></a>.</p>
+<p>Only a single pair_coeff command is used with the <em>quip</em> style that
 specifies a QUIP potential file containing the parameters of the
 potential for all needed elements in XML format. This is followed by a
 QUIP initialization string. Finally, the QUIP elements are mapped to
 LAMMPS atom types by specifying N atomic numbers, where N is the
-number of LAMMPS atom types:
-</P>
-<UL><LI>QUIP filename
-<LI>QUIP initialization string
-<LI>N atomic numbers = mapping of QUIP elements to atom types 
-</UL>
-<P>See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page for alternate ways
-to specify the path for the potential file.
-</P>
-<P>A QUIP potential is fully specified by the filename which contains the
+number of LAMMPS atom types:</p>
+<ul class="simple">
+<li>QUIP filename</li>
+<li>QUIP initialization string</li>
+<li>N atomic numbers = mapping of QUIP elements to atom types</li>
+</ul>
+<p>See the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> doc page for alternate ways
+to specify the path for the potential file.</p>
+<p>A QUIP potential is fully specified by the filename which contains the
 parameters of the potential in XML format, the initialisation string,
-and the map of atomic numbers.
-</P>
-<P>GAP potentials can be obtained from the Data repository section of
-<A HREF = "http://www.libatoms.org">http://www.libatoms.org</A>, where the
+and the map of atomic numbers.</p>
+<p>GAP potentials can be obtained from the Data repository section of
+<a class="reference external" href="http://www.libatoms.org">http://www.libatoms.org</a>, where the
 appropriate initialisation strings are also advised. The list of
 atomic numbers must be matched to the LAMMPS atom types specified in
-the LAMMPS data file or elsewhere.
-</P>
-<P>Two examples input scripts are provided in the examples/USER/quip
-directory.
-</P>
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-mix, shift, table, and tail options.
-</P>
-<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
-files</A>, since it is stored in potential files.  Thus, you
+the LAMMPS data file or elsewhere.</p>
+<p>Two examples input scripts are provided in the examples/USER/quip
+directory.</p>
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+mix, shift, table, and tail options.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This pair style is part of the USER-QUIP package.  It is only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>QUIP potentials are parametrized in electron-volts and Angstroms and
-therefore should be used with LAMMPS metal <A HREF = "units.html">units</A>.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
-</P>
-<HR>
+script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This pair style is part of the USER-QUIP package.  It is only enabled
+if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>QUIP potentials are parametrized in electron-volts and Angstroms and
+therefore should be used with LAMMPS metal <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
+<hr class="docutils" />
+<p id="bartok-2010"><strong>(Bartok_2010)</strong> AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical
+Review Letters 104, 136403 (2010).</p>
+<p id="bartok-phd"><strong>(Bartok_PhD)</strong> A Bartok-Partay, PhD Thesis, University of Cambridge,
+(2010).</p>
+</div>
+</div>
 
-<A NAME = "Bartok_2010"></A>
 
-<P><B>(Bartok_2010)</B> AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical
-Review Letters 104, 136403 (2010).
-</P>
-<A NAME = "Bartok_PhD"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Bartok_PhD)</B> A Bartok-Partay, PhD Thesis, University of Cambridge,
-(2010).
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

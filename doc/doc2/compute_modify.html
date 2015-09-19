@@ -1,0 +1,80 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute_modify compute-ID keyword value ... 
+</PRE>
+<UL><LI>compute-ID = ID of the compute to modify 
+
+<LI>one or more keyword/value pairs may be listed 
+
+<LI>keyword = <I>extra</I> or <I>dynamic</I> 
+
+<PRE>  <I>extra</I> value = N
+    N = # of extra degrees of freedom to subtract
+  <I>dynamic</I> value = <I>yes</I> or <I>no</I>
+    yes/no = do or do not recompute the number of atoms contributing to the temperature
+  <I>thermo</I> value = <I>yes</I> or <I>no</I>
+    yes/no = do or do not add contributions from fixes to the potential energy 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute_modify myTemp extra 0
+compute_modify newtemp dynamic yes extra 600 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Modify one or more parameters of a previously defined compute.  Not
+all compute styles support all parameters.
+</P>
+<P>The <I>extra</I> keyword refers to how many degrees-of-freedom are
+subtracted (typically from 3N) as a normalizing factor in a
+temperature computation.  Only computes that compute a temperature use
+this option.  The default is 2 or 3 for <A HREF = "dimension.html">2d or 3d
+systems</A> which is a correction factor for an ensemble
+of velocities with zero total linear momentum.  You can use a negative
+number for the <I>extra</I> parameter if you need to add
+degrees-of-freedom.  See the <A HREF = "compute_temp_asphere.html">compute
+temp/asphere</A> command for an example.
+</P>
+<P>The <I>dynamic</I> keyword determines whether the number of atoms N in the
+compute group is re-computed each time a temperature is computed.
+Only compute styles that compute a temperature use this option.  By
+default, N is assumed to be constant.  If you are adding atoms to the
+system (see the <A HREF = "fix_pour.html">fix pour</A> or <A HREF = "fix_deposit.html">fix
+deposit</A> commands) or expect atoms to be lost
+(e.g. due to evaporation), then this option should be used to insure
+the temperature is correctly normalized.
+</P>
+<P>The <I>thermo</I> keyword determines whether the potential energy
+contribution calculated by some <A HREF = "fix.html">fixes</A> is added to the
+potential energy calculated by the compute.  Currently, only the
+compute of style <I>pe</I> uses this option.  See the doc pages for
+<A HREF = "fix.html">individual fixes</A> for details.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute.html">compute</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are extra = 2 or 3 for 2d or 3d systems and
+dynamic = no.  Thermo is <I>yes</I> if the compute of style <I>pe</I> was
+defined with no extra keywords; otherwise it is <I>no</I>.
+</P>
+</HTML>

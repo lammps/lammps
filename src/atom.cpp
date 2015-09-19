@@ -94,6 +94,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = e = de = cv = NULL;
   vest = NULL;
 
+  // USER-SMD
+
+  contact_radius = NULL;
+  smd_data_9 = NULL;
+  smd_stress = NULL;
+  eff_plastic_strain = NULL;
+  eff_plastic_strain_rate = NULL;
+  damage = NULL;
+
+  // molecular info
+
   bond_per_atom =  extra_bond_per_atom = 0;
   num_bond = NULL;
   bond_type = NULL;
@@ -147,6 +158,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
   rho_flag = e_flag = cv_flag = vest_flag = 0;
+
+  // USER-SMD
+
+  smd_flag = 0;
+  contact_radius_flag = 0;
+  smd_data_9_flag = 0;
+  smd_stress_flag = 0;
+  x0_flag = 0;
+  eff_plastic_strain_flag = 0;
+  eff_plastic_strain_rate_flag = 0;
+  damage_flag = 0;
 
   // Peridynamic scale factor
 
@@ -244,6 +266,13 @@ Atom::~Atom()
   memory->destroy(de);
   memory->destroy(cv);
   memory->destroy(vest);
+
+  memory->destroy(contact_radius);
+  memory->destroy(smd_data_9);
+  memory->destroy(smd_stress);
+  memory->destroy(eff_plastic_strain);
+  memory->destroy(eff_plastic_strain_rate);
+  memory->destroy(damage);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -516,7 +545,7 @@ void Atom::modify_params(int narg, char **arg)
         error->all(FLERR,
                    "Atom_modify id command after simulation box is defined");
       if (strcmp(arg[iarg+1],"yes") == 0) tag_enable = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) tag_enable = 2;
+      else if (strcmp(arg[iarg+1],"no") == 0) tag_enable = 0;
       else error->all(FLERR,"Illegal atom_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"map") == 0) {
@@ -559,16 +588,15 @@ void Atom::modify_params(int narg, char **arg)
    check that atom IDs are valid
    error if any atom ID < 0 or atom ID = MAXTAGINT
    if any atom ID > 0, error if any atom ID == 0
+   if any atom ID > 0, error if tag_enable = 0
    if all atom IDs = 0, tag_enable must be 0
-   OK if atom IDs > natoms
-   NOTE: not checking that atom IDs are unique
+   if max atom IDs < natoms, must be duplicates
+   OK if max atom IDs > natoms
+   NOTE: not fully checking that atom IDs are unique
 ------------------------------------------------------------------------- */
 
 void Atom::tag_check()
 {
-  int nlocal = atom->nlocal;
-  tagint *tag = atom->tag;
-
   tagint min = MAXTAGINT;
   tagint max = 0;
 
@@ -581,11 +609,16 @@ void Atom::tag_check()
   MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
   MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-  if (minall < 0) error->all(FLERR,"Atom ID is negative");
-  if (maxall >= MAXTAGINT) error->all(FLERR,"Atom ID is too big");
-  if (maxall > 0 && minall == 0) error->all(FLERR,"Atom ID is zero");
-  if (maxall == 0 && tag_enable && natoms) 
-    error->all(FLERR,"Not all atom IDs are 0");
+  if (minall < 0) error->all(FLERR,"One or more Atom IDs is negative");
+  if (maxall >= MAXTAGINT) error->all(FLERR,"One or more atom IDs is too big");
+  if (maxall > 0 && minall == 0) 
+    error->all(FLERR,"One or more atom IDs is zero");
+  if (maxall > 0 && tag_enable == 0)
+    error->all(FLERR,"Non-zero atom IDs with atom_modify id = no");
+  if (maxall == 0 && natoms && tag_enable) 
+    error->all(FLERR,"All atom IDs = 0 but atom_modify id = yes");
+  if (tag_enable && maxall < natoms)
+    error->all(FLERR,"Duplicate atom IDs exist");
 }
 
 /* ----------------------------------------------------------------------
@@ -727,7 +760,8 @@ void Atom::deallocate_topology()
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf)
+void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset, 
+                      int shiftflag, double *shift)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -835,6 +869,12 @@ void Atom::data_atoms(int n, char *buf)
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);
     xdata[2] = atof(values[xptr+2]);
+    if (shiftflag) {
+      xdata[0] += shift[0];
+      xdata[1] += shift[1];
+      xdata[2] += shift[2];
+    }
+
     domain->remap(xdata,imagedata);
     if (triclinic) {
       domain->x2lamda(xdata,lamda);
@@ -843,8 +883,15 @@ void Atom::data_atoms(int n, char *buf)
 
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-        coord[2] >= sublo[2] && coord[2] < subhi[2])
+        coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       avec->data_atom(xdata,imagedata,values);
+      if (id_offset) tag[nlocal-1] += id_offset;
+      if (type_offset) {
+        type[nlocal-1] += type_offset;
+        if (type[nlocal-1] > ntypes)
+          error->one(FLERR,"Invalid atom type in Atoms section of data file");
+      }
+    }
 
     buf = next + 1;
   }
@@ -858,7 +905,7 @@ void Atom::data_atoms(int n, char *buf)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_vels(int n, char *buf)
+void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
   int j,m;
   tagint tagdata;
@@ -885,7 +932,7 @@ void Atom::data_vels(int n, char *buf)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    tagdata = ATOTAGINT(values[0]);
+    tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Velocities section of data file");
     if ((m = map(tagdata)) >= 0) avec->data_vel(m,&values[1]);
@@ -903,7 +950,7 @@ void Atom::data_vels(int n, char *buf)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_bonds(int n, char *buf, int *count)
+void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2;
@@ -915,6 +962,11 @@ void Atom::data_bonds(int n, char *buf, int *count)
     *next = '\0';
     sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bonds section of data file");
@@ -949,7 +1001,7 @@ void Atom::data_bonds(int n, char *buf, int *count)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_angles(int n, char *buf, int *count)
+void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3;
@@ -961,6 +1013,12 @@ void Atom::data_angles(int n, char *buf, int *count)
     *next = '\0';
     sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+      atom3 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
         atom3 <= 0 || atom3 > map_tag_max)
@@ -1010,7 +1068,7 @@ void Atom::data_angles(int n, char *buf, int *count)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_dihedrals(int n, char *buf, int *count)
+void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1023,6 +1081,13 @@ void Atom::data_dihedrals(int n, char *buf, int *count)
     sscanf(buf,"%d %d " 
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+      atom3 += id_offset;
+      atom4 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
         atom3 <= 0 || atom3 > map_tag_max ||
@@ -1088,7 +1153,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_impropers(int n, char *buf, int *count)
+void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1101,6 +1166,13 @@ void Atom::data_impropers(int n, char *buf, int *count)
     sscanf(buf,"%d %d " 
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+      atom3 += id_offset;
+      atom4 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
         atom3 <= 0 || atom3 > map_tag_max ||
@@ -1165,7 +1237,7 @@ void Atom::data_impropers(int n, char *buf, int *count)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
+void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
   int j,m,tagdata;
   char *next;
@@ -1191,7 +1263,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    tagdata = ATOTAGINT(values[0]);
+    tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bonus section of data file");
 
@@ -1212,7 +1284,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body)
+void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body, 
+                       tagint id_offset)
 {
   int j,m,tagdata,ninteger,ndouble;
 
@@ -1224,8 +1297,8 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body)
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f"));
-    else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f"));
+    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
+    else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f")) + id_offset;
     ninteger = atoi(strtok(NULL," \t\n\r\f"));
     ndouble = atoi(strtok(NULL," \t\n\r\f"));
 
@@ -1262,9 +1335,10 @@ void Atom::allocate_type_arrays()
 /* ----------------------------------------------------------------------
    set a mass and flag it as set
    called from reading of data file
+   type_offset may be used when reading multiple data files
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(const char *str)
+void Atom::set_mass(const char *str, int type_offset)
 {
   if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
 
@@ -1272,6 +1346,7 @@ void Atom::set_mass(const char *str)
   double mass_one;
   int n = sscanf(str,"%d %lg",&itype,&mass_one);
   if (n != 2) error->all(FLERR,"Invalid mass line in data file");
+  itype += type_offset;
 
   if (itype < 1 || itype > ntypes)
     error->all(FLERR,"Invalid type for mass set");
@@ -1416,20 +1491,27 @@ int Atom::shape_consistency(int itype,
 
 void Atom::add_molecule(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal molecule command");
+  if (narg < 1) error->all(FLERR,"Illegal molecule command");
+
   if (find_molecule(arg[0]) >= 0) 
     error->all(FLERR,"Reuse of molecule template ID");
 
-  int nprevious = nmolecule;
-  nmolecule += narg-1;
-  molecules = (Molecule **)
-    memory->srealloc(molecules,nmolecule*sizeof(Molecule *),"atom::molecules");
+  // may over-allocate if not all args are mol files, but OK for srealloc
 
-  for (int i = 1; i < narg; i++) {
-    molecules[nprevious] = new Molecule(lmp,arg[0],arg[i]);
-    if (i == 1) molecules[nprevious]->nset = narg-1;
-    else molecules[nprevious]->nset = 0;
-    nprevious++;
+  molecules = (Molecule **)
+    memory->srealloc(molecules,(nmolecule+narg-1)*sizeof(Molecule *),
+                     "atom::molecules");
+
+  // 1st molecule in set stores nset = # of mols, others store nset = 0
+
+  int ifile = 1;
+  while (1) {
+    molecules[nmolecule] = new Molecule(lmp,narg,arg,ifile);
+    molecules[nmolecule]->nset = 0;
+    molecules[nmolecule-ifile+1]->nset++;
+    nmolecule++;
+    if (molecules[nmolecule-1]->last) break;
+    ifile++;
   }
 }
 
@@ -1956,6 +2038,15 @@ void *Atom::extract(char *name)
   if (strcmp(name,"de") == 0) return (void *) de;
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
+
+  if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
+  if (strcmp(name, "smd_data_9") == 0) return (void *) smd_data_9;
+  if (strcmp(name, "smd_stress") == 0) return (void *) smd_stress;
+  if (strcmp(name, "eff_plastic_strain") == 0) 
+    return (void *) eff_plastic_strain;
+  if (strcmp(name, "eff_plastic_strain_rate") == 0) 
+    return (void *) eff_plastic_strain_rate;
+  if (strcmp(name, "damage") == 0) return (void *) damage;
 
   return NULL;
 }

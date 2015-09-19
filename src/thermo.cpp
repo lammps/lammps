@@ -46,6 +46,9 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "universe.h"
+
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -306,7 +309,7 @@ void Thermo::compute(int flag)
   // check for lost atoms
   // turn off normflag if natoms = 0 to avoid divide by 0
 
-  natoms = lost_check();
+  natoms = atom->natoms = lost_check();
   if (natoms == 0) normflag = 0;
   else normflag = normvalue;
 
@@ -335,7 +338,7 @@ void Thermo::compute(int flag)
   int loc = 0;
   if (lineflag == MULTILINE) {
     double cpu;
-    if (flag) cpu = timer->elapsed(TIME_LOOP);
+    if (flag) cpu = timer->elapsed(Timer::TOTAL);
     else cpu = 0.0;
     loc = sprintf(&line[loc],format_multi,ntimestep,cpu);
   }
@@ -375,16 +378,13 @@ bigint Thermo::lost_check()
   bigint ntotal;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (ntotal < 0 || ntotal > MAXBIGINT)
+  if (ntotal < 0)
     error->all(FLERR,"Too many total atoms");
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return
-  // reset total atom count
-
   if (lostflag == IGNORE) return ntotal;
   if (lostflag == WARN && lostbefore == 1) {
-    atom->natoms = ntotal;
     return ntotal;
   }
 
@@ -552,7 +552,7 @@ void Thermo::modify_params(int narg, char **arg)
         format_float_user = new char[n];
         strcpy(format_float_user,arg[iarg+2]);
       } else {
-        int i = atoi(arg[iarg+1]) - 1;
+        int i = force->inumeric(FLERR,arg[iarg+1]) - 1;
         if (i < 0 || i >= nfield_initial)
           error->all(FLERR,"Illegal thermo_modify command");
         if (format_user[i]) delete [] format_user[i];
@@ -1523,7 +1523,7 @@ void Thermo::compute_time()
 void Thermo::compute_cpu()
 {
   if (firststep == 0) dvalue = 0.0;
-  else dvalue = timer->elapsed(TIME_LOOP);
+  else dvalue = timer->elapsed(Timer::TOTAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1537,7 +1537,7 @@ void Thermo::compute_tpcpu()
     new_cpu = 0.0;
     dvalue = 0.0;
   } else {
-    new_cpu = timer->elapsed(TIME_LOOP);
+    new_cpu = timer->elapsed(Timer::TOTAL);
     double cpu_diff = new_cpu - last_tpcpu;
     double time_diff = new_time - last_time;
     if (time_diff > 0.0 && cpu_diff > 0.0) dvalue = time_diff/cpu_diff;
@@ -1559,7 +1559,7 @@ void Thermo::compute_spcpu()
     new_cpu = 0.0;
     dvalue = 0.0;
   } else {
-    new_cpu = timer->elapsed(TIME_LOOP);
+    new_cpu = timer->elapsed(Timer::TOTAL);
     double cpu_diff = new_cpu - last_spcpu;
     int step_diff = new_step - last_step;
     if (cpu_diff > 0.0) dvalue = step_diff/cpu_diff;
@@ -1575,7 +1575,7 @@ void Thermo::compute_spcpu()
 void Thermo::compute_cpuremain()
 {
   if (firststep == 0) dvalue = 0.0;
-  else dvalue = timer->elapsed(TIME_LOOP) * 
+  else dvalue = timer->elapsed(Timer::TOTAL) * 
          (update->laststep - update->ntimestep) /
          (update->ntimestep - update->firststep);
 }
@@ -2096,3 +2096,4 @@ void Thermo::compute_cellgamma()
     dvalue = acos(cosgamma)*180.0/MY_PI;
   }
 }
+

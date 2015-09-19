@@ -1,0 +1,150 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style brownian command 
+</H3>
+<H3>pair_style brownian/omp command 
+</H3>
+<H3>pair_style brownian/poly command 
+</H3>
+<H3>pair_style brownian/poly/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style mu flaglog flagfld cutinner cutoff t_target seed flagHI flagVF 
+</PRE>
+<UL><LI>style = <I>brownian</I> or <I>brownian/poly</I>
+<LI>mu = dynamic viscosity (dynamic viscosity units)
+<LI>flaglog = 0/1 log terms in the lubrication approximation on/off
+<LI>flagfld = 0/1 to include/exclude Fast Lubrication Dynamics effects
+<LI>cutinner = inner cutoff distance (distance units)
+<LI>cutoff = outer cutoff for interactions (distance units)
+<LI>t_target = target temp of the system (temperature units)
+<LI>seed = seed for the random number generator (positive integer)
+<LI>flagHI (optional) = 0/1 to include/exclude 1/r hydrodynamic interactions
+<LI>flagVF (optional) = 0/1 to include/exclude volume fraction corrections in the long-range isotropic terms 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius = 1)
+pair_coeff 1 1 2.05 2.8
+pair_coeff * * 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Styles <I>brownian</I> and <I>brownain/poly</I> compute Brownian forces and
+torques on finite-size particles.  The former requires monodisperse
+spherical particles; the latter allows for polydisperse spherical
+particles.
+</P>
+<P>These pair styles are designed to be used with either the <A HREF = "pair_lubricate.html">pair_style
+lubricate</A> or <A HREF = "pair_lubricateU.html">pair_style
+lubricateU</A> commands to provide thermostatting
+when dissipative lubrication forces are acting.  Thus the parameters
+<I>mu</I>, <I>flaglog</I>, <I>flagfld</I>, <I>cutinner</I>, and <I>cutoff</I> should be
+specified consistent with the settings in the lubrication pair styles.
+For details, refer to either of the lubrication pair styles.
+</P>
+<P>The <I>t_target</I> setting is used to specify the target temperature of
+the system.  The random number <I>seed</I> is used to generate random
+numbers for the thermostatting procedure.
+</P>
+<P>The <I>flagHI</I> and <I>flagVF</I> settings are optional.  Neither should be
+used, or both must be defined.
+</P>
+<HR>
+
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>cutinner (distance units)
+<LI>cutoff (distance units) 
+</UL>
+<P>The two coefficients are optional.  If neither is specified, the two
+cutoffs specified in the pair_style command are used.  Otherwise both
+must be specified.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">this section</A> of
+the manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the two cutoff distances for this
+pair style can be mixed.  The default mix value is <I>geometric</I>.  See
+the "pair_modify" command for details.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>These styles are part of the FLD package.  They are only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Only spherical monodisperse particles are allowed for pair_style
+brownian.
+</P>
+<P>Only spherical particles are allowed for pair_style brownian/poly.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_lubricate.html">pair_style
+lubricate</A>, <A HREF = "pair_lubricateU.html">pair_style
+lubricateU</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default settings for the optional args are flagHI = 1 and flagVF =
+1.
+</P>
+</HTML>

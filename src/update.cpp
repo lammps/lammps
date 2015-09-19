@@ -141,7 +141,7 @@ void Update::set_units(const char *style)
     force->hplanck = 95.306976368;
     force->mvv2e = 48.88821291 * 48.88821291;
     force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
-    force->mv2d = 1.0 / 0.602214179;
+    force->mv2d = 1.0 / 0.602214129;
     force->nktv2p = 68568.415;
     force->qqr2e = 332.06371;
     force->qe2f = 23.060549;
@@ -162,7 +162,7 @@ void Update::set_units(const char *style)
     force->hplanck = 4.135667403e-3;
     force->mvv2e = 1.0364269e-4;
     force->ftm2v = 1.0 / 1.0364269e-4;
-    force->mv2d = 1.0 / 0.602214179;
+    force->mv2d = 1.0 / 0.602214129;
     force->nktv2p = 1.6021765e6;
     force->qqr2e = 14.399645;
     force->qe2f = 1.0;

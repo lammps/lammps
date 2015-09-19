@@ -1,0 +1,128 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix aveforce command 
+</H3>
+<H3>fix aveforce/cuda command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID aveforce fx fy fz keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>aveforce = style name of this fix command 
+
+<LI>fx,fy,fz = force component values (force units) 
+
+<PRE>  any of fx,fy,fz can be a variable (see below) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I>  
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region atoms must be in to have added force 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix pressdown topwall aveforce 0.0 -1.0 0.0
+fix 2 bottomwall aveforce NULL -1.0 0.0 region top
+fix 2 bottomwall aveforce NULL -1.0 v_oscillate region top 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply an additional external force to a group of atoms in such a way
+that every atom experiences the same force.  This is useful for
+pushing on wall or boundary atoms so that the structure of the wall
+does not change over time.
+</P>
+<P>The existing force is averaged for the group of atoms, component by
+component.  The actual force on each atom is then set to the average
+value plus the component specified in this command.  This means each
+atom in the group receives the same force.
+</P>
+<P>Any of the fx,fy,fz values can be specified as NULL which means the
+force in that dimension is not changed.  Note that this is not the
+same as specifying a 0.0 value, since that sets all forces to the same
+average value without adding in any additional force.
+</P>
+<P>Any of the 3 quantities defining the force components can be specified
+as an equal-style <A HREF = "variable.html">variable</A>, namely <I>fx</I>, <I>fy</I>, <I>fz</I>.
+If the value is a variable, it should be specified as v_name, where
+name is the variable name.  In this case, the variable will be
+evaluated each timestep, and its value used to determine the average
+force.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent average force.
+</P>
+<P>If the <I>region</I> keyword is used, the atom must also be in the
+specified geometric <A HREF = "region.html">region</A> in order to have force added
+to it.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
+accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>This fix computes a global 3-vector of forces, which can be accessed
+by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  This is the
+total force on the group of atoms before the forces on individual
+atoms are changed by the fix.  The vector values calculated by this
+fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
+specify force components with a variable that has time-dependence for
+use with a minimizer, since the minimizer increments the timestep as
+the iteration count during the minimization.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_setforce.html">fix setforce</A>, <A HREF = "fix_addforce.html">fix addforce</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

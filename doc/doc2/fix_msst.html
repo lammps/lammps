@@ -1,0 +1,171 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3> fix msst command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID msst dir shockvel keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>msst = style name of this fix 
+
+<LI>dir = <I>x</I> or <I>y</I> or <I>z</I> 
+
+<LI>shockvel = shock velocity (strictly positive, distance/time units) 
+
+<LI>zero or more keyword value pairs may be appended 
+
+<LI>keyword = <I>q</I> or <I>mu</I> or <I>p0</I> or <I>v0</I> or <I>e0</I> or <I>tscale</I> 
+
+<PRE>  <I>q</I> value = cell mass-like parameter (mass^2/distance^4 units)
+  <I>mu</I> value = artificial viscosity (mass/length/time units)
+  <I>p0</I> value = initial pressure in the shock equations (pressure units)
+  <I>v0</I> value = initial simulation cell volume in the shock equations (distance^3 units)  
+  <I>e0</I> value = initial total energy (energy units)
+  <I>tscale</I> value = reduction in initial temperature (unitless fraction between 0.0 and 1.0) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all msst y 100.0 q 1.0e5 mu 1.0e5
+fix 2 all msst z 50.0 q 1.0e4 mu 1.0e4  v0 4.3419e+03 p0 3.7797e+03 e0 -9.72360e+02 tscale 0.01 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command performs the Multi-Scale Shock Technique (MSST)
+integration to update positions and velocities each timestep to mimic
+a compressive shock wave passing over the system. See <A HREF = "#Reed">(Reed)</A>
+for a detailed description of this method.  The MSST varies the cell
+volume and temperature in such a way as to restrain the system to the
+shock Hugoniot and the Rayleigh line. These restraints correspond to
+the macroscopic conservation laws dictated by a shock
+front. <I>shockvel</I> determines the steady shock velocity that will be
+simulated.
+</P>
+<P>To perform a simulation, choose a value of <I>q</I> that provides volume
+compression on the timescale of 100 fs to 1 ps.  If the volume is not
+compressing, either the shock speed is chosen to be below the material
+sound speed or <I>p0</I> has been chosen inaccurately.  Volume compression
+at the start can be sped up by using a non-zero value of <I>tscale</I>. Use
+the smallest value of <I>tscale</I> that results in compression.
+</P>
+<P>Under some special high-symmetry conditions, the pressure (volume)
+and/or temperature of the system may oscillate for many cycles even
+with an appropriate choice of mass-like parameter <I>q</I>. Such
+oscillations have physical significance in some cases.  The optional
+<I>mu</I> keyword adds an artificial viscosity that helps break the system
+symmetry to equilibrate to the shock Hugoniot and Rayleigh line more
+rapidly in such cases.
+</P>
+<P><I>tscale</I> is a factor between 0 and 1 that determines what fraction of
+thermal kinetic energy is converted to compressive strain kinetic
+energy at the start of the simulation.  Setting this parameter to a
+non-zero value may assist in compression at the start of simulations
+where it is slow to occur.
+</P>
+<P>If keywords <I>e0</I>, <I>p0</I>,or <I>v0</I> are not supplied, these quantities will
+be calculated on the first step, after the energy specified by
+<I>tscale</I> is removed.  The value of <I>e0</I> is not used in the dynamical
+equations, but is used in calculating the deviation from the Hugoniot.
+</P>
+<P>Values of shockvel less than a critical value determined by the
+material response will not have compressive solutions. This will be
+reflected in lack of significant change of the volume in the MSST.
+</P>
+<P>For all pressure styles, the simulation box stays orthogonal in shape.
+Parrinello-Rahman boundary conditions (tilted box) are supported by
+LAMMPS, but are not implemented for MSST.
+</P>
+<P>This fix computes a temperature and pressure each timestep. To do
+this, the fix creates its own computes of style "temp" and "pressure",
+as if these commands had been issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp 
+compute fix-ID_press group-ID pressure fix-ID_temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
+pressure</A> commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press".  The group for the new computes is "all".
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of all internal variables to <A HREF = "restart.html">binary restart
+files</A>.  See the <A HREF = "read_restart.html">read_restart</A> command
+for info on how to re-specify a fix in an input script that reads a
+restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>The progress of the MSST can be monitored by printing the global
+scalar and global vector quantities computed by the fix.
+</P>
+<P>The scalar is the cumulative energy change due to the fix. This is
+also the energy added to the potential energy by the
+<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> command.  With this command, the
+thermo keyword <I>etotal</I> prints the conserved quantity of the MSST
+dynamic equations. This can be used to test if the MD timestep is
+sufficiently small for accurate integration of the dynamic
+equations. See also <A HREF = "thermo_style.html">thermo_style</A> command.
+</P>
+<P>The global vector contains four values in this order:
+</P>
+<P>[<I>dhugoniot</I>, <I>drayleigh</I>, <I>lagrangian_speed</I>, <I>lagrangian_position</I>]
+</P>
+<OL><LI><I>dhugoniot</I> is the departure from the Hugoniot (temperature units). 
+<LI><I>drayleigh</I> is the departure from the Rayleigh line (pressure units). 
+<LI><I>lagrangian_speed</I> is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
+<LI><I>lagrangian_position</I> is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front. 
+</OL>
+<P>To print these quantities to the log file with descriptive column
+headers, the following LAMMPS commands are suggested:
+</P>
+<PRE>fix		 msst all msst z 
+fix_modify       msst energy yes
+variable dhug    equal f_msst[1]
+variable dray    equal f_msst[2]
+variable lgr_vel equal f_msst[3]
+variable lgr_pos equal f_msst[4]
+thermo_style     custom step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos f_msst 
+</PRE>
+<P>These fixes compute a global scalar and a global vector of 4
+quantities, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar values calculated
+by this fix are "extensive"; the vector values are "intensive".
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix style is part of the SHOCK package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>All cell dimensions must be periodic. This fix can not be used with a
+triclinic cell.  The MSST fix has been tested only for the group-ID
+all.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nphug.html">fix nphug</A>, <A HREF = "fix_deform.html">fix deform</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The keyword defaults are q = 10, mu = 0, tscale = 0.01. p0, v0, and e0
+are calculated on the first step.
+</P>
+<HR>
+
+<A NAME = "Reed"></A>
+
+<P><B>(Reed)</B> Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503 (2003).
+</P>
+</HTML>

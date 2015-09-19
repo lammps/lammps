@@ -1,0 +1,45 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style none command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style none 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style none 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Using a pair style of none means pair forces are not computed.
+</P>
+<P>With this choice, the force cutoff is 0.0, which means that only atoms
+within the neighbor skin distance (see the <A HREF = "neighbor.html">neighbor</A>
+command) are communicated between processors.  You must insure the
+skin distance is large enough to acquire atoms needed for computing
+bonds, angles, etc.
+</P>
+<P>A pair style of <I>none</I> will also prevent pairwise neighbor lists from
+being built.  However if the <A HREF = "neighbor.html">neighbor</A> style is <I>bin</I>,
+data structures for binning are still allocated.  If the neighbor skin
+distance is small, then these data structures can consume a large
+amount of memory.  So you should either set the neighbor style to
+<I>nsq</I> or set the skin distance to a larger value.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

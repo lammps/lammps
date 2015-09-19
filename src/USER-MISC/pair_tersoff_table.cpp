@@ -557,7 +557,7 @@ void PairTersoffTable::deallocateGrids()
 
 void PairTersoffTable::allocateGrids(void)
 {
-  int   i, j, l;
+  int   i, j, k, l;
 
   int     numGridPointsExponential, numGridPointsGtetaFunction, numGridPointsOneCutoffFunction;
   int     numGridPointsNotOneCutoffFunction, numGridPointsCutoffFunction, numGridPointsBetaZetaPower;
@@ -634,9 +634,9 @@ void PairTersoffTable::allocateGrids(void)
     zeta_max = MAX(zeta_max,numGridPointsBetaZetaPower);
 
     for (j=0; j<nelements; j++) {
-      for (j=0; j<nelements; j++) {
+      for (k=0; k<nelements; k++) {
 
-        int ijparam = elem2param[i][j][j];
+        int ijparam = elem2param[i][j][k];
         double cutoffR = params[ijparam].cutoffR;
         double cutoffS = params[ijparam].cutoffS;
 

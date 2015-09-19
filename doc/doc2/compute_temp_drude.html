@@ -1,0 +1,87 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/drude command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/drude 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/drude = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute TDRUDE all temp/drude 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperatures of core-Drude
+pairs.  This compute is designed to be used with the thermalized Drude
+oscillator model.  This compute is designed to be used with the
+<A HREF = "tutorial_drude.html">thermalized Drude oscillator model</A>.  Polarizable
+models in LAMMPS are described in <A HREF = "Section_howto.html#howto_25">this
+Section</A>.
+</P>
+<P>Drude oscillators consist of a core particle and a Drude particle
+connected by a harmonic bond, and the relative motion of these Drude
+oscillators is usually maintained cold by a specific thermostat that
+acts on the relative motion of the core-Drude particle
+pairs. Therefore, because LAMMPS considers Drude particles as normal
+atoms in its default temperature compute (<A HREF = "compute_temp.html">compute
+temp</A> command), the reduced temperature of the
+core-Drude particle pairs is not calculated correctly.
+</P>
+<P>By contrast, this compute calculates the temperature of the cores
+using center-of-mass velocities of the core-Drude pairs, and the
+reduced temperature of the Drude particles using the relative
+velocities of the Drude particles with respect to their cores.
+Non-polarizable atoms are considered as cores.  Their velocities
+contribute to the temperature of the cores.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the temperature) and a global
+vector of length 6, which can be accessed by indices 1-6, whose components
+are
+</P>
+<OL><LI>temperature of the centers of mass (temperature units)
+<LI>temperature of the dipoles (temperature units)
+<LI>number of degrees of freedom of the centers of mass
+<LI>number of degrees of freedom of the dipoles
+<LI>kinetic energy of the centers of mass (energy units)
+<LI>kinetic energy of the dipoles (energy units) 
+</OL>
+<P>These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>Both the scalar value and the first two values of the vector
+calculated by this compute are "intensive".  The other 4 vector values
+are "extensive".
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The number of degrees of freedom contributing to the temperature is
+assumed to be constant for the duration of the run unless the 
+<I>fix_modify</I> command sets the option <I>dynamic yes</I>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_drude.html">fix drude</A>, <A HREF = "fix_langevin_drude.html">fix
+langevin_drude</A>, <A HREF = "fix_drude_transform.html">fix
+drude/transform</A>, <A HREF = "pair_thole.html">pair_style
+thole</A>, <A HREF = "compute_temp.html">compute temp</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

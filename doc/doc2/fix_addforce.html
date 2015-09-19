@@ -1,0 +1,184 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix addforce command 
+</H3>
+<H3>fix addforce/cuda command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID addforce fx fy fz keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>addforce = style name of this fix command 
+
+<LI>fx,fy,fz = force component values (force units) 
+
+<PRE>  any of fx,fy,fz can be a variable (see below) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>every</I> or <I>region</I> or <I>energy</I> 
+
+<PRE>  <I>every</I> value = Nevery
+    Nevery = add force every this many timesteps
+  <I>region</I> value = region-ID
+    region-ID = ID of region atoms must be in to have added force
+  <I>energy</I> value = v_name
+    v_name = variable with name that calculates the potential energy of each atom in the added force field 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix kick flow addforce 1.0 0.0 0.0
+fix kick flow addforce 1.0 0.0 v_oscillate
+fix ff boundary addforce 0.0 0.0 v_push energy v_espace 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Add fx,fy,fz to the corresponding component of force for each atom in
+the group.  This command can be used to give an additional push to
+atoms in a simulation, such as for a simulation of Poiseuille flow in
+a channel.
+</P>
+<P>Any of the 3 quantities defining the force components can be specified
+as an equal-style or atom-style <A HREF = "variable.html">variable</A>, namely <I>fx</I>,
+<I>fy</I>, <I>fz</I>.  If the value is a variable, it should be specified as
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value(s) used to determine
+the force component.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent force field.
+</P>
+<P>Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent force
+field with optional time-dependence as well.
+</P>
+<P>If the <I>every</I> keyword is used, the <I>Nevery</I> setting determines how
+often the forces are applied.  The default value is 1, for every
+timestep.
+</P>
+<P>If the <I>region</I> keyword is used, the atom must also be in the
+specified geometric <A HREF = "region.html">region</A> in order to have force added
+to it.
+</P>
+<HR>
+
+<P>Adding a force to atoms implies a change in their potential energy as
+they move due to the applied force field.  For dynamics via the "run"
+command, this energy can be optionally added to the system's potential
+energy for thermodynamic output (see below).  For energy minimization
+via the "minimize" command, this energy must be added to the system's
+potential energy to formulate a self-consistent minimization problem
+(see below).
+</P>
+<P>The <I>energy</I> keyword is not allowed if the added force is a constant
+vector F = (fx,fy,fz), with all components defined as numeric
+constants and not as variables.  This is because LAMMPS can compute
+the energy for each atom directly as E = -x dot F = -(x*fx + y*fy +
+z*fz), so that -Grad(E) = F.
+</P>
+<P>The <I>energy</I> keyword is optional if the added force is defined with
+one or more variables, and if you are performing dynamics via the
+<A HREF = "run.html">run</A> command.  If the keyword is not used, LAMMPS will set
+the energy to 0.0, which is typically fine for dynamics.
+</P>
+<P>The <I>energy</I> keyword is required if the added force is defined with
+one or more variables, and you are performing energy minimization via
+the "minimize" command.  The keyword specifies the name of an
+atom-style <A HREF = "variable.html">variable</A> which is used to compute the
+energy of each atom as function of its position.  Like variables used
+for <I>fx</I>, <I>fy</I>, <I>fz</I>, the energy variable is specified as v_name,
+where name is the variable name.
+</P>
+<P>Note that when the <I>energy</I> keyword is used during an energy
+minimization, you must insure that the formula defined for the
+atom-style <A HREF = "variable.html">variable</A> is consistent with the force
+variable formulas, i.e. that -Grad(E) = F.  For example, if the force
+were a spring-like F = kx, then the energy formula should be E =
+-0.5kx^2.  If you don't do this correctly, the minimization will not
+converge properly.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
+accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the potential "energy" inferred by the added force to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  This is a fictitious quantity but is
+needed so that the <A HREF = "minimize.html">minimize</A> command can include the
+forces added by this fix in a consistent manner.  I.e. there is a
+decrease in potential energy when atoms move in the direction of the
+added force.
+</P>
+<P>This fix computes a global scalar and a global 3-vector of forces,
+which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar is the potential
+energy discussed above.  The vector is the total force on the group of
+atoms before the forces on individual atoms are changed by the fix.
+The scalar and vector values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
+specify force components with a variable that has time-dependence for
+use with a minimizer, since the minimizer increments the timestep as
+the iteration count during the minimization.
+</P>
+<P>IMPORTANT NOTE: If you want the fictitious potential energy associated
+with the added forces to be included in the total potential energy of
+the system (the quantity being minimized), you MUST enable the
+<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for this fix.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_setforce.html">fix setforce</A>, <A HREF = "fix_aveforce.html">fix aveforce</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option default for the every keyword is every = 1.
+</P>
+</HTML>

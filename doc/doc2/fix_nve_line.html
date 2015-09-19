@@ -1,0 +1,62 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix nve/line command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID nve/line 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>nve/line = style name of this fix command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all nve/line 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform constant NVE integration to update position, velocity,
+orientation, and angular velocity for line segment particles in the
+group each timestep.  V is volume; E is energy.  This creates a system
+trajectory consistent with the microcanonical ensemble.  See
+<A HREF = "Section_howto.html">Section_howto 14</A> of the manual for an overview of
+using line segment particles.
+</P>
+<P>This fix differs from the <A HREF = "fix_nve.html">fix nve</A> command, which
+assumes point particles and only updates their position and velocity.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This fix requires that particles be line segments as defined by the
+<A HREF = "atom_style.html">atom_style line</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

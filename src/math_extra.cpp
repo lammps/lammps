@@ -61,7 +61,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       }
     }
 
-    while (aug[p][i] == 0.0 && p < 3) p++;
+    while (p < 3 && aug[p][i] == 0.0) p++;
 
     if (p == 3) return 1;
     else

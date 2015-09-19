@@ -1,0 +1,279 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style gran/hooke command 
+</H3>
+<H3>pair_style gran/cuda command 
+</H3>
+<H3>pair_style gran/omp command 
+</H3>
+<H3>pair_style gran/hooke/history command 
+</H3>
+<H3>pair_style gran/hooke/history/omp command 
+</H3>
+<H3>pair_style gran/hertz/history command 
+</H3>
+<H3>pair_style gran/hertz/history/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style Kn Kt gamma_n gamma_t xmu dampflag 
+</PRE>
+<UL><LI>style = <I>gran/hooke</I> or <I>gran/hooke/history</I> or <I>gran/hertz/history</I> 
+
+<LI>Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below) 
+
+<LI>Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below) 
+
+<LI>gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below) 
+
+<LI>gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) 
+
+<LI>xmu = static yield criterion (unitless value between 0.0 and 1.0e4) 
+
+<LI>dampflag = 0 or 1 if tangential damping force is excluded or included 
+</UL>
+<P>IMPORTANT NOTE: Versions of LAMMPS before 9Jan09 had different style
+names for granular force fields.  This is to emphasize the fact that
+the Hertzian equation has changed to model polydispersity more
+accurately.  A side effect of the change is that the Kn, Kt, gamma_n,
+and gamma_t coefficients in the pair_style command must be specified
+with different values in order to reproduce calculations made with
+earlier versions of LAMMPS, even for monodisperse systems.  See the
+NOTE below for details.
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 1
+pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>gran</I> styles use the following formulas for the frictional force
+between two granular particles, as described in
+<A HREF = "#Brilliantov">(Brilliantov)</A>, <A HREF = "#Silbert">(Silbert)</A>, and
+<A HREF = "#Zhang">(Zhang)</A>, when the distance r between two particles of radii
+Ri and Rj is less than their contact distance d = Ri + Rj.  There is
+no force between the particles when r > d.
+</P>
+<P>The two Hookean styles use this formula:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gran_hooke.jpg">
+</CENTER>
+<P>The Hertzian style uses this formula:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gran_hertz.jpg">
+</CENTER>
+<P>In both equations the first parenthesized term is the normal force
+between the two particles and the second parenthesized term is the
+tangential force.  The normal force has 2 terms, a contact force and a
+damping force.  The tangential force also has 2 terms: a shear force
+and a damping force.  The shear force is a "history" effect that
+accounts for the tangential displacement between the particles for the
+duration of the time they are in contact.  This term is included in
+pair styles <I>hooke/history</I> and <I>hertz/history</I>, but is not included
+in pair style <I>hooke</I>.  The tangential damping force term is included
+in all three pair styles if <I>dampflag</I> is set to 1; it is not included
+if <I>dampflag</I> is set to 0.
+</P>
+<P>The other quantities in the equations are as follows:
+</P>
+<UL><LI>delta = d - r = overlap distance of 2 particles
+<LI>Kn = elastic constant for normal contact
+<LI>Kt = elastic constant for tangential contact
+<LI>gamma_n = viscoelastic damping constant for normal contact
+<LI>gamma_t = viscoelastic damping constant for tangential contact
+<LI>m_eff = Mi Mj / (Mi + Mj) = effective mass of 2 particles of mass Mi and Mj
+<LI>Delta St = tangential displacement vector between 2 spherical particles       which is truncated to satisfy a frictional yield criterion
+<LI>n_ij = unit vector along the line connecting the centers of the 2 particles
+<LI>Vn = normal component of the relative velocity of the 2 particles
+<LI>Vt = tangential component of the relative velocity of the 2 particles 
+</UL>
+<P>The Kn, Kt, gamma_n, and gamma_t coefficients are specified as
+parameters to the pair_style command.  If a NULL is used for Kt, then
+a default value is used where Kt = 2/7 Kn.  If a NULL is used for
+gamma_t, then a default value is used where gamma_t = 1/2 gamma_n.
+</P>
+<P>The interpretation and units for these 4 coefficients are different in
+the Hookean versus Hertzian equations.
+</P>
+<P>The Hookean model is one where the normal push-back force for two
+overlapping particles is a linear function of the overlap distance.
+Thus the specified Kn is in units of (force/distance).  Note that this
+push-back force is independent of absolute particle size (in the
+monodisperse case) and of the relative sizes of the two particles (in
+the polydisperse case).  This model also applies to the other terms in
+the force equation so that the specified gamma_n is in units of
+(1/time), Kt is in units of (force/distance), and gamma_t is in units
+of (1/time).
+</P>
+<P>The Hertzian model is one where the normal push-back force for two
+overlapping particles is proportional to the area of overlap of the
+two particles, and is thus a non-linear function of overlap distance.
+Thus Kn has units of force per area and is thus specified in units of
+(pressure).  The effects of absolute particle size (monodispersity)
+and relative size (polydispersity) are captured in the radii-dependent
+pre-factors.  When these pre-factors are carried through to the other
+terms in the force equation it means that the specified gamma_n is in
+units of (1/(time*distance)), Kt is in units of (pressure), and
+gamma_t is in units of (1/(time*distance)).
+</P>
+<P>Note that in the Hookean case, Kn can be thought of as a linear spring
+constant with units of force/distance.  In the Hertzian case, Kn is
+like a non-linear spring constant with units of force/area or
+pressure, and as shown in the <A HREF = "#Zhang">(Zhang)</A> paper, Kn = 4G /
+(3(1-nu)) where nu = the Poisson ratio, G = shear modulus = E /
+(2(1+nu)), and E = Young's modulus.  Similarly, Kt = 4G / (2-nu).
+(NOTE: in an earlier version of the manual, we incorrectly stated that
+Kt = 8G / (2-nu).)
+</P>
+<P>Thus in the Hertzian case Kn and Kt can be set to values that
+corresponds to properties of the material being modeled.  This is also
+true in the Hookean case, except that a spring constant must be chosen
+that is appropriate for the absolute size of particles in the model.
+Since relative particle sizes are not accounted for, the Hookean
+styles may not be a suitable model for polydisperse systems.
+</P>
+<P>IMPORTANT NOTE: In versions of LAMMPS before 9Jan09, the equation for
+Hertzian interactions did not include the sqrt(RiRj/Ri+Rj) term and
+thus was not as accurate for polydisperse systems.  For monodisperse
+systems, sqrt(RiRj/Ri+Rj) is a constant factor that effectively scales
+all 4 coefficients: Kn, Kt, gamma_n, gamma_t.  Thus you can set the
+values of these 4 coefficients appropriately in the current code to
+reproduce the results of a previous Hertzian monodisperse calculation.
+For example, for the common case of a monodisperse system with
+particles of diameter 1, all 4 of these coefficients should now be set
+2x larger than they were previously.
+</P>
+<P>Xmu is also specified in the pair_style command and is the upper limit
+of the tangential force through the Coulomb criterion Ft = xmu*Fn,
+where Ft and Fn are the total tangential and normal force components
+in the formulas above.  Thus in the Hookean case, the tangential force
+between 2 particles grows according to a tangential spring and
+dash-pot model until Ft/Fn = xmu and is then held at Ft = Fn*xmu until
+the particles lose contact.  In the Hertzian case, a similar analogy
+holds, though the spring is no longer linear.
+</P>
+<P>IMPORTANT NOTE: Normally, xmu should be specified as a fractional
+value between 0.0 and 1.0, however LAMMPS allows large values (up to
+1.0e4) to allow for modeling of systems which can sustain very large
+tangential forces.
+</P>
+<P>For granular styles there are no additional coefficients to set for
+each pair of atom types via the <A HREF = "pair_coeff.html">pair_coeff</A> command.
+All settings are global and are made via the pair_style command.
+However you must still use the <A HREF = "pair_coeff.html">pair_coeff</A> for all
+pairs of granular atom types.  For example the command
+</P>
+<PRE>pair_coeff * * 
+</PRE>
+<P>should be used if all atoms in the simulation interact via a granular
+potential (i.e. one of the pair styles above is used).  If a granular
+potential is used as a sub-style of <A HREF = "pair_hybrid.html">pair_style
+hybrid</A>, then specific atom types can be used in the
+pair_coeff command to determine which atoms interact via a granular
+potential.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> mix, shift, table, and tail options
+are not relevant for granular pair styles.
+</P>
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so a pair_style command does not need to be
+specified in an input script that reads a restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P>The single() function of these pair styles returns 0.0 for the energy
+of a pairwise interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the pairwise interaction force.  However, the single() function also
+calculates 4 extra pairwise quantities.  The first 3 are the
+components of the tangential force between particles I and J, acting
+on particle I.  <I>P4</I> is the magnitude of this tangential force.  These
+extra quantites can be accessed by the <A HREF = "compute_pair_local.html">compute
+pair/local</A> command, as <I>p1</I>, <I>p2</I>, <I>p3</I>,
+<I>p4</I>.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P>All the granular pair styles are part of the GRANULAR package.  It is
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>These pair styles require that atoms store torque and angular velocity
+(omega) as defined by the <A HREF = "atom_style.html">atom_style</A>.  They also
+require a per-particle radius is stored.  The <I>sphere</I> atom style does
+all of this.
+</P>
+<P>This pair style requires you to use the <A HREF = "comm_modify.html">comm_modify vel
+yes</A> command so that velocites are stored by ghost
+atoms.
+</P>
+<P>These pair styles will not restart exactly when using the
+<A HREF = "read_restart.html">read_restart</A> command, though they should provide
+statistically similar results.  This is because the forces they
+compute depend on atom velocities.  See the
+<A HREF = "read_restart.html">read_restart</A> command for more details.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Brilliantov"></A>
+
+<P><B>(Brilliantov)</B> Brilliantov, Spahn, Hertzsch, Poschel, Phys Rev E, 53,
+p 5382-5392 (1996).
+</P>
+<A NAME = "Silbert"></A>
+
+<P><B>(Silbert)</B> Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev
+E, 64, p 051302 (2001).
+</P>
+<A NAME = "Zhang"></A>
+
+<P><B>(Zhang)</B> Zhang and Makse, Phys Rev E, 72, p 011301 (2005).
+</P>
+</HTML>

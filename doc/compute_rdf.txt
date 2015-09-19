@@ -42,8 +42,11 @@ interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the "special_bonds"_special_bonds.html
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
-those pairs will not be included in the RDF.  One way to get around
-this, is to write a dump file, and use the "rerun"_rerun.html command
+those pairs will not be included in the RDF. This does not apply when
+using long-range coulomb ({coul/long}, {coul/msm}, {coul/wolf} or similar.
+One way to get around this would be to set special_bond scaling factors
+to very tiny numbers that are not exactly zero (e.g. 1.0e-50). Another
+workaround is to write a dump file, and use the "rerun"_rerun.html command
 to compute the RDF for snapshots in the dump file.  The rerun script
 can use a "special_bonds"_special_bonds.html command that includes all
 pairs in the neighbor list.
@@ -89,10 +92,13 @@ arguments are specified.
 
 The g(r) value for a bin is calculated from the histogram count by
 scaling it by the idealized number of how many counts there would be
-if atoms of type {jtypeN} were uniformly distributed.  Thus it
-involves the count of {itypeN} atoms, the count of {jtypeN} atoms, the
-volume of the entire simulation box, and the volume of the bin's thin
-shell in 3d (or the area of the bin's thin ring in 2d).
+if atoms of type {jtypeN} were uniformly distributed.  Thus it involves
+the count of {itypeN} atoms, the count of {jtypeN} atoms, the volume
+of the entire simulation box, and the volume of the bin's thin shell
+in 3d (or the area of the bin's thin ring in 2d). The normalization
+is corrected for finite size effects so that the large {r} limit for
+a homogeneous liquid system of a single atom type becomes exactly 1.0
+(without the correction it would be (natoms-1)/natoms).
 
 A coordination number coord(r) is also calculated, which is the number
 of atoms of type {jtypeN} within the current bin or closer, averaged

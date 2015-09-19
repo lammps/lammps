@@ -70,6 +70,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     } else break;
   }
 
+  if (nvalues == 0) error->all(FLERR,"No values in fix ave/time command");
+
   options(narg,arg);
 
   // parse values until one isn't recognized
@@ -292,6 +294,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // since array args may have been expanded to multiple vectors
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Time-averaged data for fix %s\n",id);
     if (title2) fprintf(fp,"%s\n",title2);
@@ -311,6 +314,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       }
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing file header");
+
     filepos = ftell(fp);
   }
 
@@ -467,6 +473,8 @@ FixAveTime::~FixAveTime()
         }
       }
   }
+
+  delete [] format_user;
 
   memory->destroy(which);
   memory->destroy(argindex);
@@ -688,14 +696,19 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT,ntimestep);
-    for (i = 0; i < nvalues; i++) fprintf(fp," %g",vector_total[i]/norm);
+    for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
     fprintf(fp,"\n");
+    if (ferror(fp))
+      error->one(FLERR,"Error writing out time averaged data");
+
     fflush(fp);
+
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 }
@@ -888,7 +901,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrows);
     for (i = 0; i < nrows; i++) {
       fprintf(fp,"%d",i+1);
-      for (j = 0; j < nvalues; j++) fprintf(fp," %g",array_total[i][j]/norm);
+      for (j = 0; j < nvalues; j++) fprintf(fp,format,array_total[i][j]/norm);
       fprintf(fp,"\n");
     }
     fflush(fp);
@@ -1006,6 +1019,8 @@ void FixAveTime::options(int narg, char **arg)
   noff = 0;
   offlist = NULL;
   overwrite = 0;
+  format_user = NULL;
+  format = (char *) " %g";
   title1 = NULL;
   title2 = NULL;
   title3 = NULL;
@@ -1056,6 +1071,14 @@ void FixAveTime::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"format") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      delete [] format_user;
+      int n = strlen(arg[iarg+1]) + 2;
+      format_user = new char[n];
+      sprintf(format_user," %s",arg[iarg+1]);
+      format = format_user;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title1;

@@ -310,7 +310,7 @@ namespace ATC
     default:
       throw ATC_Error("field not found in field_to_string");
     }
-  };
+  }
 
   /** string to field enum */
   inline FieldName string_to_field(const std::string & name) 
@@ -395,7 +395,7 @@ namespace ATC
       return QUADRUPOLE_MOMENT;
     else
       throw ATC_Error(name + " is not a valid field");
-  };
+  }
 
   inline bool is_intrinsic(const FieldName & field_enum) 
   {
@@ -410,7 +410,7 @@ namespace ATC
       || field_enum==REFERENCE_POTENTIAL_ENERGY
      )   return true;
     else return false;
-  };
+  }
 
   inline std::string field_to_intrinsic_name(const FieldName index) 
   {
@@ -457,7 +457,7 @@ namespace ATC
     }
 
     return true;
-  };
+  }
 
   /** solver types */
   enum SolverType { DIRECT=0, ITERATIVE};
@@ -577,7 +577,7 @@ namespace ATC
     else if (dir == 'z') index = 2;
     else return false;
     return true;
-  };
+  }
 
   /** string to index */
   inline std::string index_to_string(const int &index)
@@ -586,7 +586,7 @@ namespace ATC
     else if (index==1) return "y";
     else if (index==2) return "z";
     return "unknown";
-  };
+  }
 
   /** string to index */
   inline bool string_to_index(const std::string &dim, int &index)
@@ -601,7 +601,7 @@ namespace ATC
       return false;
 
     return true;
-  };
+  }
 
   inline std::string print_mask(const Array2D<bool> & rhsMask) 
   {

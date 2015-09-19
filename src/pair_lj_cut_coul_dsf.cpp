@@ -145,7 +145,6 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
                                    r*f_shift) * r;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-          fpair = forcecoul * r2inv;
         } else forcecoul = 0.0;
 
         fpair = (forcecoul + factor_lj*forcelj) * r2inv;

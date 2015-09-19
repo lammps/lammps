@@ -27,18 +27,14 @@ protected:
 
   /// n-dim histogram
   colvar_grid_scalar *grid;
-  std::vector<int>  bin;
-  std::string	  out_name;
-
+  std::vector<int> bin;
+  std::string out_name, out_name_dx;
   size_t output_freq;
 
   /// If one or more of the variables are \link type_vector \endlink, treat them as arrays of this length
   size_t colvar_array_size;
   /// If colvar_array_size is larger than 1, weigh each one by this number before accumulating the histogram
   std::vector<cvm::real> weights;
-
-  void		  write_grid();
-  cvm::ofstream	  grid_os;  /// Stream for writing grid to disk
 
   std::istream& read_restart(std::istream&);
   std::ostream& write_restart(std::ostream&);

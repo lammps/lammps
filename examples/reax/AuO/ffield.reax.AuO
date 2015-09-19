@@ -1,4 +1,4 @@
-Reactive MD-force field: Au-Au: Keith, J. A. et al. Phys Rev B 2010, 81, 235404; Joshi, K. et al., J. Mat. Chem 2010, 20, 10431-10437
+DATE: 2011-02-18 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Joshi et al, J Mat Chem, 20, 10431-10437 (2010) COMMENT: Reactive MD-force field: Au-Au: Keith, J. A. et al. Phys Rev B 2010, 81, 235404; Joshi, K. et al., J. Mat. Chem 2010, 20, 10431-10437
  39       ! Number of general parameters                                        
    50.0000 !Overcoordination parameter                                          
     9.5469 !Overcoordination parameter                                          

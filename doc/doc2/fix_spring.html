@@ -1,0 +1,151 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix spring command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID spring keyword values 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>spring = style name of this fix command 
+
+<LI>keyword = <I>tether</I> or <I>couple</I> 
+
+<PRE>  <I>tether</I> values = K x y z R0
+    K = spring constant (force/distance units)
+    x,y,z = point to which spring is tethered
+    R0 = equilibrium distance from tether point (distance units)
+  <I>couple</I> values = group-ID2 K x y z R0
+    group-ID2 = 2nd group to couple to fix group with a spring
+    K = spring constant (force/distance units)
+    x,y,z = direction of spring
+    R0 = equilibrium distance of spring (distance units) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix pull ligand spring tether 50.0 0.0 0.0 0.0 0.0
+fix pull ligand spring tether 50.0 0.0 0.0 0.0 5.0
+fix pull ligand spring tether 50.0 NULL NULL 2.0 3.0
+fix 5 bilayer1 spring couple bilayer2 100.0 NULL NULL 10.0 0.0
+fix longitudinal pore spring couple ion 100.0 NULL NULL -20.0 0.0
+fix radial pore spring couple ion 100.0 0.0 0.0 NULL 5.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a spring force to a group of atoms or between two groups of
+atoms.  This is useful for applying an umbrella force to a small
+molecule or lightly tethering a large group of atoms (e.g. all the
+solvent or a large molecule) to the center of the simulation box so
+that it doesn't wander away over the course of a long simulation.  It
+can also be used to hold the centers of mass of two groups of atoms at
+a given distance or orientation with respect to each other.
+</P>
+<P>The <I>tether</I> style attaches a spring between a fixed point <I>x,y,z</I> and
+the center of mass of the fix group of atoms.  The equilibrium
+position of the spring is R0.  At each timestep the distance R from
+the center of mass of the group of atoms to the tethering point is
+computed, taking account of wrap-around in a periodic simulation box.
+A restoring force of magnitude K (R - R0) Mi / M is applied to each
+atom in the group where <I>K</I> is the spring constant, Mi is the mass of
+the atom, and M is the total mass of all atoms in the group.  Note
+that <I>K</I> thus represents the total force on the group of atoms, not a
+per-atom force.
+</P>
+<P>The <I>couple</I> style links two groups of atoms together.  The first
+group is the fix group; the second is specified by group-ID2.  The
+groups are coupled together by a spring that is at equilibrium when
+the two groups are displaced by a vector <I>x,y,z</I> with respect to each
+other and at a distance R0 from that displacement.  Note that <I>x,y,z</I>
+is the equilibrium displacement of group-ID2 relative to the fix
+group.  Thus (1,1,0) is a different spring than (-1,-1,0).  When the
+relative positions and distance between the two groups are not in
+equilibrium, the same spring force described above is applied to atoms
+in each of the two groups.
+</P>
+<P>For both the <I>tether</I> and <I>couple</I> styles, any of the x,y,z values can
+be specified as NULL which means do not include that dimension in the
+distance calculation or force application.
+</P>
+<P>The first example above pulls the ligand towards the point (0,0,0).
+The second example holds the ligand near the surface of a sphere of
+radius 5 around the point (0,0,0).  The third example holds the ligand
+a distance 3 away from the z=2 plane (on either side).
+</P>
+<P>The fourth example holds 2 bilayers a distance 10 apart in z.  For the
+last two examples, imagine a pore (a slab of atoms with a cylindrical
+hole cut out) oriented with the pore axis along z, and an ion moving
+within the pore.  The fifth example holds the ion a distance of -20
+below the z = 0 center plane of the pore (umbrella sampling).  The
+last example holds the ion a distance 5 away from the pore axis
+(assuming the center-of-mass of the pore in x,y is the pore axis).
+</P>
+<P>IMPORTANT NOTE: The center of mass of a group of atoms is calculated
+in "unwrapped" coordinates using atom image flags, which means that
+the group can straddle a periodic boundary.  See the <A HREF = "dump.html">dump</A>
+doc page for a discussion of unwrapped coordinates.  It also means
+that a spring connecting two groups or a group and the tether point
+can cross a periodic boundary and its length be calculated correctly.
+One exception is for rigid bodies, which should not be used with the
+fix spring command, if the rigid body will cross a periodic boundary.
+This is because image flags for rigid bodies are used in a different
+way, as explained on the <A HREF = "fix_rigid.html">fix rigid</A> doc page.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>. 
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy stored in the spring to the system's potential
+energy as part of <A HREF = "thermo_style.html">thermodynamic output</A>.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+spring energy = 0.5 * K * r^2.
+</P>
+<P>This fix also computes global 4-vector which can be accessed by
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The first 3
+quantities in the vector are xyz components of the total force added
+to the group of atoms by the spring.  In the case of the <I>couple</I>
+style, it is the force on the fix group (group-ID) or the negative of
+the force on the 2nd group (group-ID2).  The 4th quantity in the
+vector is the magnitude of the force added by the spring, as a
+positive value if (r-R0) > 0 and a negative value if (r-R0) < 0.  This
+sign convention can be useful when using the spring force to compute a
+potential of mean force (PMF).
+</P>
+<P>The scalar and vector values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P>IMPORTANT NOTE: If you want the spring energy to be included in the
+total potential energy of the system (the quantity being minimized),
+you MUST enable the <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for
+this fix.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_drag.html">fix drag</A>, <A HREF = "fix_spring_self.html">fix spring/self</A>, 
+<A HREF = "fix_spring_rg.html">fix spring/rg</A>, <A HREF = "fix_smd.html">fix smd</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

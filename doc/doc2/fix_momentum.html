@@ -1,0 +1,85 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix momentum command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID momentum N keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>momentum = style name of this fix command 
+
+<LI>N = adjust the momentum every this many timesteps
+one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>linear</I> or <I>angular</I> or <I>rescale</I> 
+
+<PRE>  <I>linear</I> values = xflag yflag zflag
+    xflag,yflag,zflag = 0/1 to exclude/include each dimension
+  <I>angular</I> values = none 
+</PRE>
+<PRE>  <I>rescale</I> values = none 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all momentum 1 linear 1 1 0
+fix 1 all momentum 1 linear 1 1 1 rescale
+fix 1 all momentum 100 linear 1 1 1 angular 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Zero the linear and/or angular momentum of the group of atoms every N
+timesteps by adjusting the velocities of the atoms.  One (or both) of
+the <I>linear</I> or <I>angular</I> keywords must be specified.
+</P>
+<P>If the <I>linear</I> keyword is used, the linear momentum is zeroed by
+subtracting the center-of-mass velocity of the group from each atom.
+This does not change the relative velocity of any pair of atoms.  One
+or more dimensions can be excluded from this operation by setting the
+corresponding flag to 0.
+</P>
+<P>If the <I>angular</I> keyword is used, the angular momentum is zeroed by
+subtracting a rotational component from each atom.
+</P>
+<P>This command can be used to insure the entire collection of atoms (or
+a subset of them) does not drift or rotate during the simulation due
+to random perturbations (e.g. <A HREF = "fix_langevin.html">fix langevin</A>
+thermostatting).
+</P>
+<P>The <I>rescale</I> keyword enables conserving the kinetic energy of the group
+of atoms by rescaling the velocities after the momentum was removed.
+</P>
+<P>Note that the <A HREF = "velocity.html">velocity</A> command can be used to create
+initial velocities with zero aggregate linear and/or angular momentum.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_recenter.html">fix recenter</A>, <A HREF = "velocity.html">velocity</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

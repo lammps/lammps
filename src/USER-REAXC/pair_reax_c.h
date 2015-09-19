@@ -57,8 +57,6 @@ class PairReaxC : public Pair {
   reax_list *lists;
   mpi_datatypes *mpi_data;
 
-  bigint ngroup;
-
  private:
   double cutmax;
   int nelements;                // # of unique elements

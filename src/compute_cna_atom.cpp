@@ -262,7 +262,7 @@ void ComputeCNAAtom::compute_peratom()
         firstflag = 1;
         ncommon = 0;
         for (inear = 0; inear < nnearest[i]; inear++)
-          for (jnear = 0; jnear < n; jnear++)
+          for (jnear = 0; (jnear < n) && (n < MAXNEAR); jnear++)
             if (nearest[i][inear] == onenearest[jnear]) {
               if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
               else if (firstflag) {

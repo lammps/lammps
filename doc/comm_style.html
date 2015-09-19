@@ -1,68 +1,251 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>comm_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>comm_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>comm_style style 
-</PRE>
-<UL><LI>style = <I>brick</I> or <I>tiled</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>comm_style brick
-comm_style tiled 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command sets the style of inter-processor communication of atom
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>comm_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="comm-style-command">
+<span id="index-0"></span><h1>comm_style command<a class="headerlink" href="#comm-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>comm_style style
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>brick</em> or <em>tiled</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>comm_style brick
+comm_style tiled
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command sets the style of inter-processor communication of atom
 information that occurs each timestep as coordinates and other
 properties are exchanged between neighboring processors and stored as
-properties of ghost atoms.
-</P>
-<P>For the default <I>brick</I> style, the domain decomposition used by LAMMPS
+properties of ghost atoms.</p>
+<p>For the default <em>brick</em> style, the domain decomposition used by LAMMPS
 to partition the simulation box must be a regular 3d grid of bricks,
 one per processor.  Each processor communicates with its 6 Cartesian
-neighbors in the grid to acquire information for nearby atoms.
-</P>
-<P>For the <I>tiled</I> style, a more general domain decomposition can be
-used, as triggered by the <A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix
-balance</A> commands.  The simulation box can be
-partitioned into non-overlapping rectangular-shaped "tiles" or varying
+neighbors in the grid to acquire information for nearby atoms.</p>
+<p>For the <em>tiled</em> style, a more general domain decomposition can be
+used, as triggered by the <a class="reference internal" href="balance.html"><em>balance</em></a> or <a class="reference internal" href="fix_balance.html"><em>fix balance</em></a> commands.  The simulation box can be
+partitioned into non-overlapping rectangular-shaped &#8220;tiles&#8221; or varying
 sizes and shapes.  Again there is one tile per processor.  To acquire
 information for nearby atoms, communication must now be done with a
-more complex pattern of neighboring processors.
-</P>
-<P>Note that this command does not actually define a partitoining of the
+more complex pattern of neighboring processors.</p>
+<p>Note that this command does not actually define a partitoining of the
 simulation box (a domain decomposition), rather it determines what
 kinds of decompositions are allowed and the pattern of communication
 used to enable the decomposition.  A decomposition is created when the
-simulation box is first created, via the <A HREF = "create_box.html">create_box</A>
-or <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands.  For both the <I>brick</I> and <I>tiled</I> styles, the initial
+simulation box is first created, via the <a class="reference internal" href="create_box.html"><em>create_box</em></a>
+or <a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands.  For both the <em>brick</em> and <em>tiled</em> styles, the initial
 decomposition will be the same, as described by
-<A HREF = "create_box.html">create_box</A> and <A HREF = "processors.html">processors</A>
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> and <a class="reference internal" href="processors.html"><em>processors</em></a>
 commands.  The decomposition can be changed via the
-<A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix_balance</A> commands.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "comm_modify.html">comm_modify</A>, <A HREF = "processors.html">processors</A>,
-<A HREF = "balance.html">balance</A>, <A HREF = "fix_balance.html">fix balance</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The default style is brick.
-</P>
-</HTML>
+<a class="reference internal" href="balance.html"><em>balance</em></a> or <a class="reference internal" href="fix_balance.html"><em>fix_balance</em></a> commands.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="comm_modify.html"><em>comm_modify</em></a>, <a class="reference internal" href="processors.html"><em>processors</em></a>,
+<a class="reference internal" href="balance.html"><em>balance</em></a>, <a class="reference internal" href="fix_balance.html"><em>fix balance</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default style is brick.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

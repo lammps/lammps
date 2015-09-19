@@ -72,6 +72,10 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boundary[1][0] = boundary[1][1] = 0;
   boundary[2][0] = boundary[2][1] = 0;
 
+  minxlo = minxhi = 0.0;
+  minylo = minyhi = 0.0;
+  minzlo = minzhi = 0.0;
+
   triclinic = 0;
   tiltsmall = 1;
 
@@ -590,17 +594,15 @@ void Domain::pbc()
 
 int Domain::inside(double* x)
 {
-  double *lo,*hi,*period;
+  double *lo,*hi;
   double delta[3];
 
   if (triclinic == 0) {
     lo = boxlo;
     hi = boxhi;
-    period = prd;
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
-    period = prd_lamda;
 
     delta[0] = x[0] - boxlo[0];
     delta[1] = x[1] - boxlo[1];
@@ -624,7 +626,7 @@ int Domain::inside(double* x)
 
 int Domain::inside_nonperiodic(double* x)
 {
-  double *lo,*hi,*period;
+  double *lo,*hi;
   double delta[3];
 
   if (xperiodic && yperiodic && zperiodic) return 1;
@@ -632,11 +634,9 @@ int Domain::inside_nonperiodic(double* x)
   if (triclinic == 0) {
     lo = boxlo;
     hi = boxhi;
-    period = prd;
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
-    period = prd_lamda;
 
     delta[0] = x[0] - boxlo[0];
     delta[1] = x[1] - boxlo[1];

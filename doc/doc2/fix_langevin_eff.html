@@ -1,0 +1,128 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix langevin/eff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID langevin/eff Tstart Tstop damp seed keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>langevin/eff = style name of this fix command 
+
+<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
+
+<LI>damp = damping parameter (time units) 
+
+<LI>seed = random number seed to use for white noise (positive integer) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>keyword = <I>scale</I> or <I>tally</I> or <I>zero</I>
+  <I>scale</I> values = type ratio
+    type = atom type (1-N)
+    ratio = factor by which to scale the damping coefficient
+  <I>tally</I> values = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not tally the energy added/subtracted to atoms
+    <I>yes</I> = do tally the energy added/subtracted to atoms 
+</PRE>
+<PRE>  <I>zero</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not set total random force to zero
+    <I>yes</I> = set total random force to zero 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 boundary langevin/eff 1.0 1.0 10.0 699483
+fix 1 all langevin/eff 1.0 1.1 10.0 48279 scale 3 1.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a Langevin thermostat as described in <A HREF = "#Schneider">(Schneider)</A>
+to a group of nuclei and electrons in the <A HREF = "pair_eff.html">electron force
+field</A> model.  Used with <A HREF = "fix_nve_eff.html">fix nve/eff</A>,
+this command performs Brownian dynamics (BD), since the total force on
+each atom will have the form:
+</P>
+<PRE>F = Fc + Ff + Fr
+Ff = - (m / damp) v
+Fr is proportional to sqrt(Kb T m / (dt damp)) 
+</PRE>
+<P>Fc is the conservative force computed via the usual inter-particle
+interactions (<A HREF = "pair_style.html">pair_style</A>).
+</P>
+<P>The Ff and Fr terms are added by this fix on a per-particle basis.
+</P>
+<P>The operation of this fix is exactly like that described by the <A HREF = "fix_langevin.html">fix
+langevin</A> command, except that the thermostatting
+is also applied to the radial electron velocity for electron
+particles.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do "exact"
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Langevin thermostatting to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  Note that use of this option requires
+setting the <I>tally</I> keyword to <I>yes</I>.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".  Note that calculation of this
+quantity requires setting the <I>tally</I> keyword to <I>yes</I>.
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P>This fix is part of the USER-EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_langevin.html">fix langevin</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are scale = 1.0 for all types and tally = no.
+</P>
+<HR>
+
+<A NAME = "Dunweg"></A>
+
+<P><B>(Dunweg)</B> Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
+</P>
+<A NAME = "Schneider"></A>
+
+<P><B>(Schneider)</B> Schneider and Stoll, Phys Rev B, 17, 1302 (1978). 
+</P>
+</HTML>

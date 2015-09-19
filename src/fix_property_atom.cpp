@@ -182,9 +182,11 @@ void FixPropertyAtom::init()
 
 /* ----------------------------------------------------------------------
    unpack N lines in buf from section of data file labeled by keyword
+   id_offset is applied to first atomID field if multiple data files are read
 ------------------------------------------------------------------------- */
 
-void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
+void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
+                                        tagint id_offset)
 {
   int j,m;
   tagint itag;
@@ -223,7 +225,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    itag = ATOTAGINT(values[0]);
+    itag = ATOTAGINT(values[0]) + id_offset;
     if (itag <= 0 || itag > map_tag_max) {
       char str[128];
       sprintf(str,"Invalid atom ID in %s section of data file",keyword);

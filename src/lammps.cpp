@@ -71,6 +71,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   logfile = NULL;
   infile = NULL;
 
+  initclock = MPI_Wtime();
+
   // parse input switches
 
   int inflag = 0;
@@ -505,11 +507,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   memory->destroy(pfirst);
   memory->destroy(plast);
 
-  // if helpflag set, print help and quit
+  // if helpflag set, print help and quit with "success" status
 
   if (helpflag) {
     if (universe->me == 0 && screen) help();
-    error->done();
+    error->done(0);
   }
 
   // if restartflag set, invoke 2 commands and quit
@@ -526,7 +528,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
     strcat(cmd," noinit\n");
     input->one(cmd);
-    error->done();
+    error->done(0);
   }
 }
 
@@ -540,9 +542,23 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
 LAMMPS::~LAMMPS()
 {
-  destroy();
+  const int me = comm->me;
 
+  destroy();
   delete citeme;
+
+  double totalclock = MPI_Wtime() - initclock;
+  if ((me == 0) && (screen || logfile)) {
+    char outtime[128];
+    int seconds = fmod(totalclock,60.0);
+    totalclock  = (totalclock - seconds) / 60.0;
+    int minutes = fmod(totalclock,60.0);
+    int hours = (totalclock - minutes) / 60.0;
+    sprintf(outtime,"Total wall time: "
+            "%d:%02d:%02d\n", hours, minutes, seconds);
+    if (screen) fputs(outtime,screen);
+    if (logfile) fputs(outtime,logfile);
+  }
 
   if (universe->nworlds == 1) {
     if (screen && screen != stdout) fclose(screen);
@@ -659,13 +675,12 @@ void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
     suffix2 = NULL;
   }
 
-  if (suffix) {
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
-    if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
-    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
-  }
+  if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+  if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
+  if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
+
   if (suffix2) {
-    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
+    if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
   }
 
   // invoke any command-line package commands
@@ -714,21 +729,37 @@ void LAMMPS::init()
 void LAMMPS::destroy()
 {
   delete update;
+  update = NULL;
+
   delete neighbor;
+  neighbor = NULL;
+
   delete comm;
+  comm = NULL;
+
   delete force;
+  force = NULL;
+
   delete group;
+  group = NULL;
+
   delete output;
+  output = NULL;
+
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
+  modify = NULL;
+
   delete domain;          // domain must come after modify
                           //   since fix destructors access domain
+  domain = NULL;
+
   delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
-  delete timer;
+  atom = NULL;
 
-  modify = NULL;          // necessary since input->variable->varreader
-                          // will be destructed later
+  delete timer;
+  timer = NULL;
 }
 
 /* ----------------------------------------------------------------------

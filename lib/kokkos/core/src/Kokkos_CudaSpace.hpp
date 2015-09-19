@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -44,15 +44,20 @@
 #ifndef KOKKOS_CUDASPACE_HPP
 #define KOKKOS_CUDASPACE_HPP
 
+#include <Kokkos_Core_fwd.hpp>
+
 #if defined( KOKKOS_HAVE_CUDA )
 
 #include <iosfwd>
 #include <typeinfo>
 #include <string>
 
-#include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_HostSpace.hpp>
+
+#include <impl/Kokkos_AllocationTracker.hpp>
+
 #include <Cuda/Kokkos_Cuda_abort.hpp>
+#include <Cuda/Kokkos_Cuda_BasicAllocators.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -66,67 +71,75 @@ public:
   //! Tag this class as a kokkos memory space
   typedef CudaSpace             memory_space ;
   typedef Kokkos::Cuda          execution_space ;
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
+
   typedef unsigned int          size_type ;
 
-  /** \brief  Allocate a contiguous block of memory on the Cuda device.
+  typedef Impl::CudaMallocAllocator allocator;
+
+  /** \brief  Allocate a contiguous block of memory.
    *
    *  The input label is associated with the block of memory.
    *  The block of memory is tracked via reference counting where
    *  allocation gives it a reference count of one.
-   *
-   *  Allocation may only occur on the master thread of the process.
    */
-  static void * allocate( const std::string & label , const size_t size );
-
-  /** \brief  Increment the reference count of the block of memory
-   *          in which the input pointer resides.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static void increment( const void * );
-
-  /** \brief  Decrement the reference count of the block of memory
-   *          in which the input pointer resides.  If the reference
-   *          count falls to zero the memory is deallocated.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static void decrement( const void * );
-
-  /** \brief  Get the reference count of the block of memory
-   *          in which the input pointer resides.  If the reference
-   *          count is zero the memory region is not tracked.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static int count( const void * );
-
-  /** \brief  Print all tracked memory to the output stream. */
-  static void print_memory_view( std::ostream & );
-
-  /** \brief  Retrieve label associated with the input pointer */
-  static std::string query_label( const void * );
+  static Impl::AllocationTracker allocate_and_track( const std::string & label, const size_t size );
 
   /*--------------------------------*/
   /** \brief  Cuda specific function to attached texture object to an allocation.
    *          Output the texture object, base pointer, and offset from the input pointer.
    */
 #if defined( __CUDACC__ )
-  static void texture_object_attach( const void            * const arg_ptr
-                                   , const unsigned                arg_type_size
-                                   , ::cudaChannelFormatDesc const & arg_desc
-                                   , ::cudaTextureObject_t * const arg_tex_obj
-                                   , void const           ** const arg_alloc_ptr
-                                   , int                   * const arg_offset
+  static void texture_object_attach(  Impl::AllocationTracker const & tracker
+                                    , unsigned type_size
+                                    , ::cudaChannelFormatDesc const & desc
                                    );
 #endif
+
+  /*--------------------------------*/
+
+  CudaSpace();
+  CudaSpace( const CudaSpace & rhs ) = default ;
+  CudaSpace & operator = ( const CudaSpace & rhs ) = default ;
+  ~CudaSpace() = default ;
+
+  /**\brief  Allocate memory in the cuda space */
+  void * allocate( const size_t arg_alloc_size ) const ;
+
+  /**\brief  Deallocate memory in the cuda space */
+  void deallocate( void * const arg_alloc_ptr
+                 , const size_t arg_alloc_size ) const ;
 
   /*--------------------------------*/
   /** \brief  Error reporting for HostSpace attempt to access CudaSpace */
   static void access_error();
   static void access_error( const void * const );
+
+private:
+
+  int  m_device ; ///< Which Cuda device
+
+  // friend class Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void > ;
 };
 
+namespace Impl {
+/// \brief Initialize lock array for arbitrary size atomics.
+///
+/// Arbitrary atomics are implemented using a hash table of locks
+/// where the hash value is derived from the address of the
+/// object for which an atomic operation is performed.
+/// This function initializes the locks to zero (unset).
+void init_lock_array_cuda_space();
+
+/// \brief Retrieve the pointer to the lock array for arbitrary size atomics.
+///
+/// Arbitrary atomics are implemented using a hash table of locks
+/// where the hash value is derived from the address of the
+/// object for which an atomic operation is performed.
+/// This function retrieves the lock array pointer.
+/// If the array is not yet allocated it will do so.
+int* lock_array_cuda_space_ptr(bool deallocate = false);
+}
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -143,62 +156,51 @@ public:
   //! Tag this class as a kokkos memory space
   typedef CudaUVMSpace          memory_space ;
   typedef Cuda                  execution_space ;
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
   typedef unsigned int          size_type ;
 
   /** \brief  If UVM capability is available */
   static bool available();
 
-  /** \brief  Allocate a contiguous block of memory on the Cuda device.
+  typedef Impl::CudaUVMAllocator allocator;
+
+  /** \brief  Allocate a contiguous block of memory.
    *
    *  The input label is associated with the block of memory.
    *  The block of memory is tracked via reference counting where
    *  allocation gives it a reference count of one.
-   *
-   *  Allocation may only occur on the master thread of the process.
    */
-  static void * allocate( const std::string & label , const size_t size );
+  static Impl::AllocationTracker allocate_and_track( const std::string & label, const size_t size );
 
-  /** \brief  Increment the reference count of the block of memory
-   *          in which the input pointer resides.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static void increment( const void * );
-
-  /** \brief  Decrement the reference count of the block of memory
-   *          in which the input pointer resides.  If the reference
-   *          count falls to zero the memory is deallocated.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static void decrement( const void * );
-
-  /** \brief  Get the reference count of the block of memory
-   *          in which the input pointer resides.  If the reference
-   *          count is zero the memory region is not tracked.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static int count( const void * );
-
-  /** \brief  Print all tracked memory to the output stream. */
-  static void print_memory_view( std::ostream & );
-
-  /** \brief  Retrieve label associated with the input pointer */
-  static std::string query_label( const void * );
 
   /** \brief  Cuda specific function to attached texture object to an allocation.
    *          Output the texture object, base pointer, and offset from the input pointer.
    */
 #if defined( __CUDACC__ )
-  static void texture_object_attach( const void            * const arg_ptr
-                                   , const unsigned                arg_type_size
-                                   , ::cudaChannelFormatDesc const & arg_desc
-                                   , ::cudaTextureObject_t * const arg_tex_obj
-                                   , void const           ** const arg_alloc_ptr
-                                   , int                   * const arg_offset
+  static void texture_object_attach(  Impl::AllocationTracker const & tracker
+                                    , unsigned type_size
+                                    , ::cudaChannelFormatDesc const & desc
                                    );
 #endif
+  /*--------------------------------*/
+
+  CudaUVMSpace();
+  CudaUVMSpace( const CudaUVMSpace & rhs ) = default ;
+  CudaUVMSpace & operator = ( const CudaUVMSpace & rhs ) = default ;
+  ~CudaUVMSpace() = default ;
+
+  /**\brief  Allocate memory in the cuda space */
+  void * allocate( const size_t arg_alloc_size ) const ;
+
+  /**\brief  Deallocate memory in the cuda space */
+  void deallocate( void * const arg_alloc_ptr
+                 , const size_t arg_alloc_size ) const ;
+
+  /*--------------------------------*/
+
+private:
+
+  int  m_device ; ///< Which Cuda device
 };
 
 } // namespace Kokkos
@@ -215,50 +217,38 @@ class CudaHostPinnedSpace {
 public:
 
   //! Tag this class as a kokkos memory space
-  typedef CudaHostPinnedSpace         memory_space ;
-  typedef unsigned int                size_type ;
-
   /** \brief  Memory is in HostSpace so use the HostSpace::execution_space */
   typedef HostSpace::execution_space  execution_space ;
+  typedef CudaHostPinnedSpace         memory_space ;
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
+  typedef unsigned int                size_type ;
 
-  /** \brief  Allocate a contiguous block of memory on the Cuda device.
+
+  typedef Impl::CudaHostAllocator allocator ;
+
+  /** \brief  Allocate a contiguous block of memory.
    *
    *  The input label is associated with the block of memory.
    *  The block of memory is tracked via reference counting where
    *  allocation gives it a reference count of one.
-   *
-   *  Allocation may only occur on the master thread of the process.
    */
-  static void * allocate( const std::string & label , const size_t size );
+  static Impl::AllocationTracker allocate_and_track( const std::string & label, const size_t size );
 
-  /** \brief  Increment the reference count of the block of memory
-   *          in which the input pointer resides.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static void increment( const void * );
+  /*--------------------------------*/
 
-  /** \brief  Get the reference count of the block of memory
-   *          in which the input pointer resides.  If the reference
-   *          count is zero the memory region is not tracked.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static int count( const void * );
+  CudaHostPinnedSpace();
+  CudaHostPinnedSpace( const CudaHostPinnedSpace & rhs ) = default ;
+  CudaHostPinnedSpace & operator = ( const CudaHostPinnedSpace & rhs ) = default ;
+  ~CudaHostPinnedSpace() = default ;
 
-  /** \brief  Decrement the reference count of the block of memory
-   *          in which the input pointer resides.  If the reference
-   *          count falls to zero the memory is deallocated.
-   *
-   *          Reference counting only occurs on the master thread.
-   */
-  static void decrement( const void * );
+  /**\brief  Allocate memory in the cuda space */
+  void * allocate( const size_t arg_alloc_size ) const ;
 
-  /** \brief  Print all tracked memory to the output stream. */
-  static void print_memory_view( std::ostream & );
+  /**\brief  Deallocate memory in the cuda space */
+  void deallocate( void * const arg_alloc_ptr
+                 , const size_t arg_alloc_size ) const ;
 
-  /** \brief  Retrieve label associated with the input pointer */
-  static std::string query_label( const void * );
+  /*--------------------------------*/
 };
 
 } // namespace Kokkos
@@ -269,109 +259,243 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template<> struct DeepCopy< CudaSpace , CudaSpace >
+void DeepCopyAsyncCuda( void * dst , const void * src , size_t n);
+
+template<> struct DeepCopy< CudaSpace , CudaSpace , Cuda>
 {
   DeepCopy( void * dst , const void * src , size_t );
   DeepCopy( const Cuda & , void * dst , const void * src , size_t );
 };
 
-template<> struct DeepCopy< CudaSpace , HostSpace >
+template<> struct DeepCopy< CudaSpace , HostSpace , Cuda >
 {
   DeepCopy( void * dst , const void * src , size_t );
   DeepCopy( const Cuda & , void * dst , const void * src , size_t );
 };
 
-template<> struct DeepCopy< HostSpace , CudaSpace >
+template<> struct DeepCopy< HostSpace , CudaSpace , Cuda >
 {
   DeepCopy( void * dst , const void * src , size_t );
   DeepCopy( const Cuda & , void * dst , const void * src , size_t );
 };
 
-template<> struct DeepCopy< CudaSpace , CudaUVMSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaSpace , CudaSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaSpace , CudaHostPinnedSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaSpace , HostSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , HostSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda>( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace>
+struct DeepCopy< HostSpace , CudaSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace>
+struct DeepCopy< CudaSpace , CudaUVMSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace>
+struct DeepCopy< CudaSpace , CudaHostPinnedSpace , ExecutionSpace>
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
 
-template<> struct DeepCopy< CudaUVMSpace , CudaSpace >
+template<class ExecutionSpace>
+struct DeepCopy< CudaUVMSpace , CudaSpace , ExecutionSpace>
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaUVMSpace , CudaUVMSpace >
+template<class ExecutionSpace>
+struct DeepCopy< CudaUVMSpace , CudaUVMSpace , ExecutionSpace>
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaUVMSpace , CudaHostPinnedSpace >
+template<class ExecutionSpace>
+struct DeepCopy< CudaUVMSpace , CudaHostPinnedSpace , ExecutionSpace>
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , HostSpace >( dst , src , n ); }
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< CudaUVMSpace , HostSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaUVMSpace , HostSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< CudaSpace , HostSpace >( dst , src , n ); }
-};
+  { (void) DeepCopy< CudaSpace , HostSpace , Cuda >( dst , src , n ); }
 
-
-template<> struct DeepCopy< CudaHostPinnedSpace , CudaSpace >
-{
   inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , CudaSpace >( dst , src , n ); }
-};
-
-template<> struct DeepCopy< CudaHostPinnedSpace , CudaUVMSpace >
-{
-  inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , CudaSpace >( dst , src , n ); }
-};
-
-template<> struct DeepCopy< CudaHostPinnedSpace , CudaHostPinnedSpace >
-{
-  inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , HostSpace >( dst , src , n ); }
-};
-
-template<> struct DeepCopy< CudaHostPinnedSpace , HostSpace >
-{
-  inline
-  DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , HostSpace >( dst , src , n ); }
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
 
-template<> struct DeepCopy< HostSpace , CudaUVMSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , CudaSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , CudaSpace >( dst , src , n ); }
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
-template<> struct DeepCopy< HostSpace , CudaHostPinnedSpace >
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , CudaUVMSpace , ExecutionSpace >
 {
   inline
   DeepCopy( void * dst , const void * src , size_t n )
-  { (void) DeepCopy< HostSpace , HostSpace >( dst , src , n ); }
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , CudaHostPinnedSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace> struct DeepCopy< CudaHostPinnedSpace , HostSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+
+template<class ExecutionSpace> struct DeepCopy< HostSpace , CudaUVMSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , CudaSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
+};
+
+template<class ExecutionSpace> struct DeepCopy< HostSpace , CudaHostPinnedSpace , ExecutionSpace >
+{
+  inline
+  DeepCopy( void * dst , const void * src , size_t n )
+  { (void) DeepCopy< HostSpace , HostSpace , Cuda >( dst , src , n ); }
+
+  inline
+  DeepCopy( const ExecutionSpace& exec, void * dst , const void * src , size_t n )
+  {
+    exec.fence();
+    DeepCopyAsyncCuda (dst,src,n);
+  }
 };
 
 } // namespace Impl
@@ -455,9 +579,207 @@ struct VerifyExecutionCanAccessMemorySpace< Kokkos::HostSpace , Kokkos::CudaHost
   KOKKOS_INLINE_FUNCTION static void verify( const void * ) {}
 };
 
+} // namespace Impl
+} // namespace Kokkos
+
+//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+namespace Kokkos {
+namespace Experimental {
+namespace Impl {
+
+template<>
+class SharedAllocationRecord< Kokkos::CudaSpace , void >
+  : public SharedAllocationRecord< void , void >
+{
+private:
+
+  friend class SharedAllocationRecord< Kokkos::CudaUVMSpace , void > ;
+
+  typedef SharedAllocationRecord< void , void >  RecordBase ;
+
+  SharedAllocationRecord( const SharedAllocationRecord & ) = delete ;
+  SharedAllocationRecord & operator = ( const SharedAllocationRecord & ) = delete ;
+
+  static void deallocate( RecordBase * );
+
+  static ::cudaTextureObject_t
+  attach_texture_object( const unsigned sizeof_alias
+                       , void * const   alloc_ptr
+                       , const size_t   alloc_size ); 
+
+  static RecordBase s_root_record ;
+
+  ::cudaTextureObject_t   m_tex_obj ;
+  const Kokkos::CudaSpace m_space ;
+
+protected:
+
+  ~SharedAllocationRecord();
+  SharedAllocationRecord() : RecordBase(), m_tex_obj(0), m_space() {}
+
+  SharedAllocationRecord( const Kokkos::CudaSpace        & arg_space
+                        , const std::string              & arg_label
+                        , const size_t                     arg_alloc_size
+                        , const RecordBase::function_type  arg_dealloc = & deallocate
+                        );
+
+public:
+
+  std::string get_label() const ;
+
+  static SharedAllocationRecord * allocate( const Kokkos::CudaSpace &  arg_space
+                                          , const std::string       &  arg_label
+                                          , const size_t               arg_alloc_size
+                                          );
+
+  template< typename AliasType >
+  inline
+  ::cudaTextureObject_t attach_texture_object()
+    {
+      static_assert( ( std::is_same< AliasType , int >::value ||
+                       std::is_same< AliasType , ::int2 >::value ||
+                       std::is_same< AliasType , ::int4 >::value )
+                   , "Cuda texture fetch only supported for alias types of int, ::int2, or ::int4" );
+
+      if ( m_tex_obj == 0 ) {
+        m_tex_obj = attach_texture_object( sizeof(AliasType)
+                                         , (void*) RecordBase::m_alloc_ptr
+                                         , RecordBase::m_alloc_size );
+      }
+
+      return m_tex_obj ;
+    }
+
+  template< typename AliasType >
+  inline
+  int attach_texture_object_offset( const AliasType * const ptr )
+    {
+      // Texture object is attached to the entire allocation range
+      return ptr - reinterpret_cast<AliasType*>( RecordBase::m_alloc_ptr );
+    }
+
+  static SharedAllocationRecord * get_record( void * arg_alloc_ptr );
+
+  static void print_records( std::ostream & , const Kokkos::CudaSpace & , bool detail = false );
+};
+
+
+template<>
+class SharedAllocationRecord< Kokkos::CudaUVMSpace , void >
+  : public SharedAllocationRecord< void , void >
+{
+private:
+
+  typedef SharedAllocationRecord< void , void >  RecordBase ;
+
+  SharedAllocationRecord( const SharedAllocationRecord & ) = delete ;
+  SharedAllocationRecord & operator = ( const SharedAllocationRecord & ) = delete ;
+
+  static void deallocate( RecordBase * );
+
+  static RecordBase s_root_record ;
+
+  ::cudaTextureObject_t      m_tex_obj ;
+  const Kokkos::CudaUVMSpace m_space ;
+
+protected:
+
+  ~SharedAllocationRecord();
+  SharedAllocationRecord() : RecordBase(), m_tex_obj(0), m_space() {}
+
+  SharedAllocationRecord( const Kokkos::CudaUVMSpace     & arg_space
+                        , const std::string              & arg_label
+                        , const size_t                     arg_alloc_size
+                        , const RecordBase::function_type  arg_dealloc = & deallocate
+                        );
+
+public:
+
+  std::string get_label() const ;
+
+  static SharedAllocationRecord * allocate( const Kokkos::CudaUVMSpace &  arg_space
+                                          , const std::string          &  arg_label
+                                          , const size_t                  arg_alloc_size
+                                          );
+
+  template< typename AliasType >
+  inline
+  ::cudaTextureObject_t attach_texture_object()
+    {
+      static_assert( ( std::is_same< AliasType , int >::value ||
+                       std::is_same< AliasType , ::int2 >::value ||
+                       std::is_same< AliasType , ::int4 >::value )
+                   , "Cuda texture fetch only supported for alias types of int, ::int2, or ::int4" );
+
+      if ( m_tex_obj == 0 ) {
+        m_tex_obj = SharedAllocationRecord< Kokkos::CudaSpace , void >::
+          attach_texture_object( sizeof(AliasType)
+                               , (void*) RecordBase::m_alloc_ptr
+                               , RecordBase::m_alloc_size );
+      }
+
+      return m_tex_obj ;
+    }
+
+  template< typename AliasType >
+  inline
+  int attach_texture_object_offset( const AliasType * const ptr )
+    {
+      // Texture object is attached to the entire allocation range
+      return ptr - reinterpret_cast<AliasType*>( RecordBase::m_alloc_ptr );
+    }
+
+  static SharedAllocationRecord * get_record( void * arg_alloc_ptr );
+
+  static void print_records( std::ostream & , const Kokkos::CudaUVMSpace & , bool detail = false );
+};
+
+template<>
+class SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >
+  : public SharedAllocationRecord< void , void >
+{
+private:
+
+  typedef SharedAllocationRecord< void , void >  RecordBase ;
+
+  SharedAllocationRecord( const SharedAllocationRecord & ) = delete ;
+  SharedAllocationRecord & operator = ( const SharedAllocationRecord & ) = delete ;
+
+  static void deallocate( RecordBase * );
+
+  static RecordBase s_root_record ;
+
+  const Kokkos::CudaHostPinnedSpace m_space ;
+
+protected:
+
+  ~SharedAllocationRecord();
+  SharedAllocationRecord() : RecordBase(), m_space() {}
+
+  SharedAllocationRecord( const Kokkos::CudaHostPinnedSpace     & arg_space
+                        , const std::string              & arg_label
+                        , const size_t                     arg_alloc_size
+                        , const RecordBase::function_type  arg_dealloc = & deallocate
+                        );
+
+public:
+
+  std::string get_label() const ;
+
+  static SharedAllocationRecord * allocate( const Kokkos::CudaHostPinnedSpace &  arg_space
+                                          , const std::string          &  arg_label
+                                          , const size_t                  arg_alloc_size
+                                          );
+
+  static SharedAllocationRecord * get_record( void * arg_alloc_ptr );
+
+  static void print_records( std::ostream & , const Kokkos::CudaHostPinnedSpace & , bool detail = false );
+};
+
 } // namespace Impl
+} // namespace Experimental
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------

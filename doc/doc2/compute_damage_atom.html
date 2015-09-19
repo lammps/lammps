@@ -1,0 +1,68 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute damage/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID damage/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>damage/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all damage/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the per-atom damage for each atom
+in a group.  This is a quantity relevant for <A HREF = "pair_peri.html">Peridynamics
+models</A>.  See <A HREF = "PDF/PDLammps_overview.pdf">this document</A>
+for an overview of LAMMPS commands for Peridynamics modeling.
+</P>
+<P>The "damage" of a Peridymaics particles is based on the bond breakage
+between the particle and its neighbors.  If all the bonds are broken
+the particle is considered to be fully damaged.
+</P>
+<P>See the <A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS user
+guide</A> for a formal
+definition of "damage" and more details about Peridynamics as it is
+implemented in LAMMPS.
+</P>
+<P>This command can be used with all the Peridynamic pair styles.
+</P>
+<P>The damage value will be 0.0 for atoms not in the specified compute
+group.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input.  See
+<A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an overview of
+LAMMPS output options.
+</P>
+<P>The per-atom vector values are unitlesss numbers (damage) >= 0.0.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the PERI package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_dilatation.html">compute dilatation</A>, <A HREF = "compute_plasticity.html">compute
+plasticity</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

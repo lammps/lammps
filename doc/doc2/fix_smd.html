@@ -1,0 +1,162 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix smd command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID smd type values keyword values 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>smd  = style name of this fix command 
+
+<LI>mode = <I>cvel</I> or <I>cfor</I> to select constant velocity or constant force SMD 
+
+<PRE>  <I>cvel</I> values = K vel
+    K = spring constant (force/distance units)
+    vel = velocity of pulling (distance/time units) 
+  <I>cfor</I> values = force
+    force = pulling force (force units) 
+</PRE>
+<LI>keyword = <I>tether</I> or <I>couple</I> 
+
+<PRE>  <I>tether</I> values = x y z R0
+    x,y,z = point to which spring is tethered
+    R0 = distance of end of spring from tether point (distance units)
+  <I>couple</I> values = group-ID2 x y z R0
+    group-ID2 = 2nd group to couple to fix group with a spring
+    x,y,z = direction of spring, automatically computed with 'auto'
+    R0 = distance of end of spring (distance units) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix  pull    cterm smd cvel 20.0 -0.00005 tether NULL NULL 100.0 0.0
+fix  pull    cterm smd cvel 20.0 -0.0001 tether 25.0 25 25.0 0.0
+fix  stretch cterm smd cvel 20.0  0.0001 couple nterm auto auto auto 0.0
+fix  pull    cterm smd cfor  5.0 tether 25.0 25.0 25.0 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix implements several options of steered MD (SMD) as reviewed in
+<A HREF = "#Izrailev">(Izrailev)</A>, which allows to induce conformational changes
+in systems and to compute the potential of mean force (PMF) along the
+assumed reaction coordinate <A HREF = "#Park">(Park)</A> based on Jarzynski's
+equality <A HREF = "#Jarzynski">(Jarzynski)</A>.  This fix borrows a lot from <A HREF = "fix_spring.html">fix
+spring</A> and <A HREF = "fix_setforce.html">fix setforce</A>.
+</P>
+<P>You can apply a moving spring force to a group of atoms (<I>tether</I>
+style) or between two groups of atoms (<I>couple</I> style).  The spring
+can then be used in either constant velocity (<I>cvel</I>) mode or in
+constant force (<I>cfor</I>) mode to induce transitions in your systems.
+When running in <I>tether</I> style, you may need some way to fix some
+other part of the system (e.g. via <A HREF = "fix_spring_self.html">fix
+spring/self</A>)
+</P>
+<P>The <I>tether</I> style attaches a spring between a point at a distance of
+R0 away from a fixed point <I>x,y,z</I> and the center of mass of the fix
+group of atoms.  A restoring force of magnitude K (R - R0) Mi / M is
+applied to each atom in the group where <I>K</I> is the spring constant, Mi
+is the mass of the atom, and M is the total mass of all atoms in the
+group.  Note that <I>K</I> thus represents the total force on the group of
+atoms, not a per-atom force.
+</P>
+<P>In <I>cvel</I> mode the distance R is incremented or decremented
+monotonously according to the pulling (or pushing) velocity.
+In <I>cfor</I> mode a constant force is added and the actual distance
+in direction of the spring is recorded.
+</P>
+<P>The <I>couple</I> style links two groups of atoms together.  The first
+group is the fix group; the second is specified by group-ID2.  The
+groups are coupled together by a spring that is at equilibrium when
+the two groups are displaced by a vector in direction <I>x,y,z</I> with
+respect to each other and at a distance R0 from that displacement.
+Note that <I>x,y,z</I> only provides a direction and will be internally
+normalized. But since it represents the <I>absolute</I> displacement of
+group-ID2 relative to the fix group, (1,1,0) is a different spring
+than (-1,-1,0).  For each vector component, the displacement can be
+described with the <I>auto</I> parameter. In this case the direction is
+recomputed in every step, which can be useful for steering a local
+process where the whole object undergoes some other change.  When the
+relative positions and distance between the two groups are not in
+equilibrium, the same spring force described above is applied to atoms
+in each of the two groups.
+</P>
+<P>For both the <I>tether</I> and <I>couple</I> styles, any of the x,y,z values can
+be specified as NULL which means do not include that dimension in the
+distance calculation or force application.
+</P>
+<P>For constant velocity pulling (<I>cvel</I> mode), the running integral 
+over the pulling force in direction of the spring is recorded and
+can then later be used to compute the potential of mean force (PMF) 
+by averaging over multiple independent trajectories along the same
+pulling path.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>The fix stores the direction of the spring, current pulling target
+distance and the running PMF to <A HREF = "restart.html">binary restart files</A>.
+See the <A HREF = "read_restart.html">read_restart</A> command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.
+</P>
+<P>This fix computes a vector list of 7 quantities, which can be accessed
+by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The
+quantities in the vector are in this order: the x-, y-, and
+z-component of the pulling force, the total force in direction of the
+pull, the equilibrium distance of the spring, the distance between the
+two reference points, and finally the accumulated PMF (the sum of
+pulling forces times displacement).
+</P>
+<P>The force is the total force on the group of atoms by the spring.  In
+the case of the <I>couple</I> style, it is the force on the fix group
+(group-ID) or the negative of the force on the 2nd group (group-ID2).
+The vector values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_drag.html">fix drag</A>, <A HREF = "fix_spring.html">fix spring</A>, 
+<A HREF = "fix_spring_self.html">fix spring/self</A>, 
+<A HREF = "fix_spring_rg.html">fix spring/rg</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Israilev"></A>
+
+<P><B>(Izrailev)</B> Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
+Wriggers, Schulten. Computational Molecular Dynamics: Challenges,
+Methods, Ideas, volume 4 of Lecture Notes in Computational Science and
+Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.
+</P>
+<P><B>(Park)</B>
+Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)
+</P>
+<P><B>(Jarzynski)</B>
+Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
+</P>
+</HTML>

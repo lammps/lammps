@@ -396,9 +396,9 @@ void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int 
 void NeighborKokkos::build(int topoflag)
 {
   if (nlist_device)
-    this->template build_kokkos<LMPDeviceType>(topoflag);
+    build_kokkos<LMPDeviceType>(topoflag);
   else
-    this->template build_kokkos<LMPHostType>(topoflag);
+    build_kokkos<LMPHostType>(topoflag);
 }
 
 template<class DeviceType>

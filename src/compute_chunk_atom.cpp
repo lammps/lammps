@@ -722,12 +722,17 @@ int ComputeChunkAtom::setup_chunks()
   // assign chunk IDs to atoms
   // will exclude atoms not in group or in optional region
   // for binning styles, need to setup bins and their volume first
+  //   else chunk_volume_scalar = box volume
   // IDs are needed to scan for max ID and for compress()
 
   if (binflag) {
     nchunk = setup_bins();
     bin_volumes();
+  } else {
+    chunk_volume_scalar = domain->xprd * domain->yprd;
+    if (domain->dimension == 3) chunk_volume_scalar *= domain->zprd;
   }
+
   assign_chunk_ids();
 
   // set nchunk for chunk styles other than binning
@@ -1346,7 +1351,7 @@ void ComputeChunkAtom::atom2bin2d()
         continue;
       }
       if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
-      else if (i2bin > nlayer1m1) {
+      else if (i2bin > nlayer2m1) {
         exclude[i] = 1;
         continue;
       }
@@ -1451,7 +1456,7 @@ void ComputeChunkAtom::atom2bin3d()
         continue;
       }
       if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
-      else if (i2bin > nlayer1m1) {
+      else if (i2bin > nlayer2m1) {
         exclude[i] = 1;
         continue;
       }

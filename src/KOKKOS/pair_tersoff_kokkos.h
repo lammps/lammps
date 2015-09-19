@@ -180,7 +180,7 @@ class PairTersoffKokkos : public PairTersoff {
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ters***,
-    Kokkos::LayoutRight,DeviceType>::t_dev_const paramskk;
+    Kokkos::LayoutRight,DeviceType>::t_dev_const_um paramskk;
   // hardwired to space for 15 atom types
   //params_ters m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 

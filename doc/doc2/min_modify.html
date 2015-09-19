@@ -1,0 +1,83 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>min_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>min_modify keyword values ... 
+</PRE>
+<UL><LI>one or more keyword/value pairs may be listed 
+
+<PRE>keyword = <I>dmax</I> or <I>line</I>
+  <I>dmax</I> value = max
+    max = maximum distance for line search to move (distance units)
+  <I>line</I> value = <I>backtrack</I> or <I>quadratic</I> or <I>forcezero</I>
+    backtrack,quadratic,forcezero = style of linesearch to use 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>min_modify dmax 0.2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets parameters that affect the energy minimization
+algorithms selected by the <A HREF = "min_style.html">min_style</A> command.  The
+various settings may affect the convergence rate and overall number of
+force evaluations required by a minimization, so users can experiment
+with these parameters to tune their minimizations.
+</P>
+<P>The <I>cg</I> and <I>sd</I> minimization styles have an outer iteration and an
+inner iteration which is steps along a one-dimensional line search in
+a particular search direction.  The <I>dmax</I> parameter is how far any
+atom can move in a single line search in any dimension (x, y, or z).
+For the <I>quickmin</I> and <I>fire</I> minimization styles, the <I>dmax</I> setting
+is how far any atom can move in a single iteration (timestep).  Thus a
+value of 0.1 in real <A HREF = "units.html">units</A> means no atom will move
+further than 0.1 Angstroms in a single outer iteration.  This prevents
+highly overlapped atoms from being moved long distances (e.g. through
+another atom) due to large forces.
+</P>
+<P>The choice of line search algorithm for the <I>cg</I> and <I>sd</I> minimization
+styles can be selected via the <I>line</I> keyword.  
+The default <I>quadratic</I> line search algorithm starts out using 
+the robust backtracking method described below. However, once
+the system gets close to a local
+minimum and the linesearch steps get small, so that the energy
+is approximately quadratic in the step length, it uses the 
+estimated location of zero gradient as the linesearch step,
+provided the energy change is downhill. 
+This becomes more efficient than backtracking
+for highly-converged relaxations. The <I>forcezero</I> 
+line search algorithm is similar to <I>quadratic</I>.
+It may be more efficient than <I>quadratic</I> on some systems.
+</P>
+<P>The backtracking search is robust and should always find a local energy
+minimum.  However, it will "converge" when it can no longer reduce the
+energy of the system.  Individual atom forces may still be larger than
+desired at this point, because the energy change is measured as the
+difference of two large values (energy before and energy after) and
+that difference may be smaller than machine epsilon even if atoms
+could move in the gradient direction to reduce forces further.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "min_style.html">min_style</A>, <A HREF = "minimize.html">minimize</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are dmax = 0.1 and line = quadratic.
+</P>
+</HTML>

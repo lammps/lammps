@@ -81,7 +81,7 @@ void AtomVecTri::grow(int n)
   if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0 || nmax > MAXSMALLINT)
+  if (nmax < 0)
     error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
@@ -124,7 +124,7 @@ void AtomVecTri::grow_reset()
 void AtomVecTri::grow_bonus()
 {
   nmax_bonus = grow_nmax_bonus(nmax_bonus);
-  if (nmax_bonus < 0 || nmax_bonus > MAXSMALLINT)
+  if (nmax_bonus < 0)
     error->one(FLERR,"Per-processor system is too big");
 
   bonus = (Bonus *) memory->srealloc(bonus,nmax_bonus*sizeof(Bonus),
@@ -1433,7 +1433,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
 
   // size = length of one edge
 
-  double c2mc1[2],c3mc1[3];
+  double c2mc1[3],c3mc1[3];
   MathExtra::sub3(c2,c1,c2mc1);
   MathExtra::sub3(c3,c1,c3mc1);
   double size = MAX(MathExtra::len3(c2mc1),MathExtra::len3(c3mc1));
@@ -1557,7 +1557,7 @@ int AtomVecTri::data_vel_hybrid(int m, char **values)
 
 void AtomVecTri::pack_data(double **buf)
 {
-  double c2mc1[2],c3mc1[3],norm[3];
+  double c2mc1[3],c3mc1[3],norm[3];
   double area;
 
   int nlocal = atom->nlocal;
@@ -1595,7 +1595,7 @@ int AtomVecTri::pack_data_hybrid(int i, double *buf)
   else buf[1] = ubuf(1).d;
   if (tri[i] < 0) buf[2] = rmass[i];
   else {
-    double c2mc1[2],c3mc1[3],norm[3];
+    double c2mc1[3],c3mc1[3],norm[3];
     MathExtra::sub3(bonus[tri[i]].c2,bonus[tri[i]].c1,c2mc1);
     MathExtra::sub3(bonus[tri[i]].c3,bonus[tri[i]].c1,c3mc1);
     MathExtra::cross3(c2mc1,c3mc1,norm);

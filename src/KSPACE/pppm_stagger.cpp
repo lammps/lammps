@@ -234,7 +234,7 @@ void PPPMStagger::compute(int eflag, int vflag)
 
   // per-atom energy/virial
   // energy includes self-energy correction
-  // notal accounts for TIP4P tallying eatom/vatom for ghost atoms
+  // ntotal accounts for TIP4P tallying eatom/vatom for ghost atoms
 
   if (evflag_atom) {
     double *q = atom->q;

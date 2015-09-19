@@ -1,0 +1,28 @@
+
+# This Qthreads back-end uses an experimental branch of the Qthreads repository with special #define options.
+
+# Cloning repository and branch:
+
+git clone https://github.com/stelleg/qthreads qthreads-with-clone
+
+cd qthreads-with-clone
+
+# Added to ./git/config
+#
+# [branch "cloned_tasks"]
+#        remote = origin
+#        merge = refs/heads/cloned_tasks
+#
+
+git branch cloned_tasks
+git checkout cloned_tasks
+git pull
+
+sh autogen.sh
+
+# configurure with 'hwloc' installation:
+
+./configure CFLAGS="-DCLONED_TASKS -DQTHREAD_LOCAL_PRIORITY" --with-hwloc=${HWLOCDIR} --prefix=${INSTALLDIR}
+
+
+

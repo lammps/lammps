@@ -15,7 +15,7 @@
 #include <iostream>
 
 #ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2015-04-02"
+#define COLVARPROXY_VERSION "2015-07-21"
 #endif
 
 /* struct for packed data communication of coordinates and forces. */
@@ -29,7 +29,7 @@ inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
   out << " (" << cd.tag << "/" << cd.type << ": "
       << cd.x << ", " << cd.y << ", " << cd.z << ") ";
   return out;
-};
+}
 
 /// \brief Communication between colvars and LAMMPS
 /// (implementation of \link colvarproxy \endlink)

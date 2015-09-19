@@ -1,0 +1,91 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style born/coul/long/cs command 
+</H3>
+<H3>pair_style buck/coul/long/cs command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = <I>born/coul/long/cs</I> or <I>buck/coul/long/cs</I>
+<LI>args = list of arguments for a particular style 
+</UL>
+<PRE>  <I>born/coul/long/cs</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>buck/coul/long/cs</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style born/coul/long/cs 10.0 8.0
+pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 
+</PRE>
+<PRE>pair_style buck/coul/long/cs 10.0
+pair_style buck/coul/long/cs 10.0 8.0
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff 1 1 100.0 1.5 200.0 9.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>These pair styles are designed to be used with the adiabatic
+core/shell model of <A HREF = "#MitchellFinchham">(Mitchell and Finchham)</A>.  See
+<A HREF = "Section_howto.html#howto_25">Section_howto 25</A> of the manual for an
+overview of the model as implemented in LAMMPS.
+</P>
+<P>These pair styles are identical to the <A HREF = "pair_born.html">pair_style
+born/coul/long</A> and <A HREF = "pair_buck.html">pair_style
+buck/coul/long</A> styles, except they correctly treat the
+special case where the distance between two charged core and shell
+atoms in the same core/shell pair approach r = 0.0.  This needs
+special treatment when a long-range solver for Coulombic interactions
+is also used, i.e. via the <A HREF = "kspace_style.html">kspace_style</A> command.
+</P>
+<P>More specifically, the short-range Coulomb interaction between a core
+and its shell should be turned off using the
+<A HREF = "special_bonds.html">special_bonds</A> command by setting the 1-2 weight
+to 0.0, which works because the core and shell atoms are bonded to
+each other.  This induces a long-range correction approximation which
+fails at small distances (~< 10e-8). Therefore, the Coulomb term which
+is used to calculate the correction factor is extended by a minimal
+distance (r_min = 1.0-6) when the interaction between a core/shell
+pair is treated, as follows
+</P>
+<CENTER><IMG SRC = "Eqs/pair_cs.jpg">
+</CENTER>
+<P>where C is an energy-conversion constant, Qi and Qj are the charges on
+the core and shell, epsilon is the dielectric constant and r_min is the
+minimal distance. 
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>These pair styles are part of the CORESHELL package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_born.html">pair_style born</A>, 
+<A HREF = "pair_buck.html">pair_style buck</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "MitchellFinchham"></A>
+
+<P><B>(Mitchell and Finchham)</B> Mitchell, Finchham, J Phys Condensed Matter,
+5, 1031-1038 (1993).
+</P>
+</HTML>

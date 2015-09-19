@@ -1,0 +1,60 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix drude command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID drude flag1 flag2 ... flagN 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>drude = style name of this fix command
+<LI>tag = Drude flag for each atom type (1 to N) in the system 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all drude 1 1 0 1 0 2 2 2
+fix 1 all drude C C N C N D D D 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Assign each atom type in the system to be one of 3 kinds of atoms
+within the Drude polarization model.  This compute is designed to be
+used with the <A HREF = "tutorial_drude.html">thermalized Drude oscillator
+model</A>.  Polarizable models in LAMMPS
+are described in <A HREF = "Section_howto.html#howto_25">this Section</A>.
+</P>
+<P>The three possible types can be designated with an integer (0,1,2)
+or capital letter (N,C,D):
+</P>
+<UL><LI>0 or N = non-polarizable atom (not part of Drude model)
+<LI>1 or C = Drude core
+<LI>2 or D = Drude electron 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix should be invoked before any other commands that implement
+the Drude oscillator model, such as <A HREF = "fix_langevin_drude.html">fix
+langevin_drude</A>, <A HREF = "fix_drude_transform.html">fix
+drude/transform</A>, <A HREF = "compute_temp_drude.html">compute
+temp/drude</A>, <A HREF = "pair_thole.html">pair_style
+thole</A>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_langevin_drude.html">fix langevin_drude</A>, <A HREF = "fix_drude_transform.html">fix
+drude/transform</A>, <A HREF = "compute_temp_drude.html">compute
+temp/drude</A>, <A HREF = "pair_thole.html">pair_style
+thole</A>
+</P>
+<P><B>Default:</B> None
+</P>
+</HTML>

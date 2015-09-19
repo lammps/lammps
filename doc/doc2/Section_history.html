@@ -1,0 +1,129 @@
+<HTML>
+<CENTER><A HREF = "Section_errors.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Manual.html">Next
+Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>13. Future and history 
+</H3>
+<P>This section lists features we plan to add to LAMMPS, features of
+previous versions of LAMMPS, and features of other parallel molecular
+dynamics codes our group has distributed.
+</P>
+13.1 <A HREF = "#hist_1">Coming attractions</A><BR>
+13.2 <A HREF = "#hist_2">Past versions</A> <BR>
+
+<HR>
+
+<HR>
+
+<H4><A NAME = "hist_1"></A>13.1 Coming attractions 
+</H4>
+<P>The <A HREF = "http://lammps.sandia.gov/future.html">Wish list link</A> on the
+LAMMPS WWW page gives a list of features we are hoping to add to
+LAMMPS in the future, including contact names of individuals you can
+email if you are interested in contributing to the developement or
+would be a future user of that feature.
+</P>
+<P>You can also send <A HREF = "http://lammps.sandia.gov/authors.html">email to the
+developers</A> if you want to add
+your wish to the list.
+</P>
+<HR>
+
+<H4><A NAME = "hist_2"></A>13.2 Past versions 
+</H4>
+<P>LAMMPS development began in the mid 1990s under a cooperative research
+& development agreement (CRADA) between two DOE labs (Sandia and LLNL)
+and 3 companies (Cray, Bristol Myers Squibb, and Dupont). The goal was
+to develop a large-scale parallel classical MD code; the coding effort
+was led by Steve Plimpton at Sandia.
+</P>
+<P>After the CRADA ended, a final F77 version, LAMMPS 99, was
+released. As development of LAMMPS continued at Sandia, its memory
+management was converted to F90; a final F90 version was released as
+LAMMPS 2001.
+</P>
+<P>The current LAMMPS is a rewrite in C++ and was first publicly released
+as an open source code in 2004. It includes many new features beyond
+those in LAMMPS 99 or 2001. It also includes features from older
+parallel MD codes written at Sandia, namely ParaDyn, Warp, and
+GranFlow (see below).
+</P>
+<P>In late 2006 we began merging new capabilities into LAMMPS that were
+developed by Aidan Thompson at Sandia for his MD code GRASP, which has
+a parallel framework similar to LAMMPS. Most notably, these have
+included many-body potentials - Stillinger-Weber, Tersoff, ReaxFF -
+and the associated charge-equilibration routines needed for ReaxFF.
+</P>
+<P>The <A HREF = "http://lammps.sandia.gov/history.html">History link</A> on the 
+LAMMPS WWW page gives a timeline of features added to the
+C++ open-source version of LAMMPS over the last several years.
+</P>
+<P>These older codes are available for download from the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW
+site</A>, except for Warp & GranFlow which were primarily used
+internally.  A brief listing of their features is given here.
+</P>
+<P>LAMMPS 2001
+</P>
+<UL><LI>    F90 + MPI
+<LI>    dynamic memory
+<LI>    spatial-decomposition parallelism
+<LI>    NVE, NVT, NPT, NPH, rRESPA integrators
+<LI>    LJ and Coulombic pairwise force fields
+<LI>    all-atom, united-atom, bead-spring polymer force fields
+<LI>    CHARMM-compatible force fields
+<LI>    class 2 force fields
+<LI>    3d/2d Ewald & PPPM
+<LI>    various force and temperature constraints
+<LI>    SHAKE
+<LI>    Hessian-free truncated-Newton minimizer
+<LI>    user-defined diagnostics 
+</UL>
+<P>LAMMPS 99
+</P>
+<UL><LI>    F77 + MPI
+<LI>    static memory allocation
+<LI>    spatial-decomposition parallelism
+<LI>    most of the LAMMPS 2001 features with a few exceptions
+<LI>    no 2d Ewald & PPPM
+<LI>    molecular force fields are missing a few CHARMM terms
+<LI>    no SHAKE 
+</UL>
+<P>Warp
+</P>
+<UL><LI>    F90 + MPI
+<LI>    spatial-decomposition parallelism
+<LI>    embedded atom method (EAM) metal potentials + LJ
+<LI>    lattice and grain-boundary atom creation
+<LI>    NVE, NVT integrators
+<LI>    boundary conditions for applying shear stresses
+<LI>    temperature controls for actively sheared systems
+<LI>    per-atom energy and centro-symmetry computation and output 
+</UL>
+<P>ParaDyn
+</P>
+<UL><LI>    F77 + MPI
+<LI>    atom- and force-decomposition parallelism
+<LI>    embedded atom method (EAM) metal potentials
+<LI>    lattice atom creation
+<LI>    NVE, NVT, NPT integrators
+<LI>    all serial DYNAMO features for controls and constraints 
+</UL>
+<P>GranFlow
+</P>
+<UL><LI>    F90 + MPI
+<LI>    spatial-decomposition parallelism
+<LI>    frictional granular potentials
+<LI>    NVE integrator
+<LI>    boundary conditions for granular flow and packing and walls
+<LI>    particle insertion 
+</UL>
+</HTML>

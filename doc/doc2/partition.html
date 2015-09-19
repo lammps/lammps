@@ -1,0 +1,78 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>partition command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>partition style N command ... 
+</PRE>
+<UL><LI>style = <I>yes</I> or <I>no</I>
+<LI>N = partition number (see asterisk form below)
+<LI>command = any LAMMPS command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>partition yes 1 processors 4 10 6
+partition no 5 print "Active partition"
+partition yes *5 fix all nve
+partition yes 6* fix all nvt temp 1.0 1.0 0.1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command invokes the specified command on a subset of the
+partitions of processors you have defined via the -partition
+command-line switch.  See <A HREF = "Section_start.html#start_7">Section_start 6</A>
+for an explanation of the switch.
+</P>
+<P>Normally, every input script command in your script is invoked by
+every partition.  This behavior can be modified by defining world- or
+universe-style <A HREF = "variable.html">variables</A> that have different values
+for each partition.  This mechanism can be used to cause your script
+to jump to different input script files on different partitions, if
+such a variable is used in a <A HREF = "jump.html">jump</A> command.
+</P>
+<P>The "partition" command is another mechanism for having as input
+script operate differently on different partitions.  It is basically a
+prefix on any LAMMPS command.  The commmand will only be invoked on
+the partition(s) specified by the <I>style</I> and <I>N</I> arguments.
+</P>
+<P>If the <I>style</I> is <I>yes</I>, the command will be invoked on any partition
+which matches the <I>N</I> argument.  If the <I>style</I> is <I>no</I> the command
+will be invoked on all the partitions which do not match the Np
+argument.
+</P>
+<P>Partitions are numbered from 1 to Np, where Np is the number of
+partitions specified by the <A HREF = "Section_start.html#start_7">-partition command-line
+switch</A>.
+</P>
+<P><I>N</I> can be specified in one of two ways.  An explicit numeric value
+can be used, as in the 1st example above.  Or a wild-card asterisk can
+be used to span a range of partition numbers.  This takes the form "*"
+or "*n" or "n*" or "m*n".  An asterisk with no numeric values means
+all partitions from 1 to Np.  A leading asterisk means all partitions
+from 1 to n (inclusive).  A trailing asterisk means all partitions
+from n to Np (inclusive).  A middle asterisk means all partitions from
+m to n (inclusive).
+</P>
+<P>This command can be useful for the "run_style verlet/split" command
+which imposed requirements on how the <A HREF = "processors.html">processors</A>
+command lays out a 3d grid of processors in each of 2 partitions.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "run_style.html">run_style verlet/split</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

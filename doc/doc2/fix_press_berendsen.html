@@ -1,0 +1,227 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix press/berendsen command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID press/berendsen keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>press/berendsen = style name of this fix command 
+
+<PRE>one or more keyword value pairs may be appended
+keyword = <I>iso</I> or <I>aniso</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>couple</I> or <I>dilate</I> or <I>modulus</I>
+  <I>iso</I> or <I>aniso</I> values = Pstart Pstop Pdamp
+    Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
+    Pdamp = pressure damping parameter (time units)
+  <I>x</I> or <I>y</I> or <I>z</I> values = Pstart Pstop Pdamp
+    Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
+    Pdamp = stress damping parameter (time units)
+  <I>couple</I> = <I>none</I> or <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I>
+  <I>modulus</I> value = bulk modulus of system (pressure units)
+  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all press/berendsen iso 0.0 0.0 1000.0
+fix 2 all press/berendsen aniso 0.0 0.0 1000.0 dilate partial 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Reset the pressure of the system by using a Berendsen barostat
+<A HREF = "#Berendsen">(Berendsen)</A>, which rescales the system volume and
+(optionally) the atoms coordinates within the simulation box every
+timestep.
+</P>
+<P>Regardless of what atoms are in the fix group, a global pressure is
+computed for all atoms.  Similarly, when the size of the simulation
+box is changed, all atoms are re-scaled to new positions, unless the
+keyword <I>dilate</I> is specified with a value of <I>partial</I>, in which case
+only the atoms in the fix group are re-scaled.  The latter can be
+useful for leaving the coordinates of atoms in a solid substrate
+unchanged and controlling the pressure of a surrounding fluid.
+</P>
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix npt</A> or <A HREF = "fix_nh.html">fix
+nph</A> commands which perform Nose/Hoover barostatting AND
+time integration, this fix does NOT perform time integration.  It only
+modifies the box size and atom coordinates to effect barostatting.
+Thus you must use a separate time integration fix, like <A HREF = "fix_nve.html">fix
+nve</A> or <A HREF = "fix_nh.html">fix nvt</A> to actually update the
+positions and velocities of atoms.  This fix can be used in
+conjunction with thermostatting fixes to control the temperature, such
+as <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix langevin</A> or <A HREF = "fix_temp_berendsen.html">fix
+temp/berendsen</A>.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostatting and barostatting.
+</P>
+<HR>
+
+<P>The barostat is specified using one or more of the <I>iso</I>, <I>aniso</I>,
+<I>x</I>, <I>y</I>, <I>z</I>, and <I>couple</I> keywords.  These keywords give you the
+ability to specify the 3 diagonal components of an external stress
+tensor, and to couple various of these components together so that the
+dimensions they represent are varied together during a
+constant-pressure simulation.  Unlike the <A HREF = "fix_nh.html">fix npt</A> and
+<A HREF = "fix_nh.html">fix nph</A> commands, this fix cannot be used with triclinic
+(non-orthogonal) simulation boxes to control all 6 components of the
+general pressure tensor.
+</P>
+<P>The target pressures for each of the 3 diagonal components of the
+stress tensor can be specified independently via the <I>x</I>, <I>y</I>, <I>z</I>,
+keywords, which correspond to the 3 simulation box dimensions.  For
+each component, the external pressure or tensor component at each
+timestep is a ramped value during the run from <I>Pstart</I> to <I>Pstop</I>.
+If a target pressure is specified for a component, then the
+corresponding box dimension will change during a simulation.  For
+example, if the <I>y</I> keyword is used, the y-box length will change.  A
+box dimension will not change if that component is not specified,
+although you have the option to change that dimension via the <A HREF = "fix_deform.html">fix
+deform</A> command.
+</P>
+<P>For all barostat keywords, the <I>Pdamp</I> parameter determines the time
+scale on which pressure is relaxed.  For example, a value of 1000.0
+means to relax the pressure in a timespan of (roughly) 1000 time units
+(tau or fmsec or psec - see the <A HREF = "units.html">units</A> command).
+</P>
+<P>IMPORTANT NOTE: The relaxation time is actually also a function of the
+bulk modulus of the system (inverse of isothermal compressibility).
+The bulk modulus has units of pressure and is the amount of pressure
+that would need to be applied (isotropically) to reduce the volume of
+the system by a factor of 2 (assuming the bulk modulus was a constant,
+independent of density, which it's not).  The bulk modulus can be set
+via the keyword <I>modulus</I>.  The <I>Pdamp</I> parameter is effectively
+multiplied by the bulk modulus, so if the pressure is relaxing faster
+than expected or desired, increasing the bulk modulus has the same
+effect as increasing <I>Pdamp</I>.  The converse is also true.  LAMMPS does
+not attempt to guess a correct value of the bulk modulus; it just uses
+10.0 as a default value which gives reasonable relaxation for a
+Lennard-Jones liquid, but will be way off for other materials and way
+too small for solids.  Thus you should experiment to find appropriate
+values of <I>Pdamp</I> and/or the <I>modulus</I> when using this fix.
+</P>
+<HR>
+
+<P>The <I>couple</I> keyword allows two or three of the diagonal components of
+the pressure tensor to be "coupled" together.  The value specified
+with the keyword determines which are coupled.  For example, <I>xz</I>
+means the <I>Pxx</I> and <I>Pzz</I> components of the stress tensor are coupled.
+<I>Xyz</I> means all 3 diagonal components are coupled.  Coupling means two
+things: the instantaneous stress will be computed as an average of the
+corresponding diagonal components, and the coupled box dimensions will
+be changed together in lockstep, meaning coupled dimensions will be
+dilated or contracted by the same percentage every timestep.  The
+<I>Pstart</I>, <I>Pstop</I>, <I>Pdamp</I> parameters for any coupled dimensions must
+be identical.  <I>Couple xyz</I> can be used for a 2d simulation; the <I>z</I>
+dimension is simply ignored.
+</P>
+<HR>
+
+<P>The <I>iso</I> and <I>aniso</I> keywords are simply shortcuts that are
+equivalent to specifying several other keywords together.
+</P>
+<P>The keyword <I>iso</I> means couple all 3 diagonal components together when
+pressure is computed (hydrostatic pressure), and dilate/contract the
+dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
+specifying these 4 keywords:
+</P>
+<PRE>x Pstart Pstop Pdamp
+y Pstart Pstop Pdamp
+z Pstart Pstop Pdamp
+couple xyz 
+</PRE>
+<P>The keyword <I>aniso</I> means <I>x</I>, <I>y</I>, and <I>z</I> dimensions are controlled
+independently using the <I>Pxx</I>, <I>Pyy</I>, and <I>Pzz</I> components of the
+stress tensor as the driving forces, and the specified scalar external
+pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
+these 4 keywords:
+</P>
+<PRE>x Pstart Pstop Pdamp
+y Pstart Pstop Pdamp
+z Pstart Pstop Pdamp
+couple none 
+</PRE>
+<HR>
+
+<P>This fix computes a temperature and pressure each timestep.  To do
+this, the fix creates its own computes of style "temp" and "pressure",
+as if these commands had been issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
+pressure</A> commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press", and the group for the new computes is the same
+as the fix group.
+</P>
+<P>Note that these are NOT the computes used by thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
+and <I>thermo_press</I>.  This means you can change the attributes of this
+fix's temperature or pressure via the
+<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
+or pressure during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> command using the appropriate compute-ID.
+It also means that changing attributes of <I>thermo_temp</I> or
+<I>thermo_press</I> will have no effect on this fix.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are
+supported by this fix.  You can use them to assign a
+<A HREF = "compute.html">compute</A> you have defined to this fix which will be used
+in its temperature and pressure calculations.  If you do this, note
+that the kinetic energy derived from the compute temperature should be
+consistent with the virial term computed using all atoms for the
+pressure.  LAMMPS will warn you if you choose to compute temperature
+on a subset of atoms.
+</P>
+<P>No global or per-atom quantities are stored by this fix for access by
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.
+</P>
+<P>This fix can ramp its target pressure over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Any dimension being adjusted by this fix must be periodic.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nh.html">fix nph</A>, <A HREF = "fix_nh.html">fix
+npt</A>, <A HREF = "fix_temp_berendsen.html">fix temp/berendsen</A>,
+<A HREF = "fix_modify.html">fix_modify</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The keyword defaults are dilate = all, modulus = 10.0 in units of
+pressure for whatever <A HREF = "units.html">units</A> are defined.
+</P>
+<HR>
+
+<A NAME = "Berendsen"></A>
+
+<P><B>(Berendsen)</B> Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
+Phys, 81, 3684 (1984).
+</P>
+</HTML>

@@ -18,5 +18,5 @@
 #
 # --- After you have done that, you can run moltemplate using this command: ---
 
-moltemplate.sh -xyz ../system.xyz system.lt
+moltemplate.sh system.lt -xyz ../system.xyz
 

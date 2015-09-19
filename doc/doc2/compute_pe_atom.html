@@ -1,0 +1,97 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute pe/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID pe/atom keyword ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>pe/atom = style name of this compute command
+<LI>zero or more keywords may be appended
+<LI>keyword = <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all pe/atom
+compute 1 all pe/atom pair
+compute 1 all pe/atom pair bond 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that computes the per-atom potential energy for
+each atom in a group.  See the <A HREF = "compute_pe.html">compute pe</A> command if
+you want the potential energy of the entire system.
+</P>
+<P>The per-atom energy is calculated by the various pair, bond, etc
+potentials defined for the simulation.  If no extra keywords are
+listed, then the potential energy is the sum of pair, bond, angle,
+dihedral,improper, and kspace energy.  If any extra keywords are
+listed, then only those components are summed to compute the potential
+energy.
+</P>
+<P>Note that the energy of each atom is due to its interaction with all
+other atoms in the simulation, not just with other atoms in the group.
+</P>
+<P>For an energy contribution produced by a small set of atoms (e.g. 4
+atoms in a dihedral or 3 atoms in a Tersoff 3-body interaction), that
+energy is assigned in equal portions to each atom in the set.
+E.g. 1/4 of the dihedral energy to each of the 4 atoms.
+</P>
+<P>The <A HREF = "dihedral_charmm.html">dihedral_style charmm</A> style calculates
+pairwise interactions between 1-4 atoms.  The energy contribution of
+these terms is included in the pair energy, not the dihedral energy.
+</P>
+<P>The KSpace contribution is calculated using the method in
+<A HREF = "#Heyes">(Heyes)</A> for the Ewald method and a related method for PPPM,
+as specified by the <A HREF = "kspace_style.html">kspace_style pppm</A> command.
+For PPPM, the calcluation requires 1 extra FFT each timestep that
+per-atom energy is calculated.  Thie <A HREF = "PDF/kspace.pdf">document</A>
+describes how the long-range per-atom energy calculation is performed.
+</P>
+<P>As an example of per-atom potential energy compared to total potential
+energy, these lines in an input script should yield the same result
+in the last 2 columns of thermo output:
+</P>
+<PRE>compute		peratom all pe/atom
+compute		pe all reduce sum c_peratom
+thermo_style	custom step temp etotal press pe c_pe 
+</PRE>
+<P>IMPORTANT NOTE: The per-atom energy does not any Lennard-Jones tail
+corrections invoked by the <A HREF = "pair_modify.html">pair_modify tail yes</A>
+command, since those are global contributions to the system energy.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input.  See
+<A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an overview of
+LAMMPS output options.
+</P>
+<P>The per-atom vector values will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_pe.html">compute pe</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Heyes"></A>
+
+<P><B>(Heyes)</B> Heyes, Phys Rev B 49, 755 (1994),
+</P>
+</HTML>

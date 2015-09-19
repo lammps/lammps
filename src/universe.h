@@ -21,7 +21,9 @@ namespace LAMMPS_NS {
 
 class Universe : protected Pointers {
  public:
-  char *version;          // LAMMPS version string = date
+  const char *version;    // LAMMPS version string = date
+  const char *num_ver;    // numeric version id derived from version that
+                          // can be used for string or numeric comparisons
 
   MPI_Comm uworld;        // communicator for entire universe
   int me,nprocs;          // my place in universe

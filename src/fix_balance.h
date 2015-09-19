@@ -42,7 +42,7 @@ class FixBalance : public Fix {
  private:
   int nevery,lbstyle,nitermax,outflag;
   double thresh,stopthresh;
-  char bstr[3];
+  char bstr[4];
   FILE *fp;
 
   double imbnow;                // current imbalance factor

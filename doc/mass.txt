@@ -56,9 +56,10 @@ Per-atom masses are defined in the data file read by the
 set to new values by the "set mass"_set.html or "set density"_set.html
 commands.
 
-Also note that "pair_style eam"_pair_eam.html defines the masses of
-atom types in the EAM potential file, in which case the mass command
-is normally not used.
+Also note that "pair_style eam"_pair_eam.html and "pair_style
+bop"_pair_bop.html commands define the masses of atom types in their
+respective potential files, in which case the mass command is normally
+not used.
 
 If you define a "hybrid atom style"_atom_style.html which includes one
 (or more) sub-styles which require per-type mass and one (or more)

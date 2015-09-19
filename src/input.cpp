@@ -43,6 +43,7 @@
 #include "update.h"
 #include "neighbor.h"
 #include "special.h"
+#include "timer.h"
 #include "variable.h"
 #include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
@@ -685,6 +686,7 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
+  else if (!strcmp(command,"timer")) timer_command();
   else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
@@ -1037,6 +1039,7 @@ void Input::print()
     if (strcmp(arg[iarg],"file") == 0 || strcmp(arg[iarg],"append") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
       if (me == 0) {
+        if (fp != NULL) fclose(fp);
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == NULL) {
@@ -1076,8 +1079,9 @@ void Input::python()
 
 void Input::quit()
 {
-  if (narg) error->all(FLERR,"Illegal quit command");
-  error->done();
+  if (narg == 0) error->done(0); // 1 would be fully backwards compatible
+  if (narg == 1) error->done(force->inumeric(FLERR,arg[0]));
+  error->all(FLERR,"Illegal quit command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1737,6 +1741,13 @@ void Input::thermo_modify()
 void Input::thermo_style()
 {
   output->create_thermo(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::timer_command()
+{
+  timer->modify_params(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,184 +1,345 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix temp/rescale command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix temp/rescale command 
-</H3>
-<H3>fix temp/rescale/cuda command 
-</H3>
-<H3>fix temp/rescale/limit/cuda command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID temp/rescale N Tstart Tstop window fraction 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>temp/rescale = style name of this fix command 
-
-<LI>N = perform rescaling every N steps  
-
-<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
-
-<PRE>  Tstart can be a variable (see below) 
-</PRE>
-<LI>window = only rescale if temperature is outside this window (temperature units) 
-
-<LI>fraction = rescale to target temperature by this fraction 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 3 flow temp/rescale 100 1.0 1.1 0.02 0.5
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix temp/rescale command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-temp-rescale-command">
+<span id="index-0"></span><h1>fix temp/rescale command<a class="headerlink" href="#fix-temp-rescale-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-temp-rescale-cuda-command">
+<h1>fix temp/rescale/cuda command<a class="headerlink" href="#fix-temp-rescale-cuda-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-temp-rescale-limit-cuda-command">
+<h1>fix temp/rescale/limit/cuda command<a class="headerlink" href="#fix-temp-rescale-limit-cuda-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID temp/rescale N Tstart Tstop window fraction
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>temp/rescale = style name of this fix command</li>
+<li>N = perform rescaling every N steps</li>
+<li>Tstart,Tstop = desired temperature at start/end of run (temperature units)</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>Tstart can be a variable (see below)
+</pre></div>
+</div>
+<ul class="simple">
+<li>window = only rescale if temperature is outside this window (temperature units)</li>
+<li>fraction = rescale to target temperature by this fraction</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 3 flow temp/rescale 100 1.0 1.1 0.02 0.5
 fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0
-fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Reset the temperature of a group of atoms by explicitly rescaling
-their velocities.
-</P>
-<P>The rescaling is applied to only the translational degrees of freedom
+fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Reset the temperature of a group of atoms by explicitly rescaling
+their velocities.</p>
+<p>The rescaling is applied to only the translational degrees of freedom
 for the particles, which is an important consideration if finite-size
 particles which have rotational degrees of freedom are being
 thermostatted with this fix.  The translational degrees of freedom can
 also have a bias velocity removed from them before thermostatting
-takes place; see the description below.
-</P>
-<P>Rescaling is performed every N timesteps.  The target temperature is a
-ramped value between the <I>Tstart</I> and <I>Tstop</I> temperatures at the
-beginning and end of the run.
-</P>
-<P><I>Tstart</I> can be specified as an equal-style <A HREF = "variable.html">variable</A>.
-In this case, the <I>Tstop</I> setting is ignored.  If the value is a
+takes place; see the description below.</p>
+<p>Rescaling is performed every N timesteps.  The target temperature is a
+ramped value between the <em>Tstart</em> and <em>Tstop</em> temperatures at the
+beginning and end of the run.</p>
+<p><em>Tstart</em> can be specified as an equal-style <a class="reference internal" href="variable.html"><em>variable</em></a>.
+In this case, the <em>Tstop</em> setting is ignored.  If the value is a
 variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
-its value used to determine the target temperature.
-</P>
-<P>Equal-style variables can specify formulas with various mathematical
-functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+its value used to determine the target temperature.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
 keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify a time-dependent temperature.
-</P>
-<P>Rescaling is only performed if the difference between the current and
-desired temperatures is greater than the <I>window</I> value.  The amount
-of rescaling that is applied is a <I>fraction</I> (from 0.0 to 1.0) of the
+time.  Thus it is easy to specify a time-dependent temperature.</p>
+<p>Rescaling is only performed if the difference between the current and
+desired temperatures is greater than the <em>window</em> value.  The amount
+of rescaling that is applied is a <em>fraction</em> (from 0.0 to 1.0) of the
 difference between the actual and desired temperature.  E.g. if
-<I>fraction</I> = 1.0, the temperature is reset to exactly the desired
-value.
-</P>
-<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt</A> command which
+<em>fraction</em> = 1.0, the temperature is reset to exactly the desired
+value.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which
 performs Nose/Hoover thermostatting AND time integration, this fix
 does NOT perform time integration.  It only modifies velocities to
 effect thermostatting.  Thus you must use a separate time integration
-fix, like <A HREF = "fix_nve.html">fix nve</A> to actually update the positions of
+fix, like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> to actually update the positions of
 atoms using the modified velocities.  Likewise, this fix should not
 normally be used on atoms that also have their temperature controlled
-by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
-langevin</A> commands.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+by another fix - e.g. by <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> commands.</p>
+</div>
+<p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
 a discussion of different ways to compute temperature and perform
-thermostatting.
-</P>
-<P>This fix computes a temperature each timestep.  To do this, the fix
-creates its own compute of style "temp", as if one of this command had
-been issued:
-</P>
-<PRE>compute fix-ID_temp group-ID temp 
-</PRE>
-<P>See the <A HREF = "compute_temp.html">compute temp</A> for details.  Note that the
-ID of the new compute is the fix-ID + underscore + "temp", and the
-group for the new compute is the same as the fix group.
-</P>
-<P>Note that this is NOT the compute used by thermodynamic output (see
-the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>.
-This means you can change the attributes of this fix's temperature
+thermostatting.</p>
+<p>This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style &#8220;temp&#8221;, as if one of this command had
+been issued:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute fix-ID_temp group-ID temp
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> for details.  Note that the
+ID of the new compute is the fix-ID + underscore + &#8220;temp&#8221;, and the
+group for the new compute is the same as the fix group.</p>
+<p>Note that this is NOT the compute used by thermodynamic output (see
+the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command) with ID = <em>thermo_temp</em>.
+This means you can change the attributes of this fix&#8217;s temperature
 (e.g. its degrees-of-freedom) via the
-<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
-during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
-custom</A> command using the appropriate compute-ID.
-It also means that changing attributes of <I>thermo_temp</I> will have no
-effect on this fix.
-</P>
-<P>Like other fixes that perform thermostatting, this fix can be used
-with <A HREF = "compute.html">compute commands</A> that calculate a temperature
-after removing a "bias" from the atom velocities.  E.g. removing the
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command or print this temperature
+during thermodynamic output via the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command using the appropriate compute-ID.
+It also means that changing attributes of <em>thermo_temp</em> will have no
+effect on this fix.</p>
+<p>Like other fixes that perform thermostatting, this fix can be used
+with <a class="reference internal" href="compute.html"><em>compute commands</em></a> that calculate a temperature
+after removing a &#8220;bias&#8221; from the atom velocities.  E.g. removing the
 center-of-mass velocity from a group of atoms or only calculating
 temperature on the x-component of velocity or only calculating
 temperature for atoms in a geometric region.  This is not done by
-default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+default, but only if the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> command is used
 to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual <A HREF = "compute.html">compute
-commands</A> to determine which ones include a bias.  In
+term.  See the doc pages for individual <a class="reference internal" href="compute.html"><em>compute commands</em></a> to determine which ones include a bias.  In
 this case, the thermostat works in the following manner: the current
 temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+thermal degrees of freedom, and the bias is added back in.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
-<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
+<a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual.  The
 accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA package.  They are
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
-fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>temp</em> option is supported by this
+fix.  You can use it to assign a temperature <a class="reference internal" href="compute.html"><em>compute</em></a>
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
-this fix and by the compute should be the same.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+this fix and by the compute should be the same.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
 fix to add the energy change implied by a velocity rescaling to the
-system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.
-</P>
-<P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the
 cummulative energy change due to this fix.  The scalar value
-calculated by this fix is "extensive".
-</P>
-<P>This fix can ramp its target temperature over multiple runs, using the
-<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
-<A HREF = "run.html">run</A> command for details of how to do this.
-</P>
-<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_langevin.html">fix langevin</A>, <A HREF = "fix_nh.html">fix nvt</A>,
-<A HREF = "fix_modify.html">fix_modify</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+calculated by this fix is &#8220;extensive&#8221;.</p>
+<p>This fix can ramp its target temperature over multiple runs, using the
+<em>start</em> and <em>stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.  See the
+<a class="reference internal" href="run.html"><em>run</em></a> command for details of how to do this.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>,
+<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

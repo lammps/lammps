@@ -38,6 +38,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "pair_hybrid.h"
 
 using namespace LAMMPS_NS;
 
@@ -64,6 +65,11 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   level_bond = level_angle = level_dihedral = level_improper = -1;
   level_pair = level_kspace = -1;
   level_inner = level_middle = level_outer = -1;
+
+  // defaults for hybrid pair styles
+  nhybrid_styles = 0;
+  tally_global = 1;
+  pair_compute = 1;
 
   int iarg = nlevels;
   while (iarg < narg) {
@@ -107,6 +113,22 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_kspace = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"hybrid") == 0) {
+      // the hybrid keyword requires a hybrid pair style
+      if (!strstr(force->pair_style,"hybrid"))
+        error->all(FLERR,"Illegal run_style respa command");
+      PairHybrid *hybrid = (PairHybrid *) force->pair;
+      nhybrid_styles = hybrid->nstyles;
+      // each hybrid sub-style needs to be assigned to a respa level
+      if (iarg+nhybrid_styles > narg)
+        error->all(FLERR,"Illegal run_style respa command");
+      hybrid_level = new int[nhybrid_styles];
+      hybrid_compute = new int[nhybrid_styles];
+      for (int i=0; i < nhybrid_styles; ++i) {
+        ++iarg;
+        hybrid_level[i] = force->inumeric(FLERR,arg[iarg])-1;
+      }
+      ++iarg;
     } else error->all(FLERR,"Illegal run_style respa command");
   }
 
@@ -127,6 +149,10 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   if (level_middle >= 0 && level_inner == -1)
     error->all(FLERR,"Cannot set respa middle without inner/outer");
 
+  // cannot combine hybrid with any of pair/inner/middle/outer
+  if ((nhybrid_styles > 0) && (level_pair >= 0 || level_inner >= 0
+                               || level_middle >= 0 || level_outer >= 0))
+    error->all(FLERR,"Cannot set respa hybrid and any of pair/inner/middle/outer");
   // set defaults if user did not specify level
   // bond to innermost level
   // angle same as bond, dihedral same as angle, improper same as dihedral
@@ -138,9 +164,23 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   if (level_angle == -1) level_angle = level_bond;
   if (level_dihedral == -1) level_dihedral = level_angle;
   if (level_improper == -1) level_improper = level_dihedral;
-  if (level_pair == -1 && level_inner == -1) level_pair = nlevels-1;
+
+  if (level_pair == -1 && level_inner == -1 && nhybrid_styles < 1)
+    level_pair = nlevels-1;
+
   if (level_kspace == -1 && level_pair >= 0) level_kspace = level_pair;
-  if (level_kspace == -1 && level_pair == -1) level_kspace = level_outer;
+  if (level_kspace == -1 && level_pair == -1) {
+    if (nhybrid_styles < 1) {
+      level_kspace = level_outer;
+    } else {
+      int max_hybrid_level = -1;
+      for (int i=0; i < nhybrid_styles; ++i) {
+        if (max_hybrid_level < hybrid_level[i])
+          max_hybrid_level = hybrid_level[i];
+      }
+      level_kspace = max_hybrid_level;
+    }
+  }
 
   // print respa levels
 
@@ -157,6 +197,9 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
         if (level_inner == i) fprintf(screen," pair-inner");
         if (level_middle == i) fprintf(screen," pair-middle");
         if (level_outer == i) fprintf(screen," pair-outer");
+        for (int j=0;j<nhybrid_styles;j++) {
+          if (hybrid_level[j] == i) fprintf(screen, " hybrid-%d",j+1);
+        }
         if (level_kspace == i) fprintf(screen," kspace");
         fprintf(screen,"\n");
       }
@@ -173,6 +216,9 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
         if (level_inner == i) fprintf(logfile," pair-inner");
         if (level_middle == i) fprintf(logfile," pair-middle");
         if (level_outer == i) fprintf(logfile," pair-outer");
+        for (int j=0;j<nhybrid_styles;j++) {
+          if (hybrid_level[j] == i) fprintf(logfile, " hybrid-%d",j+1);
+        }
         if (level_kspace == i) fprintf(logfile," kspace");
         fprintf(logfile,"\n");
       }
@@ -188,7 +234,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     if (level_pair < level_improper || level_kspace < level_pair)
       error->all(FLERR,"Invalid order of forces within respa levels");
   }
-  if (level_pair == -1 && level_middle == -1) {
+  if (level_pair == -1 && level_middle == -1 && nhybrid_styles < 1) {
     if (level_inner < level_improper || level_outer < level_inner ||
         level_kspace < level_outer)
       error->all(FLERR,"Invalid order of forces within respa levels");
@@ -223,6 +269,12 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     cutoff[3] = cutoff[1];
   }
 
+  // ensure that pair->compute() is run properly when the "hybrid" keyword is not used. 
+  if (nhybrid_styles < 1) {
+    pair_compute = 1;
+    tally_global = 1;
+  }
+
   // allocate other needed arrays
 
   newton = new int[nlevels];
@@ -236,6 +288,10 @@ Respa::~Respa()
   delete [] loop;
   delete [] newton;
   delete [] step;
+  if (nhybrid_styles > 0) {
+    delete [] hybrid_level;
+    delete [] hybrid_compute;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -254,13 +310,19 @@ void Respa::init()
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
 
-  char **fixarg = new char*[4];
+  char **fixarg = new char*[5];
   fixarg[0] = (char *) "RESPA";
   fixarg[1] = (char *) "all";
   fixarg[2] = (char *) "RESPA";
   fixarg[3] = new char[8];
   sprintf(fixarg[3],"%d",nlevels);
-  modify->add_fix(4,fixarg);
+  // if supported, we also store torques on a per-level basis
+  if (atom->torque_flag) {
+    fixarg[4] = (char *) "torque";
+    modify->add_fix(5,fixarg);
+  } else {
+    modify->add_fix(4,fixarg);
+  }
   delete [] fixarg[3];
   delete [] fixarg;
   fix_respa = (FixRespa *) modify->fix[modify->nfix-1];
@@ -309,6 +371,11 @@ void Respa::init()
       if (level_pair == ilevel || level_inner == ilevel ||
           level_middle == ilevel || level_outer == ilevel)
         newton[ilevel] = 1;
+
+      if (nhybrid_styles > 0) {
+        set_compute_flags(ilevel);
+        if (pair_compute) newton[ilevel] = 1;
+      }
     }
   }
 
@@ -323,7 +390,12 @@ void Respa::init()
 
 void Respa::setup()
 {
-  if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up r-RESPA run ...\n");
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  OuterTime step: %g\n", update->dt);
+  }
 
   update->setupflag = 1;
 
@@ -355,6 +427,11 @@ void Respa::setup()
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
     modify->setup_pre_force_respa(vflag,ilevel);
+
+    if (nhybrid_styles > 0) {
+      set_compute_flags(ilevel);
+      force->pair->compute(eflag,vflag);
+    }
     if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
     if (level_inner == ilevel && pair_compute_flag)
@@ -375,6 +452,7 @@ void Respa::setup()
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
+
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -423,6 +501,12 @@ void Respa::setup_minimal(int flag)
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
     modify->setup_pre_force_respa(vflag,ilevel);
+
+    if (nhybrid_styles > 0) {
+      set_compute_flags(ilevel);
+      force->pair->compute(eflag,vflag);
+    }
+
     if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
     if (level_inner == ilevel && pair_compute_flag)
@@ -471,12 +555,16 @@ void Respa::run(int n)
 
     sum_flevel_f();
 
-    if (modify->n_end_of_step) modify->end_of_step();
+    if (modify->n_end_of_step) {
+      timer->stamp();
+      modify->end_of_step();
+      timer->stamp(Timer::MODIFY);
+    }
 
     if (ntimestep == output->next) {
       timer->stamp();
       output->write(update->ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 }
@@ -510,9 +598,11 @@ void Respa::recurse(int ilevel)
 
   for (int iloop = 0; iloop < loop[ilevel]; iloop++) {
 
+    timer->stamp();
     modify->initial_integrate_respa(vflag,ilevel,iloop);
     if (modify->n_post_integrate_respa)
       modify->post_integrate_respa(ilevel,iloop);
+    timer->stamp(Timer::MODIFY);
 
     // at outermost level, check on rebuilding neighbor list
     // at innermost level, communicate
@@ -521,7 +611,11 @@ void Respa::recurse(int ilevel)
     if (ilevel == nlevels-1) {
       int nflag = neighbor->decide();
       if (nflag) {
-        if (modify->n_pre_exchange) modify->pre_exchange();
+        if (modify->n_pre_exchange) {
+          timer->stamp();
+          modify->pre_exchange();
+          timer->stamp(Timer::MODIFY);
+        }
         if (triclinic) domain->x2lamda(atom->nlocal);
         domain->pbc();
         if (domain->box_change) {
@@ -531,24 +625,27 @@ void Respa::recurse(int ilevel)
         }
         timer->stamp();
         comm->exchange();
-        if (atom->sortfreq > 0 &&
+        if (atom->sortfreq > 0 && 
             update->ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-        timer->stamp(TIME_COMM);
-        if (modify->n_pre_neighbor) modify->pre_neighbor();
+        timer->stamp(Timer::COMM);
+        if (modify->n_pre_neighbor) {
+          modify->pre_neighbor();
+          timer->stamp(Timer::MODIFY);
+        }
         neighbor->build();
-        timer->stamp(TIME_NEIGHBOR);
+        timer->stamp(Timer::NEIGH);
       } else if (ilevel == 0) {
         timer->stamp();
         comm->forward_comm();
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
       }
 
     } else if (ilevel == 0) {
       timer->stamp();
       comm->forward_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
 
     // rRESPA recursion thru all levels
@@ -565,55 +662,64 @@ void Respa::recurse(int ilevel)
     // when potentials are invoked at same level
 
     force_clear(newton[ilevel]);
-    if (modify->n_pre_force_respa)
+    if (modify->n_pre_force_respa) {
+      timer->stamp();
       modify->pre_force_respa(vflag,ilevel,iloop);
+      timer->stamp(Timer::MODIFY);
+    }
 
     timer->stamp();
+    if (nhybrid_styles > 0) {
+      set_compute_flags(ilevel);
+      force->pair->compute(eflag,vflag);
+      timer->stamp(Timer::PAIR);
+    }
     if (level_pair == ilevel && pair_compute_flag) {
       force->pair->compute(eflag,vflag);
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_inner == ilevel && pair_compute_flag) {
       force->pair->compute_inner();
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_middle == ilevel && pair_compute_flag) {
       force->pair->compute_middle();
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_outer == ilevel && pair_compute_flag) {
       force->pair->compute_outer(eflag,vflag);
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_bond == ilevel && force->bond) {
       force->bond->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_angle == ilevel && force->angle) {
       force->angle->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_dihedral == ilevel && force->dihedral) {
       force->dihedral->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_improper == ilevel && force->improper) {
       force->improper->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_kspace == ilevel && kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
     }
 
     if (newton[ilevel]) {
       comm->reverse_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
-
+    timer->stamp();
     if (modify->n_post_force_respa)
       modify->post_force_respa(vflag,ilevel,iloop);
     modify->final_integrate_respa(ilevel,iloop);
+    timer->stamp(Timer::MODIFY);
   }
 
   copy_f_flevel(ilevel);
@@ -649,12 +755,19 @@ void Respa::copy_f_flevel(int ilevel)
 {
   double ***f_level = fix_respa->f_level;
   double **f = atom->f;
+  double ***t_level = fix_respa->t_level;
+  double **t = atom->torque;
   int n = atom->nlocal;
 
   for (int i = 0; i < n; i++) {
     f_level[i][ilevel][0] = f[i][0];
     f_level[i][ilevel][1] = f[i][1];
     f_level[i][ilevel][2] = f[i][2];
+    if (fix_respa->store_torque) {
+      t_level[i][ilevel][0] = t[i][0];
+      t_level[i][ilevel][1] = t[i][1];
+      t_level[i][ilevel][2] = t[i][2];
+    }
   }
 }
 
@@ -666,12 +779,19 @@ void Respa::copy_flevel_f(int ilevel)
 {
   double ***f_level = fix_respa->f_level;
   double **f = atom->f;
+  double ***t_level = fix_respa->t_level;
+  double **t = atom->torque;
   int n = atom->nlocal;
 
   for (int i = 0; i < n; i++) {
     f[i][0] = f_level[i][ilevel][0];
     f[i][1] = f_level[i][ilevel][1];
     f[i][2] = f_level[i][ilevel][2];
+    if (fix_respa->store_torque) {
+      t[i][0] = t_level[i][ilevel][0];
+      t[i][1] = t_level[i][ilevel][1];
+      t[i][2] = t_level[i][ilevel][2];
+    }
   }
 }
 
@@ -685,6 +805,8 @@ void Respa::sum_flevel_f()
 
   double ***f_level = fix_respa->f_level;
   double **f = atom->f;
+  double ***t_level = fix_respa->t_level;
+  double **t = atom->torque;
   int n = atom->nlocal;
 
   for (int ilevel = 1; ilevel < nlevels; ilevel++) {
@@ -692,6 +814,28 @@ void Respa::sum_flevel_f()
       f[i][0] += f_level[i][ilevel][0];
       f[i][1] += f_level[i][ilevel][1];
       f[i][2] += f_level[i][ilevel][2];
+      if (fix_respa->store_torque) {
+        t[i][0] += t_level[i][ilevel][0];
+        t[i][1] += t_level[i][ilevel][1];
+        t[i][2] += t_level[i][ilevel][2];
+      }
     }
   }
+}
+
+/*-----------------------------------------------------------------------
+  set flags for when some hybrid forces should be computed
+------------------------------------------------------------------------- */
+
+void Respa::set_compute_flags(int ilevel)
+{
+
+  if (nhybrid_styles < 1) return;
+
+  pair_compute = 0;
+  for (int i=0; i<nhybrid_styles; ++i) {
+    hybrid_compute[i] = (hybrid_level[i] == ilevel) ? 1 : 0;
+    if (hybrid_compute[i]) pair_compute = 1;
+  }
+  tally_global = (ilevel == nlevels-1) ? 1 : 0;
 }

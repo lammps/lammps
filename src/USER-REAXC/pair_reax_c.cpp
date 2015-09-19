@@ -279,7 +279,16 @@ void PairReaxC::coeff( int nargs, char **args )
 
   // read ffield file
 
-  Read_Force_Field(args[2], &(system->reax_param), control);
+  char *file = args[2];
+  FILE *fp;
+  fp = force->open_potential(file);
+  if (fp != NULL) 
+    Read_Force_Field(fp, &(system->reax_param), control);
+  else if (comm->me == 0) {
+      char str[128];
+      sprintf(str,"Cannot open ReaxFF potential file %s",file);
+      error->one(FLERR,str);
+  }
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -440,15 +449,6 @@ void PairReaxC::setup( )
 
     ReAllocate( system, control, data, workspace, &lists, mpi_data );
   }
-
-  ngroup = 0;
-  int ngroup_sum = 0;
-  for (int i = 0; i < list->inum; i++) {
-    ngroup ++;
-  }
-  MPI_Allreduce( &ngroup, &ngroup_sum, 1, MPI_INT, MPI_SUM, world );
-  ngroup = ngroup_sum;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -777,7 +777,7 @@ double PairReaxC::memory_usage()
 
   // From reaxc_allocate: BO
   bytes += 1.0 * system->total_cap * sizeof(reax_atom);
-  bytes += 19.0 * system->total_cap * sizeof(real);
+  bytes += 19.0 * system->total_cap * sizeof(double);
   bytes += 3.0 * system->total_cap * sizeof(int);
 
   // From reaxc_lists

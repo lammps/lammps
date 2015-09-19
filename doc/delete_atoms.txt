@@ -132,7 +132,7 @@ deletion by the {overlap} styles.  You probably don't want to be
 deleting one atom in a bonded pair anyway.
 
 The {bond yes} option cannot be used with molecular systems defined
-using molecule template files via the "molecule"_molecular.html and
+using molecule template files via the "molecule"_molecule.html and
 "atom_style template"_atom_style.html commands.
 
 [Related commands:]

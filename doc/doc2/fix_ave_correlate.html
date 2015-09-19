@@ -1,0 +1,349 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix ave/correlate command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID ave/correlate Nevery Nrepeat Nfreq value1 value2 ... keyword args ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>ave/correlate = style name of this fix command 
+
+<LI>Nevery = use input values every this many timesteps 
+
+<LI>Nrepeat = # of correlation time windows to accumulate 
+
+<LI>Nfreq = calculate tine window averages every this many timesteps 
+
+<LI>one or more input values can be listed 
+
+<LI>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name 
+
+<PRE>  c_ID = global scalar calculated by a compute with ID
+  c_ID[I] = Ith component of global vector calculated by a compute with ID
+  f_ID = global scalar calculated by a fix with ID
+  f_ID[I] = Ith component of global vector calculated by a fix with ID
+  v_name = global value calculated by an equal-style variable with name 
+</PRE>
+<LI>zero or more keyword/arg pairs may be appended 
+
+<LI>keyword = <I>type</I> or <I>ave</I> or <I>start</I> or <I>prefactor</I> or <I>file</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
+
+<PRE>  <I>type</I> arg = <I>auto</I> or <I>upper</I> or <I>lower</I> or <I>auto/upper</I> or <I>auto/lower</I> or <I>full</I>
+    auto = correlate each value with itself
+    upper = correlate each value with each succeeding value
+    lower = correlate each value with each preceding value
+    auto/upper = auto + upper
+    auto/lower = auto + lower
+    full = correlate each value with every other value, including itself = auto + upper + lower
+  <I>ave</I> args = <I>one</I> or <I>running</I>
+    one = zero the correlation accumulation every Nfreq steps
+    running = accumulate correlations continuously
+  <I>start</I> args = Nstart
+    Nstart = start accumulating correlations on this timestep
+  <I>prefactor</I> args = value
+    value = prefactor to scale all the correlation data by
+  <I>file</I> arg = filename
+    filename = name of file to output correlation data to
+  <I>overwrite</I> arg = none = overwrite output file with only latest output
+  <I>title1</I> arg = string
+    string = text to print as 1st line of output file
+  <I>title2</I> arg = string
+    string = text to print as 2nd line of output file
+  <I>title3</I> arg = string
+    string = text to print as 3rd line of output file 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all ave/correlate 5 100 1000 c_myTemp file temp.correlate
+fix 1 all ave/correlate 1 50 10000 &
+          c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &
+	  type upper ave running title1 "My correlation data" 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Use one or more global scalar values as inputs every few timesteps,
+calculate time correlations bewteen them at varying time intervals,
+and average the correlation data over longer timescales.  The
+resulting correlation values can be time integrated by
+<A HREF = "variable.html">variables</A> or used by other <A HREF = "Section_howto.html#howto_15">output
+commands</A> such as <A HREF = "thermo_style.html">thermo_style
+custom</A>, and can also be written to a file.
+</P>
+<P>The group specified with this command is ignored.  However, note that
+specified values may represent calculations performed by computes and
+fixes which store their own "group" definitions.
+</P>
+<P>Each listed value can be the result of a <A HREF = "compute.html">compute</A> or
+<A HREF = "fix.html">fix</A> or the evaluation of an equal-style
+<A HREF = "variable.html">variable</A>.  In each case, the compute, fix, or variable
+must produce a global quantity, not a per-atom or local quantity.  If
+you wish to spatial- or time-average or histogram per-atom quantities
+from a compute, fix, or variable, then see the <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A>, <A HREF = "fix_ave_atom.html">fix ave/atom</A>,
+or <A HREF = "fix_ave_histo.html">fix ave/histo</A> commands.  If you wish to sum a
+per-atom quantity into a single global quantity, see the <A HREF = "compute_reduce.html">compute
+reduce</A> command.
+</P>
+<P><A HREF = "compute.html">Computes</A> that produce global quantities are those which
+do not have the word <I>atom</I> in their style name.  Only a few
+<A HREF = "fix.html">fixes</A> produce global quantities.  See the doc pages for
+individual fixes for info on which ones produce such values.
+<A HREF = "variable.html">Variables</A> of style <I>equal</I> are the only ones that can
+be used with this fix.  Variables of style <I>atom</I> cannot be used,
+since they produce per-atom values.
+</P>
+<P>The input values must either be all scalars.  What kinds of
+correlations between input values are calculated is determined by the
+<I>type</I> keyword as discussed below.
+</P>
+<HR>
+
+<P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what
+timesteps the input values will be used to calculate correlation data.
+The input values are sampled every <I>Nevery</I> timesteps.  The
+correlation data for the preceding samples is computed on timesteps
+that are a multiple of <I>Nfreq</I>.  Consider a set of samples from some
+initial time up to an output timestep.  The initial time could be the
+beginning of the simulation or the last output time; see the <I>ave</I>
+keyword for options.  For the set of samples, the correlation value
+Cij is calculated as:
+</P>
+<PRE>Cij(delta) = ave(Vi(t)*Vj(t+delta)) 
+</PRE>
+<P>which is the correlation value between input values Vi and Vj,
+separated by time delta.  Note that the second value Vj in the pair is
+always the one sampled at the later time.  The ave() represents an
+average over every pair of samples in the set that are separated by
+time delta.  The maximum delta used is of size (<I>Nrepeat</I>-1)*<I>Nevery</I>.
+Thus the correlation between a pair of input values yields <I>Nrepeat</I>
+correlation datums:
+</P>
+<PRE>Cij(0), Cij(Nevery), Cij(2*Nevery), ..., Cij((Nrepeat-1)*Nevery) 
+</PRE>
+<P>For example, if Nevery=5, Nrepeat=6, and Nfreq=100, then values on
+timesteps 0,5,10,15,...,100 will be used to compute the final averages
+on timestep 100.  Six averages will be computed: Cij(0), Cij(5),
+Cij(10), Cij(15), Cij(20), and Cij(25).  Cij(10) on timestep 100 will
+be the average of 19 samples, namely Vi(0)*Vj(10), Vi(5)*Vj(15),
+Vi(10)*V j20), Vi(15)*Vj(25), ..., Vi(85)*Vj(95), Vi(90)*Vj(100).
+</P>
+<P><I>Nfreq</I> must be a multiple of <I>Nevery</I>; <I>Nevery</I> and <I>Nrepeat</I> must be
+non-zero.  Also, if the <I>ave</I> keyword is set to <I>one</I> which is the
+default, then <I>Nfreq</I> >= (<I>Nrepeat</I>-1)*<I>Nevery</I> is required.
+</P>
+<HR>
+
+<P>If a value begins with "c_", a compute ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the global scalar calculated by the compute is used.  If a
+bracketed term is appended, the Ith element of the global vector
+calculated by the compute is used.
+</P>
+<P>Note that there is a <A HREF = "compute_reduce.html">compute reduce</A> command
+which can sum per-atom quantities into a global scalar or vector which
+can thus be accessed by fix ave/correlate.  Or it can be a compute
+defined not in your input script, but by <A HREF = "thermo_style.html">thermodynamic
+output</A> or other fixes such as <A HREF = "fix_nh.html">fix nvt</A>
+or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  See the doc pages for
+these commands which give the IDs of these computes.  Users can also
+write code for their own compute styles and <A HREF = "Section_modify.html">add them to
+LAMMPS</A>.
+</P>
+<P>If a value begins with "f_", a fix ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the global scalar calculated by the fix is used.  If a
+bracketed term is appended, the Ith element of the global vector
+calculated by the fix is used.
+</P>
+<P>Note that some fixes only produce their values on certain timesteps,
+which must be compatible with <I>Nevery</I>, else an error will result.
+Users can also write code for their own fix styles and <A HREF = "Section_modify.html">add them to
+LAMMPS</A>.
+</P>
+<P>If a value begins with "v_", a variable name must follow which has
+been previously defined in the input script.  Only equal-style
+variables can be referenced.  See the <A HREF = "variable.html">variable</A> command
+for details.  Note that variables of style <I>equal</I> define a formula
+which can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+they are evaluated, so this is a very general means of specifying
+quantities to time correlate.
+</P>
+<HR>
+
+<P>Additional optional keywords also affect the operation of this fix.
+</P>
+<P>The <I>type</I> keyword determines which pairs of input values are
+correlated with each other.  For N input values Vi, for i = 1 to N,
+let the number of pairs = Npair.  Note that the second value in the
+pair Vi(t)*Vj(t+delta) is always the one sampled at the later time.
+</P>
+<UL><LI>If <I>type</I> is set to <I>auto</I> then each input value is correlated with
+itself.  I.e. Cii = Vi*Vi, for i = 1 to N, so Npair = N. 
+
+<LI>If <I>type</I> is set
+to <I>upper</I> then each input value is correlated with every succeeding
+value.  I.e. Cij = Vi*Vj, for i < j, so Npair = N*(N-1)/2. 
+
+<LI>If <I>type</I> is set
+to <I>lower</I> then each input value is correlated with every preceeding
+value.  I.e. Cij = Vi*Vj, for i > j, so Npair = N*(N-1)/2. 
+
+<LI>If <I>type</I> is set to <I>auto/upper</I> then each input value is correlated
+with itself and every succeeding value.  I.e. Cij = Vi*Vj, for i >= j,
+so Npair = N*(N+1)/2. 
+
+<LI>If <I>type</I> is set to <I>auto/lower</I> then each input value is correlated
+with itself and every preceding value.  I.e. Cij = Vi*Vj, for i <= j,
+so Npair = N*(N+1)/2. 
+
+<LI>If <I>type</I> is set to <I>full</I> then each input value is correlated with
+itself and every other value.  I.e. Cij = Vi*Vj, for i,j = 1,N so
+Npair = N^2. 
+</UL>
+<P>The <I>ave</I> keyword determines what happens to the accumulation of
+correlation samples every <I>Nfreq</I> timesteps.  If the <I>ave</I> setting is
+<I>one</I>, then the accumulation is restarted or zeroed every <I>Nfreq</I>
+timesteps.  Thus the outputs on successive <I>Nfreq</I> timesteps are
+essentially independent of each other.  The exception is that the
+Cij(0) = Vi(T)*Vj(T) value at a timestep T, where T is a multiple of
+<I>Nfreq</I>, contributes to the correlation output both at time T and at
+time T+Nfreq.
+</P>
+<P>If the <I>ave</I> setting is <I>running</I>, then the accumulation is never
+zeroed.  Thus the output of correlation data at any timestep is the
+average over samples accumulated every <I>Nevery</I> steps since the fix
+was defined.  it can only be restarted by deleting the fix via the
+<A HREF = "unfix.html">unfix</A> command, or by re-defining the fix by re-specifying
+it.
+</P>
+<P>The <I>start</I> keyword specifies what timestep the accumulation of
+correlation samples will begin on.  The default is step 0.  Setting it
+to a larger value can avoid adding non-equilibrated data to the
+correlation averages.
+</P>
+<P>The <I>prefactor</I> keyword specifies a constant which will be used as a
+multiplier on the correlation data after it is averaged.  It is
+effectively a scale factor on Vi*Vj, which can be used to account for
+the size of the time window or other unit conversions.
+</P>
+<P>The <I>file</I> keyword allows a filename to be specified.  Every <I>Nfreq</I>
+steps, an array of correlation data is written to the file.  The
+number of rows is <I>Nrepeat</I>, as described above.  The number of
+columns is the Npair+2, also as described above.  Thus the file ends
+up to be a series of these array sections.
+</P>
+<P>The <I>overwrite</I> keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the <I>ave running</I> setting.
+</P>
+<P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
+the strings that will be printed as the first 3 lines of the output
+file, assuming the <I>file</I> keyword was used.  LAMMPS uses default
+values for each of these, so they do not need to be specified.
+</P>
+<P>By default, these header lines are as follows:
+</P>
+<PRE># Time-correlated data for fix ID
+# TimeStep Number-of-time-windows
+# Index TimeDelta Ncount valueI*valueJ valueI*valueJ ... 
+</PRE>
+<P>In the first line, ID is replaced with the fix-ID.  The second line
+describes the two values that are printed at the first of each section
+of output.  In the third line the value pairs are replaced with the
+appropriate fields from the fix ave/correlate command.
+</P>
+<HR>
+
+<P>Let Sij = a set of time correlation data for input values I and J,
+namely the <I>Nrepeat</I> values:
+</P>
+<PRE>Sij = Cij(0), Cij(Nevery), Cij(2*Nevery), ..., Cij(*Nrepeat-1)*Nevery) 
+</PRE>
+<P>As explained below, these datums are output as one column of a global
+array, which is effectively the correlation matrix.
+</P>
+<P>The <I>trap</I> function defined for <A HREF = "variable.html">equal-style variables</A>
+can be used to perform a time integration of this vector of datums,
+using a trapezoidal rule.  This is useful for calculating various
+quantities which can be derived from time correlation data.  If a
+normalization factor is needed for the time integration, it can be
+included in the variable formula or via the <I>prefactor</I> keyword.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>This fix computes a global array of values which can be accessed by
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The values can
+only be accessed on timesteps that are multiples of <I>Nfreq</I> since that
+is when averaging is performed.  The global array has # of rows =
+<I>Nrepeat</I> and # of columns = Npair+2.  The first column has the time
+delta (in timesteps) between the pairs of input values used to
+calculate the correlation, as described above.  The 2nd column has the
+number of samples contributing to the correlation average, as
+described above.  The remaining Npair columns are for I,J pairs of the
+N input values, as determined by the <I>type</I> keyword, as described
+above.
+</P>
+<UL><LI>For <I>type</I> = <I>auto</I>, the Npair = N columns are ordered: C11, C22, ...,
+CNN. 
+
+<LI>For <I>type</I> = <I>upper</I>, the Npair = N*(N-1)/2 columns are ordered: C12,
+C13, ..., C1N, C23, ..., C2N, C34, ..., CN-1N. 
+
+<LI>For <I>type</I> = <I>lower</I>, the Npair = N*(N-1)/2 columns are ordered: C21,
+C31, C32, C41, C42, C43, ..., CN1, CN2, ..., CNN-1. 
+
+<LI>For <I>type</I> = <I>auto/upper</I>, the Npair = N*(N+1)/2 columns are ordered:
+C11, C12, C13, ..., C1N, C22, C23, ..., C2N, C33, C34, ..., CN-1N,
+CNN. 
+
+<LI>For <I>type</I> = <I>auto/lower</I>, the Npair = N*(N+1)/2 columns are ordered:
+C11, C21, C22, C31, C32, C33, C41, ..., C44, CN1, CN2, ..., CNN-1,
+CNN. 
+
+<LI>For <I>type</I> = <I>full</I>, the Npair = N^2 columns are ordered: C11, C12,
+..., C1N, C21, C22, ..., C2N, C31, ..., C3N, ..., CN1, ..., CNN-1,
+CNN. 
+</UL>
+<P>The array values calculated by this fix are treated as "intensive".
+If you need to divide them by the number of atoms, you must do this in
+a later processing step, e.g. when using them in a
+<A HREF = "variable.html">variable</A>.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_atom.html">fix
+ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
+<A HREF = "fix_ave_histo.html">fix ave/histo</A>, <A HREF = "variable.html">variable</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<P>The option defaults are ave = one, type = auto, start = 0, no file
+output, title 1,2,3 = strings as described above, and prefactor = 1.0.
+</P>
+</HTML>

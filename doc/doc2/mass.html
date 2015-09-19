@@ -1,0 +1,89 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>mass command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>mass I value 
+</PRE>
+<UL><LI>I = atom type (see asterisk form below)
+<LI>value = mass 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>mass 1 1.0
+mass * 62.5
+mass 2* 62.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the mass for all atoms of one or more atom types.  Per-type mass
+values can also be set in the <A HREF = "read_data.html">read_data</A> data file
+using the "Masses" keyword.  See the <A HREF = "units.html">units</A> command for
+what mass units to use.
+</P>
+<P>The I index can be specified in one of two ways.  An explicit numeric
+value can be used, as in the 1st example above.  Or a wild-card
+asterisk can be used to set the mass for multiple atom types.  This
+takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
+atom types, then an asterisk with no numeric values means all types
+from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+</P>
+<P>A line in a <A HREF = "read_data.html">data file</A> that follows the "Masses"
+keyword specifies mass using the same format as the arguments of the
+mass command in an input script, except that no wild-card asterisk can
+be used.  For example, under the "Masses" section of a data file, the
+line that corresponds to the 1st example above would be listed as
+</P>
+<PRE>1 1.0 
+</PRE>
+<P>Note that the mass command can only be used if the <A HREF = "atom_style.html">atom
+style</A> requires per-type atom mass to be set.
+Currently, all but the <I>sphere</I> and <I>ellipsoid</I> and <I>peri</I> styles do.
+They require mass to be set for individual particles, not types.
+Per-atom masses are defined in the data file read by the
+<A HREF = "read_data.html">read_data</A> command, or set to default values by the
+<A HREF = "create_atoms.html">create_atoms</A> command.  Per-atom masses can also be
+set to new values by the <A HREF = "set.html">set mass</A> or <A HREF = "set.html">set density</A>
+commands.
+</P>
+<P>Also note that <A HREF = "pair_eam.html">pair_style eam</A> and <A HREF = "pair_bop.html">pair_style
+bop</A> commands define the masses of atom types in their
+respective potential files, in which case the mass command is normally
+not used.
+</P>
+<P>If you define a <A HREF = "atom_style.html">hybrid atom style</A> which includes one
+(or more) sub-styles which require per-type mass and one (or more)
+sub-styles which require per-atom mass, then you must define both.
+However, in this case the per-type mass will be ignored; only the
+per-atom mass will be used by LAMMPS.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command must come after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
+<A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>All masses must be defined before a simulation is run.  They must also
+all be defined before a <A HREF = "velocity.html">velocity</A> or <A HREF = "fix_shake.html">fix
+shake</A> command is used.
+</P>
+<P>The mass assigned to any type or atom must be > 0.0.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

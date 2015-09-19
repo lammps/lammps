@@ -414,6 +414,8 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   for (int i = 0; i < nlocal; i++)
     if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
       if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+
+  delete random;
 }
 
 /* ----------------------------------------------------------------------
@@ -722,9 +724,9 @@ void DeleteAtoms::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
-      if (atom->molecular == 0) 
-        error->all(FLERR,"Cannot delete_atoms mol yes for "
-                   "non-molecular systems");
+      if (atom->molecule_flag == 0) 
+        error->all(FLERR,"Delete_atoms mol yes requires "
+                   "atom attribute molecule");
       if (strcmp(arg[iarg+1],"yes") == 0) mol_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) mol_flag = 0;
       else error->all(FLERR,"Illegal delete_atoms command");

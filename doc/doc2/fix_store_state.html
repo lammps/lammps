@@ -1,0 +1,143 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix store/state command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID store/state N input1 input2 ... keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>store/state = style name of this fix command 
+
+<LI>N = store atom attributes every N steps, N = 0 for initial store only 
+
+<LI>input = one or more atom attributes 
+
+<PRE>  possible attributes = id, mol, type, mass,
+ 	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+		        vx, vy, vz, fx, fy, fz,
+                        q, mux, muy, muz,
+                        radius, omegax, omegay, omegaz,
+                        angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                        c_ID, c_ID[N], f_ID, f_ID[N], v_name,
+                        d_name, i_name 
+</PRE>
+<PRE>      id = atom ID
+      mol = molecule ID
+      type = atom type
+      mass = atom mass
+      x,y,z = unscaled atom coordinates
+      xs,ys,zs = scaled atom coordinates
+      xu,yu,zu = unwrapped atom coordinates
+      ix,iy,iz = box image that the atom is in
+      vx,vy,vz = atom velocities
+      fx,fy,fz = forces on atoms
+      q = atom charge
+      mux,muy,muz = orientation of dipolar atom
+      radius = radius of spherical particle
+      omegax,omegay,omegaz = angular velocity of spherical particle
+      angmomx,angmomy,angmomz = angular momentum of aspherical particle
+      tqx,tqy,tqz = torque on finite-size particles
+      c_ID = per-atom vector calculated by a compute with ID
+      c_ID[I] = Ith column of per-atom array calculated by a compute with ID
+      f_ID = per-atom vector calculated by a fix with ID
+      f_ID[I] = Ith column of per-atom array calculated by a fix with ID
+      v_name = per-atom vector calculated by an atom-style variable with name
+      d_name = per-atom floating point vector name, managed by fix property/atom
+      i_name = per-atom integer vector name, managed by fix property/atom 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>com</I> 
+
+<PRE>  <I>com</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all store/state 0 x y z
+fix 1 all store/state 0 xu yu zu com yes
+fix 2 all store/state 1000 vx vy vz 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a fix that stores attributes for each atom in the group at the
+time the fix is defined.  If <I>N</I> is 0, then the values are never
+updated, so this is a way of archiving an atom attribute at a given
+time for future use in a calculation or output.  See the discussion of
+<A HREF = "Section_howto.html#howto_15">output commands</A> that take fixes as
+inputs.  And see for example, the <A HREF = "compute_reduce.html">compute
+reduce</A>, <A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_histo.html">fix
+ave/histo</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
+and <A HREF = "variable.html">atom-style variable</A> commands.
+</P>
+<P>If <I>N</I> is not zero, then the attributes will be updated every <I>N</I>
+steps.
+</P>
+<P>IMPORTANT NOTE: Actually, only atom attributes specified by keywords
+like <I>xu</I> or <I>vy</I> are initially stored immediately at the point in
+your input script when the fix is defined.  Attributes specified by a
+compute, fix, or variable are not initially stored until the first run
+following the fix definition begins.  This is because calculating
+those attributes may require quantities that are not defined in
+between runs.
+</P>
+<P>The list of possible attributes is the same as that used by the <A HREF = "dump.html">dump
+custom</A> command, which describes their meaning.
+</P>
+<P>If the <I>com</I> keyword is set to <I>yes</I> then the <I>xu</I>, <I>yu</I>, and <I>zu</I>
+inputs store the position of each atom relative to the center-of-mass
+of the group of atoms, instead of storing the absolute position.  This
+option is used by the <A HREF = "compute_msd.html">compute msd</A> command.
+</P>
+<P>The requested values are stored in a per-atom vector or array as
+discussed below.  Zeroes are stored for atoms not in the specified
+group.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the per-atom values it stores to <A HREF = "restart.html">binary restart
+files</A>, so that the values can be restored when a
+simulation is restarted.  See the <A HREF = "read_restart.html">read_restart</A>
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.
+</P>
+<P>If a single input is specified, this fix produces a per-atom vector.
+If multiple inputs are specified, a per-atom array is produced where
+the number of columns for each atom is the number of inputs.  These
+can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The per-atom values be
+accessed on any timestep.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump custom</A>, <A HREF = "compute_property_atom.html">compute
+property/atom</A>,
+<A HREF = "fix_property_atom.html">fix property/atom</A>, <A HREF = "variable.html">variable</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option default is com = no.
+</P>
+</HTML>

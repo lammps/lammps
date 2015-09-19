@@ -1,114 +1,293 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>create_bonds command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>create_bonds command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>create_bonds group-ID group2-ID btype rmin rmax 
-</PRE>
-<UL><LI>group-ID = ID of first group
-<LI>group2-ID = ID of second group, bonds will be between atoms in the 2 groups
-<LI>btype = bond type of created bonds
-<LI>rmin = minimum distance between pair of atoms to bond together
-<LI>rmax = minimum distance between pair of atoms to bond together 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>create_bonds all all 1 1.0 1.2
-create_bonds surf solvent 3 2.0 2.4 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Create bonds between pairs of atoms that meet specified distance
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>create_bonds command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="create-bonds-command">
+<span id="index-0"></span><h1>create_bonds command<a class="headerlink" href="#create-bonds-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>create_bonds group-ID group2-ID btype rmin rmax
+</pre></div>
+</div>
+<ul class="simple">
+<li>group-ID = ID of first group</li>
+<li>group2-ID = ID of second group, bonds will be between atoms in the 2 groups</li>
+<li>btype = bond type of created bonds</li>
+<li>rmin = minimum distance between pair of atoms to bond together</li>
+<li>rmax = minimum distance between pair of atoms to bond together</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>create_bonds all all 1 1.0 1.2
+create_bonds surf solvent 3 2.0 2.4
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Create bonds between pairs of atoms that meet specified distance
 criteria.  The bond interactions can then be computed during a
 simulation by the bond potential defined by the
-<A HREF = "bond_style.html">bond_style</A> and <A HREF = "bond_coeff.html">bond_coeff</A>
+<a class="reference internal" href="bond_style.html"><em>bond_style</em></a> and <a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a>
 commands.  This command is useful for adding bonds to a system,
 e.g. between nearest neighbors in a lattice of atoms, without having
 to enumerate all the bonds in the data file read by the
-<A HREF = "read_data.html">read_data</A> command.
-</P>
-<P>Note that the flexibility of this command is limited.  It can be used
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command.</p>
+<p>Note that the flexibility of this command is limited.  It can be used
 several times to create different types of bond at different
 distances.  But it cannot typically create all the bonds that would
 normally be defined in a complex system of molecules.  Also note that
 this command does not add any 3-body or 4-body interactions which,
 depending on your model, may be induced by added bonds,
-e.g. <A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>, or
-<A HREF = "improper_style.html">improper</A> interactions.
-</P>
-<P>All created bonds will be between pairs of atoms I,J where I is in one
+e.g. <a class="reference internal" href="angle_style.html"><em>angle</em></a>, <a class="reference internal" href="dihedral_style.html"><em>dihedral</em></a>, or
+<a class="reference internal" href="improper_style.html"><em>improper</em></a> interactions.</p>
+<p>All created bonds will be between pairs of atoms I,J where I is in one
 of the two specified groups, and J is in the other.  The two groups
-can be the same, e.g. group "all".  The created bonds will be of bond
-type <I>btype</I>, where <I>btype</I> must be a value between 1 and the number
-of bond types defined.  This maximum value is set by the "bond types"
+can be the same, e.g. group &#8220;all&#8221;.  The created bonds will be of bond
+type <em>btype</em>, where <em>btype</em> must be a value between 1 and the number
+of bond types defined.  This maximum value is set by the &#8220;bond types&#8221;
 field in the header of the data file read by the
-<A HREF = "read_data.html">read_data</A> command, or via the optional "bond/types"
-argument of the <A HREF = "create_box.html">create_box</A> command.
-</P>
-<P>For a bond to be created, an I,J pair of atoms must be a distance D
-apart such that <I>rmin</I> <= D <= <I>rmax</I>.
-</P>
-<P>The following settings must have been made in an input
-script before this command is used:
-</P>
-<UL><LI>special_bonds weight for 1-2 interactions must be 0.0
-<LI>a <A HREF = "pair_style.html">pair_style</A> must be defined
-<LI>no <A HREF = "kspace_style.html">kspace_style</A> defined
-<LI>minimum <A HREF = "pair_style.html">pair_style</A> cutoff + <A HREF = "neighbor.html">neighbor</A> skin >= <I>rmax</I> 
-</UL>
-<P>These settings are required so that a neighbor list can be created to
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command, or via the optional &#8220;bond/types&#8221;
+argument of the <a class="reference internal" href="create_box.html"><em>create_box</em></a> command.</p>
+<p>For a bond to be created, an I,J pair of atoms must be a distance D
+apart such that <em>rmin</em> &lt;= D &lt;= <em>rmax</em>.</p>
+<p>The following settings must have been made in an input
+script before this command is used:</p>
+<ul class="simple">
+<li>special_bonds weight for 1-2 interactions must be 0.0</li>
+<li>a <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> must be defined</li>
+<li>no <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> defined</li>
+<li>minimum <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> cutoff + <a class="reference internal" href="neighbor.html"><em>neighbor</em></a> skin &gt;= <em>rmax</em></li>
+</ul>
+<p>These settings are required so that a neighbor list can be created to
 search for nearby atoms.  Pairs of atoms that are already bonded
 cannot appear in the neighbor list, to avoid creation of duplicate
 bonds.  The neighbor list for all atom type pairs must also extend to
-a distance that encompasses the <I>rmax</I> for new bonds to create.
-</P>
-<P>An additional requirement is that your system must be ready to perform
+a distance that encompasses the <em>rmax</em> for new bonds to create.</p>
+<p>An additional requirement is that your system must be ready to perform
 a simulation.  This means, for example, that all
-<A HREF = "pair_style.html">pair_style</A> coefficients be set via the
-<A HREF = "pair_coeff.html">pair_coeff</A> command.  A <A HREF = "bond_style.html">bond_style</A>
+<a class="reference internal" href="pair_style.html"><em>pair_style</em></a> coefficients be set via the
+<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.  A <a class="reference internal" href="bond_style.html"><em>bond_style</em></a>
 command and all bond coefficients must also be set, even if no bonds
 exist before this command is invoked.  This is because the building of
 neighbor list requires initialization and setup of a simulation,
-similar to what a <A HREF = "run.html">run</A> command would require.
-</P>
-<P>Note that you can change any of these settings after this command
+similar to what a <a class="reference internal" href="run.html"><em>run</em></a> command would require.</p>
+<p>Note that you can change any of these settings after this command
 executes, e.g. if you wish to use long-range Coulombic interactions
-via the <A HREF = "kspace_style.html">kspace_style</A> command for your subsequent
-simulation.
-</P>
-<P>IMPORTANT NOTE: If the system has no bonds to begin with, or if more
+via the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command for your subsequent
+simulation.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If the system has no bonds to begin with, or if more
 bonds per atom are being added than currently exist, then you must
 insure that the number of bond types and the maximum number of bonds
 per atom are set to large enough values.  Otherwise an error may occur
 when too many bonds are added to an atom.  If the
-<A HREF = "read_data.html">read_data</A> command is used to define the system, these
-2 parameters can be set via the "bond types" and "extra bond per atom"
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command is used to define the system, these
+2 parameters can be set via the &#8220;bond types&#8221; and &#8220;extra bond per atom&#8221;
 fields in the header section of the data file.  If the
-<A HREF = "create_box.html">create_box</A> command is used to define the system,
-these 2 parameters can be set via its optional "bond/types" and
-"extra/bond/per/atom" arguments.  See the doc pages for the 2 commands
-for details.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This command cannot be used with molecular systems defined using
-molecule template files via the <A HREF = "molecule.html">molecule</A> and
-<A HREF = "atom_style.html">atom_style template</A> commands.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "create_atoms.html">create_atoms</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> command is used to define the system,
+these 2 parameters can be set via its optional &#8220;bond/types&#8221; and
+&#8220;extra/bond/per/atom&#8221; arguments.  See the doc pages for the 2 commands
+for details.</p>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command cannot be used with molecular systems defined using
+molecule template files via the <a class="reference internal" href="molecule.html"><em>molecule</em></a> and
+<a class="reference internal" href="atom_style.html"><em>atom_style template</em></a> commands.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>, <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

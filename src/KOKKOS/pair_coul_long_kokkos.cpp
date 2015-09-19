@@ -213,7 +213,7 @@ KOKKOS_INLINE_FUNCTION
 F_FLOAT PairCoulLongKokkos<DeviceType>::
 compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
               const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
-  if(Specialisation::DoTable) {
+  if(Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;

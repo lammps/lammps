@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -54,7 +52,7 @@
  *  KOKKOS_HAVE_QTHREAD             Kokkos::Qthread execution space
  *  KOKKOS_HAVE_OPENMP              Kokkos::OpenMP  execution space
  *  KOKKOS_HAVE_HWLOC               HWLOC library is available
- *  KOKKOS_HAVE_EXPRESSION_CHECK    insert array bounds checks, is expensive!
+ *  KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK    insert array bounds checks, is expensive!
  *  KOKKOS_HAVE_CXX11               enable C++11 features
  *
  *  KOKKOS_HAVE_MPI                 negotiate MPI/execution space interactions
@@ -116,15 +114,28 @@
 #error "#include <cuda.h> did not define CUDA_VERSION"
 #endif
 
-#if ( CUDA_VERSION < 4010 )
-#error "Cuda version 4.1 or greater required"
+#if ( CUDA_VERSION < 6050 )
+// CUDA supports (inofficially) C++11 in device code starting with
+// version 6.5. This includes auto type and device code internal
+// lambdas.
+#error "Cuda version 6.5 or greater required"
 #endif
 
-#if defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ < 200 )
+#if defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ < 300 )
 /*  Compiling with CUDA compiler for device code. */
-#error "Cuda device capability >= 2.0 is required"
+#error "Cuda device capability >= 3.0 is required"
 #endif
 
+#ifdef KOKKOS_CUDA_USE_LAMBDA
+#if ( CUDA_VERSION < 7000 )
+// CUDA supports C++11 lambdas generated in host code to be given
+// to the device starting with version 7.5. But the release candidate (7.5.6)
+// still identifies as 7.0
+#error "Cuda version 7.5 or greater required for host-to-device Lambda support"
+#endif
+#define KOKKOS_LAMBDA [=]__device__
+#define KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA 1
+#endif
 #endif /* #if defined( KOKKOS_HAVE_CUDA ) && defined( __CUDACC__ ) */
 
 /*--------------------------------------------------------------------------*/
@@ -159,16 +170,8 @@
   // Device code is compile to 'ptx'.
   #define KOKKOS_COMPILER_NVCC __NVCC__
 
-  #if defined( KOKKOS_HAVE_CXX11 ) && defined (KOKKOS_HAVE_CUDA)
-    // CUDA supports (inofficially) C++11 in device code starting with 
-    // version 6.5. This includes auto type and device code internal
-    // lambdas.
-    #if ( CUDA_VERSION < 6050 )
-      #error "NVCC does not support C++11"
-    #endif
-  #endif
 #else
-  #if defined( KOKKOS_HAVE_CXX11 )
+#if defined( KOKKOS_HAVE_CXX11 ) && ! defined( KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA )
     // CUDA (including version 6.5) does not support giving lambdas as
     // arguments to global functions. Thus its not currently possible
     // to dispatch lambdas from the host.
@@ -189,7 +192,7 @@
 #elif defined( __ICC )
   // Old define
   #define KOKKOS_COMPILER_INTEL __ICC
-#elif defined( __ECC ) 
+#elif defined( __ECC )
   // Very old define
   #define KOKKOS_COMPILER_INTEL __ECC
 #endif
@@ -216,10 +219,16 @@
 
 #if ! defined( __clang__ ) && ! defined( KOKKOS_COMPILER_INTEL ) &&defined( __GNUC__ )
   #define KOKKOS_COMPILER_GNU __GNUC__*100+__GNUC_MINOR__*10+__GNUC_PATCHLEVEL__
+  #if ( 472 > KOKKOS_COMPILER_GNU )
+    #error "Compiling with GCC version earlier than 4.7.2 is not supported."
+  #endif
 #endif
 
 #if defined( __PGIC__ ) && ! defined( __GNUC__ )
   #define KOKKOS_COMPILER_PGI __PGIC__*100+__PGIC_MINOR__*10+__PGIC_PATCHLEVEL__
+  #if ( 1540 > KOKKOS_COMPILER_PGI )
+    #error "Compiling with PGI version earlier than 15.4 is not supported."
+  #endif
 #endif
 
 #endif /* #if ! defined( __CUDA_ARCH__ ) */
@@ -236,12 +245,23 @@
   #define KOKKOS_HAVE_PRAGMA_VECTOR 1
   #define KOKKOS_HAVE_PRAGMA_SIMD 1
 
-  #if ( 1200 <= KOKKOS_COMPILER_INTEL ) && ! defined( KOKKOS_ENABLE_ASM )
+  #if ( 1400 > KOKKOS_COMPILER_INTEL )
+    #if ( 1300 > KOKKOS_COMPILER_INTEL )
+      #error "Compiling with Intel version earlier than 13.0 is not supported. Official minimal version is 14.0."
+    #else
+      #warning "Compiling with Intel version 13.x probably works but is not officially supported. Official minimal version is 14.0."
+    #endif
+  #endif
+  #if ( 1200 <= KOKKOS_COMPILER_INTEL ) && ! defined( KOKKOS_ENABLE_ASM ) && ! defined( _WIN32 )
     #define KOKKOS_ENABLE_ASM 1
   #endif
 
   #if ( 1200 <= KOKKOS_COMPILER_INTEL ) && ! defined( KOKKOS_FORCEINLINE_FUNCTION )
-    #define KOKKOS_FORCEINLINE_FUNCTION  inline __attribute__((always_inline))
+    #if !defined (_WIN32)
+      #define KOKKOS_FORCEINLINE_FUNCTION  inline __attribute__((always_inline))
+    #else
+      #define KOKKOS_FORCEINLINE_FUNCTION inline
+    #endif
   #endif
 
   #if defined( __MIC__ )
@@ -291,7 +311,7 @@
 /*--------------------------------------------------------------------------*/
 /* GNU Compiler macros */
 
-#if defined( KOKKOS_COMPILER_GNU ) 
+#if defined( KOKKOS_COMPILER_GNU )
 
   //#define KOKKOS_HAVE_PRAGMA_UNROLL 1
   //#define KOKKOS_HAVE_PRAGMA_IVDEP 1
@@ -309,7 +329,8 @@
           defined(__powerpc64__) || \
           defined(__POWERPC__) || \
           defined(__ppc__) || \
-          defined(__ppc64__) )
+          defined(__ppc64__) || \
+          defined(__PGIC__) )
     #define KOKKOS_ENABLE_ASM 1
   #endif
 
@@ -334,40 +355,6 @@
   #if defined(__CUDA_ARCH__ )
     #define KOKKOS_HAVE_PRAGMA_UNROLL 1
   #endif
-
-#endif
-
-/*--------------------------------------------------------------------------*/
-/* Select compiler dependent interface for atomics */
-
-#if ! defined( KOKKOS_ATOMICS_USE_CUDA ) || \
-    ! defined( KOKKOS_ATOMICS_USE_GNU ) || \
-    ! defined( KOKKOS_ATOMICS_USE_INTEL ) || \
-    ! defined( KOKKOS_ATOMICS_USE_OPENMP31 )
-
-/* Atomic selection is not pre-defined, choose from language and compiler. */
-
-#if defined( __CUDA_ARCH__ ) && defined (KOKKOS_HAVE_CUDA)
-
-  #define KOKKOS_ATOMICS_USE_CUDA
-
-#elif defined( KOKKOS_COMPILER_GNU ) || defined( KOKKOS_COMPILER_CLANG )
-
-  #define KOKKOS_ATOMICS_USE_GNU
-
-#elif defined( KOKKOS_COMPILER_INTEL ) || defined( KOKKOS_COMPILER_CRAYC )
-
-  #define KOKKOS_ATOMICS_USE_INTEL
-
-#elif defined( _OPENMP ) && ( 201107 <= _OPENMP )
-
-  #define KOKKOS_ATOMICS_USE_OMP31
-
-#else
-
-  #error "Compiler does not support atomic operations"
-
-#endif
 
 #endif
 

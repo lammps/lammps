@@ -1,0 +1,66 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>reset_timestep command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>reset_timestep N 
+</PRE>
+<UL><LI>N = timestep number 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>reset_timestep 0
+reset_timestep 4000000 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the timestep counter to the specified value.  This command
+normally comes after the timestep has been set by reading a restart
+file via the <A HREF = "read_restart.html">read_restart</A> command, or a previous
+simulation advanced the timestep.
+</P>
+<P>The <A HREF = "read_data.html">read_data</A> and <A HREF = "create_box.html">create_box</A>
+commands set the timestep to 0; the <A HREF = "read_restart.html">read_restart</A>
+command sets the timestep to the value it had when the restart file
+was written.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P>This command cannot be used when any fixes are defined that keep track
+of elapsed time to perform certain kinds of time-dependent operations.
+Examples are the <A HREF = "fix_deposit.html">fix deposit</A> and <A HREF = "fix_dt_reset.html">fix
+dt/reset</A> commands.  The former adds atoms on
+specific timesteps.  The latter keeps track of accumulated time.
+</P>
+<P>Various fixes use the current timestep to calculate related
+quantities.  If the timestep is reset, this may produce unexpected
+behavior, but LAMMPS allows the fixes to be defined even if the
+timestep is reset.  For example, commands which thermostat the system,
+e.g. <A HREF = "fix_nh.html">fix nvt</A>, allow you to specify a target temperature
+which ramps from Tstart to Tstop which may persist over several runs.
+If you change the timestep, you may induce an instantaneous change in
+the target temperature.
+</P>
+<P>Resetting the timestep clears flags for <A HREF = "compute.html">computes</A> that
+may have calculated some quantity from a previous run.  This means
+these quantity cannot be accessed by a variable in between runs until
+a new run is performed.  See the <A HREF = "variable.html">variable</A> command for
+more details.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "rerun.html">rerun</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

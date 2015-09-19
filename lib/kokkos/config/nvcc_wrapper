@@ -1,0 +1,185 @@
+#!/bin/bash
+#
+# This shell script (nvcc_wrapper) wraps both the host compiler and
+# NVCC, if you are building Trilinos with CUDA enabled.  The script
+# remedies some differences between the interface of NVCC and that of
+# the host compiler, in particular for linking.  It also means that
+# Trilinos doesn't need separate .cu files; it can just use .cpp
+# files.
+#
+# Hopefully, at some point, NVIDIA may fix NVCC so as to make this
+# script obsolete.  For now, this script exists and if you want to
+# build Trilinos with CUDA enabled, you must use this script as your
+# compiler.
+
+# Default settings: change those according to your machine.  For
+# example, you may have have two different wrappers with either icpc
+# or g++ as their back-end compiler.  The defaults can be overwritten
+# by using the usual arguments (e.g., -arch=sm_30 -ccbin icpc).
+
+default_arch="sm_35"
+#default_arch="sm_50"
+
+#
+# The default C++ compiler.
+#
+default_compiler=${NVCC_WRAPPER_DEFAULT_COMPILER:-"g++"}
+#default_compiler="icpc"
+#default_compiler="/usr/local/gcc/4.8.3/bin/g++"
+#default_compiler="/usr/local/gcc/4.9.1/bin/g++"
+
+#
+# Internal variables
+#
+cpp_files=""
+xcompiler_args=""
+cuda_arg=""
+xlinker_args=""
+object_files=""
+object_files_xlinker=""
+first_host_option=1
+arch_set=0
+ccbin_set=0
+nvcc_error_code=0
+dry_run=0
+replace_pragma_ident=0
+
+#echo "Arguments: $# $@"
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+  #show the executed command
+  --show)
+    dry_run=1
+    ;;
+  #replace '#pragma ident' with '#ident' this is needed to compile OpenMPI due to a configure script bug and a non standardized behaviour of pragma with macros
+  --replace-pragma-ident)
+    replace_pragma_ident=1
+    ;;
+  #handle source files to be compiled as cuda files
+  *.cpp|*.cxx|*.cc|*.C|*.c++|*.cu)
+    cpp_files="$cpp_files $1"
+    ;;
+  #Handle known nvcc args
+  -O*|-D*|-gencode*|-c|-I*|-L*|-l*|-g|--help|--version|--dryrun|--verbose|--keep-dir|-E|-M|-G|--relocatable-device-code*|-shared|-lineinfo|-expt-extended-lambda|--resource-usage)
+    cuda_args="$cuda_args $1"
+    ;;
+  #Handle c++11 setting
+  --std=c++11|-std=c++11)
+    cuda_args="$cuda_args $1"
+    ;;
+  #strip of -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
+  -std=c++98|--std=c++98)
+    ;;
+  #Handle known nvcc args that have an argument
+  -o|-rdc|-maxrregcount|--default-stream)
+    cuda_args="$cuda_args $1 $2"
+    shift
+    ;;
+  #strip of pedantic because it produces endless warnings about #LINE added by the preprocessor
+  -pedantic|-Wpedantic|-ansi)
+    ;;
+  #strip -Xcompiler because we add it
+  -Xcompiler)
+    ;;
+  #strip of "-x cu" because we add that
+  -x)
+    if [[ $2 != "cu" ]]; then
+      xcompiler_args="$xcompiler_args,-x,$2"
+    fi
+    shift
+    ;;
+  #Handle -ccbin (if its not set we can set it to a default value)
+  -ccbin)
+    cuda_args="$cuda_args $1 $2"
+    ccbin_set=1
+    shift
+    ;;
+  #Handle -arch argument (if its not set use a default
+  -arch*)
+    cuda_args="$cuda_args $1"
+    arch_set=1
+    ;;
+  #Handle -Xcudafe argument
+  -Xcudafe)
+    cuda_args="$cuda_args -Xcudafe $2"
+    shift
+    ;;
+  #Handle args that should be sent to the linker
+  -Wl*)
+    xlinker_args="$xlinker_args -Xlinker ${1:4:${#1}}"
+    ;;
+  #Handle object files: -x cu applies to all input files, so give them to linker, except if only linking
+  *.a|*.so|*.o|*.obj)
+    object_files="$object_files $1"
+    object_files_xlinker="$object_files_xlinker -Xlinker $1"
+    ;;
+  #Handle object files: -x cu applies to all input files, so give them to linker, except if only linking
+  *.so.*|*.dylib)
+    object_files_xlinker="$object_files_xlinker -Xlinker $1"
+    object_files="$object_files -Xlinker $1"
+    ;;
+  #All other args are sent to the host compiler
+  *)
+    if [ $first_host_option -eq 0 ]; then 
+      xcompiler_args="$xcompiler_args,$1"
+    else
+      xcompiler_args="-Xcompiler $1"
+      first_host_option=0
+    fi
+    ;;
+  esac
+
+  shift
+done
+
+#Add default host compiler if necessary
+if [ $ccbin_set -ne 1 ]; then
+  cuda_args="$cuda_args -ccbin $default_compiler"
+fi
+
+#Add architecture command
+if [ $arch_set -ne 1 ]; then
+  cuda_args="$cuda_args -arch=$default_arch"
+fi
+
+#Compose compilation command
+command="nvcc $cuda_args $xlinker_args $xcompiler_args"
+
+#nvcc does not accept '#pragma ident SOME_MACRO_STRING' but it does accept '#ident SOME_MACRO_STRING'
+if [ $replace_pragma_ident -eq 1 ]; then
+  cpp_files2=""
+  for file in $cpp_files
+  do
+    var=`grep pragma ${file} | grep ident | grep "#"`
+    if [ "${#var}" -gt 0 ]
+    then
+      sed 's/#[\ \t]*pragma[\ \t]*ident/#ident/g' $file > /tmp/nvcc_wrapper_tmp_$file
+      cpp_files2="$cpp_files2 /tmp/nvcc_wrapper_tmp_$file"
+    else
+      cpp_files2="$cpp_files2 $file"
+    fi
+  done
+  cpp_files=$cpp_files2
+  echo $cpp_files
+fi
+
+if [ "$cpp_files" ]; then
+  command="$command $object_files_xlinker -x cu $cpp_files"
+else
+  command="$command $object_files"
+fi
+
+#Print command for dryrun
+if [ $dry_run -eq 1 ]; then
+  echo $command
+  exit 0
+fi
+
+#Run compilation command
+$command
+nvcc_error_code=$?
+
+#Report error code
+exit $nvcc_error_code

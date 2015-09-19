@@ -1,0 +1,162 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>create_box command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>create_box N region-ID keyword value ... 
+</PRE>
+<UL><LI>N = # of atom types to use in this simulation 
+
+<LI>region-ID = ID of region to use as simulation domain 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>bond/types</I> or <I>angle/types</I> or <I>dihedral/types</I> or <I>improper/types</I> or <I>extra/bond/per/atom</I> or <I>extra/angle/per/atom</I> or <I>extra/dihedral/per/atom</I> or <I>extra/improper/per/atom</I> 
+
+<PRE>  <I>bond/types</I> value = # of bond types
+  <I>angle/types</I> value = # of angle types
+  <I>dihedral/types</I> value = # of dihedral types
+  <I>improper/types</I> value = # of improper types
+  <I>extra/bond/per/atom</I> value = # of bonds per atom
+  <I>extra/angle/per/atom</I> value = # of angles per atom
+  <I>extra/dihedral/per/atom</I> value = # of dihedrals per atom
+  <I>extra/improper/per/atom</I> value = # of impropers per atom
+  <I>extra/special/per/atom</I> value = # of special neighbors per atom 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>create_box 2 mybox
+create_box 2 mybox bond/types 2 extra/bond/per/atom 1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command creates a simulation box based on the specified region.
+Thus a <A HREF = "region.html">region</A> command must first be used to define a
+geometric domain.  It also partitions the simulation box into a
+regular 3d grid of rectangular bricks, one per processor, based on the
+number of processors being used and the settings of the
+<A HREF = "processors.html">processors</A> command.  The partitioning can later be
+changed by the <A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix
+balance</A> commands.
+</P>
+<P>The argument N is the number of atom types that will be used in the
+simulation.
+</P>
+<P>If the region is not of style <I>prism</I>, then LAMMPS encloses the region
+(block, sphere, etc) with an axis-aligned orthogonal bounding box
+which becomes the simulation domain.
+</P>
+<P>If the region is of style <I>prism</I>, LAMMPS creates a non-orthogonal
+simulation domain shaped as a parallelepiped with triclinic symmetry.
+As defined by the <A HREF = "region.html">region prism</A> command, the
+parallelepiped has its "origin" at (xlo,ylo,zlo) and is defined by 3
+edge vectors starting from the origin given by A = (xhi-xlo,0,0); B =
+(xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  <I>Xy,xz,yz</I> can be 0.0 or
+positive or negative values and are called "tilt factors" because they
+are the amount of displacement applied to faces of an originally
+orthogonal box to transform it into the parallelipiped.
+</P>
+<P>By default, a <I>prism</I> region used with the create_box command must
+have tilt factors (xy,xz,yz) that do not skew the box more than half
+the distance of the parallel box length.  For example, if xlo = 2 and
+xhi = 12, then the x box length is 10 and the xy tilt factor must be
+between -5 and 5.  Similarly, both xz and yz must be between
+-(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
+since if the maximum tilt factor is 5 (as in this example), then
+configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
+geometrically equivalent.  If you wish to define a box with tilt
+factors that exceed these limits, you can use the <A HREF = "box.html">box tilt</A>
+command, with a setting of <I>large</I>; a setting of <I>small</I> is the
+default.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_12">Section_howto 12</A> of the doc pages
+for a geometric description of triclinic boxes, as defined by LAMMPS,
+and how to transform these parameters to and from other commonly used
+triclinic representations.
+</P>
+<P>When a prism region is used, the simulation domain should normally be
+periodic in the dimension that the tilt is applied to, which is given
+by the second dimension of the tilt factor (e.g. y for xy tilt).  This
+is so that pairs of atoms interacting across that boundary will have
+one of them shifted by the tilt factor.  Periodicity is set by the
+<A HREF = "boundary.html">boundary</A> command.  For example, if the xy tilt factor
+is non-zero, then the y dimension should be periodic.  Similarly, the
+z dimension should be periodic if xz or yz is non-zero.  LAMMPS does
+not require this periodicity, but you may lose atoms if this is not
+the case.
+</P>
+<P>Also note that if your simulation will tilt the box, e.g. via the <A HREF = "fix_deform.html">fix
+deform</A> command, the simulation box must be setup to
+be triclinic, even if the tilt factors are initially 0.0.  You can
+also change an orthogonal box to a triclinic box or vice versa by
+using the <A HREF = "change_box.html">change box</A> command with its <I>ortho</I> and
+<I>triclinic</I> options.
+</P>
+<P>IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
+you should not make the lo/hi box dimensions (as defined in your
+<A HREF = "region.html">region</A> command) radically smaller/larger than the extent
+of the atoms you eventually plan to create, e.g. via the
+<A HREF = "create_atoms.html">create_atoms</A> command.  For example, if your atoms
+extend from 0 to 50, you should not specify the box bounds as -10000
+and 10000. This is because as described above, LAMMPS uses the
+specified box size to layout the 3d grid of processors.  A huge
+(mostly empty) box will be sub-optimal for performance when using
+"fixed" boundary conditions (see the <A HREF = "boundary.html">boundary</A>
+command).  When using "shrink-wrap" boundary conditions (see the
+<A HREF = "boundary.html">boundary</A> command), a huge (mostly empty) box may cause
+a parallel simulation to lose atoms the first time that LAMMPS
+shrink-wraps the box around the atoms.
+</P>
+<HR>
+
+<P>The optional keywords can be used to create a system that allows for
+bond (angle, dihedral, improper) interactions, or for molecules with
+special 1-2,1-3,1-4 neighbors to be added later.  These optional
+keywords serve the same purpose as the analogous keywords that can be
+used in a data file which are recognized by the
+<A HREF = "read_data.html">read_data</A> command when it sets up a system.
+</P>
+<P>Note that if these keywords are not used, then the create_box command
+creates an atomic (non-molecular) simulation that does not allow bonds
+between pairs of atoms to be defined, or a <A HREF = "bond_style.html">bond
+potential</A> to be specified, or for molecules with
+special neighbors to be added to the system by commands such as
+<A HREF = "create_atoms.html">create_atoms mol</A>, <A HREF = "fix_deposit.html">fix deposit</A>
+or <A HREF = "fix_pour.html">fix pour</A>.
+</P>
+<P>As an example, see the examples/deposit/in.deposit.molecule script,
+which deposits molecules onto a substrate.  Initially there are no
+molecules in the system, but they are added later by the <A HREF = "fix_deposit.html">fix
+deposit</A> command.  The create_box command in the
+script uses the bond/types and extra/bond/per/atom keywords to allow
+this.  If the added molecule contained more than 1 special bond
+(allowed by default), an extra/special/per/atom keyword would also
+need to be specified.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>An <A HREF = "atom_style.html">atom_style</A> and <A HREF = "region.html">region</A> must have
+been previously defined to use this command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "create_atoms.html">create_atoms</A>,
+<A HREF = "region.html">region</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

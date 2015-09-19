@@ -100,6 +100,13 @@ void colvarbias::add_colvar(std::string const &cv_name)
 }
 
 
+cvm::real colvarbias::update()
+{
+  has_data = true;
+  return 0.0;
+}
+
+
 void colvarbias::communicate_forces()
 {
   for (size_t i = 0; i < colvars.size(); i++) {

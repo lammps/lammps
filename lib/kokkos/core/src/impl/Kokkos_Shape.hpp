@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -290,7 +290,7 @@ void assert_shape_bounds( const ShapeType & shape ,
   }
 }
 
-#if defined( KOKKOS_EXPRESSION_CHECK )
+#if defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_1( S , I0 ) assert_shape_bounds(S,1,I0);
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_2( S , I0 , I1 ) assert_shape_bounds(S,2,I0,I1);
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_3( S , I0 , I1 , I2 ) assert_shape_bounds(S,3,I0,I1,I2);

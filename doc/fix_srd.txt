@@ -319,7 +319,7 @@ particles.
 Three other input script commands will largely overcome this effect,
 speeding up an SRD simulation by a significant amount.  These are the
 "atom_modify first"_atom_modify.html, "neigh_modify
-include"_neigh_modify.html, and "communicate group"_communicate.html
+include"_neigh_modify.html, and "comm_modify group"_comm_modify.html
 commands.  Each takes a group-ID as an argument, which in this case
 should be the group-ID of the big solute particles.
 

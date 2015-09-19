@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -230,16 +230,16 @@ public:
   typedef typename Impl::remove_const<declared_value_type>::type value_type;
   typedef typename Impl::add_const<value_type>::type const_value_type;
 
-  typedef Device device_type;
+  typedef Device execution_space;
   typedef Hasher hasher_type;
   typedef EqualTo  equal_to_type;
   typedef uint32_t size_type;
 
   //map_types
-  typedef UnorderedMap<declared_key_type,declared_value_type,device_type,hasher_type,equal_to_type> declared_map_type;
-  typedef UnorderedMap<key_type,value_type,device_type,hasher_type,equal_to_type>                   insertable_map_type;
-  typedef UnorderedMap<const_key_type,value_type,device_type,hasher_type,equal_to_type>             modifiable_map_type;
-  typedef UnorderedMap<const_key_type,const_value_type,device_type,hasher_type,equal_to_type>       const_map_type;
+  typedef UnorderedMap<declared_key_type,declared_value_type,execution_space,hasher_type,equal_to_type> declared_map_type;
+  typedef UnorderedMap<key_type,value_type,execution_space,hasher_type,equal_to_type>                   insertable_map_type;
+  typedef UnorderedMap<const_key_type,value_type,execution_space,hasher_type,equal_to_type>             modifiable_map_type;
+  typedef UnorderedMap<const_key_type,const_value_type,execution_space,hasher_type,equal_to_type>       const_map_type;
 
   static const bool is_set = Impl::is_same<void,value_type>::value;
   static const bool has_const_key = Impl::is_same<const_key_type,declared_key_type>::value;
@@ -264,28 +264,28 @@ private:
   typedef typename Impl::if_c< is_set, int, declared_value_type>::type impl_value_type;
 
   typedef typename Impl::if_c<   is_insertable_map
-                               , View< key_type *, device_type>
-                               , View< const key_type *, device_type, MemoryTraits<RandomAccess> >
+                               , View< key_type *, execution_space>
+                               , View< const key_type *, execution_space, MemoryTraits<RandomAccess> >
                              >::type key_type_view;
 
   typedef typename Impl::if_c<   is_insertable_map || is_modifiable_map
-                               , View< impl_value_type *, device_type>
-                               , View< const impl_value_type *, device_type, MemoryTraits<RandomAccess> >
+                               , View< impl_value_type *, execution_space>
+                               , View< const impl_value_type *, execution_space, MemoryTraits<RandomAccess> >
                              >::type value_type_view;
 
   typedef typename Impl::if_c<   is_insertable_map
-                               , View< size_type *, device_type>
-                               , View< const size_type *, device_type, MemoryTraits<RandomAccess> >
+                               , View< size_type *, execution_space>
+                               , View< const size_type *, execution_space, MemoryTraits<RandomAccess> >
                              >::type size_type_view;
 
   typedef typename Impl::if_c<   is_insertable_map
-                               , Bitset< device_type >
-                               , ConstBitset< device_type>
+                               , Bitset< execution_space >
+                               , ConstBitset< execution_space>
                              >::type bitset_type;
 
   enum { modified_idx = 0, erasable_idx = 1, failed_insert_idx = 2 };
   enum { num_scalars = 3 };
-  typedef View< int[num_scalars], LayoutLeft, device_type> scalars_view;
+  typedef View< int[num_scalars], LayoutLeft, execution_space> scalars_view;
 
 public:
   //! \name Public member functions
@@ -436,9 +436,9 @@ public:
   {
     bool result = !erasable();
     if (is_insertable_map && result) {
-      device_type::fence();
+      execution_space::fence();
       set_flag(erasable_idx);
-      device_type::fence();
+      execution_space::fence();
     }
     return result;
   }
@@ -447,10 +447,10 @@ public:
   {
     bool result = erasable();
     if (is_insertable_map && result) {
-      device_type::fence();
+      execution_space::fence();
       Impl::UnorderedMapErase<declared_map_type> f(*this);
       f.apply();
-      device_type::fence();
+      execution_space::fence();
       reset_flag(erasable_idx);
     }
     return result;
@@ -476,7 +476,7 @@ public:
   /// kernel.
   KOKKOS_INLINE_FUNCTION
   size_type hash_capacity() const
-  { return m_hash_lists.size(); }
+  { return m_hash_lists.dimension_0(); }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -506,13 +506,13 @@ public:
     int volatile & failed_insert_ref = m_scalars((int)failed_insert_idx) ;
 
     const size_type hash_value = m_hasher(k);
-    const size_type hash_list = hash_value % m_hash_lists.size();
+    const size_type hash_list = hash_value % m_hash_lists.dimension_0();
 
     size_type * curr_ptr   = & m_hash_lists[ hash_list ];
     size_type new_index    = invalid_index ;
 
     // Force integer multiply to long
-    size_type index_hint = static_cast<size_type>( (static_cast<double>(hash_list) * capacity()) / m_hash_lists.size());
+    size_type index_hint = static_cast<size_type>( (static_cast<double>(hash_list) * capacity()) / m_hash_lists.dimension_0());
 
     size_type find_attempts = 0;
 
@@ -644,7 +644,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   size_type find( const key_type & k) const
   {
-    size_type curr = 0u < capacity() ? m_hash_lists( m_hasher(k) % m_hash_lists.size() ) : invalid_index ;
+    size_type curr = 0u < capacity() ? m_hash_lists( m_hasher(k) % m_hash_lists.dimension_0() ) : invalid_index ;
 
     KOKKOS_NONTEMPORAL_PREFETCH_LOAD(&m_keys[curr != invalid_index ? curr : 0]);
     while (curr != invalid_index && !m_equal_to( m_keys[curr], k) ) {
@@ -749,21 +749,21 @@ public:
       tmp.m_equal_to = src.m_equal_to;
       tmp.m_size = src.size();
       tmp.m_available_indexes = bitset_type( src.capacity() );
-      tmp.m_hash_lists        = size_type_view( ViewAllocateWithoutInitializing("UnorderedMap hash list"), src.m_hash_lists.size() );
-      tmp.m_next_index        = size_type_view( ViewAllocateWithoutInitializing("UnorderedMap next index"), src.m_next_index.size() );
-      tmp.m_keys              = key_type_view( ViewAllocateWithoutInitializing("UnorderedMap keys"), src.m_keys.size() );
-      tmp.m_values            = value_type_view( ViewAllocateWithoutInitializing("UnorderedMap values"), src.m_values.size() );
+      tmp.m_hash_lists        = size_type_view( ViewAllocateWithoutInitializing("UnorderedMap hash list"), src.m_hash_lists.dimension_0() );
+      tmp.m_next_index        = size_type_view( ViewAllocateWithoutInitializing("UnorderedMap next index"), src.m_next_index.dimension_0() );
+      tmp.m_keys              = key_type_view( ViewAllocateWithoutInitializing("UnorderedMap keys"), src.m_keys.dimension_0() );
+      tmp.m_values            = value_type_view( ViewAllocateWithoutInitializing("UnorderedMap values"), src.m_values.dimension_0() );
       tmp.m_scalars           = scalars_view("UnorderedMap scalars");
 
       Kokkos::deep_copy(tmp.m_available_indexes, src.m_available_indexes);
 
-      typedef Kokkos::Impl::DeepCopy< typename device_type::memory_space, typename SDevice::memory_space > raw_deep_copy;
+      typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, typename SDevice::memory_space > raw_deep_copy;
 
-      raw_deep_copy(tmp.m_hash_lists.ptr_on_device(), src.m_hash_lists.ptr_on_device(), sizeof(size_type)*src.m_hash_lists.size());
-      raw_deep_copy(tmp.m_next_index.ptr_on_device(), src.m_next_index.ptr_on_device(), sizeof(size_type)*src.m_next_index.size());
-      raw_deep_copy(tmp.m_keys.ptr_on_device(), src.m_keys.ptr_on_device(), sizeof(key_type)*src.m_keys.size());
+      raw_deep_copy(tmp.m_hash_lists.ptr_on_device(), src.m_hash_lists.ptr_on_device(), sizeof(size_type)*src.m_hash_lists.dimension_0());
+      raw_deep_copy(tmp.m_next_index.ptr_on_device(), src.m_next_index.ptr_on_device(), sizeof(size_type)*src.m_next_index.dimension_0());
+      raw_deep_copy(tmp.m_keys.ptr_on_device(), src.m_keys.ptr_on_device(), sizeof(key_type)*src.m_keys.dimension_0());
       if (!is_set) {
-        raw_deep_copy(tmp.m_values.ptr_on_device(), src.m_values.ptr_on_device(), sizeof(impl_value_type)*src.m_values.size());
+        raw_deep_copy(tmp.m_values.ptr_on_device(), src.m_values.ptr_on_device(), sizeof(impl_value_type)*src.m_values.dimension_0());
       }
       raw_deep_copy(tmp.m_scalars.ptr_on_device(), src.m_scalars.ptr_on_device(), sizeof(int)*num_scalars );
 
@@ -781,21 +781,21 @@ private: // private member functions
 
   void set_flag(int flag) const
   {
-    typedef Kokkos::Impl::DeepCopy< typename device_type::memory_space, Kokkos::HostSpace > raw_deep_copy;
+    typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, Kokkos::HostSpace > raw_deep_copy;
     const int true_ = true;
     raw_deep_copy(m_scalars.ptr_on_device() + flag, &true_, sizeof(int));
   }
 
   void reset_flag(int flag) const
   {
-    typedef Kokkos::Impl::DeepCopy< typename device_type::memory_space, Kokkos::HostSpace > raw_deep_copy;
+    typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, Kokkos::HostSpace > raw_deep_copy;
     const int false_ = false;
     raw_deep_copy(m_scalars.ptr_on_device() + flag, &false_, sizeof(int));
   }
 
   bool get_flag(int flag) const
   {
-    typedef Kokkos::Impl::DeepCopy< Kokkos::HostSpace, typename device_type::memory_space > raw_deep_copy;
+    typedef Kokkos::Impl::DeepCopy< Kokkos::HostSpace, typename execution_space::memory_space > raw_deep_copy;
     int result = false;
     raw_deep_copy(&result, m_scalars.ptr_on_device() + flag, sizeof(int));
     return result;

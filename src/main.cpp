@@ -14,7 +14,7 @@
 #include "mpi.h"
 #include "lammps.h"
 #include "input.h"
-#include "string.h"
+#include "stdio.h"
 
 using namespace LAMMPS_NS;
 

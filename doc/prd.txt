@@ -31,8 +31,8 @@ keyword = {min} or {temp} or {vel} :l
   {vel} values = loop dist
     loop = {all} or {local} or {geom}, used in dephasing
     dist = {uniform} or {gaussian}, used in dephasing
-  {time} value = {step} or {clock}
-    {step} = simulation runs for N timesteps on each replica (default)
+  {time} value = {steps} or {clock}
+    {steps} = simulation runs for N timesteps on each replica (default)
     {clock} = simulation runs for N timesteps across all replicas :pre
 :ule
 
@@ -158,7 +158,7 @@ dynamics have been performed.  Note that {N} only includes the
 dynamics of stages 2 and 3, not the steps taken during dephasing or
 the minimization iterations of quenching.  The specified {N} is
 interpreted in one of two ways, depending on the {time} keyword.  If
-the {time} value is {step}, which is the default, then each replica
+the {time} value is {steps}, which is the default, then each replica
 runs for {N} timesteps.  If the {time} value is {clock}, then the
 simulation runs until {N} aggregate timesteps across all replicas have
 elapsed.  This aggregate time is the "clock" time defined below, which
@@ -310,7 +310,7 @@ dt/reset"_fix_dt_reset.html and "fix deposit"_fix_deposit.html.
 [Default:] 
 
 The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
-geom gaussian, and time = step.
+geom gaussian, and time = steps.
 
 :line
 

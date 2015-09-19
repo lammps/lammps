@@ -301,6 +301,7 @@ void Group::assign(int narg, char **arg)
       tagint start,stop,delta;
 
       for (int iarg = 2; iarg < narg; iarg++) {
+        delta = 1;
         if (strchr(arg[iarg],':')) {
           ptr = strtok(arg[iarg],":"); 
           start = force->tnumeric(FLERR,ptr); 
@@ -308,11 +309,11 @@ void Group::assign(int narg, char **arg)
           stop = force->tnumeric(FLERR,ptr); 
           ptr = strtok(NULL,":");
           if (ptr) delta = force->tnumeric(FLERR,ptr);
-          else delta = 1;
         } else {
           start = stop = force->tnumeric(FLERR,arg[iarg]);
-          delta = 1;
         }
+        if (delta < 1)
+          error->all(FLERR,"Illegal range increment value");
 
         // add to group if attribute matches value or sequence
       
@@ -585,6 +586,26 @@ int Group::find(const char *name)
   for (int igroup = 0; igroup < MAX_GROUP; igroup++)
     if (names[igroup] && strcmp(name,names[igroup]) == 0) return igroup;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   find group with name or create group if it doesn't exist
+   return group index
+------------------------------------------------------------------------- */
+
+int Group::find_or_create(const char *name)
+{
+  int igroup = find(name);
+  if (igroup >= 0) return igroup;
+
+  if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+  igroup = find_unused();
+  int n = strlen(name) + 1;
+  names[igroup] = new char[n];
+  strcpy(names[igroup],name);
+  ngroup++;
+
+  return igroup;
 }
 
 /* ----------------------------------------------------------------------

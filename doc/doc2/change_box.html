@@ -1,0 +1,342 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>change_box command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>change_box group-ID parameter args ... keyword args ... 
+</PRE>
+<UL><LI>group-ID = ID of group of atoms to (optionally) displace 
+
+<LI>one or more parameter/arg pairs may be appended 
+
+<PRE>parameter = <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>xz</I> or <I>yz</I> or <I>boundary</I> or <I>ortho</I> or <I>triclinic</I> or <I>set</I> or <I>remap</I>
+  <I>x</I>, <I>y</I>, <I>z</I> args = style value(s)
+    style = <I>final</I> or <I>delta</I> or <I>scale</I> or <I>volume</I>
+      <I>final</I> values = lo hi
+        lo hi = box boundaries after displacement (distance units)
+      <I>delta</I> values = dlo dhi
+        dlo dhi = change in box boundaries after displacement (distance units)
+      <I>scale</I> values = factor
+        factor = multiplicative factor for change in box length after displacement
+      <I>volume</I> value = none = adjust this dim to preserve volume of system
+  <I>xy</I>, <I>xz</I>, <I>yz</I> args = style value
+    style = <I>final</I> or <I>delta</I>
+      <I>final</I> value = tilt
+        tilt = tilt factor after displacement (distance units)
+      <I>delta</I> value = dtilt
+        dtilt = change in tilt factor after displacement (distance units)
+  <I>boundary</I> args = x y z
+    x,y,z = <I>p</I> or <I>s</I> or <I>f</I> or <I>m</I>, one or two letters
+    <I>p</I> is periodic
+    <I>f</I> is non-periodic and fixed
+    <I>s</I> is non-periodic and shrink-wrapped
+    <I>m</I> is non-periodic and shrink-wrapped with a minimum value
+  <I>ortho</I> args = none = change box to orthogonal
+  <I>triclinic</I> args = none = change box to triclinic
+  <I>set</I> args = none = store state of current box
+  <I>remap</I> args = none = remap atom coords from last saved state to current box 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>units</I> 
+
+<PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
+    lattice = distances are defined in lattice units
+    box = distances are defined in simulation box units 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>change_box all xy final -2.0 z final 0.0 5.0 boundary p p f remap units box
+change_box all x scale 1.1 y volume z volume remap 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Change the volume and/or shape and/or boundary conditions for the
+simulation box.  Orthogonal simulation boxes have 3 adjustable size
+parameters (x,y,z).  Triclinic (non-orthogonal) simulation boxes have
+6 adjustable size/shape parameters (x,y,z,xy,xz,yz).  Any or all of
+them can be adjusted independently by this command.  Thus it can be
+used to expand or contract a box, or to apply a shear strain to a
+non-orthogonal box.  It can also be used to change the boundary
+conditions for the simulation box, similar to the
+<A HREF = "boundary.html">boundary</A> command.
+</P>
+<P>The size and shape of the initial simulation box are specified by the
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> or
+<A HREF = "read_restart.html">read_restart</A> command used to setup the simulation.
+The size and shape may be altered by subsequent runs, e.g. by use of
+the <A HREF = "fix_nh.html">fix npt</A> or <A HREF = "fix_deform.html">fix deform</A> commands.
+The <A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read data</A>, and
+<A HREF = "read_restart.html">read_restart</A> commands also determine whether the
+simulation box is orthogonal or triclinic and their doc pages explain
+the meaning of the xy,xz,yz tilt factors.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_12">Section_howto 12</A> of the doc pages
+for a geometric description of triclinic boxes, as defined by LAMMPS,
+and how to transform these parameters to and from other commonly used
+triclinic representations.
+</P>
+<P>The keywords used in this command are applied sequentially to the
+simulation box and the atoms in it, in the order specified.
+</P>
+<P>Before the sequence of keywords are invoked, the current box
+size/shape is stored, in case a <I>remap</I> keyword is used to map the
+atom coordinates from a previously stored box size/shape to the
+current one.
+</P>
+<P>After all the keywords have been processed, any shrink-wrap boundary
+conditions are invoked (see the <A HREF = "boundary.html">boundary</A> command)
+which may change simulation box boundaries, and atoms are migrated to
+new owning processors.
+</P>
+<P>IMPORTANT_NOTE: This means that you cannot use the change_box command
+to enlarge a shrink-wrapped box, e.g. to make room to insert more
+atoms via the <A HREF = "create_atoms.html">create_atoms</A> command, because the
+simulation box will be re-shrink-wrapped before the change_box command
+completes.  Instead you could do something like this, assuming the
+simulation box is non-periodic and atoms extend from 0 to 20 in all
+dimensions:
+</P>
+<PRE>change_box all x final -10 20
+create_atoms 1 single -5 5 5   # this will fail to insert an atom 
+</PRE>
+<PRE>change_box all x final -10 20 boundary f s s
+create_atoms 1 single -5 5 5
+change_box boundary s s s      # this will work 
+</PRE>
+<P>IMPORTANT NOTE: Unlike the earlier "displace_box" version of this
+command, atom remapping is NOT performed by default.  This command
+allows remapping to be done in a more general way, exactly when you
+specify it (zero or more times) in the sequence of transformations.
+Thus if you do not use the <I>remap</I> keyword, atom coordinates will not
+be changed even if the box size/shape changes.  If a uniformly
+strained state is desired, the <I>remap</I> keyword should be specified.
+</P>
+<P>IMPORTANT NOTE: It is possible to lose atoms with this command.
+E.g. by changing the box without remapping the atoms, and having atoms
+end up outside of non-periodic boundaries.  It is also possible to
+alter bonds between atoms straddling a boundary in bad ways.  E.g. by
+converting a boundary from periodic to non-periodic.  It is also
+possible when remapping atoms to put them (nearly) on top of each
+other.  E.g. by converting a boundary from non-periodic to periodic.
+All of these will typically lead to bad dynamics and/or generate error
+messages.
+</P>
+<P>IMPORTANT NOTE: The simulation box size/shape can be changed by
+arbitrarily large amounts by this command.  This is not a problem,
+except that the mapping of processors to the simulation box is not
+changed from its initial 3d configuration; see the
+<A HREF = "processors.html">processors</A> command.  Thus, if the box size/shape
+changes dramatically, the mapping of processors to the simulation box
+may not end up as optimal as the initial mapping attempted to be.
+</P>
+<P>IMPORTANT NOTE: Because the keywords used in this command are applied
+one at a time to the simulation box and the atoms in it, care must be
+taken with triclinic cells to avoid exceeding the limits on skew after
+each transformation in the sequence.  If skew is exceeded before the
+final transformation this can be avoided by changing the order of the
+sequence, or breaking the transformation into two or more smaller
+transformations.  For more information on the allowed limits for box
+skew see the discussion on triclinic boxes on <A HREF = "Section_howto.html#howto_12">this
+page</A>.
+</P>
+<HR>
+
+<P>For the <I>x</I>, <I>y</I>, and <I>z</I> parameters, this is the meaning of their
+styles and values.
+</P>
+<P>For style <I>final</I>, the final lo and hi box boundaries of a dimension
+are specified.  The values can be in lattice or box distance units.
+See the discussion of the units keyword below.
+</P>
+<P>For style <I>delta</I>, plus or minus changes in the lo/hi box boundaries
+of a dimension are specified.  The values can be in lattice or box
+distance units.  See the discussion of the units keyword below.
+</P>
+<P>For style <I>scale</I>, a multiplicative factor to apply to the box length
+of a dimension is specified.  For example, if the initial box length
+is 10, and the factor is 1.1, then the final box length will be 11.  A
+factor less than 1.0 means compression.
+</P>
+<P>The <I>volume</I> style changes the specified dimension in such a way that
+the overall box volume remains constant with respect to the operation
+performed by the preceding keyword.  The <I>volume</I> style can only be
+used following a keyword that changed the volume, which is any of the
+<I>x</I>, <I>y</I>, <I>z</I> keywords.  If the preceding keyword "key" had a <I>volume</I>
+style, then both it and the current keyword apply to the keyword
+preceding "key".  I.e. this sequence of keywords is allowed:
+</P>
+<PRE>change_box all x scale 1.1 y volume z volume 
+</PRE>
+<P>The <I>volume</I> style changes the associated dimension so that the
+overall box volume is unchanged relative to its value before the
+preceding keyword was invoked. 
+</P>
+<P>If the following command is used, then the z box length will shrink by
+the same 1.1 factor the x box length was increased by:
+</P>
+<PRE>change_box all x scale 1.1 z volume 
+</PRE>
+<P>If the following command is used, then the y,z box lengths will each
+shrink by sqrt(1.1) to keep the volume constant.  In this case, the
+y,z box lengths shrink so as to keep their relative aspect ratio
+constant:
+</P>
+<PRE>change_box all"x scale 1.1 y volume z volume 
+</PRE>
+<P>If the following command is used, then the final box will be a factor
+of 10% larger in x and y, and a factor of 21% smaller in z, so as to
+keep the volume constant:
+</P>
+<PRE>change_box all x scale 1.1 z volume y scale 1.1 z volume 
+</PRE>
+<P>IMPORTANT NOTE: For solids or liquids, when one dimension of the box
+is expanded, it may be physically undesirable to hold the other 2 box
+lengths constant since that implies a density change.  For solids,
+adjusting the other dimensions via the <I>volume</I> style may make
+physical sense (just as for a liquid), but may not be correct for
+materials and potentials whose Poisson ratio is not 0.5.
+</P>
+<P>For the <I>scale</I> and <I>volume</I> styles, the box length is expanded or
+compressed around its mid point.
+</P>
+<HR>
+
+<P>For the <I>xy</I>, <I>xz</I>, and <I>yz</I> parameters, this is the meaning of their
+styles and values.  Note that changing the tilt factors of a triclinic
+box does not change its volume.
+</P>
+<P>For style <I>final</I>, the final tilt factor is specified.  The value
+can be in lattice or box distance units.  See the discussion of the
+units keyword below.
+</P>
+<P>For style <I>delta</I>, a plus or minus change in the tilt factor is
+specified.  The value can be in lattice or box distance units.  See
+the discussion of the units keyword below.
+</P>
+<P>All of these styles change the xy, xz, yz tilt factors.  In LAMMPS,
+tilt factors (xy,xz,yz) for triclinic boxes are required to be no more
+than half the distance of the parallel box length.  For example, if
+xlo = 2 and xhi = 12, then the x box length is 10 and the xy tilt
+factor must be between -5 and 5.  Similarly, both xz and yz must be
+between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a
+limitation, since if the maximum tilt factor is 5 (as in this
+example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
+... are all equivalent.  Any tilt factor specified by this command
+must be within these limits.
+</P>
+<HR>
+
+<P>The <I>boundary</I> keyword takes arguments that have exactly the same
+meaning as they do for the <A HREF = "boundary.html">boundary</A> command.  In each
+dimension, a single letter assigns the same style to both the lower
+and upper face of the box.  Two letters assigns the first style to the
+lower face and the second style to the upper face.
+</P>
+<P>The style <I>p</I> means the box is periodic; the other styles mean
+non-periodic. For style <I>f</I>, the position of the face is fixed.  For
+style <I>s</I>, the position of the face is set so as to encompass the
+atoms in that dimension (shrink-wrapping), no matter how far they
+move.  For style <I>m</I>, shrink-wrapping occurs, but is bounded by the
+current box edge in that dimension, so that the box will become no
+smaller.  See the <A HREF = "boundary.html">boundary</A> command for more
+explanation of these style options.
+</P>
+<P>Note that the "boundary" command itself can only be used before the
+simulation box is defined via a <A HREF = "read_data.html">read_data</A> or
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_restart.html">read_restart</A>
+command.  This command allows the boundary conditions to be changed
+later in your input script.  Also note that the
+<A HREF = "read_restart.html">read_restart</A> will change boundary conditions to
+match what is stored in the restart file.  So if you wish to change
+them, you should use the change_box command after the read_restart
+command.
+</P>
+<HR>
+
+<P>The <I>ortho</I> and <I>triclinic</I> keywords convert the simulation box to be
+orthogonal or triclinic (non-orthongonal).  See <A HREF = "Section_howto#howto_13">this
+section</A> for a discussion of how non-orthongal
+boxes are represented in LAMMPS.
+</P>
+<P>The simulation box is defined as either orthogonal or triclinic when
+it is created via the <A HREF = "create_box.html">create_box</A>,
+<A HREF = "read_data.html">read_data</A>, or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<P>These keywords allow you to toggle the existing simulation box from
+orthogonal to triclinic and vice versa.  For example, an initial
+equilibration simulation can be run in an orthogonal box, the box can
+be toggled to triclinic, and then a <A HREF = "Section_howto.html#howto_13">non-equilibrium MD (NEMD)
+simulation</A> can be run with deformation
+via the <A HREF = "fix_deform.html">fix deform</A> command.
+</P>
+<P>If the simulation box is currently triclinic and has non-zero tilt in
+xy, yz, or xz, then it cannot be converted to an orthogonal box.
+</P>
+<HR>
+
+<P>The <I>set</I> keyword saves the current box size/shape.  This can be
+useful if you wish to use the <I>remap</I> keyword more than once or if you
+wish it to be applied to an intermediate box size/shape in a sequence
+of keyword operations.  Note that the box size/shape is saved before
+any of the keywords are processed, i.e. the box size/shape at the time
+the create_box command is encountered in the input script.
+</P>
+<P>The <I>remap</I> keyword remaps atom coordinates from the last saved box
+size/shape to the current box state.  For example, if you stretch the
+box in the x dimension or tilt it in the xy plane via the <I>x</I> and <I>xy</I>
+keywords, then the <I>remap</I> commmand will dilate or tilt the atoms to
+conform to the new box size/shape, as if the atoms moved with the box
+as it deformed.
+</P>
+<P>Note that this operation is performed without regard to periodic
+boundaries.  Also, any shrink-wrapping of non-periodic boundaries (see
+the <A HREF = "boundary.html">boundary</A> command) occurs after all keywords,
+including this one, have been processed.
+</P>
+<P>Only atoms in the specified group are remapped.
+</P>
+<HR>
+
+<P>The <I>units</I> keyword determines the meaning of the distance units used
+to define various arguments.  A <I>box</I> value selects standard distance
+units as defined by the <A HREF = "units.html">units</A> command, e.g. Angstroms for
+units = real or metal.  A <I>lattice</I> value means the distance units are
+in lattice spacings.  The <A HREF = "lattice.html">lattice</A> command must have
+been previously used to define the lattice spacing.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>If you use the <I>ortho</I> or <I>triclinic</I> keywords, then at the point in
+the input script when this command is issued, no <A HREF = "dump.html">dumps</A> can
+be active, nor can a <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> or <A HREF = "fix_deform.html">fix
+deform</A> be active.  This is because these commands
+test whether the simulation box is orthogonal when they are first
+issued.  Note that these commands can be used in your script before a
+change_box command is issued, so long as an <A HREF = "undump.html">undump</A> or
+<A HREF = "unfix.html">unfix</A> command is also used to turn them off.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_deform.html">fix deform</A>, <A HREF = "boundary.html">boundary</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option default is units = lattice.
+</P>
+</HTML>

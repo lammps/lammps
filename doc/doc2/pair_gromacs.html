@@ -1,0 +1,170 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lj/gromacs command 
+</H3>
+<H3>pair_style lj/gromacs/cuda command 
+</H3>
+<H3>pair_style lj/gromacs/gpu command 
+</H3>
+<H3>pair_style lj/gromacs/omp command 
+</H3>
+<H3>pair_style lj/gromacs/coul/gromacs command 
+</H3>
+<H3>pair_style lj/gromacs/coul/gromacs/cuda command 
+</H3>
+<H3>pair_style lj/gromacs/coul/gromacs/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = <I>lj/gromacs</I> or <I>lj/gromacs/coul/gromacs</I>
+<LI>args = list of arguments for a particular style 
+</UL>
+<PRE>  <I>lj/gromacs</I> args = inner outer
+    inner, outer = global switching cutoffs for Lennard Jones
+  <I>lj/gromacs/coul/gromacs</I> args = inner outer (inner2) (outer2)
+    inner, outer = global switching cutoffs for Lennard Jones (and Coulombic if only 2 args)
+    inner2, outer2 = global switching cutoffs for Coulombic (optional) 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lj/gromacs 9.0 12.0
+pair_coeff * * 100.0 2.0
+pair_coeff 2 2 100.0 2.0 8.0 10.0 
+</PRE>
+<PRE>pair_style lj/gromacs/coul/gromacs 9.0 12.0
+pair_style lj/gromacs/coul/gromacs 8.0 10.0 7.0 9.0
+pair_coeff * * 100.0 2.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>lj/gromacs</I> styles compute shifted LJ and Coulombic interactions 
+with an additional switching function S(r) that ramps the energy and force
+smoothly to zero between an inner and outer cutoff.  It is a commonly
+used potential in the <A HREF = "http://www.gromacs.org">GROMACS</A> MD code and for
+the coarse-grained models of <A HREF = "#Marrink">(Marrink)</A>.
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gromacs.jpg">
+</CENTER>
+<P>r1 is the inner cutoff; rc is the outer cutoff.  The coefficients A, B, 
+and C are computed by LAMMPS to perform the shifting and smoothing.  
+The function
+S(r) is actually applied once to each term of the LJ formula and once
+to the Coulombic formula, so there are 2 or 3 sets of A,B,C coefficients
+depending on which pair_style is used.  The boundary conditions
+applied to the smoothing function are as follows: S'(r1) = S''(r1) = 0,
+S(rc) = -E(rc), S'(rc) = -E'(rc), and S''(rc) = -E''(rc), 
+where E(r) is the corresponding term
+in the LJ or Coulombic potential energy function.
+Single and double primes denote first and second 
+derivatives with respect to r, respectively. 
+</P>
+<P>The inner and outer cutoff for the LJ and Coulombic terms can be the
+same or different depending on whether 2 or 4 arguments are used in
+the pair_style command.  The inner LJ cutoff must be > 0, but the
+inner Coulombic cutoff can be >= 0.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>inner (distance units)
+<LI>outer (distance units) 
+</UL>
+<P>Note that sigma is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at 2^(1/6)
+sigma.
+</P>
+<P>The last 2 coefficients are optional inner and outer cutoffs for style
+<I>lj/gromacs</I>.  If not specified, the global <I>inner</I> and <I>outer</I> values
+are used.
+</P>
+<P>The last 2 coefficients cannot be used with style
+<I>lj/gromacs/coul/gromacs</I> because this force field does not allow
+varying cutoffs for individual atom pairs; all pairs use the global
+cutoff(s) specified in the pair_style command.
+</P>
+<HR>
+
+<P>Styles <I>intel</I>, <I>kk</I>, with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the lj/cut pair styles can be mixed.
+The default mix value is <I>geometric</I>.  See the "pair_modify" command
+for details.
+</P>
+<P>None of the GROMACS pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option, since the Lennard-Jones
+portion of the pair interaction is already smoothed to 0.0 at the
+cutoff.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>None of the GROMACS pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> tail option for adding long-range tail
+corrections to energy and pressure, since there are no corrections for
+a potential that goes to 0.0 at the cutoff.
+</P>
+<P>All of the GROMACS pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
+<P>All of the GROMACS pair styles can only be used via the <I>pair</I>
+keyword of the <A HREF = "run_style.html">run_style respa</A> command.  They do not
+support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Marrink"></A>
+
+<P><B>(Marrink)</B> Marrink, de Vries, Mark, J Phys Chem B, 108, 750-760 (2004).
+</P>
+</HTML>

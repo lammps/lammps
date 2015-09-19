@@ -89,8 +89,10 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy(TYPE *array)
-  {sfree(array);}
+  void destroy(TYPE *&array) {
+    sfree(array);
+    array = NULL;
+  }
 
 /* ----------------------------------------------------------------------
    create a 1d array with index from nlo to nhi inclusive
@@ -115,9 +117,10 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy1d_offset(TYPE *array, int offset)
+  void destroy1d_offset(TYPE *&array, int offset)
   {
     if (array) sfree(&array[offset]);
+    array = NULL;
   }
 
 /* ----------------------------------------------------------------------
@@ -176,11 +179,12 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy(TYPE **array)
+  void destroy(TYPE **&array)
   {
     if (array == NULL) return;
     sfree(array[0]);
     sfree(array);
+    array = NULL;
   }
 
 /* ----------------------------------------------------------------------
@@ -234,11 +238,12 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
   
   template <typename TYPE>
-  void destroy2d_offset(TYPE **array, int offset)
+  void destroy2d_offset(TYPE **&array, int offset)
   {
     if (array == NULL) return;
     sfree(&array[0][offset]);
     sfree(array);
+    array = NULL;
   }
   
 /* ----------------------------------------------------------------------
@@ -313,12 +318,13 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy(TYPE ***array)
+  void destroy(TYPE ***&array)
   {
     if (array == NULL) return;
     sfree(array[0][0]);
     sfree(array[0]);
     sfree(array);
+    array = NULL;
   }
 
 /* ----------------------------------------------------------------------
@@ -346,9 +352,13 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy3d_offset(TYPE ***array, int offset)
+  void destroy3d_offset(TYPE ***&array, int offset)
   {
-    if (array) destroy(&array[offset]);
+    if (array == NULL) return;
+    sfree(&array[offset][0][0]);
+    sfree(&array[offset][0]);
+    sfree(&array[offset]);
+    array = NULL;
   }
 
 /* ----------------------------------------------------------------------
@@ -387,13 +397,14 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy3d_offset(TYPE ***array,
+  void destroy3d_offset(TYPE ***&array,
                         int n1_offset, int n2_offset, int n3_offset)
   {
     if (array == NULL) return;
     sfree(&array[n1_offset][n2_offset][n3_offset]);
     sfree(&array[n1_offset][n2_offset]);
     sfree(&array[n1_offset]);
+    array = NULL;
   }
   
 /* ----------------------------------------------------------------------
@@ -443,13 +454,14 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy(TYPE ****array)
+  void destroy(TYPE ****&array)
   {
     if (array == NULL) return;
     sfree(array[0][0][0]);
     sfree(array[0][0]);
     sfree(array[0]);
     sfree(array);
+    array = NULL;
   }
 
 /* ----------------------------------------------------------------------
@@ -489,7 +501,7 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy4d_offset(TYPE ****array, 
+  void destroy4d_offset(TYPE ****&array, 
                         int n2_offset, int n3_offset, int n4_offset)
   {
     if (array == NULL) return;
@@ -497,6 +509,7 @@ class Memory : protected Pointers {
     sfree(&array[0][n2_offset][n3_offset]);
     sfree(&array[0][n2_offset]);
     sfree(array);
+    array = NULL;
   }
 
 /* ----------------------------------------------------------------------
@@ -555,7 +568,7 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy(TYPE *****array)
+  void destroy(TYPE *****&array)
   {
     if (array == NULL) return;
     sfree(array[0][0][0][0]);
@@ -563,6 +576,7 @@ class Memory : protected Pointers {
     sfree(array[0][0]);
     sfree(array[0]);
     sfree(array);
+    array = NULL;
   }
   
 /* ----------------------------------------------------------------------

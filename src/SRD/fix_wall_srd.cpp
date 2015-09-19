@@ -60,7 +60,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"zlo") == 0) newwall = ZLO;
       else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
 
-      for (int m = 0; m < nwall; m++)
+      for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
           error->all(FLERR,"Wall defined twice in fix wall/srd command");
 

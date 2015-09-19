@@ -1,0 +1,210 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix wall/region command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID wall/region region-ID style epsilon sigma cutoff 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>wall/region = style name of this fix command
+<LI>region-ID = region whose boundary will act as wall
+<LI>style = <I>lj93</I> or <I>lj126</I> or <I>colloid</I> or <I>harmonic</I>
+<LI>epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
+<LI>sigma = size factor for wall-particle interaction (distance units)
+<LI>cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix wall all wall/region mySphere lj93 1.0 1.0 2.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Treat the surface of the geometric region defined by the <I>region-ID</I>
+as a bounding wall which interacts with nearby particles according to
+the specified style.  The distance between a particle and the surface
+is the distance to the nearest point on the surface and the force the
+wall exerts on the particle is along the direction between that point
+and the particle, which is the direction normal to the surface at that
+point.  Note that if the region surface is comprised of multiple
+"faces", then each face can exert a force on the particle if it is
+close enough.  E.g. for <A HREF = "region.html">region_style block</A>, a particle
+in the interior, near a corner of the block, could feel wall forces
+from 1, 2, or 3 faces of the block.
+</P>
+<P>Regions are defined using the <A HREF = "region.html">region</A> command.  Note that
+the region volume can be interior or exterior to the bounding surface,
+which will determine in which direction the surface interacts with
+particles, i.e. the direction of the surface normal.  Regions can
+either be primitive shapes (block, sphere, cylinder, etc) or
+combinations of primitive shapes specified via the <I>union</I> or
+<I>intersect</I> region styles.  These latter styles can be used to
+construct particle containers with complex shapes.  Regions can also
+change over time via the <A HREF = "region.html">region</A> command keywords (move)
+and <I>rotate</I>.  If such a region is used with this fix, then the of
+region surface will move over time in the corresponding manner.
+</P>
+<P>IMPORTANT NOTE: As discussed on the <A HREF = "region.html">region</A> command doc
+page, regions in LAMMPS do not get wrapped across periodic boundaries.
+It is up to you to insure that periodic or non-periodic boundaries are
+specified appropriately via the <A HREF = "boundary.html">boundary</A> command when
+using a region as a wall that bounds particle motion.  This also means
+that if you embed a region in your simulation box and want it to
+repulse particles from its surface (using the "side out" option in the
+<A HREF = "region.html">region</A> command), that its repulsive force will not be
+felt across a periodic boundary.
+</P>
+<P>IMPORTANT NOTE: For primitive regions with sharp corners and/or edges
+(e.g. a block or cylinder), wall/particle forces are computed
+accurately for both interior and exterior regions.  For <I>union</I> and
+<I>intersect</I> regions, additional sharp corners and edges may be present
+due to the intersection of the surfaces of 2 or more primitive
+volumes.  These corners and edges can be of two types: concave or
+convex.  Concave points/edges are like the corners of a cube as seen
+by particles in the interior of a cube.  Wall/particle forces around
+these features are computed correctly.  Convex points/edges are like
+the corners of a cube as seen by particles exterior to the cube,
+i.e. the points jut into the volume where particles are present.
+LAMMPS does NOT compute the location of these convex points directly,
+and hence wall/particle forces in the cutoff volume around these
+points suffer from inaccuracies.  The basic problem is that the
+outward normal of the surface is not continuous at these points.  This
+can cause particles to feel no force (they don't "see" the wall) when
+in one location, then move a distance epsilon, and suddenly feel a
+large force because they now "see" the wall.  In a worst-case
+scenario, this can blow particles out of the simulation box.  Thus, as
+a general rule you should not use the fix wall/region command with
+<I>union</I> or <I>interesect</I> regions that have convex points or edges.
+</P>
+<P>IMPORTANT NOTE: Similarly, you should not define <I>union</I> or
+<I>intersert</I> regions for use with this command that share a common
+face, even if the face is smooth.  E.g. two regions of style block in
+a <I>union</I> region, where the two blocks have the same face.  This is
+because LAMMPS discards points that are part of multiple sub-regions
+when calculating wall/particle interactions, to avoid double-counting
+the interaction.  Having two coincident faces could cause the face to
+become invisible to the particles.  The solution is to make the two
+faces differ by epsilon in their position.
+</P>
+<P>The energy of wall-particle interactions depends on the specified
+style.
+</P>
+<P>For style <I>lj93</I>, the energy E is given by the 9/3 potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_lj93.jpg">
+</CENTER>
+<P>For style <I>lj126</I>, the energy E is given by the 12/6 potential:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_lj.jpg">
+</CENTER>
+<P>For style <I>colloid</I>, the energy E is given by an integrated form of
+the <A HREF = "pair_colloid.html">pair_style colloid</A> potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_colloid.jpg">
+</CENTER>
+<P>For style <I>wall/harmonic</I>, the energy E is given by a harmonic spring
+potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_harmonic.jpg">
+</CENTER>
+<P>In all cases, <I>r</I> is the distance from the particle to the region
+surface, and Rc is the <I>cutoff</I> distance at which the particle and
+surface no longer interact.  The energy of the wall potential is
+shifted so that the wall-particle interaction energy is 0.0 at the
+cutoff distance.
+</P>
+<P>For the <I>lj93</I> and <I>lj126</I> styles, <I>epsilon</I> and <I>sigma</I> are the usual
+Lennard-Jones parameters, which determine the strength and size of the
+particle as it interacts with the wall.  Epsilon has energy units.
+Note that this <I>epsilon</I> and <I>sigma</I> may be different than any
+<I>epsilon</I> or <I>sigma</I> values defined for a pair style that computes
+particle-particle interactions.
+</P>
+<P>The <I>lj93</I> interaction is derived by integrating over a 3d
+half-lattice of Lennard-Jones 12/6 particles.  The <I>lj126</I> interaction
+is effectively a harder, more repulsive wall interaction.
+</P>
+<P>For the <I>colloid</I> style, <I>epsilon</I> is effectively a Hamaker constant
+with energy units for the colloid-wall interaction, <I>R</I> is the radius
+of the colloid particle, <I>D</I> is the distance from the surface of the
+colloid particle to the wall (r-R), and <I>sigma</I> is the size of a
+constituent LJ particle inside the colloid particle.  Note that the
+cutoff distance Rc in this case is the distance from the colloid
+particle center to the wall.
+</P>
+<P>The <I>colloid</I> interaction is derived by integrating over constituent
+LJ particles of size <I>sigma</I> within the colloid particle and a 3d
+half-lattice of Lennard-Jones 12/6 particles of size <I>sigma</I> in the
+wall.
+</P>
+<P>For the <I>wall/harmonic</I> style, <I>epsilon</I> is effectively the spring
+constant K, and has units (energy/distance^2).  The input parameter
+<I>sigma</I> is ignored.  The minimum energy position of the harmonic
+spring is at the <I>cutoff</I>.  This is a repulsive-only spring since the
+interaction is truncated at the <I>cutoff</I>
+</P>
+<P>IMPORTANT NOTE: For all of the styles, you must insure that r is
+always > 0 for all particles in the group, or LAMMPS will generate an
+error.  This means you cannot start your simulation with particles on
+the region surface (r = 0) or with particles on the wrong side of the
+region surface (r < 0).  For the <I>wall/lj93</I> and <I>wall/lj126</I> styles,
+the energy of the wall/particle interaction (and hence the force on
+the particle) blows up as r -> 0.  The <I>wall/colloid</I> style is even
+more restrictive, since the energy blows up as D = r-R -> 0.  This
+means the finite-size particles of radius R must be a distance larger
+than R from the region surface.  The <I>harmonic</I> style is a softer
+potential and does not blow up as r -> 0, but you must use a large
+enough <I>epsilon</I> that particles always reamin on the correct side of
+the region surface (r > 0).
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy of interaction between atoms and the wall to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes a global scalar energy and a global 3-length vector
+of forces, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar energy is the sum
+of energy interactions for all particles interacting with the wall
+represented by the region surface.  The 3 vector quantities are the
+x,y,z components of the total force acting on the wall due to the
+particles.  The scalar and vector values calculated by this fix are
+"extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P>IMPORTANT NOTE: If you want the atom/wall interaction energy to be
+included in the total potential energy of the system (the quantity
+being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
+<I>energy</I> option for this fix.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_wall.html">fix wall/lj93</A>,
+<A HREF = "fix_wall.html">fix wall/lj126</A>,
+<A HREF = "fix_wall.html">fix wall/colloid</A>,
+<A HREF = "fix_wall_gran.html">fix wall/gran</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

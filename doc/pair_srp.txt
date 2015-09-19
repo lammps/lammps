@@ -27,7 +27,7 @@ pair_coeff 1 1 dpd 60.0 4.5 1.0
 pair_coeff 1 2 none 
 pair_coeff 2 2 srp 100.0 0.8 :pre
 
-pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 min exclude yes
+pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 * min exclude yes
 pair_coeff 1 1 dpd 60.0 50 1.0 
 pair_coeff 1 2 none 
 pair_coeff 2 2 srp 40.0 :pre 
@@ -53,7 +53,9 @@ bond-pairwise potential, such that the force on bond {i} due to bond
 :c,image(Eqs/pair_srp1.jpg)
 
 where {r} and {rij} are the distance and unit vector between the two
-bonds. The {mid} option computes {r} and {rij} from the midpoint
+bonds. The bondtype can also be specified as an asterisk (*) and then
+this interaction applied to all bonds.
+The {mid} option computes {r} and {rij} from the midpoint
 distance between bonds. The {min} option computes {r} and {rij} from
 the minimum distance between bonds. The force acting on a bond is
 mapped onto the two bond atoms according to the lever rule,

@@ -1,0 +1,85 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style sph/taitwater command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style sph/taitwater 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style sph/taitwater
+pair_coeff * * 1000.0 1430.0 1.0 2.4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The sph/taitwater style computes pressure forces between SPH particles
+according to Tait's equation of state:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_sph_tait.jpg">
+</CENTER>
+<P>where gamma = 7 and B = c_0^2 rho_0 / gamma, with rho_0 being the
+reference density and c_0 the reference speed of sound.
+</P>
+<P>This pair style also computes Monaghan's artificial viscosity to
+prevent particles from interpentrating <A HREF = "#Monaghan">(Monaghan)</A>.
+</P>
+<P>See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to using SPH in
+LAMMPS.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above.
+</P>
+<UL><LI>rho0 reference density (mass/volume units)
+<LI>c0 reference soundspeed (distance/time units)
+<LI>nu artificial viscosity (no units)
+<LI>h kernel function cutoff (distance units) 
+</UL>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>This style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
+</P>
+<P>This style does not write information to <A HREF = "restart.html">binary restart
+files</A>.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
+</P>
+<P>This style can only be used via the <I>pair</I> keyword of the <A HREF = "run_style.html">run_style
+respa</A> command.  It does not support the <I>inner</I>,
+<I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This pair style is part of the USER-SPH package.  It is only enabled
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, pair_sph/rhosum
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Monoghan"></A>
+
+<P><B>(Monaghan)</B> Monaghan and Gingold, Journal of Computational Physics,
+52, 374-389 (1983).
+</P>
+</HTML>

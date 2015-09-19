@@ -171,9 +171,9 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
 }
 
 
-real Compute_H( real r, real gamma, real *ctap )
+double Compute_H( double r, double gamma, double *ctap )
 {
-  real taper, dr3gamij_1, dr3gamij_3;
+  double taper, dr3gamij_1, dr3gamij_3;
 
   taper = ctap[7] * r + ctap[6];
   taper = taper * r + ctap[5];
@@ -189,10 +189,10 @@ real Compute_H( real r, real gamma, real *ctap )
 }
 
 
-real Compute_tabH( real r_ij, int ti, int tj )
+double Compute_tabH( double r_ij, int ti, int tj )
 {
   int r, tmin, tmax;
-  real val, dif, base;
+  double val, dif, base;
   LR_lookup_table *t;
 
   tmin  = MIN( ti, tj );
@@ -202,7 +202,7 @@ real Compute_tabH( real r_ij, int ti, int tj )
   /* cubic spline interpolation */
   r = (int)(r_ij * t->inv_dx);
   if( r == 0 )  ++r;
-  base = (real)(r+1) * t->dx;
+  base = (double)(r+1) * t->dx;
   dif = r_ij - base;
   val = ((t->ele[r].d*dif + t->ele[r].c)*dif + t->ele[r].b)*dif +
     t->ele[r].a;
@@ -221,7 +221,7 @@ void Init_Forces( reax_system *system, control_params *control,
   int Htop, btop_i, btop_j, num_bonds, num_hbonds;
   int ihb, jhb, ihb_top, jhb_top;
   int local, flag, renbr;
-  real r_ij, cutoff;
+  double r_ij, cutoff;
   sparse_matrix *H;
   reax_list *far_nbrs, *bonds, *hbonds;
   single_body_parameters *sbp_i, *sbp_j;
@@ -388,7 +388,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   int btop_i, btop_j, num_bonds, num_hbonds;
   int ihb, jhb, ihb_top, jhb_top;
   int local, flag, renbr;
-  real cutoff;
+  double cutoff;
   reax_list *far_nbrs, *bonds, *hbonds;
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;
@@ -531,10 +531,10 @@ void Estimate_Storages( reax_system *system, control_params *control,
   int type_i, type_j;
   int ihb, jhb;
   int local;
-  real cutoff;
-  real r_ij;
-  real C12, C34, C56;
-  real BO, BO_s, BO_pi, BO_pi2;
+  double cutoff;
+  double r_ij;
+  double C12, C34, C56;
+  double BO, BO_s, BO_pi, BO_pi2;
   reax_list *far_nbrs;
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;

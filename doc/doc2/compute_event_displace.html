@@ -1,0 +1,67 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute event/displace command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID event/displace threshold 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>event/displace = style name of this compute command
+<LI>threshold = minimum distance anyparticle must move to trigger an event (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all event/displace 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that flags an "event" if any particle in the
+group has moved a distance greater than the specified threshold
+distance when compared to a previously stored reference state
+(i.e. the previous event).  This compute is typically used in
+conjunction with the <A HREF = "prd.html">prd</A> and <A HREF = "tad.html">tad</A> commands, 
+to detect if a transition
+to a new minimum energy basin has occurred.
+</P>
+<P>This value calculated by the compute is equal to 0 if no particle has
+moved far enough, and equal to 1 if one or more particles have moved
+further than the threshold distance.
+</P>
+<P>NOTE: If the system is undergoing significant center-of-mass motion, 
+due to thermal motion, an external force, or an initial net momentum, 
+then this compute will not be able to distinguish that motion from
+local atom displacements and may generate "false postives."
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the flag).  This value can be
+used by any command that uses a global scalar value from a compute as
+input.  See <A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an
+overview of LAMMPS output options.
+</P>
+<P>The scalar value calculated by this compute is "intensive".  The
+scalar value will be a 0 or 1 as explained above.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "prd.html">prd</A>, <A HREF = "tad.html">tad</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

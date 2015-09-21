@@ -29,10 +29,9 @@ class Info : protected Pointers {
   Info(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
 
-  enum {MATCH_EXACT, MATCH_LEAD, MATCH_SUBSTR};
-  bool is_active(const char *, const char *, int match=MATCH_EXACT);
-  bool is_defined(const char *, const char *, int match=MATCH_EXACT);
-  bool is_available(const char *, const char *, int match=MATCH_EXACT);
+  bool is_active(const char *, const char *);
+  bool is_defined(const char *, const char *);
+  bool is_available(const char *, const char *);
 };
 
 }

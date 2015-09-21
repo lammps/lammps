@@ -4008,6 +4008,8 @@ int Variable::is_constant(char *word)
   if (strcmp(word,"no") == 0) return 1;
   if (strcmp(word,"on") == 0) return 1;
   if (strcmp(word,"off") == 0) return 1;
+  if (strcmp(word,"true") == 0) return 1;
+  if (strcmp(word,"false") == 0) return 1;
   return 0;
 }
 
@@ -4024,6 +4026,8 @@ double Variable::constant(char *word)
   if (strcmp(word,"no") == 0) return 0.0;
   if (strcmp(word,"on") == 0) return 1.0;
   if (strcmp(word,"off") == 0) return 0.0;
+  if (strcmp(word,"true") == 0) return 1.0;
+  if (strcmp(word,"false") == 0) return 0.0;
   return 0.0;
 }
 

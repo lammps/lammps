@@ -344,8 +344,6 @@ int FixAtomSwap::attempt_semi_grand()
   double energy_before = energy_stored;
 
   int itype,jtype,jswaptype;
-  double qtmp;
-
   int i = pick_semi_grand_atom();
   if (i >= 0) {
     jswaptype = static_cast<int> (nswaptypes*random_unequal->uniform());

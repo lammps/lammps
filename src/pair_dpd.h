@@ -22,6 +22,11 @@ PairStyle(dpd,PairDPD)
 
 #include "pair.h"
 
+#ifdef VSL_RNG
+#include "mkl_vsl.h"
+#define LEN_R_LIST	(512)
+#endif
+
 namespace LAMMPS_NS {
 
 class PairDPD : public Pair {
@@ -48,6 +53,11 @@ class PairDPD : public Pair {
   double **a0,**gamma;
   double **sigma;
   class RanMars *random;
+#ifdef VSL_RNG
+  VSLStreamStatePtr stream;
+  int r_count;
+  double r_list[LEN_R_LIST];
+#endif
 
   void allocate();
 };

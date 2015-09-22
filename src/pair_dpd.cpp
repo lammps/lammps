@@ -40,6 +40,10 @@ PairDPD::PairDPD(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
   random = NULL;
+
+#ifdef VSL_RNG
+  r_count = -1;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,10 +61,12 @@ PairDPD::~PairDPD()
   }
 
   if (random) delete random;
+#ifdef VSL_RNG  
+  vslDeleteStream( &stream );
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
-
 void PairDPD::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
@@ -81,6 +87,13 @@ void PairDPD::compute(int eflag, int vflag)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double dtinvsqrt = 1.0/sqrt(update->dt);
+
+#ifdef VSL_RNG
+  if(r_count == -1)	{	// only initilize one time
+     r_count = 0;
+ 	  vslNewStream( &stream, VSL_BRNG_MT2203+comm->me, seed);
+  }
+#endif
 
   inum = list->inum;
   ilist = list->ilist;
@@ -121,7 +134,17 @@ void PairDPD::compute(int eflag, int vflag)
         delvz = vztmp - v[j][2];
         dot = delx*delvx + dely*delvy + delz*delvz;
         wd = 1.0 - r/cut[itype][jtype];
+        
+#ifdef VSL_RNG
+        if(r_count==0)	{
+        	 vdRngGaussian( VSL_RNG_METHOD_GAUSSIAN_BOXMULLER2, \
+                         stream, LEN_R_LIST, r_list, 0.0, 1.0 );
+        }
+        randnum = r_list[r_count];
+        r_count = (r_count+1)%LEN_R_LIST;
+#else
         randnum = random->gaussian();
+#endif
 
         // conservative force = a0 * wd
         // drag force = -gamma * wd^2 * (delx dot delv) / r
@@ -156,6 +179,7 @@ void PairDPD::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+
 }
 
 /* ----------------------------------------------------------------------
@@ -197,6 +221,14 @@ void PairDPD::settings(int narg, char **arg)
   if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
   delete random;
   random = new RanMars(lmp,seed + comm->me);
+
+#ifdef VSL_RNG
+  if(r_count == -1)	{	// only initilize one time
+    r_count = 0;
+   //vslNewStream( &stream, VSL_BRNG_SFMT19937, seed + comm->me);
+ 	  vslNewStream( &stream, VSL_BRNG_MT2203+comm->me, seed);
+  }
+#endif
 
   // reset cutoffs that have been explicitly set
 

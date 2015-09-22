@@ -458,15 +458,13 @@ void Info::command(int narg, char **arg)
 // the is_active() function returns true if the selected style or name
 // in the selected category is currently in use.
 
-bool Info::is_active(const char *category, const char *name, int match)
+bool Info::is_active(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
   const char *style = "none";
   const int len = strlen(name);
 
   if (strcmp(category,"package") == 0) {
-    if (match != MATCH_EXACT)
-      error->all(FLERR,"Only exact matches allowed with package category");
     if (strcmp(name,"cuda") == 0) {
       return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
     } else if (strcmp(name,"gpu") == 0) {
@@ -480,8 +478,6 @@ bool Info::is_active(const char *category, const char *name, int match)
     } else error->all(FLERR,"Unknown name for package category");
 
   } else if (strcmp(category,"newton") == 0) {
-    if (match != MATCH_EXACT)
-      error->all(FLERR,"Only exact matches allowed with newton category");
     if (strcmp(name,"pair") == 0) return (force->newton_pair != 0);
     else if (strcmp(name,"bond") == 0) return (force->newton_bond != 0);
     else if (strcmp(name,"any") == 0) return (force->newton != 0);
@@ -489,8 +485,6 @@ bool Info::is_active(const char *category, const char *name, int match)
 
   } else if (strcmp(category,"pair") == 0) {
     if (force->pair == NULL) return false;
-    if (match != MATCH_EXACT)
-      error->all(FLERR,"Only exact matches allowed with pair category");
     if (strcmp(name,"single") == 0) return (force->pair->single_enable != 0);
     else if (strcmp(name,"respa") == 0) return (force->pair->respa_enable != 0);
     else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
@@ -520,13 +514,24 @@ bool Info::is_active(const char *category, const char *name, int match)
     style = force->kspace_style;
   } else error->all(FLERR,"Unknown category for is_active()");
 
-  if (match == MATCH_EXACT) {
-    return (strcmp(style,name) == 0) ? true : false;
-  } else if (match == MATCH_LEAD) {
-    return (strncmp(style,name,len) == 0) ? true : false;
-  } else if (match == MATCH_SUBSTR) {
-    return (strstr(style,name) != NULL) ? true : false;
-  } else return false;
+  int match = 0;
+  if (strcmp(style,name) == 0) match = 1;
+
+  if (!match && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+      if (strcmp(style,name_w_suffix) == 0) match = 1;
+      delete[] name_w_suffix;
+    }
+    if (!match && lmp->suffix2) {
+      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+      if (strcmp(style,name_w_suffix) == 0) match = 1;
+      delete[] name_w_suffix;
+    }
+  }
+  return match ? true : false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -535,13 +540,13 @@ bool Info::is_active(const char *category, const char *name, int match)
 // or name in the selected category is available for use (but need
 // not be currently active).
 
-bool Info::is_available(const char *category, const char *name, int match)
+bool Info::is_available(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
 
   if (strcmp(category,"package") == 0) {
     return false;
-  } else error->all(FLERR,"Unknown category for is_active()");
+  } else error->all(FLERR,"Unknown category for is_available()");
 
 }
 
@@ -552,12 +557,12 @@ bool Info::is_available(const char *category, const char *name, int match)
 // defined and thus can be accessed. It does *NOT* check whether a
 // particular ID has a particular style.
 
-bool Info::is_defined(const char *category, const char *name, int match)
+bool Info::is_defined(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
 
   if (strcmp(category,"package") == 0) {
     return false;
-  } else error->all(FLERR,"Unknown category for is_active()");
+  } else error->all(FLERR,"Unknown category for is_defined()");
 
 }

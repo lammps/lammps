@@ -3789,13 +3789,12 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     } else error->all(FLERR,"Invalid variable style in special function next");
   } else if (strcmp(word,"is_active") == 0) {
-    Info info(lmp);
+    if (narg != 2) 
+      error->all(FLERR,"Invalid is_active() function in variable formula");
 
-    if (narg == 2) {
-      value = (info.is_active(args[0],args[1]),Info::MATCH_EXACT) ? 1.0 : 0.0;
-    } else {
-      value = 0.0;
-    }
+    Info info(lmp);
+    value = (info.is_active(args[0],args[1])) ? 1.0 : 0.0;
+
     // save value in tree or on argstack
 
     if (tree) {
@@ -4008,6 +4007,8 @@ int Variable::is_constant(char *word)
   if (strcmp(word,"no") == 0) return 1;
   if (strcmp(word,"on") == 0) return 1;
   if (strcmp(word,"off") == 0) return 1;
+  if (strcmp(word,"true") == 0) return 1;
+  if (strcmp(word,"false") == 0) return 1;
   return 0;
 }
 
@@ -4024,6 +4025,8 @@ double Variable::constant(char *word)
   if (strcmp(word,"no") == 0) return 0.0;
   if (strcmp(word,"on") == 0) return 1.0;
   if (strcmp(word,"off") == 0) return 0.0;
+  if (strcmp(word,"true") == 0) return 1.0;
+  if (strcmp(word,"false") == 0) return 0.0;
   return 0.0;
 }
 

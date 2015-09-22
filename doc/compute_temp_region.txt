@@ -65,9 +65,11 @@ remaining thermal velocity will be performed, and the bias will be
 added back in.  Thermostatting fixes that work in this way include
 "fix nvt"_fix_nh.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
 temp/berendsen"_fix_temp_berendsen.html, and "fix
-langevin"_fix_langevin.html.  This means any of the thermostatting
-fixes can operate on a geometric region of atoms, as defined by this
-compute.
+langevin"_fix_langevin.html.  This means that when this compute
+is used to calculate the temperature for any of the thermostatting
+fixes via the "fix modify temp"_fix_modify.html command, the thermostat
+will operate only on atoms that are currently in the geometric 
+region.
 
 Unlike other compute styles that calculate temperature, this compute
 does not subtract out degrees-of-freedom due to fixes that constrain

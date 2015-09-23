@@ -797,7 +797,8 @@ Feature Functions :h4
 
 Feature functions allow to probe the running LAMMPS executable for
 whether specific features are either active, defined, or available.
-They take strings as arguments and thus arguments cannot be formulas
+The functions take two arguments, a {category} and a corresponding
+{argument}. The arguments are strings thus cannot be formulas
 themselves (only $-style immediate variable expansion is possible).
 Return value is either 1.0 or 0.0 depending on whether the function
 evaluates to true or false, respectively.
@@ -826,6 +827,10 @@ Pair::single() function as needed by compute group/group and others
 features or LAMMPS, {respa} allows to check whether the inner/middle/outer
 mode of r-RESPA is supported. In the various style categories,
 the checking is also done using suffix flags, if available and enabled.
+
+The {is_defined()} function allows to query categories like {compute},
+{dump}, {fix}, {group}, {region}, and {variable} whether an entry
+with the provided name or id is defined.
 
 :line
 

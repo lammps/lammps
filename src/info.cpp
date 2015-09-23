@@ -561,8 +561,53 @@ bool Info::is_defined(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
 
-  if (strcmp(category,"package") == 0) {
+  if (strcmp(category,"compute") == 0) {
+    int ncompute = modify->ncompute;
+    Compute **compute = modify->compute;
+    for (int i=0; i < ncompute; ++i) {
+      if (strcmp(compute[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"dump") == 0) {
+    int ndump = output->ndump;
+    Dump **dump = output->dump;
+    for (int i=0; i < ndump; ++i) {
+      if (strcmp(dump[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"fix") == 0) {
+    int nfix = modify->nfix;
+    Fix **fix = modify->fix;
+    for (int i=0; i < nfix; ++i) {
+      if (strcmp(fix[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"group") == 0) {
+    int ngroup = group->ngroup;
+    char **names = group->names;
+    for (int i=0; i < ngroup; ++i) {
+      if (strcmp(names[i],name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"region") == 0) {
+    int nreg = domain->nregion;
+    Region **regs = domain->regions;
+    for (int i=0; i < nreg; ++i) {
+      if (strcmp(regs[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"variable") == 0) {
+    int nvar = input->variable->nvar;
+    char **names = input->variable->names;
+    for (int i=0; i < nvar; ++i) {
+      if (strcmp(names[i],name) == 0)
+        return true;
+    }
     return false;
   } else error->all(FLERR,"Unknown category for is_defined()");
-
 }

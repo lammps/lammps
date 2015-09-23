@@ -828,9 +828,26 @@ features or LAMMPS, {respa} allows to check whether the inner/middle/outer
 mode of r-RESPA is supported. In the various style categories,
 the checking is also done using suffix flags, if available and enabled.
 
+Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
+
+pair_style lj/cut/coul/long 14.0
+if $(is_active(package,gpu)) then "suffix off"
+kspace_style pppm :pre
+
+Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
+
+timestep $(2.0*(1.0+*is_active(pair,respa))
+if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
+
 The {is_defined()} function allows to query categories like {compute},
 {dump}, {fix}, {group}, {region}, and {variable} whether an entry
 with the provided name or id is defined.
+
+The {is_available()} function allows to query whether a specific
+optional feature is available, i.e. compiled in. This currently
+works for the following categories: {command}, {compute}, {fix},
+and {pair_style}. For all categories except {command} also appending
+active suffixes is tried before reporting failure.
 
 :line
 

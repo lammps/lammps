@@ -543,11 +543,82 @@ bool Info::is_active(const char *category, const char *name)
 bool Info::is_available(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
+  const int len = strlen(name);
 
-  if (strcmp(category,"package") == 0) {
-    return false;
+  if (strcmp(category,"command") == 0) {
+    int match = 0;
+    return (input->command_map->find(name) != input->command_map->end());
+
+  } else if (strcmp(category,"compute") == 0) {
+    int match = 0;
+    if (modify->compute_map->find(name) != modify->compute_map->end())
+      match = 1;
+
+    if (!match && lmp->suffix_enable) {
+      if (lmp->suffix) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+        if (modify->compute_map->find(name_w_suffix) != modify->compute_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+      if (!match && lmp->suffix2) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+        if (modify->compute_map->find(name_w_suffix) != modify->compute_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+    }
+    return match ? true : false;
+
+  } else if (strcmp(category,"fix") == 0) {
+    int match = 0;
+    if (modify->fix_map->find(name) != modify->fix_map->end())
+      match = 1;
+
+    if (!match && lmp->suffix_enable) {
+      if (lmp->suffix) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+        if (modify->fix_map->find(name_w_suffix) != modify->fix_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+      if (!match && lmp->suffix2) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+        if (modify->fix_map->find(name_w_suffix) != modify->fix_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+    }
+    return match ? true : false;
+
+  } else if (strcmp(category,"pair_style") == 0) {
+    int match = 0;
+    if (force->pair_map->find(name) != force->pair_map->end())
+      match = 1;
+
+    if (!match && lmp->suffix_enable) {
+      if (lmp->suffix) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+        if (force->pair_map->find(name_w_suffix) != force->pair_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+      if (!match && lmp->suffix2) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+        if (force->pair_map->find(name_w_suffix) != force->pair_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+    }
+    return match ? true : false;
+
   } else error->all(FLERR,"Unknown category for is_available()");
-
 }
 
 /* ---------------------------------------------------------------------- */

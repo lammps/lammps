@@ -22,6 +22,7 @@
 namespace LAMMPS_NS {
 
 class Modify : protected Pointers {
+  friend class Info;
  public:
   int nfix,maxfix;
   int n_initial_integrate,n_post_integrate,n_pre_exchange,n_pre_neighbor;
@@ -140,7 +141,7 @@ class Modify : protected Pointers {
   void list_init_dofflag(int &, int *&);
   void list_init_compute();
 
- private:
+ protected:
   typedef Compute *(*ComputeCreator)(LAMMPS *, int, char **);
   std::map<std::string,ComputeCreator> *compute_map;
 

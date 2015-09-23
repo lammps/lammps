@@ -2,7 +2,8 @@
 
 SHELL = /bin/sh
 
-export OMPI_CXX = ../../lib/config/nvcc_wrapper
+KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
+export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
 
 # ---------------------------------------------------------------------
 # compiler/linker settings

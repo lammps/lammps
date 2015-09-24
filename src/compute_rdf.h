@@ -44,7 +44,7 @@ class ComputeRDF : public Compute {
   double **histall;      // summed histogram bins across all procs
 
   int *typecount;
-  int *icount,*jcount,*duplicates;
+  int *icount,*jcount;
 
   class NeighList *list; // half neighbor list
 };

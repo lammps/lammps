@@ -20,8 +20,8 @@ make mode=shlib machine
 to create the static library liblammps_machine.a or the shared library
 liblammps_machine.so for your code to link against.  A soft link
 (liblammps.a or liblammps.so) is also created that points to the most
-recently built static or shared library.  Your code can simply use the
-soft link if you prefer.
+recently built static or shared library.  Your code build can simply
+use the soft link if you prefer.
 
 The library interface to LAMMPS is in src/library.cpp.  Routines can
 be easily added to this file so an external program can perform the

@@ -29,7 +29,7 @@ class FixNH : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
-  void pre_exchange();
+  virtual void pre_exchange();
   double compute_scalar();
   virtual double compute_vector(int);
   void write_restart(FILE *);
@@ -120,7 +120,7 @@ class FixNH : public Fix {
   double fixedpoint[3];            // location of dilation fixed-point
 
   void couple();
-  void remap();
+  virtual void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();
 

@@ -534,6 +534,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixNH::~FixNH()
 {
+  if (copymode) return;
+
   delete [] id_dilate;
   delete [] rfix;
 

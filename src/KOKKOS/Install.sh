@@ -55,16 +55,30 @@ action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
 action comm_kokkos.cpp
 action comm_kokkos.h
+action compute_temp_kokkos.cpp
+action compute_temp_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
 action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action domain_kokkos.cpp
 action domain_kokkos.h
+action fix_deform_kokkos.cpp
+action fix_deform_kokkos.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
+action fix_nh_kokkos.cpp
+action fix_nh_kokkos.h
+action fix_nph_kokkos.cpp
+action fix_nph_kokkos.h
+action fix_npt_kokkos.cpp
+action fix_npt_kokkos.h
 action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
+action fix_nvt_kokkos.cpp
+action fix_nvt_kokkos.h
+action fix_wall_reflect_kokkos.cpp
+action fix_wall_reflect_kokkos.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
 action kokkos.cpp

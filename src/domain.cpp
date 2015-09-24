@@ -103,12 +103,16 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 
   nregion = maxregion = 0;
   regions = NULL;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Domain::~Domain()
 {
+  if (copymode) return;
+
   delete lattice;
   for (int i = 0; i < nregion; i++) delete regions[i];
   memory->sfree(regions);

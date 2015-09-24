@@ -87,6 +87,13 @@ class Compute : protected Pointers {
   unsigned int datamask;
   unsigned int datamask_ext;
 
+  // KOKKOS host/device flag and data masks
+
+  ExecutionSpace execution_space;
+  unsigned int datamask_read,datamask_modify;
+
+  int copymode;
+
   int cudable;              // 1 if compute is CUDA-enabled
 
   Compute(class LAMMPS *, int, char **);

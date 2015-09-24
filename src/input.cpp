@@ -105,7 +105,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   // check for args "-var" and "-echo"
   // caller has already checked that sufficient arguments exist
 
-  int iarg = 0;
+  int iarg = 1;
   while (iarg < argc) {
     if (strcmp(argv[iarg],"-var") == 0 || strcmp(argv[iarg],"-v") == 0) {
       int jarg = iarg+3;

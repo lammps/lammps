@@ -1132,8 +1132,8 @@ KOKKOS_INLINE_FUNCTION
 Random_XorShift64<Kokkos::Cuda> Random_XorShift64_Pool<Kokkos::Cuda>::get_state() const {
 #ifdef __CUDA_ARCH__
   const int i_offset = (threadIdx.x*blockDim.y + threadIdx.y)*blockDim.z+threadIdx.z;
-  int i = ((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
-           blockDim.x*blockDim.y*blockDim.z + i_offset;
+  int i = (((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
+           blockDim.x*blockDim.y*blockDim.z + i_offset)%num_states_;
   while(Kokkos::atomic_compare_exchange(&locks_(i),0,1)) {
       i+=blockDim.x*blockDim.y*blockDim.z;
       if(i>=num_states_) {i = i_offset;}
@@ -1168,8 +1168,8 @@ KOKKOS_INLINE_FUNCTION
 Random_XorShift1024<Kokkos::Cuda> Random_XorShift1024_Pool<Kokkos::Cuda>::get_state() const {
 #ifdef __CUDA_ARCH__
   const int i_offset = (threadIdx.x*blockDim.y + threadIdx.y)*blockDim.z+threadIdx.z;
-  int i = ((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
-           blockDim.x*blockDim.y*blockDim.z + i_offset;
+  int i = (((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
+           blockDim.x*blockDim.y*blockDim.z + i_offset)%num_states_;
   while(Kokkos::atomic_compare_exchange(&locks_(i),0,1)) {
       i+=blockDim.x*blockDim.y*blockDim.z;
       if(i>=num_states_) {i = i_offset;}

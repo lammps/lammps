@@ -270,7 +270,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 	}
 
-        #if defined(__INTEL_COMPILER)
+        #if defined(LMP_SIMD_COMPILER)
 	#pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, secoul, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
@@ -289,7 +289,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
           const flt_t r2inv = (flt_t)1.0 / rsq;
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < cut_coulsq) {
           #endif
             #ifdef INTEL_ALLOW_TABLE
@@ -341,18 +341,18 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               }
             }
             #endif
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #endif
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < cut_ljsq) {
 	  #endif
             flt_t r6inv = r2inv * r2inv * r2inv;
             forcelj = r6inv * (lji[jtype].x * r6inv - lji[jtype].y);
             if (EFLAG) evdwl = r6inv*(lji[jtype].z * r6inv - lji[jtype].w);
 
-	    #ifdef __MIC__
+	    #ifdef INTEL_VMASK
 	    if (rsq > cut_lj_innersq) {
 	    #endif
               const flt_t drsq = cut_ljsq - rsq;
@@ -361,23 +361,23 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
                   inv_denom_lj;
               const flt_t switch2 = (flt_t)12.0 * rsq * cut2 * inv_denom_lj;
               if (EFLAG) {
-		#ifndef __MIC__
+		#ifndef INTEL_VMASK
 		if (rsq > cut_lj_innersq) {
 		#endif
                   forcelj = forcelj * switch1 + evdwl * switch2;
                   evdwl *= switch1;
-		#ifndef __MIC__
+		#ifndef INTEL_VMASK
 		}
 		#endif
               } else {
                 const flt_t philj = r6inv * (lji[jtype].z*r6inv -
                     lji[jtype].w);
-		#ifndef __MIC__
+		#ifndef INTEL_VMASK
 		if (rsq > cut_lj_innersq)
 		#endif
                   forcelj =  forcelj * switch1 + philj * switch2;
               }
-	    #ifdef __MIC__
+	    #ifdef INTEL_VMASK
 	    }
 	    #endif
 
@@ -386,14 +386,14 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               forcelj *= factor_lj;
               if (EFLAG) evdwl *= factor_lj;
             }
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #else
 	  if (rsq > cut_coulsq) { forcecoul = (flt_t)0.0; ecoul = (flt_t)0.0; }
 	  if (rsq > cut_ljsq) { forcelj = (flt_t)0.0; evdwl = (flt_t)0.0; }
 	  #endif
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < cut_coulsq) {
 	  #endif
             const flt_t fpair = (forcecoul + forcelj) * r2inv;
@@ -427,7 +427,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	      IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
 				   delx, dely, delz);
             }
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #endif
         } // for jj

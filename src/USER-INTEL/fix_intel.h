@@ -367,6 +367,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
 	out_offset;
       if (eatom) {
 	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
           f[i].y += f_in[ii].y;
@@ -378,6 +381,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
           ii += 2;
         }
       } else {
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
           f[i].y += f_in[ii].y;
@@ -391,6 +397,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
     } else {
       if (eatom) {
 	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
           f[i].y += f_in[i].y;
@@ -398,6 +407,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
           lmp_eatom[i] += f_in[i].w;
         }
       } else {
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
           f[i].y += f_in[i].y;

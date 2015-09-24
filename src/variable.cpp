@@ -36,6 +36,7 @@
 #include "atom_masks.h"
 #include "python_wrapper.h"
 #include "memory.h"
+#include "info.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -63,6 +64,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
+     IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY};
 
 // customize by adding a special function
@@ -1017,7 +1019,7 @@ void Variable::copy(int narg, char **from, char **to)
    recursive evaluation of a string str
    str is an equal-style or atom-style formula containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
-     constant = PI
+     constant = PI, version, yes, no, on, off
      thermo keyword = ke, vol, atoms, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       x==y,x!=y,x<y,x<=y,x>y,x>=y,x&&y,x||y,
@@ -3500,7 +3502,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
       strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"slope") &&
       strcmp(word,"gmask") && strcmp(word,"rmask") && 
-      strcmp(word,"grmask") && strcmp(word,"next"))
+      strcmp(word,"grmask") && strcmp(word,"next") &&
+      strcmp(word,"is_active") && strcmp(word,"is_defined") &&
+      strcmp(word,"is_available"))
     return 0;
 
   // parse contents for comma-separated args
@@ -3784,6 +3788,60 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       treestack[ntreestack++] = newtree;
 
     } else error->all(FLERR,"Invalid variable style in special function next");
+
+  } else if (strcmp(word,"is_active") == 0) {
+    if (narg != 2) 
+      error->all(FLERR,"Invalid is_active() function in variable formula");
+
+    Info info(lmp);
+    value = (info.is_active(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_available") == 0) {
+    if (narg != 2) 
+      error->all(FLERR,"Invalid is_available() function in variable formula");
+
+    Info info(lmp);
+    value = (info.is_available(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_defined") == 0) {
+    if (narg != 2) 
+      error->all(FLERR,"Invalid is_defined() function in variable formula");
+
+    Info info(lmp);
+    value = (info.is_defined(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
   }
 
   // delete stored args
@@ -3982,6 +4040,12 @@ int Variable::is_constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return 1;
   if (strcmp(word,"version") == 0) return 1;
+  if (strcmp(word,"yes") == 0) return 1;
+  if (strcmp(word,"no") == 0) return 1;
+  if (strcmp(word,"on") == 0) return 1;
+  if (strcmp(word,"off") == 0) return 1;
+  if (strcmp(word,"true") == 0) return 1;
+  if (strcmp(word,"false") == 0) return 1;
   return 0;
 }
 
@@ -3994,6 +4058,12 @@ double Variable::constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return MY_PI;
   if (strcmp(word,"version") == 0) return atof(universe->num_ver);
+  if (strcmp(word,"yes") == 0) return 1.0;
+  if (strcmp(word,"no") == 0) return 0.0;
+  if (strcmp(word,"on") == 0) return 1.0;
+  if (strcmp(word,"off") == 0) return 0.0;
+  if (strcmp(word,"true") == 0) return 1.0;
+  if (strcmp(word,"false") == 0) return 0.0;
   return 0.0;
 }
 

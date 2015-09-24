@@ -428,12 +428,12 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
         // -------------------------------------------------------------
 
-	#ifdef __MIC__
+	#ifdef INTEL_V512
 	__assume(packed_j % INTEL_VECTOR_WIDTH == 0);
 	__assume(packed_j % 8 == 0);
 	__assume(packed_j % INTEL_MIC_VECTOR_WIDTH == 0);
 	#endif
-        #if defined(__INTEL_COMPILER)
+        #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
 	#pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp,t3tmp, \
 	                         sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
@@ -667,7 +667,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           }
 
           one_eng = temp1 * chi;
-	  #ifndef __MIC__
+	  #ifndef INTEL_VMASK
 	  if (jlist_form[jj] == nall) {
 	    one_eng = (flt_t)0.0;
 	    fforce_0 = 0.0;
@@ -689,7 +689,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           ttor_1 *= factor_lj;
           ttor_2 *= factor_lj;
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (jlist_form[jj] < nall) {
 	  #endif
 	    fxtmp += fforce_0;
@@ -741,7 +741,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 		sv5 += ev_pre * dely_form[jj] * fforce_2;
 	      }
 	    } // EVFLAG
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #endif
         } // for jj
@@ -798,7 +798,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       int t_off = f_stride;
       if (EFLAG && eatom) {
         for (int t = 1; t < nthreads; t++) {
-          #if defined(__INTEL_COMPILER)
+          #if defined(LMP_SIMD_COMPILER)
 	  #pragma vector nontemporal
 	  #pragma novector
           #endif
@@ -812,7 +812,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         }
       } else {
         for (int t = 1; t < nthreads; t++) {
-          #if defined(__INTEL_COMPILER)
+          #if defined(LMP_SIMD_COMPILER)
 	  #pragma vector nontemporal
 	  #pragma novector
           #endif
@@ -828,7 +828,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       if (EVFLAG) {
         if (vflag==2) {
           const ATOM_T * _noalias const xo = x + minlocal;
-          #if defined(__INTEL_COMPILER)
+          #if defined(LMP_SIMD_COMPILER)
 	  #pragma vector nontemporal
 	  #pragma novector
           #endif

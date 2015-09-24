@@ -17,6 +17,8 @@
 
 #include "string.h"
 #include "info.h"
+#include "accelerator_cuda.h"
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
@@ -24,6 +26,7 @@
 #include "dump.h"
 #include "fix.h"
 #include "force.h"
+#include "pair.h"
 #include "group.h"
 #include "input.h"
 #include "modify.h"
@@ -448,4 +451,234 @@ void Info::command(int narg, char **arg)
   // close output file pointer if opened locally thus forcing a hard sync.
   if ((out != screen) && (out != logfile))
     fclose(out);
+}
+
+/* ---------------------------------------------------------------------- */
+
+// the is_active() function returns true if the selected style or name
+// in the selected category is currently in use.
+
+bool Info::is_active(const char *category, const char *name)
+{
+  if ((category == NULL) || (name == NULL)) return false;
+  const char *style = "none";
+  const int len = strlen(name);
+
+  if (strcmp(category,"package") == 0) {
+    if (strcmp(name,"cuda") == 0) {
+      return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
+    } else if (strcmp(name,"gpu") == 0) {
+      return (modify->find_fix("package_gpu") >= 0) ? true : false;
+    } else if (strcmp(name,"intel") == 0) {
+      return (modify->find_fix("package_intel") >= 0) ? true : false;
+    } else if (strcmp(name,"kokkos") == 0) {
+      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+    } else if (strcmp(name,"omp") == 0) {
+      return (modify->find_fix("package_omp") >= 0) ? true : false;
+    } else error->all(FLERR,"Unknown name for package category");
+
+  } else if (strcmp(category,"newton") == 0) {
+    if (strcmp(name,"pair") == 0) return (force->newton_pair != 0);
+    else if (strcmp(name,"bond") == 0) return (force->newton_bond != 0);
+    else if (strcmp(name,"any") == 0) return (force->newton != 0);
+    else error->all(FLERR,"Unknown name for newton category");
+
+  } else if (strcmp(category,"pair") == 0) {
+    if (force->pair == NULL) return false;
+    if (strcmp(name,"single") == 0) return (force->pair->single_enable != 0);
+    else if (strcmp(name,"respa") == 0) return (force->pair->respa_enable != 0);
+    else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
+    else if (strcmp(name,"tail") == 0) return (force->pair->tail_flag != 0);
+    else if (strcmp(name,"shift") == 0) return (force->pair->offset_flag != 0);
+    else error->all(FLERR,"Unknown name for pair category");
+
+  } else if (strcmp(category,"comm_style") == 0) {
+    style = commstyles[comm->style];
+  } else if (strcmp(category,"min_style") == 0) {
+    style = update->minimize_style;
+  } else if (strcmp(category,"run_style") == 0) {
+    style = update->integrate_style;
+  } else if (strcmp(category,"atom_style") == 0) {
+    style = atom->atom_style;
+  } else if (strcmp(category,"pair_style") == 0) {
+    style = force->pair_style;
+  } else if (strcmp(category,"bond_style") == 0) {
+    style = force->bond_style;
+  } else if (strcmp(category,"angle_style") == 0) {
+    style = force->angle_style;
+  } else if (strcmp(category,"dihedral_style") == 0) {
+    style = force->dihedral_style;
+  } else if (strcmp(category,"improper_style") == 0) {
+    style = force->improper_style;
+  } else if (strcmp(category,"kspace_style") == 0) {
+    style = force->kspace_style;
+  } else error->all(FLERR,"Unknown category for is_active()");
+
+  int match = 0;
+  if (strcmp(style,name) == 0) match = 1;
+
+  if (!match && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+      if (strcmp(style,name_w_suffix) == 0) match = 1;
+      delete[] name_w_suffix;
+    }
+    if (!match && lmp->suffix2) {
+      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+      if (strcmp(style,name_w_suffix) == 0) match = 1;
+      delete[] name_w_suffix;
+    }
+  }
+  return match ? true : false;
+}
+
+/* ---------------------------------------------------------------------- */
+
+// the is_available() function returns true if the selected style
+// or name in the selected category is available for use (but need
+// not be currently active).
+
+bool Info::is_available(const char *category, const char *name)
+{
+  if ((category == NULL) || (name == NULL)) return false;
+  const int len = strlen(name);
+
+  if (strcmp(category,"command") == 0) {
+    int match = 0;
+    return (input->command_map->find(name) != input->command_map->end());
+
+  } else if (strcmp(category,"compute") == 0) {
+    int match = 0;
+    if (modify->compute_map->find(name) != modify->compute_map->end())
+      match = 1;
+
+    if (!match && lmp->suffix_enable) {
+      if (lmp->suffix) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+        if (modify->compute_map->find(name_w_suffix) != modify->compute_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+      if (!match && lmp->suffix2) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+        if (modify->compute_map->find(name_w_suffix) != modify->compute_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+    }
+    return match ? true : false;
+
+  } else if (strcmp(category,"fix") == 0) {
+    int match = 0;
+    if (modify->fix_map->find(name) != modify->fix_map->end())
+      match = 1;
+
+    if (!match && lmp->suffix_enable) {
+      if (lmp->suffix) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+        if (modify->fix_map->find(name_w_suffix) != modify->fix_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+      if (!match && lmp->suffix2) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+        if (modify->fix_map->find(name_w_suffix) != modify->fix_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+    }
+    return match ? true : false;
+
+  } else if (strcmp(category,"pair_style") == 0) {
+    int match = 0;
+    if (force->pair_map->find(name) != force->pair_map->end())
+      match = 1;
+
+    if (!match && lmp->suffix_enable) {
+      if (lmp->suffix) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
+        if (force->pair_map->find(name_w_suffix) != force->pair_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+      if (!match && lmp->suffix2) {
+        char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
+        sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
+        if (force->pair_map->find(name_w_suffix) != force->pair_map->end())
+          match = 1;
+        delete[] name_w_suffix;
+      }
+    }
+    return match ? true : false;
+
+  } else error->all(FLERR,"Unknown category for is_available()");
+}
+
+/* ---------------------------------------------------------------------- */
+
+// the is_defined() function returns true if a particular ID of the
+// selected category (e.g. fix ID, group ID, region ID etc.) has been
+// defined and thus can be accessed. It does *NOT* check whether a
+// particular ID has a particular style.
+
+bool Info::is_defined(const char *category, const char *name)
+{
+  if ((category == NULL) || (name == NULL)) return false;
+
+  if (strcmp(category,"compute") == 0) {
+    int ncompute = modify->ncompute;
+    Compute **compute = modify->compute;
+    for (int i=0; i < ncompute; ++i) {
+      if (strcmp(compute[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"dump") == 0) {
+    int ndump = output->ndump;
+    Dump **dump = output->dump;
+    for (int i=0; i < ndump; ++i) {
+      if (strcmp(dump[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"fix") == 0) {
+    int nfix = modify->nfix;
+    Fix **fix = modify->fix;
+    for (int i=0; i < nfix; ++i) {
+      if (strcmp(fix[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"group") == 0) {
+    int ngroup = group->ngroup;
+    char **names = group->names;
+    for (int i=0; i < ngroup; ++i) {
+      if (strcmp(names[i],name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"region") == 0) {
+    int nreg = domain->nregion;
+    Region **regs = domain->regions;
+    for (int i=0; i < nreg; ++i) {
+      if (strcmp(regs[i]->id,name) == 0)
+        return true;
+    }
+    return false;
+  } else if (strcmp(category,"variable") == 0) {
+    int nvar = input->variable->nvar;
+    char **names = input->variable->names;
+    for (int i=0; i < nvar; ++i) {
+      if (strcmp(names[i],name) == 0)
+        return true;
+    }
+    return false;
+  } else error->all(FLERR,"Unknown category for is_defined()");
 }

@@ -22,6 +22,7 @@
 namespace LAMMPS_NS {
 
 class Input : protected Pointers {
+  friend class Info;
  public:
   int narg;                    // # of command args
   char **arg;                  // parsed args for command
@@ -51,11 +52,13 @@ class Input : protected Pointers {
 
   FILE **infiles;              // list of open input files
 
+ protected:
   typedef void (*CommandCreator)(LAMMPS *, int, char **);
   std::map<std::string,CommandCreator> *command_map;
 
   template <typename T> static void command_creator(LAMMPS *, int, char **);
 
+ private:
   void parse();                          // parse an input text line
   char *nextword(char *, char **);       // find next word in string with quotes
   int numtriple(char *);                 // count number of triple quotes

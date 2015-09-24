@@ -7,6 +7,7 @@
                        michael.w.brown at intel.com
 
                           Anupama Kurpad (Intel)
+                          Biswajit Mishra (Shell)
 
 -----------------------------------------------------------------------------
 
@@ -42,7 +43,8 @@ Intel compilers.
 
 For portability reasons, vectorization directives are currently only enabled 
 for Intel compilers. Using other compilers may result in significantly
-lower performance.
+lower performance. This behavior can be changed by defining 
+LMP_SIMD_COMPILER for the preprocessor (see intel_preprocess.h).
 
 -----------------------------------------------------------------------------
 

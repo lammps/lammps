@@ -158,6 +158,11 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate space for charge, force, energy, virial arrays
 
+  f_orig = NULL;
+  q_orig = NULL;
+  peatom_orig = keatom_orig = NULL;
+  pvatom_orig = kvatom_orig = NULL;
+
   allocate_storage();
 
   fixgpu = NULL;
@@ -488,13 +493,14 @@ void ComputeFEP::deallocate_storage()
   memory->destroy(f_orig);
   memory->destroy(peatom_orig);
   memory->destroy(pvatom_orig);
-  if (chgflag) {
-    memory->destroy(q_orig);
-    if (force && force->kspace) {
-      memory->destroy(keatom_orig);
-      memory->destroy(kvatom_orig);
-    }
-  }
+  memory->destroy(q_orig);
+  memory->destroy(keatom_orig);
+  memory->destroy(kvatom_orig);
+
+  f_orig = NULL;
+  q_orig = NULL;
+  peatom_orig = keatom_orig = NULL;
+  pvatom_orig = kvatom_orig = NULL;
 }
 
 

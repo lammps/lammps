@@ -318,7 +318,7 @@ void PairHybrid::flags()
   // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
-  // ewaldflag, pppmflag, msmflag, dispersionflag, tip4pflag = 1
+  // ewaldflag, pppmflag, msmflag, dipoleflag, dispersionflag, tip4pflag = 1
   //   if any sub-style is set
   // compute_flag = 1 if any sub-style is set
 
@@ -333,6 +333,7 @@ void PairHybrid::flags()
     if (styles[m]->ewaldflag) ewaldflag = 1;
     if (styles[m]->pppmflag) pppmflag = 1;
     if (styles[m]->msmflag) msmflag = 1;
+    if (styles[m]->dipoleflag) dipoleflag = 1;
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;

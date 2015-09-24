@@ -29,6 +29,7 @@ class Pair : protected Pointers {
   friend class FixGPU;
   friend class FixOMP;
   friend class ThrOMP;
+  friend class Info;
 
  public:
   static int instance_total;     // # of Pair classes ever instantiated

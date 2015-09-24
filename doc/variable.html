@@ -166,7 +166,7 @@
 <em>python</em> arg = function
 <em>equal</em> or <em>atom</em> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
   numbers = 0.0, 100, -5.4, 2.8e-4, etc
-  constants = PI, version
+  constants = PI, version, on, off, true, false, yes, no
   thermo keywords = vol, ke, press, etc from <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>
   math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
                    x == y, x != y, x &amp;lt y, x &amp;lt= y, x &amp;gt y, x &amp;gt= y, x &amp;&amp; y, x || y, !x
@@ -187,6 +187,7 @@
                  angmom(group,dim,region), torque(group,dim,region),
                  inertia(group,dimdim,region), omega(group,dim,region)
   special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
+  feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
   atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
   atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
   compute references = c_ID, c_ID[i], c_ID[i][j]
@@ -526,12 +527,15 @@ When they invoke the atom-style variable, only atoms in the group are
 inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
 atoms not in the group.</p>
 <p>Constants are set at compile time and cannot be changed. <em>PI</em> will
-return the number 3.14159265358979323846, <em>version</em> will return a
-numeric version code of the current LAMMPS version (e.g. version
-2 Sep 2015 will return the number 20150902). The corresponding value
-for newer versions of LAMMPS will be larger, for older versions of
-LAMMPS will be smaller. This can be used to make input scripts adapt
-automatically to LAMMPS versions, for example:</p>
+return the number 3.14159265358979323846; <em>on</em>, <em>true</em> or <em>yes</em> will
+return 1.0; <em>off</em>, <em>false</em> or <em>no</em> will return 0.0; <em>version</em> will
+return a numeric version code of the current LAMMPS version (e.g.
+version 2 Sep 2015 will return the number 20150902). The corresponding
+value for newer versions of LAMMPS will be larger, for older versions
+of LAMMPS will be smaller. This can be used to have input scripts
+adapt automatically to LAMMPS versions, when non-backwards compatible
+syntax changes are introduced. Here is an illustrative example (which
+will not work, since the <em>version</em> has been introduced more recently):</p>
 <div class="highlight-python"><div class="highlight"><pre>if $(version&lt;20140513) then &quot;communicate vel yes&quot; else &quot;comm_modify vel yes&quot;
 </pre></div>
 </div>
@@ -826,6 +830,60 @@ returned the first time the next() function is invoked.  If next() is
 invoked more times than there are lines or sets of lines in the file,
 the variable is deleted, similar to how the <a class="reference internal" href="next.html"><em>next</em></a> command
 operates.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="feature-functions">
+<h3>Feature Functions<a class="headerlink" href="#feature-functions" title="Permalink to this headline">¶</a></h3>
+<p>Feature functions allow to probe the running LAMMPS executable for
+whether specific features are either active, defined, or available.
+The functions take two arguments, a <em>category</em> and a corresponding
+<em>argument</em>. The arguments are strings thus cannot be formulas
+themselves (only $-style immediate variable expansion is possible).
+Return value is either 1.0 or 0.0 depending on whether the function
+evaluates to true or false, respectively.</p>
+<p>The <em>is_active()</em> function allows to query for active settings which
+are grouped by categories. Currently supported categories and
+arguments are:</p>
+<ul class="simple">
+<li><em>package</em> (argument = <em>cuda</em> or <em>gpu</em> or <em>intel</em> or <em>kokkos</em> or <em>omp</em>)</li>
+<li><em>newton</em> (argument = <em>pair</em> or <em>bond</em> or <em>any</em>)</li>
+<li><em>pair</em> (argument = <em>single</em> or <em>respa</em> or <em>manybody</em> or <em>tail</em> or <em>shift</em>)</li>
+<li><em>comm_style</em> (argument = <em>brick</em> or <em>tiled</em>)</li>
+<li><em>min_style</em> (argument = any of the compiled in minimizer styles)</li>
+<li><em>run_style</em> (argument = any of the compiled in run styles)</li>
+<li><em>atom_style</em> (argument = any of the compiled in atom styles)</li>
+<li><em>pair_style</em> (argument = any of the compiled in pair styles)</li>
+<li><em>bond_style</em> (argument = any of the compiled in bond styles)</li>
+<li><em>angle_style</em> (argument = any of the compiled in angle styles)</li>
+<li><em>dihedral_style</em> (argument = any of the compiled in dihedral styles)</li>
+<li><em>improper_style</em> (argument = any of the compiled in improper styles)</li>
+<li><em>kspace_style</em> (argument = any of the compiled in kspace styles)</li>
+</ul>
+<p>Most of the settings are self-explanatory, the <em>single</em> argument in the
+<em>pair</em> category allows to check whether a pair style supports a
+Pair::single() function as needed by compute group/group and others
+features or LAMMPS, <em>respa</em> allows to check whether the inner/middle/outer
+mode of r-RESPA is supported. In the various style categories,
+the checking is also done using suffix flags, if available and enabled.</p>
+<p>Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut/coul/long 14.0
+if $(is_active(package,gpu)) then &quot;suffix off&quot;
+kspace_style pppm
+</pre></div>
+</div>
+<p>Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step</p>
+<div class="highlight-python"><div class="highlight"><pre>timestep $(2.0*(1.0+*is_active(pair,respa))
+if $(is_active(pair,respa)) then &quot;run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4&quot; else &quot;run_style respa 3 3 2  improper 1 pair 2 kspace 3&quot;
+</pre></div>
+</div>
+<p>The <em>is_defined()</em> function allows to query categories like <em>compute</em>,
+<em>dump</em>, <em>fix</em>, <em>group</em>, <em>region</em>, and <em>variable</em> whether an entry
+with the provided name or id is defined.</p>
+<p>The <em>is_available()</em> function allows to query whether a specific
+optional feature is available, i.e. compiled in. This currently
+works for the following categories: <em>command</em>, <em>compute</em>, <em>fix</em>,
+and <em>pair_style</em>. For all categories except <em>command</em> also appending
+active suffixes is tried before reporting failure.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="atom-values-and-vectors">

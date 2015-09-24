@@ -130,6 +130,9 @@
 <div class="section" id="fix-nvt-cuda-command">
 <h1>fix nvt/cuda command<a class="headerlink" href="#fix-nvt-cuda-command" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="fix-nvt-kk-command">
+<h1>fix nvt/kk command<a class="headerlink" href="#fix-nvt-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="fix-nvt-omp-command">
 <h1>fix nvt/omp command<a class="headerlink" href="#fix-nvt-omp-command" title="Permalink to this headline">¶</a></h1>
 </div>
@@ -139,11 +142,17 @@
 <div class="section" id="fix-npt-cuda-command">
 <h1>fix npt/cuda command<a class="headerlink" href="#fix-npt-cuda-command" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="fix-npt-kk-command">
+<h1>fix npt/kk command<a class="headerlink" href="#fix-npt-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="fix-npt-omp-command">
 <h1>fix npt/omp command<a class="headerlink" href="#fix-npt-omp-command" title="Permalink to this headline">¶</a></h1>
 </div>
 <div class="section" id="fix-nph-command">
 <h1>fix nph command<a class="headerlink" href="#fix-nph-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-nph-kk-command">
+<h1>fix nph/kk command<a class="headerlink" href="#fix-nph-kk-command" title="Permalink to this headline">¶</a></h1>
 </div>
 <div class="section" id="fix-nph-omp-command">
 <h1>fix nph/omp command<a class="headerlink" href="#fix-nph-omp-command" title="Permalink to this headline">¶</a></h1>
@@ -223,12 +232,12 @@ correctly, the time-averaged temperature and stress tensor of the
 particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.</p>
 <p>The equations of motion used are those of Shinoda et al in
-<a class="reference internal" href="pair_sdk.html#shinoda"><span>(Shinoda)</span></a>, which combine the hydrostatic equations of
-Martyna, Tobias and Klein in <a class="reference internal" href="fix_rigid.html#martyna"><span>(Martyna)</span></a> with the strain
+<a class="reference internal" href="#shinoda"><span>(Shinoda)</span></a>, which combine the hydrostatic equations of
+Martyna, Tobias and Klein in <a class="reference internal" href="#martyna"><span>(Martyna)</span></a> with the strain
 energy proposed by Parrinello and Rahman in
-<a class="reference internal" href="fix_nh_eff.html#parrinello"><span>(Parrinello)</span></a>.  The time integration schemes closely
+<a class="reference internal" href="#parrinello"><span>(Parrinello)</span></a>.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al. in <a class="reference internal" href="run_style.html#tuckerman"><span>(Tuckerman)</span></a>.</p>
+integrators derived by Tuckerman et al. in <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.</p>
 <hr class="docutils" />
 <p>The thermostat parameters for fix styles <em>nvt</em> and <em>npt</em> is specified
 using the <em>temp</em> keyword.  Other thermostat-related keywords are
@@ -385,7 +394,7 @@ freedom. A value of 0 corresponds to no thermostatting of the
 barostat variables.</p>
 <p>The <em>mtk</em> keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-<a class="reference internal" href="fix_rigid.html#martyna"><span>(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
+<a class="reference internal" href="#martyna"><span>(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using <em>yes</em> is more correct, but in many cases the difference is

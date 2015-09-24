@@ -49,7 +49,7 @@
   <I>python</I> arg = function
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
-    constants = PI, version
+    constants = PI, version, on, off, true, false, yes, no
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
                      x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
@@ -70,6 +70,7 @@
 		      angmom(group,dim,region), torque(group,dim,region), 
 		      inertia(group,dimdim,region), omega(group,dim,region)
     special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
+    feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
     atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
     atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
     compute references = c_ID, c_ID[i], c_ID[i][j]
@@ -422,7 +423,7 @@ references to other variables.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
-<TR><TD >Constant</TD><TD > PI, version</TD></TR>
+<TR><TD >Constant</TD><TD > PI, version, on, off, true, false, yes, no</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x%y, </TD></TR>
 <TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x%y, x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x</TD></TR>
@@ -458,12 +459,15 @@ inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
 atoms not in the group.
 </P>
 <P>Constants are set at compile time and cannot be changed. <I>PI</I> will
-return the number 3.14159265358979323846, <I>version</I> will return a
-numeric version code of the current LAMMPS version (e.g. version
-2 Sep 2015 will return the number 20150902). The corresponding value
-for newer versions of LAMMPS will be larger, for older versions of
-LAMMPS will be smaller. This can be used to make input scripts adapt
-automatically to LAMMPS versions, for example:
+return the number 3.14159265358979323846; <I>on</I>, <I>true</I> or <I>yes</I> will
+return 1.0; <I>off</I>, <I>false</I> or <I>no</I> will return 0.0; <I>version</I> will
+return a numeric version code of the current LAMMPS version (e.g.
+version 2 Sep 2015 will return the number 20150902). The corresponding
+value for newer versions of LAMMPS will be larger, for older versions
+of LAMMPS will be smaller. This can be used to have input scripts
+adapt automatically to LAMMPS versions, when non-backwards compatible
+syntax changes are introduced. Here is an illustrative example (which
+will not work, since the <I>version</I> has been introduced more recently):
 </P>
 <PRE>if $(version<20140513) then "communicate vel yes" else "comm_modify vel yes" 
 </PRE>
@@ -786,6 +790,64 @@ returned the first time the next() function is invoked.  If next() is
 invoked more times than there are lines or sets of lines in the file,
 the variable is deleted, similar to how the <A HREF = "next.html">next</A> command
 operates.
+</P>
+<HR>
+
+<H4>Feature Functions 
+</H4>
+<P>Feature functions allow to probe the running LAMMPS executable for
+whether specific features are either active, defined, or available.
+The functions take two arguments, a <I>category</I> and a corresponding
+<I>argument</I>. The arguments are strings thus cannot be formulas
+themselves (only $-style immediate variable expansion is possible).
+Return value is either 1.0 or 0.0 depending on whether the function
+evaluates to true or false, respectively.
+</P>
+<P>The <I>is_active()</I> function allows to query for active settings which
+are grouped by categories. Currently supported categories and
+arguments are:
+</P>
+<UL><LI><I>package</I> (argument = <I>cuda</I> or <I>gpu</I> or <I>intel</I> or <I>kokkos</I> or <I>omp</I>)
+<LI><I>newton</I> (argument = <I>pair</I> or <I>bond</I> or <I>any</I>)
+<LI><I>pair</I> (argument = <I>single</I> or <I>respa</I> or <I>manybody</I> or <I>tail</I> or <I>shift</I>)
+<LI><I>comm_style</I> (argument = <I>brick</I> or <I>tiled</I>)
+<LI><I>min_style</I> (argument = any of the compiled in minimizer styles)
+<LI><I>run_style</I> (argument = any of the compiled in run styles)
+<LI><I>atom_style</I> (argument = any of the compiled in atom styles)
+<LI><I>pair_style</I> (argument = any of the compiled in pair styles)
+<LI><I>bond_style</I> (argument = any of the compiled in bond styles)
+<LI><I>angle_style</I> (argument = any of the compiled in angle styles)
+<LI><I>dihedral_style</I> (argument = any of the compiled in dihedral styles)
+<LI><I>improper_style</I> (argument = any of the compiled in improper styles)
+<LI><I>kspace_style</I> (argument = any of the compiled in kspace styles) 
+</UL>
+<P>Most of the settings are self-explanatory, the <I>single</I> argument in the
+<I>pair</I> category allows to check whether a pair style supports a
+Pair::single() function as needed by compute group/group and others
+features or LAMMPS, <I>respa</I> allows to check whether the inner/middle/outer
+mode of r-RESPA is supported. In the various style categories,
+the checking is also done using suffix flags, if available and enabled.
+</P>
+<P>Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
+</P>
+<PRE>pair_style lj/cut/coul/long 14.0
+if $(is_active(package,gpu)) then "suffix off"
+kspace_style pppm 
+</PRE>
+<P>Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
+</P>
+<PRE>timestep $(2.0*(1.0+*is_active(pair,respa))
+if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3" 
+</PRE>
+<P>The <I>is_defined()</I> function allows to query categories like <I>compute</I>,
+<I>dump</I>, <I>fix</I>, <I>group</I>, <I>region</I>, and <I>variable</I> whether an entry
+with the provided name or id is defined.
+</P>
+<P>The <I>is_available()</I> function allows to query whether a specific
+optional feature is available, i.e. compiled in. This currently
+works for the following categories: <I>command</I>, <I>compute</I>, <I>fix</I>,
+and <I>pair_style</I>. For all categories except <I>command</I> also appending
+active suffixes is tried before reporting failure.
 </P>
 <HR>
 

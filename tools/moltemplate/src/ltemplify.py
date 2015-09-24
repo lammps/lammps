@@ -670,9 +670,10 @@ try:
                     # avec, bvec, cvec are the axis of the parallelepiped which
                     # define the simulation's boundary. They are described here:
                     #http://lammps.sandia.gov/doc/Section_howto.html#howto-12
-                    if ((not boundary_xlo) or (not boundary_xhi) or
-                        (not boundary_ylo) or (not boundary_yhi) or
-                        (not boundary_zlo) or (not boundary_zhi)):
+                    if ((boundary_xlo==None) or (boundary_xhi==None) or
+                        (boundary_ylo==None) or (boundary_yhi==None) or
+                        (boundary_zlo==None) or (boundary_zhi==None)):
+
                         raise InputError('Error: The DATA file lacks a boundary-box header.  You must specify:\n'
                                      '       xlo xhi ylo yhi zlo zhi   (and xy xz yz if triclinic)\n'
                                      '       These numbers should appear before the \"Atoms\" section.\n'
@@ -823,14 +824,14 @@ try:
                         # Read the next line of text but don't skip comments
                         comment_char_backup = lex.commenters
                         lex.commenters = ''
-                        line_orig = lex.ReadLine()
+                        line = lex.ReadLine()
                         lex.commenters = comment_char_backup
 
                         comment_text = ''
-                        ic = line_orig.find('#')
+                        ic = line.find('#')
                         if ic != -1:
-                            line = line_orig[:ic]
-                            comment_text = line_orig[ic+1:].strip()
+                            line = line[:ic]
+                            comment_text = line[ic+1:].strip()
                         line = line.rstrip()
 
                         if line.strip() in data_file_header_names:

@@ -46,6 +46,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
        $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o \
+       $(OBJ_DIR)/lal_eam_fs_ext.o $(OBJ_DIR)/lal_eam_alloy_ext.o \
        $(OBJ_DIR)/lal_buck.o $(OBJ_DIR)/lal_buck_ext.o \
        $(OBJ_DIR)/lal_buck_coul.o $(OBJ_DIR)/lal_buck_coul_ext.o \
        $(OBJ_DIR)/lal_buck_coul_long.o $(OBJ_DIR)/lal_buck_coul_long_ext.o \
@@ -121,11 +122,10 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/lj_gromacs.cubin $(OBJ_DIR)/lj_gromacs_cubin.h \
        $(OBJ_DIR)/dpd.cubin $(OBJ_DIR)/dpd_cubin.h \
        $(OBJ_DIR)/tersoff.cubin $(OBJ_DIR)/tersoff_cubin.h \
-	     $(OBJ_DIR)/coul.cubin $(OBJ_DIR)/coul_cubin.h \
+       $(OBJ_DIR)/coul.cubin $(OBJ_DIR)/coul_cubin.h \
        $(OBJ_DIR)/coul_debye.cubin $(OBJ_DIR)/coul_debye_cubin.h \
        $(OBJ_DIR)/zbl.cubin $(OBJ_DIR)/zbl_cubin.h \
        $(OBJ_DIR)/lj_cubic.cubin $(OBJ_DIR)/lj_cubic_cubin.h
-
 
 all: $(OBJ_DIR) $(GPU_LIB) $(EXECS)
 
@@ -422,6 +422,12 @@ $(OBJ_DIR)/lal_eam.o: $(ALL_H) lal_eam.h lal_eam.cpp $(OBJ_DIR)/eam_cubin.h $(OB
 
 $(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_atomic.h
 	$(CUDR) -o $@ -c lal_eam_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_fs_ext.o: $(ALL_H) lal_eam.h lal_eam_fs_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_eam_fs_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_alloy_ext.o: $(ALL_H) lal_eam.h lal_eam_alloy_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_eam_alloy_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/buck.cubin: lal_buck.cu lal_precision.h lal_preprocessor.h
 	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_buck.cu

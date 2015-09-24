@@ -12,12 +12,16 @@ See these sections of the LAMMPS manaul for details:
 6.10 Coupling LAMMPS to other codes (doc/Section_howto.html#howto_10)
 
 In all of the examples included here, LAMMPS must first be built as a
-library.  Basically, you type something like
+library.  Basically, in the src dir you type one of
 
-make makelib
-make -f Makefile.lib g++
+make mode=lib machine
+make mode=shlib machine
 
-in the LAMMPS src directory to create liblammps_g++.a
+to create the static library liblammps_machine.a or the shared library
+liblammps_machine.so for your code to link against.  A soft link
+(liblammps.a or liblammps.so) is also created that points to the most
+recently built static or shared library.  Your code can simply use the
+soft link if you prefer.
 
 The library interface to LAMMPS is in src/library.cpp.  Routines can
 be easily added to this file so an external program can perform the
@@ -27,11 +31,12 @@ LAMMPS tasks desired.
 
 These are the sub-directories included in this directory:
 
+simple		    simple example of driver code calling LAMMPS as a lib
+multiple	    example of driver code calling multiple instances of LAMMPS
 lammps_quest	    MD with quantum forces, coupling to Quest DFT code
 lammps_spparks	    grain-growth Monte Carlo with strain via MD,
 		    coupling to SPPARKS kinetic MC code
 library		    collection of useful inter-code communication routines
-simple		    simple example of driver code calling LAMMPS as library
 fortran             a simple wrapper on the LAMMPS library API that
  		      can be called from Fortran
 fortran2            a more sophisticated wrapper on the LAMMPS library API that

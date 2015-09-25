@@ -25,8 +25,8 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style zbl 3.0 4.0
-pair_coeff * * 73.0
-pair_coeff 1 1 14.0 
+pair_coeff * * 73.0 73.0
+pair_coeff 1 1 14.0 14.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -45,17 +45,23 @@ two atoms.  The switching function S(r) is identical to that used by
 <A HREF = "pair_gromacs.html">pair_style lj/gromacs</A>.  Here, the inner and outer
 cutoff are the same for all pairs of atom types.
 </P>
-<P>The following coefficient must be defined for each pair of atom types
+<P>The following coefficients must be defined for each pair of atom types
 via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
-or in the LAMMPS data file.  Z can not be specified for two different
-atoms types.  Therefore the lists of atom types I and atom types J
-must match.
+or in the LAMMPS data file.
 </P>
-<UL><LI>Z (multiples of proton charge, e.g. 13.0 for aluminum) 
+<UL><LI>Z_i (atomic number for first atom type, e.g. 13.0 for aluminum) 
 </UL>
-<P>Although Z must be defined for all atom type pairs I,J, it is only
-stored for individual atom types, i.e. when I = J.  Z is normally equal
-to the atomic number of the atom type.
+<UL><LI>Z_j (ditto for second atom type) 
+</UL>
+<P>The values of Z_i and Z_j are normally equal to the atomic 
+numbers of the two atom types. Thus, the user may optionally
+specify only the coefficients for each I==I pair, and rely
+on the obvious mixing rule for cross interactions (see below).
+Note that when I==I it is required that Z_i == Z_j. When used
+with <A HREF = "pair_hybrid.html">hybrid/overlay</A> and pairs are assigned
+to more than one sub-style, the mixing rule is not used and
+each pair of types interacting with the ZBL sub-style must
+be included in a pair_coeff command.
 </P>
 <P>IMPORTANT NOTE: The numerical values of the exponential decay
 constants in the screening function depend on the unit of distance. In
@@ -92,9 +98,15 @@ more instructions on how to use the accelerated styles effectively.
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>Mixing is not relevant for this pair style, since as explained above,
-Z values are stored on a per-type basis, and both Zi and Zj are used
-explicitly in the ZBL formula.
+<P>For atom type pairs I,J and I != J, the Z_i and Z_j coefficients
+can be mixed by taking Z_i and Z_j from the values specified for
+I == I and J == J cases. When used
+with <A HREF = "pair_hybrid.html">hybrid/overlay</A> and pairs are assigned
+to more than one sub-style, the mixing rule is not used and
+each pair of types interacting with the ZBL sub-style 
+must be included in a pair_coeff command.
+The <A HREF = "pair_modify.html">pair_modify</A> mix option has no effect on
+the mixing behavior
 </P>
 <P>The ZBL pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
 shift option, since the ZBL interaction is already smoothed to 0.0 at

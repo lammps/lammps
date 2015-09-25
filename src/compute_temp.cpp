@@ -44,7 +44,8 @@ ComputeTemp::ComputeTemp(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTemp::~ComputeTemp()
 {
-  delete [] vector;
+  if (!copymode)
+    delete [] vector;
 }
 
 /* ---------------------------------------------------------------------- */

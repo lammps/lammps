@@ -101,6 +101,12 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
 
+  execution_space = Host;
+  datamask_read = ALL_MASK;
+  datamask_modify = ALL_MASK;
+
+  copymode = 0;
+
   // force init to zero in case these are used as logicals
 
   vector = vector_atom = vector_local = NULL;
@@ -111,6 +117,8 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 Compute::~Compute()
 {
+  if (copymode) return;
+
   delete [] id;
   delete [] style;
   memory->destroy(tlist);

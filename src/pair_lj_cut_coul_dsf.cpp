@@ -212,11 +212,12 @@ void PairLJCutCoulDSF::allocate()
 
 void PairLJCutCoulDSF::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
   alpha = force->numeric(FLERR,arg[0]);
   cut_lj_global = force->numeric(FLERR,arg[1]);
-  cut_coul = force->numeric(FLERR,arg[2]);
+  if (narg == 2) cut_coul = cut_lj_global;
+  else cut_coul = force->numeric(FLERR,arg[2]);
   
   // reset cutoffs that have been explicitly set
 

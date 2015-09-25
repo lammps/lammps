@@ -8,11 +8,14 @@
 
 fix nvt command :h3
 fix nvt/cuda command :h3
+fix nvt/kk command :h3
 fix nvt/omp command :h3
 fix npt command :h3
 fix npt/cuda command :h3
+fix npt/kk command :h3
 fix npt/omp command :h3
 fix nph command :h3
+fix nph/kk command :h3
 fix nph/omp command :h3
 
 [Syntax:]

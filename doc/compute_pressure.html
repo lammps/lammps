@@ -181,7 +181,7 @@ compute temperature or ke and/or the virial.  The <em>virial</em> keyword
 means include all terms except the kinetic energy <em>ke</em>.</p>
 <p>Details of how LAMMPS computes the virial efficiently for the entire
 system, including the effects of periodic boundary conditions is
-discussed in <a class="reference internal" href="compute_stress_atom.html#thompson"><span>(Thompson)</span></a>.</p>
+discussed in <a class="reference internal" href="#thompson"><span>(Thompson)</span></a>.</p>
 <p>The temperature and kinetic energy tensor is not calculated by this
 compute, but rather by the temperature compute specified with the
 command.  If the kinetic energy is not included in the pressure, than
@@ -205,14 +205,16 @@ LAMMPS starts up, as if this command were in the input script:</p>
 <p>where &#8220;thermo_temp&#8221; is the ID of a similarly defined compute of style
 &#8220;temp&#8221;.  See the &#8220;thermo_style&#8221; command for more details.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em> suffix are functionally the same as the
-corresponding style without the suffix.  They have been optimized to
-run faster, depending on your available hardware, as discussed in
-<a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual.  The
-accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.</p>
-<p>These accelerated styles are part of the USER-CUDA package.  They are
-only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>

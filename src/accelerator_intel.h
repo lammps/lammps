@@ -34,15 +34,15 @@
   template <class flt_t, class acc_t>
   void bin_atoms(void *, int *);
 
-  template <class flt_t, class acc_t, int>
+  template <class flt_t, class acc_t, int, int>
   void hbni(const int, NeighList *, void *, const int, const int, void *,
 	    const int offload_end = 0);
-  template <class flt_t, class acc_t>
-  void hbnni(const int, NeighList *, void *, const int, const int, void *);
   template <class flt_t, class acc_t, int>
+  void hbnni(const int, NeighList *, void *, const int, const int, void *);
+  template <class flt_t, class acc_t, int, int>
   void hbnti(const int, NeighList *, void *, const int, const int, void *,
 	     const int offload_end = 0);
-  template <class flt_t, class acc_t, int>
+  template <class flt_t, class acc_t, int, int>
   void fbi(const int, NeighList *, void *, const int, const int, void *,
 	   const int offload_end = 0);
 

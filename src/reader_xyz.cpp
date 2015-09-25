@@ -59,7 +59,8 @@ int ReaderXYZ::read_time(bigint &ntimestep)
 
   // first line has to have the number of atoms
   // truncate the string to the first whitespace,
-  // so force->bnumeric() does not abend.
+  //   so force->bnumeric() does not hiccup
+
   for (int i=0; (i < MAXLINE) && (eof[i] != '\0'); ++i) {
     if (eof[i] == '\n' || eof[i] == '\r' || eof[i] == ' ' || eof[i] == '\t') {
       eof[i] = '\0';

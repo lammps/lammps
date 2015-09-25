@@ -196,7 +196,7 @@ following kinds of hardware:</p>
 <li>GPU: on the GPUs of a node with additional OpenMP threading on the CPUs</li>
 </ul>
 <p>Kokkos support within LAMMPS must be built with a C++11 compatible
-compiler.  For example, gcc 4.7.2 or later.</p>
+compiler.  If using gcc, version 4.8.1 or later is required.</p>
 <p>Note that Intel Xeon Phi coprocessors are supported in &#8220;native&#8221; mode,
 not &#8220;offload&#8221; mode like the USER-INTEL package supports.</p>
 <p>Only NVIDIA GPUs are currently supported.</p>
@@ -207,7 +207,7 @@ you must have Kepler generation GPUs (or later).  The Kokkos library
 exploits texture cache options not supported by Telsa generation GPUs
 (or older).</p>
 </div>
-<p>To build the KOKKOS package for GPUs, NVIDIA Cuda software must be
+<p>To build the KOKKOS package for GPUs, NVIDIA Cuda software version 6.5 or later must be
 installed on your system.  See the discussion above for the USER-CUDA
 and GPU packages for details of how to check and do this.</p>
 <p><strong>Building LAMMPS with the KOKKOS package:</strong></p>

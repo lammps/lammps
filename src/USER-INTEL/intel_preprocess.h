@@ -15,6 +15,10 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#ifdef __INTEL_COMPILER
+#define LMP_SIMD_COMPILER
+#endif
+
 #ifdef __INTEL_OFFLOAD
 #ifdef LMP_INTEL_OFFLOAD
 #define _LMP_INTEL_OFFLOAD
@@ -38,7 +42,7 @@
 #define _use_omp_pragma(txt)
 #endif
 
-#if defined(__INTEL_COMPILER)
+#if defined(LMP_SIMD_COMPILER)
 #define _use_simd_pragma(txt) _Pragma(txt)
 #else
 #define _use_simd_pragma(txt)
@@ -53,11 +57,33 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
       TIME_IMBALANCE};
 #define NUM_ITIMERS ( TIME_IMBALANCE + 1 )
 
+#define INTEL_MIC_VECTOR_WIDTH 16
+#define INTEL_VECTOR_WIDTH 4
+#ifdef __AVX__
+#undef INTEL_VECTOR_WIDTH
+#define INTEL_VECTOR_WIDTH 8
+#endif
+#ifdef __AVX2__
+#undef INTEL_VECTOR_WIDTH
+#define INTEL_VECTOR_WIDTH 8
+#endif
+#ifdef __AVX512F__
+#undef INTEL_VECTOR_WIDTH
+#define INTEL_VECTOR_WIDTH 16
+#define INTEL_V512 1
+#define INTEL_VMASK 1
+#else
+
+#ifdef __MIC__
+#define INTEL_V512 1
+#define INTEL_VMASK 1
+#endif
+
+#endif
+
 #define INTEL_DATA_ALIGN 64
 #define INTEL_ONEATOM_FACTOR 2
-#define INTEL_MIC_VECTOR_WIDTH 16
 #define INTEL_MIC_NBOR_PAD INTEL_MIC_VECTOR_WIDTH
-#define INTEL_VECTOR_WIDTH 8
 #define INTEL_NBOR_PAD INTEL_VECTOR_WIDTH
 #define INTEL_LB_MEAN_WEIGHT 0.1
 #define INTEL_BIGP 1e15

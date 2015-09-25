@@ -421,7 +421,6 @@ void Update::reset_timestep(bigint newstep)
 {
   ntimestep = newstep;
   if (ntimestep < 0) error->all(FLERR,"Timestep must be >= 0");
-  if (ntimestep > MAXBIGINT) error->all(FLERR,"Too big a timestep");
 
   // set atimestep to new timestep
   // so future update_time() calls will be correct

@@ -5395,14 +5395,8 @@ void PairBOP::read_table(char *filename)
               gfunc6[j][i][k][n]=gfunc6[k][i][j][n];
             }
           } else {
-            if(nws==3) {
-              for(n=0;n<npower+1;n++) {
-                gpara[j][i][k][n]=gpara[k][i][j][n];
-              } 
-            } else {
-              for(n=0;n<npower+1;n++) {
-                gpara[j][i][k][n]=gpara[k][i][j][n];
-              } 
+            for(n=0;n<npower+1;n++) {
+              gpara[j][i][k][n]=gpara[k][i][j][n];
             } 
           } 
         } 
@@ -5754,11 +5748,8 @@ double PairBOP::memory_usage()
 
 void PairBOP::memory_theta_create()
 {
-  if(maxneigh<8)
-    neigh_ct=(maxneigh-1)*(maxneigh-1)*(maxneigh-1);
-  else
-    neigh_ct=(maxneigh-1)*(maxneigh-1)*(maxneigh-1);
-  if(neigh_ct<0) neigh_ct=0;
+  neigh_ct=(maxneigh-1)*(maxneigh-1)*(maxneigh-1);
+  if(neigh_ct<1) neigh_ct=1;
   memory->create(itypeSigBk,neigh_ct,"itypeSigBk");
   memory->create(itypePiBk,neigh_ct,"itypePiBk");
   memory->create(neigh_flag,neigh_total,"neigh_flag");
@@ -5784,11 +5775,8 @@ void PairBOP::memory_theta_create()
 
 void PairBOP::memory_theta_grow()
 {
-  if(maxneigh<8)
-    neigh_ct=(maxneigh-1)*(maxneigh-1)*(maxneigh-1);
-  else
-    neigh_ct=(maxneigh-1)*(maxneigh-1)*(maxneigh-1);
-  if(neigh_ct<0) neigh_ct=0;
+  neigh_ct=(maxneigh-1)*(maxneigh-1)*(maxneigh-1);
+  if(neigh_ct<1) neigh_ct=1;
   memory->grow(itypeSigBk,neigh_ct,"itypeSigBk");
   memory->grow(itypePiBk,neigh_ct,"itypePiBk");
   memory->grow(neigh_flag,neigh_total,"neigh_flag");

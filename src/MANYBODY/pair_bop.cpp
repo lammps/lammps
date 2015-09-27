@@ -913,10 +913,6 @@ void PairBOP::gneigh()
         if(i12>=npairs) {
           error->one(FLERR,"Too many atom pairs for pair bop");
         }
-        ps=rij[temp_ij];
-        ps=rdr[i12];
-        ps=pBetaS1[i12][ks-1];
-        ps=pBetaS[i12][ks-1];
         ps=rij[temp_ij]*rdr[i12]+1.0;
         ks=(int)ps;
         if(nr-1<ks)
@@ -1052,10 +1048,6 @@ void PairBOP::theta()
         neigh_flag3[temp_ij]=1;
       else
         neigh_flag3[temp_ij]=0;
-      ps=rij[temp_ij];
-      ps=rdr[i12];
-      ps=pBetaS1[i12][ks-1];
-      ps=pBetaS[i12][ks-1];
       ps=rij[temp_ij]*rdr[i12]+1.0;
       ks=(int)ps;
       if(nr-1<ks)

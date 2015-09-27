@@ -4966,8 +4966,8 @@ double PairBOP::PiBo(int itmp, int jtmp)
           }
         }
       }
-  return(piB);
   destroy_pi();
+  return(piB);
 }
 
 /* ----------------------------------------------------------------------

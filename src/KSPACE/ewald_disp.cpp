@@ -52,7 +52,7 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   ewaldflag = dispersionflag = dipoleflag = 1;
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
-  memset(function, 0, EWALD_NORDER*sizeof(int));
+  memset(function, 0, EWALD_NFUNCS*sizeof(int));
   kenergy = kvirial = NULL;
   cek_local = cek_global = NULL;
   ekr_local = NULL;

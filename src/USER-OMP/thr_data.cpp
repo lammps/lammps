@@ -156,9 +156,10 @@ void ThrData::init_eim(int nall, double *rho, double *fp)
 {
   init_eam(nall, rho);
 
-  if (nall >= 0 && fp)
+  if (nall >= 0 && fp) {
     _fp = fp + _tid*nall;
     memset(_fp,0,nall*sizeof(double));
+  }
 }
 
 /* ----------------------------------------------------------------------

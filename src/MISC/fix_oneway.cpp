@@ -43,7 +43,7 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (nevery < 1) error->all(FLERR,"Illegal fix oneway command");
 
   int len = strlen(arg[4]);
-  regionstr = new char[len];
+  regionstr = new char[len+1];
   strcpy(regionstr,arg[4]);
 
   if (strcmp(arg[5], "x") == 0) direction = X|PLUS;

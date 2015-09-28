@@ -212,13 +212,10 @@ one individual histogram, due to the way the <em>itypeN</em> and <em>jtypeN</em>
 arguments are specified.</p>
 <p>The g(r) value for a bin is calculated from the histogram count by
 scaling it by the idealized number of how many counts there would be
-if atoms of type <em>jtypeN</em> were uniformly distributed.  Thus it involves
-the count of <em>itypeN</em> atoms, the count of <em>jtypeN</em> atoms, the volume
-of the entire simulation box, and the volume of the bin&#8217;s thin shell
-in 3d (or the area of the bin&#8217;s thin ring in 2d). The normalization
-is corrected for finite size effects so that the large <em>r</em> limit for
-a homogeneous liquid system of a single atom type becomes exactly 1.0
-(without the correction it would be (natoms-1)/natoms).</p>
+if atoms of type <em>jtypeN</em> were uniformly distributed.  Thus it
+involves the count of <em>itypeN</em> atoms, the count of <em>jtypeN</em> atoms, the
+volume of the entire simulation box, and the volume of the bin&#8217;s thin
+shell in 3d (or the area of the bin&#8217;s thin ring in 2d).</p>
 <p>A coordination number coord(r) is also calculated, which is the number
 of atoms of type <em>jtypeN</em> within the current bin or closer, averaged
 over atoms of type <em>itypeN</em>.  This is calculated as the area- or

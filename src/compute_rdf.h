@@ -45,6 +45,7 @@ class ComputeRDF : public Compute {
 
   int *typecount;
   int *icount,*jcount;
+  int *duplicates;
 
   class NeighList *list; // half neighbor list
 };

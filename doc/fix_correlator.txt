@@ -1,0 +1,129 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix correlator command :h3
+
+[Syntax:]
+
+fix ID group-ID correlator Nevery Nfreq value1 value2 ... keyword args ... 
+ID, group-ID are documented in fix command
+correlator = style name of this fix command
+Nevery = use input values every this many timesteps
+Nfreq = Save the state of the time correlation functions every this many timesteps
+one or more input values can be listed
+value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
+  c_ID = global scalar calculated by a compute with ID
+  c_ID[I] = Ith component of global vector calculated by a compute with ID
+  f_ID = global scalar calculated by a fix with ID
+  f_ID[I] = Ith component of global vector calculated by a fix with ID
+  v_name = global value calculated by an equal-style variable with name 
+zero or more keyword/arg pairs may be appended
+keyword = type or start or ncorr or p or m or file or overwrite or title1 or title2
+  type arg = auto or upper or lower or auto/upper or auto/lower or full
+    auto = correlate each value with itself
+    upper = correlate each value with each succeeding value
+    lower = correlate each value with each preceding value
+    auto/upper = auto + upper
+    auto/lower = auto + lower
+    full = correlate each value with every other value, including itself = auto + upper + lower
+  start args = Nstart
+    Nstart = start accumulating correlations on this timestep
+  ncorr args = Ncorrelators
+    Ncorrelators = Number of correlators to store
+  p args = P
+    P = Length of each correlator
+  m args = M
+    M = Number of values over which succesive correlators are averaged
+  file arg = filename
+    filename = name of file to output correlation data to
+  overwrite arg = none = overwrite output file with only latest output
+  title1 arg = string
+    string = text to print as 1st line of output file
+  title2 arg = string
+    string = text to print as 2nd line of output file
+    
+[Examples:]
+
+fix 1 all correlator 5 1000 c_myTemp file temp.correlate
+fix 1 all correlator 1 10000 &
+          c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &
+	  type upper title1 "My correlation data" p 15 m 3
+
+[Description:]
+
+This fix is similar in spirit and syntax to the fix ave/correlate. However,
+this method allows the efficient calculation of time correlation functions
+on the fly over extremely long time windows without too much CPU overhead,
+using a multiple-tau method "(Ramirez)"_#Ramirez that decreases the
+resolution of the stored correlation function with time. The resulting time
+correlation functions can be stored to a file periodically.
+
+Each listed value can be the result of a compute or fix or the evaluation
+of an equal-style variable. See the fix ave/correlate help for more info.
+
+The input values must either be all scalars. What kinds of correlations
+between input values are calculated is determined by the type keyword as in
+the fix ave/correlate.
+
+The {Nevery} and {Nfreq} arguments specify on what timesteps the input
+values will be used to calculate correlation data, and the frequency with
+which the time correlation functions will be output to a file.
+
+The {ncorr}, {p} and {m} arguments determine the number of correlation
+points calculated and the memory and CPU overhead due to this
+calculation. {p} and {m} affect the amount of averaging done at longer
+correlation times. The default values {p=16}, {m=2} ensure that the
+systematic error of the multiple-tau correlator is always below the level
+of the statistical error of a typical simulation (which depends on the
+ensemble size and the simulation length).
+
+The maximum correlation time (in time steps) that can be reached is given
+by the formula (p-1) * m^(ncorr-1). Longer correlation times are discarded
+and not calculated. With the default values of the parameters (ncorr=20,
+p=16 and m=2), it corresponds to 7864320 time steps. If longer correlation
+times are needed, the value of ncorr should be increased. Using p=16 and
+m=2, if ncorr=30, the maximum number of steps that can be correlated is
+80530636808. If ncorr=40, correlation times in exceed of than 8e12 time
+steps can be calculated.
+
+The total memory needed for each correlation pair is roughly 4*ncorr*p*8
+bytes. With the default values of the parameters, it corresponds to 10kB.
+
+Additional optional keywords also affect the operation of this fix. See
+"fix ave/correlate"_fix_ave_correlate.html for info on type, start, file,
+overwrite, title1 and title2 arguments.
+
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+Since this fix in intended for the calculation of time correlation
+functions over very long MD simulations, the information about this fix is
+written automatically to binary restart files, so that the time correlation
+calculation can continue in subsequent simulations. None of the fix_modify
+options are relevant to this fix.
+
+No parameter of this fix can be used with the start/stop keywords of the run command. This fix is not invoked during energy minimization.
+
+[Restrictions:]
+
+This compute is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"fix ave/correlate"_fix_ave_correlate.html
+
+[Default:] none
+
+The default options are type = auto, start = 0, no file output, title 1,2 =
+strings as described in fix ave/correlate, ncorr=20, p=16, m=2, do not
+overwrite results file.
+
+:link(Ramirez)
+[(Ramirez)] J. Ramirez, S.K. Sukumaran, B. Vorselaars and A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).

@@ -277,24 +277,24 @@ void ComputeRDF::compute_array()
   // npairs = number of pairs, corrected for duplicates
   // duplicates = pairs in which both atoms are the same
 
-  double constant,vfrac,gr,ncoord,rlower,rupper;
-  int pairtot;
+  double constant,vfrac,gr,ncoord,rlower,rupper,normfac;
 
   if (domain->dimension == 3) {
     constant = 4.0*MY_PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
 
     for (m = 0; m < npairs; m++) {
+      normfac = (icount[m] > 0) ? static_cast<double>(jcount[m])
+                - static_cast<double>(duplicates[m])/icount[m] : 0.0;
       ncoord = 0.0;
       for (ibin = 0; ibin < nbin; ibin++) {
         rlower = ibin*delr;
         rupper = (ibin+1)*delr;
         vfrac = constant * (rupper*rupper*rupper - rlower*rlower*rlower);
-        pairtot = icount[m] * jcount[m] - duplicates[m];
-        if (vfrac * pairtot != 0.0)
-          gr = histall[m][ibin] / (vfrac * pairtot);
+        if (vfrac * normfac != 0.0)
+          gr = histall[m][ibin] / (vfrac * normfac * icount[m]);
         else gr = 0.0;
         if (icount[m] != 0)
-          ncoord += gr * vfrac * pairtot / icount[m];
+          ncoord += gr * vfrac * normfac;
         array[ibin][1+2*m] = gr;
         array[ibin][2+2*m] = ncoord;
       }
@@ -305,16 +305,17 @@ void ComputeRDF::compute_array()
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;
+      normfac = (icount[m] > 0) ? static_cast<double>(jcount[m])
+                - static_cast<double>(duplicates[m])/icount[m] : 0.0;
       for (ibin = 0; ibin < nbin; ibin++) {
         rlower = ibin*delr;
         rupper = (ibin+1)*delr;
         vfrac = constant * (rupper*rupper - rlower*rlower);
-        pairtot = icount[m] * jcount[m] - duplicates[m];
-        if (vfrac * pairtot != 0.0)
-          gr = histall[m][ibin] / (vfrac * pairtot);
+        if (vfrac * normfac != 0.0)
+          gr = histall[m][ibin] / (vfrac * normfac * icount[m]);
         else gr = 0.0;
         if (icount[m] != 0)
-          ncoord += gr * vfrac * pairtot / icount[m];
+          ncoord += gr * vfrac * normfac;
         array[ibin][1+2*m] = gr;
         array[ibin][2+2*m] = ncoord;
       }

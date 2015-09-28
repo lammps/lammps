@@ -187,8 +187,8 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[1],"all"))
     error->warning(FLERR,"Fix ipi always uses group all");
 
-  strcpy(host, arg[3]);
-  port=force->inumeric(FLERR,arg[4]);
+  host = strdup(arg[3]);
+  port = force->inumeric(FLERR,arg[4]);
 
   inet   = ((narg > 5) && (strcmp(arg[5],"unix") ==0) ) ? 0 : 1;
   master = (comm->me==0) ? 1 : 0;
@@ -218,6 +218,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
 FixIPI::~FixIPI()
 {
   if (bsize) delete[] buffer;
+  free(host);
   modify->delete_compute("IPI_TEMP");
   modify->delete_compute("IPI_PRESS");
 }

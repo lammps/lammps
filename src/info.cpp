@@ -547,7 +547,7 @@ bool Info::is_available(const char *category, const char *name)
   int match = 0;
 
   if (strcmp(category,"command") == 0) {
-    if (input->command_map->find(name) != input->command_map->end());
+    if (input->command_map->find(name) != input->command_map->end())
       match = 1;
 
   } else if (strcmp(category,"compute") == 0) {

@@ -107,7 +107,7 @@ void Temper::command(int narg, char **arg)
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
   lmp->init();

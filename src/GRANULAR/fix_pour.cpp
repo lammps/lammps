@@ -671,7 +671,7 @@ void FixPour::pre_exchange()
 
   if (ninserted_atoms) {
     atom->natoms += ninserted_atoms;
-    if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+    if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
       atom->nbonds += onemols[imol]->nbonds * ninserted_mols;

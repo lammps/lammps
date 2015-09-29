@@ -1309,7 +1309,7 @@ void FixGCMC::attempt_molecule_insertion()
       fixshake->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
 
     atom->natoms += natoms_per_molecule;
-    if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+    if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
     atom->nbonds += onemols[imol]->nbonds;
     atom->nangles += onemols[imol]->nangles;
@@ -1958,7 +1958,7 @@ void FixGCMC::attempt_molecule_insertion_full()
     fixshake->set_molecule(nlocalprev,maxtag_all,imol,com_coord,vnew,quat);
 
   atom->natoms += natoms_per_molecule;
-  if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+  if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");
   atom->nbonds += onemols[imol]->nbonds;
   atom->nangles += onemols[imol]->nangles;

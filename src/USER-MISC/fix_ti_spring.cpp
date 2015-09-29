@@ -76,8 +76,8 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   t_switch = atoi(arg[4]); // Switching time.
   t_equil = atoi(arg[5]);  // Equilibration time.
   t0 = update->ntimestep;  // Initial time.
-  if (t_switch < 0.0) error->all(FLERR,"Illegal fix ti/spring command");
-  if (t_equil  < 0.0) error->all(FLERR,"Illegal fix ti/spring command");
+  if (t_switch <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
+  if (t_equil  <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
 
   // Coupling parameter initialization.
   sf = 1;

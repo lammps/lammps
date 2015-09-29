@@ -330,6 +330,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
 		int nall, countall;
 		MPI_Allreduce(&n, &nall, 1, MPI_INT, MPI_SUM, world);
 		MPI_Allreduce(&count, &countall, 1, MPI_INT, MPI_SUM, world);
+                if (countall < 1) countall = 1;
 
 		if (comm->me == 0) {
 			if (screen) {

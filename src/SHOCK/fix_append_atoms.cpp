@@ -506,7 +506,7 @@ void FixAppendAtoms::pre_exchange()
     if (addtotal) {
       domain->reset_box();
       atom->natoms += addtotal;
-      if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+      if (atom->natoms < 0)
         error->all(FLERR,"Too many total atoms");
       if (atom->tag_enable) atom->tag_extend();
       if (atom->map_style) {

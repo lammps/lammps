@@ -479,7 +479,7 @@ void FixCorrelator::end_of_step()
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 

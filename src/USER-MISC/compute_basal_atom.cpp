@@ -243,7 +243,7 @@ void ComputeBasalAtom::compute_peratom()
             j1[1]=2;
             j1[2]=2;
           }
-          xmean5 = ymean5 = zmean5 = xmean6 = ymean6 = zmean6 = xmean7 = ymean7 = zmean7 = 0;
+          xmean5 = ymean5 = zmean5 = xmean6 = ymean6 = zmean6 = xmean7 = ymean7 = zmean7 = 0.0;
 	  for (j = 0; j < chi[0]; j++) {
             for (k = j+1; k < chi[0]; k++) {
 	       //get cross products
@@ -261,27 +261,29 @@ void ComputeBasalAtom::compute_peratom()
                y7[count] = y4[count]*copysign(1.0,z4[count]);
                z7[count] = z4[count]*copysign(1.0,z4[count]);
 	       //get average cross products
-               xmean5 = xmean5 + x5[count];
-               ymean5 = ymean5 + y5[count];
-               zmean5 = zmean5 + z5[count];
-               xmean6 = xmean6 + x6[count];
-               ymean6 = ymean6 + y6[count];
-               zmean6 = zmean6 + z6[count];
-               xmean7 = xmean7 + x7[count];
-               ymean7 = ymean7 + y7[count];
-               zmean6 = zmean6 + z7[count];
+               xmean5 += x5[count];
+               ymean5 += y5[count];
+               zmean5 += z5[count];
+               xmean6 += x6[count];
+               ymean6 += y6[count];
+               zmean6 += z6[count];
+               xmean7 += x7[count];
+               ymean7 += y7[count];
+               zmean6 += z7[count];
                count++;
             }
           }
-          xmean5 = xmean5/count;
-          xmean6 = xmean6/count;
-          xmean7 = xmean7/count;
-          ymean5 = ymean5/count;
-          ymean6 = ymean6/count;
-          ymean7 = ymean7/count;
-          zmean5 = zmean5/count;
-          zmean6 = zmean6/count;
-          zmean7 = zmean7/count;
+          if (count > 0) {
+            xmean5 /= count;
+            xmean6 /= count;
+            xmean7 /= count;
+            ymean5 /= count;
+            ymean6 /= count;
+            ymean7 /= count;
+            zmean5 /= count;
+            zmean6 /= count;
+            zmean7 /= count;
+          }
           var5 = var6 = var7 = 0.0;
 	  //find standard deviations
           for (j=0;j<count;j++){

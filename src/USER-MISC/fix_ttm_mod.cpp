@@ -225,6 +225,10 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   t_surface_l = surface_l;
   mult_factor = intensity;
   duration = 0.0;
+  v_0_sq = v_0*v_0;
+  // error checks
+  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
+    error->all(FLERR,"Fix ttm number of nodes must be > 0");
   surface_double = double(t_surface_l)*(domain->xprd/nxnodes);
   if ((C_limit+esheat_0) < 0.0)
     error->all(FLERR,"Fix ttm electronic_specific_heat must be >= 0.0");
@@ -234,10 +238,6 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (gamma_s < 0.0) error->all(FLERR,"Fix ttm gamma_s must be >= 0.0");
   if (v_0 < 0.0) error->all(FLERR,"Fix ttm v_0 must be >= 0.0");
   if (ionic_density <= 0.0) error->all(FLERR,"Fix ttm ionic_density must be > 0.0");
-  v_0_sq = v_0*v_0;
-  // error check
-  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
-    error->all(FLERR,"Fix ttm number of nodes must be > 0");
   if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
   if (surface_l < 0) error->all(FLERR,"Surface coordinates must be >= 0");
   if (surface_l >= surface_r) error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");

@@ -199,7 +199,7 @@ void TAD::command(int narg, char **arg)
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
   update->restrict_output = 1;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
   lmp->init();
@@ -478,7 +478,7 @@ void TAD::quench()
   update->whichflag = 2;
   update->nsteps = maxiter;
   update->endstep = update->laststep = update->firststep + maxiter;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
 
   // full init works

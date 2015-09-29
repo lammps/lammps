@@ -913,6 +913,11 @@ void DihedralTable::coeff(int narg, char **arg)
       tb->ffile[I] = ffile_tmp[i];
       I++;
     }
+
+    // clean up temporary storage
+    delete[] phifile_tmp;
+    delete[] ffile_tmp;
+    delete[] efile_tmp;
   }
 
   // spline read-in and compute r,e,f vectors within table
@@ -1339,13 +1344,13 @@ void DihedralTable::param_extract(Table *tb, char *line)
     else if (strcmp(word,"CHECKU") == 0) {
       word = strtok(NULL," \t\n\r\f");
       memory->sfree(checkU_fname);
-      memory->create(checkU_fname,strlen(word),"dihedral_table:checkU");
+      memory->create(checkU_fname,strlen(word)+1,"dihedral_table:checkU");
       strcpy(checkU_fname, word);
     }
     else if (strcmp(word,"CHECKF") == 0) {
       word = strtok(NULL," \t\n\r\f");
       memory->sfree(checkF_fname);
-      memory->create(checkF_fname,strlen(word),"dihedral_table:checkF");
+      memory->create(checkF_fname,strlen(word)+1,"dihedral_table:checkF");
       strcpy(checkF_fname, word);
     }
     // COMMENTING OUT:  equilibrium angles are not supported

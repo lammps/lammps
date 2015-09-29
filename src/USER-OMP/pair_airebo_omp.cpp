@@ -2067,19 +2067,19 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
               if (wik*wkj > best) {
                 best = wik*wkj;
                 npath = 3;
-                 atomk = k;
-                    delikS[0] = delik[0];
-                    delikS[1] = delik[1];
-                    delikS[2] = delik[2];
-                    rikS = rik;
-                    wikS = wik;
-                    dwikS = dwik;
-                    deljkS[0] = deljk[0];
-                    deljkS[1] = deljk[1];
-                    deljkS[2] = deljk[2];
-                    rkjS = rkj;
-                    wkjS = wkj;
-                    dwkjS = dwkj;
+                atomk = k;
+                delikS[0] = delik[0];
+                delikS[1] = delik[1];
+                delikS[2] = delik[2];
+                rikS = rik;
+                wikS = wik;
+                dwikS = dwik;
+                deljkS[0] = deljk[0];
+                deljkS[1] = deljk[1];
+                deljkS[2] = deljk[2];
+                rkjS = rkj;
+                wkjS = wkj;
+                dwkjS = dwkj;
                 if (best == 1.0) {
                   done = 1;
                   break;
@@ -2250,7 +2250,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
           if (vflag_atom)
             v_tally3_thr(atomi,atomj,atomk,fi,fj,delikS,deljkS,thr);
 
-        } else {
+        } else if (npath == 4) {
           fpair1 = dC*dwikS*wkmS*wmjS / rikS;
           fi[0] = delikS[0]*fpair1;
           fi[1] = delikS[1]*fpair1;

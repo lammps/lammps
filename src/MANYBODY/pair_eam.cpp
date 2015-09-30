@@ -93,6 +93,7 @@ PairEAM::~PairEAM()
       memory->destroy(funcfl[i].zr);
     }
     memory->sfree(funcfl);
+    funcfl = NULL;
   }
 
   if (setfl) {

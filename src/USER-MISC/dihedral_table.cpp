@@ -81,7 +81,7 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
                               const double offdiag[], size_t o_stride,
                               const double b[], size_t b_stride,
                               double x[], size_t x_stride,
-                              size_t N)
+                              size_t N, bool warn)
 {
   int status = GSL_SUCCESS;
   double * delta = (double *) malloc (N * sizeof (double));
@@ -91,8 +91,9 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
   double * z = (double *) malloc (N * sizeof (double));
 
   if (delta == 0 || gamma == 0 || alpha == 0 || c == 0 || z == 0) {
-    cerr << "Internal Cyclic Spline Error: failed to allocate working space\n";
-    exit(GSL_ENOMEM);
+    if (warn)
+      fprintf(stderr,"Internal Cyclic Spline Error: failed to allocate working space\n");
+    return GSL_ENOMEM;
   }
   else
     {
@@ -104,6 +105,11 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
       if (N == 1)
         {
           x[0] = b[0] / diag[0];
+          if (delta) free(delta);
+          if (gamma) free(gamma);
+          if (alpha) free(alpha);
+          if (c) free(c);
+          if (z) free(z);
           return GSL_SUCCESS;
         }
 
@@ -176,10 +182,8 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
   if (delta != 0)
     free (delta);
 
-  if (status == GSL_EZERODIV) {
-    cerr <<"Internal Cyclic Spline Error: Matrix must be positive definite.\n";
-    exit(GSL_EZERODIV);
-  }
+  if ((status == GSL_EZERODIV) && warn)
+      fprintf(stderr, "Internal Cyclic Spline Error: Matrix must be positive definite.\n");
 
   return status;
 } //solve_cyc_tridiag()
@@ -188,11 +192,11 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
    spline and splint routines modified from Numerical Recipes
 ------------------------------------------------------------------------- */
 
-static void cyc_spline(double const *xa,
-                       double const *ya,
-                       int n,
-                       double period,
-                       double *y2a)
+static int cyc_spline(double const *xa,
+                      double const *ya,
+                      int n,
+                      double period,
+                      double *y2a, bool warn)
 {
 
   double *diag    = new double[n];
@@ -234,18 +238,21 @@ static void cyc_spline(double const *xa,
                  ((ya[i] - ya[im1]) / (xa[i] - xa_im1));
   }
 
-  // Because this matix is tridiagonal (and cyclic), we can use the following
+  // Because this matrix is tridiagonal (and cyclic), we can use the following
   // cheap method to invert it.
-  solve_cyc_tridiag(diag, 1,
+  if (solve_cyc_tridiag(diag, 1,
                     offdiag, 1,
                     rhs, 1,
                     y2a, 1,
-                    n);
-
+                    n, warn) != GSL_SUCCESS) {
+    if (warn)
+      fprintf(stderr,"Error in inverting matrix for splines.\n");
+    return 1;
+  }
   delete [] diag;
   delete [] offdiag;
   delete [] rhs;
-
+  return 0;
 } // cyc_spline()
 
 /* ---------------------------------------------------------------------- */
@@ -1152,10 +1159,14 @@ void DihedralTable::spline_table(Table *tb)
   memory->create(tb->e2file,tb->ninput,"dihedral:e2file");
   memory->create(tb->f2file,tb->ninput,"dihedral:f2file");
 
-  cyc_spline(tb->phifile, tb->efile, tb->ninput, MY_2PI, tb->e2file);
+  if (cyc_spline(tb->phifile, tb->efile, tb->ninput,
+                 MY_2PI,tb->e2file,comm->me == 0))
+    error->one(FLERR,"Error computing dihedral spline tables");
 
   if (! tb->f_unspecified) {
-    cyc_spline(tb->phifile, tb->ffile, tb->ninput, MY_2PI, tb->f2file);
+    if (cyc_spline(tb->phifile, tb->ffile, tb->ninput,
+                   MY_2PI, tb->f2file, comm->me == 0))
+      error->one(FLERR,"Error computing dihedral spline tables");
   }
 
   // CHECK to help make sure the user calculated forces in a way
@@ -1307,9 +1318,9 @@ void DihedralTable::compute_table(Table *tb)
 
 
 
-  cyc_spline(tb->phi, tb->e, tablength, MY_2PI, tb->e2);
+  cyc_spline(tb->phi, tb->e, tablength, MY_2PI, tb->e2, comm->me == 0);
   if (! tb->f_unspecified)
-    cyc_spline(tb->phi, tb->f, tablength, MY_2PI, tb->f2);
+    cyc_spline(tb->phi, tb->f, tablength, MY_2PI, tb->f2, comm->me == 0);
 }
 
 

@@ -41,6 +41,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix wall/piston command");
 
   randomt = NULL;
+  gfactor1 = gfactor2 = NULL;
   tempflag = 0;
   scaleflag = 1;
   roughflag = 0;
@@ -146,6 +147,15 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
     maxvy = vy;
     maxvz = vz;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixWallPiston::~FixWallPiston()
+{
+  delete[] gfactor2;
+  delete[] gfactor1;
+  delete randomt;
 }
 
 /* ---------------------------------------------------------------------- */

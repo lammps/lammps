@@ -74,12 +74,13 @@ void PairDPDOMP::compute(int eflag, int vflag)
     nthreads = comm->nthreads;
     random_thr = new RanMars*[nthreads];
     for (int i=1; i < nthreads; ++i)
-        random_thr[i] = NULL;
+      random_thr[i] = NULL;
 
     // to ensure full compatibility with the serial DPD style
     // we use the serial random number generator instance for thread 0
     random_thr[0] = random;
   }
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
 #endif

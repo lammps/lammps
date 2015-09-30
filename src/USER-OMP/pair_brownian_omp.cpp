@@ -48,6 +48,7 @@ PairBrownianOMP::PairBrownianOMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   random_thr = NULL;
+  nthreads = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +56,7 @@ PairBrownianOMP::PairBrownianOMP(LAMMPS *lmp) :
 PairBrownianOMP::~PairBrownianOMP()
 {
   if (random_thr) {
-    for (int i=1; i < comm->nthreads; ++i)
+    for (int i=1; i < nthreads; ++i)
       delete random_thr[i];
 
     delete[] random_thr;
@@ -116,13 +117,24 @@ void PairBrownianOMP::compute(int eflag, int vflag)
       }
     }
 
+  // number of threads has changed. reallocate pool of pRNGs
+  if (nthreads != comm->nthreads) {
+    if (random_thr) {
+      for (int i=1; i < nthreads; ++i)
+        delete random_thr[i];
 
-  if (!random_thr)
+      delete[] random_thr;
+    }
+
+    nthreads = comm->nthreads;
     random_thr = new RanMars*[nthreads];
+    for (int i=1; i < nthreads; ++i)
+      random_thr[i] = NULL;
 
-  // to ensure full compatibility with the serial Brownian style
-  // we use is random number generator instance for thread 0
-  random_thr[0] = random;
+    // to ensure full compatibility with the serial Brownian style
+    // we use is random number generator instance for thread 0
+    random_thr[0] = random;
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -137,9 +149,10 @@ void PairBrownianOMP::compute(int eflag, int vflag)
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
-    if (random_thr && tid > 0)
+    if (random_thr && (tid > 0) && (random_thr[tid] == NULL))
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
                                     + comm->nprocs*tid);
+
     if (flaglog) {
       if (evflag) {
         if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);

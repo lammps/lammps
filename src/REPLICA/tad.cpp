@@ -406,7 +406,7 @@ void TAD::command(int narg, char **arg)
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
   }
 
-  if (me_universe == 0) fclose(ulogfile_neb);
+  if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
 
   if (me == 0) {
     if (screen) fprintf(screen,"\nTAD done\n");

@@ -73,7 +73,6 @@ void PairBrownianOMP::compute(int eflag, int vflag)
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
-  const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
@@ -408,8 +407,8 @@ double PairBrownianOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairBrownian::memory_usage();
-  bytes += comm->nthreads * sizeof(RanMars*);
-  bytes += comm->nthreads * sizeof(RanMars);
+  bytes += nthreads * sizeof(RanMars*);
+  bytes += nthreads * sizeof(RanMars);
 
   return bytes;
 }

@@ -245,7 +245,7 @@ void PPPMDisp::init()
   int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : NULL;
   double *p_cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : NULL;
   double *p_cutoff_lj = pair ? (double *) pair->extract("cut_LJ",tmp) : NULL;
-  if (!(ptr||*p_cutoff||*p_cutoff_lj)) 
+  if (!(ptr||p_cutoff||p_cutoff_lj))
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
   cutoff_lj = *p_cutoff_lj;

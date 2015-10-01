@@ -7,67 +7,73 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-O3 -march=native -mpc64 -fno-exceptions -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+CCFLAGS =	-O3 -g -march=native -mpc64 -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 SHFLAGS =	-fPIC
 DEPFLAGS =	-MM
 LINK =		mpic++
-LINKFLAGS =	-O 
-LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib -lstdc++
+LINKFLAGS =	-O -g -mpc64
+LIB =
+
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
 SIZE =		size
+SHLIBFLAGS =	-shared
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
 # specify settings for LAMMPS features you will use
+# if you change any -D setting, do full re-compile after "make clean"
 
-# LAMMPS ifdef options, see doc/Section_start.html
+# LAMMPS ifdef settings, OPTIONAL
+# see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 \
+	-DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG
 
-# MPI library, can be src/STUBS dummy lib
+# MPI library, REQUIRED
+# see discussion in doc/Section_start.html#2_2 (step 5)
+# can point to dummy MPI library in src/STUBS as in Makefile.serial
+# use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
 MPI_LIB =	
 
-# FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
-# INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
+# FFT library, OPTIONAL
+# see discussion in doc/Section_start.html#2_2 (step 6)
+# can be left blank to use provided KISS FFT library
+# INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -DFFT_SIZE -DFFT_SINGLE
+FFT_INC =       -DFFT_FFTW3 -DFFT_SINGLE
 FFT_PATH = 
-FFT_LIB =	-lsfftw
+FFT_LIB =	-lfftw3f
 
-# additional system libraries needed by LAMMPS package libraries
-# these settings are IGNORED if the corresponding LAMMPS package
-#   (e.g. gpu, meam) is NOT included in the LAMMPS build
-# SYSLIB = names of libraries
-# SYSPATH = paths of libraries
+# JPEG library, OPTIONAL
+# see discussion in doc/Section_start.html#2_2 (step 7)
+# only needed if -DLAMMPS_JPEG listed with LMP_INC
+# INC = path for jpeglib.h
+# PATH = path for JPEG library
+# LIB = name of JPEG library
 
-gpu_SYSLIB =       -lcudart
-meam_SYSLIB =      -lgfortran
-reax_SYSLIB =      -lgfortran
-user-atc_SYSLIB =  -lblas -llapack
-
-gpu_SYSPATH =      -L$(HOME)/cuda/lib64 -Wl,-rpath,$(HOME)/cuda/lib64
-meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-user-atc_SYSPATH = 	
+JPG_INC =       
+JPG_PATH = 	
+JPG_LIB =	-ljpeg -lpng
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # no need to edit this section
 
+include	Makefile.package.settings
 include	Makefile.package
 
-EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
-EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
 
 # Path to src files
 
@@ -85,6 +91,10 @@ $(EXE):	$(OBJ)
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
@@ -92,6 +102,9 @@ lib:	$(OBJ)
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+%.o:%.cu
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 # Individual dependencies
 

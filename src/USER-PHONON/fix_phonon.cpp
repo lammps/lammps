@@ -377,7 +377,7 @@ void FixPhonon::end_of_step()
     int m=0;
     for (idx = 0; idx < mynpt; ++idx){
       fft_data[m++] = Rnow[idx][idim];
-      fft_data[m++] = 0.;
+      fft_data[m++] = 0.f;
     }
 
     fft->compute(fft_data, fft_data, -1);

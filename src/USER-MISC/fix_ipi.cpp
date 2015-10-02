@@ -18,6 +18,7 @@
 #include "mpi.h"
 #include "stdio.h"
 #include "string.h"
+#include "stdlib.h"
 #include "fix_ipi.h"
 #include "atom.h"
 #include "force.h"

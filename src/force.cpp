@@ -756,7 +756,7 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
     nhi = atoi(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
+  if (nlo < nmin || nhi > nmax || nlo > nhi) 
     error->all(FLERR,"Numeric index is out of bounds");
 }
 
@@ -790,7 +790,7 @@ void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi,
     nhi = ATOBIGINT(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
+  if (nlo < nmin || nhi > nmax || nlo > nhi) 
     error->all(FLERR,"Numeric index is out of bounds");
 }
 

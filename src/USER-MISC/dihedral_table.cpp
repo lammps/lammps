@@ -93,6 +93,12 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
   if (delta == 0 || gamma == 0 || alpha == 0 || c == 0 || z == 0) {
     if (warn)
       fprintf(stderr,"Internal Cyclic Spline Error: failed to allocate working space\n");
+
+    if (delta) free(delta);
+    if (gamma) free(gamma);
+    if (alpha) free(alpha);
+    if (c) free(c);
+    if (z) free(z);
     return GSL_ENOMEM;
   }
   else
@@ -105,11 +111,11 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
       if (N == 1)
         {
           x[0] = b[0] / diag[0];
-          if (delta) free(delta);
-          if (gamma) free(gamma);
-          if (alpha) free(alpha);
-          if (c) free(c);
-          if (z) free(z);
+          free(delta);
+          free(gamma);
+          free(alpha);
+          free(c);
+          free(z);
           return GSL_SUCCESS;
         }
 
@@ -171,16 +177,11 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
         }
     }
 
-  if (z != 0)
-    free (z);
-  if (c != 0)
-    free (c);
-  if (alpha != 0)
-    free (alpha);
-  if (gamma != 0)
-    free (gamma);
-  if (delta != 0)
-    free (delta);
+  free (z);
+  free (c);
+  free (alpha);
+  free (gamma);
+  free (delta);
 
   if ((status == GSL_EZERODIV) && warn)
       fprintf(stderr, "Internal Cyclic Spline Error: Matrix must be positive definite.\n");
@@ -247,6 +248,10 @@ static int cyc_spline(double const *xa,
                     n, warn) != GSL_SUCCESS) {
     if (warn)
       fprintf(stderr,"Error in inverting matrix for splines.\n");
+
+    delete [] diag;
+    delete [] offdiag;
+    delete [] rhs;
     return 1;
   }
   delete [] diag;

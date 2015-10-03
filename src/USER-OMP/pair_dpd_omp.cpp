@@ -94,7 +94,7 @@ void PairDPDOMP::compute(int eflag, int vflag)
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
-    if (random_thr && (tid > 0) && (random_thr[tid] == NULL))
+    if ((tid > 0) && (random_thr[tid] == NULL))
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
                                     + comm->nprocs*tid);
 

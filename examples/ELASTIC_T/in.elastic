@@ -52,8 +52,16 @@ include init.mod
 
 # Compute initial state
 
+variable thermostat equal 1
 include potential.mod
 run ${nequil}
+
+if "${adiabatic} == 1" &
+then "variable thermostat equal 0" &
+else "variable thermostat equal 1"
+
+print ${thermostat}
+
 include potential.mod
 run ${nrun}
 

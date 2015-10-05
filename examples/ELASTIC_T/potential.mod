@@ -22,6 +22,7 @@ thermo_modify norm no
 
 timestep ${timestep}
 fix 4 all nve
-fix 5 all langevin ${temp} ${temp} ${tdamp} ${seed}
+if "${thermostat} == 1" then &
+   "fix 5 all langevin ${temp} ${temp} ${tdamp} ${seed}"
 
 

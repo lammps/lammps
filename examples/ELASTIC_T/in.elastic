@@ -1,12 +1,12 @@
-# Compute elastic constant tensor for a crystal
+# Compute elastic constant tensor for a crystal at finite temperature
 #
 # Written by Aidan Thompson (Sandia, athomps@sandia.gov)
 #
 #  This script uses the following three include files.
 #
 #   init.mod      (must be modified for different crystal structures)
-# 	       	  Define units, deformation parameters and initial
-#		  configuration of the atoms and simulation cell.  
+# 	       	  Define units, MD parameters, deformation parameters,
+#		  and initial configuration of the atoms and simulation cell.  
 #
 #
 #   potential.mod    (must be modified for different pair styles)
@@ -34,34 +34,28 @@
 #  modify the files init.mod and potential.mod. In order to calculate
 #  the elastic constants correctly, care must be taken to specify
 #  the correct units in init.mod (units, cfac and cunits). It is also
-#  important to verify that the minimization of energy w.r.t atom
-#  positions in the deformed cell is fully converged.
+#  important to verify that the MD sampling of stress components
+#  is generating accurate statistical averages.
 #  One indication of this is that the elastic constants are insensitive
-#  to the choice of the variable ${up} in init.mod. Another is to check
-#  the final max and two-norm forces reported in the log file. If you know
-#  that minimization is not required, you can set maxiter = 0.0 in 
-#  init.mod. 
+#  to the choice of the variable ${up} in init.mod. Another is to
+#  check for finite size effects. 
 #
 
 include init.mod
-include potential.mod
 
 # Compute initial state
-fix 3 all box/relax  aniso 0.0
-minimize ${etol} ${ftol} ${maxiter} ${maxeval}
 
-variable tmp equal pxx
-variable pxx0 equal ${tmp}
-variable tmp equal pyy
-variable pyy0 equal ${tmp}
-variable tmp equal pzz
-variable pzz0 equal ${tmp}
-variable tmp equal pyz
-variable pyz0 equal ${tmp}
-variable tmp equal pxz
-variable pxz0 equal ${tmp}
-variable tmp equal pxy
-variable pxy0 equal ${tmp}
+include potential.mod
+run ${nequil}
+include potential.mod
+run ${nrun}
+
+variable pxx0 equal f_avp[1]
+variable pyy0 equal f_avp[2]
+variable pzz0 equal f_avp[3]
+variable pxy0 equal f_avp[4]
+variable pxz0 equal f_avp[5]
+variable pyz0 equal f_avp[6]
 
 variable tmp equal lx
 variable lx0 equal ${tmp}
@@ -79,10 +73,7 @@ variable d4 equal -(v_pyz1-${pyz0})/(v_delta/v_len0)*${cfac}
 variable d5 equal -(v_pxz1-${pxz0})/(v_delta/v_len0)*${cfac}
 variable d6 equal -(v_pxy1-${pxy0})/(v_delta/v_len0)*${cfac}
 
-displace_atoms all random ${atomjiggle} ${atomjiggle} ${atomjiggle} 87287 units box
-
 # Write restart
-unfix 3
 write_restart restart.equil
 
 # uxx Perturbation
@@ -145,6 +136,14 @@ variable C45all equal 0.5*(${C45}+${C54})
 variable C46all equal 0.5*(${C46}+${C64})
 variable C56all equal 0.5*(${C56}+${C65})
 
+variable C11cubic equal (${C11all}+${C22all}+${C33all})/3.0
+variable C12cubic equal (${C12all}+${C13all}+${C23all})/3.0
+variable C44cubic equal (${C44all}+${C55all}+${C66all})/3.0
+variable bulkmodulus equal (${C11cubic}+2*${C12cubic})/3.0
+variable shearmodulus1 equal ${C44cubic}
+variable shearmodulus2 equal (${C11cubic}-${C12cubic})/2.0
+variable poissonratio equal 1.0/(1.0+${C11cubic}/${C12cubic})
+  
 # For Stillinger-Weber silicon, the analytical results
 # are known to be (E. R. Cowley, 1988):
 #               C11 = 151.4 GPa
@@ -179,3 +178,7 @@ print "Elastic Constant C45all = ${C45all} ${cunits}"
 print "Elastic Constant C46all = ${C46all} ${cunits}"
 print "Elastic Constant C56all = ${C56all} ${cunits}"
 
+print "Bulk Modulus = ${bulkmodulus} ${cunits}"
+print "Shear Modulus 1 = ${shearmodulus1} ${cunits}"
+print "Shear Modulus 2 = ${shearmodulus2} ${cunits}"
+print "Poisson Ratio = ${poissonratio}"

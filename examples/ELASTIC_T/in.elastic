@@ -146,6 +146,9 @@ variable C56all equal 0.5*(${C56}+${C65})
 variable C11cubic equal (${C11all}+${C22all}+${C33all})/3.0
 variable C12cubic equal (${C12all}+${C13all}+${C23all})/3.0
 variable C44cubic equal (${C44all}+${C55all}+${C66all})/3.0
+
+# Average moduli for cubic crystals
+
 variable bulkmodulus equal (${C11cubic}+2*${C12cubic})/3.0
 variable shearmodulus1 equal ${C44cubic}
 variable shearmodulus2 equal (${C11cubic}-${C12cubic})/2.0

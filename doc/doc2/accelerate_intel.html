@@ -34,16 +34,16 @@ when running with coprocessors, this enables the extra CPU cores to be
 used for useful computation.
 </P>
 <P>If LAMMPS is built with both the USER-INTEL and USER-OMP packages
-intsalled, this mode of operation is made easier to use, because the
-"-suffix intel" <A HREF = "Section_start.html#start_7">command-line switch</A> or
-the <A HREF = "suffix.html">suffix intel</A> command will both set a second-choice
-suffix to "omp" so that styles from the USER-OMP package will be used
-if available, after first testing if a style from the USER-INTEL
+installed, this mode of operation is made easier to use, with the
+"-suffix hybrid intel omp" <A HREF = "Section_start.html#start_7">command-line switch</A> 
+or the <A HREF = "suffix.html">suffix hybrid intel omp</A> command will both set a 
+second-choice suffix to "omp" so that styles from the USER-OMP package will be 
+used if available, after first testing if a style from the USER-INTEL
 package is available.
 </P>
-<P>When using the USER-INTEL package, you must choose at build time
-whether you are building for CPU-only acceleration or for using the
-Xeon Phi in offload mode.
+<P>When using the USER-INTEL package, you must choose at build time whether the 
+binary will support offload to Xeon Phi coprocessors. Binaries supporting
+offload can still be run in CPU-only (host-only) mode.
 </P>
 <P>Here is a quick overview of how to use the USER-INTEL package
 for CPU-only acceleration:
@@ -170,16 +170,15 @@ suffer.
 </P>
 <P>If LAMMPS was built with coprocessor support for the USER-INTEL
 package, you also need to specify the number of coprocessor/node and
-the number of coprocessor threads per MPI task to use.  Note that
+optionally the number of coprocessor threads per MPI task to use.  Note that
 coprocessor threads (which run on the coprocessor) are totally
 independent from OpenMP threads (which run on the CPU).  The default
 values for the settings that affect coprocessor threads are typically
 fine, as discussed below.
 </P>
 <P>Use the "-sf intel" <A HREF = "Section_start.html#start_7">command-line switch</A>,
-which will automatically append "intel" to styles that support it.  If
-a style does not support it, an "omp" suffix is tried next.  OpenMP
-threads per MPI task can be set via the "-pk intel Nphi omp Nt" or
+which will automatically append "intel" to styles that support it. 
+OpenMP threads per MPI task can be set via the "-pk intel Nphi omp Nt" or
 "-pk omp Nt" <A HREF = "Section_start.html#start_7">command-line switches</A>, which
 set Nt = # of OpenMP threads per MPI task to use.  The "-pk omp" form
 is only allowed if LAMMPS was also built with the USER-OMP package.
@@ -194,37 +193,34 @@ threads per MPI task.  See the <A HREF = "package.html">package intel</A> comman
 for details.
 </P>
 <PRE>CPU-only without USER-OMP (but using Intel vectorization on CPU):
-lmp_machine -sf intel -in in.script                 # 1 MPI task
-mpirun -np 32 lmp_machine -sf intel -in in.script   # 32 MPI tasks on as many nodes as needed (e.g. 2 16-core nodes) 
+mpirun -np 32 lmp_machine -sf intel -in in.script         # 32 MPI tasks on as many nodes as needed (e.g. 2 16-core nodes)
+lmp_machine -sf intel -pk intel 0 omp 16 -in in.script    # 1 MPI task and 16 threads 
 </PRE>
 <PRE>CPU-only with USER-OMP (and Intel vectorization on CPU):
-lmp_machine -sf intel -pk intel 16 0 -in in.script             # 1 MPI task on a 16-core node
-mpirun -np 4 lmp_machine -sf intel -pk omp 4 -in in.script     # 4 MPI tasks each with 4 threads on a single 16-core node
-mpirun -np 32 lmp_machine -sf intel -pk omp 4 -in in.script    # ditto on 8 16-core nodes 
+lmp_machine -sf hybrid intel omp -pk intel 0 omp 16 -in in.script         # 1 MPI task on a 16-core node with 16 threads
+mpirun -np 4 lmp_machine -sf hybrid intel omp -pk omp 4 -in in.script     # 4 MPI tasks each with 4 threads on a single 16-core node 
 </PRE>
 <PRE>CPUs + Xeon Phi(TM) coprocessors with or without USER-OMP:
-lmp_machine -sf intel -pk intel 1 omp 16 -in in.script                       # 1 MPI task, 16 OpenMP threads on CPU, 1 coprocessor, all 240 coprocessor threads
-lmp_machine -sf intel -pk intel 1 omp 16 tptask 32 -in in.script             # 1 MPI task, 16 OpenMP threads on CPU, 1 coprocessor, only 32 coprocessor threads
-mpirun -np 4 lmp_machine -sf intel -pk intel 1 omp 4 -in in.script           # 4 MPI tasks, 4 OpenMP threads/task, 1 coprocessor, 60 coprocessor threads/task
-mpirun -np 32 -ppn 4 lmp_machine -sf intel -pk intel 1 omp 4 -in in.script   # ditto on 8 16-core nodes
-mpirun -np 8 lmp_machine -sf intel -pk intel 4 omp 2 -in in.script           # 8 MPI tasks, 2 OpenMP threads/task, 4 coprocessors, 120 coprocessor threads/task 
+mpirun -np 32 -ppn 16 lmp_machine -sf intel -pk intel 1 -in in.script                 # 2 nodes with 16 MPI tasks on each, 240 total threads on coprocessor
+mpirun -np 16 -ppn 8 lmp_machine -sf intel -pk intel 1 omp 2 -in in.script            # 2 nodes, 8 MPI tasks on each node, 2 threads for each task, 240 total threads on coprocessor
+mpirun -np 16 -ppn 8 lmp_machine -sf hybrid intel omp -pk intel 1 omp 2 -in in.script # 2 nodes, 8 MPI tasks on each node, 2 threads for each task, 240 total threads on coprocessor, USER-OMP package for some styles 
 </PRE>
-<P>Note that if the "-sf intel" switch is used, it also invokes two
-default commands: <A HREF = "package.html">package intel 1</A>, followed by <A HREF = "package.html">package
-omp 0</A>.  These both set the number of OpenMP threads per
-MPI task via the OMP_NUM_THREADS environment variable.  The first
-command sets the number of Xeon Phi(TM) coprocessors/node to 1 (and
-the precision mode to "mixed", as one of its option defaults).  The
-latter command is not invoked if LAMMPS was not built with the
-USER-OMP package.  The Nphi = 1 value for the first command is ignored
-if LAMMPS was not built with coprocessor support.
+<P>Note that if the "-sf intel" switch is used, it also invokes a
+default command: <A HREF = "package.html">package intel 1</A>. If the "-sf hybrid intel omp"
+switch is used, the default USER-OMP command <A HREF = "package.html">package omp 0</A> is
+also invoked. Both set the number of OpenMP threads per MPI task via the 
+OMP_NUM_THREADS environment variable.  The first command sets the number of 
+Xeon Phi(TM) coprocessors/node to 1 (and the precision mode to "mixed", as one 
+of its option defaults).  The latter command is not invoked if LAMMPS was not 
+built with the USER-OMP package.  The Nphi = 1 value for the first command is 
+ignored if LAMMPS was not built with coprocessor support.
 </P>
 <P>Using the "-pk intel" or "-pk omp" switches explicitly allows for
 direct setting of the number of OpenMP threads per MPI task, and
 additional options for either of the USER-INTEL or USER-OMP packages.
 In particular, the "-pk intel" switch sets the number of
 coprocessors/node and can limit the number of coprocessor threads per
-MPI task.  The syntax for these two switches is the same as the
+MPI task. The syntax for these two switches is the same as the
 <A HREF = "package.html">package omp</A> and <A HREF = "package.html">package intel</A> commands.
 See the <A HREF = "package.html">package</A> command doc page for details, including
 the default values used for all its options if these switches are not
@@ -251,7 +247,7 @@ OpenMP threads via an environment variable if desired.
 </P>
 <P>If LAMMPS was also built with the USER-OMP package, you must also use
 the <A HREF = "package.html">package omp</A> command to enable that package, unless
-the "-sf intel" or "-pk omp" <A HREF = "Section_start.html#start_7">command-line
+the "-sf hybrid intel omp" or "-pk omp" <A HREF = "Section_start.html#start_7">command-line
 switches</A> were used.  It specifies how many
 OpenMP threads per MPI task to use, as well as other options.  Its doc
 page explains how to set the number of OpenMP threads via an

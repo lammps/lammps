@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(coul/long/cs/,PairCoulLongCS)
+PairStyle(coul/long/cs,PairCoulLongCS)
 
 #else
 

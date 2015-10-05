@@ -104,6 +104,7 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if ((idx+1 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"screen",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = screen;
       idx += 2;
     } else if ((idx+1 < narg) && (strncmp(arg[idx],"out",3) == 0)

@@ -192,16 +192,25 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
-      int n = strlen(arg[iarg+1]) + 1;
-      suffix = new char[n];
-      strcpy(suffix,arg[iarg+1]);
-      // set 2nd suffix = "omp" when suffix = "intel"
-      if (strcmp(suffix,"intel") == 0) {
-        suffix2 = new char[4];
-        strcpy(suffix2,"omp");
-      }
+      delete [] suffix2;
       suffix_enable = 1;
-      iarg += 2;
+      // hybrid option to set fall-back for suffix2
+      if (strcmp(arg[iarg+1],"hybrid") == 0) {
+        if (iarg+4 > narg)
+          error->universe_all(FLERR,"Invalid command-line argument");
+	int n = strlen(arg[iarg+2]) + 1;
+	suffix = new char[n];
+	strcpy(suffix,arg[iarg+2]);
+	n = strlen(arg[iarg+3]) + 1;
+	suffix2 = new char[n];
+	strcpy(suffix2,arg[iarg+3]);
+	iarg += 4;
+      } else {
+	int n = strlen(arg[iarg+1]) + 1;
+	suffix = new char[n];
+	strcpy(suffix,arg[iarg+1]);
+	iarg += 2;
+      }
     } else if (strcmp(arg[iarg],"-reorder") == 0 ||
                strcmp(arg[iarg],"-ro") == 0) {
       if (iarg+3 > narg)
@@ -634,7 +643,6 @@ void LAMMPS::create()
 
 /* ----------------------------------------------------------------------
    check suffix consistency with installed packages
-   turn off suffix2 = omp if USER-OMP is not installed
    invoke package-specific deafult package commands
      only invoke if suffix is set and enabled
      also check if suffix2 is set
@@ -667,19 +675,13 @@ void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
   if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
     error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
-  // suffix2 only currently set by -sf intel
-  // unset if LAMMPS was not built with USER-OMP package
-
-  if (suffix2 && strcmp(suffix2,"omp") == 0 && !modify->check_package("OMP")) {
-    delete [] suffix2;
-    suffix2 = NULL;
-  }
-
   if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
   if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
   if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
 
   if (suffix2) {
+    if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
     if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
   }
 

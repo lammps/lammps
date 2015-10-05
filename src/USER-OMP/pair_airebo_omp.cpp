@@ -1148,6 +1148,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
     REBO_neighs_i = REBO_firstneigh[i];
     for (k = 0; k < REBO_numneigh[i]; k++) {
       atomk = REBO_neighs_i[k];
+      ktype = map[type[atomk]];
       if (atomk != atomj) {
         lamdajik = 0.0;
         rik[0] = x[atomi][0]-x[atomk][0];

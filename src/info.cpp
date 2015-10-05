@@ -544,13 +544,13 @@ bool Info::is_available(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
   const int len = strlen(name);
+  int match = 0;
 
   if (strcmp(category,"command") == 0) {
-    int match = 0;
-    return (input->command_map->find(name) != input->command_map->end());
+    if (input->command_map->find(name) != input->command_map->end());
+      match = 1;
 
   } else if (strcmp(category,"compute") == 0) {
-    int match = 0;
     if (modify->compute_map->find(name) != modify->compute_map->end())
       match = 1;
 
@@ -570,10 +570,7 @@ bool Info::is_available(const char *category, const char *name)
         delete[] name_w_suffix;
       }
     }
-    return match ? true : false;
-
   } else if (strcmp(category,"fix") == 0) {
-    int match = 0;
     if (modify->fix_map->find(name) != modify->fix_map->end())
       match = 1;
 
@@ -593,10 +590,7 @@ bool Info::is_available(const char *category, const char *name)
         delete[] name_w_suffix;
       }
     }
-    return match ? true : false;
-
   } else if (strcmp(category,"pair_style") == 0) {
-    int match = 0;
     if (force->pair_map->find(name) != force->pair_map->end())
       match = 1;
 
@@ -616,9 +610,9 @@ bool Info::is_available(const char *category, const char *name)
         delete[] name_w_suffix;
       }
     }
-    return match ? true : false;
-
   } else error->all(FLERR,"Unknown category for is_available()");
+
+  return match ? true : false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -639,7 +633,6 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(compute[i]->id,name) == 0)
         return true;
     }
-    return false;
   } else if (strcmp(category,"dump") == 0) {
     int ndump = output->ndump;
     Dump **dump = output->dump;
@@ -647,7 +640,6 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(dump[i]->id,name) == 0)
         return true;
     }
-    return false;
   } else if (strcmp(category,"fix") == 0) {
     int nfix = modify->nfix;
     Fix **fix = modify->fix;
@@ -655,7 +647,6 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(fix[i]->id,name) == 0)
         return true;
     }
-    return false;
   } else if (strcmp(category,"group") == 0) {
     int ngroup = group->ngroup;
     char **names = group->names;
@@ -663,7 +654,6 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(names[i],name) == 0)
         return true;
     }
-    return false;
   } else if (strcmp(category,"region") == 0) {
     int nreg = domain->nregion;
     Region **regs = domain->regions;
@@ -671,7 +661,6 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(regs[i]->id,name) == 0)
         return true;
     }
-    return false;
   } else if (strcmp(category,"variable") == 0) {
     int nvar = input->variable->nvar;
     char **names = input->variable->names;
@@ -679,6 +668,7 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(names[i],name) == 0)
         return true;
     }
-    return false;
   } else error->all(FLERR,"Unknown category for is_defined()");
+
+  return false;
 }

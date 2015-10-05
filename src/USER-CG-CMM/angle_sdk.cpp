@@ -374,7 +374,7 @@ void AngleSDK::ev_tally13(int i, int j, int nlocal, int newton_bond,
     }
     if (eflag_atom) {
       if (newton_bond || i < nlocal) eatom[i] += 0.5*evdwl;
-      if (newton_bond || j < nlocal) eatom[i] += 0.5*evdwl;
+      if (newton_bond || j < nlocal) eatom[j] += 0.5*evdwl;
     }
   }
 

@@ -249,10 +249,11 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (me == 0) {
-    if (screen &&  echo)
+    if (screen && echo) {
       fprintf(screen,"-----\nCompute SAED id:%s, # of atoms:%d, # of relp:%d\n",id,natoms,n);
       fprintf(screen,"Reciprocal point spacing in k1,k2,k3 = %g %g %g\n-----\n",
               dK[0], dK[1], dK[2]);
+    }
   }  
 
   nRows = n;

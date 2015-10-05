@@ -85,8 +85,8 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"rmin0") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snad/atom command");
-        rmin0 = atof(arg[iarg+1]);
-        iarg += 2;
+      rmin0 = atof(arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"switchflag") == 0) {
       if (iarg+2 > narg) 
 	error->all(FLERR,"Illegal compute snad/atom command");

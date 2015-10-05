@@ -435,7 +435,7 @@ void FixOrientFCC::post_force(int vflag)
   if (nstats && update->ntimestep % nstats == 0) {
     int total;
     MPI_Allreduce(&count,&total,1,MPI_INT,MPI_SUM,world);
-    double ave = total/atom->natoms;
+    double ave = static_cast<double>(total)/atom->natoms;
 
     int min,max;
     MPI_Allreduce(&mincount,&min,1,MPI_INT,MPI_MIN,world);

@@ -211,7 +211,7 @@ void Min::setup()
   // ndoftotal = total dof for entire minimization problem
   // dof for atoms, extra per-atom, extra global
 
-  bigint ndofme = 3*atom->nlocal;
+  bigint ndofme = 3 * static_cast<bigint>(atom->nlocal);
   for (int m = 0; m < nextra_atom; m++)
     ndofme += extra_peratom[m]*atom->nlocal;
   MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_LMP_BIGINT,MPI_SUM,world);

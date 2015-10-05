@@ -157,6 +157,10 @@ variable poissonratio equal 1.0/(1.0+${C11cubic}/${C12cubic})
 #               C12 = 76.4 GPa
 #               C44 = 56.4 GPa
 
+print "========================================="
+print "Components of the Elastic Constant Tensor"
+print "========================================="
+
 print "Elastic Constant C11all = ${C11all} ${cunits}"
 print "Elastic Constant C22all = ${C22all} ${cunits}"
 print "Elastic Constant C33all = ${C33all} ${cunits}"
@@ -184,6 +188,10 @@ print "Elastic Constant C36all = ${C36all} ${cunits}"
 print "Elastic Constant C45all = ${C45all} ${cunits}"
 print "Elastic Constant C46all = ${C46all} ${cunits}"
 print "Elastic Constant C56all = ${C56all} ${cunits}"
+
+print "========================================="
+print "Average properties for a cubic crystal"
+print "========================================="
 
 print "Bulk Modulus = ${bulkmodulus} ${cunits}"
 print "Shear Modulus 1 = ${shearmodulus1} ${cunits}"

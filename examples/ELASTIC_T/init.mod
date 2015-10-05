@@ -4,7 +4,7 @@
 
 # Define the finite deformation size. Try several values of this
 # variable to verify that results do not depend on it.
-variable up equal 1.0e-1
+variable up equal 2.0e-2
  
 # metal units, elastic constants in GPa
 units		metal

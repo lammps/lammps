@@ -1651,16 +1651,23 @@ writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is &#8220;none&#8221;, then no screen
 output is performed. Option -pscreen will override the name of the
 partition screen files file.N.</p>
-<div class="highlight-python"><div class="highlight"><pre>-suffix style
+<div class="highlight-python"><div class="highlight"><pre>-suffix style args
 </pre></div>
 </div>
 <p>Use variants of various styles if they exist.  The specified style can
-be <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em>.  These refer to
-optional packages that LAMMPS can be built with, as described above in
+be <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, <em>opt</em>, or <em>hybrid</em>.  These refer
+to optional packages that LAMMPS can be built with, as described above in
 <a class="reference internal" href="#start-3"><span>Section 2.3</span></a>.  The &#8220;cuda&#8221; style corresponds to the USER-CUDA
 package, the &#8220;gpu&#8221; style to the GPU package, the &#8220;intel&#8221; style to the
 USER-INTEL package, the &#8220;kk&#8221; style to the KOKKOS package, the &#8220;opt&#8221;
-style to the OPT package, and the &#8220;omp&#8221; style to the USER-OMP package.</p>
+style to the OPT package, and the &#8220;omp&#8221; style to the USER-OMP package. The
+hybrid style is the only style that accepts arguments. It allows for two
+packages to be specified. The first package specified is the default and
+will be used if it is available. If no style is available for the first
+package, the style for the second package will be used if available. For
+example, &#8220;-suffix hybrid intel omp&#8221; will use styles from the USER-INTEL
+package if they are installed and available, but styles for the USER-OMP
+package otherwise.</p>
 <p>Along with the &#8220;-package&#8221; command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
 having to edit an input script.</p>
@@ -1681,14 +1688,14 @@ the &#8220;-package gpu&#8221; command-line switch or the <a class="reference in
 invokes the default USER-INTEL settings, as if the command &#8220;package
 intel 1&#8221; were used at the top of your input script.  These settings
 can be changed by using the &#8220;-package intel&#8221; command-line switch or
-the <a class="reference internal" href="package.html"><em>package intel</em></a> command in your script.  If the
-USER-OMP package is also installed, the intel suffix will make the omp
-suffix a second choice, if a requested style is not available in the
-USER-INTEL package.  It will also invoke the default USER-OMP
-settings, as if the command &#8220;package omp 0&#8221; were used at the top of
-your input script.  These settings can be changed by using the
-&#8220;-package omp&#8221; command-line switch or the <a class="reference internal" href="package.html"><em>package omp</em></a>
-command in your script.</p>
+the <a class="reference internal" href="package.html"><em>package intel</em></a> command in your script. If the
+USER-OMP package is also installed, the hybrid style with &#8220;intel omp&#8221;
+arguments can be used to make the omp suffix a second choice, if a
+requested style is not available in the USER-INTEL package.  It will
+also invoke the default USER-OMP settings, as if the command &#8220;package
+omp 0&#8221; were used at the top of your input script.  These settings can
+be changed by using the &#8220;-package omp&#8221; command-line switch or the
+<a class="reference internal" href="package.html"><em>package omp</em></a> command in your script.</p>
 <p>For the KOKKOS package, using this command-line switch also invokes
 the default KOKKOS settings, as if the command &#8220;package kokkos&#8221; were
 used at the top of your input script.  These settings can be changed

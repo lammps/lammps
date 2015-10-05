@@ -145,11 +145,26 @@ variable C45all equal 0.5*(${C45}+${C54})
 variable C46all equal 0.5*(${C46}+${C64})
 variable C56all equal 0.5*(${C56}+${C65})
 
+# Average moduli for cubic crystals
+
+variable C11cubic equal (${C11all}+${C22all}+${C33all})/3.0
+variable C12cubic equal (${C12all}+${C13all}+${C23all})/3.0
+variable C44cubic equal (${C44all}+${C55all}+${C66all})/3.0
+
+variable bulkmodulus equal (${C11cubic}+2*${C12cubic})/3.0
+variable shearmodulus1 equal ${C44cubic}
+variable shearmodulus2 equal (${C11cubic}-${C12cubic})/2.0
+variable poissonratio equal 1.0/(1.0+${C11cubic}/${C12cubic})
+  
 # For Stillinger-Weber silicon, the analytical results
 # are known to be (E. R. Cowley, 1988):
 #               C11 = 151.4 GPa
 #               C12 = 76.4 GPa
 #               C44 = 56.4 GPa
+
+print "========================================="
+print "Components of the Elastic Constant Tensor"
+print "========================================="
 
 print "Elastic Constant C11all = ${C11all} ${cunits}"
 print "Elastic Constant C22all = ${C22all} ${cunits}"
@@ -179,3 +194,11 @@ print "Elastic Constant C45all = ${C45all} ${cunits}"
 print "Elastic Constant C46all = ${C46all} ${cunits}"
 print "Elastic Constant C56all = ${C56all} ${cunits}"
 
+print "========================================="
+print "Average properties for a cubic crystal"
+print "========================================="
+
+print "Bulk Modulus = ${bulkmodulus} ${cunits}"
+print "Shear Modulus 1 = ${shearmodulus1} ${cunits}"
+print "Shear Modulus 2 = ${shearmodulus2} ${cunits}"
+print "Poisson Ratio = ${poissonratio}"

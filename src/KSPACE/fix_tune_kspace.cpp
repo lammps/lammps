@@ -212,6 +212,7 @@ void FixTuneKspace::store_old_kspace_settings()
   old_differentiation_flag = force->kspace->differentiation_flag;
   old_slabflag = force->kspace->slabflag;
   old_slab_volfactor = force->kspace->slab_volfactor;
+  delete[] old_kspace_style;
 }
 
 /* ----------------------------------------------------------------------

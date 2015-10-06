@@ -210,6 +210,10 @@ void FixSMD::smd_tether()
       fy = k_smd*dy*dr/r;
       fz = k_smd*dz*dr/r;
       pmf += (fx*xn + fy*yn + fz*zn) * v_smd * update->dt;
+    } else {
+      fx = 0.0;
+      fy = 0.0;
+      fz = 0.0;
     }
   } else {
     r_old = r;
@@ -306,8 +310,11 @@ void FixSMD::smd_couple()
       fy = k_smd*dy*dr/r;
       fz = k_smd*dz*dr/r;
       pmf += (fx*xn + fy*yn + fz*zn) * fsign * v_smd * update->dt;
+    } else {
+      fx = 0.0;
+      fy = 0.0;
+      fz = 0.0;
     }
-
   } else {
     dx = xcm2[0] - xcm[0];
     dy = xcm2[1] - xcm[1];

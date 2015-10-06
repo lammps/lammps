@@ -21,11 +21,12 @@ This package is based on the USER-OMP package and provides LAMMPS styles that:
 -----------------------------------------------------------------------------
 
 When using the suffix command with "intel", intel styles will be used if they
-exist; if they do not, and the USER-OMP package is installed and an omp version
-exists, that style will be used. For example, in the case the USER-OMP package
-is installed,
+exist. If the suffix command is used with "hybrid intel omp" and the USER-OMP 
+USER-OMP styles will be used whenever USER-INTEL styles are not available. This
+allow for running most styles in LAMMPS with threading. For example, in the
+latter case with the USER-OMP package installed,
 
-      kspace_style     pppm/intel 1e-4
+      kspace_style     pppm 1e-4
 
 is equivalent to:
 

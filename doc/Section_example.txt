@@ -109,8 +109,12 @@ a library, either by itself or in tandem with another code or library.
 See the COUPLE/README file to get started.
 
 There is also an ELASTIC directory with an example script for
-computing elastic constants, using a zero temperature Si example.  See
-the in.elastic file for more info.
+computing elastic constants at zero temperature, using an Si example.  See
+the ELASTIC/in.elastic file for more info.
+
+There is also an ELASTIC_T directory with an example script for
+computing elastic constants at finite temperature, using an Si example.  See
+the ELASTIC_T/in.elastic file for more info.
 
 There is also a USER directory which contains subdirectories of
 user-provided examples for user packages.  See the README files in

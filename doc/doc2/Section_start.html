@@ -1653,15 +1653,22 @@ multi-partition mode, if the specified file is "none", then no screen
 output is performed. Option -pscreen will override the name of the
 partition screen files file.N.
 </P>
-<PRE>-suffix style 
+<PRE>-suffix style args 
 </PRE>
 <P>Use variants of various styles if they exist.  The specified style can
-be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I>.  These refer to
-optional packages that LAMMPS can be built with, as described above in
+be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, <I>opt</I>, or <I>hybrid</I>.  These refer 
+to optional packages that LAMMPS can be built with, as described above in
 <A HREF = "#start_3">Section 2.3</A>.  The "cuda" style corresponds to the USER-CUDA
 package, the "gpu" style to the GPU package, the "intel" style to the
 USER-INTEL package, the "kk" style to the KOKKOS package, the "opt"
-style to the OPT package, and the "omp" style to the USER-OMP package.
+style to the OPT package, and the "omp" style to the USER-OMP package. The
+hybrid style is the only style that accepts arguments. It allows for two 
+packages to be specified. The first package specified is the default and 
+will be used if it is available. If no style is available for the first 
+package, the style for the second package will be used if available. For 
+example, "-suffix hybrid intel omp" will use styles from the USER-INTEL 
+package if they are installed and available, but styles for the USER-OMP 
+package otherwise.
 </P>
 <P>Along with the "-package" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
@@ -1688,14 +1695,14 @@ gpu</A> command in your script.
 invokes the default USER-INTEL settings, as if the command "package
 intel 1" were used at the top of your input script.  These settings
 can be changed by using the "-package intel" command-line switch or
-the <A HREF = "package.html">package intel</A> command in your script.  If the
-USER-OMP package is also installed, the intel suffix will make the omp
-suffix a second choice, if a requested style is not available in the
-USER-INTEL package.  It will also invoke the default USER-OMP
-settings, as if the command "package omp 0" were used at the top of
-your input script.  These settings can be changed by using the
-"-package omp" command-line switch or the <A HREF = "package.html">package omp</A>
-command in your script.
+the <A HREF = "package.html">package intel</A> command in your script. If the
+USER-OMP package is also installed, the hybrid style with "intel omp" 
+arguments can be used to make the omp suffix a second choice, if a 
+requested style is not available in the USER-INTEL package.  It will 
+also invoke the default USER-OMP settings, as if the command "package 
+omp 0" were used at the top of your input script.  These settings can 
+be changed by using the "-package omp" command-line switch or the 
+<A HREF = "package.html">package omp</A> command in your script.
 </P>
 <P>For the KOKKOS package, using this command-line switch also invokes
 the default KOKKOS settings, as if the command "package kokkos" were

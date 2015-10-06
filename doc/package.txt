@@ -376,7 +376,7 @@ USER-OMP packages, be aware that both packages allow setting of the
 single global {Nthreads} value used by OpenMP.  Thus if both package
 commands are invoked, you should insure the two values are consistent.
 If they are not, the last one invoked will take precedence, for both
-packages.  Also note that if the "-sf intel" "command-line
+packages.  Also note that if the "-sf hybrid intel omp" "command-line
 switch"_"_Section_start.html#start_7 is used, it invokes a "package
 intel" command, followed by a "package omp" command, both with a
 setting of {Nthreads} = 0.

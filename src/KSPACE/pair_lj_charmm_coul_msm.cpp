@@ -437,6 +437,7 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
               forcelj = forcelj*switch1 + philj*switch2;
             }
           } else if (rsq <= cut_in_on_sq) {
+            r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *

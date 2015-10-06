@@ -172,11 +172,9 @@ int ComputeBondLocal::compute_bonds(int flag)
         domain->minimum_image(delx,dely,delz);
         rsq = delx*delx + dely*dely + delz*delz;
 
-        if (singleflag) {
-          if (btype > 0)
-            eng = bond->single(btype,rsq,atom1,atom2,fbond);
-          else eng = fbond = 0.0;
-        }
+        if (singleflag && (btype > 0))
+          eng = bond->single(btype,rsq,atom1,atom2,fbond);
+        else eng = fbond = 0.0;
 
         if (nvalues == 1) ptr = &vector[m];
         else ptr = array[m];

@@ -221,6 +221,7 @@ int ComputePairLocal::compute_pairs(int flag)
       if (flag) {
         if (singleflag)
           eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
+        else eng = fpair = 0.0;
 
         if (nvalues == 1) ptr = &vector[m];
         else ptr = array[m];

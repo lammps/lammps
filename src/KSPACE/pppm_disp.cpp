@@ -3543,7 +3543,7 @@ void PPPMDisp::set_init_g6()
   double acc_rspace = accuracy;
   if (accuracy_real_6 > 0) acc_rspace = accuracy_real_6;
 
-  g_ewald_6 = 1.0/cutoff_lj;
+  g_ewald_old = g_ewald_6 = 1.0/cutoff_lj;
   df_real = lj_rspace_error() - acc_rspace;
   int counter = 0;
   if (df_real > 0) {

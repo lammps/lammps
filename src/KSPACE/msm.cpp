@@ -2912,7 +2912,7 @@ void MSM::compute_phis_and_dphis(const double &dx, const double &dy,
 
 inline double MSM::compute_phi(const double &xi)
 {
-  double phi;
+  double phi = 0.0;
   double abs_xi = fabs(xi);
   double xi2 = xi*xi;
 
@@ -2991,7 +2991,7 @@ inline double MSM::compute_phi(const double &xi)
 
 inline double MSM::compute_dphi(const double &xi)
 {
-  double dphi;
+  double dphi = 0.0;
   double abs_xi = fabs(xi);
 
   if (order == 4) {

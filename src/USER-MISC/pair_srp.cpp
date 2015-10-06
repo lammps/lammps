@@ -153,6 +153,7 @@ void PairSRP::compute(int eflag, int vflag)
     double wd, lever0, lever1, evdwl, fpair;
     double fxlever0, fylever0, fzlever0, fxlever1, fylever1, fzlever1;
     double fx, fy, fz;
+    evdwl = 0.0;
 
     // mapping global to local for atoms inside bond particles 
     // exclude 1-2 neighs if requested 

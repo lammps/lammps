@@ -50,6 +50,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 
   scaleflag = 1;
   spatflag=0;
+  spatialid = NULL;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
 
   tempflag = 0;
@@ -210,6 +211,7 @@ FixAppendAtoms::~FixAppendAtoms()
   delete [] basistype;
 
   if (ranflag) delete randomx;
+  if (spatflag) delete[] spatialid;
   if (tempflag) {
     delete randomt;
     delete [] gfactor1;

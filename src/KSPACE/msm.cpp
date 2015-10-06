@@ -1712,7 +1712,7 @@ void MSM::direct(int n)
 
         egridn[icz][icy][icx] += esum;
 
-        if (vflag_atom) {
+        if (vflag_atom && !scalar_pressure_flag) {
           v0gridn[icz][icy][icx] += v0sum;
           v1gridn[icz][icy][icx] += v1sum;
           v2gridn[icz][icy][icx] += v2sum;
@@ -2075,7 +2075,7 @@ void MSM::direct_top(int n)
 
         egridn[icz][icy][icx] += esum;
 
-        if (vflag_atom) {
+        if (vflag_atom && !scalar_pressure_flag) {
           v0gridn[icz][icy][icx] += v0sum;
           v1gridn[icz][icy][icx] += v1sum;
           v2gridn[icz][icy][icx] += v2sum;

@@ -393,6 +393,7 @@ void PairLJCutSoft::compute_outer(int eflag, int vflag)
         }
 
         if (eflag) {
+          r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
           evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
             (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];

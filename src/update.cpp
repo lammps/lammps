@@ -495,7 +495,8 @@ int Update::time_expired()
   if (max_wall < 0) return 0;
 
   int flag = 0;
-  if (timer->has_loop() && (max_wall > timer->get_wall(Timer::TOTAL)))
+  double totaltime = MPI_Wtime() - timer->get_wall(Timer::TOTAL);
+  if (timer->has_loop() && (totaltime > max_wall))
     flag = 1;
 
   // we have to make certain, that flag is set consistently.

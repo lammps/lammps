@@ -727,7 +727,6 @@ int colvar::enable(colvar::task const &t)
   case task_output_value:
   case task_runave:
   case task_corrfunc:
-  case task_ntot:
   case task_langevin:
   case task_output_energy:
   case task_scripted:

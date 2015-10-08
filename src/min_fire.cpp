@@ -92,6 +92,8 @@ int MinFire::iterate(int maxiter)
   alpha_final = 0.0;
 
   for (int iter = 0; iter < maxiter; iter++) {
+    if (update->time_expired()) return 0;
+
     ntimestep = ++update->ntimestep;
     niter++;
 

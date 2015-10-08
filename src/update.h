@@ -25,6 +25,7 @@ class Update : protected Pointers {
   bigint ntimestep;               // current step (dynamics or min iterations)
   int nsteps;                     // # of steps to run (dynamics or min iter)
   int whichflag;                  // 0 for unset, 1 for dynamics, 2 for min
+  double max_wall;                // walltime limit in seconds; < 0 for unlimited
   double atime;                   // simulation time at atime_step
   bigint atimestep;               // last timestep atime was updated
   bigint firststep,laststep;      // 1st & last step of this run
@@ -55,6 +56,7 @@ class Update : protected Pointers {
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
   void update_time();
+  int time_expired();
   bigint memory_usage();
 
  private:

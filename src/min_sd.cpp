@@ -57,6 +57,8 @@ int MinSD::iterate(int maxiter)
     for (i = 0; i < nextra_global; i++) hextra[i] = fextra[i];
 
   for (int iter = 0; iter < maxiter; iter++) {
+    if (update->time_expired()) return 0;
+
     ntimestep = ++update->ntimestep;
     niter++;
 

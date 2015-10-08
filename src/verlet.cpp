@@ -225,6 +225,7 @@ void Verlet::run(int n)
   else sortflag = 0;
 
   for (int i = 0; i < n; i++) {
+    if (update->time_expired()) break;
 
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);

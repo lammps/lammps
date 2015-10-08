@@ -55,6 +55,7 @@ void Run::command(int narg, char **arg)
   int nevery = 0;
   int ncommands = 0;
   int first,last;
+  double timelimit = -1.0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -71,6 +72,14 @@ void Run::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       stopflag = 1;
       stop = force->bnumeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"max_hours") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
+      if (strcmp(arg[iarg+1],"unlimited") == 0) timelimit = -1.0;
+      else {
+        timelimit = 3600.0*force->numeric(FLERR,arg[iarg+1]);
+        if (timelimit <= 0.0) error->all(FLERR,"Illegal run command");
+      }
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
@@ -152,6 +161,7 @@ void Run::command(int narg, char **arg)
   // if post, do full Finish, else just print time
 
   update->whichflag = 1;
+  update->max_wall = timelimit;
 
   if (nevery == 0) {
     update->nsteps = nsteps;

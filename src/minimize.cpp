@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "stdlib.h"
+#include "string.h"
 #include "minimize.h"
 #include "domain.h"
 #include "update.h"
@@ -31,7 +32,19 @@ Minimize::Minimize(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Minimize::command(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal minimize command");
+  double timelimit = 1.0;
+
+  if ((narg != 4) || (narg != 6)) error->all(FLERR,"Illegal minimize command");
+
+  if (narg == 6) {
+    if (strcmp(arg[4],"max_hours") == 0) {
+      if (strcmp(arg[5],"unlimited") == 0) timelimit = -1.0;
+      else {
+        timelimit = 3600.0*force->numeric(FLERR,arg[5]);
+        if (timelimit <= 0.0) error->all(FLERR,"Illegal minimize command");
+      }
+    } else error->all(FLERR,"Illegal minimize command");
+  }
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Minimize command before simulation box is defined");
@@ -40,6 +53,7 @@ void Minimize::command(int narg, char **arg)
   update->ftol = force->numeric(FLERR,arg[1]);
   update->nsteps = force->inumeric(FLERR,arg[2]);
   update->max_eval = force->inumeric(FLERR,arg[3]);
+  update->max_wall = timelimit;
 
   if (update->etol < 0.0 || update->ftol < 0.0)
     error->all(FLERR,"Illegal minimize command");

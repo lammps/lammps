@@ -42,6 +42,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   atime = 0.0;
   atimestep = 0;
   first_update = 0;
+  max_wall = -1.0;
 
   whichflag = 0;
   firststep = laststep = 0;
@@ -94,6 +95,9 @@ void Update::init()
   if (whichflag == 2 && lmp->cuda)
     if (strstr(minimize_style,"cuda") == NULL)
       error->all(FLERR,"USER-CUDA mode requires CUDA variant of min style");
+
+  if (max_wall > 0.0 && !timer->has_loop())
+    error->warning(FLERR,"Wall time limit ignored with 'timer off'");
 
   // init the appropriate integrate and/or minimize class
   // if neither (e.g. from write_restart) then just return
@@ -479,6 +483,24 @@ void Update::update_time()
 {
   atime += (ntimestep-atimestep) * dt;
   atimestep = ntimestep;
+}
+
+/* ----------------------------------------------------------------------
+   return 1, if walltime limit has expired. return 0 otherwise.
+   called at the beginning runs
+------------------------------------------------------------------------- */
+
+int Update::time_expired()
+{
+  if (max_wall < 0) return 0;
+
+  int flag = 0;
+  if (timer->has_loop() && (max_wall > timer->get_wall(Timer::LOOP)))
+    flag = 1;
+
+  // we have to make certain, that flag is set consistently.
+  MPI_Bcast(&flag,1,MPI_INT,0,world);
+  return flag;
 }
 
 /* ----------------------------------------------------------------------

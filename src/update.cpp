@@ -495,7 +495,7 @@ int Update::time_expired()
   if (max_wall < 0) return 0;
 
   int flag = 0;
-  if (timer->has_loop() && (max_wall > timer->get_wall(Timer::LOOP)))
+  if (timer->has_loop() && (max_wall > timer->get_wall(Timer::TOTAL)))
     flag = 1;
 
   // we have to make certain, that flag is set consistently.

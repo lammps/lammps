@@ -143,4 +143,8 @@ E: Invalid REAX atom type
 There is a mis-match between LAMMPS atom types and the elements
 listed in the ReaxFF force field file.
 
+W: pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c
+
+Self-explanatory.
+
 */

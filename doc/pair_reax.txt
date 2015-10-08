@@ -35,11 +35,13 @@ supplemental information of the following paper:
 "(Chenoweth)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.
 
-The {reax} style differs from the "pair_style reax/c"_pair_reax_c.html
-command in the lo-level implementation details.  The {reax} style is a
+WARNING: pair style reax is now deprecated and will soon be retired. Users
+should switch to "pair_style reax/c"_pair_reax_c.html. The {reax} style 
+differs from the {reax/c} style in the lo-level implementation details.  
+The {reax} style is a
 Fortran library, linked to LAMMPS.  The {reax/c} style was initially
 implemented as stand-alone C code and is now integrated into LAMMPS as
-a package.
+a package. 
 
 LAMMPS requires that a file called ffield.reax be provided, containing
 the ReaxFF parameters for each atom type, bond type, etc. The format

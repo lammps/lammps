@@ -245,7 +245,6 @@ void FixQTB::post_force(int vflag)
 
   double **v = atom->v;
   double **f = atom->f;
-  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   bigint nlocal = atom->nlocal;

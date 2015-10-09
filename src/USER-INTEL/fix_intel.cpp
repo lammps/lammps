@@ -306,6 +306,10 @@ void FixIntel::setup(int vflag)
 
 void FixIntel::pair_init_check()
 {
+  #ifdef INTEL_VMASK
+  atom->sortfreq = 1;
+  #endif
+
   #ifdef _LMP_INTEL_OFFLOAD
   if (_offload_balance != 0.0) atom->sortfreq = 1;
   

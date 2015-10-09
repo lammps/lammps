@@ -79,8 +79,9 @@ PairPolymorphic::~PairPolymorphic()
 
 void PairPolymorphic::compute(int eflag, int vflag)
 {
+  tagint itag,jtag;
   int i,j,k,ii,jj,kk,inum,jnum;
-  int itag,jtag,iel,jel,kel,iparam_ij,iparam_ik,iparam_ijk;
+  int iel,jel,kel,iparam_ij,iparam_ik,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2,r0,r1,r2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
@@ -94,7 +95,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -512,7 +513,7 @@ void PairPolymorphic::read_file(char *file, char** elements)
   // open file on proc 0
   FILE *fp=NULL;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
+    fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open polymorphic potential file %s",file);

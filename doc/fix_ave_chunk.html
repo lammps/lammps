@@ -173,6 +173,8 @@ v_name = per-atom vector calculated by an atom-style variable with name
 <em>file</em> arg = filename
   filename = file to write results to
 <em>overwrite</em> arg = none = overwrite output file with only latest output
+<em>format</em> arg = string
+  string = C-style format string
 <em>title1</em> arg = string
   string = text to print as 1st line of output file
 <em>title2</em> arg = string
@@ -437,6 +439,10 @@ quantities, as explained above.</p>
 <p>The <em>overwrite</em> keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the <em>ave running</em> setting.</p>
+<p>The <em>format</em> keyword sets the numeric format of each value when it is
+printed to a file via the <em>file</em> keyword.  Note that all values are
+floating point quantities.  The default format is %g.  You can specify
+a higher precision if desired, e.g. %20.16g.</p>
 <p>The <em>title1</em> and <em>title2</em> and <em>title3</em> keywords allow specification of
 the strings that will be printed as the first 3 lines of the output
 file, assuming the <em>file</em> keyword was used.  LAMMPS uses default

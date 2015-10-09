@@ -49,11 +49,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 0)
 endif
 endif
 
-KOKKOS_INTERNAL_COMPILER_PGI := $(shell $(CXX) --version | grep PGI | wc -l)
-KOKKOS_INTERNAL_COMPILER_XL  := $(shell $(CXX) -qversion | grep XL | wc -l)
-KOKKOS_INTERNAL_COMPILER_CRAY := $(shell $(CXX) --version | grep Cray | wc -l)
-
-KOKKOS_INTERNAL_OS_CYGWIN    := $(shell uname | grep CYGWIN | wc -l)
+KOKKOS_INTERNAL_COMPILER_PGI  := $(shell $(CXX) --version        2>&1 | grep PGI   | wc -l)
+KOKKOS_INTERNAL_COMPILER_XL   := $(shell $(CXX) -qversion        2>&1 | grep XL    | wc -l)
+KOKKOS_INTERNAL_COMPILER_CRAY := $(shell $(CXX) -craype-verbose  2>&1 | grep "CC-" | wc -l)
+KOKKOS_INTERNAL_OS_CYGWIN     := $(shell uname | grep CYGWIN | wc -l)
 
 ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
   KOKKOS_INTERNAL_OPENMP_FLAG := -mp 
@@ -250,8 +249,18 @@ endif
 #Add Architecture flags
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AVX), 1)
+    ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
+	KOKKOS_CXXFLAGS +=
+	KOKKOS_LDFLAGS +=
+    else	
 	KOKKOS_CXXFLAGS += -mavx
 	KOKKOS_LDFLAGS += -mavx
+    endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER8), 1)
+	KOKKOS_CXXFLAGS += -mcpu=power8
+	KOKKOS_LDFLAGS  += -mcpu=power8
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER8), 1)

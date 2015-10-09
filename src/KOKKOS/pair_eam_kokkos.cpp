@@ -342,66 +342,6 @@ void PairEAMKokkos<DeviceType>::file2array()
 template<class DeviceType>
 void PairEAMKokkos<DeviceType>::array2spline()
 {
-#ifndef EAM_USE_FLOAT2
-  rdr = 1.0/dr;
-  rdrho = 1.0/drho;
-
-  tdual_ffloat_2d_n7 k_frho_spline = tdual_ffloat_2d_n7("pair:frho",nfrho,nrho+1);
-  tdual_ffloat_2d_n7 k_rhor_spline = tdual_ffloat_2d_n7("pair:rhor",nrhor,nr+1);
-  tdual_ffloat_2d_n7 k_z2r_spline = tdual_ffloat_2d_n7("pair:z2r",nz2r,nr+1);
-
-  t_host_ffloat_2d_n7 h_frho_spline = k_frho_spline.h_view;
-  t_host_ffloat_2d_n7 h_rhor_spline = k_rhor_spline.h_view;
-  t_host_ffloat_2d_n7 h_z2r_spline = k_z2r_spline.h_view;
-
-  for (int i = 0; i < nfrho; i++)
-    interpolate(nrho,drho,frho[i],h_frho_spline,i);
-  k_frho_spline.template modify<LMPHostType>();
-  k_frho_spline.template sync<DeviceType>();
-
-  for (int i = 0; i < nrhor; i++)
-    interpolate(nr,dr,rhor[i],h_rhor_spline,i);
-  k_rhor_spline.template modify<LMPHostType>();
-  k_rhor_spline.template sync<DeviceType>();
-
-  for (int i = 0; i < nz2r; i++)
-    interpolate(nr,dr,z2r[i],h_z2r_spline,i);
-  k_z2r_spline.template modify<LMPHostType>();
-  k_z2r_spline.template sync<DeviceType>();
-
-  d_frho_spline = k_frho_spline.d_view;
-  d_rhor_spline = k_rhor_spline.d_view;
-  d_z2r_spline = k_z2r_spline.d_view;
-#else
-  /*rdr = 1.0/dr;
-  rdrho = 1.0/drho;
-
-  tdual_ffloat2_2d_n4 k_frho_spline = tdual_ffloat2_2d_n4("pair:frho",nfrho,nrho+1);
-  tdual_ffloat2_2d_n4 k_rhor_spline = tdual_ffloat2_2d_n4("pair:rhor",nrhor,nr+1);
-  tdual_ffloat2_2d_n4 k_z2r_spline = tdual_ffloat2_2d_n4("pair:z2r",nz2r,nr+1);
-
-  t_host_ffloat2_2d_n4 h_frho_spline = k_frho_spline.h_view;
-  t_host_ffloat2_2d_n4 h_rhor_spline = k_rhor_spline.h_view;
-  t_host_ffloat2_2d_n4 h_z2r_spline = k_z2r_spline.h_view;
-
-  for (int i = 0; i < nfrho; i++)
-    interpolate(nrho,drho,frho[i],h_frho_spline,i);
-  k_frho_spline.template modify<LMPHostType>();
-  k_frho_spline.template sync<DeviceType>();
-
-  for (int i = 0; i < nrhor; i++)
-    interpolate(nr,dr,rhor[i],h_rhor_spline,i);
-  k_rhor_spline.template modify<LMPHostType>();
-  k_rhor_spline.template sync<DeviceType>();
-
-  for (int i = 0; i < nz2r; i++)
-    interpolate(nr,dr,z2r[i],h_z2r_spline,i);
-  k_z2r_spline.template modify<LMPHostType>();
-  k_z2r_spline.template sync<DeviceType>();
-
-  d_frho_spline = k_frho_spline.d_view;
-  d_rhor_spline = k_rhor_spline.d_view;
-  d_z2r_spline = k_z2r_spline.d_view;*/
   rdr = 1.0/dr;
   rdrho = 1.0/drho;
 
@@ -447,7 +387,7 @@ void PairEAMKokkos<DeviceType>::array2spline()
   d_rhor_spline_b = k_rhor_spline_b.d_view;
   d_z2r_spline_b = k_z2r_spline_b.d_view;
 
-#endif
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -625,6 +565,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
       const F_FLOAT4 rhor = d_rhor_spline_b(d_type2rhor_ji,m);
       rhotmp += ((rhor.x*p + rhor.y)*p + rhor.z)*p + rhor.w;
+      
       if (NEWTON_PAIR || j < nlocal) {
         const int d_type2rhor_ij = d_type2rhor(itype,jtype);
         const F_FLOAT4 rhor = d_rhor_spline_b(d_type2rhor_ij,m);

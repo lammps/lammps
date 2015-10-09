@@ -1,0 +1,68 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix smd/wall_surface command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID smd/wall_surface arg type mol-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>smd/wall_surface = style name of this fix command 
+
+<LI>arg = <I>file</I> 
+
+<PRE>   <I>file</I> = file name of a triangular mesh in stl format 
+</PRE>
+<LI>type = particle type to be given to the new particles created by this fix 
+
+<LI>mol-ID = molecule-ID to be given to the new particles created by this fix (must be >= 65535) 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix stl_surf all smd/wall_surface tool.stl 2 65535 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix creates reads a traingulated surface from a file in .STL format.
+For each triangle, a new particle is created which stores the barycenter of the triangle and the vertex positions.
+The radius of the new particle is that of the minimum circle which encompasses the triangle vertices.  
+</P>
+<P>The triangulated surface can be used as a complex rigid wall via the <A HREF = "pair_smd_triangulated_surface.html">smd/tri_surface</A> pair style.
+It is possible to move the triangulated surface via the <A HREF = "fix_smd_move_triangulated_surface.html">smd/move_tri_surf</A> fix style.
+</P>
+<P>Immediately after a .STL file has been read, the simulation needs to be run for 0 timesteps in order to properly register the new particles
+in the system. See the "funnel_flow" example in the USER-SMD examples directory. 
+</P>
+<P>See <A HREF = "USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</A> to use Smooth Mach Dynamics in LAMMPS.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info. The molecule ID given to the particles created by this fix have to be equal to or larger than 65535.
+</P>
+<P>Within each .STL file, only a single triangulated object must be present, even though the STL format allows for the possibility of multiple objects in one file.  
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_smd_triangle_mesh_vertices.html">smd/triangle_mesh_vertices</A>, <A HREF = "fix_smd_move_triangulated_surface.html">smd/move_tri_surf</A>, <A HREF = "pair_smd_triangulated_surface.html">smd/tri_surface</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

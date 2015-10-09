@@ -58,7 +58,15 @@ int ReaderXYZ::read_time(bigint &ntimestep)
   if (eof == NULL) return 1;
 
   // first line has to have the number of atoms
+  // truncate the string to the first whitespace,
+  //   so force->bnumeric() does not hiccup
 
+  for (int i=0; (i < MAXLINE) && (eof[i] != '\0'); ++i) {
+    if (eof[i] == '\n' || eof[i] == '\r' || eof[i] == ' ' || eof[i] == '\t') {
+      eof[i] = '\0';
+      break;
+    }
+  }
   natoms = force->bnumeric(FLERR,line);
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
@@ -204,13 +212,13 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 /* ----------------------------------------------------------------------
    read N lines from dump file
    only last one is saved in line
-   return NULL if end-of-file error, else non-NULL
    only called by proc 0
 ------------------------------------------------------------------------- */
 
 void ReaderXYZ::read_lines(int n)
 {
-  char *eof;
+  char *eof = NULL;
+  if (n <= 0) return;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->all(FLERR,"Unexpected end of dump file");
+  if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 }

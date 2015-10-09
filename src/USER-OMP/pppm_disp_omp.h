@@ -41,7 +41,7 @@ namespace LAMMPS_NS {
   virtual void particle_map(double,double,double,
                             double,int**,int,int,
                             int,int,int,int,int,int);
-                                
+
 
   virtual void fieldforce_c_ik();
   virtual void fieldforce_c_ad();

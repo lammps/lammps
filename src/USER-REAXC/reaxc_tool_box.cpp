@@ -30,7 +30,7 @@
 void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
 {
   int i, j;
-  real tmp;
+  double tmp;
 
   if (flag > 0) {
     for (i=0; i < 3; i++) {
@@ -79,16 +79,16 @@ void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
 }
 
 struct timeval tim;
-real t_end;
+double t_end;
 
-real Get_Time( )
+double Get_Time( )
 {
   gettimeofday(&tim, NULL );
   return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
 }
 
 
-real Get_Timing_Info( real t_start )
+double Get_Timing_Info( double t_start )
 {
   gettimeofday(&tim, NULL );
   t_end = tim.tv_sec + (tim.tv_usec / 1000000.0);
@@ -96,7 +96,7 @@ real Get_Timing_Info( real t_start )
 }
 
 
-void Update_Timing_Info( real *t_start, real *timing )
+void Update_Timing_Info( double *t_start, double *timing )
 {
   gettimeofday(&tim, NULL );
   t_end = tim.tv_sec + (tim.tv_usec / 1000000.0);

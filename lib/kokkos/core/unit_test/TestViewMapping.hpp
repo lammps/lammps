@@ -472,32 +472,86 @@ void test_view_mapping()
   // view data analysis
 
   {
-    typedef Kokkos::Experimental::Impl::ViewDataAnalysis< const int[] >  a_const_int_r1 ;
+    using namespace Kokkos::Experimental::Impl ;
 
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::specialize , void >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::dimension , Kokkos::Experimental::Impl::ViewDimension<0> >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::type , const int[] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::value_type , const int >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::array_scalar_type , const int[] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::const_type , const int[] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::const_value_type , const int >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::const_array_scalar_type , const int[] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::non_const_type , int [] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r1::non_const_value_type , int >::value ));
+    typedef ViewArrayAnalysis< int[] >                 a_int_r1 ;
+    typedef ViewArrayAnalysis< int**[4][5][6] >        a_int_r5 ;
+    typedef ViewArrayAnalysis< const int[] >           a_const_int_r1 ;
+    typedef ViewArrayAnalysis< const int**[4][5][6] >  a_const_int_r5 ;
 
-    typedef Kokkos::Experimental::Impl::ViewDataAnalysis< const int**[4] >  a_const_int_r3 ;
+    static_assert( a_int_r1::dimension::rank == 1 , "" );
+    static_assert( a_int_r1::dimension::rank_dynamic == 1 , "" );
+    static_assert( std::is_same< typename a_int_r1::dimension , ViewDimension<0> >::value , "" );
+    static_assert( std::is_same< typename a_int_r1::non_const_value_type , int >::value , "" );
 
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::specialize , void >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::dimension , Kokkos::Experimental::Impl::ViewDimension<0,0,4> >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::type , const int**[4] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::value_type , const int >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::array_scalar_type , const int**[4] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::const_type , const int**[4] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::const_value_type , const int >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::const_array_scalar_type , const int**[4] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::non_const_type , int**[4] >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::non_const_value_type , int >::value ));
-    ASSERT_TRUE( ( std::is_same< typename a_const_int_r3::non_const_array_scalar_type , int**[4] >::value ));
+    static_assert( a_const_int_r1::dimension::rank == 1 , "" );
+    static_assert( a_const_int_r1::dimension::rank_dynamic == 1 , "" );
+    static_assert( std::is_same< typename a_const_int_r1::dimension , ViewDimension<0> >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::non_const_value_type , int >::value , "" );
+
+    static_assert( a_const_int_r5::dimension::rank == 5 , "" );
+    static_assert( a_const_int_r5::dimension::rank_dynamic == 2 , "" );
+    static_assert( std::is_same< typename a_const_int_r5::dimension , ViewDimension<0,0,4,5,6> >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r5::non_const_value_type , int >::value , "" );
+
+    static_assert( a_int_r5::dimension::rank == 5 , "" );
+    static_assert( a_int_r5::dimension::rank_dynamic == 2 , "" );
+    static_assert( std::is_same< typename a_int_r5::dimension , ViewDimension<0,0,4,5,6> >::value , "" );
+    static_assert( std::is_same< typename a_int_r5::non_const_value_type , int >::value , "" );
+  }
+
+  {
+    using namespace Kokkos::Experimental::Impl ;
+
+    typedef int t_i4[4] ;
+
+    // Dimensions of t_i4 are appended to the multdimensional array.
+    typedef ViewArrayAnalysis< t_i4 ***[3] > a_int_r5 ;
+
+    static_assert( a_int_r5::dimension::rank == 5 , "" );
+    static_assert( a_int_r5::dimension::rank_dynamic == 3 , "" );
+    static_assert( a_int_r5::dimension::arg_N0 == 0 , "" );
+    static_assert( a_int_r5::dimension::arg_N1 == 0 , "" );
+    static_assert( a_int_r5::dimension::arg_N2 == 0 , "" );
+    static_assert( a_int_r5::dimension::arg_N3 == 3 , "" );
+    static_assert( a_int_r5::dimension::arg_N4 == 4 , "" );
+    static_assert( std::is_same< typename a_int_r5::non_const_value_type , int >::value , "" );
+  }
+
+  {
+    using namespace Kokkos::Experimental::Impl ;
+
+    typedef ViewDataAnalysis< const int[] , typename ViewArrayAnalysis<const int[]>::non_const_value_type , void >  a_const_int_r1 ;
+
+    static_assert( std::is_same< typename a_const_int_r1::specialize , void >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::dimension , Kokkos::Experimental::Impl::ViewDimension<0> >::value , "" );
+
+    static_assert( std::is_same< typename a_const_int_r1::type , const int * >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::value_type , const int >::value , "" );
+
+    static_assert( std::is_same< typename a_const_int_r1::array_scalar_type , const int * >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::const_type , const int * >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::const_value_type , const int >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::const_array_scalar_type , const int * >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::non_const_type , int * >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::non_const_value_type , int >::value , "" );
+
+    typedef ViewDataAnalysis< const int**[4] , typename ViewArrayAnalysis< const int **[4] >::non_const_value_type , void >  a_const_int_r3 ;
+
+    static_assert( std::is_same< typename a_const_int_r3::specialize , void >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::dimension , Kokkos::Experimental::Impl::ViewDimension<0,0,4> >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::type , const int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::value_type , const int >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::array_scalar_type , const int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::const_type , const int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::const_value_type , const int >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::const_array_scalar_type , const int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::non_const_type , int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::non_const_value_type , int >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::non_const_array_scalar_type , int**[4] >::value , "" );
+
+
+    // std::cout << "typeid(const int**[4]).name() = " << typeid(const int**[4]).name() << std::endl ;
   }
 
   //----------------------------------------
@@ -615,7 +669,11 @@ void test_view_mapping()
     }
   }
 
-  {
+  // Testing using space instance for allocation.
+  // The execution space of the memory space must be available for view data initialization
+
+  if ( std::is_same< ExecSpace , typename ExecSpace::memory_space::execution_space >::value ) {
+
     using namespace Kokkos::Experimental ;
 
     typedef typename ExecSpace::memory_space  memory_space ;

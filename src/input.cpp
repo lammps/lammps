@@ -43,6 +43,7 @@
 #include "update.h"
 #include "neighbor.h"
 #include "special.h"
+#include "timer.h"
 #include "variable.h"
 #include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
@@ -104,7 +105,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   // check for args "-var" and "-echo"
   // caller has already checked that sufficient arguments exist
 
-  int iarg = 0;
+  int iarg = 1;
   while (iarg < argc) {
     if (strcmp(argv[iarg],"-var") == 0 || strcmp(argv[iarg],"-v") == 0) {
       int jarg = iarg+3;
@@ -685,6 +686,7 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
+  else if (!strcmp(command,"timer")) timer_command();
   else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
@@ -1037,6 +1039,7 @@ void Input::print()
     if (strcmp(arg[iarg],"file") == 0 || strcmp(arg[iarg],"append") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
       if (me == 0) {
+        if (fp != NULL) fclose(fp);
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == NULL) {
@@ -1076,8 +1079,9 @@ void Input::python()
 
 void Input::quit()
 {
-  if (narg) error->all(FLERR,"Illegal quit command");
-  error->done();
+  if (narg == 0) error->done(0); // 1 would be fully backwards compatible
+  if (narg == 1) error->done(force->inumeric(FLERR,arg[0]));
+  error->all(FLERR,"Illegal quit command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1695,7 +1699,7 @@ void Input::special_bonds()
 
 void Input::suffix()
 {
-  if (narg != 1) error->all(FLERR,"Illegal suffix command");
+  if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
   else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
@@ -1703,17 +1707,21 @@ void Input::suffix()
     lmp->suffix_enable = 1;
 
     delete [] lmp->suffix;
-    int n = strlen(arg[0]) + 1;
-    lmp->suffix = new char[n];
-    strcpy(lmp->suffix,arg[0]);
+    delete [] lmp->suffix2;
 
-    // set 2nd suffix = "omp" when suffix = "intel"
-    // but only if USER-OMP package is installed
-
-    if (strcmp(lmp->suffix,"intel") == 0 && modify->check_package("OMP")) {
-      delete [] lmp->suffix2;
-      lmp->suffix2 = new char[4];
-      strcpy(lmp->suffix2,"omp");
+    if (strcmp(arg[0],"hybrid") == 0) {
+      if (narg != 3) error->all(FLERR,"Illegal suffix command");
+      int n = strlen(arg[1]) + 1;
+      lmp->suffix = new char[n];
+      strcpy(lmp->suffix,arg[1]);
+      n = strlen(arg[2]) + 1;
+      lmp->suffix2 = new char[n];
+      strcpy(lmp->suffix2,arg[2]);
+    } else {
+      if (narg != 1) error->all(FLERR,"Illegal suffix command");
+      int n = strlen(arg[0]) + 1;
+      lmp->suffix = new char[n];
+      strcpy(lmp->suffix,arg[0]);
     }
   }
 }
@@ -1737,6 +1745,13 @@ void Input::thermo_modify()
 void Input::thermo_style()
 {
   output->create_thermo(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::timer_command()
+{
+  timer->modify_params(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

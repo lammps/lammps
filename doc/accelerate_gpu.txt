@@ -79,7 +79,7 @@ Type "Make.py -h" for help.  If run from the src directory, this
 command will create src/lmp_gpu using src/MAKE/Makefile.mpi as the
 starting Makefile.machine:
 
-Make.py -p gpu -gpu mode=single arch=31 -o gpu lib-gpu file mpi :pre
+Make.py -p gpu -gpu mode=single arch=31 -o gpu -a lib-gpu file mpi :pre
 
 Or you can follow these two (a,b) steps:
 

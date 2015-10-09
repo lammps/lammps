@@ -681,7 +681,7 @@ void DumpImage::create_image()
         color = colorelement[itype];
       } else if (acolor == ATTRIBUTE) {
         color = image->map_value2color(0,buf[m]);
-      }
+      } else color = image->color2rgb("white");
 
       if (adiam == NUMERIC) {
         diameter = adiamvalue;
@@ -784,6 +784,9 @@ void DumpImage::create_image()
           } else if (acolor == ATTRIBUTE) {
             color1 = image->map_value2color(0,bufcopy[atom1][0]);
             color2 = image->map_value2color(0,bufcopy[atom2][0]);
+          } else {
+            color1 = image->color2rgb("white");
+            color2 = image->color2rgb("white");
           }
         } else if (bcolor == TYPE) {
           itype = btype;

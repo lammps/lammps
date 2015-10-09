@@ -257,14 +257,14 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
 }
 
 
-int BOp( storage *workspace, reax_list *bonds, real bo_cut,
+int BOp( storage *workspace, reax_list *bonds, double bo_cut,
          int i, int btop_i, far_neighbor_data *nbr_pj,
          single_body_parameters *sbp_i, single_body_parameters *sbp_j,
          two_body_parameters *twbp ) {
   int j, btop_j;
-  real r2, C12, C34, C56;
-  real Cln_BOp_s, Cln_BOp_pi, Cln_BOp_pi2;
-  real BO, BO_s, BO_pi, BO_pi2;
+  double r2, C12, C34, C56;
+  double Cln_BOp_s, Cln_BOp_pi, Cln_BOp_pi2;
+  double BO, BO_s, BO_pi, BO_pi2;
   bond_data *ibond, *jbond;
   bond_order_data *bo_ij, *bo_ji;
 
@@ -370,14 +370,14 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
 {
   int i, j, pj, type_i, type_j;
   int start_i, end_i, sym_index;
-  real val_i, Deltap_i, Deltap_boc_i;
-  real val_j, Deltap_j, Deltap_boc_j;
-  real f1, f2, f3, f4, f5, f4f5, exp_f4, exp_f5;
-  real exp_p1i,        exp_p2i, exp_p1j, exp_p2j;
-  real temp, u1_ij, u1_ji, Cf1A_ij, Cf1B_ij, Cf1_ij, Cf1_ji;
-  real Cf45_ij, Cf45_ji, p_lp1; //u_ij, u_ji
-  real A0_ij, A1_ij, A2_ij, A2_ji, A3_ij, A3_ji;
-  real explp1, p_boc1, p_boc2;
+  double val_i, Deltap_i, Deltap_boc_i;
+  double val_j, Deltap_j, Deltap_boc_j;
+  double f1, f2, f3, f4, f5, f4f5, exp_f4, exp_f5;
+  double exp_p1i,        exp_p2i, exp_p1j, exp_p2j;
+  double temp, u1_ij, u1_ji, Cf1A_ij, Cf1B_ij, Cf1_ij, Cf1_ji;
+  double Cf45_ij, Cf45_ji, p_lp1; //u_ij, u_ji
+  double A0_ij, A1_ij, A2_ij, A2_ji, A3_ij, A3_ji;
+  double explp1, p_boc1, p_boc2;
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;
   bond_order_data *bo_ij, *bo_ji;

@@ -145,7 +145,6 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
                                    r*f_shift) * r;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-          fpair = forcecoul * r2inv;
         } else forcecoul = 0.0;
 
         fpair = (forcecoul + factor_lj*forcelj) * r2inv;
@@ -213,11 +212,12 @@ void PairLJCutCoulDSF::allocate()
 
 void PairLJCutCoulDSF::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
   alpha = force->numeric(FLERR,arg[0]);
   cut_lj_global = force->numeric(FLERR,arg[1]);
-  cut_coul = force->numeric(FLERR,arg[2]);
+  if (narg == 2) cut_coul = cut_lj_global;
+  else cut_coul = force->numeric(FLERR,arg[2]);
   
   // reset cutoffs that have been explicitly set
 

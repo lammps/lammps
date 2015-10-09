@@ -241,7 +241,7 @@ void Velocity::create(double t_desired, int seed)
 
   int m;
   double vx,vy,vz,factor;
-  RanPark *random;
+  RanPark *random = NULL;
 
   if (loop_flag == ALL) {
 

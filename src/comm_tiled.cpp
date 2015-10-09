@@ -52,11 +52,17 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
   style = 1;
   layout = LAYOUT_UNIFORM;
+  pbc_flag = NULL;
   init_buffers();
 }
 
 /* ---------------------------------------------------------------------- */
-
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
+//
 CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
   if (lmp->cuda)
@@ -66,7 +72,7 @@ CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 
   style = 1;
   layout = oldcomm->layout;
-  copy_arrays(oldcomm);
+  Comm::copy_arrays(oldcomm);
   init_buffers();
 }
 
@@ -182,7 +188,7 @@ void CommTiled::setup()
   if (cut == 0.0) {
     cutzero = 1;
     cut = MIN(prd[0],prd[1]);
-    if (dimension == 3) cut = MIN(cut,prd[3]);
+    if (dimension == 3) cut = MIN(cut,prd[2]);
     cut *= EPSILON*EPSILON;
   }
 
@@ -920,9 +926,9 @@ void CommTiled::borders()
         }
       }
       if (sendself[iswap]) {
-        n = avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                                  buf_send,pbc_flag[iswap][nsend],
-                                  pbc[iswap][nsend]);
+        avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                              buf_send,pbc_flag[iswap][nsend],
+                              pbc[iswap][nsend]);
         avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                                 buf_send);
       }
@@ -949,9 +955,8 @@ void CommTiled::borders()
         }
       }
       if (sendself[iswap]) {
-        n = avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                              buf_send,pbc_flag[iswap][nsend],
-                              pbc[iswap][nsend]);
+        avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                          buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
         avec->unpack_border(recvnum[iswap][nsend],firstrecv[iswap][nsend],
                             buf_send);
       }

@@ -72,7 +72,7 @@ void AtomVecEllipsoid::grow(int n)
   if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0 || nmax > MAXSMALLINT)
+  if (nmax < 0)
     error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
@@ -113,7 +113,7 @@ void AtomVecEllipsoid::grow_reset()
 void AtomVecEllipsoid::grow_bonus()
 {
   nmax_bonus = grow_nmax_bonus(nmax_bonus);
-  if (nmax_bonus < 0 || nmax_bonus > MAXSMALLINT)
+  if (nmax_bonus < 0)
     error->one(FLERR,"Per-processor system is too big");
 
   bonus = (Bonus *) memory->srealloc(bonus,nmax_bonus*sizeof(Bonus),

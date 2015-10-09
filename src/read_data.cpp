@@ -78,6 +78,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   buffer = new char[CHUNK*MAXLINE];
   narg = maxarg = 0;
   arg = NULL;
+  fp = NULL;
 
   // customize for new sections
   // pointers to atom styles that store extra info
@@ -298,6 +299,7 @@ void ReadData::command(int narg, char **arg)
   nbonds = nangles = ndihedrals = nimpropers = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   triclinic = 0;
+  keyword[0] = '\0';
 
   int nlocal_previous = atom->nlocal;
   int firstpass = 1;
@@ -617,6 +619,7 @@ void ReadData::command(int narg, char **arg)
     if (me == 0) {
       if (compressed) pclose(fp);
       else fclose(fp);
+      fp = NULL;
     }
 
     // done if this was 2nd pass
@@ -886,7 +889,7 @@ void ReadData::header()
     } else if (strstr(line,"dihedrals")) {
       sscanf(line,BIGINT_FORMAT,&ndihedrals);
       if (addflag == NONE) atom->ndihedrals = ndihedrals;
-      else atom->ndihedrals += natoms;
+      else atom->ndihedrals += ndihedrals;
     } else if (strstr(line,"impropers")) {
       sscanf(line,BIGINT_FORMAT,&nimpropers);
       if (addflag == NONE) atom->nimpropers = nimpropers;
@@ -1763,7 +1766,10 @@ void ReadData::parse_keyword(int first)
         if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
       } else done = 1;
     }
-    if (fgets(buffer,MAXLINE,fp) == NULL) eof = 1;
+    if (fgets(buffer,MAXLINE,fp) == NULL) {
+      eof = 1;
+      buffer[0] = '\0';
+    }
   }
 
   // if eof, set keyword empty and return
@@ -1812,7 +1818,8 @@ void ReadData::parse_keyword(int first)
 void ReadData::skip_lines(bigint n)
 {
   if (me) return;
-  char *eof;
+  if (n <= 0) return;
+  char *eof = NULL;
   for (bigint i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 }

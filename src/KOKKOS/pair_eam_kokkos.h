@@ -135,7 +135,6 @@ class PairEAMKokkos : public PairEAM {
   DAT::t_int_2d_randomread d_type2rhor;
   DAT::t_int_2d_randomread d_type2z2r;
 
-
   typedef Kokkos::DualView<F_FLOAT4**,Kokkos::LayoutLeft,DeviceType> tdual_ffloat4;
   typedef typename tdual_ffloat4::t_dev_const_randomread t_ffloat4_randomread;
   typedef typename tdual_ffloat4::t_host t_host_ffloat4;

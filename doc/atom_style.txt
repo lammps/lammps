@@ -14,7 +14,8 @@ atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {electron} or {ellipsoid} or {full} or {line} or {meso} or \
-	{molecular} or {peri} or {sphere} or {tri} or {template} or {hybrid} :ulb,l
+	{molecular} or {peri} or {smd} or {sphere} or {tri} or \
+        {template} or {hybrid} :ulb,l
   args = none for any style except {body} and {hybrid}
   {body} args = bstyle bstyle-args
     bstyle = style of body particles
@@ -76,6 +77,7 @@ quantities.
 {meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
 {peri} | mass, volume | mesocopic Peridynamic models |
+{smd} | volume, kernel diameter, contact radius, mass | solid and fluid SPH particles |
 {sphere} | diameter, mass, angular velocity | granular models |
 {template} | template index, template atom | small molecules with fixed topology |
 {tri} | corner points, angular momentum | rigid bodies |
@@ -122,6 +124,13 @@ per-particle mass and volume.
 The {meso} style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
 (cv).
+
+The {smd} style is for a general formulation of Smooth Particle
+Hydrodynamics.  Both fluids and solids can be modeled.  Particles
+store the mass and volume of an integration point, a kernel diameter
+used for calculating the field variables (e.g. stress and deformation)
+and a contact radius for calculating repulsive forces which prevent
+individual physical bodies from penetretating each other.
 
 The {wavepacket} style is similar to {electron}, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients

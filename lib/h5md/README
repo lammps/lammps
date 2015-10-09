@@ -1,0 +1,27 @@
+This directory contains the ch5md library, which is bundled with
+LAMMPS under its own BSD license; see below.  This library is used
+when the USER-H5MD package is included in a LAMMPS build and the dump
+h5md command is invoked in a LAMMPS input script.
+
+---------------------
+
+ch5md : Read and write H5MD files in C
+======================================
+
+Copyright (C) 2013-2014 Pierre de Buyl
+
+ch5md is a set of C routines to manipulate H5MD files. H5MD is a file format
+specification based on [HDF5](http://www.hdfgroup.org/HDF5/) for storing
+molecular data, whose development is found at <http://nongnu.org/h5md/>.
+
+ch5md is developped by Pierre de Buyl and is released under the 3-clause BSD
+license that can be found in the file LICENSE.
+
+To use the h5md dump style in lammps, execute make in this directory then 'make
+yes-user-h5md' in the src directory of lammps. Rebuild lammps. 
+
+If HDF5 is not in a standard system location, edit Makefile.lammps accordingly.
+
+In the case of 2015 and more recent debian and ubuntu systems where concurrent
+serial and mpi are possible, use the full platform depedent path, i.e.
+`HDF5_PATH=/usr/lib/x86_64-linux-gnu/hdf5/serial`

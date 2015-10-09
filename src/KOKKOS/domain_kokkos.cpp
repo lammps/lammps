@@ -205,3 +205,214 @@ void DomainKokkos::pbc()
   LMPDeviceType::fence();
 }
 
+/* ----------------------------------------------------------------------
+   remap all points into the periodic box no matter how far away
+   adjust 3 image flags encoded in image accordingly
+   resulting coord must satisfy lo <= coord < hi
+   MAX is important since coord - prd < lo can happen when coord = hi
+   for triclinic, point is converted to lamda coords (0-1) before doing remap
+   image = 10 bits for each dimension
+   increment/decrement in wrap-around fashion
+------------------------------------------------------------------------- */
+
+void DomainKokkos::remap_all()
+{
+  atomKK->sync(Device,X_MASK | IMAGE_MASK);
+  atomKK->modified(Device,X_MASK | IMAGE_MASK);
+
+  x = atomKK->k_x.view<LMPDeviceType>();
+  image = atomKK->k_image.view<LMPDeviceType>();
+  int nlocal = atomKK->nlocal;
+
+  if (triclinic == 0) {
+    for (int i=0; i<3; i++) {
+      lo[i] = boxlo[i]; 
+      hi[i] = boxhi[i];
+      period[i] = prd[i];
+    }
+  } else {
+    for (int i=0; i<3; i++) {
+      lo[i] = boxlo_lamda[i];
+      hi[i] = boxhi_lamda[i];
+      period[i] = prd_lamda[i];
+    }
+    x2lamda(nlocal);
+  }
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_remap_all>(0,nlocal),*this);
+  LMPDeviceType::fence();
+  copymode = 0;
+
+  if (triclinic) lamda2x(nlocal);
+}
+
+KOKKOS_INLINE_FUNCTION
+void DomainKokkos::operator()(TagDomain_remap_all, const int &i) const {
+    imageint idim,otherdims;
+    if (xperiodic) {
+      while (x(i,0) < lo[0]) {
+        x(i,0) += period[0];
+        idim = image[i] & IMGMASK;
+        otherdims = image[i] ^ idim;
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | idim;
+      }
+      while (x(i,0) >= hi[0]) {
+        x(i,0) -= period[0];
+        idim = image[i] & IMGMASK;
+        otherdims = image[i] ^ idim;
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | idim;
+      }
+      x(i,0) = MAX(x(i,0),lo[0]);
+    }
+    
+    if (yperiodic) {
+      while (x(i,1) < lo[1]) {
+        x(i,1) += period[1];
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
+      }
+      while (x(i,1) >= hi[1]) {
+        x(i,1) -= period[1];
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
+      }
+      x(i,1) = MAX(x(i,1),lo[1]);
+    }
+    
+    if (zperiodic) {
+      while (x(i,2) < lo[2]) {
+        x(i,2) += period[2];
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
+      }
+      while (x(i,2) >= hi[2]) {
+        x(i,2) -= period[2];
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
+      }
+      x(i,2) = MAX(x(i,2),lo[2]);
+    }
+}
+
+/* ----------------------------------------------------------------------
+   adjust image flags due to triclinic box flip
+   flip operation is changing box vectors A,B,C to new A',B',C'
+     A' = A              (A does not change)
+     B' = B + mA         (B shifted by A)
+     C' = C + pB + nA    (C shifted by B and/or A)
+   this requires the image flags change from (a,b,c) to (a',b',c')
+   so that x_unwrap for each atom is same before/after
+     x_unwrap_before = xlocal + aA + bB + cC
+     x_unwrap_after = xlocal + a'A' + b'B' + c'C'
+   this requires:
+     c' = c
+     b' = b - cp
+     a' = a - (b-cp)m - cn = a - b'm - cn
+   in other words, for xy flip, change in x flag depends on current y flag
+   this is b/c the xy flip dramatically changes which tiled image of
+     simulation box an unwrapped point maps to
+------------------------------------------------------------------------- */
+
+void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
+{
+  m_flip = m_in;
+  n_flip = n_in;
+  p_flip = p_in;
+
+  atomKK->sync(Device,IMAGE_MASK);
+  atomKK->modified(Device,IMAGE_MASK);
+
+  image = atomKK->k_image.view<LMPDeviceType>();
+  int nlocal = atomKK->nlocal;
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_image_flip>(0,nlocal),*this);
+  LMPDeviceType::fence();
+  copymode = 0;
+}
+
+KOKKOS_INLINE_FUNCTION
+void DomainKokkos::operator()(TagDomain_image_flip, const int &i) const {
+  int xbox = (image[i] & IMGMASK) - IMGMAX;
+  int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image[i] >> IMG2BITS) - IMGMAX;
+
+  ybox -= p_flip*zbox;
+  xbox -= m_flip*ybox + n_flip*zbox;
+
+  image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
+    (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+    (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+}
+
+/* ----------------------------------------------------------------------
+   convert triclinic 0-1 lamda coords to box coords for all N atoms
+   x = H lamda + x0;
+------------------------------------------------------------------------- */
+
+void DomainKokkos::lamda2x(int n)
+{
+  atomKK->sync(Device,X_MASK);
+  atomKK->modified(Device,X_MASK);
+
+  x = atomKK->k_x.view<LMPDeviceType>();
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_lamda2x>(0,n),*this);
+  LMPDeviceType::fence();
+  copymode = 0;
+}
+
+KOKKOS_INLINE_FUNCTION
+void DomainKokkos::operator()(TagDomain_lamda2x, const int &i) const {
+  x(i,0) = h[0]*x(i,0) + h[5]*x(i,1) + h[4]*x(i,2) + boxlo[0];
+  x(i,1) = h[1]*x(i,1) + h[3]*x(i,2) + boxlo[1];
+  x(i,2) = h[2]*x(i,2) + boxlo[2];
+}
+
+/* ----------------------------------------------------------------------
+   convert box coords to triclinic 0-1 lamda coords for all N atoms
+   lamda = H^-1 (x - x0)
+------------------------------------------------------------------------- */
+
+void DomainKokkos::x2lamda(int n)
+{
+  atomKK->sync(Device,X_MASK);
+  atomKK->modified(Device,X_MASK);
+
+  x = atomKK->k_x.view<LMPDeviceType>();
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_x2lamda>(0,n),*this);
+  LMPDeviceType::fence();
+  copymode = 0;
+}
+
+KOKKOS_INLINE_FUNCTION
+void DomainKokkos::operator()(TagDomain_x2lamda, const int &i) const {
+  F_FLOAT delta[3];
+  delta[0] = x(i,0) - boxlo[0];
+  delta[1] = x(i,1) - boxlo[1];
+  delta[2] = x(i,2) - boxlo[2];
+
+  x(i,0) = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
+  x(i,1) = h_inv[1]*delta[1] + h_inv[3]*delta[2];
+  x(i,2) = h_inv[2]*delta[2];
+}

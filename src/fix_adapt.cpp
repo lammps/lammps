@@ -296,11 +296,14 @@ void FixAdapt::init()
       Pair *pair = NULL;
 
       if (lmp->suffix_enable) {
-        char psuffix[128];
+        int len = 2 + strlen(ad->pstyle) + strlen(lmp->suffix);
+        char *psuffix = new char[len];
+
         strcpy(psuffix,ad->pstyle);
         strcat(psuffix,"/");
         strcat(psuffix,lmp->suffix);
         pair = force->pair_match(psuffix,1);
+        delete[] psuffix;
       }
       if (pair == NULL) pair = force->pair_match(ad->pstyle,1);
       if (pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");

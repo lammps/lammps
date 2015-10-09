@@ -18,7 +18,7 @@ DumpStyle(atom/mpiio,DumpAtomMPIIO)
 #else
 
 #ifndef LMP_DUMP_ATOM_MPIIO_H
-#define LMP_DUMP_ATOM_MPII0_H
+#define LMP_DUMP_ATOM_MPIIO_H
 
 #include "dump_atom.h"
 #include <stdlib.h>

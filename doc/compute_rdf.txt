@@ -42,8 +42,11 @@ interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the "special_bonds"_special_bonds.html
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
-those pairs will not be included in the RDF.  One way to get around
-this, is to write a dump file, and use the "rerun"_rerun.html command
+those pairs will not be included in the RDF. This does not apply when
+using long-range coulomb ({coul/long}, {coul/msm}, {coul/wolf} or similar.
+One way to get around this would be to set special_bond scaling factors
+to very tiny numbers that are not exactly zero (e.g. 1.0e-50). Another
+workaround is to write a dump file, and use the "rerun"_rerun.html command
 to compute the RDF for snapshots in the dump file.  The rerun script
 can use a "special_bonds"_special_bonds.html command that includes all
 pairs in the neighbor list.

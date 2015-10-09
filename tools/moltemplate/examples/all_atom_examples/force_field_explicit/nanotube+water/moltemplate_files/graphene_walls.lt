@@ -36,20 +36,22 @@ Wall {
 wall1 = new Wall.move(0, 0, 32.0)
 wall2 = new Wall.move(0, 0, 58.26)
 
-
-# WARNING:  A reader has emailed me to point out that:
-#         THIS IS NOT A REALISTIC MODEL OF A GRAPHENE-NANOTUBE JUNCTION.
-#           A real junction would be curved and deformed near the boundary,
-#           (not 90 degrees) and it would not be built entirely from hexagons.
-#           (This is not a problem in this example because the carbon atoms
-#           are immobilized.)  If you want to simulate the behavior of
-#           real graphene or nanotube junctions, you must be more careful.
-#          To solve this problem:
-#           Moltemplate allows you to move, customize or delete individual
-#           atoms near the boundary.  You can move atoms by overwriting their 
-#           coordinates using additional write("Data Atoms") statements (after
-#           the walls and tube are created).  You can also change their charge.
-#          Alternately, you could start with the structure provided here, and 
-#           relax/minimize the coordinates of the carbon atoms using LAMMPS
-#           before using it in other simulations.
-#          Or you could do both (customization & minimization).
+# WARNING:  A reader has pointed out :
+#    THIS IS NOT A REALISTIC MODEL OF A GRAPHENE-NANOTUBE JUNCTION.
+#    A real junction would likely be curved near the boundary, 
+#    not a 90 degree junction.  (Although both graphene and nanotubes
+#    consist of hexagons of carbon atoms, you would need 6 heptagons
+#    near the junction between the nanotube and the graphene 
+#    to account for the negative Gaussian curvature there).
+# To solve this problem:
+#    Moltemplate allows you to move, add, customize or delete individual
+#    atoms near the boundary.  You can move atoms by overwriting their 
+#    coordinates using additional write("Data Atoms") statements (after
+#    the walls and tube are created).  You can also adjust their partial charge.
+# Alternately, you could start with the structure provided here, add or delete
+#    atoms if necessary, and relax/minimize the coordinates of the carbon 
+#    atoms using LAMMPS.  You could also run a high temperature annealing
+#    simulation to relax their positions.  If it helps, the AIREBO 
+#    force-field has used in LAMMPS to simulate carbon nanotubes breaking:
+#     http://scitation.aip.org/content/aip/journal/jcp/134/20/10.1063/1.3594197
+#     http://lammps.sandia.gov/pictures.html#cnt

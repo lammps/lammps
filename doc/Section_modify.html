@@ -474,8 +474,8 @@ per-atom kinetic energy.</p>
 class.  See compute.h for details.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="22%" />
-<col width="78%" />
+<col width="24%" />
+<col width="76%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>init</td>
@@ -520,11 +520,21 @@ class.  See compute.h for details.</p>
 <tr class="row-even"><td>restore_bias_all</td>
 <td>same as before, but for all atoms in group (optional)</td>
 </tr>
-<tr class="row-odd"><td>memory_usage</td>
+<tr class="row-odd"><td>pair_tally_callback</td>
+<td>callback function for <em>tally</em>-style computes (optional).</td>
+</tr>
+<tr class="row-even"><td>memory_usage</td>
 <td>tally memory usage (optional)</td>
 </tr>
 </tbody>
 </table>
+<p>Tally-style computes are a special case, as their computation is done
+in two stages: the callback function is registered with the pair style
+and then called from the Pair::ev_tally() function, which is called for
+each pair after force and energy has been computed for this pair. Then
+the tallied values are retrieved with the standard compute_scalar or
+compute_vector or compute_peratom methods. The USER-TALLY package
+provides <a href="#id7"><span class="problematic" id="id8">*</span></a>examples*_compute_tally.html for utilizing this mechanism.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="dump-styles">
@@ -1098,7 +1108,7 @@ the code accesses data structures, performs its operations, and is
 formatted similar to other LAMMPS source files, including the use of
 the error class for error and warning messages.</li>
 <li>If you want your contribution to be added as a user-contributed
-feature, and it&#8217;s a single file (actually a <a href="#id8"><span class="problematic" id="id9">*</span></a>.cpp and <a href="#id10"><span class="problematic" id="id11">*</span></a>.h file) it can
+feature, and it&#8217;s a single file (actually a <a href="#id10"><span class="problematic" id="id11">*</span></a>.cpp and <a href="#id12"><span class="problematic" id="id13">*</span></a>.h file) it can
 rapidly be added to the USER-MISC directory.  Send us the one-line
 entry to add to the USER-MISC/README file in that dir, along with the
 2 source files.  You can do this multiple times if you wish to
@@ -1148,7 +1158,7 @@ directories under examples/USER for examples of input scripts other
 users provided for their packages.</li>
 <li>If there is a paper of yours describing your feature (either the
 algorithm/science behind the feature itself, or its initial usage, or
-its implementation in LAMMPS), you can add the citation to the <a href="#id12"><span class="problematic" id="id13">*</span></a>.cpp
+its implementation in LAMMPS), you can add the citation to the <a href="#id14"><span class="problematic" id="id15">*</span></a>.cpp
 source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
 A LaTeX citation is stored in a variable at the top of the file and a
 single line of code that references the variable is added to the

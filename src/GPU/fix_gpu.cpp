@@ -115,6 +115,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
       else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
       else error->all(FLERR,"Illegal package gpu command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       binsize = force->numeric(FLERR,arg[iarg+1]);
@@ -294,7 +295,7 @@ void FixGPU::post_force(int vflag)
   force->pair->virial[5] += lvirial[5];
 
   if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
-  timer->stamp(TIME_PAIR);
+  timer->stamp(Timer::PAIR);
 }
 
 /* ---------------------------------------------------------------------- */

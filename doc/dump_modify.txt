@@ -257,7 +257,7 @@ performed with dump style {xtc}.
 The text-based dump styles have a default C-style format string which
 simply specifies %d for integers and %g for floating-point values.
 The {format} keyword can be used to override the default with a new
-C-style format string.  Do not include a trailing "\n" newline
+C-style format string.  Do not include a trailing "\\n" newline
 character in the format string.  This option has no effect on the
 {dcd} and {xtc} dump styles since they write binary files.  Note that
 for the {cfg} style, the first two fields (atom id and type) are not

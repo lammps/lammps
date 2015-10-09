@@ -1,0 +1,63 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix smd/integrate_ulsph command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID smd/integrate_ulsph keyword 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>smd/integrate_ulsph = style name of this fix command
+<LI>zero or more keyword/value pairs may be appended 
+</UL>
+<P>keyword = adjust_radius or limit_velocity
+</P>
+<P>adjust_radius values = adjust_radius_factor min_nn max_nn
+      adjust_radius_factor = factor which scale the smooth/kernel radius
+      min_nn = minimum number of neighbors
+      max_nn = maximum number of neighbors
+limit_velocity values = max_velocity
+      max_velocity = maximum allowed velocity.  
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all smd/integrate_ulsph adjust_radius 1.02 25 50 
+</PRE>
+<PRE>fix 1 all smd/integrate_ulsph limit_velocity 1000 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The fix performs explicit time integration for particles which interact with the updated Lagrangian SPH pair style.
+See <A HREF = "USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</A> to using Smooth Mach Dynamics in LAMMPS.
+</P>
+<P>The <I>adjust_radius</I> keyword activates dynamic adjustment of the per-particle SPH smoothing kernel radius such that the number of neighbors per particles remains
+within the interval <I>min_nn</I> to <I>max_nn</I>. The parameter <I>adjust_radius_factor</I> determines the amount of adjustment per timestep. Typical values are
+<I>adjust_radius_factor</I>=1.02, <I>min_nn</I>=15, and <I>max_nn</I>=20.
+</P>
+<P>The <I>limit_velocity</I> keyword will control the velocity, scaling the norm of
+the velocity vector to max_vel in case it exceeds this velocity limit. 
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -128,11 +128,12 @@
 <span id="index-0"></span><h1>suffix command<a class="headerlink" href="#suffix-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>suffix style
+<div class="highlight-python"><div class="highlight"><pre>suffix style args
 </pre></div>
 </div>
 <ul class="simple">
-<li>style = <em>off</em> or <em>on</em> or <em>cuda</em> or <em>gpu</em> or <em>intel</em> or <em>kk</em> or <em>omp</em> or <em>opt</em></li>
+<li>style = <em>off</em> or <em>on</em> or <em>cuda</em> or <em>gpu</em> or <em>intel</em> or <em>kk</em> or <em>omp</em> or <em>opt</em> or <em>hybrid</em></li>
+<li>args = for hybrid style, default suffix to be used and alternative suffix</li>
 </ul>
 </div>
 <div class="section" id="examples">
@@ -141,6 +142,7 @@
 suffix on
 suffix gpu
 suffix intel
+suffix hybrid intel omp
 suffix kk
 </pre></div>
 </div>
@@ -150,13 +152,13 @@ suffix kk
 <p>This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a>.  It also has options
 to turn off or back on any suffix setting made via the command line.</p>
-<p>The specified style can be <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or
-<em>opt</em>.  These refer to optional packages that LAMMPS can be built
+<p>The specified style can be <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, <em>opt</em>
+or <em>hybrid</em>. These refer to optional packages that LAMMPS can be built
 with, as described in <a class="reference internal" href="Section_start.html#start-3"><span>this section of the manual</span></a>.  The &#8220;cuda&#8221; style corresponds to
 the USER-CUDA package, the &#8220;gpu&#8221; style to the GPU package, the &#8220;intel&#8221;
 style to the USER-INTEL package, the &#8220;kk&#8221; style to the KOKKOS package,
 the &#8220;omp&#8221; style to the USER-OMP package, and the &#8220;opt&#8221; style to the
-OPT package,</p>
+OPT package.</p>
 <p>These are the variants these packages provide:</p>
 <ul class="simple">
 <li>USER-CUDA = a collection of atom, pair, fix, compute, and intergrate
@@ -174,6 +176,7 @@ kspace, compute, and fix styles with support for OpenMP
 multi-threading</li>
 <li>OPT = a handful of pair styles, cache-optimized for faster CPU
 performance</li>
+<li>HYBRID = a combination of two packages can be specified (see below)</li>
 </ul>
 <p>As an example, all of the packages provide a <a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut</em></a> variant, with style names lj/cut/opt, lj/cut/omp,
 lj/cut/gpu, lj/cut/intel, lj/cut/cuda, or lj/cut/kk.  A variant styles
@@ -188,10 +191,12 @@ input script command creates a new <a class="reference internal" href="atom_styl
 <a class="reference internal" href="fix.html"><em>fix</em></a>, <a class="reference internal" href="compute.html"><em>compute</em></a>, or <a class="reference internal" href="run_style.html"><em>run</em></a> style.
 If the variant version does not exist, the standard version is
 created.</p>
-<p>When using the intel suffix, LAMMPS will first attempt to use a style
-with the intel suffix.  If the USER-OMP package is installed, the the
-omp suffix will be tried as a second choice, if a requested style is
-not available in the USER-INTEL package.</p>
+<p>For &#8220;hybrid&#8221;, two packages are specified. The first is used whenever
+available. If a style with the first suffix is not available, the style
+with the suffix for the second package will be used if available. For
+example, &#8220;hybrid intel omp&#8221; will use styles from the USER-INTEL package
+as a first choice and styles from the USER-OMP package as a second choice
+if no USER-INTEL variant is available.</p>
 <p>If the specified style is <em>off</em>, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line
 switch or a previous suffix command.  If the specified style is <em>on</em>,

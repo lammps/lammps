@@ -7,7 +7,11 @@
 
 moltemplate.sh system.lt
 
-# This will generate various files with names ending in *.in* and *.data. 
+# (Note: If you have VMD installed, try this instead:)
+#        moltemplate.sh system.lt -vmd
+
+
+# Moltemplate will generate various files with names ending in *.in* and *.data.
 # These files are the input files directly read by LAMMPS.
 
 # Optional:

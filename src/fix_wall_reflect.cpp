@@ -142,6 +142,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallReflect::~FixWallReflect()
 {
+  if (copymode) return;
+
   for (int m = 0; m < nwall; m++)
     if (wallstyle[m] == VARIABLE) delete [] varstr[m];
 }

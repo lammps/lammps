@@ -47,16 +47,16 @@ void Minimize::command(int narg, char **arg)
   update->whichflag = 2;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
 
   lmp->init();
   update->minimize->setup();
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
   update->minimize->run(update->nsteps);
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop();
 
   update->minimize->cleanup();
 

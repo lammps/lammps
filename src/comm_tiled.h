@@ -110,6 +110,7 @@ class CommTiled : public Comm {
   double *sublo,*subhi;
   int dimension;
 
+  // NOTE: init_buffers is called from a constructor and must not be made virtual
   void init_buffers();
 
   // box drop and other functions

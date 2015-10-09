@@ -94,6 +94,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = e = de = cv = NULL;
   vest = NULL;
 
+  // USER-SMD
+
+  contact_radius = NULL;
+  smd_data_9 = NULL;
+  smd_stress = NULL;
+  eff_plastic_strain = NULL;
+  eff_plastic_strain_rate = NULL;
+  damage = NULL;
+
+  // molecular info
+
   bond_per_atom =  extra_bond_per_atom = 0;
   num_bond = NULL;
   bond_type = NULL;
@@ -147,6 +158,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
   rho_flag = e_flag = cv_flag = vest_flag = 0;
+
+  // USER-SMD
+
+  smd_flag = 0;
+  contact_radius_flag = 0;
+  smd_data_9_flag = 0;
+  smd_stress_flag = 0;
+  x0_flag = 0;
+  eff_plastic_strain_flag = 0;
+  eff_plastic_strain_rate_flag = 0;
+  damage_flag = 0;
 
   // Peridynamic scale factor
 
@@ -244,6 +266,13 @@ Atom::~Atom()
   memory->destroy(de);
   memory->destroy(cv);
   memory->destroy(vest);
+
+  memory->destroy(contact_radius);
+  memory->destroy(smd_data_9);
+  memory->destroy(smd_stress);
+  memory->destroy(eff_plastic_strain);
+  memory->destroy(eff_plastic_strain_rate);
+  memory->destroy(damage);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -2009,6 +2038,15 @@ void *Atom::extract(char *name)
   if (strcmp(name,"de") == 0) return (void *) de;
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
+
+  if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
+  if (strcmp(name, "smd_data_9") == 0) return (void *) smd_data_9;
+  if (strcmp(name, "smd_stress") == 0) return (void *) smd_stress;
+  if (strcmp(name, "eff_plastic_strain") == 0) 
+    return (void *) eff_plastic_strain;
+  if (strcmp(name, "eff_plastic_strain_rate") == 0) 
+    return (void *) eff_plastic_strain_rate;
+  if (strcmp(name, "damage") == 0) return (void *) damage;
 
   return NULL;
 }

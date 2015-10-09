@@ -37,6 +37,8 @@ texture<int4> sw3_tex;
 
 #define THIRD (numtyp)0.66666667
 
+#define THREE_CONCURRENT
+
 #if (ARCH < 300)
 
 #define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
@@ -547,7 +549,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
         ktype=map[ktype];
-        int ikparam=elem2param[itype*nelements*nelements+ktype*nelements+ktype]; 
+        int ikparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype]; //jk
 
         numtyp delr2x = kx.x - jx.x;
         numtyp delr2y = kx.y - jx.y;
@@ -562,7 +564,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
           sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
           sw_cut_ik=sw3_ikparam.x;
 
-          int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
+          int ijkparam=elem2param[jtype*nelements*nelements+itype*nelements+ktype]; //jik
           numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
           sw_epsilon=sw1_ijkparam.x;
           sw_lambda=sw1_ijkparam.z;
@@ -687,7 +689,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
         ktype=map[ktype];
-        int ikparam=elem2param[itype*nelements*nelements+ktype*nelements+ktype]; 
+        int ikparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype]; // jk
         numtyp4 sw3_ikparam; fetch4(sw3_ikparam,ikparam,sw3_tex);
 
         numtyp delr2x = kx.x - jx.x;
@@ -702,7 +704,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
           sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
           sw_cut_ik=sw3_ikparam.x;
 
-          int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
+          int ijkparam=elem2param[jtype*nelements*nelements+itype*nelements+ktype]; // jik
           numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
           sw_epsilon=sw1_ijkparam.x;
           sw_lambda=sw1_ijkparam.z;

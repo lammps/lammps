@@ -535,7 +535,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       }
       timer->stamp();
       output->write (update->ntimestep);
-      timer->stamp (TIME_OUTPUT);
+      timer->stamp (Timer::OUTPUT);
     }
 
     //---- RETURN IF NUMBER OF EVALUATIONS EXCEEDED.

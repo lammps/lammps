@@ -270,6 +270,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     valuemin = lo[dim];
     valuemax = hi[dim];
     first_iteration = 1;
+    indexlo = indexhi = 0;
 
     while (1) {
 

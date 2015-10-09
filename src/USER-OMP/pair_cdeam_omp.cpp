@@ -86,6 +86,7 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (force->newton_pair)
@@ -128,12 +129,15 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
       break;
 
     default:
+      {
 #if defined(_OPENMP)
 #pragma omp master
 #endif
-    error->all(FLERR,"unsupported eam/cd pair style variant");
+        error->all(FLERR,"unsupported eam/cd pair style variant");
+      }
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -227,6 +231,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   if (NEWTON_PAIR) {
     // reduce per thread density
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nall, nthreads, 1, tid);
     data_reduce_thr(rhoB, nall, nthreads, 1, tid);
     if (CDEAMVERSION==1)
@@ -246,6 +251,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   } else {
     // reduce per thread density
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nlocal, nthreads, 1, tid);
     data_reduce_thr(rhoB, nlocal, nthreads, 1, tid);
     if (CDEAMVERSION==1)
@@ -346,6 +352,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     }
 
     if (NEWTON_PAIR) {
+    thr->timer(Timer::PAIR);
       data_reduce_thr(D_values, nall, nthreads, 1, tid);
 
       // wait until reduction is complete
@@ -361,6 +368,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
       sync_threads();
 
   } else {
+    thr->timer(Timer::PAIR);
       data_reduce_thr(D_values, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete
@@ -410,7 +418,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
         D_i = D_values[i] * h_prime_i / (2.0 * rho[i] * rho[i]);
       } else if(CDEAMVERSION == 2) {
         D_i = D_values[i];
-      } else ASSERT(false);
+      } else {
+        ASSERT(false);
+      }
     }
 
     for(jj = 0; jj < jnum; jj++) {
@@ -456,8 +466,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
             D_j = D_values[j] * h_prime_j / (2.0 * rho[j] * rho[j]);
           } else if(CDEAMVERSION == 2) {
             D_j = D_values[j];
-          } else ASSERT(false);
-
+          } else {
+            ASSERT(false);
+          }
           double t2 = -rhoB[j];
           if(itype == speciesB) t2 += rho[j];
           fpair += D_j * rhoip * t2;
@@ -491,8 +502,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
             double x_ij = 0.5 * (x_i + x_j);
             // Calculate h(x_ij) polynomial function.
             h = evalH(x_ij);
-          } else ASSERT(false);
-
+          } else {
+            ASSERT(false);
+          }
           fpair += h * phip;
           phi *= h;
         }

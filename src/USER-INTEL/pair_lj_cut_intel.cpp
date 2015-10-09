@@ -209,7 +209,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
         }
 
-        #if defined(__INTEL_COMPILER)
+        #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
@@ -226,13 +226,13 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           const int jtype = x[j].w;
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
 
-          #ifdef __MIC__
+          #ifdef INTEL_VMASK
           if (rsq < ljc12oi[jtype].cutsq) {
 	  #endif
             flt_t factor_lj = special_lj[sbindex];
             flt_t r2inv = 1.0 / rsq;
             flt_t r6inv = r2inv * r2inv * r2inv;
-            #ifndef __MIC__
+            #ifndef INTEL_VMASK
 	    if (rsq > ljc12oi[jtype].cutsq) r6inv = (flt_t)0.0;
 	    #endif
             forcelj = r6inv * (ljc12oi[jtype].lj1 * r6inv - ljc12oi[jtype].lj2);
@@ -270,7 +270,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 	      IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
 				   delx, dely, delz);
             }
-          #ifdef __MIC__
+          #ifdef INTEL_VMASK
           } // if rsq
           #endif
         } // for jj

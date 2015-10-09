@@ -44,14 +44,14 @@ int  iown_midpoint( simulation_box*, rvec, rvec );
 /* from grid.h */
 void GridCell_Closest_Point( grid_cell*, grid_cell*, ivec, ivec, rvec );
 void GridCell_to_Box_Points( grid_cell*, ivec, rvec, rvec );
-real DistSqr_between_Special_Points( rvec, rvec );
-real DistSqr_to_Special_Point( rvec, rvec );
+double DistSqr_between_Special_Points( rvec, rvec );
+double DistSqr_to_Special_Point( rvec, rvec );
 int Relative_Coord_Encoding( ivec );
 
 /* from system_props.h */
-real Get_Time( );
-real Get_Timing_Info( real );
-void Update_Timing_Info( real*, real* );
+double Get_Time( );
+double Get_Timing_Info( double );
+void Update_Timing_Info( double*, double* );
 
 /* from io_tools.h */
 int   Get_Atom_Type( reax_interaction*, char*, MPI_Comm );

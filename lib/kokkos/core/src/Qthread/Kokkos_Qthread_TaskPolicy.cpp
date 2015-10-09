@@ -270,7 +270,7 @@ aligned_t Task::qthread_func( void * arg )
   // this task's execution.
   bool close_out = false ;
 
-  if ( task->m_apply_team ) {
+  if ( task->m_apply_team && ! task->m_apply_single ) {
     const Kokkos::Impl::QthreadTeamPolicyMember::TaskTeam task_team_tag ;
 
     // Initialize team size and rank with shephered info
@@ -293,6 +293,12 @@ fflush(stdout);
     member.team_barrier();
 
     close_out = member.team_rank() == 0 ;
+  }
+  else if ( task->m_apply_team && task->m_apply_single == reinterpret_cast<function_apply_single_type>(1) ) {
+    // Team hard-wired to one, no cloning
+    Kokkos::Impl::QthreadTeamPolicyMember member ;
+    (*task->m_apply_team)( task , member );
+    close_out = true ;
   }
   else {
     (*task->m_apply_single)( task );
@@ -386,17 +392,7 @@ void Task::schedule()
     qprecon[i+1] = & m_dep[i]->m_qfeb ; // Qthread precondition flag
   }
 
-  if ( m_apply_single ) {
-    qthread_spawn( & Task::qthread_func /* function */
-                 , this                 /* function argument */
-                 , 0
-                 , NULL
-                 , m_dep_size , qprecon /* dependences */
-                 , NO_SHEPHERD
-                 , QTHREAD_SPAWN_SIMPLE /* allows optimization for non-blocking task */
-                 );
-  }
-  else {
+  if ( m_apply_team && ! m_apply_single ) {
     // If more than one shepherd spawn on a shepherd other than this shepherd
     const int num_shepherd            = qthread_num_shepherds();
     const int num_worker_per_shepherd = qthread_num_workers_local(NO_SHEPHERD);
@@ -428,6 +424,16 @@ fflush(stdout);
       , num_worker_per_shepherd - 1
       );
   }
+  else {
+    qthread_spawn( & Task::qthread_func /* function */
+                 , this                 /* function argument */
+                 , 0
+                 , NULL
+                 , m_dep_size , qprecon /* dependences */
+                 , NO_SHEPHERD
+                 , QTHREAD_SPAWN_SIMPLE /* allows optimization for non-blocking task */
+                 );
+  }
 }
 
 } // namespace Impl
@@ -436,6 +442,26 @@ fflush(stdout);
 
 namespace Kokkos {
 namespace Experimental {
+
+TaskPolicy< Kokkos::Qthread >::
+  TaskPolicy( const unsigned arg_default_dependence_capacity
+            , const unsigned arg_team_size )
+  : m_default_dependence_capacity( arg_default_dependence_capacity )
+  , m_team_size( arg_team_size != 0 ? arg_team_size : unsigned(qthread_num_workers_local(NO_SHEPHERD)) )
+  , m_active_count_root(0)
+  , m_active_count( m_active_count_root )
+{
+  const unsigned num_worker_per_shepherd = unsigned( qthread_num_workers_local(NO_SHEPHERD) );
+
+  if ( m_team_size != 1 && m_team_size != num_worker_per_shepherd ) {
+    std::ostringstream msg ;
+    msg << "Kokkos::Experimental::TaskPolicy< Kokkos::Qthread >( "
+        << "default_depedence = " << arg_default_dependence_capacity
+        << " , team_size = " << arg_team_size
+        << " ) ERROR, valid team_size arguments are { (omitted) , 1 , " << num_worker_per_shepherd << " }" ;
+    Kokkos::Impl::throw_runtime_exception(msg.str());
+  }
+}
 
 TaskPolicy< Kokkos::Qthread >::member_type &
 TaskPolicy< Kokkos::Qthread >::member_single()

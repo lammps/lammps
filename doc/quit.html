@@ -128,25 +128,30 @@
 <span id="index-0"></span><h1>quit command<a class="headerlink" href="#quit-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">quit</span>
+<div class="highlight-python"><div class="highlight"><pre>quit status
 </pre></div>
 </div>
+<p>status = numerical exit status (optional)</p>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>quit
-if &quot;$n &gt; 10000&quot; then quit
-</pre></div>
-</div>
+<p>quit
+if &#8220;$n &gt; 10000&#8221; then &#8220;quit 1&#8221;:pre</p>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>This command causes LAMMPS to exit, after shutting down all
-output cleanly.</p>
+<p>This command causes LAMMPS to exit, after shutting down all output
+cleanly.</p>
 <p>It can be used as a debug statement in an input script, to terminate
 the script at some intermediate point.</p>
-<p>It can also be used as an invoked command inside the
-&#8220;then&#8221; or &#8220;else&#8221; portion of an <a class="reference internal" href="if.html"><em>if</em></a> command.</p>
+<p>It can also be used as an invoked command inside the &#8220;then&#8221; or &#8220;else&#8221;
+portion of an <a class="reference internal" href="if.html"><em>if</em></a> command.</p>
+<p>The optional status argument is an integer which signals the return
+status to a program calling LAMMPS.  A return status of 0 usually
+indicates success.  A status != 0 is failure, where the specified
+value can be used to distinguish the kind of error, e.g. where in the
+input script the quit was invoked.  If not specified, a status of 0 is
+returned.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>

@@ -27,6 +27,7 @@ pair_style lj/cut/coul/dsf/gpu command :h3
 pair_style lj/cut/coul/dsf/kk command :h3
 pair_style lj/cut/coul/dsf/omp command :h3
 pair_style lj/cut/coul/long command :h3
+pair_style lj/cut/coul/long/cs command :h3
 pair_style lj/cut/coul/long/cuda command :h3
 pair_style lj/cut/coul/long/gpu command :h3
 pair_style lj/cut/coul/long/intel command :h3
@@ -45,7 +46,7 @@ pair_style lj/cut/tip4p/long/opt command :h3
 
 pair_style style args :pre
 
-style = {lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/dsf} or {lj/cut/coul/long} or {lj/cut/coul/msm} or {lj/cut/tip4p/long}
+style = {lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/dsf} or {lj/cut/coul/long} or {lj/cut/coul/long/cs} or {lj/cut/coul/msm} or {lj/cut/tip4p/long}
 args = list of arguments for a particular style :ul
   {lj/cut} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
@@ -102,7 +103,9 @@ pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.0 2.5 :pre
 
 pair_style lj/cut/coul/long 10.0
+pair_style lj/cut/coul/long/cs 10.0
 pair_style lj/cut/coul/long 10.0 8.0
+pair_style lj/cut/coul/long/cs 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 :pre
 
@@ -174,6 +177,11 @@ command and its {ewald} or {pppm} option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
+
+Style {lj/cut/coul/long/cs} is identical to {lj/cut/coul/long} except
+that a term is added for the "core/shell
+model"_Section_howto.html#howto_25 to allow charges on core and shell
+particles to be separated by r = 0.0.
 
 Styles {lj/cut/tip4p/cut} and {lj/cut/tip4p/long} implement the TIP4P
 water model of "(Jorgensen)"_#Jorgensen, which introduces a massless

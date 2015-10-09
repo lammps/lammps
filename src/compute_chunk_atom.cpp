@@ -1351,7 +1351,7 @@ void ComputeChunkAtom::atom2bin2d()
         continue;
       }
       if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
-      else if (i2bin > nlayer1m1) {
+      else if (i2bin > nlayer2m1) {
         exclude[i] = 1;
         continue;
       }
@@ -1456,7 +1456,7 @@ void ComputeChunkAtom::atom2bin3d()
         continue;
       }
       if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
-      else if (i2bin > nlayer1m1) {
+      else if (i2bin > nlayer2m1) {
         exclude[i] = 1;
         continue;
       }

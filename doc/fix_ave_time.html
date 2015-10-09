@@ -166,6 +166,8 @@ v_name = global value calculated by an equal-style variable with name
 <em>file</em> arg = filename
   filename = name of file to output time averages to
 <em>overwrite</em> arg = none = overwrite output file with only latest output
+<em>format</em> arg = string
+  string = C-style format string
 <em>title1</em> arg = string
   string = text to print as 1st line of output file
 <em>title2</em> arg = string
@@ -336,6 +338,10 @@ array sections.</p>
 <p>The <em>overwrite</em> keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the <em>ave running</em> setting.</p>
+<p>The <em>format</em> keyword sets the numeric format of each value when it is
+printed to a file via the <em>file</em> keyword.  Note that all values are
+floating point quantities.  The default format is %g.  You can specify
+a higher precision if desired, e.g. %20.16g.</p>
 <p>The <em>title1</em> and <em>title2</em> and <em>title3</em> keywords allow specification of
 the strings that will be printed as the first 2 or 3 lines of the
 output file, assuming the <em>file</em> keyword was used.  LAMMPS uses
@@ -403,8 +409,8 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
 <div class="section" id="default">
 <h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
 <p>The option defaults are mode = scalar, ave = one, start = 0, no file
-output, title 1,2,3 = strings as described above, and no off settings
-for any input values.</p>
+output, format = %g, title 1,2,3 = strings as described above, and no
+off settings for any input values.</p>
 </div>
 </div>
 

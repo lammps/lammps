@@ -415,7 +415,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
 #undef DIHEDRAL_CLASS
     }
 
-    if (lmp->suffix) {
+    if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
@@ -756,7 +756,7 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
     nhi = atoi(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
+  if (nlo < nmin || nhi > nmax || nlo > nhi) 
     error->all(FLERR,"Numeric index is out of bounds");
 }
 
@@ -790,7 +790,7 @@ void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi,
     nhi = ATOBIGINT(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
+  if (nlo < nmin || nhi > nmax || nlo > nhi) 
     error->all(FLERR,"Numeric index is out of bounds");
 }
 

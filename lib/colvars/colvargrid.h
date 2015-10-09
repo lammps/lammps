@@ -836,6 +836,32 @@ public:
 }
 
 
+  /// \brief Read grid entry in restart file
+  std::istream & read_restart(std::istream &is)
+  {
+    size_t const start_pos = is.tellg();
+    std::string key, conf;
+    if ((is >> key) && (key == std::string("grid_parameters"))) {
+      is.seekg(start_pos, std::ios::beg);
+      is >> colvarparse::read_block("grid_parameters", conf);
+      parse_params(conf);
+    } else {
+      cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
+      is.seekg(start_pos, std::ios::beg);
+    }
+    read_raw(is);
+    return is;
+  }
+
+  /// \brief Write grid entry in restart file
+  std::ostream & write_restart(std::ostream &os)
+  {
+    write_params(os);
+    write_raw(os);
+    return os;
+  }
+
+
 /// \brief Write the grid data without labels, as they are
 /// represented in memory
 /// \param buf_size Number of values per line
@@ -1106,12 +1132,6 @@ public:
     return new_data[address(ix) + imult];
   }
 
-  /// \brief Read the grid from a restart
-  std::istream & read_restart(std::istream &is);
-
-  /// \brief Write the grid to a restart
-  std::ostream & write_restart(std::ostream &os);
-
   /// \brief Get the value from a formatted output and transform it
   /// into the internal representation (it may have been rescaled or
   /// manipulated)
@@ -1240,12 +1260,6 @@ public:
     has_data = true;
   }
 
-  /// \brief Read the grid from a restart
-  std::istream & read_restart(std::istream &is);
-
-  /// \brief Write the grid to a restart
-  std::ostream & write_restart(std::ostream &os);
-
   /// \brief Return the highest value
   cvm::real maximum_value() const;
 
@@ -1342,12 +1356,6 @@ public:
     has_data = true;
   }
 
-
-  /// \brief Read the grid from a restart
-  std::istream & read_restart(std::istream &is);
-
-  /// \brief Write the grid to a restart
-  std::ostream & write_restart(std::ostream &os);
 
   /// Compute and return average value for a 1D gradient grid
   inline cvm::real average()

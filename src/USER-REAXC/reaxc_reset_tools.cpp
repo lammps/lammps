@@ -111,9 +111,9 @@ void Reset_Timing( reax_timing *rt )
 
 void Reset_Workspace( reax_system *system, storage *workspace )
 {
-  memset( workspace->total_bond_order, 0, system->total_cap * sizeof( real ) );
+  memset( workspace->total_bond_order, 0, system->total_cap * sizeof( double ) );
   memset( workspace->dDeltap_self, 0, system->total_cap * sizeof( rvec ) );
-  memset( workspace->CdDelta, 0, system->total_cap * sizeof( real ) );
+  memset( workspace->CdDelta, 0, system->total_cap * sizeof( double ) );
   memset( workspace->f, 0, system->total_cap * sizeof( rvec ) );
 
 }

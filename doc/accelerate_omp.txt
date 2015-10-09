@@ -45,7 +45,7 @@ To do this in one line, use the src/Make.py script, described in
 src/lmp_omp using src/MAKE/Makefile.mpi as the starting
 Makefile.machine:
 
-Make.py -p omp -o omp file mpi :pre
+Make.py -p omp -o omp -a file mpi :pre
 
 Or you can follow these steps:
 

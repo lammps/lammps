@@ -1,0 +1,63 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix smd/adjust_dt command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID smd/adjust_dt arg 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>smd/adjust_dt = style name of this fix command 
+
+<LI>arg = <I>s_fact</I> 
+
+<PRE>  <I>s_fact</I> = safety factor  
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all smd/adjust_dt 0.1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The fix calculates a new stable time increment for use with the SMD time integrators.
+</P>
+<P>The stable time increment is based on multiple conditions. For the SPH pair styles, a 
+CFL criterion (Courant, Friedrichs & Lewy, 1928) is evaluated, which determines the the speed of
+sound cannot propagate further than a typical spacing between particles within a single time step to ensure
+no information is lost. For the contact pair styles, a linear analysis of the pair potential determines a
+stable maximum time step.
+</P>
+<P>This fix inquires the minimum stable time increment across all particles contained in the group for which this
+fix is defined. An additional safety factor <I>s_fact</I> is applied to the time increment. 
+</P>
+<P>See <A HREF = "USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</A> to use Smooth Mach Dynamics in LAMMPS.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>Currently, no part of USER-SMD supports restarting nor minimization.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_smd_tlsph_dt.html">smd/tlsph_dt</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -33,20 +33,20 @@
 
 #define MIN_SINE 1e-10
 
-real Calculate_Omega( rvec dvec_ij, real r_ij,
-                      rvec dvec_jk, real r_jk,
-                      rvec dvec_kl, real r_kl,
-                      rvec dvec_li, real r_li,
+double Calculate_Omega( rvec dvec_ij, double r_ij,
+                      rvec dvec_jk, double r_jk,
+                      rvec dvec_kl, double r_kl,
+                      rvec dvec_li, double r_li,
                       three_body_interaction_data *p_ijk,
                       three_body_interaction_data *p_jkl,
                       rvec dcos_omega_di, rvec dcos_omega_dj,
                       rvec dcos_omega_dk, rvec dcos_omega_dl,
                       output_controls *out_control )
 {
-  real unnorm_cos_omega, unnorm_sin_omega, omega;
-  real sin_ijk, cos_ijk, sin_jkl, cos_jkl;
-  real htra, htrb, htrc, hthd, hthe, hnra, hnrc, hnhd, hnhe;
-  real arg, poem, tel;
+  double unnorm_cos_omega, unnorm_sin_omega, omega;
+  double sin_ijk, cos_ijk, sin_jkl, cos_jkl;
+  double htra, htrb, htrc, hthd, hthe, hnra, hnrc, hnhd, hnhe;
+  double arg, poem, tel;
   rvec cross_jk_kl;
 
   sin_ijk = sin( p_ijk->theta );
@@ -128,25 +128,25 @@ void Torsion_Angles( reax_system *system, control_params *control,
   int start_pj, end_pj, start_pk, end_pk;
   int num_frb_intrs = 0;
 
-  real Delta_j, Delta_k;
-  real r_ij, r_jk, r_kl, r_li;
-  real BOA_ij, BOA_jk, BOA_kl;
+  double Delta_j, Delta_k;
+  double r_ij, r_jk, r_kl, r_li;
+  double BOA_ij, BOA_jk, BOA_kl;
 
-  real exp_tor2_ij, exp_tor2_jk, exp_tor2_kl;
-  real exp_tor1, exp_tor3_DjDk, exp_tor4_DjDk, exp_tor34_inv;
-  real exp_cot2_jk, exp_cot2_ij, exp_cot2_kl;
-  real fn10, f11_DjDk, dfn11, fn12;
-  real theta_ijk, theta_jkl;
-  real sin_ijk, sin_jkl;
-  real cos_ijk, cos_jkl;
-  real tan_ijk_i, tan_jkl_i;
-  real omega, cos_omega, cos2omega, cos3omega;
+  double exp_tor2_ij, exp_tor2_jk, exp_tor2_kl;
+  double exp_tor1, exp_tor3_DjDk, exp_tor4_DjDk, exp_tor34_inv;
+  double exp_cot2_jk, exp_cot2_ij, exp_cot2_kl;
+  double fn10, f11_DjDk, dfn11, fn12;
+  double theta_ijk, theta_jkl;
+  double sin_ijk, sin_jkl;
+  double cos_ijk, cos_jkl;
+  double tan_ijk_i, tan_jkl_i;
+  double omega, cos_omega, cos2omega, cos3omega;
   rvec dcos_omega_di, dcos_omega_dj, dcos_omega_dk, dcos_omega_dl;
-  real CV, cmn, CEtors1, CEtors2, CEtors3, CEtors4;
-  real CEtors5, CEtors6, CEtors7, CEtors8, CEtors9;
-  real Cconj, CEconj1, CEconj2, CEconj3;
-  real CEconj4, CEconj5, CEconj6;
-  real e_tor, e_con;
+  double CV, cmn, CEtors1, CEtors2, CEtors3, CEtors4;
+  double CEtors5, CEtors6, CEtors7, CEtors8, CEtors9;
+  double Cconj, CEconj1, CEconj2, CEconj3;
+  double CEconj4, CEconj5, CEconj6;
+  double e_tor, e_con;
   rvec dvec_li;
   rvec force, ext_press;
   ivec rel_box_jl;
@@ -156,16 +156,16 @@ void Torsion_Angles( reax_system *system, control_params *control,
   bond_data *pbond_ij, *pbond_jk, *pbond_kl;
   bond_order_data *bo_ij, *bo_jk, *bo_kl;
   three_body_interaction_data *p_ijk, *p_jkl;
-  real p_tor2 = system->reax_param.gp.l[23];
-  real p_tor3 = system->reax_param.gp.l[24];
-  real p_tor4 = system->reax_param.gp.l[25];
-  real p_cot2 = system->reax_param.gp.l[27];
+  double p_tor2 = system->reax_param.gp.l[23];
+  double p_tor3 = system->reax_param.gp.l[24];
+  double p_tor4 = system->reax_param.gp.l[25];
+  double p_cot2 = system->reax_param.gp.l[27];
   reax_list *bonds = (*lists) + BONDS;
   reax_list *thb_intrs = (*lists) + THREE_BODIES;
 
   // Virial tallying variables
-  real delil[3], deljl[3], delkl[3];
-  real eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  double delil[3], deljl[3], delkl[3];
+  double eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
 
   natoms = system->n;
 

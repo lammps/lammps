@@ -87,6 +87,13 @@ class Compute : protected Pointers {
   unsigned int datamask;
   unsigned int datamask_ext;
 
+  // KOKKOS host/device flag and data masks
+
+  ExecutionSpace execution_space;
+  unsigned int datamask_read,datamask_modify;
+
+  int copymode;
+
   int cudable;              // 1 if compute is CUDA-enabled
 
   Compute(class LAMMPS *, int, char **);
@@ -130,6 +137,10 @@ class Compute : protected Pointers {
   void clearstep();
 
   virtual double memory_usage() {return 0.0;}
+
+  virtual void pair_tally_callback(int, int, int, int,
+                                   double, double, double,
+                                   double, double, double) {}
 
   virtual int unsigned data_mask() {return datamask;}
   virtual int unsigned data_mask_ext() {return datamask_ext;}

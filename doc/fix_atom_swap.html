@@ -139,11 +139,11 @@
 <li>seed = random # seed (positive integer)</li>
 <li>T = scaling temperature of the MC swaps (temperature units)</li>
 <li>one or more keyword/value pairs may be appended to args</li>
-<li>keyword = <em>types</em> or <em>delta_mu</em> or <em>ke</em> or <em>semi-grand</em> or <em>region</em></li>
+<li>keyword = <em>types</em> or <em>mu</em> or <em>ke</em> or <em>semi-grand</em> or <em>region</em></li>
 </ul>
 <pre class="literal-block">
 <em>types</em> values = two or more atom types
-<em>delta_mu</em> values = number_of_types-1 relative chemical potentials (energy units)
+<em>mu</em> values = chemical potential of swap types (energy units)
 <em>ke</em> value = <em>no</em> or <em>yes</em>
   <em>no</em> = no conservation of kinetic energy after atom swaps
   <em>yes</em> = kinetic energy is conserved after atom swaps
@@ -158,7 +158,7 @@
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
 fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6
-fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 delta_mu 4.3 -5.0
+fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 mu 4.3 -5.0
 </pre></div>
 </div>
 </div>
@@ -195,24 +195,19 @@ allowed exchanges an atom of one type with an atom of a different
 given type. In other words, the relative mole fractions of the swapped
 atoms remains constant. Whereas in the semi-grand canonical ensemble,
 the composition of the system can change. Note that when using
-<em>semi-grand</em>, all atoms in the fix group are eligible for attempted
-conversion to one of the given types, even if its current type is not
-one of the given types. An attempt is made to switch the selected atom
-to one of the listed <em>types</em> with equal probability. Acceptance of
-each attempt depends upon the Metropolis criterion.</p>
-<p>The <em>delta_mu</em> keyword allows users to specify non-zero chemical
-potentials for each of the atom types. All chemical potentials are
-relative to the first atom type, so no value is given for the first
-atom type. These parameters are useful for semi-grand canonical
-ensemble simulations where it may be desirable to actively control the
-composition of the system. When given, there must be ntypes-1 values
-given, where ntypes is the number of atom types in the simulated
-system. Note that a value for delta_mu is required for all atom types
-when using <em>semi-grand</em>, even for atom types not listed following the
-<em>types</em> keyword. This is because when using <em>semi-grand</em>, it is
-possible that any of the atom types in the system could be part of the
-fix group and therefore are eligible for swapping to one of the listed
-atom types.</p>
+<em>semi-grand</em>, atoms in the fix group whose type is not listed
+in the <em>types</em> keyword are ineligible for attempted
+conversion. An attempt is made to switch
+the selected atom (if eligible) to one of the other listed types
+with equal probability. Acceptance of each attempt depends upon the Metropolis criterion.</p>
+<p>The <em>mu</em> keyword allows users to specify chemical
+potentials. This is required and allowed only when using <em>semi-grand</em>.
+All chemical potentials are absolute, so there is one for
+each swap type listed following the <em>types</em> keyword.
+In semi-grand canonical ensemble simulations the chemical composition
+of the system is controlled by the difference in these values. So
+shifting all values by a constant amount will have no effect
+on the simulation.</p>
 <p>This command may optionally use the <em>region</em> keyword to define swap
 volume.  The specified region must have been previously defined with a
 <a class="reference internal" href="region.html"><em>region</em></a> command.  It must be defined with side = <em>in</em>.
@@ -223,10 +218,17 @@ LAMMPS will soon generate an error when it tries to find those atoms.
 LAMMPS will warn you if any of the atoms eligible for swapping have a
 non-zero molecule ID, but does not check for this at the time of
 swapping.</p>
-<p>This fix checks to ensure all atoms of the given types have the same
-atomic charge. LAMMPS doesn&#8217;t enforce this in general, but it is
-needed for this fix to simplify the swapping procedure. Successful
-swaps will swap the atom type and charge of the swapped atoms.</p>
+<p>If not using <em>semi-grand</em> this fix checks to ensure all atoms of the
+given types have the same atomic charge. LAMMPS doesn&#8217;t enforce this
+in general, but it is needed for this fix to simplify the
+swapping procedure. Successful swaps will swap the atom type and charge
+of the swapped atoms. Conversely, when using <em>semi-grand</em>, it is assumed that all the atom
+types involved in switches have the same charge. Otherwise, charge
+would not be conserved. As a consequence, no checks on atomic charges are
+performed, and successful switches update the atom type but not the
+atom charge. While it is possible to use <em>semi-grand</em> with groups of
+atoms that have different charges, these charges will not be changed when the
+atom types change.</p>
 <p>Since this fix computes total potential energies before and after
 proposed swaps, so even complicated potential energy calculations are
 OK, including the following:</p>
@@ -282,7 +284,7 @@ built with that package.  See the <a class="reference internal" href="Section_st
 </div>
 <div class="section" id="default">
 <h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The option defaults are ke = yes, semi-grand = no, delta_mu = 0.0 for
+<p>The option defaults are ke = yes, semi-grand = no, mu = 0.0 for
 all atom types.</p>
 <hr class="docutils" />
 <p id="sadigh"><strong>(Sadigh)</strong> B Sadigh, P Erhart, A Stukowski, A Caro, E Martinez, and

@@ -1,0 +1,60 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style smd/hertz command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style smd/hertz scale_factor 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<P>pair_style smd/hertz 1.0
+pair_coeff 1 1 <contact_stiffness>
+</P>
+<P><B>Description:</B>
+</P>
+<P>The <I>smd/hertz</I> style calculates contact forces between SPH particles belonging to different physical bodies. 
+</P>
+<P>The contact forces are calculated using a Hertz potential, which evaluates the overlap between two particles
+(whose spatial extents are defined via its contact radius).
+The effect is that a particles cannot penetrate into each other.
+The parameter <contact_stiffness> has units of pressure and should equal roughly one half
+of the Young's modulus (or bulk modulus in the case of fluids) of the material model associated with the SPH particles. 
+</P>
+<P>The parameter <I>scale_factor</I> can be used to scale the particles' contact radii. This can be useful to control how close
+particles can approach each other. Usually, <I>scale_factor</I>=1.0.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>No mixing is performed automatically.
+Currently, no part of USER-SMD supports restarting nor minimization.
+rRESPA does not apply to this pair style.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+</HTML>

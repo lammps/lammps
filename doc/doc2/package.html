@@ -56,6 +56,8 @@
         Nthreads = # of GPU threads used per atom
       <I>device</I> value = device_type
         device_type = <I>kepler</I> or <I>fermi</I> or <I>cypress</I> or <I>generic</I>
+      <I>blocksize</I> value = size
+        size = thread block size for pair force computation
   <I>intel</I> args = NPhi keyword value ...
     Nphi = # of coprocessors per node
     zero or more keyword/value pairs may be appended 
@@ -318,6 +320,13 @@ large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
 </P>
+<P>The <I>blocksize</I> keyword allows you to tweak the number of threads used
+per thread block. This number should be a multiple of 32 (for GPUs)
+and its maximum depends on the specific GPU hardware. Typical choices
+are 64, 128, or 256. A larger blocksize increases occupancy of
+individual GPU cores, but reduces the total number of thread blocks,
+thus may lead to load imbalance.
+</P>
 <P>The <I>device</I> keyword can be used to tune parameters optimized for a
 specific accelerator, when using OpenCL.  For CUDA, the <I>device</I>
 keyword is ignored.  Currently, the device type is limited to NVIDIA
@@ -373,7 +382,7 @@ USER-OMP packages, be aware that both packages allow setting of the
 single global <I>Nthreads</I> value used by OpenMP.  Thus if both package
 commands are invoked, you should insure the two values are consistent.
 If they are not, the last one invoked will take precedence, for both
-packages.  Also note that if the "-sf intel" <A HREF = <A HREF = "Section_start.html#start_7">command-line"></A>
+packages.  Also note that if the "-sf hybrid intel omp" <A HREF = <A HREF = "Section_start.html#start_7">command-line"></A>
 switch</A> is used, it invokes a "package
 intel" command, followed by a "package omp" command, both with a
 setting of <I>Nthreads</I> = 0.

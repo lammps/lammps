@@ -60,6 +60,7 @@ void ImproperFourierOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (inum > 0) {
@@ -76,6 +77,7 @@ void ImproperFourierOMP::compute(int eflag, int vflag)
         else eval<0,0,0>(ifrom, ito, thr);
       }
     }
+    thr->timer(Timer::BOND);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -115,18 +117,18 @@ void ImproperFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
     vb3z = x[i4][2] - x[i1][2];
 
     add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i2,i3,i4,type,
-				       vb1x,vb1y,vb1z, 
-				       vb2x,vb2y,vb2z, 
+				       vb1x,vb1y,vb1z,
+				       vb2x,vb2y,vb2z,
 				       vb3x,vb3y,vb3z,thr);
     if ( all[type] ) {
       add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i4,i2,i3,type,
 					 vb3x,vb3y,vb3z,
-					 vb1x,vb1y,vb1z, 
-					 vb2x,vb2y,vb2z,thr); 
+					 vb1x,vb1y,vb1z,
+					 vb2x,vb2y,vb2z,thr);
       add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i3,i4,i2,type,
-					 vb2x,vb2y,vb2z, 
+					 vb2x,vb2y,vb2z,
 					 vb3x,vb3y,vb3z,
-					 vb1x,vb1y,vb1z,thr); 
+					 vb1x,vb1y,vb1z,thr);
     }
   }
 }

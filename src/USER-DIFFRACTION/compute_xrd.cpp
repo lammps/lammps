@@ -230,10 +230,11 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   size_array_cols = 2;
   
   if (me == 0) {
-    if (screen &&  echo)
+    if (screen && echo) {
       fprintf(screen,"-----\nCompute XRD id:%s, # of atoms:%d, # of relp:%d\n",id,natoms,nRows);
       fprintf(screen,"Reciprocal point spacing in k1,k2,k3 = %g %g %g\n-----\n",
               dK[0], dK[1], dK[2]);
+    }
   }  
    
   memory->create(array,size_array_rows,size_array_cols,"xrd:array");
@@ -343,10 +344,11 @@ void ComputeXRD::compute_array()
 #endif
 
   if (me == 0 && echo) {
-    if (screen)
+    if (screen) {
       fprintf(screen,"\n");
       if (LP == 1)
         fprintf(screen,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
+    }
   }
   int m = 0;
   double frac = 0.1;

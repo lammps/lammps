@@ -158,7 +158,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
         atom4 = atom->map(dihedral_atom4[atom2][i]);
       } else {
         if (tag[atom2] != onemols[imol]->dihedral_atom2[atom2][i]) continue;
-        tagprev = tag[atom1] - iatom - 1;
+        tagprev = tag[atom2] - iatom - 1;
         atom1 = atom->map(onemols[imol]->dihedral_atom1[atom2][i]+tagprev);
         atom3 = atom->map(onemols[imol]->dihedral_atom3[atom2][i]+tagprev);
         atom4 = atom->map(onemols[imol]->dihedral_atom4[atom2][i]+tagprev);

@@ -275,7 +275,16 @@ remove_bias: remove velocity bias from one atom (optional)
 remove_bias_all: remove velocity bias from all atoms in group (optional)
 restore_bias: restore velocity bias for one atom after remove_bias (optional)
 restore_bias_all: same as before, but for all atoms in group (optional)
+pair_tally_callback: callback function for {tally}-style computes (optional).
 memory_usage: tally memory usage (optional) :tb(s=:)
+
+Tally-style computes are a special case, as their computation is done
+in two stages: the callback function is registered with the pair style
+and then called from the Pair::ev_tally() function, which is called for
+each pair after force and energy has been computed for this pair. Then
+the tallied values are retrieved with the standard compute_scalar or
+compute_vector or compute_peratom methods. The USER-TALLY package
+provides {examples}_compute_tally.html for utilizing this mechanism.
 
 :line
 

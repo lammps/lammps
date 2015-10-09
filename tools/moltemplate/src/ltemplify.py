@@ -44,6 +44,13 @@ def Intify(s):
         return s
 
 
+def IsNumber(s):
+    try:
+        float(s)
+        return True
+    except ValueError, TypeError:
+        return False
+
 def StringToInterval(sel_str, slice_delim='*'):
     # Split a string into 1-3 tokens using the slice_delim and convert to int.
     # What a mess. I should rewrite this function
@@ -210,8 +217,8 @@ def BelongsToSel(i, sel):
 try:
 
     g_program_name = __file__.split('/')[-1]  # = 'ltemplify.py'
-    g_version_str  = '0.45'
-    g_date_str     = '2014-12-17'
+    g_version_str  = '0.49'
+    g_date_str     = '2015-8-11'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     non_empty_output = False
@@ -288,6 +295,9 @@ try:
     i_atomid   = None
     i_atomtype = None
     i_molid    = None
+    i_x        = None
+    i_y        = None
+    i_z        = None
 
     l_in_init     = []
     l_in_settings = []
@@ -309,6 +319,7 @@ try:
     l_data_dihedral_coeffs = []
     l_data_improper_coeffs = []
     l_data_pair_coeffs = []
+    l_data_pairij_coeffs = []
     l_data_atoms = []
     l_data_velocities = []
     l_data_bonds = []
@@ -317,6 +328,14 @@ try:
     l_data_impropers = []
 
     # class2 force fields
+    #l_in_bondbond_coeffs = []   <--not needed, included in l_in_angle_coeff
+    #l_in_bondangle_coeffs = []   <--not needed, included in l_in_angle_coeff
+    #l_in_middlebondtorsion_coeffs = [] not needed, included in l_in_dihedral_coeff
+    #l_in_endbondtorsion_coeffs = [] <--not needed, included in l_in_dihedral_coeff
+    #l_in_angletorsion_coeffs = [] <--not needed, included in l_in_dihedral_coeff
+    #l_in_angleangletorsion_coeffs = [] not needed, included in l_in_dihedral_coeff
+    #l_in_bondbond13_coeffs = []  <--not needed, included in l_in_dihedral_coeff
+    #l_in_angleangle_coeffs = []  <--not needed, included in l_in_improper_coeff
     l_data_bondbond_coeffs = []
     l_data_bondangle_coeffs = []
     l_data_middlebondtorsion_coeffs = []
@@ -340,7 +359,7 @@ try:
     some_pair_coeffs_read = False
     complained_atom_style_mismatch = False
     infer_types_from_comments = False
-
+    remove_coeffs_from_data_file = True
 
     argv = sys.argv
 
@@ -403,6 +422,13 @@ try:
             sys.stderr.write('\n    \"Atoms\" column format:\n')
             sys.stderr.write('    '+(' '.join(column_names))+'\n')
             i_atomid, i_atomtype, i_molid = ColNames2AidAtypeMolid(column_names)
+            # Which columns contain the coordinates?
+            ii_coords = ColNames2Coords(column_names)
+            assert(len(ii_coords) == 1)
+            i_x = ii_coords[0][0]
+            i_y = ii_coords[0][1]
+            i_z = ii_coords[0][2]
+
             if i_molid:
                 sys.stderr.write('      (i_atomid='+str(i_atomid+1)+', i_atomtype='+str(i_atomtype+1)+', i_molid='+str(i_molid+1)+')\n\n')
             else:
@@ -426,6 +452,12 @@ try:
             atomid_selection += LammpsSelectToIntervals(argv[i+1])
             min_sel_atomid, max_sel_atomid = IntervalListToMinMax(atomid_selection)
             del argv[i:i+2]
+        elif ((argv[i].lower() == '-datacoeffs') or 
+              (argv[i].lower() == '-datacoeff') or 
+              (argv[i].lower() == '-Coeff') or 
+              (argv[i].lower() == '-Coeffs')):
+            remove_coeffs_from_data_file = False
+            del argv[i:i+1]
         elif ((argv[i].lower() == '-type') or 
               #(argv[i].lower() == '-t') or 
               (argv[i].lower() == '-atomtype') or 
@@ -467,6 +499,17 @@ try:
         else:
             i += 1
 
+    # We might need to parse the simulation boundary-box.
+    # If so, use these variables.  (None means uninitialized.)
+    boundary_xlo = None
+    boundary_xhi = None
+    boundary_ylo = None
+    boundary_yhi = None
+    boundary_zlo = None
+    boundary_zhi = None
+    boundary_xy  = None
+    boundary_yz  = None
+    boundary_xz  = None
 
     # atom type names
     atomtypes_name2int = {}
@@ -480,6 +523,12 @@ try:
         # The default atom_style is "full"
         column_names = AtomStyle2ColNames('full')
         i_atomid, i_atomtype, i_molid = ColNames2AidAtypeMolid(column_names)
+        # Which columns contain the coordinates?
+        ii_coords = ColNames2Coords(column_names)
+        assert(len(ii_coords) == 1)
+        i_x = ii_coords[0][0]
+        i_y = ii_coords[0][1]
+        i_z = ii_coords[0][2]
 
     #---------------------------------------------------------
     #-- The remaining arguments are files that the user wants
@@ -565,6 +614,12 @@ try:
 
                     column_names = AtomStyle2ColNames(line.split()[1])
                     i_atomid, i_atomtype, i_molid = ColNames2AidAtypeMolid(column_names)
+                    # Which columns contain the coordinates?
+                    ii_coords = ColNames2Coords(column_names)
+                    assert(len(ii_coords) == 1)
+                    i_x = ii_coords[0][0]
+                    i_y = ii_coords[0][1]
+                    i_z = ii_coords[0][2]
 
                     sys.stderr.write('\n    \"Atoms\" column format:\n')
                     sys.stderr.write('    '+(' '.join(column_names))+'\n')
@@ -599,6 +654,54 @@ try:
                 elif (line.strip() == 'Atoms'):
                     sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     atoms_already_read = True
+
+                    # Before attempting to read atomic coordinates, first find
+                    # the lattice vectors of the simulation's boundary box:
+                    #    Why do we care about the Simulation Boundary?
+                    # Some LAMMPS data files store atomic coordinates in a 
+                    # complex format with 6 numbers, 3 floats, and 3 integers.
+                    # The 3 floats are x,y,z coordinates. Any additional numbers
+                    # following these are integers which tell LAMMPS which cell
+                    # the particle belongs to, (in case it has wandered out of
+                    # the original periodic boundary box). In order to find
+                    # the true location of the particle, we need to offset that
+                    # particle's position with the unit-cell lattice vectors:
+                    # avec, bvec, cvec  (or multiples thereof)
+                    # avec, bvec, cvec are the axis of the parallelepiped which
+                    # define the simulation's boundary. They are described here:
+                    #http://lammps.sandia.gov/doc/Section_howto.html#howto-12
+                    if ((boundary_xlo==None) or (boundary_xhi==None) or
+                        (boundary_ylo==None) or (boundary_yhi==None) or
+                        (boundary_zlo==None) or (boundary_zhi==None)):
+
+                        raise InputError('Error: The DATA file lacks a boundary-box header.  You must specify:\n'
+                                     '       xlo xhi ylo yhi zlo zhi   (and xy xz yz if triclinic)\n'
+                                     '       These numbers should appear before the \"Atoms\" section.\n'
+                                     '       Use this format (example):\n'
+                                     '       -100.0 100.0 xhi xlo\n'
+                                     '        0.0  200.0  yhi ylo\n'
+                                     '       -25.0 50.0   zhi zlo\n'
+                                     '\n'
+                                     'For details, see http://lammps.sandia.gov/doc/read_data.html\n'
+                                     '\n'
+                                     '       (NOTE: If the atom coordinates are NOT followed by integers, then\n'
+                                     '       these numbers are all ignored, however you must still specify\n'
+                                     '       xlo, xhi, ylo, yhi, zlo, zhi.  You can set them all to 0.0.)\n')
+
+                    if not (boundary_xy and boundary_yz and boundary_xz):
+                        # Then use a simple rectangular boundary box:
+                        avec = (boundary_xhi-boundary_xlo, 0.0, 0.0)
+                        bvec = (0.0, boundary_yhi-boundary_ylo, 0.0)
+                        cvec = (0.0, 0.0, boundary_zhi-boundary_zlo)
+                    else:
+                        # Triclinic geometry in LAMMPS is explained here:
+                        # http://lammps.sandia.gov/doc/Section_howto.html#howto-12
+                        # http://lammps.sandia.gov/doc/read_data.html
+                        avec = (boundary_xhi-boundary_xlo, 0.0, 0.0)
+                        bvec = (boundary_xy, boundary_yhi-boundary_ylo, 0.0)
+                        cvec = (boundary_xz, boundary_yz, boundary_zhi-boundary_zlo)
+
+
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -613,7 +716,8 @@ try:
                                 raise InputError('Error: The number of columns in the \"Atoms\" section does\n'
                                                  '       not match the atom_style (see column name list above).\n')
                             elif ((len(tokens) != len(column_names)) and 
-                                (not complained_atom_style_mismatch)):
+                                  (len(tokens) != len(column_names)+3) and
+                                  (not complained_atom_style_mismatch)):
                                 complained_atom_style_mismatch = True
                                 sys.stderr.write('Warning: The number of columns in the \"Atoms\" section does\n'
                                                  '         not match the atom_style (see column name list above).\n')
@@ -645,7 +749,38 @@ try:
                                 atomtypes_int2name[atomtype] = atomtype_name
                                 tokens[i_atomtype] = '@atom:'+atomtype_name
 
-                                # I can't use atomids_int2names or atomtypes_int2names yet
+                                # Interpreting unit-cell counters
+                                # If present, then unit-cell "flags" must be 
+                                # added to the x,y,z coordinates.
+                                #
+                                # For more details on unit-cell "flags", see:
+                                # http://lammps.sandia.gov/doc/read_data.html
+                                # "In the data file, atom lines (all lines or 
+                                #  none of them) can optionally list 3 trailing
+                                #  integer values (nx,ny,nz), which are used to
+                                #  initialize the atom’s image flags. 
+                                #  If nx,ny,nz values are not listed in the 
+                                #  data file, LAMMPS initializes them to 0. 
+                                #  Note that the image flags are immediately 
+                                #  updated if an atom’s coordinates need to 
+                                #  wrapped back into the simulation box."
+
+                                if (len(tokens) == len(column_names)+3):
+                                    nx = int(tokens[-3])
+                                    ny = int(tokens[-2])
+                                    nz = int(tokens[-1])
+                                    x = float(tokens[i_x]) + nx*avec[0]+ny*bvec[0]+nz*cvec[0]
+                                    y = float(tokens[i_y]) + nx*avec[1]+ny*bvec[1]+nz*cvec[1]
+                                    z = float(tokens[i_z]) + nx*avec[2]+ny*bvec[2]+nz*cvec[2]
+                                    tokens[i_x] = str(x)
+                                    tokens[i_y] = str(y)
+                                    tokens[i_z] = str(z)
+                                    # Now get rid of them:
+                                    del tokens[-3:]
+                                
+
+
+                                # I can't use atomids_int2name or atomtypes_int2name yet
                                 # because they probably have not been defined yet.
                                 # (Instead assign these names in a later pass.)
 
@@ -689,15 +824,16 @@ try:
                         # Read the next line of text but don't skip comments
                         comment_char_backup = lex.commenters
                         lex.commenters = ''
-                        line_orig = lex.ReadLine()
+                        line = lex.ReadLine()
                         lex.commenters = comment_char_backup
 
                         comment_text = ''
-                        ic = line_orig.find('#')
-                        line = line_orig[:ic]
+                        ic = line.find('#')
                         if ic != -1:
-                            comment_text = line_orig[ic+1:].strip()
-                                
+                            line = line[:ic]
+                            comment_text = line[ic+1:].strip()
+                        line = line.rstrip()
+
                         if line.strip() in data_file_header_names:
                             lex.push_raw_text(line) # <- Save line for later
                             break
@@ -747,8 +883,11 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                #tokens[0] = '$atom:id'+tokens[0]
-                                tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                #NOTE:I can't use "atomids_int2name" yet because
+                                #     they probably have not been defined yet.
+                                # (Instead assign these names in a later pass.)
                                 l_data_velocities.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 # non-point-like-particles:
@@ -771,8 +910,11 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                #tokens[0] = '$atom:id'+tokens[0]
-                                tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                #NOTE:I can't use "atomids_int2name" yet because
+                                #     they probably have not been defined yet.
+                                # (Instead assign these names in a later pass.)
                                 l_data_ellipsoids.append((' '*indent)+(' '.join(tokens)+'\n'))
                 elif (line.strip() == 'Lines'):
                     sys.stderr.write('  reading \"'+line.strip()+'\"\n')
@@ -793,8 +935,11 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                #tokens[0] = '$atom:id'+tokens[0]
-                                tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                #NOTE:I can't use "atomids_int2name" yet because
+                                #     they probably have not been defined yet.
+                                # (Instead assign these names in a later pass.)
                                 l_data_lines.append((' '*indent)+(' '.join(tokens)+'\n'))
                 elif (line.strip() == 'Triangles'):
                     sys.stderr.write('  reading \"'+line.strip()+'\"\n')
@@ -815,8 +960,11 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                #tokens[0] = '$atom:id'+tokens[0]
-                                tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:'+atomids_int2name[atomid]
+                                #NOTE:I can't use "atomids_int2name" yet because
+                                #     they probably have not been defined yet.
+                                # (Instead assign these names in a later pass.)
                                 l_data_triangles.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Bonds'):
@@ -1083,7 +1231,7 @@ try:
                             atomtype_i_str = tokens[0]
                             if '*' in atomtype_i_str:
                                 raise InputError('PROBLEM near or before '+ErrorLeader(infile, lineno)+'\n'
-                                                 '         As of 2012-7, moltemplate forbids use of the "\*\" wildcard\n'
+                                                 '         As of 2015-8, moltemplate forbids use of the "\*\" wildcard\n'
                                                  '         character in the \"Pair Coeffs\" section.\n')
                             else:
                                 i = int(atomtype_i_str)
@@ -1091,6 +1239,37 @@ try:
                                     BelongsToSel(i, atomtype_selection)):
                                     i_str = '@atom:type'+str(i)
                                     tokens[0] = i_str
+                                    l_data_pair_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
+
+                elif (line.strip() == 'PairIJ Coeffs'):
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
+                    some_pair_coeffs_read = True
+                    while lex:
+                        line = lex.ReadLine()
+                        if line.strip() in data_file_header_names:
+                            lex.push_raw_text(line) # <- Save line for later
+                            break
+                        tokens = line.strip().split()
+                        if len(tokens) > 0:
+                            if (len(tokens) < 2):
+                                raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
+                                                 '       Nonsensical line in Pair Coeffs section:\n'
+                                                 '       \"'+line.strip()+'\"\n')
+                            atomtype_i_str = tokens[0]
+                            atomtype_j_str = tokens[1]
+                            if (('*' in atomtype_i_str) or ('*' in atomtype_j_str)):
+                                raise InputError('PROBLEM near or before '+ErrorLeader(infile, lineno)+'\n'
+                                                 '         As of 2015-8, moltemplate forbids use of the "\*\" wildcard\n'
+                                                 '         character in the \"PairIJ Coeffs\" section.\n')
+                            else:
+                                i = int(atomtype_i_str)
+                                j = int(atomtype_j_str)
+                                if (((not i) or BelongsToSel(i, atomtype_selection)) and
+                                    ((not j) or BelongsToSel(j, atomtype_selection))):
+                                    i_str = '@atom:type'+str(i)
+                                    j_str = '@atom:type'+str(j)
+                                    tokens[0] = i_str
+                                    tokens[1] = j_str
                                     l_data_pair_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (tokens[0] == 'pair_coeff'):
@@ -1151,7 +1330,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@angle:type'+tokens[0]
+                            #tokens[0] = '@angle:type'+tokens[0]
                             l_data_bondbond_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'BondAngle Coeffs'):
@@ -1163,7 +1342,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@angle:type'+tokens[0]
+                            #tokens[0] = '@angle:type'+tokens[0]
                             l_data_bondangle_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'MiddleBondTorsion Coeffs'):
@@ -1175,7 +1354,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@dihedral:type'+tokens[0]
+                            #tokens[0] = '@dihedral:type'+tokens[0]
                             l_data_middlebondtorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'EndBondTorsion Coeffs'):
@@ -1187,7 +1366,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@dihedral:type'+tokens[0]
+                            #tokens[0] = '@dihedral:type'+tokens[0]
                             l_data_endbondtorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'AngleTorsion Coeffs'):
@@ -1199,7 +1378,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@dihedral:type'+tokens[0]
+                            #tokens[0] = '@dihedral:type'+tokens[0]
                             l_data_angletorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'AngleAngleTorsion Coeffs'):
@@ -1211,7 +1390,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@dihedral:type'+tokens[0]
+                            #tokens[0] = '@dihedral:type'+tokens[0]
                             l_data_angleangletorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'BondBond13 Coeffs'):
@@ -1223,7 +1402,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@dihedral:type'+tokens[0]
+                            #tokens[0] = '@dihedral:type'+tokens[0]
                             l_data_bondbond13_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'AngleAngle Coeffs'):
@@ -1235,7 +1414,7 @@ try:
                             break
                         tokens = line.strip().split()
                         if len(tokens) > 0:
-                            tokens[0] = '@improper:type'+tokens[0]
+                            #tokens[0] = '@improper:type'+tokens[0]
                             l_data_angleangle_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Angles By Type'):
@@ -1273,6 +1452,43 @@ try:
                         if len(tokens) > 0:
                             tokens[0] = '@improper:type'+tokens[0]
                             l_data_impropers_by_type.append((' '*indent)+(' '.join(tokens)+'\n'))
+
+
+                # Figure out the size of the simulation box boundary:
+                elif ((len(tokens)==4) and 
+                      (tokens[2] == 'xlo') and 
+                      (tokens[3] == 'xhi') and
+                      IsNumber(tokens[0]) and
+                      IsNumber(tokens[1])):
+                    boundary_xlo = float(tokens[0])
+                    boundary_xhi = float(tokens[1])
+
+                elif ((len(tokens)==4) and 
+                      (tokens[2] == 'ylo') and 
+                      (tokens[3] == 'yhi') and
+                      IsNumber(tokens[0]) and
+                      IsNumber(tokens[1])):
+                    boundary_ylo = float(tokens[0])
+                    boundary_yhi = float(tokens[1])
+
+                elif ((len(tokens)==4) and 
+                      (tokens[2] == 'zlo') and 
+                      (tokens[3] == 'zhi') and
+                      IsNumber(tokens[0]) and
+                      IsNumber(tokens[1])):
+                    boundary_zlo = float(tokens[0])
+                    boundary_zhi = float(tokens[1])
+
+                elif ((len(tokens)==6) and 
+                      (tokens[3] == 'xy') and
+                      (tokens[4] == 'xz') and
+                      (tokens[5] == 'yz') and
+                      IsNumber(tokens[0]) and
+                      IsNumber(tokens[1]) and
+                      IsNumber(tokens[2])):
+                    boundary_xy = float(tokens[0])
+                    boundary_xz = float(tokens[1])
+                    boundary_yz = float(tokens[2])
 
                 elif (tokens[0] == 'group'):
                     if (len(tokens) < 3):
@@ -1454,6 +1670,29 @@ try:
             (not ((len(atomtype_selection) > 0) and
                   BelongsToSel(atomtype, atomtype_selection)))):
             del l_data_pair_coeffs[i_line]
+        else:
+            i_line += 1
+
+    # delete data_pairij_coeffs for atom types we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_pairij_coeffs):
+        line = l_data_pairij_coeffs[i_line]
+        tokens = line.strip().split()
+        assert(len(tokens) > 0)
+        split_colon_I = tokens[0].split(':')
+        assert(len(split_colon_I) == 2)
+        atomtype_I = Intify(split_colon_I[1])
+        split_colon_J = tokens[1].split(':')
+        assert(len(split_colon_J) == 2)
+        atomtype_J = Intify(split_colon_J[1])
+        if (((not (atomtype_I in needed_atomtypes)) and 
+             (not ((len(atomtype_selection) > 0) and
+                   BelongsToSel(atomtype_I, atomtype_selection))))
+            or
+            ((not (atomtype_J in needed_atomtypes)) and 
+             (not ((len(atomtype_selection) > 0) and
+                   BelongsToSel(atomtype_J, atomtype_selection))))):
+            del l_data_pairij_coeffs[i_line]
         else:
             i_line += 1
 
@@ -1838,6 +2077,39 @@ try:
             l_data_angle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
 
+    # --- class2specific ----
+    # Do the same for BondBond and BondAngle Coeffs:
+    # NOTE: LAMMPS INPUT SCRIPTS, ALL CLASS2 COEFFS are represented by:
+    #       angle_coeff, dihedral_coeff, and improper_coeff commands.
+    #       THERE ARE NO bondbond_coeff commands, or bondangle_coeff commands,
+    #       etc..., so we dont have to worry about l_in_bondbond_coeffs,...
+    # delete data_bondbond_coeffs for angletypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_bondbond_coeffs):
+        line = l_data_bondbond_coeffs[i_line]
+        tokens = line.strip().split()
+        angletype = Intify(tokens[0])
+        if (not (angletype in needed_angletypes)):
+            del l_data_bondbond_coeffs[i_line]
+        else:
+            tokens[0] = '@angle:type'+str(angletype)
+            l_data_bondbond_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # delete data_bondangle_coeffs for angletypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_bondangle_coeffs):
+        line = l_data_bondangle_coeffs[i_line]
+        tokens = line.strip().split()
+        angletype = Intify(tokens[0])
+        if (not (angletype in needed_angletypes)):
+            del l_data_bondangle_coeffs[i_line]
+        else:
+            tokens[0] = '@angle:type'+str(angletype)
+            l_data_bondangle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # --- end of class2specific ----
+
+
     # delete in_angle_coeffs for angletypes we don't care about anymore:
     for angletype in needed_angletypes:
         assert(type(angletype) is int)
@@ -1910,6 +2182,7 @@ try:
 
 
 
+
     # --- DIHEDRALS AND DIHEDRAL COEFFS ---
 
     # delete lines from data_dihedrals if they involve atoms we don't care about
@@ -1957,6 +2230,76 @@ try:
             tokens[0] = '@dihedral:type'+str(dihedraltype)
             l_data_dihedral_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
+
+    # --- class2specific ----
+    # Do the same for MiddleBondTorsion, EndBondTorsion, AngleTorsion, 
+    #                 AngleAngleTorsion, and BondBond13 Coeffs
+    # NOTE: LAMMPS INPUT SCRIPTS, ALL CLASS2 COEFFS are represented by:
+    #       angle_coeff, dihedral_coeff, and improper_coeff commands.
+    #       THERE ARE NO "middlebondtorsion_coeff" commands, etc...so we don't
+    #       have to worry about dealing with "l_in_middlebondtorsion_coeffs",...
+    # delete data_middlebondtorsion_coeffs for dihedraltypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_middlebondtorsion_coeffs):
+        line = l_data_middlebondtorsion_coeffs[i_line]
+        tokens = line.strip().split()
+        dihedraltype = Intify(tokens[0])
+        if (not (dihedraltype in needed_dihedraltypes)):
+            del l_data_middlebondtorsion_coeffs[i_line]
+        else:
+            tokens[0] = '@dihedral:type'+str(dihedraltype)
+            l_data_middlebondtorsion_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # delete data_endbondtorsion_coeffs for dihedraltypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_endbondtorsion_coeffs):
+        line = l_data_endbondtorsion_coeffs[i_line]
+        tokens = line.strip().split()
+        dihedraltype = Intify(tokens[0])
+        if (not (dihedraltype in needed_dihedraltypes)):
+            del l_data_endbondtorsion_coeffs[i_line]
+        else:
+            tokens[0] = '@dihedral:type'+str(dihedraltype)
+            l_data_endbondtorsion_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # delete data_angletorsion_coeffs for dihedraltypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_angletorsion_coeffs):
+        line = l_data_angletorsion_coeffs[i_line]
+        tokens = line.strip().split()
+        dihedraltype = Intify(tokens[0])
+        if (not (dihedraltype in needed_dihedraltypes)):
+            del l_data_angletorsion_coeffs[i_line]
+        else:
+            tokens[0] = '@dihedral:type'+str(dihedraltype)
+            l_data_angletorsion_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # delete data_angleangletorsion_coeffs for dihedraltypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_angleangletorsion_coeffs):
+        line = l_data_angleangletorsion_coeffs[i_line]
+        tokens = line.strip().split()
+        dihedraltype = Intify(tokens[0])
+        if (not (dihedraltype in needed_dihedraltypes)):
+            del l_data_angleangletorsion_coeffs[i_line]
+        else:
+            tokens[0] = '@dihedral:type'+str(dihedraltype)
+            l_data_angleangletorsion_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # delete data_bondbond13_coeffs for dihedraltypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_bondbond13_coeffs):
+        line = l_data_bondbond13_coeffs[i_line]
+        tokens = line.strip().split()
+        dihedraltype = Intify(tokens[0])
+        if (not (dihedraltype in needed_dihedraltypes)):
+            del l_data_bondbond13_coeffs[i_line]
+        else:
+            tokens[0] = '@dihedral:type'+str(dihedraltype)
+            l_data_bondbond13_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # --- end of class2specific ----
+
 
     # delete in_dihedral_coeffs for dihedraltypes we don't care about anymore:
     for dihedraltype in needed_dihedraltypes:
@@ -2078,6 +2421,28 @@ try:
             l_data_improper_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
 
+    # --- class2specific ----
+    # Do the same for AngleAngle Coeffs
+    # NOTE: LAMMPS INPUT SCRIPTS, ALL CLASS2 COEFFS are represented by:
+    #       angle_coeff, dihedral_coeff, and improper_coeff commands.
+    #       THERE ARE NO "angleangle_coeff" commands, etc...so we don't
+    #       have to worry about dealing with "l_in_angleangle_coeffs",...
+    # delete data_middlebondtorsion_coeffs for dihedraltypes we don't care about anymore:
+    # delete data_angleangle_coeffs for impropertypes we don't care about anymore:
+    i_line = 0
+    while i_line < len(l_data_angleangle_coeffs):
+        line = l_data_angleangle_coeffs[i_line]
+        tokens = line.strip().split()
+        impropertype = Intify(tokens[0])
+        if (not (impropertype in needed_impropertypes)):
+            del l_data_angleangle_coeffs[i_line]
+        else:
+            tokens[0] = '@improper:type'+str(impropertype)
+            l_data_angleangle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+            i_line += 1
+    # --- end of class2specific ----
+
+
     # delete in_improper_coeffs for impropertypes we don't care about anymore:
     for impropertype in needed_impropertypes:
         assert(type(impropertype) is int)
@@ -2155,12 +2520,12 @@ try:
     # If so, then save the group and write it out.
     # (I hate trying to parse this kind of text.)
 
-    if len(l_in_group) > 0:
-        sys.stderr.write('\n'
-                         ' --groups--  Attempting to parse \"group\" commands.\n'
-                         '         This may cause '+g_program_name+' to crash.\n'
-                         '         If so, comment out all group commands in your input script(s), and\n'
-                         '         try again.  (And please report the error. -Andrew 2014-10-30)\n')
+    #if len(l_in_group) > 0:
+    #    sys.stderr.write('\n'
+    #                     ' --groups--  Attempting to parse \"group\" commands.\n'
+    #                     '         This may cause '+g_program_name+' to crash.\n'
+    #                     '         If so, comment out all group commands in your input script(s), and\n'
+    #                     '         try again.  (And please report the error. -Andrew 2014-10-30)\n')
 
     i_line = 0
     groups_needed = set(['all'])
@@ -2610,30 +2975,104 @@ try:
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_in_masses))
         non_empty_output = True
+
+
+    if remove_coeffs_from_data_file:
+        if len(l_data_pair_coeffs) > 0:
+            for line in l_data_pair_coeffs:
+                tokens = line.strip().split()
+                atomtype_str = tokens[0]
+                l_in_pair_coeffs.append((' '*cindent)+'  pair_coeff '+atomtype_str+' '+atomtype_str+' '+' '.join(tokens[1:])+'\n')
+            l_data_pair_coeffs = []
+        if len(l_data_pairij_coeffs) > 0:
+            for line in l_data_pairij_coeffs:
+                l_in_pair_coeffs.append((' '*cindent)+'  pair_coeff '+line.strip()+'\n')
+                l_data_pairij_coeffs = []
     if len(l_in_pair_coeffs) > 0:
         l_in_pair_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
         l_in_pair_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_in_pair_coeffs))
         non_empty_output = True
+
+
+    if (remove_coeffs_from_data_file and (len(l_data_bond_coeffs) > 0)):
+        for line in l_data_bond_coeffs:
+            l_in_bond_coeffs.append((' '*cindent)+'  bond_coeff '+line.strip()+'\n')
+            l_data_bond_coeffs = []
     if len(l_in_bond_coeffs) > 0:
         l_in_bond_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
         l_in_bond_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_in_bond_coeffs))
         non_empty_output = True
+
+    if (remove_coeffs_from_data_file and (len(l_data_angle_coeffs) > 0)):
+        for line in l_data_angle_coeffs:
+            l_in_angle_coeffs.append((' '*cindent)+'  angle_coeff '+line.strip()+'\n')
+            l_data_angle_coeffs = []
+        for line in l_data_bondbond_coeffs:
+            tokens = line.strip().split()
+            l_in_angle_coeffs.append((' '*cindent)+'  angle_coeff '+tokens[0]+' bb '+' '.join(tokens[1:])+'\n')
+            l_data_bondbond_coeffs = []
+        for line in l_data_bondangle_coeffs:
+            tokens = line.strip().split()
+            l_in_angle_coeffs.append((' '*cindent)+'  angle_coeff '+tokens[0]+' ba '+' '.join(tokens[1:])+'\n')
+            l_data_bondangle_coeffs = []
     if len(l_in_angle_coeffs) > 0:
         l_in_angle_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
         l_in_angle_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_in_angle_coeffs))
         non_empty_output = True
+
+    if (remove_coeffs_from_data_file and (len(l_data_dihedral_coeffs) > 0)):
+        for line in l_data_dihedral_coeffs:
+            l_in_dihedral_coeffs.append((' '*cindent)+'  dihedral_coeff '+line.strip()+'\n')
+            l_data_dihedral_coeffs = []
+
+        for line in l_data_middlebondtorsion_coeffs:
+            tokens = line.strip().split()
+            l_in_dihedral_coeffs.append((' '*cindent)+'  dihedral_coeff '+tokens[0]+' mbt '+' '.join(tokens[1:])+'\n')
+            l_data_middlebondtorsion_coeffs = []
+
+        for line in l_data_endbondtorsion_coeffs:
+            tokens = line.strip().split()
+            l_in_dihedral_coeffs.append((' '*cindent)+'  dihedral_coeff '+tokens[0]+' ebt '+' '.join(tokens[1:])+'\n')
+            l_data_endbondtorsion_coeffs = []
+
+        for line in l_data_angletorsion_coeffs:
+            tokens = line.strip().split()
+            l_in_dihedral_coeffs.append((' '*cindent)+'  dihedral_coeff '+tokens[0]+' at '+' '.join(tokens[1:])+'\n')
+            l_data_angletorsion_coeffs = []
+
+        for line in l_data_angleangletorsion_coeffs:
+            tokens = line.strip().split()
+            l_in_dihedral_coeffs.append((' '*cindent)+'  dihedral_coeff '+tokens[0]+' aat '+' '.join(tokens[1:])+'\n')
+            l_data_angleangletorsion_coeffs = []
+
+        for line in l_data_bondbond13_coeffs:
+            tokens = line.strip().split()
+            l_in_dihedral_coeffs.append((' '*cindent)+'  dihedral_coeff '+tokens[0]+' bb13 '+' '.join(tokens[1:])+'\n')
+            l_data_bondbond13_coeffs = []
+
     if len(l_in_dihedral_coeffs) > 0:
         l_in_dihedral_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
         l_in_dihedral_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_in_dihedral_coeffs))
         non_empty_output = True
+
+    if (remove_coeffs_from_data_file and (len(l_data_improper_coeffs) > 0)):
+        for line in l_data_improper_coeffs:
+            l_in_improper_coeffs.append((' '*cindent)+'  improper_coeff '+line.strip()+'\n')
+            l_data_improper_coeffs = []
+
+        for line in l_data_angleangle_coeffs:
+            tokens = line.strip().split()
+            l_in_improper_coeffs.append((' '*cindent)+'  improper_coeff '+tokens[0]+' aa '+' '.join(tokens[1:])+'\n')
+            l_data_angleangle_coeffs = []
+
     if len(l_in_improper_coeffs) > 0:
         l_in_improper_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
         l_in_improper_coeffs.append((' '*cindent)+'}\n')
@@ -2679,6 +3118,12 @@ try:
         l_data_pair_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_pair_coeffs))
+        non_empty_output = True
+    if len(l_data_pairij_coeffs) > 0:
+        l_data_pairij_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_pairij_coeffs+'\") {\n')
+        l_data_pairij_coeffs.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_data_pairij_coeffs))
         non_empty_output = True
 
     # class2 force fields:
@@ -2779,11 +3224,17 @@ try:
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_triangles))
 
-    if len(l_data_velocities) > 0:
-        l_data_velocities.insert(0, (' '*cindent)+'write(\"'+data_velocities+'\") {\n')
-        l_data_velocities.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_data_velocities))
+    # DO NOT WRITE OUT VELOCITY DATA
+    # (Why: because it makes it difficult to combine this molecular template
+    #  with molecule templates from other sources which lack velocity data.
+    #  LAMMPS (and topotools) will crash if the number of entries in the
+    #  Velocities section of a data file does not match the number of atoms.)
+    # COMMENTING OUT:
+    #if len(l_data_velocities) > 0:
+    #    l_data_velocities.insert(0, (' '*cindent)+'write(\"'+data_velocities+'\") {\n')
+    #    l_data_velocities.append((' '*cindent)+'}\n')
+    #    sys.stdout.write('\n')
+    #    sys.stdout.write(''.join(l_data_velocities))
     if len(l_data_bonds) > 0:
         l_data_bonds.insert(0, (' '*cindent)+'write(\"'+data_bonds+'\") {\n')
         l_data_bonds.append((' '*cindent)+'}\n')
@@ -2815,11 +3266,11 @@ try:
         l_in_group.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_in_group))
-        sys.stderr.write('######################################################\n'
-                         'WARNING: One or more \"group\" commands appear to refer to relevant atoms.\n'
-                         '         Please check to make sure that the group(s) generated by\n'
-                         '         '+g_program_name+' contain the correct atoms.  (-Andrew 2014-10-30)\n'
-                         '######################################################\n')
+        #sys.stderr.write('######################################################\n'
+        #                 'WARNING: One or more \"group\" commands appear to refer to relevant atoms.\n'
+        #                 '         Please check to make sure that the group(s) generated by\n'
+        #                 '         '+g_program_name+' contain the correct atoms.  (-Andrew 2014-10-30)\n'
+        #                 '######################################################\n')
         assert(non_empty_output)
 
     if len(l_in_fix_rigid) > 0:
@@ -2890,12 +3341,12 @@ try:
     if non_empty_output:
         sys.stderr.write('WARNING: The '+g_program_name+' script has not been rigorously tested.\n'
                          '         Exotic (many-body) pair-styles and pair-styles with\n'
-                         '         unusual syntax (such as hbond/dreiding) are not understood\n'
+                         '         unusual syntax (such hbond/dreiding) are not understood\n'
                          '         by '+g_program_name+' (...although they are supported by moltemplate).\n'
                          '         Please look over the resulting LT file and check for errors.\n'
                          '         Convert any remaining atom, bond, angle, dihedral, or improper id\n'
                          '         or type numbers to the corresponding $ or @-style counter variables.\n'
-                         '         Feel free to report any bugs you find. (-Andrew Jewett 2014-10-30)\n')
+                         '         Feel free to report any bugs you find. (-Andrew Jewett 2015-8-02)\n')
 
 
 

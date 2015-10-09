@@ -13,9 +13,10 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>suffix style 
+<PRE>suffix style args 
 </PRE>
-<UL><LI>style = <I>off</I> or <I>on</I> or <I>cuda</I> or <I>gpu</I> or <I>intel</I> or <I>kk</I> or <I>omp</I> or <I>opt</I> 
+<UL><LI>style = <I>off</I> or <I>on</I> or <I>cuda</I> or <I>gpu</I> or <I>intel</I> or <I>kk</I> or <I>omp</I> or <I>opt</I> or <I>hybrid</I>
+<LI>args = for hybrid style, default suffix to be used and alternative suffix 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -23,6 +24,7 @@
 suffix on
 suffix gpu
 suffix intel
+suffix hybrid intel omp
 suffix kk 
 </PRE>
 <P><B>Description:</B>
@@ -32,14 +34,14 @@ exist.  In that respect it operates the same as the <A HREF = "Section_start.htm
 command-line switch</A>.  It also has options
 to turn off or back on any suffix setting made via the command line.
 </P>
-<P>The specified style can be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or
-<I>opt</I>.  These refer to optional packages that LAMMPS can be built
+<P>The specified style can be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, <I>opt</I> 
+or <I>hybrid</I>. These refer to optional packages that LAMMPS can be built
 with, as described in <A HREF = "Section_start.html#start_3">this section of the
 manual</A>.  The "cuda" style corresponds to
 the USER-CUDA package, the "gpu" style to the GPU package, the "intel"
 style to the USER-INTEL package, the "kk" style to the KOKKOS package,
 the "omp" style to the USER-OMP package, and the "opt" style to the
-OPT package,
+OPT package.  
 </P>
 <P>These are the variants these packages provide:
 </P>
@@ -63,6 +65,8 @@ multi-threading
 
 <LI>OPT = a handful of pair styles, cache-optimized for faster CPU
 performance 
+
+<LI>HYBRID = a combination of two packages can be specified (see below) 
 </UL>
 <P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
 lj/cut</A> variant, with style names lj/cut/opt, lj/cut/omp,
@@ -79,10 +83,12 @@ input script command creates a new <A HREF = "atom_style.html">atom</A>,
 If the variant version does not exist, the standard version is
 created.
 </P>
-<P>When using the intel suffix, LAMMPS will first attempt to use a style
-with the intel suffix.  If the USER-OMP package is installed, the the
-omp suffix will be tried as a second choice, if a requested style is
-not available in the USER-INTEL package.
+<P>For "hybrid", two packages are specified. The first is used whenever 
+available. If a style with the first suffix is not available, the style 
+with the suffix for the second package will be used if available. For 
+example, "hybrid intel omp" will use styles from the USER-INTEL package 
+as a first choice and styles from the USER-OMP package as a second choice 
+if no USER-INTEL variant is available.
 </P>
 <P>If the specified style is <I>off</I>, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

@@ -132,7 +132,7 @@ class UCL_Program {
     }
     
     return UCL_SUCCESS;
-  }                                               
+  }
    
   /// Return the default command queue/stream associated with this data
   inline command_queue & cq() { return _cq; }
@@ -315,6 +315,10 @@ class UCL_Kernel {
   /// Clear any arguments associated with the kernel
   inline void clear_args() { _num_args=0; }
 
+  /// Return the default command queue/stream associated with this data
+  inline command_queue & cq() { return _cq; }
+  /// Change the default command queue associated with matrix
+  inline void cq(command_queue &cq_in) { _cq=cq_in; }
   #include "ucl_arg_kludge.h"
   
  private:
@@ -370,7 +374,7 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
   }
   #endif
   #endif
-  
+
   return UCL_SUCCESS;                                               
 }
 

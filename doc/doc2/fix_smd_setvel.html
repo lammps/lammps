@@ -1,0 +1,96 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix smd/setvel command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID smd/setvel vx vy vz keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>smd/setvel = style name of this fix command 
+
+<LI>vx,vy,vz = velocity component values 
+
+<LI>any of vx,vy,vz can be a variable (see below) 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I>  
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region particles must be in to have their velocities set 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix top_velocity top_group setvel 1.0 0.0 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set each component of velocity on each particle in the group to the specified
+values vx,vy,vz, regardless of the forces acting on the particle.  This command can
+be used to impose velocity boundary conditions.
+</P>
+<P>Any of the vx,vy,vz values can be specified as NULL which means do not
+alter the velocity component in that dimension.
+</P>
+<P>This fix is indented to be used together with a time integration fix. 
+</P>
+<P>Any of the 3 quantities defining the velocity components can be specified
+as an equal-style or atom-style <A HREF = "variable.html">variable</A>, namely <I>vx</I>,
+<I>vy</I>, <I>vz</I>.  If the value is a variable, it should be specified as
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+force component.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent velocity field.
+</P>
+<P>Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent velocity
+field with optional time-dependence as well.
+</P>
+<P>If the <I>region</I> keyword is used, the particle must also be in the
+specified geometric <A HREF = "region.html">region</A> in order to have its velocity set by this command.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>Currently, no part of USER-SMD supports restarting nor minimization
+None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>This fix computes a global 3-vector of forces, which can be accessed
+by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  This is the
+total force on the group of atoms.  The vector values calculated by this
+fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

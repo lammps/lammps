@@ -160,6 +160,7 @@ Dump::~Dump()
     } else {
       if (filewriter) fclose(fp);
     }
+    fp = NULL;
   }
 }
 
@@ -380,7 +381,7 @@ void Dump::write()
         
         write_data(nlines,buf);
       }
-      if (flush_flag) fflush(fp);
+      if (flush_flag && fp) fflush(fp);
     
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
@@ -401,7 +402,7 @@ void Dump::write()
         
         write_data(nchars,(double *) sbuf);
       }
-      if (flush_flag) fflush(fp);
+      if (flush_flag && fp) fflush(fp);
       
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
@@ -413,10 +414,11 @@ void Dump::write()
 
   if (multifile) {
     if (compressed) {
-      if (filewriter) pclose(fp);
+      if (filewriter && fp != NULL) pclose(fp);
     } else {
-      if (filewriter) fclose(fp);
+      if (filewriter && fp != NULL) fclose(fp);
     }
+    fp = NULL;
   }
 }
 

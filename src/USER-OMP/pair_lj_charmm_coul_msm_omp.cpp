@@ -58,6 +58,7 @@ void PairLJCharmmCoulMSMOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -73,6 +74,7 @@ void PairLJCharmmCoulMSMOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -134,9 +136,9 @@ void PairLJCharmmCoulMSMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
             const double r = sqrt(rsq);
             const double prefactor = qqrd2e * qtmp*q[j]/r;
-            const double egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul); 
-            const double fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul); 
-            forcecoul = prefactor * (fgamma - 1.0); 
+            const double egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
+            const double fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
+            forcecoul = prefactor * (fgamma - 1.0);
 
             if (EFLAG) ecoul = prefactor*egamma;
             if (sbindex) {

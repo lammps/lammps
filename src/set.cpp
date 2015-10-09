@@ -41,9 +41,9 @@ using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
-     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,ANGMOM,
+     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MESO_E,MESO_CV,MESO_RHO,INAME,DNAME};
+     MESO_E,MESO_CV,MESO_RHO,SMD_MASS_DENSITY,SMD_CONTACT_RADIUS,INAME,DNAME};
 
 #define BIG INT_MAX
 
@@ -261,6 +261,19 @@ void Set::command(int narg, char **arg)
       set(ANGMOM);
       iarg += 4;
 
+    } else if (strcmp(arg[iarg],"omega") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else xvalue = force->numeric(FLERR,arg[iarg+1]);
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) varparse(arg[iarg+2],2);
+      else yvalue = force->numeric(FLERR,arg[iarg+2]);
+      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) varparse(arg[iarg+3],3);
+      else zvalue = force->numeric(FLERR,arg[iarg+3]);
+      if (!atom->sphere_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(OMEGA);
+      iarg += 4;
+
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
@@ -383,6 +396,24 @@ void Set::command(int narg, char **arg)
         error->all(FLERR,"Cannot set meso_rho for this atom style");
       set(MESO_RHO);
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"smd_mass_density") == 0) {
+          if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+          if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+          else dvalue = force->numeric(FLERR,arg[iarg+1]);
+          if (!atom->smd_flag)
+            error->all(FLERR,"Cannot set smd_mass_density for this atom style");
+          set(SMD_MASS_DENSITY);
+          iarg += 2;
+
+    } else if (strcmp(arg[iarg],"smd_contact_radius") == 0) {
+          if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+          if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+          else dvalue = force->numeric(FLERR,arg[iarg+1]);
+          if (!atom->smd_flag)
+        	  error->all(FLERR,"Cannot set smd_contact_radius for this atom style");
+          set(SMD_CONTACT_RADIUS);
+          iarg += 2;
 
     } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
@@ -571,6 +602,10 @@ void Set::set(int keyword)
     else if (keyword == MESO_E) atom->e[i] = dvalue;
     else if (keyword == MESO_CV) atom->cv[i] = dvalue;
     else if (keyword == MESO_RHO) atom->rho[i] = dvalue;
+    else if (keyword == SMD_MASS_DENSITY) { // set mass from volume and supplied mass density
+    	atom->rmass[i] = atom->vfrac[i] * dvalue;
+    }
+    else if (keyword == SMD_CONTACT_RADIUS) atom->contact_radius[i] = dvalue;
 
     // set shape of ellipsoidal particle
 
@@ -620,7 +655,7 @@ void Set::set(int keyword)
         double *c1 = avec_tri->bonus[atom->tri[i]].c1;
         double *c2 = avec_tri->bonus[atom->tri[i]].c2;
         double *c3 = avec_tri->bonus[atom->tri[i]].c3;
-        double c2mc1[2],c3mc1[3];
+        double c2mc1[3],c3mc1[3];
         MathExtra::sub3(c2,c1,c2mc1);
         MathExtra::sub3(c3,c1,c3mc1);
         double norm[3];
@@ -676,6 +711,13 @@ void Set::set(int keyword)
       atom->angmom[i][1] = yvalue;
       atom->angmom[i][2] = zvalue;
     }
+
+    else if (keyword == OMEGA) {
+      atom->omega[i][0] = xvalue;
+      atom->omega[i][1] = yvalue;
+      atom->omega[i][2] = zvalue;
+    }
+
 
     // reset any or all of 3 image flags
 

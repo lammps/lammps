@@ -79,7 +79,7 @@ def switch2str(switches,switch_order):
 # NOTE: unrecognized -override-limits can leave verride-limits file
 
 def compile_check(compiler,ccflags,warn):
-  open("tmpauto.cpp",'w').write("int main(int, char **) {}")
+  open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   str = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
   txt = commands.getoutput(str)
   flag = 1
@@ -98,7 +98,7 @@ def compile_check(compiler,ccflags,warn):
 # warn = 1 = print warning if not successful, warn = 0 = no warning
 
 def link_check(linker,linkflags,warn):
-  open("tmpauto.cpp",'w').write("int main(int, char **) {}")
+  open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   str = "%s %s -o tmpauto tmpauto.cpp" % (linker,linkflags)
   txt = commands.getoutput(str)
   flag = 1

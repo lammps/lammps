@@ -62,7 +62,7 @@ class WriteRestart : protected Pointers {
   void write_int(int, int);
   void write_bigint(int, bigint);
   void write_double(int, double);
-  void write_string(int, char *);
+  void write_string(int, const char *);
   void write_int_vec(int, int, int *);
   void write_double_vec(int, int, double *);
 };

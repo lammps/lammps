@@ -103,12 +103,16 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 
   nregion = maxregion = 0;
   regions = NULL;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Domain::~Domain()
 {
+  if (copymode) return;
+
   delete lattice;
   for (int i = 0; i < nregion; i++) delete regions[i];
   memory->sfree(regions);
@@ -594,17 +598,15 @@ void Domain::pbc()
 
 int Domain::inside(double* x)
 {
-  double *lo,*hi,*period;
+  double *lo,*hi;
   double delta[3];
 
   if (triclinic == 0) {
     lo = boxlo;
     hi = boxhi;
-    period = prd;
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
-    period = prd_lamda;
 
     delta[0] = x[0] - boxlo[0];
     delta[1] = x[1] - boxlo[1];
@@ -628,7 +630,7 @@ int Domain::inside(double* x)
 
 int Domain::inside_nonperiodic(double* x)
 {
-  double *lo,*hi,*period;
+  double *lo,*hi;
   double delta[3];
 
   if (xperiodic && yperiodic && zperiodic) return 1;
@@ -636,11 +638,9 @@ int Domain::inside_nonperiodic(double* x)
   if (triclinic == 0) {
     lo = boxlo;
     hi = boxhi;
-    period = prd;
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
-    period = prd_lamda;
 
     delta[0] = x[0] - boxlo[0];
     delta[1] = x[1] - boxlo[1];

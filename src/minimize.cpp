@@ -34,7 +34,7 @@ void Minimize::command(int narg, char **arg)
 {
   double timelimit = 1.0;
 
-  if ((narg != 4) || (narg != 6)) error->all(FLERR,"Illegal minimize command");
+  if ((narg != 4) && (narg != 6)) error->all(FLERR,"Illegal minimize command");
 
   if (narg == 6) {
     if (strcmp(arg[4],"max_hours") == 0) {

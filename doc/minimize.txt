@@ -10,12 +10,17 @@ minimize command :h3
 
 [Syntax:]
 
-minimize etol ftol maxiter maxeval :pre
+minimize etol ftol maxiter maxeval keyword value :pre
 
 etol = stopping tolerance for energy (unitless)
 ftol = stopping tolerance for force (force units)
 maxiter = max iterations of minimizer
-maxeval = max number of force/energy evaluations :ul
+maxeval = max number of force/energy evaluations :ulb,l
+zero or more keyword/value pairs may be appended :l
+keyword = {max_hours} :l
+  {max_hours} value = max_h
+    max_h = wall time limit for run. :pre
+:ule
 
 [Examples:]
 
@@ -30,6 +35,13 @@ criteria is satisfied.  At that point the configuration will hopefully
 be in local potential energy minimum.  More precisely, the
 configuration should approximate a critical point for the objective
 function (see below), which may or may not be a local minimum.
+
+The {max_hours} keyword allows to set a wall time limit minimization
+which can be used to stop a minimization cleanly after a fixed amount
+of time. In combination with reading and writing restart files this
+allows to distribute a long running calculations efficiently over
+fixed time chunks. It requires that the {timer} flag is not turned off.
+The time is given in hours or as 'unlimited'.
 
 The minimization algorithm used is set by the
 "min_style"_min_style.html command.  Other options are set by the

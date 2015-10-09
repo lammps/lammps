@@ -395,6 +395,17 @@ void Respa::setup()
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
     fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
     fprintf(screen,"  OuterTime step: %g\n", update->dt);
+    if (update->max_wall > 0) {
+      char outtime[128];
+      double totalclock = update->max_wall;
+      int seconds = fmod(totalclock,60.0);
+      totalclock  = (totalclock - seconds) / 60.0;
+      int minutes = fmod(totalclock,60.0);
+      int hours = (totalclock - minutes) / 60.0;
+      sprintf(outtime,"  Max walltime: "
+              "%d:%02d:%02d\n", hours, minutes, seconds);
+      fputs(outtime,screen);
+    }
   }
 
   update->setupflag = 1;
@@ -545,7 +556,10 @@ void Respa::run(int n)
   bigint ntimestep;
 
   for (int i = 0; i < n; i++) {
-    if (update->time_expired()) break;
+    if (update->time_expired()) {
+      update->nsteps = i;
+      return;
+    }
 
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);

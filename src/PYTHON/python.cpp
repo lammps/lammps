@@ -117,6 +117,7 @@ void Python::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
+      delete[] pyfile;
       int n = strlen(arg[iarg+1]) + 1;
       pyfile = new char[n];
       strcpy(pyfile,arg[iarg+1]);
@@ -173,6 +174,7 @@ void Python::command(int narg, char **arg)
     if (fp == NULL) error->all(FLERR,"Could not open Python file");
     int err = PyRun_SimpleFile(fp,pyfile);
     if (err) error->all(FLERR,"Could not process Python file");
+    fclose(fp);
   } else if (herestr) {
     int err = PyRun_SimpleString(herestr);
     if (err) error->all(FLERR,"Could not process Python string");

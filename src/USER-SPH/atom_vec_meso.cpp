@@ -482,7 +482,7 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
                                  int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -534,6 +534,9 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
         buf[m++] = vest[j][2];
       }
     } else {
+      dvx = pbc[0] * h_rate[0] + pbc[5] * h_rate[5] + pbc[4] * h_rate[4];
+      dvy = pbc[1] * h_rate[1] + pbc[3] * h_rate[3];
+      dvz = pbc[2] * h_rate[2];
       for (i = 0; i < n; i++) {
         j = list[i];
         buf[m++] = x[j][0] + dx;
@@ -543,20 +546,23 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
         if (mask[i] & deform_groupbit) {
-          buf[m++] = v[j][0];
-          buf[m++] = v[j][1];
-          buf[m++] = v[j][2];
+          buf[m++] = v[j][0] + dvx;
+          buf[m++] = v[j][1] + dvy;
+          buf[m++] = v[j][2] + dvz;
+          buf[m++] = vest[j][0] + dvx;
+          buf[m++] = vest[j][1] + dvy;
+          buf[m++] = vest[j][2] + dvz;
         } else {
           buf[m++] = v[j][0];
           buf[m++] = v[j][1];
           buf[m++] = v[j][2];
+          buf[m++] = vest[j][0];
+          buf[m++] = vest[j][1];
+          buf[m++] = vest[j][2];
         }
         buf[m++] = rho[j];
         buf[m++] = e[j];
         buf[m++] = cv[j];
-        buf[m++] = vest[j][0];
-        buf[m++] = vest[j][1];
-        buf[m++] = vest[j][2];
       }
     }
   }
@@ -619,12 +625,12 @@ void AtomVecMeso::unpack_border_vel(int n, int first, double *buf) {
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
-    rho[i] = buf[m++];
-    e[i] = buf[m++];
-    cv[i] = buf[m++];
     vest[i][0] = buf[m++];
     vest[i][1] = buf[m++];
     vest[i][2] = buf[m++];
+    rho[i] = buf[m++];
+    e[i] = buf[m++];
+    cv[i] = buf[m++];
   }
 
   if (atom->nextra_border)

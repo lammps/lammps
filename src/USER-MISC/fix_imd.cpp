@@ -1205,6 +1205,7 @@ void * imdsock_create(void) {
   s = (imdsocket *) malloc(sizeof(imdsocket));
   if (s != NULL)
     memset(s, 0, sizeof(imdsocket));
+  else return NULL;
 
   if ((s->sd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
     printf("Failed to open socket.");

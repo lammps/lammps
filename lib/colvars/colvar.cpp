@@ -727,6 +727,7 @@ int colvar::enable(colvar::task const &t)
   case task_output_value:
   case task_runave:
   case task_corrfunc:
+  case task_ntot:
   case task_langevin:
   case task_output_energy:
   case task_scripted:
@@ -1105,44 +1106,6 @@ cvm::real colvar::update()
   f += fb;
 
 
-  if (tasks[task_lower_wall] || tasks[task_upper_wall]) {
-
-    // wall force
-    colvarvalue fw(value());
-    fw.reset();
-
-    if (cvm::debug())
-      cvm::log("Calculating wall forces for colvar \""+this->name+"\".\n");
-
-    // if the two walls are applied concurrently, decide which is the
-    // closer one (on a periodic colvar, both walls may be applicable
-    // at the same time)
-    if ( (!tasks[task_upper_wall]) ||
-         (this->dist2(x_reported, lower_wall) < this->dist2(x_reported, upper_wall)) ) {
-
-      cvm::real const grad = this->dist2_lgrad(x_reported, lower_wall);
-      if (grad < 0.0) {
-        fw = -0.5 * lower_wall_k * grad;
-        if (cvm::debug())
-          cvm::log("Applying a lower wall force("+
-                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
-        f += fw;
-
-      }
-
-    } else {
-
-      cvm::real const grad = this->dist2_lgrad(x_reported, upper_wall);
-      if (grad > 0.0) {
-        fw = -0.5 * upper_wall_k * grad;
-        if (cvm::debug())
-          cvm::log("Applying an upper wall force("+
-                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
-        f += fw;
-      }
-    }
-  }
-
   if (tasks[task_Jacobian_force]) {
     size_t i;
     for (i = 0; i < cvcs.size(); i++) {
@@ -1177,10 +1140,11 @@ cvm::real colvar::update()
 
     // the total force is applied to the fictitious mass, while the
     // atoms only feel the harmonic force
-    // fr: extended coordinate force (without harmonic spring), for output in trajectory
+    // fr: bias force on extended coordinate (without harmonic spring), for output in trajectory
     // f_ext: total force on extended coordinate (including harmonic spring)
     // f: - initially, external biasing force
-    //    -  after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    //      (note: wall potential is added to f after this block)
     fr    = f;
     f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
     f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
@@ -1199,6 +1163,44 @@ cvm::real colvar::update()
     xr  += dt * vr;
     xr.apply_constraints();
     if (this->b_periodic) this->wrap(xr);
+  }
+
+
+  // Adding wall potential to "true" colvar force, whether or not an extended coordinate is in use
+  if (tasks[task_lower_wall] || tasks[task_upper_wall]) {
+
+    // Wall force
+    colvarvalue fw(x);
+    fw.reset();
+
+    if (cvm::debug())
+      cvm::log("Calculating wall forces for colvar \""+this->name+"\".\n");
+
+    // For a periodic colvar, both walls may be applicable at the same time
+    // in which case we pick the closer one
+    if ( (!tasks[task_upper_wall]) ||
+         (this->dist2(x, lower_wall) < this->dist2(x, upper_wall)) ) {
+
+      cvm::real const grad = this->dist2_lgrad(x, lower_wall);
+      if (grad < 0.0) {
+        fw = -0.5 * lower_wall_k * grad;
+        f += fw;
+        if (cvm::debug())
+          cvm::log("Applying a lower wall force("+
+                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
+      }
+
+    } else {
+
+      cvm::real const grad = this->dist2_lgrad(x, upper_wall);
+      if (grad > 0.0) {
+        fw = -0.5 * upper_wall_k * grad;
+        f += fw;
+        if (cvm::debug())
+          cvm::log("Applying an upper wall force("+
+                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
+      }
+    }
   }
 
 

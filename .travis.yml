@@ -16,6 +16,7 @@ before_install:
   - sudo apt-get install -y gfortran mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
 
 env:
+  - MACH=shlib LMPFLAGS="-sf off" LMP_INC="-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz"
   - MACH=serial LMPFLAGS="-sf off" LMP_INC="-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz"
   - MACH=mpi MPICMD="mpirun -np 2" LMPFLAGS="-pk omp 2 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
   - MACH=mpi MPICMD="mpirun -np 4" LMPFLAGS="-pk omp 1 -sf omp" LMP_INC="-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL" JPG_LIB="-ljpeg -lpng -lz"
@@ -40,6 +41,6 @@ script:
   - make -C lib/h5md
   - make -C src yes-user-h5md
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
-  - make -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
-  - if [ "$MACH" = serial ] ; then  make -C src mode=shlib ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test python MACH="${MACH}" MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
-  - make -C src mode=lib ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test couple MACH="${MACH}" MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
+  - test "$MACH" = shlib || make -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
+  - if [ "$MACH" = shlib ] ; then  make -C src mode=shlib serial MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test python MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
+  - test "$MACH" = shlib || make -C src mode=lib ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test couple MACH="${MACH}" MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"

@@ -565,14 +565,16 @@ void Set::set(int keyword)
 
     // overwrite dvalue, ivalue, xyzw value if variables defined
     // else the input script scalar value remains in place
-
-    if (varflag1) {
-      dvalue = xvalue = vec1[i];
-      ivalue = static_cast<int> (dvalue);
+    
+    if (varflag) {
+      if (varflag1) {
+        dvalue = xvalue = vec1[i];
+        ivalue = static_cast<int> (dvalue);
+      }
+      if (varflag2) yvalue = vec2[i];
+      if (varflag3) zvalue = vec3[i];
+      if (varflag4) wvalue = vec4[i];
     }
-    if (varflag2) yvalue = vec2[i];
-    if (varflag3) zvalue = vec3[i];
-    if (varflag4) wvalue = vec4[i];
 
     // set values in per-atom arrays
     // error check here in case atom-style variables generated bogus value

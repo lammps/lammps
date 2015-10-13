@@ -118,6 +118,7 @@ void ComputeMSDChunk::compute_array()
 
   if (firstflag) {
     nchunk = n;
+    size_array_rows = nchunk;
     allocate();
   } else if (n != nchunk) 
     error->all(FLERR,"Compute msd/chunk nchunk is not static");

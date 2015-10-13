@@ -97,6 +97,7 @@ class FixGCMC : public Fix {
   int max_region_attempts;
   double gas_mass;
   double reservoir_temperature;
+  double tfac_insert;
   double chemical_potential;
   double displace;
   double max_rotation_angle;

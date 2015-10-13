@@ -638,6 +638,7 @@ int colvar::enable(colvar::task const &t)
 
   case task_output_system_force:
     enable(task_system_force);
+    tasks[t] = true;
     break;
 
   case task_report_Jacobian_force:
@@ -646,6 +647,7 @@ int colvar::enable(colvar::task const &t)
     if (cvm::debug())
       cvm::log("Adding the Jacobian force to the system force, "
                 "rather than applying its opposite silently.\n");
+    tasks[t] = true;
     break;
 
   case task_Jacobian_force:
@@ -669,6 +671,7 @@ int colvar::enable(colvar::task const &t)
                   "on this colvar.\n");
     }
     fj.type(value());
+    tasks[t] = true;
     break;
 
   case task_system_force:
@@ -683,6 +686,7 @@ int colvar::enable(colvar::task const &t)
     }
     ft.type(value());
     ft_reported.type(value());
+    tasks[t] = true;
     break;
 
   case task_output_applied_force:
@@ -690,16 +694,19 @@ int colvar::enable(colvar::task const &t)
   case task_upper_wall:
     // all of the above require gradients
     enable(task_gradients);
+    tasks[t] = true;
     break;
 
   case task_fdiff_velocity:
     x_old.type(value());
     v_fdiff.type(value());
     v_reported.type(value());
+    tasks[t] = true;
     break;
 
   case task_output_velocity:
     enable(task_fdiff_velocity);
+    tasks[t] = true;
     break;
 
   case task_grid:
@@ -708,11 +715,13 @@ int colvar::enable(colvar::task const &t)
                         this->name+"\", because its value is not a scalar number.\n",
                   INPUT_ERROR);
     }
+    tasks[t] = true;
     break;
 
   case task_extended_lagrangian:
     enable(task_gradients);
     v_reported.type(value());
+    tasks[t] = true;
     break;
 
   case task_lower_boundary:
@@ -722,16 +731,17 @@ int colvar::enable(colvar::task const &t)
                         "and cannot produce a grid.\n",
                 INPUT_ERROR);
     }
+    tasks[t] = true;
     break;
 
   case task_output_value:
   case task_runave:
   case task_corrfunc:
-  case task_ntot:
   case task_langevin:
   case task_output_energy:
   case task_scripted:
   case task_gradients:
+    tasks[t] = true;
     break;
 
   case task_collect_gradients:
@@ -745,10 +755,13 @@ int colvar::enable(colvar::task const &t)
     if (atom_ids.size() == 0) {
       build_atom_list();
     }
+    tasks[t] = true;
+    break;
+
+  default:
     break;
   }
 
-  tasks[t] = true;
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
 

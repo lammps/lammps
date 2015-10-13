@@ -763,23 +763,28 @@ void colvar::disable(colvar::task const &t)
     disable(task_output_applied_force);
     disable(task_system_force);
     disable(task_Jacobian_force);
+    tasks[t] = false;
     break;
 
   case task_system_force:
     disable(task_output_system_force);
+    tasks[t] = false;
     break;
 
   case task_Jacobian_force:
     disable(task_report_Jacobian_force);
+    tasks[t] = false;
     break;
 
   case task_fdiff_velocity:
     disable(task_output_velocity);
+    tasks[t] = false;
     break;
 
   case task_lower_boundary:
   case task_upper_boundary:
     disable(task_grid);
+    tasks[t] = false;
     break;
 
   case task_extended_lagrangian:
@@ -793,15 +798,17 @@ void colvar::disable(colvar::task const &t)
   case task_grid:
   case task_lower_wall:
   case task_upper_wall:
-  case task_ntot:
   case task_langevin:
   case task_output_energy:
   case task_collect_gradients:
   case task_scripted:
+    tasks[t] = false;
+    break;
+
+  default:
     break;
   }
 
-  tasks[t] = false;
 }
 
 

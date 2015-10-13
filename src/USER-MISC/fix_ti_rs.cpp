@@ -25,6 +25,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,18 +46,18 @@ FixTIRS::FixTIRS(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   extvector   = 1;
 
   // Time variables.
-  t_switch  = atoi(arg[5]);
-  t_equil   = atoi(arg[6]);
+  t_switch  = force->bnumeric(FLERR,arg[5]);
+  t_equil   = force->bnumeric(FLERR,arg[6]);
   t0 = update->ntimestep;    
-  if (t_switch < 0.0) error->all(FLERR,"Illegal fix ti/rs command");
-  if (t_equil  < 0.0) error->all(FLERR,"Illegal fix ti/rs command");
+  if (t_switch <= 0) error->all(FLERR,"Illegal fix ti/rs command");
+  if (t_equil  <= 0) error->all(FLERR,"Illegal fix ti/rs command");
  
   // Coupling parameter limits and initialization.
-  l_initial = atof(arg[3]);
-  l_final   = atof(arg[4]);
+  l_initial = force->numeric(FLERR,arg[3]);
+  l_final   = force->numeric(FLERR,arg[4]);
   sf = 1;
   if (narg > 7) {
-    if (strcmp(arg[7], "function") == 0) sf = atoi(arg[8]);
+    if (strcmp(arg[7], "function") == 0) sf = force->inumeric(FLERR,arg[8]);
     else error->all(FLERR,"Illegal fix ti/rs switching function");
     if ((sf<1) || (sf>3))
       error->all(FLERR,"Illegal fix ti/rs switching function");
@@ -151,16 +152,17 @@ void FixTIRS::min_post_force(int vflag)
 void FixTIRS::initial_integrate(int vflag) 
 {
   // Update the coupling parameter value.
-  double t = update->ntimestep - (t0+t_equil); 
+  const bigint t = update->ntimestep - (t0+t_equil);
+  const double r_switch = 1.0/t_switch;
 
   if( (t >= 0) && (t <= t_switch) ) {
-    lambda  =  switch_func(t/t_switch);
-    dlambda = dswitch_func(t/t_switch);
+    lambda  =  switch_func(t*r_switch);
+    dlambda = dswitch_func(t*r_switch);
   }
 
   if( (t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch)) ) {
-    lambda  =    switch_func(1.0 - (t - t_switch - t_equil)/t_switch);
-    dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)/t_switch);
+    lambda  =    switch_func(1.0 - (t - t_switch - t_equil)*r_switch);
+    dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)*r_switch);
   }
 }
 

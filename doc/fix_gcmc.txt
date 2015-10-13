@@ -23,7 +23,7 @@ T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
 translate = maximum Monte Carlo translation distance (length units) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, {charge}, {group}, {grouptype}, or {intra_energy}
+keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, {charge}, {group}, {grouptype}, {intra_energy}, or {tfac_insert}
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {shake} value = fix-ID
@@ -40,7 +40,8 @@ keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energ
   {grouptype} values = type group-ID 
     type = atom type (int)
     group-ID = group-ID for inserted atoms (string)
-  {intra_energy} value = intramolecular energy (energy units)  :pre
+  {intra_energy} value = intramolecular energy (energy units)
+  {tfac_insert} value = scale up/down temperature of inserted atoms (unitless) :pre
 :ule
 
 [Examples:]
@@ -131,7 +132,9 @@ distance. See the "neighbor"_neighbor.html command for details.
 When an atom or molecule is to be inserted, its 
 coordinates are chosen at a random position within the current
 simulation cell or region, and new atom velocities are randomly chosen from
-the specified temperature distribution given by T.  Relative
+the specified temperature distribution given by T. The effective
+temperature for new atom velocities can be increased or decreased
+using the optional keyword {tfac_insert} (see below). Relative
 coordinates for atoms in a molecule are taken from the template
 molecule provided by the user. The center of mass of the molecule
 is placed at the insertion point. The orientation of the molecule
@@ -216,6 +219,19 @@ is inserted, and added to the initial energy when a molecule is
 deleted. For molecules that have a non-zero intramolecular energy, this
 will ensure roughly the same behavior whether or not the {full_energy}
 option is used.
+
+Inserted atoms and molecules are assigned random velocities based on the
+specified temperature T. Because the relative velocity of
+all atoms in the molecule is zero, this may result in inserted molecules
+that are systematically too cold. In addition, the intramolecular potential
+energy of the inserted molecule may casue the kinetic energy
+of the molecule to quickly increase or decrease after insertion. 
+The {tfac_insert} keyword allows the user to counteract these effects
+by changing the temperature used to assign velocities to 
+inserted atoms and molecules by a constant factor. For a
+particular application, some experimentation may be required
+to find a value of {tfac_insert} that results in inserted molecules that
+equilibrate quickly to the correct temperature.
 
 Some fixes have an associated potential energy. Examples of such fixes
 include: "efield"_fix_efield.html, "gravity"_fix_gravity.html, 

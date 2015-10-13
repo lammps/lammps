@@ -120,7 +120,14 @@ until the atom or molecule center-of-mass is inside the specified region.
 If used with "fix_nvt"_fix_nvt.html, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
 used in "fix_nvt"_fix_nvt.html. Otherwise, the imaginary reservoir
-will not be in thermal equilibrium with the simulation cell.
+will not be in thermal equilibrium with the simulation cell. Also,
+it is important that the temperature used by fix nvt be dynamic,
+which can be achieved as follows:
+
+compute mdtemp mdatoms temp 
+compute_modify mdtemp dynamic yes
+fix mdnvt mdatoms nvt temp 300.0 300.0 10.0
+fix_modify mdnvt temp mdtemp :pre
 
 Note that neighbor lists are re-built every timestep that this fix is
 invoked, so you should not set N to be too small.  However, periodic

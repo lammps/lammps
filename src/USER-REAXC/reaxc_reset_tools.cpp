@@ -119,29 +119,6 @@ void Reset_Workspace( reax_system *system, storage *workspace )
 }
 
 
-void Reset_Grid( grid *g )
-{
-  int i, j, k;
-
-  for( i = 0; i < g->ncells[0]; i++ )
-    for( j = 0; j < g->ncells[1]; j++ )
-      for( k = 0; k < g->ncells[2]; k++ ) {
-        g->cells[i][j][k].top = 0;
-        g->cells[i][j][k].str = 0;
-        g->cells[i][j][k].end = 0;
-      }
-}
-
-
-void Reset_Out_Buffers( mpi_out_data *out_buf, int n )
-{
-  int i;
-
-  for( i = 0; i < n; ++i )
-    out_buf[i].cnt = 0;
-}
-
-
 void Reset_Neighbor_Lists( reax_system *system, control_params *control,
                            storage *workspace, reax_list **lists,
                            MPI_Comm comm )

@@ -240,6 +240,7 @@ void FixGCMC::options(int narg, char **arg)
   grouptypes = NULL;
   grouptypebits = NULL;
   energy_intra = 0.0;
+  tfac_insert = 1.0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -329,6 +330,10 @@ void FixGCMC::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
       energy_intra = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tfac_insert") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      tfac_insert = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
@@ -530,7 +535,6 @@ void FixGCMC::init()
     onemols[imol]->compute_mass();
     onemols[imol]->compute_com();
     gas_mass = onemols[imol]->masstotal;
-    printf("gas_mass = %g\n",gas_mass);
     for (int i = 0; i < onemols[imol]->natoms; i++) {
       onemols[imol]->x[i][0] -= onemols[imol]->com[0];
       onemols[imol]->x[i][1] -= onemols[imol]->com[1];
@@ -566,7 +570,7 @@ void FixGCMC::init()
   double lambda = sqrt(force->hplanck*force->hplanck/
                        (2.0*MY_PI*gas_mass*force->mvv2e*
                         force->boltz*reservoir_temperature));
-  sigma = sqrt(force->boltz*reservoir_temperature/gas_mass/force->mvv2e);
+  sigma = sqrt(force->boltz*reservoir_temperature*tfac_insert/gas_mass/force->mvv2e);
   zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
   if (pressure_flag) zz = pressure*fugacity_coeff*beta/force->nktv2p;
   
@@ -1272,9 +1276,9 @@ void FixGCMC::attempt_molecule_insertion()
     int nlocalprev = atom->nlocal;
     
     double vnew[3];
-    vnew[0] = random_unequal->gaussian()*sigma;
-    vnew[1] = random_unequal->gaussian()*sigma;
-    vnew[2] = random_unequal->gaussian()*sigma;
+    vnew[0] = random_equal->gaussian()*sigma;
+    vnew[1] = random_equal->gaussian()*sigma;
+    vnew[2] = random_equal->gaussian()*sigma;
     
     for (int i = 0; i < natoms_per_molecule; i++) {
       if (procflag[i]) {
@@ -1897,9 +1901,9 @@ void FixGCMC::attempt_molecule_insertion_full()
   MathExtra::quat_to_mat(quat,rotmat);
 
   double vnew[3];
-  vnew[0] = random_unequal->gaussian()*sigma;
-  vnew[1] = random_unequal->gaussian()*sigma;
-  vnew[2] = random_unequal->gaussian()*sigma;
+  vnew[0] = random_equal->gaussian()*sigma;
+  vnew[1] = random_equal->gaussian()*sigma;
+  vnew[2] = random_equal->gaussian()*sigma;
     
   for (int i = 0; i < natoms_per_molecule; i++) {
     double xtmp[3];

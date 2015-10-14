@@ -5,7 +5,7 @@
 # Syntax: Make.py -h (for help)
 # Notes: needs python 2.7 (not Python 3)
 
-import sys,os,commands,re,copy
+import sys,os,commands,re,copy,subprocess
 
 # switch abbrevs
 # switch classes = created class for each switch
@@ -332,11 +332,11 @@ class Actions:
           make.addvar("CCFLAGS","-restrict")
           
       if final["user-omp"]:
+        if compile_check(compiler,"-fopenmp",1):
+          make.addvar("CCFLAGS","-fopenmp")
+          make.addvar("LINKFLAGS","-fopenmp")
         if compile_check(compiler,"-restrict",0):
           make.addvar("CCFLAGS","-restrict")
-          if compile_check(compiler,"-fopenmp",1):
-            make.addvar("CCFLAGS","-fopenmp")
-            make.addvar("LINKFLAGS","-fopenmp")
 
       if final["user-intel"]:
         if intel.mode == "cpu":
@@ -496,7 +496,7 @@ class Actions:
   def clean(self):
     str = "cd %s; make clean-auto" % dir.src
     commands.getoutput(str)
-    if verbose: print "Performed make clean-auto"
+    print "Performed make clean-auto"
 
   # build LAMMPS using Makefile.auto and -j setting
   # invoke self.file() first, to test makefile compile/link
@@ -516,10 +516,15 @@ class Actions:
       print "Created src/STUBS/libmpi_stubs.a"
     if jmake: str = "cd %s; make -j %d auto" % (dir.src,jmake.n)
     else: str = "cd %s; make auto" % dir.src
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/lmp_auto" % dir.src):
-      if not verbose: print txt
       error('Unsuccessful "make auto"')
     elif not output: print "Created src/lmp_auto"
     
@@ -968,11 +973,16 @@ class ATC:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/libatc.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/atc library")
     else: print "Created lib/atc library"
     
@@ -1015,11 +1025,16 @@ class AWPMD:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+   
     if not os.path.isfile("%s/libawpmd.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/awpmd library")
     else: print "Created lib/awpmd library"
 
@@ -1062,11 +1077,16 @@ class COLVARS:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/libcolvars.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/colvars library")
     else: print "Created lib/colvars library"
 
@@ -1115,11 +1135,16 @@ class CUDA:
           (libdir,jmake.n,n,self.arch)
     else: str = str = "cd %s; make precision=%d arch=%s" % \
           (libdir,n,self.arch)
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/liblammpscuda.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/cuda library")
     else: print "Created lib/cuda library"
 
@@ -1185,11 +1210,16 @@ class GPU:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/libgpu.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/gpu library")
     else: print "Created lib/gpu library"
 
@@ -1232,11 +1262,16 @@ class MEAM:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     # do not use -j for MEAM build, parallel build does not work
     str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/libmeam.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/meam library")
     else: print "Created lib/meam library"
 
@@ -1279,11 +1314,16 @@ class POEMS:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/libpoems.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/poems library")
     else: print "Created lib/poems library"
 
@@ -1326,11 +1366,16 @@ class QMMM:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+   
     if not os.path.isfile("%s/libqmmm.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/qmmm library")
     else: print "Created lib/qmmm library"
 
@@ -1373,11 +1418,16 @@ class REAX:
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
     if not os.path.isfile("%s/libreax.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/reax library")
     else: print "Created lib/reax library"
 
@@ -1573,10 +1623,10 @@ class Fft:
   change FFT settings in makefile
   mode is required, all other args are optional
   removes all current FFT variable settings
-  mode = none or fftw or fftw3 of ...
+  mode = none or fftw or fftw3 or ...
     adds -DFFT_MODE setting
   lib = name of FFT library to link with (def is libname = mode)
-    adds -lliblib setting, e.g. -llibfftw3
+    adds -llib{libname} setting, e.g. -llibfftw3
   dir = home dir for include and library files (def = none)
     adds -Idir/include and -Ldir/lib settings
     if set, overrides idir and ldir args

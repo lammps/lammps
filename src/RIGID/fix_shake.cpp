@@ -406,8 +406,9 @@ void FixShake::init()
     // compute the angle distance as a function of 2 bond distances
 
     angle = force->angle->equilibrium_angle(i);
-    rsq = 2.0*bond_distance[bond1_type]*bond_distance[bond2_type] *
-      (1.0-cos(angle));
+    const double b1 = bond_distance[bond1_type];
+    const double b2 = bond_distance[bond2_type];
+    rsq = b1*b1 + b2*b2 - 2.0*b1*b2*cos(angle);
     angle_distance[i] = sqrt(rsq);
   }
 }

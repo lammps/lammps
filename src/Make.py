@@ -142,7 +142,7 @@ class Actions:
       else use existing Makefile.auto
     adds settings needed for installed accelerator packages
     existing Makefile.auto is NOT changed unless "file" action is specified
-  (3) clean = invoke "make clean-auto" to insure full build
+  (3) clean = invoke "make clean-auto" to insure clean build on current files
     useful if compiler flags have changed
   (4) exe or machine = build LAMMPS
     machine can be any existing Makefile.machine suffix
@@ -1918,9 +1918,11 @@ class MakeReader:
 cmd_switches,cmd_switch_order = parse_args(sys.argv[1:])
 
 if "v" in cmd_switches:
-  print "Command-line parsing:"
-  for switch in cmd_switch_order:
-    print "  %s: %s" % (switch,' '.join(cmd_switches[switch]))
+  # debug
+  #print "Command-line parsing:"
+  #for switch in cmd_switch_order:
+  #  print "  %s: %s" % (switch,' '.join(cmd_switches[switch]))
+  pass
 
 # check for redo switch, process redo file
 # redolist = list of commands to execute

@@ -121,16 +121,6 @@ void rtensor_MatVec( rvec ret, rtensor m, rvec v )
 }
 
 
-void rtensor_Scale( rtensor ret, double c, rtensor m )
-{
-  int i, j;
-
-  for( i = 0; i < 3; ++i )
-    for( j = 0; j < 3; ++j )
-      ret[i][j] = c * m[i][j];
-}
-
-
 void rtensor_MakeZero( rtensor t )
 {
   t[0][0] = t[0][1] = t[0][2] = 0;

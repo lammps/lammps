@@ -229,7 +229,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     const int ijparam = d_elem2param(itype,jtype,jtype);
-    if (rsq > d_params[ijparam].cutsq) continue;
+    if (rsq >= d_params[ijparam].cutsq) continue;
 
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -257,7 +257,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-    if (rsq1 > d_params[ijparam].cutsq) continue;
+    if (rsq1 >= d_params[ijparam].cutsq) continue;
 
     F_FLOAT fxtmpj = 0.0;
     F_FLOAT fytmpj = 0.0;
@@ -275,7 +275,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
       delr2[2] = x(k,2) - ztmp;
       const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-      if (rsq2 > d_params[ikparam].cutsq) continue;
+      if (rsq2 >= d_params[ikparam].cutsq) continue;
 
       threebody(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
                 rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
@@ -355,7 +355,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
 
     const int ijparam = d_elem2param(itype,jtype,jtype);
 
-    if (rsq > d_params[ijparam].cutsq) continue;
+    if (rsq >= d_params[ijparam].cutsq) continue;
 
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -381,7 +381,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
     delr1[2] = x(j,2) - ztmp;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-    if (rsq1 > d_params[ijparam].cutsq) continue;
+    if (rsq1 >= d_params[ijparam].cutsq) continue;
 
     for (int kk = jj+1; kk < jnum; kk++) {
       int k = d_neighbors(i,kk);
@@ -395,7 +395,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
       delr2[2] = x(k,2) - ztmp;
       const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-      if (rsq2 > d_params[ikparam].cutsq) continue;
+      if (rsq2 >= d_params[ikparam].cutsq) continue;
 
       threebody(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
                 rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
@@ -463,7 +463,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
     delr1[2] = ztmpi - ztmpj;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-    if (rsq1 > d_params[jiparam].cutsq) continue;
+    if (rsq1 >= d_params[jiparam].cutsq) continue;
 
     const int j_jnum = d_numneigh[j];
 
@@ -480,7 +480,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
       delr2[2] = x(k,2) - ztmpj;
       const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-      if (rsq2 > d_params[jkparam].cutsq) continue;
+      if (rsq2 >= d_params[jkparam].cutsq) continue;
 
       if (vflag_atom)
         threebody(d_params[jiparam],d_params[jkparam],d_params[jikparam],

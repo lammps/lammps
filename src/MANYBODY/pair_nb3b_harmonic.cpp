@@ -79,9 +79,8 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
-  tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
-  double rsq,rsq1,rsq2;
+  double xtmp,ytmp,ztmp,evdwl;
+  double rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -91,7 +90,6 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  tagint *tag = atom->tag;
   int *type = atom->type;
 
   inum = list->inum;
@@ -103,44 +101,13 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itag = tag[i];
     itype = map[type[i]];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    // two-body interactions, skip half of them
-
     jlist = firstneigh[i];
     jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtag = tag[j];
-
-      if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
-      } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
-      } else {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
-      }
-
-      jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
-
-    }
-
     jnumm1 = jnum - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {

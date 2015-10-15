@@ -153,8 +153,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix gcmc molecule must have coordinates");
     if (onemols[imol]->typeflag == 0)
       error->all(FLERR,"Fix gcmc molecule must have atom types");
-    if (ngcmc_type+onemols[imol]->ntypes <= 0 || ngcmc_type+onemols[imol]->ntypes > atom->ntypes)
-      error->all(FLERR,"Invalid atom type in fix gcmc mol command");
+    if (ngcmc_type != 0)
+      error->all(FLERR,"Atom type must be zero in fix gcmc mol command");
     if (onemols[imol]->qflag == 1 && atom->q == NULL)
       error->all(FLERR,"Fix gcmc molecule has charges, but atom style does not");
 
@@ -526,11 +526,6 @@ void FixGCMC::init()
   // otherwise just get the gas mass
   
   if (mode == MOLECULE) {
-
-    // apply gcmc offset to types in molecule template
-
-    for (int i = 0; i < onemols[imol]->natoms; i++)
-      onemols[imol]->type[i] += ngcmc_type;
 
     onemols[imol]->compute_mass();
     onemols[imol]->compute_com();

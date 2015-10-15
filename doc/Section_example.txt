@@ -80,6 +80,7 @@ snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 tri:      triangular particles in rigid bodies :tb(s=:)
+vashishta: models using the Vashishta potential
 
 Here is how you might run and visualize one of the sample problems:
 

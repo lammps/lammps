@@ -558,7 +558,7 @@ void PairLJCutCoulLongCS::compute_outer(int eflag, int vflag)
           } else if (rsq <= cut_in_on_sq) {
             r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-          } else forcelj = 0.0;
+          }
 
           fpair = (forcecoul + factor_lj*forcelj) * r2inv;
         }

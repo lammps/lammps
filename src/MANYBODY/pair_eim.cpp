@@ -45,6 +45,7 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   rho = NULL;
   fp = NULL;
+  map = NULL;
 
   nelements = 0;
   elements = NULL;

@@ -44,6 +44,7 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   fp = NULL;
   mu = NULL;
   lambda = NULL;
+  map = NULL;
 
   setfl = NULL;
 

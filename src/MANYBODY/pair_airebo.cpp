@@ -59,6 +59,7 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   pgsize = oneatom = 0;
 
   nC = nH = NULL;
+  map = NULL;
   manybody_flag = 1;
 }
 

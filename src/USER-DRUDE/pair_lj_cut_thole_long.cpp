@@ -637,7 +637,7 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
     if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
       di_closest = domain->closest_image(i, di);
-      if (di_closest != dj){
+      if (j != di_closest){
         if (drudetype[i] == CORE_TYPE) dqi = -atom->q[di];
         else if (drudetype[i] == DRUDE_TYPE) dqi = atom->q[i];
         if (drudetype[j] == CORE_TYPE) {
@@ -672,7 +672,7 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
     }
     if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
     if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE &&
-        di_closest != dj)
+        di_closest != j)
       phicoul += factor_e * dcoul;
     eng += phicoul;
   }

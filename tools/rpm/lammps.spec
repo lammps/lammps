@@ -1,19 +1,17 @@
-# verified on Fedora 17     / x86_64 / 2015-03-18
-# verified on Fedora 17     / i386   / 2015-03-18
-# verified on Fedora 18     / x86_64 / 2015-03-18
-# verified on Fedora 18     / i386   / 2015-03-18
-# verified on Fedora 19     / x86_64 / 2015-03-18
-# verified on Fedora 19     / i386   / 2015-03-18
-# verified on Fedora 20     / x86_64 / 2015-03-18
-# verified on Fedora 20     / i386   / 2015-03-18
-# verified on Fedora 21     / x86_64 / 2015-03-18
-# verified on CentOS 6.6    / x86_64 / 2015-03-18
-# verified on CentOS 6.6    / i386   / 2015-03-18
-# verified on CentOS 7.0    / x86_64 / 2015-03-18
-# verified on OpenSuSE 12.3 / x86_64 / 2015-03-18
-# verified on OpenSuSE 12.3 / i586   / 2015-03-18
-# verified on OpenSuSE 13.1 / x86_64 / 2015-03-18
-# verified on OpenSuSE 13.1 / i586   / 2015-03-18
+# verified on Fedora 19     / x86_64 / 2015-10-16
+# verified on Fedora 19     / i386   / 2015-10-16
+# verified on Fedora 20     / x86_64 / 2015-10-16
+# verified on Fedora 20     / i386   / 2015-10-16
+# verified on Fedora 21     / x86_64 / 2015-10-16
+# verified on Fedora 22     / x86_64 / 2015-10-16
+# verified on Fedora 23     / x86_64 / 2015-10-16
+# verified on CentOS 6.6    / x86_64 / 2015-10-16
+# verified on CentOS 6.6    / i386   / 2015-10-16
+# verified on CentOS 7.0    / x86_64 / 2015-10-16
+# verified on OpenSuSE 12.3 / x86_64 / 2015-10-16
+# verified on OpenSuSE 12.3 / i586   / 2015-10-16
+# verified on OpenSuSE 13.1 / x86_64 / 2015-10-16
+# verified on OpenSuSE 13.1 / i586   / 2015-10-16
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -45,7 +43,7 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20150406
+Version:        20151016
 Release:        12%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
@@ -404,8 +402,8 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Mon Apr 06 2015 Axel Kohlmeyer <akohlmey@gmail.com> - 20140123-12
-- add support for including the KOKKOS package in OpenMP mode
+* Fri Oct 16 2015 Axel Kohlmeyer <akohlmey@gmail.com> - 20151016-12
+- Update for removal of Fedora 17/18 and addition of Fedora 23
 
 * Thu Jan 23 2014 Axel Kohlmeyer <akohlmey@gmail.com> - 20140123-7
 - Handle dependencies on MPI-IO for USER-LB and MPIIO. 

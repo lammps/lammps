@@ -17,7 +17,7 @@ gcmc = style name of this fix command :l
 N = invoke this fix every N steps :l
 X = average number of GCMC exchanges to attempt every N steps :l
 M = average number of MC moves to attempt every N steps :l
-type = atom type to assign to inserted atoms (offset for molecule insertion) :l
+type = atom type for inserted atoms (must be 0 if mol keyword used) :l
 seed = random # seed (positive integer) :l
 T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
@@ -85,12 +85,10 @@ All inserted particles are always assigned to two groups: the default group
 be "all"). In addition, particles are also added to any groups specified
 by the {group} and {grouptype} keywords.
 If inserted particles are individual atoms, they are
-assigned the specified atom type.  If they are molecules, the type of
-each atom in the inserted molecule is specified in the file read by
-the "molecule"_molecule.html command, and those values are added to
-the specified atom type.  E.g. if {type} = 2, and the file specifies
-atom types 1,2,3, then the inserted molecule will have atom types
-3,4,5.
+assigned the atom type given by the type argument.  If they are molecules, 
+the type argument has no effect and must be set to zero. Instead, 
+the type of each atom in the inserted molecule is specified 
+in the file read by the "molecule"_molecule.html command.
 
 This fix cannot be used to perform MC insertions of gas atoms or
 molecules other than the exchanged type, but MC deletions,
@@ -231,7 +229,7 @@ Inserted atoms and molecules are assigned random velocities based on the
 specified temperature T. Because the relative velocity of
 all atoms in the molecule is zero, this may result in inserted molecules
 that are systematically too cold. In addition, the intramolecular potential
-energy of the inserted molecule may casue the kinetic energy
+energy of the inserted molecule may cause the kinetic energy
 of the molecule to quickly increase or decrease after insertion. 
 The {tfac_insert} keyword allows the user to counteract these effects
 by changing the temperature used to assign velocities to 

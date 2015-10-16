@@ -1,0 +1,41 @@
+# DATE: 2015-10-14 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: P. Vashishta, R. K. Kalia, A. Nakano, and J. P. Rino. J. Appl. Phys. 101, 103515 (2007).
+#
+# Vashishta potential file for SiC, P. Vashishta, R. K. Kalia, A. Nakano, 
+# and J. P. Rino. J. Appl. Phys. 101, 103515 (2007).
+#
+# These entries are in LAMMPS "metal" units:
+#   H = eV*Angstroms^eta; Zi, Zj = |e| (e = electronic charge); 
+#   lambda1, lambda4, rc, r0, gamma = Angstroms; 
+#   D = eV*Angstroms^4; W = eV*Angstroms^6; B = eV; 
+#   other quantities are unitless
+#
+#  Note: Value of D here equals D/2 in paper  
+#
+# element1  element2  element3
+#           H  eta  Zi  Zj  lambda1  D  lambda4
+#           W  rc  B  gamma  r0  C  cos(theta)
+
+C   C    C  471.74538  7  -1.201  -1.201  5.0  0.0  3.0
+            0.0  7.35  0.0  0.0  0.0  0.0  0.0
+
+Si  Si  Si  23.67291  7  1.201  1.201  5.0  15.575  3.0
+            0.0  7.35  0.0  0.0  0.0  0.0  0.0
+
+C   Si  Si  447.09026  9  -1.201  1.201  5.0  7.7874  3.0
+            61.4694  7.35  9.003  1.0  2.90  5.0  -0.333333333333
+
+Si  C   C   447.09026  9  1.201  -1.201  5.0  7.7874  3.0
+            61.4694  7.35  9.003  1.0  2.90  5.0  -0.333333333333
+
+C   C   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0            
+
+C   Si  C   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0            
+
+Si  C   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+Si  Si  C   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+

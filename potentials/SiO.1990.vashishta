@@ -1,0 +1,41 @@
+# DATE: 2015-10-14 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: P. Vashishta, R. K. Kalia, J. P. Rino, and I. Ebbsjo, Phys. Rev. B 41, 12197 (1990).
+#
+# Vashishta potential file for SiO2, P. Vashishta, R. K. Kalia, J. P. Rino, and I. Ebbsjo,
+# Phys. Rev. B 41, 12197 (1990).
+# 
+# These parameters, some inferred indirectly, give a good
+# match to the energy-volume curve for alpha-quartz in Fig. 2 of the paper.
+#
+# These entries are in LAMMPS "metal" units:
+#   H = eV*Angstroms^eta; Zi, Zj = |e| (e = electronic charge); 
+#   lambda1, lambda4, rc, r0, gamma = Angstroms; 
+#   D = eV*Angstroms^4; W = eV*Angstroms^6; B = eV; 
+#   other quantities are unitless
+#
+# element1  element2  element3
+#           H  eta  Zi  Zj  lambda1  D  lambda4
+#           W  rc  B  gamma  r0  C  cos(theta)
+
+Si  Si  Si  0.82023  11  1.6  1.6  999  0.0  4.43
+            0.0  10.0  0.0  0.0  0.0  0.0  0.0
+
+O   O   O   743.848  7  -0.8 -0.8 999  22.1179  4.43
+            0.0  10.0  0.0  0.0  0.0  0.0  0.0
+
+O   Si  Si  163.859  9  -0.8  1.6  999  44.2357  4.43
+            0.0  10.0  20.146  1.0  2.60  0.0  -0.77714596
+
+Si  O   O   163.859  9  1.6  -0.8  999  44.2357  4.43
+            0.0  10.0  5.0365  1.0  2.60  0.0  -0.333333333333
+
+Si  O   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+Si  Si  O   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0            
+
+O   Si  O   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+O   O   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0

@@ -1,0 +1,38 @@
+# DATE: 2015-10-14 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Nakano, Kalia, and Vashishta, J. Non-Crystal. Solids, v. 171, p. 157 (1994)
+#
+# Vashishta potential file for SiO2, Nakano, Kalia, and Vashishta, 
+# J. Non-Crystal. Solids, v. 171, p. 157 (1994)
+#
+# These entries are in LAMMPS "metal" units:
+#   H = eV*Angstroms^eta; Zi, Zj = |e| (e = electronic charge); 
+#   lambda1, lambda4, rc, r0, gamma = Angstroms; 
+#   D = eV*Angstroms^4; W = eV*Angstroms^6; B = eV; 
+#   other quantities are unitless
+#
+# element1  element2  element3
+#           H  eta  Zi  Zj  lambda1  D  lambda4
+#           W  rc  B  gamma  r0  C  cos(theta)
+
+Si  Si   Si 0.80603  11  1.76    1.76    4.43  0.0  2.5
+            0.0  5.5  0.0  0.0  0.0  0.0  0.0
+
+O   O   O   730.17  7  -0.88   -0.88   4.43  26.7447  2.5
+            0.0  5.5  0.0  0.0  0.0  0.0  0.0
+
+O   Si  Si  160.849  9  -0.88    1.76    4.43  53.4894  2.5
+            0.0  5.5  19.972  1.0  2.60  0.0  -0.77714596
+
+Si  O   O   160.849  9  1.76    -0.88    4.43  53.4894  2.5
+            0.0  5.5  4.993  1.0  2.60  0.0  -0.333333333333
+
+Si  O   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+Si  Si  O   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0            
+
+O   Si  O   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+O   O   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0

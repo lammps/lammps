@@ -174,7 +174,7 @@ E: Fix gcmc molecule must have atom types
 
 The defined molecule does not specify atom types.
 
-E: Invalid atom type in fix gcmc mol command
+E: Atom type must be zero in fix gcmc mol command
 
 Self-explanatory.
 

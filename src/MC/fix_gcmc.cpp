@@ -510,7 +510,7 @@ void FixGCMC::init()
     sprintf(group_arg[0],"FixGCMC:rotation_gas_atoms:%s",id);
     group_arg[1] = (char *) "molecule";
     char digits[12];
-    sprintf(digits,"%d",ngcmc_type);
+    sprintf(digits,"%d",-1);
     group_arg[2] = digits;
     group->assign(3,group_arg);
     molecule_group = group->find(group_arg[0]);

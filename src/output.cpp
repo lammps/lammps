@@ -457,7 +457,7 @@ void Output::reset_timestep(bigint ntimestep)
       if (next_dump[idump] < ntimestep) next_dump[idump] += every_dump[idump];
     } else {
       // ivar_dump may not be initialized.
-      if (var_dump[idump] < 0) {
+      if (ivar_dump[idump] < 0) {
         ivar_dump[idump] = input->variable->find(var_dump[idump]);
         if (ivar_dump[idump] < 0)
           error->all(FLERR,"Variable name for dump every does not exist");

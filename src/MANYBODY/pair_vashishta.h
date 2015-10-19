@@ -42,8 +42,7 @@ class PairVashishta : public Pair {
     double lam1inv,lam4inv,zizj,heta,big2b,big6w;
     double rcinv,rc2inv,rc4inv,rc6inv,rceta;
     double cutsq2,cutsq;
-    double lam1rc,lam4rc,vrcc2,vrcc3,vrc;
-    double dvrc1,dvrc2,dvrc3,dvrc4,dvrc,c5;
+    double lam1rc,lam4rc,vrcc2,vrcc3,vrc,dvrc,c0;
     int ielement,jelement,kelement;
   };
 

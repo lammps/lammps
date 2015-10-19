@@ -800,8 +800,8 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         strcmp(style_restart_global[i],fix[ifix]->style) == 0) {
       fix[ifix]->restart(state_restart_global[i]);
       if (comm->me == 0) {
-        char *str = (char *) ("Resetting global state of Fix %s Style %s "
-                              "from restart file info\n");
+        const char *str = (const char *) ("Resetting global state of Fix %s "
+                                          "Style %s from restart file info\n");
         if (screen) fprintf(screen,str,fix[ifix]->id,fix[ifix]->style);
         if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
       }

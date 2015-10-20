@@ -72,8 +72,7 @@ pair_coeff command to assign parameters for the different type pairs.
 
 IMPORTANT NOTE: An exception to this option to list an individual pair
 style multiple times are the pair styles implemented as Fortran
-libraries: "pair_style meam"_pair_meam.html and "pair_style
-reax"_pair_reax.html ("pair_style reax/c"_pair_reax_c.html is OK).
+libraries like "pair_style meam"_pair_meam.html 
 This is because unlike a C++ class, they can not be instantiated
 multiple times, due to the manner in which they were coded in Fortran.
 

@@ -235,7 +235,7 @@ in the fix section of "this page"_Section_commands.html#cmd_5.
 "qeq/point"_fix_qeq.html - charge equilibration via point method \
 "qeq/shielded"_fix_qeq.html - charge equilibration via shielded method \
 "qeq/slater"_fix_qeq.html - charge equilibration via Slater method \
-"reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
+"reax/c/bonds"_fix_reaxc_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
 "restrain"_fix_restrain.html - constrain a bond, angle, dihedral

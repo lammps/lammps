@@ -830,8 +830,8 @@ fail.
 As explained in the lib/package/README files, the settings in
 Makefile.lammps are used to specify additional system libraries and
 their locations so that LAMMPS can build with the auxiliary library.
-For example, if the MEAM or REAX packages are used, the auxiliary
-libraries consist of F90 code, built with a Fortran complier.  To link
+For example, if the MEAM package is used, the auxiliary libraries
+consist of F90 code, built with a Fortran complier.  To link
 that library with LAMMPS (a C++ code) via whatever C++ compiler LAMMPS
 is built with, typically requires additional Fortran-to-C libraries be
 included in the link.  Another example are the BLAS and LAPACK

@@ -187,7 +187,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style peri/pmb"_pair_peri.html - peridynamic PMB potential
 "pair_style peri/ves"_pair_peri.html - peridynamic VES potential
 "pair_style polymorphic"_pair_polymorphic.html - polymorphic 3-body potential
-"pair_style reax"_pair_reax.html - ReaxFF potential
+"pair_style reax/c"_pair_reax_c.html - ReaxFF potential
 "pair_style rebo"_pair_airebo.html - 2nd generation REBO potential of Brenner
 "pair_style resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential
 "pair_style snap"_pair_snap.html - SNAP quantum-accurate potential

@@ -20,7 +20,7 @@ abbrevs = "adhjmoprsv"
 switchclasses = ("actions","dir","help","jmake","makefile",
                  "output","packages","redo","settings","verbose")
 libclasses = ("atc","awpmd","colvars","cuda","gpu",
-              "meam","poems","qmmm","reax","voronoi")
+              "meam","poems","qmmm","voronoi")
 buildclasses = ("intel","kokkos")
 makeclasses = ("cc","mpi","fft","jpg","png")
 
@@ -583,7 +583,7 @@ Syntax: Make.py switch args ...
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:
     -atc, -awpmd, -colvars, -cuda
-    -gpu, -meam, -poems, -qmmm, -reax, -voronoi
+    -gpu, -meam, -poems, -qmmm, -voronoi
   switches for build and makefile options:
     -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
 """
@@ -1378,58 +1378,6 @@ class QMMM:
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/qmmm library")
     else: print "Created lib/qmmm library"
-
-# REAX lib
-
-class REAX:
-  def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
-    self.make = "gfortran"
-    self.lammpsflag = 0
-
-  def help(self):
-    return """
--reax make=suffix lammps=suffix2
-  all args are optional and can be in any order
-  make = use Makefile.suffix (def = gfortran)
-  lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
-"""
-
-  def check(self):
-    if self.inlist != None and len(self.inlist) == 0:
-      error("-reax args are invalid")
-    for one in self.inlist:
-      words = one.split('=')
-      if len(words) != 2: error("-reax args are invalid")
-      if words[0] == "make": self.make = words[1]
-      elif words[0] == "lammps": 
-        self.lammps = words[1]
-        self.lammpsflag = 1
-      else: error("-reax args are invalid")
-
-  def build(self):
-    libdir = dir.lib + "/reax"
-    make = MakeReader("%s/Makefile.%s" % (libdir,self.make))
-    if self.lammpsflag:
-      make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
-    make.write("%s/Makefile.auto" % libdir)
-
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    
-    # if verbose, print output as build proceeds, else only print if fails
-
-    if verbose: subprocess.call(str,shell=True)
-    else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
-
-    if not os.path.isfile("%s/libreax.a" % libdir) or \
-          not os.path.isfile("%s/Makefile.lammps" % libdir):
-      error("Unsuccessful build of lib/reax library")
-    else: print "Created lib/reax library"
 
 # VORONOI lib
 

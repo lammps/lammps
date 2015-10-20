@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Aidan Thompson (SNL), Dr. Xiong
+   Contributing author:  Yongnan Xiong (HNU), xyn@hnu.edu.cn
+                         Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -495,7 +496,7 @@ void PairVashishta::setup()
     params[m].lam1inv = 1.0/params[m].lambda1;
     params[m].lam4inv = 1.0/params[m].lambda4;
     params[m].zizj = params[m].zi*params[m].zj * force->qqr2e;
-    // Note that bigd does not have 1/2 factor 
+    // note that bigd does not have 1/2 factor 
     params[m].mbigd = params[m].bigd;
     params[m].heta = params[m].bigh*params[m].eta;
     params[m].big2b = 2.0*params[m].bigb;
@@ -516,16 +517,12 @@ void PairVashishta::setup()
       params[m].vrcc2 - params[m].vrcc3 - 
       params[m].bigw*params[m].rc6inv;
 
-    params[m].dvrc1 = params[m].heta*params[m].rceta*params[m].rcinv;
-    params[m].dvrc2 = params[m].vrcc2 * 
-      (params[m].rcinv+params[m].lam1inv);
-    params[m].dvrc3 = params[m].vrcc3 * 
-      (4.0*params[m].rcinv+params[m].lam4inv);
-    params[m].dvrc4 = params[m].big6w*params[m].rc6inv *
-      params[m].rcinv;
-    params[m].dvrc = params[m].dvrc3 + params[m].dvrc4 -
-      params[m].dvrc1 - params[m].dvrc2;
-    params[m].c5 = params[m].cut*params[m].dvrc - params[m].vrc;
+    params[m].dvrc = 
+      params[m].vrcc3 * (4.0*params[m].rcinv+params[m].lam4inv) 
+      + params[m].big6w * params[m].rc6inv * params[m].rcinv
+      - params[m].heta * params[m].rceta*params[m].rcinv 
+      - params[m].vrcc2 * (params[m].rcinv+params[m].lam1inv);
+    params[m].c0 = params[m].cut*params[m].dvrc - params[m].vrc;
   }
 
   // set cutmax to max of all params
@@ -542,8 +539,7 @@ void PairVashishta::setup()
 void PairVashishta::twobody(Param *param, double rsq, double &fforce,
                      int eflag, double &eng)
 {
-  double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r;
-  double vc2,vc3,vo2;
+  double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
 
   r = sqrt(rsq);
   rinvsq = 1.0/rsq;
@@ -552,13 +548,16 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
   reta = pow(r,-param->eta);
   lam1r = r*param->lam1inv;
   lam4r = r*param->lam4inv;
-  vc2 = param->zizj*exp(-lam1r)/r;
-  vc3 = param->mbigd*r4inv*exp(-lam4r);
-  vo2 = param->bigh*reta + vc2 - vc3 - param->bigw*r6inv;
+  vc2 = param->zizj * exp(-lam1r)/r;
+  vc3 = param->mbigd * r4inv*exp(-lam4r);
 
-  fforce = (param->dvrc*r - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv-
-    param->heta*reta - vc2-lam1r*vc2)) * rinvsq;
-  if (eflag) eng = vo2 - r*param->dvrc + param->c5;
+  fforce = (param->dvrc*r 
+	    - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv
+	       - param->heta*reta - vc2 - lam1r*vc2)
+	    ) * rinvsq;
+  if (eflag) eng = param->bigh*reta 
+	       + vc2 - vc3 - param->bigw*r6inv
+	       - r*param->dvrc + param->c0;
 }
 
 /* ---------------------------------------------------------------------- */

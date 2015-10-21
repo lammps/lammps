@@ -705,7 +705,7 @@ void FixBondCreate::update_topology()
    affects 1-3 and 1-4 neighs due to other atom's augmented 1-2 neighs
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::rebuild_special(int m)
+void FixBondCreate::rebuild_special_one(int m)
 {
   int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;

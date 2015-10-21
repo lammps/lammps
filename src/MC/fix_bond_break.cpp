@@ -106,7 +106,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
 
   // copy = special list for one atom
   // size = ms^2 + ms is sufficient
-  // b/c in rebuild_special() neighs of all 1-2s are added,
+  // b/c in rebuild_special_one() neighs of all 1-2s are added,
   //   then a dedup(), then neighs of all 1-3s are added, then final dedup()
   // this means intermediate size cannot exceed ms^2 + ms
 
@@ -463,7 +463,7 @@ void FixBondBreak::update_topology()
       if (improperflag) break_impropers(i,id1,id2);
     }
 
-    if (influenced) rebuild_special(i);
+    if (influenced) rebuild_special_one(i);
   }
   
   int newton_bond = force->newton_bond;
@@ -492,7 +492,7 @@ void FixBondBreak::update_topology()
    affects 1-3 and 1-4 neighs due to other atom's augmented 1-2 neighs
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::rebuild_special(int m)
+void FixBondBreak::rebuild_special_one(int m)
 {
   int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;

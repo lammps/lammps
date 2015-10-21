@@ -78,7 +78,7 @@ class FixBondCreate : public Fix {
 
   void check_ghosts();
   void update_topology();
-  void rebuild_special(int);
+  void rebuild_special_one(int);
   void create_angles(int);
   void create_dihedrals(int);
   void create_impropers(int);

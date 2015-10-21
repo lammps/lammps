@@ -69,7 +69,7 @@ class FixBondBreak : public Fix {
   void break_angles(int, tagint, tagint);
   void break_dihedrals(int, tagint, tagint);
   void break_impropers(int, tagint, tagint);
-  void rebuild_special(int);
+  void rebuild_special_one(int);
   int dedup(int, int, tagint *);
   
   // DEBUG

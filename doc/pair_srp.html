@@ -128,10 +128,10 @@
 <span id="index-0"></span><h1>pair_style srp command<a class="headerlink" href="#pair-style-srp-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<p>pair_style srp cutoff bond_type dist keyword value ...</p>
+<p>pair_style srp cutoff btype dist keyword value ...</p>
 <ul class="simple">
 <li>cutoff = global cutoff for SRP interactions (distance units)</li>
-<li>bond_type = bond type to apply SRP interactions</li>
+<li>btype = bond type to apply SRP interactions to (can be wildcard, see below)</li>
 <li>distance = <em>min</em> or <em>mid</em></li>
 <li>zero or more keyword/value pairs may be appended</li>
 <li>keyword = <em>exclude</em></li>
@@ -169,17 +169,17 @@ bonds from passing through one another when a soft non-bonded
 potential acts between beads in, for example, DPD polymer chains.  An
 example input script that uses this command is provided in
 examples/USER/srp.</p>
-<p>Bonds of type <em>btype</em> interact with one another through a
+<p>Bonds of specified type <em>btype</em> interact with one another through a
 bond-pairwise potential, such that the force on bond <em>i</em> due to bond
 <em>j</em> is as follows</p>
 <img alt="_images/pair_srp1.jpg" class="align-center" src="_images/pair_srp1.jpg" />
 <p>where <em>r</em> and <em>rij</em> are the distance and unit vector between the two
-bonds. The bondtype can also be specified as an asterisk (*) and then
-this interaction applied to all bonds.
-The <em>mid</em> option computes <em>r</em> and <em>rij</em> from the midpoint
-distance between bonds. The <em>min</em> option computes <em>r</em> and <em>rij</em> from
-the minimum distance between bonds. The force acting on a bond is
-mapped onto the two bond atoms according to the lever rule,</p>
+bonds.  Note that <em>btype</em> can be specified as an asterisk &#8220;*&#8221;, which
+case the interaction is applied to all bond types.  The <em>mid</em> option
+computes <em>r</em> and <em>rij</em> from the midpoint distance between bonds. The
+<em>min</em> option computes <em>r</em> and <em>rij</em> from the minimum distance between
+bonds. The force acting on a bond is mapped onto the two bond atoms
+according to the lever rule,</p>
 <img alt="_images/pair_srp2.jpg" class="align-center" src="_images/pair_srp2.jpg" />
 <p>where <em>L</em> is the normalized distance from the atom to the point of
 closest approach of bond <em>i</em> and <em>j</em>. The <em>mid</em> option takes <em>L</em> as
@@ -196,25 +196,27 @@ or <a class="reference internal" href="read_restart.html"><em>read_restart</em><
 is used.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Pair style srp considers each bond of type <em>btype</em> as
-a fictitious particle of type <em>bptype</em>, where <em>bptype</em> is the largest
-atom type in the system.  These &#8220;bond particles&#8221; are inserted at the
-beginning of the run, and serve as placeholders that define the
-position of the bonds.  This allows neighbor lists to be constructed
-and pairwise interactions to be computed in almost the same way as is
-done for point particles.  Because bonds interact only with other
-bonds, <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> should be used to turn off
-interactions between atom type <em>bptype</em> and all other types of atoms.
-An error will be flagged if <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> is
-not used.  Further, only bond particles should be given an atom type
-of <em>bptype</em>; a check is done at the beginning of the run to ensure
-there are no regular atoms of <em>bptype</em>.</p>
+<p class="last">Pair style srp considers each bond of type <em>btype</em> to
+be a fictitious &#8220;particle&#8221; of type <em>bptype</em>, where <em>bptype</em> is the
+largest atom type in the system.  There cannot be any actual particles
+assigned to this atom type.  This means you must specify the number of
+types in your system to be one larger would normally be the case,
+e.g. via the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.  These ficitious &#8220;bond particles&#8221;
+are inserted at the beginning of the run, and serve as placeholders
+that define the position of the bonds.  This allows neighbor lists to
+be constructed and pairwise interactions to be computed in almost the
+same way as is done for actual particles.  Because bonds interact only
+with other bonds, <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> should be used
+to turn off interactions between atom type <em>bptype</em> and all other
+types of atoms.  An error will be flagged if <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> is not used.</p>
 </div>
 <p>The optional <em>exclude</em> keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
-<em>no</em>, first neighbor forces are computed; for <em>yes</em> they are not computed. A setting of <em>no</em>
-cannot be used with the <em>min</em> option for distance calculation because the the minimum distance between
-directly connected bonds is zero.</p>
+<em>no</em>, first neighbor forces are computed; for <em>yes</em> they are not
+computed. A setting of <em>no</em> cannot be used with the <em>min</em> option for
+distance calculation because the the minimum distance between directly
+connected bonds is zero.</p>
 <p>Pair style <em>srp</em> turns off normalization of thermodynamic properties
 by particle number, as if the command <a class="reference internal" href="thermo_modify.html"><em>thermo_modify norm no</em></a> had been issued.</p>
 <p>The pairwise energy associated with style <em>srp</em> is shifted to be zero

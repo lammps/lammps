@@ -165,7 +165,9 @@ coprocessors.
 </P>
 <P>All of these commands are in packages provided with LAMMPS.  An
 overview of packages is give in <A HREF = "Section_packages.html">Section
-packages</A>.  These are the accelerator packages
+packages</A>.
+</P>
+<P>These are the accelerator packages
 currently in LAMMPS, either as standard or user packages:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
@@ -177,6 +179,21 @@ currently in LAMMPS, either as standard or user packages:
 <TR><TD ><A HREF = "accelerate_opt.html">OPT</A> </TD><TD > generic CPU optimizations 
 </TD></TR></TABLE></DIV>
 
+<P>Inverting this list, LAMMPS currently has acceleration support for
+three kinds of hardware, via the listed packages:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >Many-core CPUs </TD><TD > <A HREF = "accelerate_intel.html">USER-INTEL</A>, <A HREF = "accelerate_kokkos.html">KOKKOS</A>, <A HREF = "accelerate_omp.html">USER-OMP</A>, <A HREF = "accelerate_opt.html">OPT</A> packages</TD></TR>
+<TR><TD >NVIDIA GPUs </TD><TD > <A HREF = "accelerate_cuda.html">USER-CUDA</A>, <A HREF = "accelerate_gpu.html">GPU</A>, <A HREF = "accelerate_kokkos.html">KOKKOS</A> packages</TD></TR>
+<TR><TD >Intel Phi </TD><TD > <A HREF = "accelerate_intel.html">USER-INTEL</A>, <A HREF = "accelerate_kokkos.html">KOKKOS</A> packages 
+</TD></TR></TABLE></DIV>
+
+<P>Which package is fastest for your hardware may depend on the size
+problem you are running and what commands (accelerated and
+non-accelerated) are invoked by your input script.  While these doc
+pages include performance guidelines, there is no substitute for
+trying out the different packages appropriate to your hardware.
+</P>
 <P>Any accelerated style has the same name as the corresponding standard
 style, except that a suffix is appended.  Otherwise, the syntax for
 the command that uses the style is identical, their functionality is
@@ -207,16 +224,16 @@ listed above:
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >build the accelerator library </TD><TD >  only for USER-CUDA and GPU packages </TD></TR>
 <TR><TD >install the accelerator package </TD><TD >  make yes-opt, make yes-user-intel, etc </TD></TR>
-<TR><TD >add compile/link flags to Makefile.machine </TD><TD >  in src/MAKE, <br>  only for USER-INTEL, KOKKOS, USER-OMP packages </TD></TR>
+<TR><TD >add compile/link flags to Makefile.machine </TD><TD >  in src/MAKE, <br>  only for USER-INTEL, KOKKOS, USER-OMP, OPT packages </TD></TR>
 <TR><TD >re-build LAMMPS </TD><TD >  make machine </TD></TR>
-<TR><TD >run a LAMMPS simulation </TD><TD >  lmp_machine < in.script </TD></TR>
+<TR><TD >run a LAMMPS simulation </TD><TD >  lmp_machine < in.script <br>   mpirun -np 32 lmp_machine -in in.script </TD></TR>
 <TR><TD >enable the accelerator package </TD><TD >  via "-c on" and "-k on" <A HREF = "Section_start.html#start_7">command-line switches</A>, <br>  only for USER-CUDA and KOKKOS packages </TD></TR>
 <TR><TD >set any needed options for the package </TD><TD >  via "-pk" <A HREF = "Section_start.html#start_7">command-line switch</A> or  <A HREF = "package.html">package</A> command, <br>  only if defaults need to be changed </TD></TR>
 <TR><TD >use accelerated styles in your input script </TD><TD >  via "-sf" <A HREF = "Section_start.html#start_7">command-line switch</A> or  <A HREF = "suffix.html">suffix</A> command 
 </TD></TR></TABLE></DIV>
 
-<P>The first 4 steps can be done as a single command, using the
-src/Make.py tool.  The Make.py tool is discussed in <A HREF = "Section_start.html#start_4">Section
+<P>Note that the first 4 steps can be done as a single command, using the
+src/Make.py tool.  This tool is discussed in <A HREF = "Section_start.html#start_4">Section
 2.4</A> of the manual, and its use is
 illustrated in the individual accelerator sections.  Typically these
 steps only need to be done once, to create an executable that uses one
@@ -229,11 +246,13 @@ individual accelerator sections.  Or you can add
 script.
 </P>
 <P>IMPORTANT NOTE: With a few exceptions, you can build a single LAMMPS
-executable with all its accelerator packages installed.  Note that the
-USER-INTEL and KOKKOS packages require you to choose one of their
-options when building.  I.e. CPU or Phi for USER-INTEL.  OpenMP, Cuda,
-or Phi for KOKKOS.  Here are the exceptions; you cannot build a single
-executable with:
+executable with all its accelerator packages installed.  Note however
+that the USER-INTEL and KOKKOS packages require you to choose one of
+their hardware options when building for a specific platform.
+I.e. CPU or Phi option for the USER-INTEL package.  Or the OpenMP,
+Cuda, or Phi option for the KOKKOS package.
+</P>
+<P>These are the exceptions.  You cannot build a single executable with:
 </P>
 <UL><LI>both the USER-INTEL Phi and KOKKOS Phi options
 <LI>the USER-INTEL Phi or Kokkos Phi option, and either the USER-CUDA or GPU packages 
@@ -341,7 +360,7 @@ USER-CUDA package can be very low, causing it to run faster than the
 GPU package. 
 
 <LI>The GPU package is often faster than the USER-CUDA package, if the
-number of atoms per GPU is "small".  The crossover point, in terms of
+number of atoms per GPU is smaller.  The crossover point, in terms of
 atoms/GPU at which the USER-CUDA package becomes faster depends
 strongly on the pair style.  For example, for a simple Lennard Jones
 system the crossover (in single precision) is often about 50K-100K

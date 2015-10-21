@@ -134,12 +134,12 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       numcorrelators = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"p") == 0) {
+    } else if (strcmp(arg[iarg],"nlen") == 0) {
       if (iarg+2 > narg) 
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       p = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"m") == 0) {
+    } else if (strcmp(arg[iarg],"ncount") == 0) {
       if (iarg+2 > narg) 
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       m = force->inumeric(FLERR,arg[iarg+1]);

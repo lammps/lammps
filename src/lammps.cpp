@@ -89,6 +89,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   suffix = suffix2 = NULL;
   suffix_enable = 0;
+  packargs = NULL;
+  num_package = 0;
   char *rfile = NULL;
   char *dfile = NULL;
   int wdfirst,wdlast;
@@ -509,12 +511,25 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   input = new Input(this,narg,arg);
 
+  // copy package cmdline arguments
+  if (npack > 0) {
+    num_package = npack;
+    packargs = new char**[npack];
+    for (int i=0; i < npack; ++i) {
+      int n = plast[i] - pfirst[i];
+      packargs[i] = new char*[n+1];
+      for (int j=0; j < n; ++j)
+        packargs[i][j] = strdup(arg[pfirst[i]+j]);
+      packargs[i][n] = NULL;
+    }
+    memory->destroy(pfirst);
+    memory->destroy(plast);
+  }
+
   // allocate top-level classes
 
   create();
-  post_create(npack,pfirst,plast,arg);
-  memory->destroy(pfirst);
-  memory->destroy(plast);
+  post_create();
 
   // if helpflag set, print help and quit with "success" status
 
@@ -555,6 +570,17 @@ LAMMPS::~LAMMPS()
 
   destroy();
   delete citeme;
+
+  if (num_package) {
+    for (int i = 0; i < num_package; i++) {
+      for (char **ptr = packargs[i]; *ptr != NULL; ++ptr)
+        free(*ptr);
+      delete[] packargs[i];
+    }
+    delete[] packargs;
+  }
+  num_package = 0;
+  packargs = NULL;
 
   double totalclock = MPI_Wtime() - initclock;
   if ((me == 0) && (screen || logfile)) {
@@ -650,7 +676,7 @@ void LAMMPS::create()
      so that package-specific core classes have been instantiated
 ------------------------------------------------------------------------- */
 
-void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
+void LAMMPS::post_create()
 {
   // default package commands triggered by "-c on" and "-k on"
 
@@ -687,15 +713,15 @@ void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
 
   // invoke any command-line package commands
 
-  if (npack) {
-    char str[128];
-    for (int i = 0; i < npack; i++) {
+  if (num_package) {
+    char str[256];
+    for (int i = 0; i < num_package; i++) {
       strcpy(str,"package");
-      for (int j = pfirst[i]; j < plast[i]; j++) {
-        if (strlen(str) + strlen(arg[j]) + 2 > 128)
+      for (char **ptr = packargs[i]; *ptr != NULL; ++ptr) {
+        if (strlen(str) + strlen(*ptr) + 2 > 256)
           error->all(FLERR,"Too many -pk arguments in command line");
         strcat(str," ");
-        strcat(str,arg[j]);
+        strcat(str,*ptr);
       }
       input->one(str);
     }

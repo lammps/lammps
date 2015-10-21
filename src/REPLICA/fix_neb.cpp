@@ -138,7 +138,7 @@ void FixNEB::min_post_force(int vflag)
   // veng = PE of this replica
   // vprev,vnext = PEs of adjacent replicas
 
-  veng = pe->compute_scalar();
+  vprev = vnext = veng = pe->compute_scalar();
 
   if (ireplica < nreplica-1) MPI_Send(&veng,1,MPI_DOUBLE,procnext,0,uworld);
   if (ireplica > 0) MPI_Recv(&vprev,1,MPI_DOUBLE,procprev,0,uworld,MPI_STATUS_IGNORE);

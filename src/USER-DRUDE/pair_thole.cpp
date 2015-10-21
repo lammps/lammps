@@ -392,21 +392,18 @@ double PairThole::single(int i, int j, int itype, int jtype,
   }
 
   r2inv = 1.0/rsq;
+  fforce = phicoul = 0.0;
   if (rsq < cutsq[itype][jtype]) {
     rinv = sqrt(r2inv);
     r = sqrt(rsq);
     asr = ascreen[itype][jtype] * r;
     exp_asr = exp(-asr);
-    dcoul = force->qqrd2e * qi * qj * rinv;
+    dcoul = force->qqrd2e * qi * qj * scale[itype][jtype] * rinv;
     factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
-    forcecoul += factor_f * dcoul;
+    fforce = factor_f * dcoul * r2inv;
     factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul; 
-  } else forcecoul= 0.0;
-  fforce = factor_f*forcecoul * r2inv;
-
-  if (rsq < cutsq[itype][jtype]) {
     phicoul = factor_e * dcoul;
-  } else phicoul = 0.0;
+  }
 
   return phicoul;
 }

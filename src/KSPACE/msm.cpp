@@ -1712,7 +1712,7 @@ void MSM::direct(int n)
 
         egridn[icz][icy][icx] += esum;
 
-        if (vflag_atom) {
+        if (vflag_atom && !scalar_pressure_flag) {
           v0gridn[icz][icy][icx] += v0sum;
           v1gridn[icz][icy][icx] += v1sum;
           v2gridn[icz][icy][icx] += v2sum;
@@ -2075,7 +2075,7 @@ void MSM::direct_top(int n)
 
         egridn[icz][icy][icx] += esum;
 
-        if (vflag_atom) {
+        if (vflag_atom && !scalar_pressure_flag) {
           v0gridn[icz][icy][icx] += v0sum;
           v1gridn[icz][icy][icx] += v1sum;
           v2gridn[icz][icy][icx] += v2sum;
@@ -2912,7 +2912,7 @@ void MSM::compute_phis_and_dphis(const double &dx, const double &dy,
 
 inline double MSM::compute_phi(const double &xi)
 {
-  double phi;
+  double phi = 0.0;
   double abs_xi = fabs(xi);
   double xi2 = xi*xi;
 
@@ -2991,7 +2991,7 @@ inline double MSM::compute_phi(const double &xi)
 
 inline double MSM::compute_dphi(const double &xi)
 {
-  double dphi;
+  double dphi = 0.0;
   double abs_xi = fabs(xi);
 
   if (order == 4) {

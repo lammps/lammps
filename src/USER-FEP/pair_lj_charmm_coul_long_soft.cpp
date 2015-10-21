@@ -565,6 +565,8 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
               forcelj = forcelj*switch1 + philj*switch2;
             }
           } else if (rsq <= cut_in_on_sq) {
+            r4sig6 = rsq*rsq / lj2[itype][jtype];
+            denlj = lj3[itype][jtype] + rsq*r4sig6;
             forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
               (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
             if (rsq > cut_lj_innersq) {

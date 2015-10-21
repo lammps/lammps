@@ -5108,11 +5108,7 @@ void PairBOP::read_table(char *filename)
       fgets(s,MAXLINE,fp);
       sscanf(s,"%lf%lf",&sigma_delta[i],&pi_delta[i]);
       fgets(s,MAXLINE,fp);
-      if(nws==3) {
-        sscanf(s,"%lf%lf%lf",&sigma_f[i],&sigma_k[i],&small3[i]);
-      } else {
-        sscanf(s,"%lf%lf%lf",&sigma_f[i],&sigma_k[i],&small3[i]);
-      }
+      sscanf(s,"%lf%lf%lf",&sigma_f[i],&sigma_k[i],&small3[i]);
     }
     if(nws==3) {
       for(i=0;i<bop_types;i++)

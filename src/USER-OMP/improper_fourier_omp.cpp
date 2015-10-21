@@ -206,8 +206,8 @@ void ImproperFourierOMP::add1_thr(const int i1,const int i2,
     }
   }
 
-  if (c > 1.0) s = 1.0;
-  if (c < -1.0) s = -1.0;
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
 
   s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;

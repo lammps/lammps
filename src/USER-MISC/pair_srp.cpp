@@ -59,6 +59,8 @@ static const char cite_srp[] =
   " pages =   {134903}\n"
   "}\n\n";
 
+static int srp_instance = 0;
+
 /* ----------------------------------------------------------------------
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
@@ -71,6 +73,10 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
 
   nextra = 1;
   segment = NULL;
+  fix_id = strdup("XX_FIX_SRP");
+  fix_id[0] = '0' + srp_instance / 10;
+  fix_id[1] = '0' + srp_instance % 10;
+  ++srp_instance;
 } 
  
 /* ----------------------------------------------------------------------
@@ -112,9 +118,10 @@ PairSRP::~PairSRP()
     }
 
   // check nfix in case all fixes have already been deleted
-  if (modify->nfix) modify->delete_fix("mysrp");
-} 
- 
+  if (modify->nfix) modify->delete_fix(fix_id);
+  free(fix_id);
+}
+
 /* ---------------------------------------------------------------------- 
  compute bond-bond repulsions 
  ------------------------------------------------------------------------- */ 
@@ -336,8 +343,14 @@ void PairSRP::settings(int narg, char **arg)
         error->all(FLERR,"Illegal pair_style command");
 
     cut_global = force->numeric(FLERR,arg[0]);
-    btype = force->inumeric(FLERR,arg[1]);
-    if (btype > atom->nbondtypes) error->all(FLERR,"Illegal pair_style command");
+    // wildcard
+    if (strcmp(arg[1],"*") == 0)
+      btype = 0;
+    else {
+      btype = force->inumeric(FLERR,arg[1]);
+      if ((btype > atom->nbondtypes) || (btype <= 0))
+        error->all(FLERR,"Illegal pair_style command");
+    }
 
     // settings
     midpoint = 0;
@@ -426,7 +439,7 @@ void PairSRP::init_style()
   // invoke here instead of constructor
   // to make restart possible
   char **fixarg = new char*[3];
-  fixarg[0] = (char *) "mysrp";
+  fixarg[0] = fix_id;
   fixarg[1] = (char *) "all";
   fixarg[2] = (char *) "SRP";
   modify->add_fix(3,fixarg);

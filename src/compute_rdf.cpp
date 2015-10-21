@@ -95,6 +95,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   typecount = new int[ntypes+1];
   icount = new int[npairs];
   jcount = new int[npairs];
+  duplicates = new int[npairs];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -113,13 +114,14 @@ ComputeRDF::~ComputeRDF()
   delete [] typecount;
   delete [] icount;
   delete [] jcount;
+  delete [] duplicates;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeRDF::init()
 {
-  int i,m;
+  int i,j,m;
 
   if (force->pair) delr = force->pair->cutforce / nbin;
   else error->all(FLERR,"Compute rdf requires a pair style be defined");
@@ -143,12 +145,17 @@ void ComputeRDF::init()
 
   // icount = # of I atoms participating in I,J pairs for each histogram
   // jcount = # of J atoms participating in I,J pairs for each histogram
+  // duplicates = # of atoms in both groups I and J for each histogram
 
   for (m = 0; m < npairs; m++) {
     icount[m] = 0;
     for (i = ilo[m]; i <= ihi[m]; i++) icount[m] += typecount[i];
     jcount[m] = 0;
     for (i = jlo[m]; i <= jhi[m]; i++) jcount[m] += typecount[i];
+    duplicates[m] = 0;
+    for (i = ilo[m]; i <= ihi[m]; i++)
+      for (j = jlo[m]; j <= jhi[m]; j++)
+        if (i == j) duplicates[m] += typecount[i];
   }
 
   int *scratch = new int[npairs];
@@ -156,6 +163,8 @@ void ComputeRDF::init()
   for (i = 0; i < npairs; i++) icount[i] = scratch[i];
   MPI_Allreduce(jcount,scratch,npairs,MPI_INT,MPI_SUM,world);
   for (i = 0; i < npairs; i++) jcount[i] = scratch[i];
+  MPI_Allreduce(duplicates,scratch,npairs,MPI_INT,MPI_SUM,world);
+  for (i = 0; i < npairs; i++) duplicates[i] = scratch[i];
   delete [] scratch;
 
   // need an occasional half neighbor list
@@ -265,25 +274,28 @@ void ComputeRDF::compute_array()
   MPI_Allreduce(hist[0],histall[0],npairs*nbin,MPI_DOUBLE,MPI_SUM,world);
 
   // convert counts to g(r) and coord(r) and copy into output array
-  // nideal = # of J atoms surrounding single I atom in a single bin
-  //   assuming J atoms are at uniform density
+  // vfrac = fraction of volume in shell m
+  // npairs = number of pairs, corrected for duplicates
+  // duplicates = pairs in which both atoms are the same
 
-  double constant,nideal,gr,ncoord,rlower,rupper;
+  double constant,vfrac,gr,ncoord,rlower,rupper,normfac;
 
   if (domain->dimension == 3) {
     constant = 4.0*MY_PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
 
     for (m = 0; m < npairs; m++) {
+      normfac = (icount[m] > 0) ? static_cast<double>(jcount[m])
+                - static_cast<double>(duplicates[m])/icount[m] : 0.0;
       ncoord = 0.0;
       for (ibin = 0; ibin < nbin; ibin++) {
         rlower = ibin*delr;
         rupper = (ibin+1)*delr;
-        nideal = constant *
-          (rupper*rupper*rupper - rlower*rlower*rlower) * jcount[m];
-        if (icount[m]*nideal != 0.0)
-          gr = histall[m][ibin] / (icount[m]*nideal);
+        vfrac = constant * (rupper*rupper*rupper - rlower*rlower*rlower);
+        if (vfrac * normfac != 0.0)
+          gr = histall[m][ibin] / (vfrac * normfac * icount[m]);
         else gr = 0.0;
-        ncoord += gr*nideal;
+        if (icount[m] != 0)
+          ncoord += gr * vfrac * normfac;
         array[ibin][1+2*m] = gr;
         array[ibin][2+2*m] = ncoord;
       }
@@ -294,14 +306,17 @@ void ComputeRDF::compute_array()
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;
+      normfac = (icount[m] > 0) ? static_cast<double>(jcount[m])
+                - static_cast<double>(duplicates[m])/icount[m] : 0.0;
       for (ibin = 0; ibin < nbin; ibin++) {
         rlower = ibin*delr;
         rupper = (ibin+1)*delr;
-        nideal = constant * (rupper*rupper - rlower*rlower) * jcount[m];
-        if (icount[m]*nideal != 0.0)
-          gr = histall[m][ibin] / (icount[m]*nideal);
+        vfrac = constant * (rupper*rupper - rlower*rlower);
+        if (vfrac * normfac != 0.0)
+          gr = histall[m][ibin] / (vfrac * normfac * icount[m]);
         else gr = 0.0;
-        ncoord += gr*nideal;
+        if (icount[m] != 0)
+          ncoord += gr * vfrac * normfac;
         array[ibin][1+2*m] = gr;
         array[ibin][2+2*m] = ncoord;
       }

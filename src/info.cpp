@@ -104,6 +104,7 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if ((idx+1 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"screen",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = screen;
       idx += 2;
     } else if ((idx+1 < narg) && (strncmp(arg[idx],"out",3) == 0)
@@ -547,7 +548,7 @@ bool Info::is_available(const char *category, const char *name)
   int match = 0;
 
   if (strcmp(category,"command") == 0) {
-    if (input->command_map->find(name) != input->command_map->end());
+    if (input->command_map->find(name) != input->command_map->end())
       match = 1;
 
   } else if (strcmp(category,"compute") == 0) {

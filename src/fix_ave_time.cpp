@@ -907,7 +907,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 }

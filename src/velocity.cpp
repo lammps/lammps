@@ -364,7 +364,8 @@ void Velocity::create(double t_desired, int seed)
   //   no-bias compute calculates temp only for new thermal velocities
 
   double t;
-  if (bias_flag == 0) t = temperature->compute_scalar();
+  if ((bias_flag == 0) || (temperature_nobias == NULL))
+    t = temperature->compute_scalar();
   else t = temperature_nobias->compute_scalar();
   rescale(t,t_desired);
 

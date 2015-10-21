@@ -178,7 +178,9 @@ void FixSRP::setup_pre_force(int zz)
   for (int n = 0; n < nbondlist; n++) {
 
    // consider only the user defined bond type
-   if(bondlist[n][2] != btype) continue;
+   // btype of zero considers all bonds
+   if(btype > 0 && bondlist[n][2] != btype)
+     continue;
 
    i = bondlist[n][0];
    j = bondlist[n][1];

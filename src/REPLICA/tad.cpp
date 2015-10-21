@@ -199,7 +199,7 @@ void TAD::command(int narg, char **arg)
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
   update->restrict_output = 1;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
   lmp->init();
@@ -406,7 +406,7 @@ void TAD::command(int narg, char **arg)
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
   }
 
-  if (me_universe == 0) fclose(ulogfile_neb);
+  if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
 
   if (me == 0) {
     if (screen) fprintf(screen,"\nTAD done\n");
@@ -478,7 +478,7 @@ void TAD::quench()
   update->whichflag = 2;
   update->nsteps = maxiter;
   update->endstep = update->laststep = update->firststep + maxiter;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
 
   // full init works

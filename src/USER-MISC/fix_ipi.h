@@ -34,7 +34,7 @@ class FixIPI : public Fix {
   virtual void final_integrate();
 
  protected:
-  char host[1024]; int port; int inet, master, hasdata;
+  char *host; int port; int inet, master, hasdata;
   int ipisock, me; double *buffer; long bsize;
   int kspace_flag;
 };

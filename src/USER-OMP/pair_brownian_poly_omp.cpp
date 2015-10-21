@@ -48,6 +48,7 @@ PairBrownianPolyOMP::PairBrownianPolyOMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   random_thr = NULL;
+  nthreads = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +56,7 @@ PairBrownianPolyOMP::PairBrownianPolyOMP(LAMMPS *lmp) :
 PairBrownianPolyOMP::~PairBrownianPolyOMP()
 {
   if (random_thr) {
-    for (int i=1; i < comm->nthreads; ++i)
+    for (int i=1; i < nthreads; ++i)
       delete random_thr[i];
 
     delete[] random_thr;
@@ -72,7 +73,6 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
-  const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
@@ -117,12 +117,24 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
     }
 
 
-  if (!random_thr)
-    random_thr = new RanMars*[nthreads];
+  // number of threads has changed. reallocate pool of pRNGs
+  if (nthreads != comm->nthreads) {
+    if (random_thr) {
+      for (int i=1; i < nthreads; ++i)
+        delete random_thr[i];
 
-  // to ensure full compatibility with the serial BrownianPoly style
-  // we use is random number generator instance for thread 0
-  random_thr[0] = random;
+      delete[] random_thr;
+    }
+
+    nthreads = comm->nthreads;
+    random_thr = new RanMars*[nthreads];
+    for (int i=1; i < nthreads; ++i)
+      random_thr[i] = NULL;
+
+    // to ensure full compatibility with the serial BrownianPoly style
+    // we use is random number generator instance for thread 0
+    random_thr[0] = random;
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -137,9 +149,10 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
-    if (random_thr && tid > 0)
+    if ((tid > 0) && (random_thr[tid] == NULL))
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
                                     + comm->nprocs*tid);
+
     if (flaglog) {
       if (evflag)
         eval<1,1>(ifrom, ito, thr);
@@ -384,8 +397,8 @@ double PairBrownianPolyOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairBrownianPoly::memory_usage();
-  bytes += comm->nthreads * sizeof(RanMars*);
-  bytes += comm->nthreads * sizeof(RanMars);
+  bytes += nthreads * sizeof(RanMars*);
+  bytes += nthreads * sizeof(RanMars);
 
   return bytes;
 }

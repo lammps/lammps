@@ -178,6 +178,9 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   // nomp is user setting, default = 0
   
   #if defined(_OPENMP)
+  #if defined(__INTEL_COMPILER)
+  kmp_set_blocktime(0);
+  #endif
   if (nomp != 0) {
     omp_set_num_threads(nomp);
     comm->nthreads = nomp;

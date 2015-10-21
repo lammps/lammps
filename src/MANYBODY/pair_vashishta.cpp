@@ -33,7 +33,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-//using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -52,6 +51,7 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
+  map = NULL;
 }
 
 /* ----------------------------------------------------------------------

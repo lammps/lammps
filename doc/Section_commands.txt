@@ -887,7 +887,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "tip4p/cut (o)"_pair_coul.html,
 "tip4p/long (o)"_pair_coul.html,
 "tri/lj (o)"_pair_tri_lj.html,
-"vashishta"_pair_vashishta.html,
+"vashishta (o)"_pair_vashishta.html,
 "yukawa (go)"_pair_yukawa.html,
 "yukawa/colloid (go)"_pair_yukawa_colloid.html,
 "zbl (go)"_pair_zbl.html :tb(c=4,ea=c)

@@ -25,18 +25,33 @@ directory of the LAMMPS distribution.
 See "Section_start 3"_Section_start.html#start_3 of the manual for
 details on how to include/exclude specific packages as part of the
 LAMMPS build process, and for more details about the differences
-between standard packages and user packages in LAMMPS.
+between standard packages and user packages.
 
-Below, the packages currently availabe in LAMMPS are listed.  For
-standard packages, just a one-line description is given.  For user
-packages, more details are provided.
+Unless otherwise noted below, every package is independent of all the
+others.  I.e. any package can be included or excluded in a LAMMPS
+build, independent of all other packages.  However, note that some
+packages include commands derived from commands in other packages.  If
+the other package is not installed, the derived command from the new
+package will also not be installed when you include the new one.
+E.g. the pair lj/cut/coul/long/omp command from the USER-OMP package
+will not be installed as part of the USER-OMP package if the KSPACE
+package is not also installed, since it contains the pair
+lj/cut/coul/long command.  If you later install the KSPACE pacakge and
+the USER-OMP package is already installed, both the pair
+lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.
+
+The two tables below list currently available packages in LAMMPS, with
+a one-line descriptions of each.  The sections below give a few more
+details, including instructions for building LAMMPS with the package,
+either via the make command or the Make.py tool described in "Section
+2.4"_Section_start.html#start_4.
 
 :line
 :line
 
 4.1 Standard packages :h4,link(pkg_1)
 
-The current list of standard packages is as follows:
+The current list of standard packages is as follows. 
 
 Package, Description, Author(s), Doc page, Example, Library
 ASPHERE, aspherical particles, -, "Section_howto 6.14"_Section_howto.html#howto_14, ellipse, -
@@ -72,6 +87,8 @@ XTC, dumps in XTC format, -, "dump"_dump.html, -, -
 
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
+More details on
+multiple authors are give below.
 
 (1) The FLD package was created by Amit Kumar and Michael Bybee from
 Jonathan Higdon's group at UIUC.
@@ -105,6 +122,70 @@ See the src/package/README or src/package/Makefile.lammps file for
 info on where to download the library.  "Section
 start"_Section_start.html#start_3_3 of the manual also gives details
 on how to build LAMMPS with both kinds of auxiliary libraries.
+
+Except where explained below, all of these packages can be installed,
+and LAMMPS re-built, by issuing these commands from the src dir.
+
+make yes-package
+make machine
+or
+Make.py -p package -a machine :pre
+
+To un-install the package and re-build LAMMPS without it:
+
+make no-package
+make machine
+or
+Make.py -p ^package -a machine :pre
+
+"Package" is the name of the package in lower-case letters,
+e.g. asphere or rigid, and "machine" is the build target, e.g. mpi or
+serial.
+
+:line
+:line
+
+Build instructions for COMPRESS package :h4
+
+:line
+
+Build instructions for GPU package :h4
+
+:line
+
+Build instructions for KIM package :h4
+
+:line
+
+Build instructions for KOKKOS package :h4
+
+:line
+
+Build instructions for KSPACE package :h4
+
+:line
+
+Build instructions for MEAM package :h4
+
+:line
+
+Build instructions for POEMS package :h4
+
+:line
+
+Build instructions for PYTHON package :h4
+
+:line
+
+Build instructions for REAX package :h4
+
+:line
+
+Build instructions for VORONOI package :h4
+
+:line
+
+Build instructions for XTC package :h4
 
 :line
 :line
@@ -148,12 +229,7 @@ USER-TALLY, Pairwise tallied computes, Axel Kohlmeyer (Temple U), "compute <...>
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 
-If the Library is not listed as lib/package, then it is a third-party
-library not included in the LAMMPS distribution.  See the
-src/package/Makefile.lammps file for info on where to download the
-library from.
-
-(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 
 (2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
@@ -164,10 +240,15 @@ Jerome Henin (LISM, Marseille, France).
 Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
 (U Blaise Pascal).
 
+If the Library is not listed as lib/package, then it is a third-party
+library not included in the LAMMPS distribution.  See the
+src/package/Makefile.lammps file for info on where to download the
+library from.
+
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script
 command implemented as part of the package, or to additional
-documentation provided witht he package.
+documentation provided within the package.
 
 The "Example" column is a sub-directory in the examples directory of
 the distribution which has an input script that uses the package.
@@ -185,9 +266,26 @@ the library.  "Section start"_Section_start.html#start_3_3 of the
 manual also gives details on how to build LAMMPS with both kinds of
 auxiliary libraries.
 
-More details on each package, from the USER-*/README file is given
-below.
+Except where explained below, all of these packages can be installed,
+and LAMMPS re-built, by issuing these commands from the src dir.
 
+make yes-user-package
+make machine
+or
+Make.py -p package -a machine :pre
+
+To un-install the package and re-build LAMMPS without it:
+
+make no-user-package
+make machine
+or
+Make.py -p ^package -a machine :pre
+
+"Package" is the name of the package (in this case without the user
+prefix) in lower-case letters, e.g. drude or phonon, and "machine" is
+the build target, e.g. mpi or serial.
+
+:line
 :line
 
 USER-ATC package :h4

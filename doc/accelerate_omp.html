@@ -130,72 +130,55 @@
 <p>The USER-OMP package was developed by Axel Kohlmeyer at Temple
 University.  It provides multi-threaded versions of most pair styles,
 nearly all bonded styles (bond, angle, dihedral, improper), several
-Kspace styles, and a few fix styles.  The package currently
-uses the OpenMP interface for multi-threading.</p>
-<p>Here is a quick overview of how to use the USER-OMP package:</p>
-<ul class="simple">
-<li>use the -fopenmp flag for compiling and linking in your Makefile.machine</li>
-<li>include the USER-OMP package and build LAMMPS</li>
-<li>use the mpirun command to set the number of MPI tasks/node</li>
-<li>specify how many threads per MPI task to use</li>
-<li>use USER-OMP styles in your input script</li>
-</ul>
-<p>The latter two steps can be done using the &#8220;-pk omp&#8221; and &#8220;-sf omp&#8221;
-<a class="reference internal" href="Section_start.html#start-7"><span>command-line switches</span></a> respectively.  Or
-the effect of the &#8220;-pk&#8221; or &#8220;-sf&#8221; switches can be duplicated by adding
-the <a class="reference internal" href="package.html"><em>package omp</em></a> or <a class="reference internal" href="suffix.html"><em>suffix omp</em></a> commands
-respectively to your input script.</p>
+Kspace styles, and a few fix styles.  The package currently uses the
+OpenMP interface for multi-threading.</p>
+<p>Here is a quick overview of how to use the USER-OMP package, assuming
+one or more 16-core nodes.  More details follow.</p>
+<div class="highlight-python"><div class="highlight"><pre>use -fopenmp with CCFLAGS and LINKFLAGS in Makefile.machine
+make yes-user-omp
+make mpi                                   # build with USER-OMP package, if settings added to Makefile.mpi
+make omp                                   # or Makefile.omp already has settings
+Make.py -v -p omp -o mpi -a file mpi       # or one-line build via Make.py
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>lmp_mpi -sf omp -pk omp 16 &lt; in.script                         # 1 MPI task, 16 threads
+mpirun -np 4 lmp_mpi -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
+mpirun -np 32 -ppn 4 lmp_mpi -sf omp -pk omp 4 -in in.script   # 8 nodes, 4 MPI tasks/node, 4 threads/task
+</pre></div>
+</div>
 <p><strong>Required hardware/software:</strong></p>
 <p>Your compiler must support the OpenMP interface.  You should have one
-or more multi-core CPUs so that multiple threads can be launched by an
-MPI task running on a CPU.</p>
+or more multi-core CPUs so that multiple threads can be launched by
+each MPI task running on a CPU.</p>
 <p><strong>Building LAMMPS with the USER-OMP package:</strong></p>
-<p>To do this in one line, use the src/Make.py script, described in
-<a class="reference internal" href="Section_start.html#start-4"><span>Section 2.4</span></a> of the manual.  Type &#8220;Make.py
--h&#8221; for help.  If run from the src directory, this command will create
-src/lmp_omp using src/MAKE/Makefile.mpi as the starting
-Makefile.machine:</p>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p omp -o omp -a file mpi
-</pre></div>
-</div>
-<p>Or you can follow these steps:</p>
-<div class="highlight-python"><div class="highlight"><pre>cd lammps/src
-make yes-user-omp
-make machine
-</pre></div>
-</div>
-<p>The CCFLAGS setting in Makefile.machine needs &#8220;-fopenmp&#8221; to add OpenMP
-support.  This works for both the GNU and Intel compilers.  Without
-this flag the USER-OMP styles will still be compiled and work, but
-will not support multi-threading.  For the Intel compilers the CCFLAGS
-setting also needs to include &#8220;-restrict&#8221;.</p>
+<p>The lines above illustrate how to include/build with the USER-OMP
+package in two steps, using the &#8220;make&#8221; command.  Or how to do it with
+one command via the src/Make.py script, described in <a class="reference internal" href="Section_start.html#start-4"><span>Section 2.4</span></a> of the manual.  Type &#8220;Make.py -h&#8221; for
+help.</p>
+<p>Note that the CCFLAGS and LINKFLAGS settings in Makefile.machine must
+include &#8220;-fopenmp&#8221;.  Likewise, if you use an Intel compiler, the
+CCFLAGS setting must include &#8220;-restrict&#8221;.  The Make.py command will
+add these automatically.</p>
 <p><strong>Run with the USER-OMP package from the command line:</strong></p>
 <p>The mpirun or mpiexec command sets the total number of MPI tasks used
 by LAMMPS (one or multiple per compute node) and the number of MPI
 tasks used per node.  E.g. the mpirun command in MPICH does this via
 its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.</p>
-<p>You need to choose how many threads per MPI task will be used by the
-USER-OMP package.  Note that the product of MPI tasks * threads/task
-should not exceed the physical number of cores (on a node), otherwise
-performance will suffer.</p>
-<p>Use the &#8220;-sf omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a>,
-which will automatically append &#8220;omp&#8221; to styles that support it.  Use
-the &#8220;-pk omp Nt&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a>, to
-set Nt = # of OpenMP threads per MPI task to use.</p>
-<div class="highlight-python"><div class="highlight"><pre>lmp_machine -sf omp -pk omp 16 -in in.script                       # 1 MPI task on a 16-core node
-mpirun -np 4 lmp_machine -sf omp -pk omp 4 -in in.script           # 4 MPI tasks each with 4 threads on a single 16-core node
-mpirun -np 32 -ppn 4 lmp_machine -sf omp -pk omp 4 -in in.script   # ditto on 8 16-core nodes
-</pre></div>
-</div>
-<p>Note that if the &#8220;-sf omp&#8221; switch is used, it also issues a default
-<a class="reference internal" href="package.html"><em>package omp 0</em></a> command, which sets the number of threads
-per MPI task via the OMP_NUM_THREADS environment variable.</p>
-<p>Using the &#8220;-pk&#8221; switch explicitly allows for direct setting of the
-number of threads and additional options.  Its syntax is the same as
-the &#8220;package omp&#8221; command.  See the <a class="reference internal" href="package.html"><em>package</em></a> command doc
-page for details, including the default values used for all its
-options if it is not specified, and how to set the number of threads
-via the OMP_NUM_THREADS environment variable if desired.</p>
+<p>You need to choose how many OpenMP threads per MPI task will be used
+by the USER-OMP package.  Note that the product of MPI tasks *
+threads/task should not exceed the physical number of cores (on a
+node), otherwise performance will suffer.</p>
+<p>As in the lines above, use the &#8220;-sf omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a>, which will automatically append
+&#8220;omp&#8221; to styles that support it.  The &#8220;-sf omp&#8221; switch also issues a
+default <a class="reference internal" href="package.html"><em>package omp 0</em></a> command, which will set the
+number of threads per MPI task via the OMP_NUM_THREADS environment
+variable.</p>
+<p>You can also use the &#8220;-pk omp Nt&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a>, to explicitly set Nt = # of OpenMP
+threads per MPI task to use, as well as additional options.  Its
+syntax is the same as the <a class="reference internal" href="package.html"><em>package omp</em></a> command whose doc
+page gives details, including the default values used if it is not
+specified.  It also gives more details on how to set the number of
+threads via the OMP_NUM_THREADS environment variable.</p>
 <p><strong>Or run with the USER-OMP package by editing an input script:</strong></p>
 <p>The discussion above for the mpirun/mpiexec command, MPI tasks/node,
 and threads/MPI task is the same.</p>
@@ -205,25 +188,24 @@ and threads/MPI task is the same.</p>
 </pre></div>
 </div>
 <p>You must also use the <a class="reference internal" href="package.html"><em>package omp</em></a> command to enable the
-USER-OMP package, unless the &#8220;-sf omp&#8221; or &#8220;-pk omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switches</span></a> were used.  It specifies how many
-threads per MPI task to use, as well as other options.  Its doc page
-explains how to set the number of threads via an environment variable
-if desired.</p>
+USER-OMP package.  When you do this you also specify how many threads
+per MPI task to use.  The command doc page explains other options and
+how to set the number of threads via the OMP_NUM_THREADS environment
+variable.</p>
 <p><strong>Speed-ups to expect:</strong></p>
 <p>Depending on which styles are accelerated, you should look for a
 reduction in the &#8220;Pair time&#8221;, &#8220;Bond time&#8221;, &#8220;KSpace time&#8221;, and &#8220;Loop
 time&#8221; values printed at the end of a run.</p>
 <p>You may see a small performance advantage (5 to 20%) when running a
 USER-OMP style (in serial or parallel) with a single thread per MPI
-task, versus running standard LAMMPS with its standard
-(un-accelerated) styles (in serial or all-MPI parallelization with 1
-task/core).  This is because many of the USER-OMP styles contain
-similar optimizations to those used in the OPT package, as described
-above.</p>
-<p>With multiple threads/task, the optimal choice of MPI tasks/node and
-OpenMP threads/task can vary a lot and should always be tested via
-benchmark runs for a specific simulation running on a specific
-machine, paying attention to guidelines discussed in the next
+task, versus running standard LAMMPS with its standard un-accelerated
+styles (in serial or all-MPI parallelization with 1 task/core).  This
+is because many of the USER-OMP styles contain similar optimizations
+to those used in the OPT package, described in <a class="reference internal" href="accelerate_opt.html"><em>Section accelerate 5.3.6</em></a>.</p>
+<p>With multiple threads/task, the optimal choice of number of MPI
+tasks/node and OpenMP threads/task can vary a lot and should always be
+tested via benchmark runs for a specific simulation running on a
+specific machine, paying attention to guidelines discussed in the next
 sub-section.</p>
 <p>A description of the multi-threading strategy used in the USER-OMP
 package and some performance examples are <a class="reference external" href="http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&amp;d=1">presented here</a></p>
@@ -239,7 +221,7 @@ circumstances:</p>
 <ul class="simple">
 <li>Individual compute nodes have a significant number of CPU cores but
 the CPU itself has limited memory bandwidth, e.g. for Intel Xeon 53xx
-(Clovertown) and 54xx (Harpertown) quad core processors. Running one
+(Clovertown) and 54xx (Harpertown) quad-core processors.  Running one
 MPI task per CPU core will result in significant performance
 degradation, so that running with 4 or even only 2 MPI tasks per node
 is faster.  Running in hybrid MPI+OpenMP mode will reduce the
@@ -274,15 +256,16 @@ of MPI tasks assigned to the KSpace calculation.</li>
 <p>Additional performance tips are as follows:</p>
 <ul class="simple">
 <li>The best parallel efficiency from <em>omp</em> styles is typically achieved
-when there is at least one MPI task per physical processor,
-i.e. socket or die.</li>
+when there is at least one MPI task per physical CPU chip, i.e. socket
+or die.</li>
 <li>It is usually most efficient to restrict threading to a single
 socket, i.e. use one or more MPI task per socket.</li>
-<li>Several current MPI implementation by default use a processor affinity
-setting that restricts each MPI task to a single CPU core.  Using
-multi-threading in this mode will force the threads to share that core
-and thus is likely to be counterproductive.  Instead, binding MPI
-tasks to a (multi-core) socket, should solve this issue.</li>
+<li>IMPORTANT NOTE: By default, several current MPI implementations use a
+processor affinity setting that restricts each MPI task to a single
+CPU core.  Using multi-threading in this mode will force all threads
+to share the one core and thus is likely to be counterproductive.
+Instead, binding MPI tasks to a (multi-core) socket, should solve this
+issue.</li>
 </ul>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>

@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Scalar Correlator f(tau)=<A(t)A(t+tau)> and
-          Cross-correlator f(tau)=<A(t)B(t+tau)>
-   Structure and syntax of fix inspired by fix_ave_correlate
-   J. Chem. Phys. 133, 154103 (2010)
    Contributing authors:
      Jorge Ramirez (jorge.ramirez@upm.es, Universidad Politecnica de Madrid),
      Alexei Likhtman (University of Reading)
+   Structure and syntax of fix inspired by fix_ave_correlate
+   Scalar Correlator f(tau)=<A(t)A(t+tau)> and
+     Cross-correlator f(tau)=<A(t)B(t+tau)>
+   see J. Chem. Phys. 133, 154103 (2010)
 ------------------------------------------------------------------------- */
 
 #include "math.h"

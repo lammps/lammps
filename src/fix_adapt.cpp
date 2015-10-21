@@ -295,17 +295,31 @@ void FixAdapt::init()
       anypair = 1;
       Pair *pair = NULL;
 
-      if (lmp->suffix_enable) {
-        int len = 2 + strlen(ad->pstyle) + strlen(lmp->suffix);
-        char *psuffix = new char[len];
+      // if ad->pstyle has trailing sub-style annotation ":N",
+      //   strip it for pstyle arg to pair_match() and set nsub = N
+      // this should work for appended suffixes as well
 
-        strcpy(psuffix,ad->pstyle);
+      int n = strlen(ad->pstyle) + 1;
+      char *pstyle = new char[n];
+      strcpy(pstyle,ad->pstyle);
+
+      char *cptr;
+      int nsub = 0;
+      if (cptr = strchr(pstyle,':')) {
+        *cptr = '\0';
+        nsub = force->inumeric(FLERR,cptr+1);
+      }
+
+      if (lmp->suffix_enable) {
+        int len = 2 + strlen(pstyle) + strlen(lmp->suffix);
+        char *psuffix = new char[len];
+        strcpy(psuffix,pstyle);
         strcat(psuffix,"/");
         strcat(psuffix,lmp->suffix);
-        pair = force->pair_match(psuffix,1);
+        pair = force->pair_match(psuffix,1,nsub);
         delete[] psuffix;
       }
-      if (pair == NULL) pair = force->pair_match(ad->pstyle,1);
+      if (pair == NULL) pair = force->pair_match(pstyle,1,nsub);
       if (pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
       if (ptr == NULL) 
@@ -322,10 +336,12 @@ void FixAdapt::init()
         PairHybrid *pair = (PairHybrid *) force->pair;
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-            if (!pair->check_ijtype(i,j,ad->pstyle))
+            if (!pair->check_ijtype(i,j,pstyle))
               error->all(FLERR,"Fix adapt type pair range is not valid for "
                          "pair hybrid sub-style");
       }
+
+      delete [] pstyle;
 
     } else if (ad->which == KSPACE) {
       if (force->kspace == NULL)

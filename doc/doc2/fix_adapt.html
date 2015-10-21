@@ -105,11 +105,15 @@ overrides the parameters.
 </P>
 <P>The <I>pstyle</I> argument is the name of the pair style.  If <A HREF = "pair_hybrid.html">pair_style
 hybrid or hybrid/overlay</A> is used, <I>pstyle</I> should be
-a sub-style name.  For example, <I>pstyle</I> could be specified as "soft"
-or "lubricate".  The <I>pparam</I> argument is the name of the parameter to
-change.  This is the current list of pair styles and parameters that
-can be varied by this fix.  See the doc pages for individual pair
-styles and their energy formulas for the meaning of these parameters:
+a sub-style name.  If there are multiple sub-styles using the same
+pair style, then <I>pstyle</I> should be specified as "style:N" where N is
+which instance of the pair style you wish to adapt, e.g. the first,
+second, etc.  For example, <I>pstyle</I> could be specified as "soft" or
+"lubricate" or "lj/cut:1" or "lj/cut:2".  The <I>pparam</I> argument is the
+name of the parameter to change.  This is the current list of pair
+styles and parameters that can be varied by this fix.  See the doc
+pages for individual pair styles and their energy formulas for the
+meaning of these parameters:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD ><A HREF = "pair_born.html">born</A></TD><TD > a,b,c</TD><TD > type pairs</TD></TR>

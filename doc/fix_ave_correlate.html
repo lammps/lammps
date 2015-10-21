@@ -136,7 +136,7 @@
 <li>ave/correlate = style name of this fix command</li>
 <li>Nevery = use input values every this many timesteps</li>
 <li>Nrepeat = # of correlation time windows to accumulate</li>
-<li>Nfreq = calculate tine window averages every this many timesteps</li>
+<li>Nfreq = calculate time window averages every this many timesteps</li>
 <li>one or more input values can be listed</li>
 <li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
@@ -192,7 +192,10 @@ fix 1 all ave/correlate 1 50 10000 &amp;
 calculate time correlations bewteen them at varying time intervals,
 and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
-<a class="reference internal" href="variable.html"><em>variables</em></a> or used by other <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a> such as <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a>, and can also be written to a file.</p>
+<a class="reference internal" href="variable.html"><em>variables</em></a> or used by other <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a> such as <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a>, and can also be written to a file.  See the
+<a class="reference internal" href="fix_ave_correlate_long.html"><em>fix ave/correlate/long</em></a> command for an
+alternate method for computing correlation functions efficiently over
+very long time windows.</p>
 <p>The group specified with this command is ignored.  However, note that
 specified values may represent calculations performed by computes and
 fixes which store their own &#8220;group&#8221; definitions.</p>
@@ -406,7 +409,8 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>, <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>,
+<p><a class="reference internal" href="fix_ave_correlate_long.html"><em>fix ave/correlate/long</em></a>,
+<a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>, <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>,
 <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>, <a class="reference internal" href="variable.html"><em>variable</em></a></p>
 <p><strong>Default:</strong> none</p>
 <p>The option defaults are ave = one, type = auto, start = 0, no file

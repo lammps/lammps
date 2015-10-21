@@ -602,6 +602,7 @@ package"_Section_start.html#start_3.
 "adapt/fep"_fix_adapt_fep.html,
 "addtorque"_fix_addtorque.html,
 "atc"_fix_atc.html,
+"ave/correlate/long"_fix_ave_correlate_long.html,
 "ave/spatial/sphere"_fix_ave_spatial_sphere.html,
 "drude"_fix_drude.html,
 "drude/transform/direct"_fix_drude_transform.html,

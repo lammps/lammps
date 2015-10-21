@@ -266,6 +266,7 @@ int FixDrude::unpack_border(int n, int first, double *buf)
    Rebuild the list of special neighbors if atom_style is Drude
    so that each Drude particle is equivalent to its core atom.
 ------------------------------------------------------------------------- */
+
 void FixDrude::rebuild_special(){
   rebuildflag = 1;
 

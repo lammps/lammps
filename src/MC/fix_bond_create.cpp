@@ -162,7 +162,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   // copy = special list for one atom
   // size = ms^2 + ms is sufficient
-  // b/c in rebuild_special() neighs of all 1-2s are added,
+  // b/c in rebuild_special_one() neighs of all 1-2s are added,
   //   then a dedup(), then neighs of all 1-3s are added, then final dedup()
   // this means intermediate size cannot exceed ms^2 + ms
 
@@ -489,7 +489,7 @@ void FixBondCreate::post_integrate()
     // add a 1-2 neighbor to special bond list for atom I
     // atom J will also do this, whatever proc it is on
     // need to first remove tag[j] from later in list if it appears
-    // prevents list from overflowing, will be rebuilt in rebuild_special()
+    // prevents list from overflowing, will be rebuilt in rebuild_special_one()
 
     slist = special[i];
     n1 = nspecial[i][0];
@@ -664,10 +664,10 @@ void FixBondCreate::update_topology()
       influenced = 1;
     }
 
-    // rebuild_special first, since used by create_angles, etc
+    // rebuild_special_one() first, since used by create_angles, etc
 
     if (influenced) {
-      rebuild_special(i);
+      rebuild_special_one(i);
       if (angleflag) create_angles(i);
       if (dihedralflag) create_dihedrals(i);
       if (improperflag) create_impropers(i);

@@ -182,9 +182,6 @@ void FixWallRegion::post_force(int vflag)
   int i,m,n;
   double rinv,fx,fy,fz,tooclose;
 
-  eflag = 0;
-  ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
-
   double **x = atom->x;
   double **f = atom->f;
   double *radius = atom->radius;
@@ -199,6 +196,11 @@ void FixWallRegion::post_force(int vflag)
   // region->match() insures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
   // in COLLOID case, r <= radius is an error
+  // initilize ewall after region->prematch(),
+  //   so a dynamic region can access last timestep values
+
+  eflag = 0;
+  ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

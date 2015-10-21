@@ -354,7 +354,6 @@ void FixShake::init()
 
   // set equilibrium angle distances
 
-  const double b1,b2;
   int nlocal = atom->nlocal;
   
   for (i = 1; i <= atom->nangletypes; i++) {
@@ -408,8 +407,8 @@ void FixShake::init()
     // formula is now correct for bonds of same or different lengths (Oct15)
 
     angle = force->angle->equilibrium_angle(i);
-    b1 = bond_distance[bond1_type];
-    b2 = bond_distance[bond2_type];
+    const double b1 = bond_distance[bond1_type];
+    const double b2 = bond_distance[bond2_type];
     rsq = b1*b1 + b2*b2 - 2.0*b1*b2*cos(angle);
     angle_distance[i] = sqrt(rsq);
   }

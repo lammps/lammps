@@ -42,6 +42,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   rho = NULL;
   fp = NULL;
+  map = NULL;
+  type2frho = NULL;
 
   nfuncfl = 0;
   funcfl = NULL;

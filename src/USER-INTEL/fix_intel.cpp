@@ -664,7 +664,7 @@ int FixIntel::set_host_affinity(const int nomp)
   FILE *p;
   char cmd[512];
   char readbuf[INTEL_MAX_HOST_CORE_COUNT*5];
-  sprintf(cmd, "lscpu -p=cpu,core,socket | grep -v '#' |"
+  sprintf(cmd, "lscpu -p | grep -v '#' |"
 	  "sort -t, -k 3,3n -k 2,2n | awk -F, '{print $1}'");
   p = popen(cmd, "r");
   if (p == NULL) return -1;

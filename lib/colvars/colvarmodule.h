@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2015-09-03"
+#define COLVARS_VERSION "2015-09-16"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -20,19 +20,17 @@
 /// shared between all object instances) to be accessed from other
 /// objects.
 
-// Internal method return codes
-#define COLVARS_NOT_IMPLEMENTED -2
-#define COLVARS_ERROR -1
+// Error codes
 #define COLVARS_OK 0
-
-// On error, values of the colvars module error register
-#define GENERAL_ERROR   1
-#define FILE_ERROR      (1<<1)
-#define MEMORY_ERROR    (1<<2)
-#define BUG_ERROR       (1<<3) // Inconsistent state indicating bug
-#define INPUT_ERROR     (1<<4) // out of bounds or inconsistent input
-#define DELETE_COLVARS  (1<<5) // Instruct the caller to delete cvm
-#define FATAL_ERROR     (1<<6) // Should be set, or not, together with other bits
+#define COLVARS_ERROR   -1
+#define GENERAL_ERROR   -1  // TODO this can be simply merged with COLVARS_ERROR
+#define COLVARS_NOT_IMPLEMENTED (-1<<1)
+#define INPUT_ERROR     (-1<<2) // out of bounds or inconsistent input
+#define BUG_ERROR       (-1<<3) // Inconsistent state indicating bug
+#define FILE_ERROR      (-1<<4)
+#define MEMORY_ERROR    (-1<<5)
+#define FATAL_ERROR     (-1<<6) // Should be set, or not, together with other bits
+#define DELETE_COLVARS  (-1<<7) // Instruct the caller to delete cvm
 
 
 #include <iostream>

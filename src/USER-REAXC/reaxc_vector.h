@@ -35,26 +35,17 @@ void rvec_Copy( rvec, rvec );
 void rvec_Scale( rvec, double, rvec );
 void rvec_Add( rvec, rvec );
 void rvec_ScaledAdd( rvec, double, rvec );
-void rvec_Sum( rvec, rvec, rvec );
 void rvec_ScaledSum( rvec, double, rvec, double, rvec );
 double rvec_Dot( rvec, rvec );
-double rvec_ScaledDot( double, rvec, double, rvec );
-void rvec_Multiply( rvec, rvec, rvec );
 void rvec_iMultiply( rvec, ivec, rvec );
-void rvec_Divide( rvec, rvec, rvec );
-void rvec_iDivide( rvec, rvec, ivec );
-void rvec_Invert( rvec, rvec );
 void rvec_Cross( rvec, rvec, rvec );
-void rvec_OuterProduct( rtensor, rvec, rvec );
 double rvec_Norm_Sqr( rvec );
 double rvec_Norm( rvec );
-int  rvec_isZero( rvec );
 void rvec_MakeZero( rvec );
 void rvec_Random( rvec );
 
 void rtensor_MakeZero( rtensor );
 void rtensor_MatVec( rvec, rtensor, rvec );
-void rtensor_Scale( rtensor, double, rtensor );
 
 void ivec_MakeZero( ivec );
 void ivec_Copy( ivec, ivec );

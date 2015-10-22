@@ -453,6 +453,7 @@ void Respa::setup()
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
 
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -527,6 +528,8 @@ void Respa::setup_minimal(int flag)
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
+
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -710,6 +713,11 @@ void Respa::recurse(int ilevel)
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
     }
+
+    if (modify->n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
+   }
 
     if (newton[ilevel]) {
       comm->reverse_comm();

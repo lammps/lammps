@@ -150,30 +150,6 @@ void Complete_Cubic_Spline( const double *h, const double *f, double v0, double 
 }
 
 
-void LR_Lookup( LR_lookup_table *t, double r, LR_data *y )
-{
-  int i;
-  double base, dif;
-
-  i = (int)(r * t->inv_dx);
-  if( i == 0 )  ++i;
-  base = (double)(i+1) * t->dx;
-  dif = r - base;
-
-  y->e_vdW = ((t->vdW[i].d*dif + t->vdW[i].c)*dif + t->vdW[i].b)*dif +
-    t->vdW[i].a;
-  y->CEvd = ((t->CEvd[i].d*dif + t->CEvd[i].c)*dif +
-             t->CEvd[i].b)*dif + t->CEvd[i].a;
-
-  y->e_ele = ((t->ele[i].d*dif + t->ele[i].c)*dif + t->ele[i].b)*dif +
-    t->ele[i].a;
-  y->CEclmb = ((t->CEclmb[i].d*dif + t->CEclmb[i].c)*dif + t->CEclmb[i].b)*dif +
-    t->CEclmb[i].a;
-
-  y->H = y->e_ele * EV_to_KCALpMOL / C_ele;
-}
-
-
 int Init_Lookup_Tables( reax_system *system, control_params *control,
                         storage *workspace, mpi_datatypes *mpi_data, char *msg )
 {

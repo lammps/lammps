@@ -364,7 +364,7 @@ double PairThole::single(int i, int j, int itype, int jtype,
                          double rsq, double factor_coul, double factor_lj,
                          double &fforce)
 {
-  double r2inv,rinv,r,forcecoul,phicoul;
+  double r2inv,rinv,r,phicoul;
   double qi,qj,factor_f,factor_e,dcoul,asr,exp_asr;
   int di, dj;
 

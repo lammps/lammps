@@ -36,23 +36,6 @@ typedef struct{
   double C1dDelta, C2dDelta, C3dDelta;
 }dbond_coefficients;
 
-#ifdef TEST_FORCES
-void Get_dBO( reax_system*, reax_list**, int, int, double, rvec* );
-void Get_dBOpinpi2( reax_system*, reax_list**,
-                    int, int, double, double, rvec*, rvec* );
-
-void Add_dBO( reax_system*, reax_list**, int, int, double, rvec* );
-void Add_dBOpinpi2( reax_system*, reax_list**,
-                    int, int, double, double, rvec*, rvec* );
-
-void Add_dBO_to_Forces( reax_system*, reax_list**, int, int, double );
-void Add_dBOpinpi2_to_Forces( reax_system*, reax_list**,
-                              int, int, double, double );
-
-void Add_dDelta( reax_system*, reax_list**, int, double, rvec* );
-void Add_dDelta_to_Forces( reax_system *, reax_list**, int, double );
-#endif
-
 void Add_dBond_to_Forces( reax_system*, int, int, storage*, reax_list** );
 void Add_dBond_to_Forces_NPT( int, int, simulation_data*,
                               storage*, reax_list** );

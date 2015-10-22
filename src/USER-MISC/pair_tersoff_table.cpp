@@ -306,10 +306,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
         if (r_ik > params[ikparam].cutsq) continue;
 
-        r_ik = sqrt(r_ik);
-
-        invR_ik = 1.0 / r_ik;
-
         gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
 
         cutoffFunctionIK = preCutoffFunction[neighbor_k];
@@ -334,13 +330,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
-
-        r_ik = sqrt(r_ik);
-        invR_ik = 1.0 / r_ik;
-
-        directorCos_ik_x = invR_ik * dr_ik[0];
-        directorCos_ik_y = invR_ik * dr_ik[1];
-        directorCos_ik_z = invR_ik * dr_ik[2];
 
         gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
 

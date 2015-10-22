@@ -118,7 +118,23 @@ void VerletCuda::setup()
 
   cuda->allocate();
 
-  if(comm->me == 0 && screen) fprintf(screen, "Setting up run ...\n");
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up Verlet run ...\n");
+    fprintf(screen,"  Unit style  : %s\n", update->unit_style);
+    fprintf(screen,"  Current step: " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  Time step   : %g\n", update->dt);
+    if (update->max_wall > 0) {
+      char outtime[128];
+      double totalclock = update->max_wall;
+      int seconds = fmod(totalclock,60.0);
+      totalclock  = (totalclock - seconds) / 60.0;
+      int minutes = fmod(totalclock,60.0);
+      int hours = (totalclock - minutes) / 60.0;
+      sprintf(outtime,"  Max walltime: "
+              "%d:%02d:%02d\n", hours, minutes, seconds);
+      fputs(outtime,screen);
+    }
+  }
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -639,6 +655,11 @@ void VerletCuda::run(int n)
   int firstreneigh = 1;
 
   for(int i = 0; i < n; i++) {
+    if (update->time_expired()) {
+      update->nsteps = i;
+      break;
+    }
+
     if(atom->nlocal == 0)
       error->warning(FLERR, "# CUDA: There are currently no atoms on one of the MPI processes. This is currently prone to encountering errors with USER-CUDA package. Please use the 'processors' keyword to use a more balanced processor layout.");
 

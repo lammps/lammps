@@ -428,7 +428,10 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // set pstat_flag and box change and restart_pbc variables
 
+  pre_exchange_flag = 0;
   pstat_flag = 0;
+  pstyle = ISO;
+
   for (int i = 0; i < 6; i++)
     if (p_flag[i]) pstat_flag = 1;
 
@@ -437,22 +440,21 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
     no_change_box = 1;
     if (allremap == 0) restart_pbc = 1;
+
+    // pstyle = TRICLINIC if any off-diagonal term is controlled -> 6 dof
+    // else pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
+    // else pstyle = ANISO -> 3 dof
+
+    if (p_flag[3] || p_flag[4] || p_flag[5]) pstyle = TRICLINIC;
+    else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
+    else pstyle = ANISO;
+
+    // pre_exchange only required if flips can occur due to shape changes
+
+    if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5])) pre_exchange_flag = 1;
+    if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0))
+      pre_exchange_flag = 1;
   }
-
-  // pstyle = TRICLINIC if any off-diagonal term is controlled -> 6 dof
-  // else pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
-  // else pstyle = ANISO -> 3 dof
-
-  if (p_flag[3] || p_flag[4] || p_flag[5]) pstyle = TRICLINIC;
-  else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
-  else pstyle = ANISO;
-
-  // pre_exchange only required if flips can occur due to shape changes
-
-  pre_exchange_flag = 0;
-  if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5])) pre_exchange_flag = 1;
-  if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0))
-    pre_exchange_flag = 1;
 
   // convert input periods to frequencies
 

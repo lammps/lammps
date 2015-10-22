@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 /** Scan common options for the dump elements
  */
-int element_args(int narg, char **arg, int *every)
+static int element_args(int narg, char **arg, int *every)
 {
   int iarg=0;
   while (iarg<narg) {

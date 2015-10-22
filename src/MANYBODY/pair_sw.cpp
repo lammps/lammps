@@ -50,6 +50,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
+  map = NULL;
 }
 
 /* ----------------------------------------------------------------------

@@ -52,14 +52,6 @@ void rvec_ScaledAdd( rvec ret, double c, rvec v )
 }
 
 
-void rvec_Sum( rvec ret, rvec v1 ,rvec v2 )
-{
-  ret[0] = v1[0] + v2[0];
-  ret[1] = v1[1] + v2[1];
-  ret[2] = v1[2] + v2[2];
-}
-
-
 void rvec_ScaledSum( rvec ret, double c1, rvec v1 ,double c2, rvec v2 )
 {
   ret[0] = c1 * v1[0] + c2 * v2[0];
@@ -74,20 +66,6 @@ double rvec_Dot( rvec v1, rvec v2 )
 }
 
 
-double rvec_ScaledDot( double c1, rvec v1, double c2, rvec v2 )
-{
-  return (c1*c2) * (v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]);
-}
-
-
-void rvec_Multiply( rvec r, rvec v1, rvec v2 )
-{
-  r[0] = v1[0] * v2[0];
-  r[1] = v1[1] * v2[1];
-  r[2] = v1[2] * v2[2];
-}
-
-
 void rvec_iMultiply( rvec r, ivec v1, rvec v2 )
 {
   r[0] = v1[0] * v2[0];
@@ -96,45 +74,11 @@ void rvec_iMultiply( rvec r, ivec v1, rvec v2 )
 }
 
 
-void rvec_Divide( rvec r, rvec v1, rvec v2 )
-{
-  r[0] = v1[0] / v2[0];
-  r[1] = v1[1] / v2[1];
-  r[2] = v1[2] / v2[2];
-}
-
-
-void rvec_iDivide( rvec r, rvec v1, ivec v2 )
-{
-  r[0] = v1[0] / v2[0];
-  r[1] = v1[1] / v2[1];
-  r[2] = v1[2] / v2[2];
-}
-
-
-void rvec_Invert( rvec r, rvec v )
-{
-  r[0] = 1. / v[0];
-  r[1] = 1. / v[1];
-  r[2] = 1. / v[2];
-}
-
-
 void rvec_Cross( rvec ret, rvec v1, rvec v2 )
 {
   ret[0] = v1[1] * v2[2] - v1[2] * v2[1];
   ret[1] = v1[2] * v2[0] - v1[0] * v2[2];
   ret[2] = v1[0] * v2[1] - v1[1] * v2[0];
-}
-
-
-void rvec_OuterProduct( rtensor r, rvec v1, rvec v2 )
-{
-  int i, j;
-
-  for( i = 0; i < 3; ++i )
-    for( j = 0; j < 3; ++j )
-      r[i][j] = v1[i] * v2[j];
 }
 
 
@@ -147,16 +91,6 @@ double rvec_Norm_Sqr( rvec v )
 double rvec_Norm( rvec v )
 {
   return sqrt( SQR(v[0]) + SQR(v[1]) + SQR(v[2]) );
-}
-
-
-int rvec_isZero( rvec v )
-{
-  if( fabs(v[0]) > ALMOST_ZERO ||
-      fabs(v[1]) > ALMOST_ZERO ||
-      fabs(v[2]) > ALMOST_ZERO )
-    return 0;
-  return 1;
 }
 
 
@@ -184,16 +118,6 @@ void rtensor_MatVec( rvec ret, rtensor m, rvec v )
       for( i = 0; i < 3; ++i )
         ret[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
     }
-}
-
-
-void rtensor_Scale( rtensor ret, double c, rtensor m )
-{
-  int i, j;
-
-  for( i = 0; i < 3; ++i )
-    for( j = 0; j < 3; ++j )
-      ret[i][j] = c * m[i][j];
 }
 
 

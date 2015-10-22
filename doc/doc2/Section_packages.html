@@ -216,6 +216,7 @@ serial.
 <TR ALIGN="center"><TD >USER-H5MD</TD><TD > dump output via HDF5</TD><TD > Pierre de Buyl (KU Leuven)</TD><TD > <A HREF = "dump_h5md.html">dump h5md</A></TD><TD > -</TD><TD > -</TD><TD > lib/h5md</TD></TR>
 <TR ALIGN="center"><TD >USER-INTEL</TD><TD > Vectorized CPU and Intel(R) coprocessor styles</TD><TD > W. Michael Brown (Intel)</TD><TD > <A HREF = "accelerate_intel.html">Section accelerate</A></TD><TD > examples/intel</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-LB</TD><TD > Lattice Boltzmann fluid</TD><TD > Colin Denniston (U Western Ontario)</TD><TD > <A HREF = "fix_lb_fluid.html">fix lb/fluid</A></TD><TD > USER/lb</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-MGPT</TD><TD > Fast MGPT multi-ion potentials</TD><TD > Tomas Oppelstrup & John Moriarty (LLNL)</TD><TD > <A HREF = "pair_mgpt.html">pair_style mgpt</A></TD><TD > USER/mgpt</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > VMD-MOLFILE</TD></TR>
 <TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "accelerate_omp.html">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
@@ -594,6 +595,34 @@ influenced by hydrodynamic forces.
 <P>The people who created this package are Frances Mackay (fmackay at
 uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
 Western Ontario.  Contact them directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-MGPT package 
+</H4>
+<P>This package contains a fast implementation for LAMMPS of
+quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
+derives from first-principles DFT-based generalized pseudopotential
+theory (GPT) through a series of systematic approximations valid for
+mid-period transition metals with nearly half-filled d bands.  The
+MGPT method was originally developed by John Moriarty at Lawrence
+Livermore National Lab (LLNL).
+</P>
+<P>In the general matrix representation of MGPT, which can also be
+applied to f-band actinide metals, the multi-ion potentials are
+evaluated on the fly during a simulation through d- or f-state matrix
+multiplication, and the forces that move the ions are determined
+analytically.  The <I>mgpt</I> pair style in this package calculates forces
+and energies using an optimized matrix-MGPT algorithm due to Tomas
+Oppelstrup at LLNL.
+</P>
+<P>See this doc page to get started:
+</P>
+<P><A HREF = "pair_mgpt.html">pair_style mgpt</A>
+</P>
+<P>The persons who created the USER-MGPT package are Tomas Oppelstrup
+(oppelstrup2@llnl.gov) and John Moriarty (moriarty2@llnl.gov)
+Contact them directly if you have any questions.
 </P>
 <HR>
 

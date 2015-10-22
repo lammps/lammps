@@ -67,8 +67,8 @@ calculated by this compute for use in the computation of a pressure
 tensor.  The formula for the components of the tensor is the same as
 the above formula, except that v^2 is replaced by vx*vy for the xy
 component, etc.  The 6 components of the vector are ordered xx, yy,
-zz, xy, xz, yz.  Again, the velocity of each core or shell atom is its
-COM velocity.
+zz, xy, xz, yz.  In contrast to the temperature, the velocity of 
+each core or shell atom is taken individually.
 </P>
 <P>The change this fix makes to core/shell atom velocities is essentially
 computing the temperature after a "bias" has been removed from the

@@ -23,7 +23,7 @@
 
 <LI>Nrepeat = # of correlation time windows to accumulate 
 
-<LI>Nfreq = calculate tine window averages every this many timesteps 
+<LI>Nfreq = calculate time window averages every this many timesteps 
 
 <LI>one or more input values can be listed 
 
@@ -80,7 +80,10 @@ and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
 <A HREF = "variable.html">variables</A> or used by other <A HREF = "Section_howto.html#howto_15">output
 commands</A> such as <A HREF = "thermo_style.html">thermo_style
-custom</A>, and can also be written to a file.
+custom</A>, and can also be written to a file.  See the
+<A HREF = "fix_ave_correlate_long.html">fix ave/correlate/long</A> command for an
+alternate method for computing correlation functions efficiently over
+very long time windows.
 </P>
 <P>The group specified with this command is ignored.  However, note that
 specified values may represent calculations performed by computes and
@@ -337,7 +340,8 @@ minimization</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_atom.html">fix
+<P><A HREF = "fix_ave_correlate_long.html">fix ave/correlate/long</A>,
+<A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_atom.html">fix
 ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
 <A HREF = "fix_ave_histo.html">fix ave/histo</A>, <A HREF = "variable.html">variable</A>
 </P>

@@ -93,11 +93,15 @@ overrides the parameters.
 
 The {pstyle} argument is the name of the pair style.  If "pair_style
 hybrid or hybrid/overlay"_pair_hybrid.html is used, {pstyle} should be
-a sub-style name.  For example, {pstyle} could be specified as "soft"
-or "lubricate".  The {pparam} argument is the name of the parameter to
-change.  This is the current list of pair styles and parameters that
-can be varied by this fix.  See the doc pages for individual pair
-styles and their energy formulas for the meaning of these parameters:
+a sub-style name.  If there are multiple sub-styles using the same
+pair style, then {pstyle} should be specified as "style:N" where N is
+which instance of the pair style you wish to adapt, e.g. the first,
+second, etc.  For example, {pstyle} could be specified as "soft" or
+"lubricate" or "lj/cut:1" or "lj/cut:2".  The {pparam} argument is the
+name of the parameter to change.  This is the current list of pair
+styles and parameters that can be varied by this fix.  See the doc
+pages for individual pair styles and their energy formulas for the
+meaning of these parameters:
 
 "born"_pair_born.html: a,b,c: type pairs:
 "buck"_pair_buck.html: a,c: type pairs:

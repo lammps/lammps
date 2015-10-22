@@ -152,7 +152,9 @@ coprocessors.
 
 All of these commands are in packages provided with LAMMPS.  An
 overview of packages is give in "Section
-packages"_Section_packages.html.  These are the accelerator packages
+packages"_Section_packages.html.
+
+These are the accelerator packages
 currently in LAMMPS, either as standard or user packages:
 
 "USER-CUDA"_accelerate_cuda.html : for NVIDIA GPUs
@@ -161,6 +163,19 @@ currently in LAMMPS, either as standard or user packages:
 "KOKKOS"_accelerate_kokkos.html : for GPUs, Intel Xeon Phi, and OpenMP threading
 "USER-OMP"_accelerate_omp.html : for OpenMP threading
 "OPT"_accelerate_opt.html : generic CPU optimizations :tb(s=:)
+
+Inverting this list, LAMMPS currently has acceleration support for
+three kinds of hardware, via the listed packages:
+
+Many-core CPUs : "USER-INTEL"_accelerate_intel.html, "KOKKOS"_accelerate_kokkos.html, "USER-OMP"_accelerate_omp.html, "OPT"_accelerate_opt.html packages
+NVIDIA GPUs : "USER-CUDA"_accelerate_cuda.html, "GPU"_accelerate_gpu.html, "KOKKOS"_accelerate_kokkos.html packages
+Intel Phi : "USER-INTEL"_accelerate_intel.html, "KOKKOS"_accelerate_kokkos.html packages :tb(s=:)
+
+Which package is fastest for your hardware may depend on the size
+problem you are running and what commands (accelerated and
+non-accelerated) are invoked by your input script.  While these doc
+pages include performance guidelines, there is no substitute for
+trying out the different packages appropriate to your hardware.
 
 Any accelerated style has the same name as the corresponding standard
 style, except that a suffix is appended.  Otherwise, the syntax for
@@ -195,11 +210,12 @@ install the accelerator package |
   make yes-opt, make yes-user-intel, etc |
 add compile/link flags to Makefile.machine |
   in src/MAKE, <br>
-  only for USER-INTEL, KOKKOS, USER-OMP packages |
+  only for USER-INTEL, KOKKOS, USER-OMP, OPT packages |
 re-build LAMMPS |
   make machine |
 run a LAMMPS simulation |
-  lmp_machine < in.script |
+  lmp_machine < in.script <br> 
+  mpirun -np 32 lmp_machine -in in.script |
 enable the accelerator package |
   via "-c on" and "-k on" "command-line switches"_Section_start.html#start_7, <br>
   only for USER-CUDA and KOKKOS packages |
@@ -211,8 +227,8 @@ use accelerated styles in your input script |
   via "-sf" "command-line switch"_Section_start.html#start_7 or
   "suffix"_suffix.html command :tb(c=2,s=|)
 
-The first 4 steps can be done as a single command, using the
-src/Make.py tool.  The Make.py tool is discussed in "Section
+Note that the first 4 steps can be done as a single command, using the
+src/Make.py tool.  This tool is discussed in "Section
 2.4"_Section_start.html#start_4 of the manual, and its use is
 illustrated in the individual accelerator sections.  Typically these
 steps only need to be done once, to create an executable that uses one
@@ -225,11 +241,13 @@ individual accelerator sections.  Or you can add
 script.
 
 IMPORTANT NOTE: With a few exceptions, you can build a single LAMMPS
-executable with all its accelerator packages installed.  Note that the
-USER-INTEL and KOKKOS packages require you to choose one of their
-options when building.  I.e. CPU or Phi for USER-INTEL.  OpenMP, Cuda,
-or Phi for KOKKOS.  Here are the exceptions; you cannot build a single
-executable with:
+executable with all its accelerator packages installed.  Note however
+that the USER-INTEL and KOKKOS packages require you to choose one of
+their hardware options when building for a specific platform.
+I.e. CPU or Phi option for the USER-INTEL package.  Or the OpenMP,
+Cuda, or Phi option for the KOKKOS package.
+
+These are the exceptions.  You cannot build a single executable with:
 
 both the USER-INTEL Phi and KOKKOS Phi options
 the USER-INTEL Phi or Kokkos Phi option, and either the USER-CUDA or GPU packages :ul
@@ -339,7 +357,7 @@ USER-CUDA package can be very low, causing it to run faster than the
 GPU package. :l
 
 The GPU package is often faster than the USER-CUDA package, if the
-number of atoms per GPU is "small".  The crossover point, in terms of
+number of atoms per GPU is smaller.  The crossover point, in terms of
 atoms/GPU at which the USER-CUDA package becomes faster depends
 strongly on the pair style.  For example, for a simple Lennard Jones
 system the crossover (in single precision) is often about 50K-100K

@@ -28,11 +28,26 @@ directory of the LAMMPS distribution.
 <P>See <A HREF = "Section_start.html#start_3">Section_start 3</A> of the manual for
 details on how to include/exclude specific packages as part of the
 LAMMPS build process, and for more details about the differences
-between standard packages and user packages in LAMMPS.
+between standard packages and user packages.
 </P>
-<P>Below, the packages currently availabe in LAMMPS are listed.  For
-standard packages, just a one-line description is given.  For user
-packages, more details are provided.
+<P>Unless otherwise noted below, every package is independent of all the
+others.  I.e. any package can be included or excluded in a LAMMPS
+build, independent of all other packages.  However, note that some
+packages include commands derived from commands in other packages.  If
+the other package is not installed, the derived command from the new
+package will also not be installed when you include the new one.
+E.g. the pair lj/cut/coul/long/omp command from the USER-OMP package
+will not be installed as part of the USER-OMP package if the KSPACE
+package is not also installed, since it contains the pair
+lj/cut/coul/long command.  If you later install the KSPACE pacakge and
+the USER-OMP package is already installed, both the pair
+lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.
+</P>
+<P>The two tables below list currently available packages in LAMMPS, with
+a one-line descriptions of each.  The sections below give a few more
+details, including instructions for building LAMMPS with the package,
+either via the make command or the Make.py tool described in <A HREF = "Section_start.html#start_4">Section
+2.4</A>.
 </P>
 <HR>
 
@@ -40,7 +55,7 @@ packages, more details are provided.
 
 <H4><A NAME = "pkg_1"></A>4.1 Standard packages 
 </H4>
-<P>The current list of standard packages is as follows:
+<P>The current list of standard packages is as follows. 
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Author(s)</TD><TD > Doc page</TD><TD > Example</TD><TD > Library</TD></TR>
@@ -78,6 +93,8 @@ packages, more details are provided.
 
 <P>The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
+More details on
+multiple authors are give below.
 </P>
 <P>(1) The FLD package was created by Amit Kumar and Michael Bybee from
 Jonathan Higdon's group at UIUC.
@@ -112,6 +129,71 @@ info on where to download the library.  <A HREF = "Section_start.html#start_3_3"
 start</A> of the manual also gives details
 on how to build LAMMPS with both kinds of auxiliary libraries.
 </P>
+<P>Except where explained below, all of these packages can be installed,
+and LAMMPS re-built, by issuing these commands from the src dir.
+</P>
+<PRE>make yes-package
+make machine
+or
+Make.py -p package -a machine 
+</PRE>
+<P>To un-install the package and re-build LAMMPS without it:
+</P>
+<PRE>make no-package
+make machine
+or
+Make.py -p ^package -a machine 
+</PRE>
+<P>"Package" is the name of the package in lower-case letters,
+e.g. asphere or rigid, and "machine" is the build target, e.g. mpi or
+serial.
+</P>
+<HR>
+
+<HR>
+
+<H4>Build instructions for COMPRESS package 
+</H4>
+<HR>
+
+<H4>Build instructions for GPU package 
+</H4>
+<HR>
+
+<H4>Build instructions for KIM package 
+</H4>
+<HR>
+
+<H4>Build instructions for KOKKOS package 
+</H4>
+<HR>
+
+<H4>Build instructions for KSPACE package 
+</H4>
+<HR>
+
+<H4>Build instructions for MEAM package 
+</H4>
+<HR>
+
+<H4>Build instructions for POEMS package 
+</H4>
+<HR>
+
+<H4>Build instructions for PYTHON package 
+</H4>
+<HR>
+
+<H4>Build instructions for REAX package 
+</H4>
+<HR>
+
+<H4>Build instructions for VORONOI package 
+</H4>
+<HR>
+
+<H4>Build instructions for XTC package 
+</H4>
 <HR>
 
 <HR>
@@ -161,12 +243,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 <P>The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 </P>
-<P>If the Library is not listed as lib/package, then it is a third-party
-library not included in the LAMMPS distribution.  See the
-src/package/Makefile.lammps file for info on where to download the
-library from.
-</P>
-<P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+<P>(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 </P>
 <P>(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
@@ -177,10 +254,15 @@ Jerome Henin (LISM, Marseille, France).
 Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
 (U Blaise Pascal).
 </P>
+<P>If the Library is not listed as lib/package, then it is a third-party
+library not included in the LAMMPS distribution.  See the
+src/package/Makefile.lammps file for info on where to download the
+library from.
+</P>
 <P>The "Doc page" column links to either a portion of the
 <A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
 command implemented as part of the package, or to additional
-documentation provided witht he package.
+documentation provided within the package.
 </P>
 <P>The "Example" column is a sub-directory in the examples directory of
 the distribution which has an input script that uses the package.
@@ -198,9 +280,27 @@ the library.  <A HREF = "Section_start.html#start_3_3">Section start</A> of the
 manual also gives details on how to build LAMMPS with both kinds of
 auxiliary libraries.
 </P>
-<P>More details on each package, from the USER-*/README file is given
-below.
+<P>Except where explained below, all of these packages can be installed,
+and LAMMPS re-built, by issuing these commands from the src dir.
 </P>
+<PRE>make yes-user-package
+make machine
+or
+Make.py -p package -a machine 
+</PRE>
+<P>To un-install the package and re-build LAMMPS without it:
+</P>
+<PRE>make no-user-package
+make machine
+or
+Make.py -p ^package -a machine 
+</PRE>
+<P>"Package" is the name of the package (in this case without the user
+prefix) in lower-case letters, e.g. drude or phonon, and "machine" is
+the build target, e.g. mpi or serial.
+</P>
+<HR>
+
 <HR>
 
 <H4>USER-ATC package 

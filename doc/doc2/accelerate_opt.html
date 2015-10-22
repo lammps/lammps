@@ -20,49 +20,38 @@ Technologies).  It contains a handful of pair styles whose compute()
 methods were rewritten in C++ templated form to reduce the overhead
 due to if tests and other conditional code.
 </P>
-<P>Here is a quick overview of how to use the OPT package:
+<P>Here is a quick overview of how to use the OPT package.  More details
+follow.
 </P>
-<UL><LI>include the OPT package and build LAMMPS
-<LI>use OPT pair styles in your input script 
-</UL>
-<P>The last step can be done using the "-sf opt" <A HREF = "Section_start.html#start_7">command-line
-switch</A>.  Or the effect of the "-sf" switch
-can be duplicated by adding a <A HREF = "suffix.html">suffix opt</A> command to your
-input script.
-</P>
+<PRE>make yes-opt
+make mpi                               # build with the OPT pacakge
+Make.py -v -p opt -o mpi -a file mpi   # or one-line build via Make.py 
+</PRE>
+<PRE>lmp_mpi -sf opt -in in.script                # run in serial
+mpirun -np 4 lmp_mpi -sf opt -in in.script   # run in parallel 
+</PRE>
 <P><B>Required hardware/software:</B>
 </P>
 <P>None.
 </P>
 <P><B>Building LAMMPS with the OPT package:</B>
 </P>
-<P>Include the package and build LAMMPS:
+<P>The lines above illustrate how to build LAMMPS with the OPT package in
+two steps, using the "make" command.  Or how to do it with one command
+via the src/Make.py script, described in <A HREF = "Section_start.html#start_4">Section
+2.4</A> of the manual.  Type "Make.py -h" for
+help.
 </P>
-<P>To do this in one line, use the src/Make.py script, described in
-<A HREF = "Section_start.html#start_4">Section 2.4</A> of the manual.  Type "Make.py
--h" for help.  If run from the src directory, this command will create
-src/lmp_opt using src/MAKE/Makefile.mpi as the starting
-Makefile.machine:
-</P>
-<PRE>Make.py -p opt -o opt -a file mpi 
-</PRE>
-<P>Or you can follow these steps:
-</P>
-<PRE>cd lammps/src
-make yes-opt
-make machine 
-</PRE>
-<P>If you are using Intel compilers, then the CCFLAGS setting in
-Makefile.machine needs to include "-restrict".
+<P>Note that if you use an Intel compiler to build with the OPT package,
+the CCFLAGS setting in your Makefile.machine must include "-restrict".
+The Make.py command will add this automatically.
 </P>
 <P><B>Run with the OPT package from the command line:</B>
 </P>
-<P>Use the "-sf opt" <A HREF = "Section_start.html#start_7">command-line switch</A>,
-which will automatically append "opt" to styles that support it.
+<P>As in the lines above, use the "-sf opt" <A HREF = "Section_start.html#start_7">command-line
+switch</A>, which will automatically append
+"opt" to styles that support it.
 </P>
-<PRE>lmp_machine -sf opt -in in.script
-mpirun -np 4 lmp_machine -sf opt -in in.script 
-</PRE>
 <P><B>Or run with the OPT package by editing an input script:</B>
 </P>
 <P>Use the <A HREF = "suffix.html">suffix opt</A> command, or you can explicitly add an
@@ -78,7 +67,7 @@ of a run.  On most machines for reasonable problem sizes, it will be a
 </P>
 <P><B>Guidelines for best performance:</B>
 </P>
-<P>None.  Just try out an OPT pair style to see how it performs.
+<P>Just try out an OPT pair style to see how it performs.
 </P>
 <P><B>Restrictions:</B>
 </P>

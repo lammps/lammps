@@ -634,10 +634,6 @@ excluded, you can build it yourself.
 standard unix style make program, just as you would on a Linux box;
 see src/MAKE/MACHINES/Makefile.cygwin.
 </P>
-<P>The other way to do this is using Visual Studio and project files.
-See the src/WINDOWS directory and its README.txt file for instructions
-on both a basic build and a customized build with pacakges you select.
-</P>
 <HR>
 
 <H4><A NAME = "start_3"></A>2.3 Making LAMMPS with optional packages 
@@ -676,41 +672,43 @@ package.  You can also type
 <PRE>lmp_machine -h 
 </PRE>
 <P>to run your executable with the optional <A HREF = "#start_7">-h command-line
-switch</A> for "help", which will list the styles and commands
-known to your executable.
+switch</A> for "help", which will simply list the styles and
+commands known to your executable, and immediately exit.
 </P>
 <P>There are two kinds of packages in LAMMPS, standard and user packages.
 More information about the contents of standard and user packages is
 given in <A HREF = "Section_packages.html">Section_packages</A> of the manual.  The
 difference between standard and user packages is as follows:
 </P>
-<P>Standard packages are supported by the LAMMPS developers and are
-written in a syntax and style consistent with the rest of LAMMPS.
-This means we will answer questions about them, debug and fix them if
-necessary, and keep them compatible with future changes to LAMMPS.
+<P>Standard packages, such as molecule or kspace, are supported by the
+LAMMPS developers and are written in a syntax and style consistent
+with the rest of LAMMPS.  This means we will answer questions about
+them, debug and fix them if necessary, and keep them compatible with
+future changes to LAMMPS.
 </P>
-<P>User packages have been contributed by users, and always begin with
-the user prefix.  If they are a single command (single file), they are
-typically in the user-misc package.  Otherwise, they are a a set of
-files grouped together which add a specific functionality to the code.
+<P>User packages, such as user-atc or user-omp, have been contributed by
+users, and always begin with the user prefix.  If they are a single
+command (single file), they are typically in the user-misc package.
+Otherwise, they are a a set of files grouped together which add a
+specific functionality to the code.
 </P>
 <P>User packages don't necessarily meet the requirements of the standard
 packages.  If you have problems using a feature provided in a user
-package, you will likely need to contact the contributor directly to
-get help.  Information on how to submit additions you make to LAMMPS
-as a user-contributed package is given in <A HREF = "Section_modify.html#mod_15">this
-section</A> of the documentation.
+package, you may need to contact the contributor directly to get help.
+Information on how to submit additions you make to LAMMPS as single
+files or either a standard or user-contributed package are given in
+<A HREF = "Section_modify.html#mod_15">this section</A> of the documentation.
 </P>
-<P>Some packages (both standard and user) require additional libraries.
-See more details below.
+<P>Some packages (both standard and user) require additional auxiliary
+libraries when building LAMMPS.  See more details below.
 </P>
 <HR>
 
 <A NAME = "start_3_2"></A><B><I>Including/excluding packages:</I></B> 
 
-<P>To use or not use a package you must include or exclude it before
-building LAMMPS.  From the src directory, this is typically as simple
-as:
+<P>To use (or not use) a package you must include it (or exclude it)
+before building LAMMPS.  From the src directory, this is typically as
+simple as:
 </P>
 <PRE>make yes-colloid
 make g++ 
@@ -721,10 +719,10 @@ make g++
 make g++ 
 </PRE>
 <P>IMPORTANT NOTE: You should NOT include/exclude packages and build
-LAMMPS in a single make command by using multiple targets, e.g. make
+LAMMPS in a single make command using multiple targets, e.g. make
 yes-colloid g++.  This is because the make procedure creates a list of
 source files that will be out-of-date for the build if the package
-configuration changes during the same command.
+configuration changes within the same command.
 </P>
 <P>Some packages have individual files that depend on other packages
 being included.  LAMMPS checks for this and does the right thing.
@@ -783,34 +781,34 @@ options.
 <A NAME = "start_3_3"></A><B><I>Packages that require extra libraries:</I></B> 
 
 <P>A few of the standard and user packages require additional auxiliary
-libraries.  Most of them are provided with LAMMPS, in which case they
-must be compiled first, before LAMMPS is built if you wish to include
+libraries.  Many of them are provided with LAMMPS, in which case they
+must be compiled first, before LAMMPS is built, if you wish to include
 that package.  If you get a LAMMPS build error about a missing
 library, this is likely the reason.  See the
 <A HREF = "Section_packages.html">Section_packages</A> doc page for a list of
 packages that have these kinds of auxiliary libraries.
 </P>
 <P>The lib directory in the distribution has sub-directories with package
-names that correspond to the needed auxiliary libs, e.g. lib/reax.
+names that correspond to the needed auxiliary libs, e.g. lib/gpu.
 Each sub-directory has a README file that gives more details.  Code
 for most of the auxiliary libraries is included in that directory.
 Examples are the USER-ATC and MEAM packages.
 </P>
 <P>A few of the lib sub-directories do not include code, but do include
-instructions and sometimes scripts that automate the process of
+instructions (and sometimes scripts) that automate the process of
 downloading the auxiliary library and installing it so LAMMPS can link
-to it.  Examples are the KIM and VORONOI and USER-MOLFILE and USER-SMD
+to it.  Examples are the KIM, VORONOI, USER-MOLFILE, and USER-SMD
 packages.
 </P>
 <P>The lib/python directory (for the PYTHON package) contains only a
 choice of Makefile.lammps.* files.  This is because no auxiliary code
 or libraries are needed, only the Python library and other system libs
-that already available on your system.  However, the Makefile.lammps
-file is needed to tell the LAMMPS build which libs to use and where to
-find them.
+that should already available on your system.  However, the
+Makefile.lammps file is needed to tell LAMMPS which libs to use and
+where to find them.
 </P>
 <P>For libraries with provided code, the sub-directory README file
-(e.g. lib/reax/README) has instructions on how to build that library.
+(e.g. lib/atc/README) has instructions on how to build that library.
 Typically this is done by typing something like:
 </P>
 <PRE>make -f Makefile.g++ 
@@ -836,10 +834,10 @@ fail.
 <P>As explained in the lib/package/README files, the settings in
 Makefile.lammps are used to specify additional system libraries and
 their locations so that LAMMPS can build with the auxiliary library.
-For example, if the MEAM or REAX packages are used, the auxiliary
-libraries consist of F90 code, built with a Fortran complier.  To link
-that library with LAMMPS (a C++ code) via whatever C++ compiler LAMMPS
-is built with, typically requires additional Fortran-to-C libraries be
+For example, if the MEAM package is used, the auxiliary library
+consists of F90 code, built with a Fortran complier.  To link that
+library with LAMMPS (a C++ code) via whatever C++ compiler LAMMPS is
+built with, typically requires additional Fortran-to-C libraries be
 included in the link.  Another example are the BLAS and LAPACK
 libraries needed to use the USER-ATC or USER-AWPMD packages.
 </P>
@@ -942,7 +940,7 @@ settings for CCFLAGS.
 </UL>
 <HR>
 
-<H4><A NAME = "start_4"></A>2.4 Building LAMMPS via the Make.py script 
+<H4><A NAME = "start_4"></A>2.4 Building LAMMPS via the Make.py tool 
 </H4>
 <P>The src directory includes a Make.py script, written in Python, which
 can be used to automate various steps of the build process.  It is

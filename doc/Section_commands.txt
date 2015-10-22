@@ -601,6 +601,7 @@ package"_Section_start.html#start_3.
 "adapt/fep"_fix_adapt_fep.html,
 "addtorque"_fix_addtorque.html,
 "atc"_fix_atc.html,
+"ave/correlate/long"_fix_ave_correlate_long.html,
 "ave/spatial/sphere"_fix_ave_spatial_sphere.html,
 "drude"_fix_drude.html,
 "drude/transform/direct"_fix_drude_transform.html,
@@ -885,7 +886,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "tip4p/cut (o)"_pair_coul.html,
 "tip4p/long (o)"_pair_coul.html,
 "tri/lj (o)"_pair_tri_lj.html,
-"vashishta"_pair_vashishta.html,
+"vashishta (o)"_pair_vashishta.html,
 "yukawa (go)"_pair_yukawa.html,
 "yukawa/colloid (go)"_pair_yukawa_colloid.html,
 "zbl (go)"_pair_zbl.html :tb(c=4,ea=c)

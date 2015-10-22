@@ -456,7 +456,7 @@ void Output::reset_timestep(bigint ntimestep)
       next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump];
       if (next_dump[idump] < ntimestep) next_dump[idump] += every_dump[idump];
     } else {
-      // ivar_dump may not be initialized.
+      // ivar_dump may not be initialized
       if (ivar_dump[idump] < 0) {
         ivar_dump[idump] = input->variable->find(var_dump[idump]);
         if (ivar_dump[idump] < 0)
@@ -569,7 +569,7 @@ void Output::add_dump(int narg, char **arg)
     memory->grow(ivar_dump,max_dump,"output:ivar_dump");
   }
 
-  // make certain that per-dump data is properly initialized to suitable default values
+  // initialize per-dump data to suitable default values
 
   every_dump[ndump] = 0;
   last_dump[ndump] = -1;

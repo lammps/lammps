@@ -266,14 +266,7 @@ double ComputeTempCS::compute_scalar()
 
 void ComputeTempCS::compute_vector()
 {
-  double vthermal[3];
-
   invoked_vector = update->ntimestep;
-
-  vcm_pairs();
-
-  // calculate thermal vector in respect to atom velocities as center-of-mass 
-  // velocities of its according C/S pairs
 
   double **v = atom->v;
   int *mask = atom->mask;
@@ -288,17 +281,14 @@ void ComputeTempCS::compute_vector()
 
   for (int i = 0; i < nlocal; i++){
     if (mask[i] & groupbit) {
-      vthermal[0] = v[i][0] - vint[i][0];
-      vthermal[1] = v[i][1] - vint[i][1];
-      vthermal[2] = v[i][2] - vint[i][2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
-      t[0] += massone * vthermal[0]*vthermal[0];
-      t[1] += massone * vthermal[1]*vthermal[1];
-      t[2] += massone * vthermal[2]*vthermal[2];
-      t[3] += massone * vthermal[0]*vthermal[1];
-      t[4] += massone * vthermal[0]*vthermal[2];
-      t[5] += massone * vthermal[1]*vthermal[2];
+      t[0] += massone * v[i][0]*v[i][0];
+      t[1] += massone * v[i][1]*v[i][1];
+      t[2] += massone * v[i][2]*v[i][2];
+      t[3] += massone * v[i][0]*v[i][1];
+      t[4] += massone * v[i][0]*v[i][2];
+      t[5] += massone * v[i][1]*v[i][2];
     }
   }
 

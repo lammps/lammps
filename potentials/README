@@ -92,6 +92,7 @@ meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
 nb3b.harmonic nonbonded 3-body harmonic potential
 poly          polymorphic 3-body potential
 reax	      ReaxFF potential (see README.reax for more info)
+smtbq         Second Moment Tight Binding - QEq potential
 snap          SNAP potential
 snapcoeff     SNAP potential
 snapparam     SNAP potential

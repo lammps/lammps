@@ -170,7 +170,7 @@ variable previously set in the input script, so that each partition is
 assigned a different temperature.  See the <a class="reference internal" href="variable.html"><em>variable</em></a>
 command for more details.  For example:</p>
 <div class="highlight-python"><div class="highlight"><pre>variable t world 300.0 310.0 320.0 330.0
-fix myfix all nvt $t $t 100.0
+fix myfix all nvt temp $t $t 100.0
 temper 100000 100 $t myfix 3847 58382
 </pre></div>
 </div>

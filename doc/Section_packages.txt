@@ -207,6 +207,7 @@ USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferra
 USER-H5MD, dump output via HDF5, Pierre de Buyl (KU Leuven), "dump h5md"_dump_h5md.html, -, -, lib/h5md
 USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
+USER-MGPT, Fast MGPT multi-ion potentials, Tomas Oppelstrup & John Moriarty (LLNL), "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
@@ -579,6 +580,34 @@ See this doc page and its related commands to get started:
 The people who created this package are Frances Mackay (fmackay at
 uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
 Western Ontario.  Contact them directly if you have questions.
+
+:line
+
+USER-MGPT package :h4
+
+This package contains a fast implementation for LAMMPS of
+quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
+derives from first-principles DFT-based generalized pseudopotential
+theory (GPT) through a series of systematic approximations valid for
+mid-period transition metals with nearly half-filled d bands.  The
+MGPT method was originally developed by John Moriarty at Lawrence
+Livermore National Lab (LLNL).
+
+In the general matrix representation of MGPT, which can also be
+applied to f-band actinide metals, the multi-ion potentials are
+evaluated on the fly during a simulation through d- or f-state matrix
+multiplication, and the forces that move the ions are determined
+analytically.  The {mgpt} pair style in this package calculates forces
+and energies using an optimized matrix-MGPT algorithm due to Tomas
+Oppelstrup at LLNL.
+
+See this doc page to get started:
+
+"pair_style mgpt"_pair_mgpt.html
+
+The persons who created the USER-MGPT package are Tomas Oppelstrup
+(oppelstrup2@llnl.gov) and John Moriarty (moriarty2@llnl.gov)
+Contact them directly if you have any questions.
 
 :line
 

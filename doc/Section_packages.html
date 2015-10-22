@@ -103,15 +103,16 @@
 <li class="toctree-l2"><a class="reference internal" href="#user-h5md-package">4.23. USER-H5MD package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-intel-package">4.24. USER-INTEL package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-lb-package">4.25. USER-LB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-misc-package">4.26. USER-MISC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-molfile-package">4.27. USER-MOLFILE package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-omp-package">4.28. USER-OMP package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-phonon-package">4.29. USER-PHONON package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.30. USER-QMMM package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.31. USER-QTB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.32. USER-REAXC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.33. USER-SMD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.34. USER-SPH package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-mgpt-package">4.26. USER-MGPT package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-misc-package">4.27. USER-MISC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-molfile-package">4.28. USER-MOLFILE package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-omp-package">4.29. USER-OMP package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-phonon-package">4.30. USER-PHONON package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.31. USER-QMMM package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.32. USER-QTB package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.33. USER-REAXC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.34. USER-SMD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.35. USER-SPH package</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
@@ -823,7 +824,21 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-MISC</td>
+<tr class="row-even"><td>USER-MGPT</td>
+<td>Fast MGPT multi-ion potentials</td>
+<td>Tomas Oppelstrup &amp; John Moriarty (LLNL)</td>
+<td><a class="reference internal" href="pair_mgpt.html"><em>pair_style mgpt</em></a></td>
+<td>USER/mgpt</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>USER-MISC</td>
 <td>single-file contributions</td>
 <td>USER-MISC/README</td>
 <td>USER-MISC/README</td>
@@ -840,7 +855,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-MOLFILE</td>
+<tr class="row-even"><td>USER-MOLFILE</td>
 <td><a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molfile plug-ins</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="dump_molfile.html"><em>dump molfile</em></a></td>
@@ -854,7 +869,7 @@ serial.</p>
 </td>
 <td>VMD-MOLFILE</td>
 </tr>
-<tr class="row-even"><td>USER-OMP</td>
+<tr class="row-odd"><td>USER-OMP</td>
 <td>OpenMP threaded styles</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="accelerate_omp.html"><em>Section accelerate</em></a></td>
@@ -871,7 +886,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-PHONON</td>
+<tr class="row-even"><td>USER-PHONON</td>
 <td>phonon dynamical matrix</td>
 <td>Ling-Ti Kong (Shanghai Jiao Tong U)</td>
 <td><a class="reference internal" href="fix_phonon.html"><em>fix phonon</em></a></td>
@@ -885,7 +900,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-QMMM</td>
+<tr class="row-odd"><td>USER-QMMM</td>
 <td>QM/MM coupling</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="fix_qmmm.html"><em>fix qmmm</em></a></td>
@@ -896,7 +911,7 @@ serial.</p>
 </td>
 <td>lib/qmmm</td>
 </tr>
-<tr class="row-odd"><td>USER-QTB</td>
+<tr class="row-even"><td>USER-QTB</td>
 <td>quantum nuclear effects</td>
 <td>Yuan Shen (Stanford)</td>
 <td><a class="reference internal" href="fix_qtb.html"><em>fix qtb</em></a> <a class="reference internal" href="fix_qbmsst.html"><em>fix_qbmsst</em></a></td>
@@ -910,7 +925,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-QUIP</td>
+<tr class="row-odd"><td>USER-QUIP</td>
 <td>QUIP/libatoms interface</td>
 <td>Albert Bartok-Partay (U Cambridge)</td>
 <td><a class="reference internal" href="pair_quip.html"><em>pair_style quip</em></a></td>
@@ -921,7 +936,7 @@ serial.</p>
 </td>
 <td>lib/quip</td>
 </tr>
-<tr class="row-odd"><td>USER-REAXC</td>
+<tr class="row-even"><td>USER-REAXC</td>
 <td>C version of ReaxFF</td>
 <td>Metin Aktulga (LBNL)</td>
 <td><a class="reference internal" href="pair_reax_c.html"><em>pair_style reaxc</em></a></td>
@@ -935,7 +950,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-SMD</td>
+<tr class="row-odd"><td>USER-SMD</td>
 <td>smoothed Mach dynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -949,7 +964,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-SPH</td>
+<tr class="row-even"><td>USER-SPH</td>
 <td>smoothed particle hydrodynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -960,7 +975,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-TALLY</td>
+<tr class="row-odd"><td>USER-TALLY</td>
 <td>Pairwise tallied computes</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><code class="xref doc docutils literal"><span class="pre">compute</span></code></td>
@@ -974,7 +989,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>&nbsp;</td>
+<tr class="row-even"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -1275,8 +1290,31 @@ uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
 Western Ontario.  Contact them directly if you have questions.</p>
 </div>
 <hr class="docutils" />
+<div class="section" id="user-mgpt-package">
+<h2>4.26. USER-MGPT package<a class="headerlink" href="#user-mgpt-package" title="Permalink to this headline">¶</a></h2>
+<p>This package contains a fast implementation for LAMMPS of
+quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
+derives from first-principles DFT-based generalized pseudopotential
+theory (GPT) through a series of systematic approximations valid for
+mid-period transition metals with nearly half-filled d bands.  The
+MGPT method was originally developed by John Moriarty at Lawrence
+Livermore National Lab (LLNL).</p>
+<p>In the general matrix representation of MGPT, which can also be
+applied to f-band actinide metals, the multi-ion potentials are
+evaluated on the fly during a simulation through d- or f-state matrix
+multiplication, and the forces that move the ions are determined
+analytically.  The <em>mgpt</em> pair style in this package calculates forces
+and energies using an optimized matrix-MGPT algorithm due to Tomas
+Oppelstrup at LLNL.</p>
+<p>See this doc page to get started:</p>
+<p><a class="reference internal" href="pair_mgpt.html"><em>pair_style mgpt</em></a></p>
+<p>The persons who created the USER-MGPT package are Tomas Oppelstrup
+(<a class="reference external" href="mailto:oppelstrup2&#37;&#52;&#48;llnl&#46;gov">oppelstrup2<span>&#64;</span>llnl<span>&#46;</span>gov</a>) and John Moriarty (<a class="reference external" href="mailto:moriarty2&#37;&#52;&#48;llnl&#46;gov">moriarty2<span>&#64;</span>llnl<span>&#46;</span>gov</a>)
+Contact them directly if you have any questions.</p>
+</div>
+<hr class="docutils" />
 <div class="section" id="user-misc-package">
-<h2>4.26. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.27. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
 pair of files (<a href="#id2"><span class="problematic" id="id3">*</span></a>.cpp and <a href="#id4"><span class="problematic" id="id5">*</span></a>.h).</p>
@@ -1293,7 +1331,7 @@ about the feature or its coding.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-molfile-package">
-<h2>4.27. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.28. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
 <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molecular visualization and
@@ -1312,7 +1350,7 @@ application itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-omp-package">
-<h2>4.28. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.29. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides OpenMP multi-threading support and
 other optimizations of various LAMMPS pair styles, dihedral
 styles, and fix styles.</p>
@@ -1323,7 +1361,7 @@ styles, and fix styles.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-phonon-package">
-<h2>4.29. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.30. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.</p>
@@ -1335,7 +1373,7 @@ if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qmmm-package">
-<h2>4.30. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.31. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a fix qmmm command which allows LAMMPS to be
 used in a QM/MM simulation, currently only in combination with pw.x
 code from the <a class="reference external" href="http://www.quantum-espresso.org">Quantum ESPRESSO</a> package.</p>
@@ -1352,7 +1390,7 @@ without changes to LAMMPS itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qtb-package">
-<h2>4.31. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.32. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a self-consistent quantum treatment of the
 vibrational modes in a classical molecular dynamics simulation.  By
 coupling the MD simulation to a colored thermostat, it introduces zero
@@ -1374,7 +1412,7 @@ have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-reaxc-package">
-<h2>4.32. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.33. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a implementation for LAMMPS of the ReaxFF force
 field.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
@@ -1402,7 +1440,7 @@ questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-smd-package">
-<h2>4.33. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.34. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">
@@ -1425,7 +1463,7 @@ Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
 you have questions.</p>
 </div>
 <div class="section" id="user-sph-package">
-<h2>4.34. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.35. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">

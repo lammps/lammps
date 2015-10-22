@@ -118,7 +118,6 @@ void ComputeMSDChunk::compute_array()
 
   if (firstflag) {
     nchunk = n;
-    size_array_rows = nchunk;
     allocate();
     size_array_rows = nchunk;
   } else if (n != nchunk) 

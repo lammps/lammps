@@ -53,9 +53,9 @@ class FixTIRS : public Fix {
   double l_initial;    // Lambda initial value.
   double l_final;      // Lambda final value.
   double linfo[2];     // Current lambda status.
-  int    t_switch;     // Total switching steps.
-  int    t_equil;      // Equilibration time.
-  int    t0;           // Initial time.
+  bigint t_switch;     // Total switching steps.
+  bigint t_equil;      // Equilibration time.
+  bigint t0;           // Initial time.
   int    sf;           // Switching function option.
   int    nlevels_respa;
 };

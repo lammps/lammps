@@ -51,7 +51,7 @@ PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
   tripletParameters = NULL;
   elem2param = NULL;
   elem3param = NULL;
-
+  type_map = NULL;
 }
 
 /* ----------------------------------------------------------------------

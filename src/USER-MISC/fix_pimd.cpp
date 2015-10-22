@@ -659,8 +659,11 @@ void FixPIMD::comm_exec(double **ptr)
       {
         char error_line[256];
       
-        sprintf(error_line, "Atom %d is missing at world [%d] rank [%d] required by  rank [%d] (%d, %d, %d).\n",
-          tag_send[i], universe->iworld, comm->me, plan_recv[iplan], atom->tag[0], atom->tag[1], atom->tag[2]);
+        sprintf(error_line, "Atom " TAGINT_FORMAT " is missing at world [%d] "
+                "rank [%d] required by  rank [%d] (" TAGINT_FORMAT ", "
+                TAGINT_FORMAT ", " TAGINT_FORMAT ").\n",tag_send[i],
+                universe->iworld, comm->me, plan_recv[iplan],
+                atom->tag[0], atom->tag[1], atom->tag[2]);
 	  
         error->universe_one(FLERR,error_line);
       }

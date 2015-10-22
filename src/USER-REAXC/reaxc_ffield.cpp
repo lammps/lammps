@@ -60,6 +60,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   if (n < 1) {
     fprintf( stderr, "WARNING: number of globals in ffield file is 0!\n" );
     fclose(fp);
+    free(s);
+    free(tmp);
     return 1;
   }
 

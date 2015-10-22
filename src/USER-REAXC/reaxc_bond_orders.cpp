@@ -359,12 +359,6 @@ int BOp( storage *workspace, reax_list *bonds, double bo_cut,
 }
 
 
-int compare_bonds( const void *p1, const void *p2 )
-{
-  return ((bond_data *)p1)->nbr - ((bond_data *)p2)->nbr;
-}
-
-
 void BO( reax_system *system, control_params *control, simulation_data *data,
          storage *workspace, reax_list **lists, output_controls *out_control )
 {

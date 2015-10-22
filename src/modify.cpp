@@ -42,7 +42,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   nfix = maxfix = 0;
   n_initial_integrate = n_post_integrate = 0;
   n_pre_exchange = n_pre_neighbor = 0;
-  n_pre_force = n_post_force = 0;
+  n_pre_force = n_pre_reverse = n_post_force = 0;
   n_final_integrate = n_end_of_step = n_thermo_energy = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
@@ -52,7 +52,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   fmask = NULL;
   list_initial_integrate = list_post_integrate = NULL;
   list_pre_exchange = list_pre_neighbor = NULL;
-  list_pre_force = list_post_force = NULL;
+  list_pre_force = list_pre_reverse = list_post_force = NULL;
   list_final_integrate = list_end_of_step = NULL;
   list_thermo_energy = NULL;
   list_initial_integrate_respa = list_post_integrate_respa = NULL;
@@ -119,6 +119,7 @@ Modify::~Modify()
   delete [] list_pre_exchange;
   delete [] list_pre_neighbor;
   delete [] list_pre_force;
+  delete [] list_pre_reverse;
   delete [] list_post_force;
   delete [] list_final_integrate;
   delete [] list_end_of_step;
@@ -162,6 +163,7 @@ void Modify::init()
   list_init(PRE_EXCHANGE,n_pre_exchange,list_pre_exchange);
   list_init(PRE_NEIGHBOR,n_pre_neighbor,list_pre_neighbor);
   list_init(PRE_FORCE,n_pre_force,list_pre_force);
+  list_init(PRE_REVERSE,n_pre_reverse,list_pre_reverse);
   list_init(POST_FORCE,n_post_force,list_post_force);
   list_init(FINAL_INTEGRATE,n_final_integrate,list_final_integrate);
   list_init_end_of_step(END_OF_STEP,n_end_of_step,list_end_of_step);
@@ -381,6 +383,15 @@ void Modify::pre_force(int vflag)
 {
   for (int i = 0; i < n_pre_force; i++)
     fix[list_pre_force[i]]->pre_force(vflag);
+}
+/* ----------------------------------------------------------------------
+   pre_reverse call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::pre_reverse(int eflag, int vflag)
+{
+  for (int i = 0; i < n_pre_reverse; i++)
+    fix[list_pre_reverse[i]]->pre_reverse(eflag,vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -789,8 +800,8 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         strcmp(style_restart_global[i],fix[ifix]->style) == 0) {
       fix[ifix]->restart(state_restart_global[i]);
       if (comm->me == 0) {
-        char *str = (char *) ("Resetting global state of Fix %s Style %s "
-                              "from restart file info\n");
+        const char *str = (const char *) ("Resetting global state of Fix %s "
+                                          "Style %s from restart file info\n");
         if (screen) fprintf(screen,str,fix[ifix]->id,fix[ifix]->style);
         if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
       }

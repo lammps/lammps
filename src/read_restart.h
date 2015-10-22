@@ -33,7 +33,6 @@ class ReadRestart : protected Pointers {
  private:
   int me,nprocs,nprocs_file,multiproc_file;
   FILE *fp;
-  int nfix_restart_global,nfix_restart_peratom;
 
   int multiproc;             // 0 = proc 0 writes for all
                              // else # of procs writing files
@@ -42,7 +41,6 @@ class ReadRestart : protected Pointers {
 
   int mpiioflag;               // 1 for MPIIO output, else 0
   class RestartMPIIO *mpiio;   // MPIIO for restart file input
-  int numChunksAssigned;
   bigint assignedChunkSize;
   MPI_Offset assignedChunkOffset,headerOffset;
 

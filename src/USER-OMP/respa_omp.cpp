@@ -74,6 +74,17 @@ void RespaOMP::setup()
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
     fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
     fprintf(screen,"  OuterTime step: %g\n", update->dt);
+    if (update->max_wall > 0) {
+      char outtime[128];
+      double totalclock = update->max_wall;
+      int seconds = fmod(totalclock,60.0);
+      totalclock  = (totalclock - seconds) / 60.0;
+      int minutes = fmod(totalclock,60.0);
+      int hours = (totalclock - minutes) / 60.0;
+      sprintf(outtime,"  Max walltime: "
+              "%d:%02d:%02d\n", hours, minutes, seconds);
+      fputs(outtime,screen);
+    }
   }
 
   update->setupflag = 1;
@@ -150,6 +161,7 @@ void RespaOMP::setup()
       fix->did_reduce();
     }
 
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -243,6 +255,7 @@ void RespaOMP::setup_minimal(int flag)
       fix->did_reduce();
     }
 
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -391,6 +404,10 @@ void RespaOMP::recurse(int ilevel)
       fix->did_reduce();
     }
 
+    if (modify->n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
+    }
     if (newton[ilevel]) {
       comm->reverse_comm();
       timer->stamp(Timer::COMM);

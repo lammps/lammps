@@ -241,7 +241,8 @@ void VerletSplit::init()
 
 void VerletSplit::setup()
 {
-  if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
+  if (comm->me == 0 && screen)
+    fprintf(screen,"Setting up Verlet/split run ...\n");
 
   if (!master) force->kspace->setup();
   else Verlet::setup();
@@ -298,6 +299,7 @@ void VerletSplit::run(int n)
   int n_pre_exchange = modify->n_pre_exchange;
   int n_pre_neighbor = modify->n_pre_neighbor;
   int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
 
@@ -374,6 +376,10 @@ void VerletSplit::run(int n)
         timer->stamp(Timer::BOND);
       }
 
+      if (n_pre_reverse) {
+        modify->pre_reverse(eflag,vflag);
+        timer->stamp(Timer::MODIFY);
+      }
       if (force->newton) {
         comm->reverse_comm();
         timer->stamp(Timer::COMM);
@@ -389,6 +395,11 @@ void VerletSplit::run(int n)
         timer->stamp();
         force->kspace->compute(eflag,vflag);
         timer->stamp(Timer::KSPACE);
+      }
+
+      if (n_pre_reverse) {
+        modify->pre_reverse(eflag,vflag);
+        timer->stamp(Timer::MODIFY);
       }
 
       // TIP4P PPPM puts forces on ghost atoms, so must reverse_comm()

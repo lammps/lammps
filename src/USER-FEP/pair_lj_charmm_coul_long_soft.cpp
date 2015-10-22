@@ -533,6 +533,8 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq) {
+            r4sig6 = rsq*rsq / lj2[itype][jtype];
+            denlj = lj3[itype][jtype] + rsq*r4sig6;
             evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
               (1.0/(denlj*denlj) - 1.0/denlj);
             if (rsq > cut_lj_innersq) {

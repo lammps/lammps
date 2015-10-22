@@ -291,10 +291,10 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  if (rsq < cut_coulsq) {
+	  if (rsq < cut_coulsq && factor_coul > 0.0) {
 	    ecoul = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
 	    if (factor_coul < 1.0) {
-          ecoul *= factor_coul;
+              ecoul *= factor_coul;
 	      ecoul += (1-factor_coul) * qqrd2e * (d0*g0 + d1*g1 + d2*g2);
         }
 	  } else ecoul = 0.0;

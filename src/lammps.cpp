@@ -195,6 +195,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
       delete [] suffix2;
+      suffix2 = NULL;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
       if (strcmp(arg[iarg+1],"hybrid") == 0) {

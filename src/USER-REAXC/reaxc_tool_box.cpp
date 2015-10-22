@@ -27,57 +27,6 @@
 #include "pair_reax_c.h"
 #include "reaxc_tool_box.h"
 
-void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
-{
-  int i, j;
-  double tmp;
-
-  if (flag > 0) {
-    for (i=0; i < 3; i++) {
-      tmp = 0.0;
-      for (j=0; j < 3; j++)
-        tmp += box->trans[i][j]*x1[j];
-      x2[i] = tmp;
-    }
-  }
-  else {
-    for (i=0; i < 3; i++) {
-      tmp = 0.0;
-      for (j=0; j < 3; j++)
-        tmp += box->trans_inv[i][j]*x1[j];
-      x2[i] = tmp;
-    }
-  }
-}
-
-
-void Transform_to_UnitBox( rvec x1, simulation_box *box, char flag, rvec x2 )
-{
-  Transform( x1, box, flag, x2 );
-
-  x2[0] /= box->box_norms[0];
-  x2[1] /= box->box_norms[1];
-  x2[2] /= box->box_norms[2];
-}
-
-void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
-{
-  int i;
-
-  for( i = 0; i < 3; ++i ) {
-    if( (*p)[i] < box->min[i] ) {
-      /* handle lower coords */
-      while( (*p)[i] < box->min[i] )
-        (*p)[i] += box->box_norms[i];
-    }
-    else if( (*p)[i] >= box->max[i] ) {
-      /* handle higher coords */
-      while( (*p)[i] >= box->max[i] )
-        (*p)[i] -= box->box_norms[i];
-    }
-  }
-}
-
 struct timeval tim;
 double t_end;
 
@@ -86,75 +35,6 @@ double Get_Time( )
   gettimeofday(&tim, NULL );
   return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
 }
-
-
-double Get_Timing_Info( double t_start )
-{
-  gettimeofday(&tim, NULL );
-  t_end = tim.tv_sec + (tim.tv_usec / 1000000.0);
-  return (t_end - t_start);
-}
-
-
-void Update_Timing_Info( double *t_start, double *timing )
-{
-  gettimeofday(&tim, NULL );
-  t_end = tim.tv_sec + (tim.tv_usec / 1000000.0);
-  *timing += (t_end - *t_start);
-  *t_start = t_end;
-}
-
-int Get_Atom_Type( reax_interaction *reax_param, char *s, MPI_Comm comm )
-{
-  int i;
-
-  for( i = 0; i < reax_param->num_atom_types; ++i )
-    if( !strcmp( reax_param->sbp[i].name, s ) )
-      return i;
-
-  fprintf( stderr, "Unknown atom type %s. Terminating...\n", s );
-  MPI_Abort( comm, UNKNOWN_ATOM_TYPE );
-
-  return -1;
-}
-
-
-
-char *Get_Element( reax_system *system, int i )
-{
-  return &( system->reax_param.sbp[system->my_atoms[i].type].name[0] );
-}
-
-
-
-char *Get_Atom_Name( reax_system *system, int i )
-{
-  return &(system->my_atoms[i].name[0]);
-}
-
-
-
-int Allocate_Tokenizer_Space( char **line, char **backup, char ***tokens )
-{
-  int i;
-
-  if( (*line = (char*) malloc( sizeof(char) * MAX_LINE )) == NULL )
-    return FAILURE;
-
-  if( (*backup = (char*) malloc( sizeof(char) * MAX_LINE )) == NULL )
-    return FAILURE;
-
-  if( (*tokens = (char**) malloc( sizeof(char*) * MAX_TOKENS )) == NULL )
-    return FAILURE;
-
-  for( i = 0; i < MAX_TOKENS; i++ )
-    if( ((*tokens)[i] = (char*) malloc(sizeof(char) * MAX_TOKEN_LEN)) == NULL )
-      return FAILURE;
-
-  return SUCCESS;
-}
-
-
 
 int Tokenize( char* s, char*** tok )
 {

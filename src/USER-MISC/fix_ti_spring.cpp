@@ -73,16 +73,16 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Time variables.
-  t_switch = atoi(arg[4]); // Switching time.
-  t_equil = atoi(arg[5]);  // Equilibration time.
+  t_switch = force->bnumeric(FLERR,arg[4]); // Number of steps for switching.
+  t_equil =  force->bnumeric(FLERR,arg[5]); // Number of steps for equilibration.
   t0 = update->ntimestep;  // Initial time.
-  if (t_switch <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
-  if (t_equil  <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
+  if (t_switch <= 0) error->all(FLERR,"Illegal fix ti/spring command");
+  if (t_equil  <= 0) error->all(FLERR,"Illegal fix ti/spring command");
 
   // Coupling parameter initialization.
   sf = 1;
   if (narg > 6) {
-    if (strcmp(arg[6], "function") == 0) sf = atoi(arg[7]);
+    if (strcmp(arg[6], "function") == 0) sf = force->inumeric(FLERR,arg[7]);
     else error->all(FLERR,"Illegal fix ti/spring switching function");
     if ((sf!=1) && (sf!=2)) 
       error->all(FLERR,"Illegal fix ti/spring switching function");
@@ -151,7 +151,7 @@ void FixTISpring::min_setup(int vflag)
 void FixTISpring::post_force(int vflag)
 {
   // If on the first equilibration do not calculate forces.
-  int t = update->ntimestep - t0;
+  bigint t = update->ntimestep - t0;
   if(t < t_equil) return;
 
   double **x = atom->x;
@@ -199,16 +199,17 @@ void FixTISpring::min_post_force(int vflag)
 void FixTISpring::initial_integrate(int vflag) 
 { 
   // Update the coupling parameter value.
-  double t = update->ntimestep - (t0+t_equil); 
+  const bigint t = update->ntimestep - (t0+t_equil);
+  const double r_switch = 1.0/t_switch;
 
   if( (t >= 0) && (t <= t_switch) ) {
-    lambda  =  switch_func(t/t_switch); 
-    dlambda = dswitch_func(t/t_switch); 
+    lambda  =  switch_func(t*r_switch);
+    dlambda = dswitch_func(t*r_switch);
   }
 
   if( (t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch)) ) {
-    lambda  =    switch_func(1.0 - (t - t_switch - t_equil)/t_switch ); 
-    dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)/t_switch ); 
+    lambda  =    switch_func(1.0 - (t - t_switch - t_equil)*r_switch);
+    dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)*r_switch);
   }
 } 
 

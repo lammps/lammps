@@ -54,6 +54,8 @@ PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   NCo = NULL;
   bbij = NULL;
+  map = NULL;
+  esm = NULL;
   
   nelements = 0;
   elements = NULL;

@@ -53,8 +53,24 @@ VerletKokkos::VerletKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 void VerletKokkos::setup()
 {
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up Verlet run ...\n");
+    fprintf(screen,"  Unit style  : %s\n", update->unit_style);
+    fprintf(screen,"  Current step: " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  Time step   : %g\n", update->dt);
+    if (update->max_wall > 0) {
+      char outtime[128];
+      double totalclock = update->max_wall;
+      int seconds = fmod(totalclock,60.0);
+      totalclock  = (totalclock - seconds) / 60.0;
+      int minutes = fmod(totalclock,60.0);
+      int hours = (totalclock - minutes) / 60.0;
+      sprintf(outtime,"  Max walltime: "
+              "%d:%02d:%02d\n", hours, minutes, seconds);
+      fputs(outtime,screen);
+    }
+  }
 
-  if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
   update->setupflag = 1;
 
   // setup domain, communication and neighboring

@@ -35,11 +35,12 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int ifile) : Pointers(lmp)
+Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) : 
+  Pointers(lmp)
 {
   me = comm->me;
 
-  if (ifile >= narg) error->all(FLERR,"Illegal molecule command");
+  if (index >= narg) error->all(FLERR,"Illegal molecule command");
 
   int n = strlen(arg[0]) + 1;
   id = new char[n];
@@ -50,21 +51,14 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int ifile) : Pointers(lmp)
       error->all(FLERR,"Molecule template ID must be "
                  "alphanumeric or underscore characters");
 
-  // scan args past ifile to reach optional args
-  // set last = 1 if no more files in list
-
-  last = 0;
-  int iarg = ifile+1;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"offset") == 0) break;
-    iarg++;
-  }
-  if (iarg == ifile+1) last = 1;
-
-  // parse optional args
+  // parse args until reach unknown arg (next file)
 
   toffset = 0;
   boffset = aoffset = doffset = ioffset = 0;
+  sizescale = 1.0;
+
+  int ifile = index;
+  int iarg = ifile+1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"offset") == 0) {
@@ -78,8 +72,44 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int ifile) : Pointers(lmp)
           doffset < 0 || ioffset < 0) 
         error->all(FLERR,"Illegal molecule command");
       iarg += 6;
-    } else error->all(FLERR,"Illegal molecule command");
+    } else if (strcmp(arg[iarg],"toff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
+      toffset = force->inumeric(FLERR,arg[iarg+1]);
+      if (toffset < 0) error->all(FLERR,"Illegal molecule command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"boff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
+      boffset = force->inumeric(FLERR,arg[iarg+1]);
+      if (boffset < 0) error->all(FLERR,"Illegal molecule command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"aoff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
+      aoffset = force->inumeric(FLERR,arg[iarg+1]);
+      if (aoffset < 0) error->all(FLERR,"Illegal molecule command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"doff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
+      doffset = force->inumeric(FLERR,arg[iarg+1]);
+      if (doffset < 0) error->all(FLERR,"Illegal molecule command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ioff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
+      ioffset = force->inumeric(FLERR,arg[iarg+1]);
+      if (ioffset < 0) error->all(FLERR,"Illegal molecule command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"scale") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
+      sizescale = force->numeric(FLERR,arg[iarg+1]);
+      if (sizescale <= 0.0) error->all(FLERR,"Illegal molecule command");
+      iarg += 2;
+    } else break;
   }
+
+  index = iarg;
+
+  // last molecule if have scanned all args
+
+  if (iarg == narg) last = 1;
 
   // initialize all fields to empty
 
@@ -392,10 +422,14 @@ void Molecule::read(int flag)
     else if (strstr(line,"mass")) {
       massflag = 1;
       sscanf(line,"%lg",&masstotal);
+      masstotal *= sizescale*sizescale*sizescale;
     }
     else if (strstr(line,"com")) {
       comflag = 1;
       sscanf(line,"%lg %lg %lg",&com[0],&com[1],&com[2]);
+      com[0] *= sizescale;
+      com[1] *= sizescale;
+      com[2] *= sizescale;
       if (domain->dimension == 2 && com[2] != 0.0)
         error->all(FLERR,"Molecule file z center-of-mass must be 0.0 for 2d");
     }
@@ -404,6 +438,12 @@ void Molecule::read(int flag)
       sscanf(line,"%lg %lg %lg %lg %lg %lg",
              &itensor[0],&itensor[1],&itensor[2],
              &itensor[3],&itensor[4],&itensor[5]);
+      itensor[0] *= sizescale*sizescale*sizescale*sizescale*sizescale;
+      itensor[1] *= sizescale*sizescale*sizescale*sizescale*sizescale;
+      itensor[2] *= sizescale*sizescale*sizescale*sizescale*sizescale;
+      itensor[3] *= sizescale*sizescale*sizescale*sizescale*sizescale;
+      itensor[4] *= sizescale*sizescale*sizescale*sizescale*sizescale;
+      itensor[5] *= sizescale*sizescale*sizescale*sizescale*sizescale;
     }
 
     else break;
@@ -414,8 +454,10 @@ void Molecule::read(int flag)
   if (natoms < 1) error->all(FLERR,"No or invalid atom count in molecule file");
   if (nbonds < 0) error->all(FLERR,"Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR,"Invalid angle count in molecule file");
-  if (ndihedrals < 0) error->all(FLERR,"Invalid dihedral count in molecule file");
-  if (nimpropers < 0) error->all(FLERR,"Invalid improper count in molecule file");
+  if (ndihedrals < 0) 
+    error->all(FLERR,"Invalid dihedral count in molecule file");
+  if (nimpropers < 0) 
+    error->all(FLERR,"Invalid improper count in molecule file");
 
   // count = vector for tallying bonds,angles,etc per atom
 
@@ -544,6 +586,9 @@ void Molecule::coords(char *line)
         error->all(FLERR,"Invalid Coords section in molecule file");
     }
     sscanf(line,"%d %lg %lg %lg",&tmp,&x[i][0],&x[i][1],&x[i][2]);
+    x[i][0] *= sizescale;
+    x[i][1] *= sizescale;
+    x[i][2] *= sizescale;
   }
 
   if (domain->dimension == 2) {
@@ -614,6 +659,7 @@ void Molecule::diameters(char *line)
         error->all(FLERR,"Invalid Diameters section in molecule file");
     }
     sscanf(line,"%d %lg",&tmp,&radius[i]);
+    radius[i] *= sizescale;
     radius[i] *= 0.5;
     maxradius = MAX(maxradius,radius[i]);
   }
@@ -638,6 +684,7 @@ void Molecule::masses(char *line)
         error->all(FLERR,"Invalid Masses section in molecule file");
     }
     sscanf(line,"%d %lg",&tmp,&rmass[i]);
+    rmass[i] *= sizescale*sizescale*sizescale;
   }
 
   for (int i = 0; i < natoms; i++)

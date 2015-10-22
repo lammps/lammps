@@ -279,7 +279,7 @@ void ReadData::command(int narg, char **arg)
 
   // -----------------------------------------------------------------
 
-  // perform 1-pass read if no molecular topoogy in file
+  // perform 1-pass read if no molecular topology in file
   // perform 2-pass read if molecular topology,
   //   first pass calculates max topology/atom
 
@@ -301,7 +301,7 @@ void ReadData::command(int narg, char **arg)
   triclinic = 0;
   keyword[0] = '\0';
 
-  int nlocal_previous = atom->nlocal;
+  nlocal_previous = atom->nlocal;
   int firstpass = 1;
 
   while (1) {
@@ -315,7 +315,7 @@ void ReadData::command(int narg, char **arg)
     
     // read header info
     
-    header();
+    header(firstpass);
 
     // problem setup using info from header
     // only done once, if firstpass and first data file
@@ -648,7 +648,7 @@ void ReadData::command(int narg, char **arg)
     // will also observe extra settings even if bond/etc topology not in file
     // leaves other atom arrays unchanged, since already nmax in length
 
-    atom->deallocate_topology();
+    if (addflag == NONE) atom->deallocate_topology();
     atom->avec->grow(atom->nmax);
   }
 
@@ -788,7 +788,7 @@ void ReadData::command(int narg, char **arg)
    some logic differs if adding atoms
 ------------------------------------------------------------------------- */
 
-void ReadData::header()
+void ReadData::header(int firstpass)
 {
   int n;
   char *ptr;
@@ -856,7 +856,7 @@ void ReadData::header()
     if (strstr(line,"atoms")) {
       sscanf(line,BIGINT_FORMAT,&natoms);
       if (addflag == NONE) atom->natoms = natoms;
-      else atom->natoms += natoms;
+      else if (firstpass) atom->natoms += natoms;
 
     // check for these first
     // otherwise "triangles" will be matched as "angles"
@@ -1093,6 +1093,8 @@ void ReadData::velocities()
 
 void ReadData::bonds(int firstpass)
 {
+  int nchunk,eof;
+
   if (me == 0) {
     if (firstpass) {
       if (screen) fprintf(screen,"  scanning bonds ...\n");
@@ -1114,32 +1116,38 @@ void ReadData::bonds(int firstpass)
 
   // read and process bonds
 
-  int nchunk,eof;
   bigint nread = 0;
-  bigint nbonds = atom->nbonds;
 
   while (nread < nbonds) {
     nchunk = MIN(nbonds-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_bonds(nchunk,buffer,count,id_offset);
+    atom->data_bonds(nchunk,buffer,count,id_offset,boffset);
     nread += nchunk;
   }
 
   // if firstpass: tally max bond/atom and return
+  // if addflag = NONE, store max bond/atom with extra
+  // else just check actual max does not exceed existing max
 
   if (firstpass) {
     int max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
+    for (int i = nlocal_previous; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    maxall += atom->extra_bond_per_atom;
+    if (addflag == NONE) maxall += atom->extra_bond_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max bonds/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",maxall);
     }
-    atom->bond_per_atom = maxall;
+
+    if (addflag != NONE) {
+      if (maxall > atom->bond_per_atom) 
+        error->all(FLERR,"Subsequent read data induced "
+                   "too many bonds per atom");
+    } else atom->bond_per_atom = maxall;
+
     memory->destroy(count);
     return;
   }
@@ -1147,7 +1155,7 @@ void ReadData::bonds(int firstpass)
   // if 2nd pass: check that bonds were assigned correctly
 
   bigint n = 0;
-  for (int i = 0; i < nlocal; i++) n += atom->num_bond[i];
+  for (int i = nlocal_previous; i < nlocal; i++) n += atom->num_bond[i];
   bigint sum;
   MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
@@ -1158,7 +1166,7 @@ void ReadData::bonds(int firstpass)
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",sum/factor);
   }
 
-  if (sum != factor*atom->nbonds)
+  if (sum != factor*nbonds)
     error->all(FLERR,"Bonds assigned incorrectly");
 }
 
@@ -1168,6 +1176,8 @@ void ReadData::bonds(int firstpass)
 
 void ReadData::angles(int firstpass)
 {
+  int nchunk,eof;
+
   if (me == 0) {
     if (firstpass) {
       if (screen) fprintf(screen,"  scanning angles ...\n");
@@ -1189,32 +1199,38 @@ void ReadData::angles(int firstpass)
 
   // read and process angles
 
-  int nchunk,eof;
   bigint nread = 0;
-  bigint nangles = atom->nangles;
 
   while (nread < nangles) {
     nchunk = MIN(nangles-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_angles(nchunk,buffer,count,id_offset);
+    atom->data_angles(nchunk,buffer,count,id_offset,aoffset);
     nread += nchunk;
   }
 
   // if firstpass: tally max angle/atom and return
+  // if addflag = NONE, store max angle/atom with extra
+  // else just check actual max does not exceed existing max
 
   if (firstpass) {
     int max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
+    for (int i = nlocal_previous; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    maxall += atom->extra_angle_per_atom;
+    if (addflag == NONE) maxall += atom->extra_angle_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max angles/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max angles/atom\n",maxall);
     }
-    atom->angle_per_atom = maxall;
+
+    if (addflag != NONE) {
+      if (maxall > atom->angle_per_atom) 
+        error->all(FLERR,"Subsequent read data induced "
+                   "too many angles per atom");
+    } else atom->angle_per_atom = maxall;
+
     memory->destroy(count);
     return;
   }
@@ -1222,7 +1238,7 @@ void ReadData::angles(int firstpass)
   // if 2nd pass: check that angles were assigned correctly
 
   bigint n = 0;
-  for (int i = 0; i < nlocal; i++) n += atom->num_angle[i];
+  for (int i = nlocal_previous; i < nlocal; i++) n += atom->num_angle[i];
   bigint sum;
   MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
@@ -1233,7 +1249,7 @@ void ReadData::angles(int firstpass)
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",sum/factor);
   }
 
-  if (sum != factor*atom->nangles)
+  if (sum != factor*nangles)
     error->all(FLERR,"Angles assigned incorrectly");
 }
 
@@ -1243,6 +1259,8 @@ void ReadData::angles(int firstpass)
 
 void ReadData::dihedrals(int firstpass)
 {
+  int nchunk,eof;
+
   if (me == 0) {
     if (firstpass) {
       if (screen) fprintf(screen,"  scanning dihedrals ...\n");
@@ -1264,31 +1282,38 @@ void ReadData::dihedrals(int firstpass)
 
   // read and process dihedrals
 
-  int nchunk,eof;
   bigint nread = 0;
-  bigint ndihedrals = atom->ndihedrals;
 
   while (nread < ndihedrals) {
     nchunk = MIN(ndihedrals-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_dihedrals(nchunk,buffer,count,id_offset);
+    atom->data_dihedrals(nchunk,buffer,count,id_offset,doffset);
     nread += nchunk;
   }
 
   // if firstpass: tally max dihedral/atom and return
+  // if addflag = NONE, store max dihedral/atom with extra
+  // else just check actual max does not exceed existing max
 
   if (firstpass) {
     int max = 0;
     for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    maxall += atom->extra_dihedral_per_atom;
+    if (addflag == NONE) maxall += atom->extra_dihedral_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max dihedrals/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max dihedrals/atom\n",maxall);
     }
+
+    if (addflag != NONE) {
+      if (maxall > atom->dihedral_per_atom) 
+        error->all(FLERR,"Subsequent read data induced "
+                   "too many dihedrals per atom");
+    } else atom->dihedral_per_atom = maxall;
+
     atom->dihedral_per_atom = maxall;
     memory->destroy(count);
     return;
@@ -1297,7 +1322,7 @@ void ReadData::dihedrals(int firstpass)
   // if 2nd pass: check that dihedrals were assigned correctly
 
   bigint n = 0;
-  for (int i = 0; i < nlocal; i++) n += atom->num_dihedral[i];
+  for (int i = nlocal_previous; i < nlocal; i++) n += atom->num_dihedral[i];
   bigint sum;
   MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
@@ -1308,7 +1333,7 @@ void ReadData::dihedrals(int firstpass)
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
   }
 
-  if (sum != factor*atom->ndihedrals)
+  if (sum != factor*ndihedrals)
     error->all(FLERR,"Dihedrals assigned incorrectly");
 }
 
@@ -1318,6 +1343,8 @@ void ReadData::dihedrals(int firstpass)
 
 void ReadData::impropers(int firstpass)
 {
+  int nchunk,eof;
+
   if (me == 0) {
     if (firstpass) {
       if (screen) fprintf(screen,"  scanning impropers ...\n");
@@ -1339,32 +1366,38 @@ void ReadData::impropers(int firstpass)
 
   // read and process impropers
 
-  int nchunk,eof;
   bigint nread = 0;
-  bigint nimpropers = atom->nimpropers;
 
   while (nread < nimpropers) {
     nchunk = MIN(nimpropers-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_impropers(nchunk,buffer,count,id_offset);
+    atom->data_impropers(nchunk,buffer,count,id_offset,ioffset);
     nread += nchunk;
   }
 
   // if firstpass: tally max improper/atom and return
+  // if addflag = NONE, store max improper/atom
+  // else just check it does not exceed existing max
 
   if (firstpass) {
     int max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
+    for (int i = nlocal_previous; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    maxall += atom->extra_improper_per_atom;
+    if (addflag == NONE) maxall += atom->extra_improper_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max impropers/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max impropers/atom\n",maxall);
     }
-    atom->improper_per_atom = maxall;
+
+    if (addflag != NONE) {
+      if (maxall > atom->improper_per_atom) 
+        error->all(FLERR,"Subsequent read data induced "
+                   "too many impropers per atom");
+    } else atom->improper_per_atom = maxall;
+
     memory->destroy(count);
     return;
   }
@@ -1372,7 +1405,7 @@ void ReadData::impropers(int firstpass)
   // if 2nd pass: check that impropers were assigned correctly
 
   bigint n = 0;
-  for (int i = 0; i < nlocal; i++) n += atom->num_improper[i];
+  for (int i = nlocal_previous; i < nlocal; i++) n += atom->num_improper[i];
   bigint sum;
   MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
@@ -1383,7 +1416,7 @@ void ReadData::impropers(int firstpass)
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",sum/factor);
   }
 
-  if (sum != factor*atom->nimpropers)
+  if (sum != factor*nimpropers)
     error->all(FLERR,"Impropers assigned incorrectly");
 }
 

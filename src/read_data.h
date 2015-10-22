@@ -41,6 +41,7 @@ class ReadData : protected Pointers {
 
   bigint id_offset;
 
+  int nlocal_previous;
   bigint natoms;
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes;
@@ -81,7 +82,7 @@ class ReadData : protected Pointers {
   void open(char *);
   void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
-  void header();
+  void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
   void parse_coeffs(char *, const char *, int, int, int);

@@ -950,7 +950,8 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
+                      int type_offset) 
 {
   int m,tmp,itype;
   tagint atom1,atom2;
@@ -966,6 +967,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
       atom1 += id_offset;
       atom2 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max)
@@ -1001,7 +1003,8 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
+                       int type_offset) 
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3;
@@ -1018,6 +1021,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
       atom2 += id_offset;
       atom3 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
@@ -1068,7 +1072,8 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
+                          int type_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1087,6 +1092,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
@@ -1153,7 +1159,8 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
+                          int type_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1172,6 +1179,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset)
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
@@ -1496,17 +1504,17 @@ void Atom::add_molecule(int narg, char **arg)
   if (find_molecule(arg[0]) >= 0) 
     error->all(FLERR,"Reuse of molecule template ID");
 
-  // may over-allocate if not all args are mol files, but OK for srealloc
-
-  molecules = (Molecule **)
-    memory->srealloc(molecules,(nmolecule+narg-1)*sizeof(Molecule *),
-                     "atom::molecules");
-
   // 1st molecule in set stores nset = # of mols, others store nset = 0
+  // ifile = count of molecules in set
+  // index = argument index where next molecule starts, updated by constructor
 
   int ifile = 1;
+  int index = 1;
   while (1) {
-    molecules[nmolecule] = new Molecule(lmp,narg,arg,ifile);
+    molecules = (Molecule **)
+      memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *),
+                       "atom::molecules");
+    molecules[nmolecule] = new Molecule(lmp,narg,arg,index);
     molecules[nmolecule]->nset = 0;
     molecules[nmolecule-ifile+1]->nset++;
     nmolecule++;

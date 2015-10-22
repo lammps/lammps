@@ -102,7 +102,7 @@ class Molecule : protected Pointers {
   double **dxbody;     // displacement of each atom relative to COM
                        // in body frame (diagonalized interia tensor)
 
-  Molecule(class LAMMPS *, int, char **, int);
+  Molecule(class LAMMPS *, int, char **, int &);
   ~Molecule();
   void compute_center();
   void compute_mass();
@@ -116,6 +116,7 @@ class Molecule : protected Pointers {
   int *count;
   int toffset,boffset,aoffset,doffset,ioffset;
   int autospecial;
+  double sizescale;
 
   void read(int);
   void coords(char *);

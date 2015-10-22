@@ -733,6 +733,7 @@ void Respa::recurse(int ilevel)
       modify->pre_reverse(eflag,vflag);
       timer->stamp(Timer::MODIFY);
     }
+
     if (newton[ilevel]) {
       comm->reverse_comm();
       timer->stamp(Timer::COMM);

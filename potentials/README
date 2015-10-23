@@ -89,11 +89,11 @@ lcbop         LCBOP long-range bond-order potential
 meam	      modified EAM (MEAM) library and individual elements/alloys
 meam.spline   modified EAM (MEAM) spline potential
 meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
-mgpt          Moriarty generalized pseudopotential theory (GPT) potential
+mgpt          model generalized pseudopotential theory (MGPT) potential
 nb3b.harmonic nonbonded 3-body harmonic potential
 poly          polymorphic 3-body potential
 reax	      ReaxFF potential (see README.reax for more info)
-smtbq         Second Moment Tight Binding - QEq potential
+smtbq         second moment tight binding QEq (SMTBQ) potential
 snap          SNAP potential
 snapcoeff     SNAP potential
 snapparam     SNAP potential

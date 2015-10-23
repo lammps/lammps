@@ -216,7 +216,7 @@ serial.
 <TR ALIGN="center"><TD >USER-H5MD</TD><TD > dump output via HDF5</TD><TD > Pierre de Buyl (KU Leuven)</TD><TD > <A HREF = "dump_h5md.html">dump h5md</A></TD><TD > -</TD><TD > -</TD><TD > lib/h5md</TD></TR>
 <TR ALIGN="center"><TD >USER-INTEL</TD><TD > Vectorized CPU and Intel(R) coprocessor styles</TD><TD > W. Michael Brown (Intel)</TD><TD > <A HREF = "accelerate_intel.html">Section accelerate</A></TD><TD > examples/intel</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-LB</TD><TD > Lattice Boltzmann fluid</TD><TD > Colin Denniston (U Western Ontario)</TD><TD > <A HREF = "fix_lb_fluid.html">fix lb/fluid</A></TD><TD > USER/lb</TD><TD > -</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-MGPT</TD><TD > Fast MGPT multi-ion potentials</TD><TD > Tomas Oppelstrup & John Moriarty (LLNL)</TD><TD > <A HREF = "pair_mgpt.html">pair_style mgpt</A></TD><TD > USER/mgpt</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-MGPT</TD><TD > fast MGPT multi-ion potentials</TD><TD > Tomas Oppelstrup & John Moriarty (LLNL)</TD><TD > <A HREF = "pair_mgpt.html">pair_style mgpt</A></TD><TD > USER/mgpt</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > VMD-MOLFILE</TD></TR>
 <TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "accelerate_omp.html">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
@@ -226,6 +226,7 @@ serial.
 <TR ALIGN="center"><TD >USER-QUIP</TD><TD > QUIP/libatoms interface</TD><TD > Albert Bartok-Partay (U Cambridge)</TD><TD > <A HREF = "pair_quip.html">pair_style quip</A></TD><TD > USER/quip</TD><TD > -</TD><TD > lib/quip</TD></TR>
 <TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-SMD</TD><TD > smoothed Mach dynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "PDF/SMD_LAMMPS_userguide.pdf">userguide.pdf</A></TD><TD > USER/smd</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-SMTBQ</TD><TD > Second Moment Tight Binding - QEq potential</TD><TD > Salles & Maras & Politano & Tetot (4)</TD><TD > <A HREF = "pair_smtbq.html">pair_style smtbq</A></TD><TD > USER/smtbq</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-SPH</TD><TD > smoothed particle hydrodynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</A></TD><TD > USER/sph</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#sph">sph</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-TALLY</TD><TD > Pairwise tallied computes</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "compute_tally.html">compute <...>/tally</A></TD><TD > USER/tally</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >
@@ -254,6 +255,9 @@ Jerome Henin (LISM, Marseille, France).
 <P>(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
 Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
 (U Blaise Pascal).
+</P>
+<P>(4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
+Olivier Politano, and Robert Tetot (LAAS-CNRS, France).
 </P>
 <P>If the Library is not listed as lib/package, then it is a third-party
 library not included in the LAMMPS distribution.  See the
@@ -820,6 +824,27 @@ Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
 Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
 you have questions.
 </P>
+<HR>
+
+<H4>USER-SMTBQ package 
+</H4>
+<P>This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
+potential for the description of ionocovalent bonds in oxides.
+</P>
+<P>There are example scripts for using this package in
+examples/USER/smtbq.
+</P>
+<P>See this doc page to get started:
+</P>
+<P><A HREF = "pair_smtbq.html">pair_style smtbq</A>
+</P>
+<P>The persons who created the USER-SMTBQ package are Nicolas Salles,
+Emile Maras, Olivier Politano, Robert Tetot, who can be contacted at
+these email addreses: lammps@u-bourgogne.fr, nsalles@laas.fr.  Contact
+them directly if you have any questions.
+</P>
+<HR>
+
 <H4>USER-SPH package 
 </H4>
 <P>This package implements smoothed particle hydrodynamics (SPH) in

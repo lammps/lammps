@@ -1,0 +1,55 @@
+# Al2O3 crystal, qeq on, minimizes, then calculates elastic constants
+
+variable T_depart equal 300
+
+variable dt equal 0.0002
+
+# =======================================================================
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data	data.Alpha
+# ^ Orthorombic box of corundum strcture 
+
+mass            1 16.00
+group           Oxy type 1
+compute         chargeOxy Oxy property/atom q
+compute         q_Oxy Oxy reduce ave c_chargeOxy
+
+mass		2 26.98
+group    	Al type 2
+compute   	chargeAl Al property/atom q
+compute   	q_Al Al reduce ave c_chargeAl
+
+velocity	all create ${T_depart} 277387
+
+pair_style	smtbq
+pair_coeff	* * ffield.smtbq.Al2O3 O Al
+
+neighbor	0.5 bin
+neigh_modify	every 20 delay 0 check yes
+
+timestep        ${dt}
+
+thermo_style    custom step temp press pe ke etotal c_q_Al c_q_Oxy lx ly lz vol 
+thermo_modify	flush yes
+thermo		1
+
+#dump            5 all custom 500 boxAlpha_alumina.lammpstrj id type q x y z  
+
+fix		3 all nve
+run		10
+
+unfix		3
+thermo		1
+fix             1 all box/relax tri 0.0 vmax 0.001
+minimize        1.0e-3 1.0e-5 1000 10000
+
+unfix		1
+thermo		1
+fix             3 all nve
+run             10
+

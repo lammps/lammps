@@ -23,8 +23,8 @@ timestep 0.003 :pre
 
 Set the timestep size for subsequent molecular dynamics simulations.
 See the "units"_units.html command for a discussion of time units.
-The default value for the timestep also depends on the choice of units
-for the simulation; see the default values below.
+The default value for the timestep size also depends on the choice of
+units for the simulation; see the default values below.
 
 When the "run style"_run_style.html is {respa}, dt is the timestep for
 the outer loop (largest) timestep.
@@ -41,4 +41,7 @@ the outer loop (largest) timestep.
 timestep = 0.005 tau for units = lj
 timestep = 1.0 fmsec for units = real
 timestep = 0.001 psec for units = metal
-timestep = 1.0e-8 sec (10 nsec) for units = si or cgs :all(b)
+timestep = 1.0e-8 sec (10 nsec) for units = si or cgs
+timestep = 0.001 fmsec for units = electron
+timestep = 2.0 usec for units = micro
+timestep = 0.00045 nsec for units = nano :all(b)

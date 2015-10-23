@@ -146,8 +146,8 @@ timestep 0.003
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Set the timestep size for subsequent molecular dynamics simulations.
 See the <a class="reference internal" href="units.html"><em>units</em></a> command for a discussion of time units.
-The default value for the timestep also depends on the choice of units
-for the simulation; see the default values below.</p>
+The default value for the timestep size also depends on the choice of
+units for the simulation; see the default values below.</p>
 <p>When the <a class="reference internal" href="run_style.html"><em>run style</em></a> is <em>respa</em>, dt is the timestep for
 the outer loop (largest) timestep.</p>
 </div>
@@ -168,6 +168,9 @@ the outer loop (largest) timestep.</p>
 <div class="line">timestep = 1.0 fmsec for units = real</div>
 <div class="line">timestep = 0.001 psec for units = metal</div>
 <div class="line">timestep = 1.0e-8 sec (10 nsec) for units = si or cgs</div>
+<div class="line">timestep = 0.001 fmsec for units = electron</div>
+<div class="line">timestep = 2.0 usec for units = micro</div>
+<div class="line">timestep = 0.00045 nsec for units = nano</div>
 <div class="line"><br /></div>
 </div>
 </div>

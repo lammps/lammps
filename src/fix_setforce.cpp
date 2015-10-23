@@ -99,7 +99,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 
-  maxatom = atom->nmax;
+  maxatom = 1;
   memory->create(sforce,maxatom,3,"setforce:sforce");
 }
 
@@ -342,6 +342,6 @@ double FixSetForce::compute_vector(int n)
 double FixSetForce::memory_usage()
 {
   double bytes = 0.0;
-  if (varflag == ATOM) bytes = atom->nmax*3 * sizeof(double);
+  if (varflag == ATOM) bytes = maxatom*3 * sizeof(double);
   return bytes;
 }

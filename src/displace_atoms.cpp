@@ -26,6 +26,9 @@
 #include "random_park.h"
 #include "error.h"
 #include "force.h"
+#include "input.h"
+#include "variable.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -34,7 +37,17 @@ enum{MOVE,RAMP,RANDOM,ROTATE};
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp) {}
+DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp)
+{
+  mvec = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+DisplaceAtoms::~DisplaceAtoms() 
+{
+  memory->destroy(mvec);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,9 +66,9 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   // group and style
 
-  int igroup = group->find(arg[0]);
+  igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Could not find displace_atoms group ID");
-  int groupbit = group->bitmask[igroup];
+  groupbit = group->bitmask[igroup];
 
   int style = -1;
   if (strcmp(arg[1],"move") == 0) style = MOVE;
@@ -85,25 +98,12 @@ void DisplaceAtoms::command(int narg, char **arg)
   }
   else xscale = yscale = zscale = 1.0;
 
-  // move atoms by 3-vector
+  // move atoms by 3-vector or specified variable(s)
 
   if (style == MOVE) {
-
-    double delx = xscale*force->numeric(FLERR,arg[2]);
-    double dely = yscale*force->numeric(FLERR,arg[3]);
-    double delz = zscale*force->numeric(FLERR,arg[4]);
-
-    double **x = atom->x;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        x[i][0] += delx;
-        x[i][1] += dely;
-        x[i][2] += delz;
-      }
-    }
+    move(0,arg[2],xscale);
+    move(1,arg[3],yscale);
+    move(2,arg[4],zscale);
   }
 
   // move atoms in ramped fashion
@@ -283,6 +283,42 @@ void DisplaceAtoms::command(int narg, char **arg)
     sprintf(str,"Lost atoms via displace_atoms: original " BIGINT_FORMAT
             " current " BIGINT_FORMAT,atom->natoms,natoms);
     error->warning(FLERR,str);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   move atoms either by specified numeric displacement or variable evaluation
+------------------------------------------------------------------------- */
+
+void DisplaceAtoms::move(int idim, char *arg, double scale)
+{
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (strstr(arg,"v_") != arg) {
+    double delta = scale*force->numeric(FLERR,arg);
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) x[i][idim] += delta;
+
+  } else {
+    int n = strlen(&arg[2]) + 1;
+    char *vstr = new char[n];
+    strcpy(vstr,&arg[2]);
+    int ivar = input->variable->find(vstr);
+    if (ivar < 0)
+      error->all(FLERR,"Variable name for displace_atoms does not exist");
+
+    if (input->variable->equalstyle(ivar)) {
+      double delta = scale * input->variable->compute_equal(ivar);
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) x[i][idim] += delta;
+    } else if (input->variable->atomstyle(ivar)) {
+      if (mvec == NULL) memory->create(mvec,nlocal,"displace_atoms:mvec");
+      input->variable->compute_atom(ivar,igroup,mvec,1,0);
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) x[i][idim] += scale*mvec[i];
+    } else error->all(FLERR,"Variable for displace_atoms is invalid style");
   }
 }
 

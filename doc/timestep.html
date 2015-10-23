@@ -145,8 +145,9 @@ timestep 0.003
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Set the timestep size for subsequent molecular dynamics simulations.
-See the <a class="reference internal" href="units.html"><em>units</em></a> command for a discussion of time units.
-The default value for the timestep size also depends on the choice of
+See the <a class="reference internal" href="units.html"><em>units</em></a> command for the time units associated with
+each choice of units that LAMMPS supports.</p>
+<p>The default value for the timestep size also depends on the choice of
 units for the simulation; see the default values below.</p>
 <p>When the <a class="reference internal" href="run_style.html"><em>run style</em></a> is <em>respa</em>, dt is the timestep for
 the outer loop (largest) timestep.</p>
@@ -163,16 +164,51 @@ the outer loop (largest) timestep.</p>
 </div>
 <div class="section" id="default">
 <h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<div class="line-block">
-<div class="line">timestep = 0.005 tau for units = lj</div>
-<div class="line">timestep = 1.0 fmsec for units = real</div>
-<div class="line">timestep = 0.001 psec for units = metal</div>
-<div class="line">timestep = 1.0e-8 sec (10 nsec) for units = si or cgs</div>
-<div class="line">timestep = 0.001 fmsec for units = electron</div>
-<div class="line">timestep = 2.0 usec for units = micro</div>
-<div class="line">timestep = 0.00045 nsec for units = nano</div>
-<div class="line"><br /></div>
-</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="48%" />
+<col width="18%" />
+<col width="34%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>choice of <a class="reference internal" href="units.html"><em>units</em></a></td>
+<td>time units</td>
+<td>default timestep size</td>
+</tr>
+<tr class="row-even"><td>lj</td>
+<td>tau</td>
+<td>0.005 tau</td>
+</tr>
+<tr class="row-odd"><td>real</td>
+<td>fmsec</td>
+<td>1.0 fmsec</td>
+</tr>
+<tr class="row-even"><td>metal</td>
+<td>psec</td>
+<td>0.001 psec</td>
+</tr>
+<tr class="row-odd"><td>si</td>
+<td>sec</td>
+<td>1.0e-8 sec (10 nsec)</td>
+</tr>
+<tr class="row-even"><td>cgs</td>
+<td>sec</td>
+<td>1.0e-8 sec (10 nsec)</td>
+</tr>
+<tr class="row-odd"><td>electron</td>
+<td>fmsec</td>
+<td>0.001 fmsec</td>
+</tr>
+<tr class="row-even"><td>micro</td>
+<td>usec</td>
+<td>2.0 usec</td>
+</tr>
+<tr class="row-odd"><td>nano</td>
+<td>nsec</td>
+<td>0.00045 nsec</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 

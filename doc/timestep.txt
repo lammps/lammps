@@ -22,7 +22,9 @@ timestep 0.003 :pre
 [Description:]
 
 Set the timestep size for subsequent molecular dynamics simulations.
-See the "units"_units.html command for a discussion of time units.
+See the "units"_units.html command for the time units associated with
+each choice of units that LAMMPS supports.
+
 The default value for the timestep size also depends on the choice of
 units for the simulation; see the default values below.
 
@@ -38,10 +40,12 @@ the outer loop (largest) timestep.
 
 [Default:]
 
-timestep = 0.005 tau for units = lj
-timestep = 1.0 fmsec for units = real
-timestep = 0.001 psec for units = metal
-timestep = 1.0e-8 sec (10 nsec) for units = si or cgs
-timestep = 0.001 fmsec for units = electron
-timestep = 2.0 usec for units = micro
-timestep = 0.00045 nsec for units = nano :all(b)
+choice of "units"_units.html : time units : default timestep size
+lj : tau : 0.005 tau
+real : fmsec : 1.0 fmsec
+metal : psec : 0.001 psec
+si : sec : 1.0e-8 sec (10 nsec)
+cgs : sec : 1.0e-8 sec (10 nsec)
+electron : fmsec : 0.001 fmsec
+micro : usec : 2.0 usec
+nano : nsec : 0.00045 nsec :tb(s=:,a=l,ea=c)

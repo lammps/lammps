@@ -16,6 +16,7 @@ group-ID = ID of group of atoms to displace :ulb,l
 style = {move} or {ramp} or {random} or {rotate} :l
   {move} args = delx dely delz
     delx,dely,delz = distance to displace in each dimension (distance units)
+    any of delx,dely,delz can be a variable (see below)
   {ramp} args = ddim dlo dhi dim clo chi
     ddim = {x} or {y} or {z}
     dlo,dhi = displacement distance between dlo and dhi (distance units)
@@ -48,7 +49,24 @@ can be imposed on the system.  Or two groups of atoms can be brought
 into closer proximity.
 
 The {move} style displaces the group of atoms by the specified 3d
-distance.
+displacement vector.  Any of the 3 quantities defining the vector
+components can be specified as an equal-style or atom-style
+"variable"_variable.html.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case,
+the variable will be evaluated, and its value(s) used for the
+displacement(s).  The scale factor implied by the {units} keyword will
+also be applied to the variable result.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Atom-style variables can specify the same formulas as
+equal-style variables but can also include per-atom values, such as
+atom coordinates or per-atom values read from a file.  Note that if
+the variable references other "compute"_compute.html or "fix"_fix.html
+commands, those values must be up-to-date for the current timestep.
+See the "Variable Accuracy" section of the "variable"_variable.html
+doc page for more details.
 
 The {ramp} style displaces atoms a variable amount in one dimension
 depending on the atom's coordinate in a (possibly) different

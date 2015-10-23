@@ -244,10 +244,19 @@ directory.  These scripts show the necessary steps to perform
 constant-volume calculations and simulations.  It is strongly
 recommended that the user work through and understand these examples
 before proceeding to more complex simulations.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">For good performance, LAMMPS should be built with the
+compiler flags &#8220;-O3 -msse3 -funroll-loops&#8221; when including this pair
+style.  The src/MAKE/OPTIONS/Makefile.mpi_fastmgpt is an example
+machine Makefile with these options included as part of a standard MPI
+build.  Note that as-is it will build with whatever low-level compiler
+(g++, icc, etc) is the default for your MPI installation.</p>
+</div>
 <hr class="docutils" />
 <p><strong>Mixing, shift, table tail correction, restart</strong>:</p>
-<p>The (mgpt) pair style does not support the
-<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> mix, shift, table, and tail options.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+mix, shift, table, and tail options.</p>
 <p>This pair style does not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in potential files.  Thus, you
 needs to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.</p>
@@ -258,8 +267,8 @@ script that reads a restart file.</p>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>The <em>mgpt</em> pair style is part of the USER-MGPT package and is only
-enabled if LAMMPS is built with that package.</p>
+<p>This pair style is part of the USER-MGPT package and is only enabled
+if LAMMPS is built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 <p>The MGPT potentials require the <a class="reference internal" href="newton.html"><em>newtion</em></a> setting to be
 &#8220;on&#8221; for pair style interactions.</p>
 <p>The stored parmin and potin potential files provided with LAMMPS in

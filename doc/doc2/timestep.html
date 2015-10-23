@@ -25,8 +25,10 @@ timestep 0.003
 <P><B>Description:</B>
 </P>
 <P>Set the timestep size for subsequent molecular dynamics simulations.
-See the <A HREF = "units.html">units</A> command for a discussion of time units.
-The default value for the timestep size also depends on the choice of
+See the <A HREF = "units.html">units</A> command for the time units associated with
+each choice of units that LAMMPS supports.
+</P>
+<P>The default value for the timestep size also depends on the choice of
 units for the simulation; see the default values below.
 </P>
 <P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, dt is the timestep for
@@ -41,12 +43,16 @@ the outer loop (largest) timestep.
 </P>
 <P><B>Default:</B>
 </P>
-timestep = 0.005 tau for units = lj<BR>
-timestep = 1.0 fmsec for units = real<BR>
-timestep = 0.001 psec for units = metal<BR>
-timestep = 1.0e-8 sec (10 nsec) for units = si or cgs<BR>
-timestep = 0.001 fmsec for units = electron<BR>
-timestep = 2.0 usec for units = micro<BR>
-timestep = 0.00045 nsec for units = nano <BR>
+<DIV ALIGN=left  ><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD >choice of <A HREF = "units.html">units</A> </TD><TD > time units </TD><TD > default timestep size</TD></TR>
+<TR ALIGN="center"><TD >lj </TD><TD > tau </TD><TD > 0.005 tau</TD></TR>
+<TR ALIGN="center"><TD >real </TD><TD > fmsec </TD><TD > 1.0 fmsec</TD></TR>
+<TR ALIGN="center"><TD >metal </TD><TD > psec </TD><TD > 0.001 psec</TD></TR>
+<TR ALIGN="center"><TD >si </TD><TD > sec </TD><TD > 1.0e-8 sec (10 nsec)</TD></TR>
+<TR ALIGN="center"><TD >cgs </TD><TD > sec </TD><TD > 1.0e-8 sec (10 nsec)</TD></TR>
+<TR ALIGN="center"><TD >electron </TD><TD > fmsec </TD><TD > 0.001 fmsec</TD></TR>
+<TR ALIGN="center"><TD >micro </TD><TD > usec </TD><TD > 2.0 usec</TD></TR>
+<TR ALIGN="center"><TD >nano </TD><TD > nsec </TD><TD > 0.00045 nsec 
+</TD></TR></TABLE></DIV>
 
 </HTML>

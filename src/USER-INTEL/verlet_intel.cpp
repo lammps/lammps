@@ -102,17 +102,6 @@ void VerletIntel::setup()
     fprintf(screen,"  Unit style  : %s\n", update->unit_style);
     fprintf(screen,"  Current step: " BIGINT_FORMAT "\n", update->ntimestep);
     fprintf(screen,"  Time step   : %g\n", update->dt);
-    if (update->max_wall > 0) {
-      char outtime[128];
-      double totalclock = update->max_wall;
-      int seconds = fmod(totalclock,60.0);
-      totalclock  = (totalclock - seconds) / 60.0;
-      int minutes = fmod(totalclock,60.0);
-      int hours = (totalclock - minutes) / 60.0;
-      sprintf(outtime,"  Max walltime: "
-              "%d:%02d:%02d\n", hours, minutes, seconds);
-      fputs(outtime,screen);
-    }
   }
 
   update->setupflag = 1;
@@ -282,10 +271,6 @@ void VerletIntel::run(int n)
   else sortflag = 0;
 
   for (int i = 0; i < n; i++) {
-    if (update->time_expired()) {
-      update->nsteps = i;
-      return;
-    }
 
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
@@ -345,7 +330,6 @@ void VerletIntel::run(int n)
       modify->pre_force(vflag);
       timer->stamp(Timer::MODIFY);
     }
-
 
     if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);

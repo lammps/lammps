@@ -55,21 +55,21 @@ protected:
   
   double rmin,dr,ds;            // table parameter
   int kmax;
-  int Qstep;                    // Frenquence of charge resolution 
-  double precision;             // acurate of convergence
+  bigint Qstep;                 // Frequency of charge resolution 
+  double precision;             // acuracy of convergence
   int loopmax;                  // max of interation
     
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
   char *QEqMode;                // name of QEqMode
-  char *Bavard;				// Verbose parameter
-  char *writepot;			// write or not the electronegativity component
-  char *writeenerg;			// write or not the energy component
-  char *QInitMode;         // mode of initialization of charges
-  double zlim1QEq;               // z limit for QEq equilibration
-  double zlim2QEq;               // z limit for QEq equilibration
-  double QOxInit;             // Initial charge for oxygen atoms (if the charge is not specified)
+  char *Bavard;                 // Verbose parameter
+  char *writepot;               // write or not the electronegativity component
+  char *writeenerg;		// write or not the energy component
+  char *QInitMode;              // mode of initialization of charges
+  double zlim1QEq;              // z limit for QEq equilibration
+  double zlim2QEq;              // z limit for QEq equilibration
+  double QOxInit;               // Initial charge for oxygen atoms (if the charge is not specified)
   int *map;                     // mapping from atom types to elements
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
@@ -179,8 +179,6 @@ protected:
    double binm(int, int);
    void caintgs (double, int, double *);
    void cbintgs( double, int, double *);
-   double factorial(double);
-   
      
 // =====================================
 // short range neighbor list  

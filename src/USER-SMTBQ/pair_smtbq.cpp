@@ -52,32 +52,36 @@
 #include "group.h"
 #include "update.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
 
-#include <iostream>
-#include <iomanip> 
-#include <string>
 #include <fstream>
+#include <iomanip>
 
-//to DELETE
-//#include <time.h>
-//#include <sys/time.h>
-//#include <stdlib.h>
-//#include <stdio.h>
-//to DELETE
 using namespace std;
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define MAXLINE 2048
 #define MAXTOKENS 2048
 #define DELTA 4
 #define PGDELTA 1
 #define MAXNEIGH 24
-#define Pi 4*atan(1)
+
+/* ------------------------------------------------------------------------------------
+
+   Calculates the factorial of an integer n via recursion.
+
+   ------------------------------------------------------------------------------------ */
+static double factorial(int n)
+{
+    if (n <= 1) return 1.0;
+    else return static_cast<double>(n)*factorial(n-1);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -374,7 +378,7 @@ double PairSMTBQ::init_one(int i, int j)
 
 void PairSMTBQ::read_file(char *file)
 {
-  int c, num_atom_types,i,k,m,test,j,verbose;
+  int num_atom_types,i,k,m,test,j,verbose;
   char **words;
 
   memory->sfree(params);
@@ -388,13 +392,14 @@ void PairSMTBQ::read_file(char *file)
   verbose = 1;
   verbose = 0;
 
-  // open file on proc 0
+  // open file on all processors
   FILE *fp;
-  fp = fopen( file, "r" );
+  fp = force->open_potential(file);
   if ( fp  == NULL ) {
-    fprintf( stderr, "error opening the force filed file! terminating...\n" );
+    char str[128];
+    sprintf(str,"Cannot open SMTBQ potential file %s",file);
+    error->one(FLERR,str);
   }
-
 
   // read each line out of file, skipping blank lines or leading '#'
   // store line of params if all 3 element tags are in element list
@@ -419,7 +424,7 @@ void PairSMTBQ::read_file(char *file)
   
   // Nombre d'atome different dans la structure
   //  ===============================================  
-  c = Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   num_atom_types = atoi(words[1]);
   if (verbose) printf (" %s %d\n", words[0], num_atom_types);
    
@@ -471,7 +476,7 @@ void PairSMTBQ::read_file(char *file)
     // Line 2 - Al
    
     fgets( ptr, MAXLINE, fp);
-    c= Tokenize( ptr, &words );
+    Tokenize( ptr, &words );
     strcpy(params[i].nom , words[1]);
     params[i].sto = atof(words[2]);
     if (verbose) printf (" %s %s %f\n", words[0],params[i].nom,params[i].sto);
@@ -479,7 +484,7 @@ void PairSMTBQ::read_file(char *file)
     //Line 3 - Charges
 
     fgets( ptr, MAXLINE, fp);
-    c= Tokenize( ptr, &words );   
+    Tokenize( ptr, &words );   
  
     params[i].qform = atof(words[1]);		
     params[i].masse = atof(words[2]);
@@ -488,7 +493,7 @@ void PairSMTBQ::read_file(char *file)
     // Line 4 - Parametres QEq
     
     fgets( ptr, MAXLINE, fp);
-    c=Tokenize ( ptr, &words );    
+    Tokenize ( ptr, &words );    
     params[i].ne = atof(words[1]) ;   
     params[i].chi = atof(words[2])  ;
     params[i].dj = atof(words[3]) ;
@@ -506,7 +511,7 @@ void PairSMTBQ::read_file(char *file)
     if(strcmp(params[i].nom,"O")==0){
 
       fgets( ptr, MAXLINE, fp);
-      c=Tokenize ( ptr, &words );    
+      Tokenize ( ptr, &words );    
     
       coordOxBB=   atof(words[1]) ;
       coordOxBulk=  atof(words[2]) ;
@@ -520,7 +525,7 @@ void PairSMTBQ::read_file(char *file)
     // Ligne 5 - Nombre d'etats partages
     
     fgets( ptr, MAXLINE, fp);
-    c=Tokenize ( ptr, &words );
+    Tokenize ( ptr, &words );
     params[i].n0 = atof(words[1]);
     if (verbose) printf(" %s %f\n",words[0],params[i].n0);
     
@@ -546,7 +551,7 @@ void PairSMTBQ::read_file(char *file)
     
     // Lecture des protagonistes
     fgets( ptr, MAXLINE, fp);
-    c= Tokenize( ptr, &words );
+    Tokenize( ptr, &words );
     
     test = 0;
     for (i = 0; i <num_atom_types; i++) 
@@ -599,7 +604,7 @@ void PairSMTBQ::read_file(char *file)
 	                         intparams[m].typepot,intparams[m].mode);	                        
 
       fgets( ptr, MAXLINE, fp);
-      c= Tokenize( ptr, &words );
+      Tokenize( ptr, &words );
     
       intparams[m].a = atof(words[1])   ; 
       intparams[m].p = atof(words[2])   ; 
@@ -611,7 +616,7 @@ void PairSMTBQ::read_file(char *file)
       // Ligne 6 - rayon de coupure potentiel SM
     
       fgets( ptr, MAXLINE, fp);
-      c= Tokenize( ptr, &words );
+      Tokenize( ptr, &words );
     
       intparams[m].dc1 = atof(words[1]) ;
       intparams[m].dc2 = atof(words[2]) ;
@@ -633,7 +638,7 @@ void PairSMTBQ::read_file(char *file)
 	     intparams[m].typepot);	
      
       fgets( ptr, MAXLINE, fp);
-      c= Tokenize( ptr, &words );
+      Tokenize( ptr, &words );
      
       intparams[m].abuck = atof(words[1]) ; intparams[m].rhobuck = atof(words[2]) ;
       if (verbose) printf (" %s %f %f\n",words[0],intparams[m].abuck,intparams[m].rhobuck);
@@ -646,14 +651,14 @@ void PairSMTBQ::read_file(char *file)
 	     intparams[m].typepot);	
      
       fgets( ptr, MAXLINE, fp);
-      c= Tokenize( ptr, &words );
+      Tokenize( ptr, &words );
      
       intparams[m].abuck = atof(words[1]) ; intparams[m].rhobuck = atof(words[2]) ;
       if (verbose) printf (" %s %f %f\n",words[0],intparams[m].abuck,intparams[m].rhobuck);
 
     
       fgets( ptr, MAXLINE, fp);
-      c= Tokenize( ptr, &words );
+      Tokenize( ptr, &words );
      
       intparams[m].aOO = atof(words[1]) ; intparams[m].bOO = atof(words[2]) ;
       intparams[m].r1OO = atof(words[3]) ;intparams[m].r2OO = atof(words[4]) ;
@@ -677,7 +682,7 @@ void PairSMTBQ::read_file(char *file)
      
       fgets( ptr, MAXLINE, fp);
   }
-  c= Tokenize( ptr, &words );   
+  Tokenize( ptr, &words );   
 
   for (i=0 ; i<num_atom_types; i++) { params[i].cutsq = atof(words[1]); }   
   cutmax = atof(words[1]); 
@@ -686,13 +691,13 @@ void PairSMTBQ::read_file(char *file)
   // Ligne 9 - parametre pour les tableaux
      
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
     
   rmin = atof(words[1]) ; dr = atof(words[2]);
   if (verbose) printf (" %s %f %f\n",words[0],rmin,dr);
     
   kmax = int(cutmax*cutmax/(2.0*dr*rmin));
-  ds = cutmax*cutmax/double(kmax) ;  
+  ds = cutmax*cutmax/static_cast<double>(kmax) ;  
   if (verbose) printf (" kmax %d et ds %f\n",kmax,ds); 
 
   /* ======================================================== */ 
@@ -700,12 +705,12 @@ void PairSMTBQ::read_file(char *file)
   if (verbose) printf ("%s",ptr);
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   Qstep = atoi(words[1]);
-  if (verbose) printf (" %s %d\n",words[0],Qstep);
+  if (verbose) printf (" %s " BIGINT_FORMAT "\n",words[0],Qstep);
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   loopmax = atoi(words[1]);
   precision = atof(words[2]);
   if (verbose) printf (" %s %d %f\n",words[0],loopmax,precision);
@@ -716,7 +721,7 @@ void PairSMTBQ::read_file(char *file)
   if (verbose) printf ("%s",ptr);
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   r1Coord = atof(words[1]);
   r2Coord = atof(words[2]);
   if (verbose) printf (" %s %f %f\n",words[0],r1Coord,r2Coord);
@@ -728,7 +733,7 @@ void PairSMTBQ::read_file(char *file)
   if (verbose) printf ("%s",ptr);
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   strcpy( QInitMode , words[1] ); 
   if (strcmp(QInitMode,"true") == 0) { QOxInit= atof(words[2]); }
   else { QOxInit = 0.0; }  
@@ -741,7 +746,7 @@ void PairSMTBQ::read_file(char *file)
   if (verbose) printf ("%s",ptr);
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   strcpy( QEqMode , words[1] );
   if (verbose) printf (" %s %s\n",words[0],QEqMode);
 
@@ -750,7 +755,7 @@ void PairSMTBQ::read_file(char *file)
   if (strcmp(QEqMode,"BulkFromSlab") == 0)
     {
 
-      c= Tokenize( ptr, &words );
+      Tokenize( ptr, &words );
       zlim1QEq = atof(words[1]);
       zlim2QEq = atof(words[2]);
       if (verbose) printf (" %s %f %f\n",words[0],zlim1QEq,zlim2QEq);
@@ -758,7 +763,7 @@ void PairSMTBQ::read_file(char *file)
     }
   else if  (strcmp(QEqMode,"Surface") == 0)
     {
-      c= Tokenize( ptr, &words );
+      Tokenize( ptr, &words );
       zlim1QEq = atof(words[1]);
       if (verbose) printf (" %s %f \n",words[0],zlim1QEq);
 
@@ -774,7 +779,7 @@ void PairSMTBQ::read_file(char *file)
   if (verbose) printf ("%s",ptr);
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   strcpy( Bavard , words[1] );
   if (verbose) printf (" %s %s\n",words[0],Bavard);
   
@@ -782,7 +787,7 @@ void PairSMTBQ::read_file(char *file)
 //  Writing the energy component.
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   strcpy( writeenerg, words[1] );
   if (strcmp (writeenerg,"true") == 0) { Nevery = atof(words[2]); }
   else { Nevery = 0.0; }
@@ -792,7 +797,7 @@ void PairSMTBQ::read_file(char *file)
 //  Writing the chimical electronic potential.
 
   fgets( ptr, MAXLINE, fp);
-  c= Tokenize( ptr, &words );
+  Tokenize( ptr, &words );
   strcpy( writepot, words[1] );
   if (strcmp (writepot,"true") == 0) { Neverypot = atof(words[2]); }
   else { Neverypot = 0.0; }
@@ -840,7 +845,8 @@ void PairSMTBQ::read_file(char *file)
 void PairSMTBQ::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,m,gp;
-  int itag,jtag,itype,jtype;
+  tagint itag,jtag;
+  int itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
   
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
@@ -849,10 +855,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
   double **tmp,**tmpAll,*nmol;
   double dq,dqcov;
  
-  
-  int bavard;
-  
-  
   if (atom->nmax > nmax) {
     memory->destroy(ecov);
     memory->destroy(potmad);
@@ -895,23 +897,21 @@ void PairSMTBQ::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int newton_pair = force->newton_pair;
   int nlocal = atom->nlocal;
-  int step = update->ntimestep;
-  struct timeval start, end;
-    
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  if (step == 0 || (Qstep !=0 && fmod(double(step), double(Qstep)) == 0.0 )) Charge();
+  const bigint step = update->ntimestep;
+  if (step == 0 || ((Qstep > 0) && (step % Qstep == 0))) Charge();
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 // this is necessary to get sbcov or sbmet table in order to caclulate the covalent or metal bonding
-  if (Qstep == 0 || fmod(double(step), double(Qstep)) != 0.0 ) QForce_charge(0);  
+  if (Qstep == 0 || (step % Qstep != 0)) QForce_charge(0);  
 
 
   //   Charges Communication 
@@ -924,7 +924,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
 
   for (i=0; i<nteam+1; i++) {
-    nmol[i] = double(nQEqall[i]);
+    nmol[i] = static_cast<double>(nQEqall[i]);
     for (j=0; j<7; j++) { tmp[i][j] = 0.0; tmpAll[i][j] = 0.0; }
   }
 
@@ -940,10 +940,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
      6 -> Somme des Q(i)²
      ------------------------------------------------------------------------- */
      
-  //  -----------    
-  bavard = 0;
-  //  -----------
-
   /* -------------- N-body forces Calcul --------------- */
  
   for (ii = 0; ii < inum; ii++) {
@@ -1174,7 +1170,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
   }
   
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::  
-  if (me == 0 && fmod(double(step), Nevery) == 0.0 && strcmp(writeenerg,"true") == 0) {
+  if (me == 0 && fmod(static_cast<double>(step), Nevery) == 0.0 && strcmp(writeenerg,"true") == 0) {
   
      ofstream fichierE;
   
@@ -1373,7 +1369,7 @@ void PairSMTBQ::tabqeq()
   for (k=0; k < kmax+5; k++) 
     //-------------------------
     {
-      s = double(k)*ds ; r = sqrt(s);
+      s = static_cast<double>(k)*ds ; r = sqrt(s);
       if (k==0) r=10e-30;
       potqn[k] = 14.4*(erfc(alf*r)/r - mu) ;
  
@@ -1438,7 +1434,7 @@ void PairSMTBQ::tabqeq()
 	    d2zbb = d2zra = d2zrb = d2gamr2 = 0.0 ;
 	  dij = 0.0 ;
      
-	  s = double(k)*ds ; r = sqrt(s) ;
+	  s = static_cast<double>(k)*ds ; r = sqrt(s) ;
 	  if (k==0) r=10e-30;
 	    
       gammas(na,nb,za,zb,r,gam,dgam,dza,dzb,
@@ -1446,8 +1442,8 @@ void PairSMTBQ::tabqeq()
 
 	  // --- Jij	    
 	    
-	  dij = 14.4 * (1.0/r - double(gam));
-	  ddij = 14.4 * (-1.0/(r*r) - double(dgam)) ;
+	  dij = 14.4 * (1.0/r - static_cast<double>(gam));
+	  ddij = 14.4 * (-1.0/(r*r) - static_cast<double>(dgam)) ;
 
 	  // Cutting Fonction
  
@@ -1459,9 +1455,9 @@ void PairSMTBQ::tabqeq()
 	      rc = r ; ii=1 ;
 	      if ((rc+nang)>rcoupe) nang = rcoupe - rc ;
 	      bCoeff =  (2*dij+ddij*nang)/(dij*nang);
-	      aCoeff = dij*exp(-bCoeff*rc) /pow(nang,2);
+	      aCoeff = dij*exp(-bCoeff*rc) /square(nang);
 	    }
-	  if (r > rc) {dij = aCoeff *pow((r- rc-nang),2) *exp(bCoeff*r);
+	  if (r > rc) {dij = aCoeff *square(r- rc-nang) *exp(bCoeff*r);
 	    ddij = aCoeff*(r- rc-nang) *(2+bCoeff*(r-rc-nang))*exp(bCoeff*r);
 	  }
    
@@ -1494,7 +1490,7 @@ void PairSMTBQ::tabqeq()
 	      d2zbb = d2zra = d2zrb = d2gamr2 = 0.0 ;
 	    dij = 0.0 ;
      
-	    s = double(k)*ds ; r = sqrt(s) ;
+	    s = static_cast<double>(k)*ds ; r = sqrt(s) ;
 	    if (k==0) r=10e-30;
 	    
         gammas(na,nb,za,zb,r,gam,dgam,dza,dzb,
@@ -1502,8 +1498,8 @@ void PairSMTBQ::tabqeq()
 
 	    // --- Jij	    
 	    
-	    dij = 14.4 * (1.0/r - double(gam));
-	    ddij = 14.4 * (-1.0/(r*r) - double(dgam)) ;
+	    dij = 14.4 * (1.0/r - static_cast<double>(gam));
+	    ddij = 14.4 * (-1.0/(r*r) - static_cast<double>(dgam)) ;
 
 	    if (dij < 0.01 && ii==0) 
 	      {
@@ -1512,9 +1508,9 @@ void PairSMTBQ::tabqeq()
 		rc = r ; ii=1 ;
 		if ((rc+nang)>rcoupe) nang = rcoupe - rc ;
 		bCoeff =  (2*dij+ddij*nang)/(dij*nang);
-		aCoeff = dij*exp(-bCoeff*rc) /pow(nang,2);
+		aCoeff = dij*exp(-bCoeff*rc) /square(nang);
 	      }
-	    if (r > rc) {dij = aCoeff *pow((r- rc-nang),2) *exp(bCoeff*r);
+	    if (r > rc) {dij = aCoeff *square(r- rc-nang) *exp(bCoeff*r);
 	      ddij = aCoeff*(r- rc-nang) *(2+bCoeff*(r-rc-nang))*exp(bCoeff*r);
 	    }
 
@@ -1558,7 +1554,7 @@ void PairSMTBQ::tabqeq()
 	      d2zbb = d2zra = d2zrb = d2gamr2 = 0.0 ;
 	    dij = 0.0 ;
      
-	    s = double(k)*ds ; r = sqrt(s) ;
+	    s = static_cast<double>(k)*ds ; r = sqrt(s) ;
 	    if (k==0) r=10e-30;
 	    
         gammas(na,nb,za,zb,r,gam,dgam,dza,dzb,
@@ -1566,8 +1562,8 @@ void PairSMTBQ::tabqeq()
 	    
 	    // --- Jij	    
 	    
-	    dij = 14.4 * (1.0/r - double(gam));
-	    ddij = 14.4 * (-1.0/(r*r) - double(dgam)) ;
+	    dij = 14.4 * (1.0/r - static_cast<double>(gam));
+	    ddij = 14.4 * (-1.0/(r*r) - static_cast<double>(dgam)) ;
 
 	    if (dij < 0.01 && ii==0)  {
 	    	ii=2;
@@ -1575,10 +1571,10 @@ void PairSMTBQ::tabqeq()
 	 		rc = r ; ii=1 ;
 			if ((rc+nang)>rcoupe) nang = rcoupe - rc ;
 			bCoeff =  (2*dij+ddij*nang)/(dij*nang);
-			aCoeff = dij*exp(-bCoeff*rc) /pow(nang,2);
+			aCoeff = dij*exp(-bCoeff*rc) /square(nang);
 		}
 	    if (r > rc) {
-	      dij = aCoeff *pow((r- rc-nang),2) *exp(bCoeff*r);
+	      dij = aCoeff *square(r- rc-nang) *exp(bCoeff*r);
 	      ddij = aCoeff*(r- rc-nang) *(2+bCoeff*(r-rc-nang))*exp(bCoeff*r);
 	    }
 
@@ -1636,7 +1632,7 @@ void PairSMTBQ::potqeq(int i, int j, double qi, double qj, double rsq,
   
   r = rsq;
   sds = r/ds ;  l = int(sds) ;
-  xi = sds - double(l) ;
+  xi = sds - static_cast<double>(l) ;
     
    
   iCoord=coord[i];
@@ -1758,8 +1754,8 @@ void PairSMTBQ::pot_ES (int i, int j, double rsq, double &eng)
      ==================================================================== */
   
   int itype,jtype,l,m;
-  double r,t1,t2,sds,xi,engBulk,engSurf,dcoordloc,dcoupureloc;
-  double engBB, dIntfcoup2loc,iCoord,jCoord,iIntfCoup2,jIntfCoup2;
+  double r,t1,t2,sds,xi,engBulk,engSurf;
+  double engBB,iCoord,jCoord,iIntfCoup2,jIntfCoup2;
   
   int *type = atom->type;
   //  int n = atom->ntypes;
@@ -1770,7 +1766,7 @@ void PairSMTBQ::pot_ES (int i, int j, double rsq, double &eng)
   
   r = rsq;
   sds = r/ds ;  l = int(sds) ;
-  xi = sds - double(l) ;
+  xi = sds - static_cast<double>(l) ;
     
 
   iCoord=coord[i];
@@ -1850,7 +1846,7 @@ void PairSMTBQ::pot_ES2 (int i, int j, double rsq, double &pot)
   
   r = rsq ;
   sds = r/ds ;  l = int(sds) ;
-  xi = sds - double(l) ;
+  xi = sds - static_cast<double>(l) ;
   
   // ---- Energies Interpolation 
 
@@ -1886,7 +1882,7 @@ void PairSMTBQ::rep_OO(Intparam *intparam, double rsq, double &fforce,
 void PairSMTBQ::Attr_OO(Intparam *intparam, double rsq, double &fforce,
 		       int eflag, double &eng)
 {
-  double r,tmp_exp,tmp;
+  double r,tmp_exp;
   double aOO = intparam->aOO ;
   double bOO = intparam->bOO ;
   double r1OO = intparam->r1OO ;
@@ -1933,7 +1929,7 @@ void PairSMTBQ::tabsm()
   
     for (k=0; k < kmax; k++) 
       {	
-	s = double(k)*ds ; r = sqrt(s); 
+	s = static_cast<double>(k)*ds ; r = sqrt(s); 
 	if (k==0) r=10e-30;    
 	tmpb = exp( -2.0*q*(r/rzero - 1.0));
 	tmpr = exp( -p*(r/rzero - 1.0));
@@ -2018,7 +2014,7 @@ void PairSMTBQ::repulsive(Intparam *intparam, double rsq, int i, int j,
      =================================================*/
 
   int l; 
-  double r,sds,xi,t1,t2,dt1,dt2,sweet,iq,jq;
+  double r,sds,xi,t1,t2,dt1,dt2,sweet;
 
   double rrcs = intparam->dc2;
   int sm = intparam->intsm;
@@ -2030,7 +2026,7 @@ void PairSMTBQ::repulsive(Intparam *intparam, double rsq, int i, int j,
   if (sqrt(r) > rrcs) return ;
   
   sds = r/ds ;  l = int(sds) ;
-  xi = sds - double(l) ;
+  xi = sds - static_cast<double>(l) ;
   
   t1 = tabsmr[l][sm] + (tabsmr[l+1][sm] - tabsmr[l][sm])*xi ;
   t2 = tabsmr[l+1][sm] + (tabsmr[l+2][sm] - tabsmr[l+1][sm])*(xi-1.0) ;
@@ -2061,7 +2057,7 @@ void PairSMTBQ::attractive(Intparam *intparam, double rsq,
 {
   int itype,l;
   double r,t1,t2,xi,sds;
-  double dqcov,sweet,dq,mu;
+  double sweet,mu;
   
   double rrcs = intparam->dc2;
   int *type = atom->type;
@@ -2074,7 +2070,7 @@ void PairSMTBQ::attractive(Intparam *intparam, double rsq,
   
   
   sds = r/ds ;  l = int(sds) ;
-  xi = sds - double(l) ;
+  xi = sds - static_cast<double>(l) ;
   
   t1 = tabsmb[l][sm] + (tabsmb[l+1][sm] - tabsmb[l][sm])*xi ;
   t2 = tabsmb[l+1][sm] + (tabsmb[l+2][sm] - tabsmb[l+1][sm])*(xi-1.0) ;
@@ -2123,7 +2119,7 @@ void PairSMTBQ::f_att(Intparam *intparam, int i, int j,double rsq, double &fforc
   r = rsq;
  
   sds = r/ds ;  l = int(sds) ;
-  xi = sds - double(l) ;
+  xi = sds - static_cast<double>(l) ;
 	       
   dt1 = dtabsmb[l][sm] + (dtabsmb[l+1][sm] - dtabsmb[l][sm])*xi ;
   dt2 = dtabsmb[l+1][sm] + (dtabsmb[l+2][sm] - dtabsmb[l+1][sm])*(xi-1.0) ;
@@ -2194,7 +2190,7 @@ double PairSMTBQ::potmet(Intparam *intparam, double rsq,
  
   r = rsq; 
   sds = r/ds ;  l = int(sds) ;
-  xi = sds - double(l) ;
+  xi = sds - static_cast<double>(l) ;
   
   t1 = tabsmb[l][sm] + (tabsmb[l+1][sm] - tabsmb[l][sm])*xi ;
   t2 = tabsmb[l+1][sm] + (tabsmb[l+2][sm] - tabsmb[l+1][sm])*(xi-1.0) ;
@@ -2334,8 +2330,8 @@ void PairSMTBQ::QForce_charge(int loop)
 {
   int i,j,ii,jj,jnum;
   int itype,jtype,m,gp;
-  double xtmp,ytmp,ztmp,evdwlCoul,fpairCoul;
-  double rsq,delr[3],chi_ij;
+  double xtmp,ytmp,ztmp;
+  double rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double iq,jq,fqi,fqj,fqij,fqij2,fqjj;
   int eflag;
@@ -2351,34 +2347,31 @@ void PairSMTBQ::QForce_charge(int loop)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  int nlocal = atom->nlocal;
-  
-  
   // loop over full neighbor list of my atoms
 
   fqi = fqj = fqij = fqij2 = fqjj = 0.0;
 
          
-         //   ==================
-               if (loop == 0) {
-         //   ==================
+  //   ==================
+  if (loop == 0) {
+  //   ==================
 
          
 
-  for (ii = 0; ii < inum; ii ++) {
-    //--------------------------------
-    i = ilist[ii];
-    itype = map[type[i]];
-  
-    gp = flag_QEq[i];
+    for (ii = 0; ii < inum; ii ++) {
+      //--------------------------------
+      i = ilist[ii];
+      itype = map[type[i]];
 
-    sbcov[i] =coord[i]= sbmet[i] = 0.0;
+      gp = flag_QEq[i];
 
-    itype = map[type[i]];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    iq = q[i];
+      sbcov[i] =coord[i]= sbmet[i] = 0.0;
+
+      itype = map[type[i]];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      iq = q[i];
       
     
       
@@ -2400,16 +2393,17 @@ void PairSMTBQ::QForce_charge(int loop)
       if (intparams[m].intsm == 0) continue ;
 
 
-      delr[0] = x[j][0] - xtmp;
-      delr[1] = x[j][1] - ytmp;
-      delr[2] = x[j][2] - ztmp;
-      rsq = vec3_dot(delr,delr);
+      const double delx = x[j][0] - xtmp;
+      const double dely = x[j][1] - ytmp;
+      const double delz = x[j][2] - ztmp;
+      rsq = delx*delx + dely*dely + delz*delz;
 
+      printf("attractive: %d %d rsq=%g\n",i,j,rsq);
 
 //     Covalente charge forces - sbcov initialization         
 //     ------------------------------------------------
       if (sqrt(rsq) > intparams[m].dc2) continue;
- 
+
       attractive (&intparams[m],rsq,eflag,i,iq,j,jq);
 
 
@@ -2429,11 +2423,11 @@ void PairSMTBQ::QForce_charge(int loop)
   
   
   if (nteam == 0) return; //no oxide
-  if (Qstep == 0 || fmod(double(step), double(Qstep)) != 0.0) return;
+  if (Qstep == 0 || (step % Qstep != 0)) return;
 
-              // =======================
-                  } // End of If(loop)
-              // =======================
+    // =======================
+  } // End of If(loop)
+    // =======================
 
 
   // ===============================================        
@@ -2473,18 +2467,18 @@ void PairSMTBQ::QForce_charge(int loop)
       for (jj = 0; jj < jnum; jj++)
         {
           j = jlist[jj];
-		  jtype = map[type[j]];
-		  m = intype[itype][jtype];
-		  jq = q[j];
+          jtype = map[type[j]];
+          m = intype[itype][jtype];
+          jq = q[j];
 
     
-		  delr[0] = x[j][0] - xtmp;
-		  delr[1] = x[j][1] - ytmp;	
-		  delr[2] = x[j][2] - ztmp;
-		  rsq = vec3_dot(delr,delr);
+          const double delx = x[j][0] - xtmp;
+          const double dely = x[j][1] - ytmp;
+          const double delz = x[j][2] - ztmp;
+          rsq = delx*delx + dely*dely + delz*delz;
 
-                 // long range q-dependent
-		  if (sqrt(rsq) > cutmax) continue;
+          // long range q-dependent
+          if (sqrt(rsq) > cutmax) continue;
 
     //   1/r charge forces
     //  --------------------
@@ -2628,7 +2622,7 @@ void PairSMTBQ::Charge()
   }
 
   if (nteam == 0 || Qstep == 0) return;
-  if (fmod(double(step), double(Qstep)) != 0.0) return;
+  if (step % Qstep != 0) return;
   //  --------------------------------------
 
   // ----
@@ -2704,7 +2698,7 @@ void PairSMTBQ::Charge()
 
     for (i = 0; i < nteam+1; i++) {
 
-      if (nQEqall[i] !=0) TransfAll[i] /= double(nQEqall[i]); 
+      if (nQEqall[i] !=0) TransfAll[i] /= static_cast<double>(nQEqall[i]); 
       enegchk[i] = enegmax[i] = 0.0;
     }
      
@@ -2729,7 +2723,7 @@ void PairSMTBQ::Charge()
 
     for (gp = 0; gp < nteam+1; gp++) { 
       if(nQEqall[gp] !=0) { 
-        enegchk[gp] = enegchkall[gp]/double(nQEqall[gp]); 
+        enegchk[gp] = enegchkall[gp]/static_cast<double>(nQEqall[gp]); 
 	    enegmax[gp] = enegmaxall[gp];
        }
     }  
@@ -2768,7 +2762,7 @@ void PairSMTBQ::Charge()
   //   Ecriture des potentiels dans un fichier
   // ==========================================
 
-   if (strcmp(writepot,"true") == 0 && fmod(double(step), Neverypot) == 0.0) { 
+   if (strcmp(writepot,"true") == 0 && fmod(static_cast<double>(step), Neverypot) == 0.0) { 
   
   ofstream fichierpot("Electroneg_component.txt", ios::out | ios::trunc) ;
   
@@ -2793,8 +2787,8 @@ void PairSMTBQ::Charge()
   //   ------------------------
   for (i=0; i<nteam+1; i++) {
     if(nQEqcall[i] !=0)
-      { TransfAll[i+cluster] /= double(nQEqcall[i]) ;
-	TransfAll[i+2*cluster] /= double(nQEqaall[i]) ;}
+      { TransfAll[i+cluster] /= static_cast<double>(nQEqcall[i]) ;
+	TransfAll[i+2*cluster] /= static_cast<double>(nQEqaall[i]) ;}
     sigmaa[i] = sigmac[i] = 0.0; 
   }
     
@@ -2816,8 +2810,8 @@ void PairSMTBQ::Charge()
   MPI_Allreduce(sigmac,sigmacll,nteam+1,MPI_DOUBLE,MPI_SUM,world);
 
   for (gp = 1; gp < nteam+1; gp++) {
-    sigmaall[gp] = sqrt(sigmaall[gp]/double(nQEqaall[gp])) ;
-    sigmacll[gp] = sqrt(sigmacll[gp]/double(nQEqcall[gp])) ; 
+    sigmaall[gp] = sqrt(sigmaall[gp]/static_cast<double>(nQEqaall[gp])) ;
+    sigmacll[gp] = sqrt(sigmacll[gp]/static_cast<double>(nQEqcall[gp])) ; 
   }
    
 
@@ -3266,7 +3260,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   nteam = 0; iproc = 0;
   for (igp = 0; igp < 10*nproc; igp++) {
     if (Allgptmp[igp] == 0) continue;
-    iproc = int(double(igp)/10.0);
+    iproc = int(static_cast<double>(igp)/10.0);
     ngp = igp - 10*iproc;
     if (nteam == 0) {
 
@@ -3404,7 +3398,7 @@ void PairSMTBQ::Init_charge(int *nQEq, int *nQEqa, int *nQEqc)
 
     if (gp != 0 && init[gp] != 0) { 
       if (itype == 0) q[i] = -1.96;
-      if (itype != 0) q[i] = 1.96 * double(nQEqaall[gp]) / double(nQEqcall[gp]);
+      if (itype != 0) q[i] = 1.96 * static_cast<double>(nQEqaall[gp]) / static_cast<double>(nQEqcall[gp]);
     }
     tot += q[i];
   }
@@ -3511,7 +3505,7 @@ void PairSMTBQ::forward_int(int *tab)
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
    
-  for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = double(tab[i]);}
+  for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
     			             			       
   comm->forward_comm_pair(this);
    
@@ -3527,7 +3521,7 @@ void PairSMTBQ::reverse_int(int *tab)
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
 
-  for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = double(tab[i]);}
+  for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
     	          		        			       			         
   comm->reverse_comm_pair(this);
    
@@ -3595,7 +3589,7 @@ void PairSMTBQ::CheckEnergyVSForce()
   double za,zb,gam,dgam,dza,dzb,
     d2zaa,d2zab,d2zbb,d2zra,d2zrb,d2gamr2,na,nb; 
   int *type = atom->type;
-  char *NameFile;
+  const char *NameFile;
 
 
   i=0;
@@ -3627,22 +3621,22 @@ void PairSMTBQ::CheckEnergyVSForce()
       if (iCoord==1)
 	{coord[i]=2.2;
 	  coord[j]=2.1;
-	  NameFile="energyandForceOxOxUnderCoord.txt";
+	  NameFile=(const char *)"energyandForceOxOxUnderCoord.txt";
 	}
       if (iCoord==2)
 	{coord[i]=coordOxBulk;
 	  coord[j]=coordOxBulk;
-	  NameFile="energyandForceOxOxCoordBulk.txt";
+	  NameFile=(const char *)"energyandForceOxOxCoordBulk.txt";
 	}
       if (iCoord==3)
 	{coord[i]=3.8;
 	  coord[j]=4;
-	  NameFile="energyandForceOxOxOverCoord.txt";
+	  NameFile=(const char *)"energyandForceOxOxOverCoord.txt";
 	}
       if (iCoord==4)
 	{coord[i]=2.2;
 	  coord[j]=3.5;
-	  NameFile="energyandForceOxOxUnderOverCoord.txt";
+	  NameFile=(const char *)"energyandForceOxOxUnderOverCoord.txt";
 	}
 
 
@@ -3672,7 +3666,7 @@ void PairSMTBQ::CheckEnergyVSForce()
 
 	
 	sds = rsq/ds ;  l = int(sds) ;
-	xi = sds - double(l) ;
+	xi = sds - static_cast<double>(l) ;
     
 
 	t1 = fafb[l][m] + (fafb[l+1][m] - fafb[l][m])*xi;
@@ -3819,7 +3813,7 @@ void PairSMTBQ::gammas(double &na, double &nb, double &za, double &zb, double &r
    ---------------------------------------------------------------- */
  
   int i;
-  double z2ra,z2rb,na2,nb2,halfr,d2rtm,drtrm,rtrm,ss,deriv,
+  double z2ra,z2rb,na2,nb2,halfr,drtrm,rtrm,ss,deriv,
          dzeta1,dzeta2,d2zeta11,d2zeta12,d2zeta22,d2zeta1r,
          d2zeta2r,deriv2,trm1,trm2,trm3,d2rtrm,ztrm,ctrm,
          rfct1,rgam1,rdza1,rgam2;
@@ -3850,7 +3844,7 @@ void PairSMTBQ::gammas(double &na, double &nb, double &za, double &zb, double &r
       na2=2*na;
       nb2=2*nb;
       halfr=0.5*r;
-      d2rtrm=pow(halfr,na2-2);
+      d2rtrm=powint(halfr,na2-2);
       drtrm=d2rtrm*halfr;
       rtrm=drtrm*halfr;
 
@@ -3862,56 +3856,56 @@ void PairSMTBQ::gammas(double &na, double &nb, double &za, double &zb, double &r
         deriv2)	;
 
       gam=rtrm*ss; 
-      dgam=rtrm*deriv+float(na)*drtrm*ss;
+      dgam=rtrm*deriv+static_cast<double>(na)*drtrm*ss;
       dza=rtrm*dzeta1;
       d2zaa=rtrm*d2zeta11;
-      d2zra=rtrm*d2zeta1r+float(na)*drtrm*dzeta1;
-      d2gamr2=d2gamr2+0.5*float(na*(na2-1))*d2rtrm*ss + 2.0*float(na)*drtrm*deriv+rtrm*deriv2;
+      d2zra=rtrm*d2zeta1r+static_cast<double>(na)*drtrm*dzeta1;
+      d2gamr2=d2gamr2+0.5*static_cast<double>(na*(na2-1))*d2rtrm*ss + 2.0*static_cast<double>(na)*drtrm*deriv+rtrm*deriv2;
 
 //  Sum over 2*nb
 
       rtrm=drtrm;
       drtrm=d2rtrm;
-      ztrm=0.5/(zb*float(nb2));
+      ztrm=0.5/(zb*static_cast<double>(nb2));
       
       for (i = nb2; i >= 1; i--) {
         rtrm=rtrm*halfr;
         drtrm=drtrm*halfr;
         ztrm=ztrm*2.0*zb;
-        ctrm=ztrm/factorial(nb2-i);
+        ctrm=ztrm/factorial(static_cast<int>(nb2-i));
         
         css(ss,na2-1,nb2-i,z2ra,z2rb,r,deriv,dzeta1,dzeta2,   
           d2zeta11,d2zeta12,d2zeta22,d2zeta1r,d2zeta2r,deriv2);
         
-        trm1=float(i)*ctrm;
+        trm1=static_cast<double>(i)*ctrm;
         trm2=trm1*rtrm;
         gam=gam-trm2*ss; 
-        trm3=trm1*float(na2+nb2-i)*drtrm;
+        trm3=trm1*static_cast<double>(na2+nb2-i)*drtrm;
         dgam=dgam-trm2*deriv-0.5*trm3*ss;
-        d2gamr2=d2gamr2-trm2*deriv2-trm3*deriv-0.5*trm3*float(na2+nb2-i-1)*ss/r;
+        d2gamr2=d2gamr2-trm2*deriv2-trm3*deriv-0.5*trm3*static_cast<double>(na2+nb2-i-1)*ss/r;
         dza=dza-trm2*dzeta1;
-        dzb=dzb-(trm2/zb)*((float(nb2-i))*ss+zb*dzeta2);
+        dzb=dzb-(trm2/zb)*((static_cast<double>(nb2-i))*ss+zb*dzeta2);
         d2zaa=d2zaa-trm2*d2zeta11;
-        d2zab=d2zab-(trm2/zb)*((float(nb2-i))*dzeta1+zb*d2zeta12);
-        d2zbb=d2zbb-(trm2/zb)*(2.0*(float(nb2-i))*dzeta2+zb*d2zeta22 + 
-           (float((nb2-i-1)*(nb2-i))*ss/zb));
+        d2zab=d2zab-(trm2/zb)*((static_cast<double>(nb2-i))*dzeta1+zb*d2zeta12);
+        d2zbb=d2zbb-(trm2/zb)*(2.0*(static_cast<double>(nb2-i))*dzeta2+zb*d2zeta22 + 
+           (static_cast<double>((nb2-i-1)*(nb2-i))*ss/zb));
         d2zra=d2zra-trm2*d2zeta1r-0.5*trm3*dzeta1;
-        d2zrb=d2zrb-(trm2/zb)*((float(nb2-i))*deriv+zb*d2zeta2r) -    
-          0.5*(trm3/zb)*((float(nb2-i))*ss+zb*dzeta2);
+        d2zrb=d2zrb-(trm2/zb)*((static_cast<double>(nb2-i))*deriv+zb*d2zeta2r) -    
+          0.5*(trm3/zb)*((static_cast<double>(nb2-i))*ss+zb*dzeta2);
       }
 
 //  Multiply by coefficients
 
-      trm3=pow(2.0*za,na2+1)/factorial(na2);
+      trm3=powint(2.0*za,na2+1)/factorial(static_cast<int>(na2));
       gam=gam*trm3; 
       dgam=dgam*trm3;
-      rfct1=((float(na2+1))/za);
+      rfct1=((static_cast<double>(na2+1))/za);
       rgam1=rfct1*gam;
       dza=dza*trm3;
       rdza1=2.0*rfct1*dza;
       dza=dza+rgam1;
       dzb=dzb*trm3;
-      rgam2=rgam1*float(na2)/za;
+      rgam2=rgam1*static_cast<double>(na2)/za;
       d2zaa=d2zaa*trm3+rgam2+rdza1;
       d2zab=d2zab*trm3+rfct1*dzb;
       d2zbb=d2zbb*trm3;
@@ -4095,7 +4089,7 @@ void PairSMTBQ::css(double &s, double nn1, double nn2, double alpha, double beta
  //     implicit real (a-h,o-z)
  //     common /fctrl/ fct(30)
       
-      int il,lie,je,ia,i,j,ie,l;
+      int il,je,ia,i,j,ie,l;
       double coeffs;
       
 // Statement function
@@ -4109,7 +4103,7 @@ void PairSMTBQ::css(double &s, double nn1, double nn2, double alpha, double beta
       for (il = ia; il <= ie; il++) {
         i=il-1;
         j=l-i;  // D'ou vient le i
-        coeffs=coeffs + binm(na,i)*binm(nb,j)*pow(-1.,j);
+        coeffs=coeffs + binm(na,i)*binm(nb,j)*powint(-1.,j);
       }
       return coeffs;
  }
@@ -4135,7 +4129,7 @@ double PairSMTBQ::binm(int n, int i)
       rx=1.0/x;
       a[1]=cste*rx;
       for (i = 1; i <= k; i++) {
-        a[i+1]=(a[i]*float(i)+cste)*rx;
+        a[i+1]=(a[i]*static_cast<double>(i)+cste)*rx;
       }
       return;
  }     
@@ -4189,7 +4183,7 @@ void PairSMTBQ::cbintgs( double x, int k, double *b)
       rx=1.0/x;
       b[1]=(expx-expmx)*rx;
       for (i = 1; i <= k ; i++) {
-        b[i+1]=(float(i)*b[i]+ pow(-1.0,i)*expx-expmx)*rx;
+        b[i+1]=(static_cast<double>(i)*b[i]+ powint(-1.0,i)*expx-expmx)*rx;
       }
       goto g190;
 //      
@@ -4198,7 +4192,7 @@ void PairSMTBQ::cbintgs( double x, int k, double *b)
   g140: for (i = i0; i <= k ; i++) {
         y=0.;
         for (m = i0; m <= last; m++) {
-          ytrm = pow(-x,m-1)*(1. - pow(-1.,m+i+1))/(fct[m+1]*float(m+i+1));
+          ytrm = powint(-x,m-1)*(1. - powint(-1.,m+i+1))/(fct[m+1]*static_cast<double>(m+i+1));
           y = y + ytrm*(-x);
         }
         b[i+1] = y;
@@ -4208,34 +4202,10 @@ void PairSMTBQ::cbintgs( double x, int k, double *b)
 //  x extremely small
 //
   g170: for (i = i0; i <= k; i++) {
-        b[i+1] = (1.-pow(-1.,i+1))/float(i+1);
+        b[i+1] = (1.-powint(-1.,i+1))/static_cast<double>(i+1);
       }
   g190:
       return;
- }     
-/* ------------------------------------------------------------------------------------
-			        	 Factorial  
-   ------------------------------------------------------------------------------------ */
-double PairSMTBQ::factorial(double n) 
-{
-//      implicit real(a-h,o-z)
-    double rn,factorial;
-    int i;
-      
-//
-//  Calculates the factorial of an integer n
-//
-      rn = n;
-      if (n <= 1.) {
-      	factorial=1.0;
-        return factorial;
-      }
-      factorial=1.0;
-      for (i = 2; i <= int(n); i++) {
-        factorial = factorial*float(i);
-      }
-      return factorial;
-}
-
+ }
 
 /* ============================== This is the END... ================================== */

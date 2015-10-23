@@ -1,4 +1,4 @@
-#
+# DATE: 2015-10-22 CONTRIBUTOR: Nicolas Salles, nsalles@laas.fr CITATION: N. Salles, O. Politano, E. Amzallag and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189
 # SMTBQ parameter for Al-Al interaction. 
 # Edited by N. Salles Univ. Bourgogne and E. Maras from Aalto Univ.  
 #  year: 2014  

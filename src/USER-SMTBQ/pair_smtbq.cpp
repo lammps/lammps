@@ -844,7 +844,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double rsq,iq,jq,Eself,natom;
+  double rsq,iq,jq,Eself;
   double ecovtot,ErepOO,ErepMO,Eion,Ecoh;
   double **tmp,**tmpAll,*nmol;
   double dq,dqcov;
@@ -943,10 +943,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
     itype = map[type[i]];
     iq = q[i];
     gp = flag_QEq[i];
-
-    if (gp == 0 && itype > 0) natom += 1.0;
-    //    if (gp == 0 && itype > 0) nmol[gp] += 1.0;
-
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -3547,7 +3543,7 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
   mot = NULL;
 
 
-  strncpy( test, s, MAXLINE );
+  strncpy( test, s, MAXLINE-1 );
 
   for( mot = strtok(test, sep); mot; mot = strtok(NULL, sep) ) {
     strncpy( (*tok)[count], mot, MAXLINE );

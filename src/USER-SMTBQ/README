@@ -1,9 +1,9 @@
 This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
 potential for the description of the ionocovalent bond in oxides.
 
-Authors: Nicolas Salles, Emile Maras, Olivier Politano, Robert T\'e9tot
+Authors: Nicolas Salles, Emile Maras, Olivier Politano, Robert Tetot
 
-Contact email: lammps@u-bourgogne.fr
+Contact emails:  lammps@u-bourgogne.fr, nsalles@laas.fr
 
 See the doc page for the pair_style smtbq command to get started.
 

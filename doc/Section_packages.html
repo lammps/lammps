@@ -112,7 +112,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.32. USER-QTB package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.33. USER-REAXC package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.34. USER-SMD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.35. USER-SPH package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-smtbq-package">4.35. USER-SMTBQ package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.36. USER-SPH package</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
@@ -825,7 +826,7 @@ serial.</p>
 </td>
 </tr>
 <tr class="row-even"><td>USER-MGPT</td>
-<td>Fast MGPT multi-ion potentials</td>
+<td>fast MGPT multi-ion potentials</td>
 <td>Tomas Oppelstrup &amp; John Moriarty (LLNL)</td>
 <td><a class="reference internal" href="pair_mgpt.html"><em>pair_style mgpt</em></a></td>
 <td>USER/mgpt</td>
@@ -964,7 +965,21 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-SPH</td>
+<tr class="row-even"><td>USER-SMTBQ</td>
+<td>Second Moment Tight Binding - QEq potential</td>
+<td>Salles &amp; Maras &amp; Politano &amp; Tetot (4)</td>
+<td><a class="reference internal" href="pair_smtbq.html"><em>pair_style smtbq</em></a></td>
+<td>USER/smtbq</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>USER-SPH</td>
 <td>smoothed particle hydrodynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -975,7 +990,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-TALLY</td>
+<tr class="row-even"><td>USER-TALLY</td>
 <td>Pairwise tallied computes</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><code class="xref doc docutils literal"><span class="pre">compute</span></code></td>
@@ -989,7 +1004,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>&nbsp;</td>
+<tr class="row-odd"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -1009,6 +1024,8 @@ Jerome Henin (LISM, Marseille, France).</p>
 <p>(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
 Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
 (U Blaise Pascal).</p>
+<p>(4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
+Olivier Politano, and Robert Tetot (LAAS-CNRS, France).</p>
 <p>If the Library is not listed as lib/package, then it is a third-party
 library not included in the LAMMPS distribution.  See the
 src/package/Makefile.lammps file for info on where to download the
@@ -1462,8 +1479,23 @@ Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
 Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
 you have questions.</p>
 </div>
+<hr class="docutils" />
+<div class="section" id="user-smtbq-package">
+<h2>4.35. USER-SMTBQ package<a class="headerlink" href="#user-smtbq-package" title="Permalink to this headline">¶</a></h2>
+<p>This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
+potential for the description of ionocovalent bonds in oxides.</p>
+<p>There are example scripts for using this package in
+examples/USER/smtbq.</p>
+<p>See this doc page to get started:</p>
+<p><a class="reference internal" href="pair_smtbq.html"><em>pair_style smtbq</em></a></p>
+<p>The persons who created the USER-SMTBQ package are Nicolas Salles,
+Emile Maras, Olivier Politano, Robert Tetot, who can be contacted at
+these email addreses: <a class="reference external" href="mailto:lammps&#37;&#52;&#48;u-bourgogne&#46;fr">lammps<span>&#64;</span>u-bourgogne<span>&#46;</span>fr</a>, <a class="reference external" href="mailto:nsalles&#37;&#52;&#48;laas&#46;fr">nsalles<span>&#64;</span>laas<span>&#46;</span>fr</a>.  Contact
+them directly if you have any questions.</p>
+</div>
+<hr class="docutils" />
 <div class="section" id="user-sph-package">
-<h2>4.35. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.36. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">

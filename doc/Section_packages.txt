@@ -207,7 +207,7 @@ USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferra
 USER-H5MD, dump output via HDF5, Pierre de Buyl (KU Leuven), "dump h5md"_dump_h5md.html, -, -, lib/h5md
 USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
-USER-MGPT, Fast MGPT multi-ion potentials, Tomas Oppelstrup & John Moriarty (LLNL), "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -, -
+USER-MGPT, fast MGPT multi-ion potentials, Tomas Oppelstrup & John Moriarty (LLNL), "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
@@ -217,6 +217,7 @@ USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html 
 USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_style quip"_pair_quip.html, USER/quip, -, lib/quip
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, -, -
+USER-SMTBQ, Second Moment Tight Binding - QEq potential, Salles & Maras & Politano & Tetot (4), "pair_style smtbq"_pair_smtbq.html, USER/smtbq, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 USER-TALLY, Pairwise tallied computes, Axel Kohlmeyer (Temple U), "compute <...>/tally"_compute_tally.html, USER/tally, -, -
 :tb(ea=c)
@@ -240,6 +241,9 @@ Jerome Henin (LISM, Marseille, France).
 (3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
 Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
 (U Blaise Pascal).
+
+(4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
+Olivier Politano, and Robert Tetot (LAAS-CNRS, France).
 
 If the Library is not listed as lib/package, then it is a third-party
 library not included in the LAMMPS distribution.  See the
@@ -804,6 +808,27 @@ The person who created this package is Georg Ganzenmuller at the
 Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
 Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
 you have questions.
+
+:line
+
+USER-SMTBQ package :h4
+
+This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
+potential for the description of ionocovalent bonds in oxides.
+
+There are example scripts for using this package in
+examples/USER/smtbq.
+
+See this doc page to get started:
+
+"pair_style smtbq"_pair_smtbq.html
+
+The persons who created the USER-SMTBQ package are Nicolas Salles,
+Emile Maras, Olivier Politano, Robert Tetot, who can be contacted at
+these email addreses: lammps@u-bourgogne.fr, nsalles@laas.fr.  Contact
+them directly if you have any questions.
+
+:line
 
 USER-SPH package :h4
 

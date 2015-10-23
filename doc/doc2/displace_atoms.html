@@ -21,6 +21,7 @@
 
 <PRE>  <I>move</I> args = delx dely delz
     delx,dely,delz = distance to displace in each dimension (distance units)
+    any of delx,dely,delz can be a variable (see below)
   <I>ramp</I> args = ddim dlo dhi dim clo chi
     ddim = <I>x</I> or <I>y</I> or <I>z</I>
     dlo,dhi = displacement distance between dlo and dhi (distance units)
@@ -55,7 +56,24 @@ can be imposed on the system.  Or two groups of atoms can be brought
 into closer proximity.
 </P>
 <P>The <I>move</I> style displaces the group of atoms by the specified 3d
-distance.
+displacement vector.  Any of the 3 quantities defining the vector
+components can be specified as an equal-style or atom-style
+<A HREF = "variable.html">variable</A>.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case,
+the variable will be evaluated, and its value(s) used for the
+displacement(s).  The scale factor implied by the <I>units</I> keyword will
+also be applied to the variable result.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Atom-style variables can specify the same formulas as
+equal-style variables but can also include per-atom values, such as
+atom coordinates or per-atom values read from a file.  Note that if
+the variable references other <A HREF = "compute.html">compute</A> or <A HREF = "fix.html">fix</A>
+commands, those values must be up-to-date for the current timestep.
+See the "Variable Accuracy" section of the <A HREF = "variable.html">variable</A>
+doc page for more details.
 </P>
 <P>The <I>ramp</I> style displaces atoms a variable amount in one dimension
 depending on the atom's coordinate in a (possibly) different

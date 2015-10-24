@@ -79,7 +79,7 @@ do \
 done
 
 # OPLS-AA tests 
-for m in ethane
+for m in ethane decane
 do \
     before=$errors
     vglog=${m}-oplsaa.chk

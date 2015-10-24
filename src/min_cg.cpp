@@ -66,7 +66,6 @@ int MinCG::iterate(int maxiter)
   gg = fnorm_sqr();
 
   for (int iter = 0; iter < maxiter; iter++) {
-    if (update->time_expired()) return 0;
 
     ntimestep = ++update->ntimestep;
     niter++;

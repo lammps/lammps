@@ -59,7 +59,7 @@ void ReadFrcFile(void)
     if (strcmp(val,"A-B") == 0) {
       ljtypeflag = 0;
     } else {
-      fprintf(stderr,"Inconsistent parameter file.\n"
+      fprintf(stderr," Inconsistent data in force field file.\n"
               " Expected: 'A-B' type non-bonded data, found: %s\n",val);
       exit(73);
     }

@@ -1,0 +1,49 @@
+MGPT multi-ion potentials: Ta4 (Ta, version 4)
+
+Author: John A. Moriarty
+
+Potential data files: Ta4.mgpt.parmin Ta4.mgpt.potin
+
+Volume mesh for potential data, with x = (vol/vol0)**(1/3):
+
+
+         x       vol/vol0    vol(au)       rws(au)    dens(g/cc)   dens/dens0
+
+       1.080       1.260     153.181       3.31924      13.237       0.794
+       1.060       1.191     144.828       3.25777      14.001       0.840
+       1.040       1.125     136.783       3.19631      14.824       0.889
+       1.020       1.061     129.043       3.13484      15.714       0.942
+       1.000       1.000     121.600       3.07337      16.675       1.000
+       0.980       0.941     114.449       3.01190      17.717       1.062
+       0.960       0.885     107.584       2.95044      18.848       1.130
+       0.940       0.831     100.999       2.88897      20.077       1.204
+       0.920       0.779      94.688       2.82750      21.415       1.284
+       0.900       0.729      88.646       2.76603      22.874       1.372
+       0.880       0.681      82.867       2.70457      24.470       1.467
+       0.860       0.636      77.344       2.64310      26.217       1.572
+       0.840       0.593      72.073       2.58163      28.134       1.687
+       0.820       0.551      67.046       2.52016      30.244       1.814
+       0.800       0.512      62.259       2.45870      32.569       1.953
+       0.780       0.475      57.706       2.39723      35.139       2.107
+       0.760       0.439      53.379       2.33576      37.987       2.278
+
+Corresponding T = 0 bcc pressure range: -29 GPa to 780 GPa  
+
+
+General references to MGPT potentials:
+ 
+  J. A. Moriarty, Phys. Rev. B 42, 1609 (1990) and 49, 12431 (1994).
+
+  J. A. Moriarty, L. X. Benedict, J. N. Glosli, R. Q. Hood, D. A. Orlikowski, M. V. Patel, 
+  P. Soderlind, F. H. Streitz, M. Tang, and L. H. Yang, J. Mater. Res. 21, 563 (2006).
+
+
+Specific references to Ta4 potentials:
+
+  J. A. Moriarty, J. F. Belak, R. E. Rudd, P. Soderlind, F. H. Streitz, and L. H. Yang,
+  J. Phys.: Condens. Matter 14, 2825 (2002). 
+
+  L. H. Yang, P. Soderlind, and J. A. Moriarty, Philos. Mag. A 81, 1355 (2001). 
+
+  L. H. Yang, M. Tang, and J. A. Moriarty, in Dislocations in Solids, Vol. 16, edited by
+  J. P. Hirth and L. Kubin (Elsevier, Amsterdam, 2010), p. 1.

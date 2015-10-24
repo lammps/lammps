@@ -138,6 +138,7 @@
 <pre class="literal-block">
 <em>move</em> args = delx dely delz
   delx,dely,delz = distance to displace in each dimension (distance units)
+  any of delx,dely,delz can be a variable (see below)
 <em>ramp</em> args = ddim dlo dhi dim clo chi
   ddim = <em>x</em> or <em>y</em> or <em>z</em>
   dlo,dhi = displacement distance between dlo and dhi (distance units)
@@ -174,7 +175,23 @@ on a lattice.  For example, in a shear simulation, an initial strain
 can be imposed on the system.  Or two groups of atoms can be brought
 into closer proximity.</p>
 <p>The <em>move</em> style displaces the group of atoms by the specified 3d
-distance.</p>
+displacement vector.  Any of the 3 quantities defining the vector
+components can be specified as an equal-style or atom-style
+<a class="reference internal" href="variable.html"><em>variable</em></a>.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case,
+the variable will be evaluated, and its value(s) used for the
+displacement(s).  The scale factor implied by the <em>units</em> keyword will
+also be applied to the variable result.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Atom-style variables can specify the same formulas as
+equal-style variables but can also include per-atom values, such as
+atom coordinates or per-atom values read from a file.  Note that if
+the variable references other <a class="reference internal" href="compute.html"><em>compute</em></a> or <a class="reference internal" href="fix.html"><em>fix</em></a>
+commands, those values must be up-to-date for the current timestep.
+See the &#8220;Variable Accuracy&#8221; section of the <a class="reference internal" href="variable.html"><em>variable</em></a>
+doc page for more details.</p>
 <p>The <em>ramp</em> style displaces atoms a variable amount in one dimension
 depending on the atom&#8217;s coordinate in a (possibly) different
 dimension.  For example, the second example command displaces atoms in

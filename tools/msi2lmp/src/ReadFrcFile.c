@@ -9,6 +9,7 @@
 #include "Forcefield.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 struct FrcFieldItem ff_atomtypes, equivalence, ff_vdw, ff_bond, ff_morse, ff_ang, ff_tor, ff_oop,
   ff_bonbon, ff_bonang, ff_angtor, ff_angangtor, ff_endbontor, ff_midbontor, ff_angang, ff_bonbon13;
@@ -41,6 +42,8 @@ void ClearFrcData(void)
 
 void ReadFrcFile(void)
 {
+  const char *val;
+
   /* Open Forcefield File */
   if ( (FrcF = fopen(FrcFileName,"r")) == NULL ) {
     fprintf(stderr,"Cannot open %s\n", FrcFileName);
@@ -50,13 +53,33 @@ void ReadFrcFile(void)
                         parameters for each structure */
   /* allocate memory to and search and fill each structure */
 
+  val = SearchAndCheck("type");
+
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
+    if (strcmp(val,"A-B") == 0) {
+      ljtypeflag = 0;
+    } else {
+      fprintf(stderr,"Inconsistent parameter file.\n"
+              " Expected: 'A-B' type non-bonded data, found: %s\n",val);
+      exit(73);
+    }
+  } else if (forcefield & FF_TYPE_CLASS2) {
+    if (strcmp(val,"r-eps") == 0) {
+      ljtypeflag = 1;
+    } else {
+      fprintf(stderr,"Inconsistent parameter file.\n"
+              " Expected: 'r-eps' type non-bonded data, found: %s\n",val);
+      exit(74);
+    }
+  }
+  free((void *)val);
 
   SearchAndFill(&ff_atomtypes);
   SearchAndFill(&equivalence);
   SearchAndFill(&ff_vdw);
   SearchAndFill(&ff_bond);
   if (forcefield & FF_TYPE_CLASS1) {  /* Morse bond terms for class I */
-      SearchAndFill(&ff_morse);
+    SearchAndFill(&ff_morse);
   }
   SearchAndFill(&ff_ang);
   SearchAndFill(&ff_tor);
@@ -83,8 +106,8 @@ void ReadFrcFile(void)
     fprintf(stderr," Item %s has %d entries\n",
             ff_bond.keyword,ff_bond.entries);
     if (forcefield & FF_TYPE_CLASS1)
-        fprintf(stderr," Item %s has %d entries\n",
-                ff_morse.keyword,ff_morse.entries);
+      fprintf(stderr," Item %s has %d entries\n",
+              ff_morse.keyword,ff_morse.entries);
     fprintf(stderr," Item %s has %d entries\n",
             ff_ang.keyword,ff_ang.entries);
     if (forcefield & FF_TYPE_CLASS2) {

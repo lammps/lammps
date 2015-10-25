@@ -36,6 +36,9 @@ void Minimize::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Minimize command before simulation box is defined");
 
+  // ignore minimize command, if walltime limit was already reached
+  if (timer->is_timeout()) return;
+
   update->etol = force->numeric(FLERR,arg[0]);
   update->ftol = force->numeric(FLERR,arg[1]);
   update->nsteps = force->inumeric(FLERR,arg[2]);

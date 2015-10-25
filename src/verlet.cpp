@@ -228,7 +228,6 @@ void Verlet::run(int n)
   if (atom->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 
-  timer->init_timeout();
   for (int i = 0; i < n; i++) {
     if (timer->check_timeout(i)) {
       update->nsteps = i;

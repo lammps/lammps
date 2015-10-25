@@ -69,7 +69,6 @@ void RespaOMP::init()
 
 void RespaOMP::setup()
 {
-  timer->init_timeout();
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up r-RESPA/omp run ...\n");
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);

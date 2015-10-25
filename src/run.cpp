@@ -155,6 +155,7 @@ void Run::command(int narg, char **arg)
   // if post, do full Finish, else just print time
 
   update->whichflag = 1;
+  timer->init_timeout();
 
   if (nevery == 0) {
     update->nsteps = nsteps;

@@ -198,6 +198,7 @@ void Run::command(int narg, char **arg)
     int nleft = nsteps;
     while (nleft > 0 || iter == 0) {
       if (timer->is_timeout()) break;
+      timer->init_timeout();
 
       nsteps = MIN(nleft,nevery);
 

@@ -133,6 +133,9 @@ void Run::command(int narg, char **arg)
       error->all(FLERR,"Run command stop value is before end of run");
   }
 
+  if (!preflag && strstr(update->integrate_style,"respa"))
+    error->all(FLERR,"Run flag 'pre no' not compatible with r-RESPA");
+
   // if nevery, make copies of arg strings that are commands
   // required because re-parsing commands via input->one() will wipe out args
 

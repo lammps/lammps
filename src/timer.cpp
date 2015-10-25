@@ -237,7 +237,7 @@ void Timer::print_timeout(FILE *fp)
     s  = (s - seconds) / 60;
     const int minutes = s % 60;
     const int hours = (s - minutes) / 60;
-    fprintf(fp,"  Walltime left: %d:%02d:%02d.%02d\n",
+    fprintf(fp,"  Walltime left : %d:%02d:%02d.%02d\n",
             hours,minutes,seconds,hs);
   }
 }

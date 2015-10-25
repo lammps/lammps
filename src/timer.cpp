@@ -13,6 +13,7 @@
 
 #include "mpi.h"
 #include "string.h"
+#include "stdlib.h"
 #include "timer.h"
 #include "comm.h"
 #include "error.h"
@@ -26,9 +27,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
-
-#include <stdlib.h>
-#include <time.h>
 
 using namespace LAMMPS_NS;
 
@@ -228,13 +226,19 @@ void Timer::print_timeout(FILE *fp)
 
   // format timeout setting
   if (_timeout > 0) {
-    char timebuf[32];
-    double delta = MPI_Wtime() - timeout_start;
-    time_t sec = _timeout - delta;
-    int hsec = 100*((_timeout - delta) -  tv);
-    struct tm *tm = gmtime(&sec);
-    strftime(timebuf,32,"%H:%M:%S",tm);
-    fprintf(fp,"  Walltime left: %s.%02d\n",timebuf,hsec);
+    // time since init_timeout()
+    const double d = MPI_Wtime() - timeout_start;
+    // remaining timeout in seconds
+    int s = _timeout - d;
+    // remaining 1/100ths of seconds
+    const int hs = 100*((_timeout - d) -  s);
+    // breaking s down into second/minutes/hours
+    const int seconds = s % 60;
+    s  = (s - seconds) / 60;
+    const int minutes = s % 60;
+    const int hours = (s - minutes) / 60;
+    fprintf(fp,"  Walltime left: %d:%02d:%02d.%02d\n",
+            hours,minutes,seconds,hs);
   }
 }
 

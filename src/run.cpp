@@ -42,6 +42,9 @@ void Run::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Run command before simulation box is defined");
 
+  // ignore run command, if walltime limit was already reached
+  if (timer->is_timeout()) return;
+
   bigint nsteps_input = force->bnumeric(FLERR,arg[0]);
 
   // parse optional args
@@ -55,7 +58,6 @@ void Run::command(int narg, char **arg)
   int nevery = 0;
   int ncommands = 0;
   int first,last;
-  double timelimit = -1.0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -72,14 +74,6 @@ void Run::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       stopflag = 1;
       stop = force->bnumeric(FLERR,arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"max_hours") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
-      if (strcmp(arg[iarg+1],"unlimited") == 0) timelimit = -1.0;
-      else {
-        timelimit = 3600.0*force->numeric(FLERR,arg[iarg+1]);
-        if (timelimit <= 0.0) error->all(FLERR,"Illegal run command");
-      }
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
@@ -161,7 +155,6 @@ void Run::command(int narg, char **arg)
   // if post, do full Finish, else just print time
 
   update->whichflag = 1;
-  update->max_wall = timelimit;
 
   if (nevery == 0) {
     update->nsteps = nsteps;
@@ -200,6 +193,8 @@ void Run::command(int narg, char **arg)
     int iter = 0;
     int nleft = nsteps;
     while (nleft > 0 || iter == 0) {
+      if (timer->is_timeout()) break;
+
       nsteps = MIN(nleft,nevery);
 
       update->nsteps = nsteps;

@@ -229,10 +229,12 @@ void Timer::print_timeout(FILE *fp)
   // format timeout setting
   if (_timeout > 0) {
     char timebuf[32];
-    time_t tv = _timeout - (MPI_Wtime() - timeout_start);
-    struct tm *tm = gmtime(&tv);
+    double delta = MPI_Wtime() - timeout_start;
+    time_t sec = _timeout - delta;
+    int hsec = 100*((_timeout - delta) -  tv);
+    struct tm *tm = gmtime(&sec);
     strftime(timebuf,32,"%H:%M:%S",tm);
-    fprintf(fp,"  Walltime left: %s\n",timebuf);
+    fprintf(fp,"  Walltime left: %s.%02d\n",timebuf,hsec);
   }
 }
 

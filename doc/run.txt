@@ -14,14 +14,12 @@ run N keyword values ... :pre
 
 N = # of timesteps :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {upto} or {start} or {stop} or {max_hours} or {pre} or {post} or {every} :l
+keyword = {upto} or {start} or {stop} or {pre} or {post} or {every} :l
   {upto} value = none
   {start} value = N1
     N1 = timestep at which 1st run started
   {stop} value = N2
     N2 = timestep at which last run will end
-  {max_hours} value = max_h
-    max_h = wall time limit for run.
   {pre} value = {no} or {yes}
   {post} value = {no} or {yes} 
   {every} values = M c1 c2 ...
@@ -34,7 +32,6 @@ keyword = {upto} or {start} or {stop} or {max_hours} or {pre} or {post} or {ever
 
 run 10000
 run 1000000 upto
-run 1000000 upto max_hours 7.5
 run 100 start 0 stop 1000
 run 1000 pre no post yes
 run 100000 start 0 stop 1000000 every 1000 "print 'Protein Rg = $r'"
@@ -58,8 +55,7 @@ machine that allocates chunks of time and terminate your job when time
 is exceeded.  If you need to restart your script multiple times
 (reading in the last restart file), you can keep restarting your
 script with the same run command until the simulation finally
-completes. See also the {max_hours} flag for having a run terminate
-cleanly after a given runtime.
+completes.
 
 The {start} or {stop} keywords can be used if multiple runs are being
 performed and you want a "fix"_fix.html command that changes some
@@ -81,14 +77,6 @@ run.  If the run commands did not have the start/stop keywords (just
 "run 1000"), then the temperature would ramp from 200.0 to 300.0
 during the 1000 steps of each run.  With the start/stop keywords, the
 ramping takes place over the 10000 steps of all runs together.
-
-The {max_hours} keyword allows to set a wall time limit on a run
-command which can be used to stop a run cleanly in batch environments
-with wall time limits on individual job submissions. In combination
-with reading and writing restart files and using the {upto} flag,
-this allows to distribute a long running trajectory efficiently over
-fixed time chunks. It requires that the {timer} flag is not turned off.
-The time is given in hours or as 'unlimited'.
 
 The {pre} and {post} keywords can be used to streamline the setup,
 clean-up, and associated output to the screen that happens before and

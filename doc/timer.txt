@@ -58,17 +58,22 @@ With the {timeout} keyword a walltime limit can be imposed that affects
 limit it reached, ongoing calculations will be stopped on the next
 step that is a multiple of the value specified with {every}. All
 follwing run or minimize commands will be skipped until the timeout
-is reset or turned off. The timeout value can be "off" or "unlimited"
-to turn the timeout off, otherwise a single number is interpreted as
-seconds, two numbers separated by a colon (MM:SS) as minutes and
-seconds and three numbers separated by colons as hours, minutes and
-seconds, respectively. The {every} keyword sets how frequent the
-wall clock will be checked. Checking for timeout very often, can
-slow a calculation down, checking too infrequent makes the timeout
-measurement less accurate.
+is reset or turned off by a new {timer} command. The timeout value
+can be "off" or "unlimited" to turn the timeout off, otherwise a
+single number is interpreted as seconds, two numbers separated by
+a colon (MM:SS) as minutes and seconds and three numbers separated
+by colons as hours, minutes and seconds, respectively.
 
-Multiple keywords can be specified.  For keywords that are mutually
-exclusive, the last one specified takes effect.
+The {every} keyword sets how frequent during a run or minimization
+the wall clock will be checked. This check count applies to the outer
+iterations or time steps during minimizations or r-RESPA runs, respectively.
+Checking for timeout very often, can slow a calculation down, checking
+too infrequent makes the timeout measurement less accurate and the run
+will be stopped later than desired.
+
+Multiple keywords can be specified with the {timer} command.  For
+keywords that are mutually exclusive, the last one specified takes
+effect.
 
 IMPORTANT NOTE: Using the {full} and {sync} options provides the most
 detailed and accurate timing information, but can also have a negative

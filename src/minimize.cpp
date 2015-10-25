@@ -54,6 +54,7 @@ void Minimize::command(int narg, char **arg)
     error->all(FLERR,"Too many iterations");
 
   lmp->init();
+  timer->init_timeout();
   update->minimize->setup();
 
   timer->init();

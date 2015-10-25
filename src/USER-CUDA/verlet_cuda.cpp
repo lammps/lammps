@@ -654,8 +654,10 @@ void VerletCuda::run(int n)
   cuda->downloadtime = 0;
   int firstreneigh = 1;
 
+  timer->init_timeout();
   for(int i = 0; i < n; i++) {
-    if (update->time_expired()) {
+
+    if (timer->check_timeout(i)) {
       update->nsteps = i;
       break;
     }

@@ -58,6 +58,7 @@ void VerletKokkos::setup()
     fprintf(screen,"  Unit style  : %s\n", update->unit_style);
     fprintf(screen,"  Current step: " BIGINT_FORMAT "\n", update->ntimestep);
     fprintf(screen,"  Time step   : %g\n", update->dt);
+    timer->print_timeout(screen);
   }
 
   update->setupflag = 1;
@@ -283,8 +284,13 @@ void VerletKokkos::run(int n)
   atomKK->sync(Device,ALL_MASK);
   Kokkos::Impl::Timer ktimer;
 
+  timer->init_timeout();
   for (int i = 0; i < n; i++) {
 
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
 

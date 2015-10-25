@@ -552,7 +552,7 @@ void Respa::run(int n)
   for (int i = 0; i < n; i++) {
     if (timer->check_timeout(i)) {
       update->nsteps = i;
-      return;
+      break;
     }
 
     ntimestep = ++update->ntimestep;

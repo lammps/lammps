@@ -28,6 +28,8 @@
 #include <sys/resource.h>
 #endif
 
+#include <time.h>
+
 using namespace LAMMPS_NS;
 
 // convert a timespec ([[HH:]MM:]SS) to seconds

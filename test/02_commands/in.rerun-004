@@ -1,0 +1,25 @@
+
+timer off
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+velocity	all create 3.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+
+fix		1 all nve
+
+reset_timestep  4000000
+dump		id all custom 50 dump.melt id x y z vx vy vz
+thermo		50
+run		200 post no
+undump		id
+
+reset_timestep  10000
+velocity	all set 0.0 0.0 0.0
+run 0 post no
+rerun 		dump.melt first 4000000 every 0 dump x y z vx vy vz box yes
+shell rm dump.melt

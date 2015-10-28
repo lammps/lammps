@@ -839,6 +839,7 @@ void ReadDump::process_atoms(int n)
     // create type and coord fields from dump file
     // coord = 0.0 unless corresponding dump file field was specified
 
+    itype = 0;
     one[0] = one[1] = one[2] = 0.0;
     for (ifield = 1; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {

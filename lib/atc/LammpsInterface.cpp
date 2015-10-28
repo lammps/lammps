@@ -235,6 +235,7 @@ std::string LammpsInterface::read_file(std::string filename) const
     eof = lammps_->comm->read_lines_from_file(fp,1,MAXLINE,buffer);
     s << buffer;
   }
+  fclose(fp);
   delete [] buffer;
   return s.str(); // can't copy the stream itself
 }

@@ -147,7 +147,6 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
 
   fct = NULL;
 
-
   maxpage = 0;
 
   // set comm size needed by this Pair
@@ -257,6 +256,9 @@ void PairSMTBQ::coeff(int narg, char **arg)
   int i,j,n;
 
   if (!allocated) allocate();
+
+  if (strstr(force->pair_style,"hybrid"))
+    error->all(FLERR,"Pair style SMTBQ is not compatible with hybrid styles");
 
   if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -1268,9 +1270,7 @@ void PairSMTBQ::tabqeq()
   double aCoeff,bCoeff,rcoupe,nang;
 
   int n = atom->ntypes;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
-  nmax = atom->nmax;
+  int nmax = atom->nmax;
 
   verbose = 1;
   verbose = 0;
@@ -1283,7 +1283,6 @@ void PairSMTBQ::tabqeq()
 
 
   if (verbose) printf ("kmax %d, ds %f, nmax %d\n",kmax,ds,nmax);
-  if (verbose) printf ("nlocal = %d, nghost = %d\n",nlocal,nghost);
   if (verbose) printf ("nntypes %d, kmax %d, rc %f, n %d\n",nntype,kmax,rc,n);
 
   // allocate arrays
@@ -2889,16 +2888,17 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 {
   int ii,i,jj,j,kk,k,itype,jtype,ktype,jnum,m,gp,zz,z,kgp;
   int iproc,team_elt[10][nproc],team_QEq[10][nproc][5];
-  int *ilist,*jlist,*numneigh,**firstneigh,ngp,igp,nboite;
+  int *ilist,*jlist,*numneigh,**firstneigh,ngp,igp;
   double delr[3],xtmp,ytmp,ztmp,rsq;
   int **flag_gp, *nelt, **tab_gp;
   int QEq,QEqall[nproc];
 
   double **x = atom->x;
   int *type = atom->type;
+  const int nlocal = atom->nlocal;
+  const int nghost = atom->nghost;
+  const int nall = nlocal + nghost;
   int inum = list->inum;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -2908,7 +2908,6 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   //  On declare et initialise nos p'tits tableaux
   // +++++++++++++++++++++++++++++++++++++++++++++++++
 
-  nboite = nlocal + nghost;
   int **tabtemp,**Alltabtemp, *gptmp, *Allgptmp;
 
   memory->create(tabtemp,10*nproc+10,nproc,"pair:tabtemp");
@@ -2916,19 +2915,19 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   memory->create(gptmp,10*nproc+10,"pair:gptmp");
   memory->create(Allgptmp,10*nproc+10,"pair:Allgptmp");
 
-  memory->create(flag_gp,nproc,nboite,"pair:flag_gp");
-  memory->create(nelt,nboite,"pair:nelt");
-  memory->create(tab_gp,10,nboite,"pair:flag_gp");
+  memory->create(flag_gp,nproc,nall,"pair:flag_gp");
+  memory->create(nelt,nall,"pair:nelt");
+  memory->create(tab_gp,10,nall,"pair:flag_gp");
 
 
-  for (i = 0; i < nlocal+nghost ; i++) { flag_QEq[i] = 0; }
+  for (i = 0; i < nall ; i++) { flag_QEq[i] = 0; }
   for (i = 0; i < 10*nproc; i++) {
     gptmp[i] = 0; Allgptmp[i] = 0;
     for (j=0;j<nproc;j++) { tabtemp[i][j] = 0;
       Alltabtemp[i][j] = 0;}
   }
   for (i = 0; i < 10; i++) {
-    for (k = 0; k < nboite; k++) { tab_gp[i][k] = 0;
+    for (k = 0; k < nall; k++) { tab_gp[i][k] = 0;
       if (i == 0) nelt[k] = 0;
     }
     for (j = 0; j < nproc; j++) {
@@ -2941,7 +2940,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
 
   //   printf ("groupeQEq me %d - nloc %d nghost %d boite %d\n",
-  //             me,nlocal,nghost,nboite);
+  //             me,nlocal,nghost,nall);
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++
   //  On identifie les atomes rentrant dans le schema QEq +
@@ -2999,7 +2998,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
 
   for (m = 0; m < nproc; m++) {
-    for (i = 0; i < nboite; i++) { flag_gp[m][i] = 0; }
+    for (i = 0; i < nall; i++) { flag_gp[m][i] = 0; }
   }
 
   // OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
@@ -3049,7 +3048,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
         //  ---------------------------------------------
         jlist = firstneigh[k];
         jnum = numneigh[k];
-        for (j = 0; j < nboite; j++ )
+        for (j = 0; j < nall; j++ )
           {
             jtype = map[type[j]];
             if (jtype == ktype) continue;
@@ -3096,7 +3095,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
                 }
 
                 nelt[ngp] = 0;
-                for (z = nlocal; z < nboite; z++) {
+                for (z = nlocal; z < nall; z++) {
                   if (flag_gp[me][z] == ngp) flag_gp[me][z] = igp;
                 }
 
@@ -3184,7 +3183,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
               }
               nelt[kgp] = 0;
 
-              for (k = 0; k < nboite; k++) {
+              for (k = 0; k < nall; k++) {
                 if (flag_gp[me][k] == kgp) flag_gp[me][k] = igp;
               }
 
@@ -3215,7 +3214,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   //  =============== End of COMM =================
 
 
-  for (i = 0; i < nboite; i++) {
+  for (i = 0; i < nall; i++) {
 
     m = 10*me + flag_gp[me][i];
     if (m == 10*me) continue; // Pas de groupe zero

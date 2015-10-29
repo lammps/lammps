@@ -460,11 +460,11 @@ void PairSMTBQ::read_file(char *file)
   for (i=1; i <= maxintparam; i++)
     intparams[i].mode = (char*) malloc(sizeof(char)*6);
 
-  QEqMode = (char*) malloc(sizeof(char)*18);
-  Bavard = (char*) malloc(sizeof(char)*5);
-  QInitMode = (char*) malloc(sizeof(char)*18);
-  writepot = (char*) malloc(sizeof(char)*5);
-  writeenerg = (char*) malloc(sizeof(char)*5);
+  QEqMode = (char*) malloc(sizeof(char)*19);
+  Bavard = (char*) malloc(sizeof(char)*6);
+  QInitMode = (char*) malloc(sizeof(char)*19);
+  writepot = (char*) malloc(sizeof(char)*6);
+  writeenerg = (char*) malloc(sizeof(char)*6);
 
 
   //  Little loop for ion's parameters
@@ -826,7 +826,9 @@ void PairSMTBQ::read_file(char *file)
   }
 
   //A adapter au STO
-  ncov = min((params[0].sto)*(params[0].n0),(params[1].sto)*(params[1].n0));
+  ncov = params[0].sto * params[0].n0;
+  for (i=1; i<num_atom_types; i++)
+    ncov = min(ncov,params[i].sto * params[i].n0);
 
   if (verbose) printf (" Parametre ncov = %f\n",ncov);
   if (verbose) printf (" ********************************************* \n");

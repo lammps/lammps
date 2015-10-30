@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    			 Oleg Sergeev (VNIIA, sergeev@vniia.ru)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "math.h"
+#include <stdlib.h>
+#include <math.h>
 #include "atom.h"
-#include "string.h"
+#include <string.h>
 #include "fix_ave_atom.h"
 #include "fix_reaxc_species.h"
 #include "domain.h"
@@ -67,15 +67,15 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nfreq = atoi(arg[5]);
 
   comm_forward = 5;
-  
+
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix reax/c/species command");
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all(FLERR,"Illegal fix reax/c/species command");
-  
-  // Neighbor lists must stay unchanged during averaging of bonds, 
+
+  // Neighbor lists must stay unchanged during averaging of bonds,
   // but may be updated when no averaging is performed.
-  
+
   int rene_flag = 0;
   if (nevery * nrepeat != 1 && (nfreq % neighbor->every != 0 || neighbor->every < nevery * nrepeat)) {
     int newneighborevery = nevery * nrepeat;
@@ -165,14 +165,14 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
       itype = atoi(arg[iarg+1]);
       jtype = atoi(arg[iarg+2]);
       bo_cut = atof(arg[iarg+3]);
-      if (itype > ntypes || jtype > ntypes) 
+      if (itype > ntypes || jtype > ntypes)
       	error->all(FLERR,"Illegal fix reax/c/species command");
-      if (itype <= 0 || jtype <= 0) 
+      if (itype <= 0 || jtype <= 0)
       	error->all(FLERR,"Illegal fix reax/c/species command");
       if (bo_cut > 1.0 || bo_cut < 0.0)
       	error->all(FLERR,"Illegal fix reax/c/species command");
 
-      BOCut[itype][jtype] = bo_cut; 
+      BOCut[itype][jtype] = bo_cut;
       BOCut[jtype][itype] = bo_cut;
       iarg += 4;
 
@@ -377,27 +377,27 @@ void FixReaxCSpecies::create_fix()
   args[11] = (char *) "c_SPECATOM[6]";	 // vy, 5
   args[12] = (char *) "c_SPECATOM[7]";	 // vz, 6
   args[13] = (char *) "c_SPECATOM[8]";	 // abo01, 7
-  args[14] = (char *) "c_SPECATOM[9]";	
-  args[15] = (char *) "c_SPECATOM[10]";	
-  args[16] = (char *) "c_SPECATOM[11]"; 
+  args[14] = (char *) "c_SPECATOM[9]";
+  args[15] = (char *) "c_SPECATOM[10]";
+  args[16] = (char *) "c_SPECATOM[11]";
   args[17] = (char *) "c_SPECATOM[12]";
   args[18] = (char *) "c_SPECATOM[13]";
-  args[19] = (char *) "c_SPECATOM[14]"; 
+  args[19] = (char *) "c_SPECATOM[14]";
   args[20] = (char *) "c_SPECATOM[15]";
   args[21] = (char *) "c_SPECATOM[16]";
   args[22] = (char *) "c_SPECATOM[17]";
   args[23] = (char *) "c_SPECATOM[18]";
   args[24] = (char *) "c_SPECATOM[19]"; // abo12, 18
-  args[25] = (char *) "c_SPECATOM[20]";	
-  args[26] = (char *) "c_SPECATOM[21]"; 
+  args[25] = (char *) "c_SPECATOM[20]";
+  args[26] = (char *) "c_SPECATOM[21]";
   args[27] = (char *) "c_SPECATOM[22]";
   args[28] = (char *) "c_SPECATOM[23]";
-  args[29] = (char *) "c_SPECATOM[24]"; 
+  args[29] = (char *) "c_SPECATOM[24]";
   args[30] = (char *) "c_SPECATOM[25]";
   args[31] = (char *) "c_SPECATOM[26]";
   args[32] = (char *) "c_SPECATOM[27]";
   args[33] = (char *) "c_SPECATOM[28]";
-  args[34] = (char *) "c_SPECATOM[29]"; 
+  args[34] = (char *) "c_SPECATOM[29]";
   args[35] = (char *) "c_SPECATOM[30]";
   args[36] = (char *) "c_SPECATOM[31]";
   modify->add_fix(narg,args);
@@ -477,7 +477,7 @@ void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 AtomCoord chAnchor(AtomCoord in1, AtomCoord in2)
 {
-  if (in1.x < in2.x) 
+  if (in1.x < in2.x)
     return in1;
   return in2;
 }
@@ -528,7 +528,7 @@ void FixReaxCSpecies::FindMolecule ()
       	  if (j < i) continue;
       	  if (!(mask[j] & groupbit)) continue;
 
-      	  if (clusterID[i] == clusterID[j] && PBCconnected[i] == PBCconnected[j] 
+      	  if (clusterID[i] == clusterID[j] && PBCconnected[i] == PBCconnected[j]
 	    && x0[i].x == x0[j].x && x0[i].y == x0[j].y && x0[i].z == x0[j].z) continue;
 
           jtype = atom->type[j];
@@ -540,7 +540,7 @@ void FixReaxCSpecies::FindMolecule ()
             PBCconnected[i] = PBCconnected[j] = MAX(PBCconnected[i], PBCconnected[j]);
             x0[i] = x0[j] = chAnchor(x0[i], x0[j]);
             if ((fabs(spec_atom[i][1] - spec_atom[j][1]) > reaxc->control->bond_cut)
-             || (fabs(spec_atom[i][2] - spec_atom[j][2]) > reaxc->control->bond_cut) 
+             || (fabs(spec_atom[i][2] - spec_atom[j][2]) > reaxc->control->bond_cut)
              || (fabs(spec_atom[i][3] - spec_atom[j][3]) > reaxc->control->bond_cut))
               PBCconnected[i] = PBCconnected[j] = 1;
       	    done = 0;
@@ -579,7 +579,7 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
   }
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && me == 0) 
+  if (flagall && me == 0)
     error->warning(FLERR,"Atom with cluster ID = 0 included in "
 		    "fix reax/c/species group");
   MPI_Allreduce(&lo,&idlo,1,MPI_INT,MPI_MIN,world);
@@ -661,7 +661,7 @@ void FixReaxCSpecies::FindSpecies(int Nmole, int &Nspec)
       if (cid == m) {
         itype = atom->type[n]-1;
         Name[itype] ++;
-        flag_mol = 1; 
+        flag_mol = 1;
       }
     }
     MPI_Allreduce(&flag_mol,&flag_tmp,1,MPI_INT,MPI_MAX,world);
@@ -674,15 +674,15 @@ void FixReaxCSpecies::FindSpecies(int Nmole, int &Nspec)
       flag_identity = 1;
       for (k = 0; k < Nspec; k ++) {
         flag_spec=0;
-        for (l = 0; l < ntypes; l ++) 
+        for (l = 0; l < ntypes; l ++)
           if (MolName[ntypes*k+l] != Name[l]) flag_spec = 1;
-        if (flag_spec == 0) NMol[k] ++;  
-        flag_identity *= flag_spec; 
+        if (flag_spec == 0) NMol[k] ++;
+        flag_identity *= flag_spec;
       }
       if (Nspec == 0 || flag_identity == 1) {
         for (l = 0; l < ntypes; l ++)
           MolName[ntypes*Nspec+l] = Name[l];
-        Nspec ++; 
+        Nspec ++;
       }
     }
   }
@@ -710,7 +710,7 @@ int FixReaxCSpecies::CheckExistence(int id, int ntypes)
       molid = MolType[ntypes * i + j];
       if (molid != MolName[ntypes * id + j]) flag = 1;
     }
-    if (flag == 0) return i; 
+    if (flag == 0) return i;
   }
   for (i = 0; i < ntypes; i ++)
     MolType[ntypes * Nmoltype + i] = MolName[ntypes *id + i];
@@ -729,7 +729,7 @@ void FixReaxCSpecies::WriteFormulas(int Nmole, int Nspec)
   fprintf(fp,"# Timestep     No_Moles     No_Specs     ");
 
   Nmoltype = 0;
- 
+
   for (i = 0; i < Nspec; i ++)
     nd[i] = CheckExistence(i, ntypes);
 
@@ -765,7 +765,7 @@ void FixReaxCSpecies::OpenPos()
   filecurrent = (char*) malloc((strlen(filepos)+16)*sizeof(char));
   char *ptr = strchr(filepos,'*');
   *ptr = '\0';
-  if (padflag == 0) 
+  if (padflag == 0)
     sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
 	filepos,ntimestep,ptr+1);
   else {
@@ -797,7 +797,7 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
   double **spec_atom = f_SPECBOND->array_atom;
 
   if (multipos) OpenPos();
-  
+
   box[0] = domain->boxhi[0] - domain->boxlo[0];
   box[1] = domain->boxhi[1] - domain->boxlo[1];
   box[2] = domain->boxhi[2] - domain->boxlo[2];
@@ -823,9 +823,9 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
 
     count = 0;
     avq = 0.0;
-    for (n = 0; n < 3; n++) 
+    for (n = 0; n < 3; n++)
       avx[n] = 0.0;
-    for (n = 0; n < ntypes; n ++) 
+    for (n = 0; n < ntypes; n ++)
       Name[n] = 0;
 
     for (i = 0; i < nlocal; i ++) {
@@ -858,7 +858,7 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
     avq_tmp = 0.0;
     MPI_Allreduce(&avq,&avq_tmp,1,MPI_DOUBLE,MPI_SUM,world);
     avq = avq_tmp;
-    
+
     for (n = 0; n < 3; n++) {
       avx_tmp = 0.0;
       MPI_Reduce(&avx[n],&avx_tmp,1,MPI_DOUBLE,MPI_SUM,0,world);
@@ -871,9 +871,9 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
     MPI_Reduce(Name,Nameall,ntypes,MPI_INT,MPI_SUM,0,world);
     for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
 
-    if (me == 0) { 
+    if (me == 0) {
       fprintf(pos,"%d\t%d\t",m,count);
-      for (n = 0; n < ntypes; n++) { 
+      for (n = 0; n < ntypes; n++) {
         if (Name[n] != 0) {
           if (eletype) fprintf(pos,"%s",eletype[n]);
           else fprintf(pos,"%c",ele[n]);
@@ -882,7 +882,7 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
       }
       if (count > 0) {
         avq /= count;
-        for (k = 0; k < 3; k++) { 
+        for (k = 0; k < 3; k++) {
       	  avx[k] /= count;
           if (avx[k] >= domain->boxhi[k])
             avx[k] -= box[k];
@@ -906,9 +906,9 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
 
 double FixReaxCSpecies::compute_vector(int n)
 {
-  if (n == 0) 
+  if (n == 0)
     return vector_nmole;
-  if (n == 1) 
+  if (n == 1)
     return vector_nspec;
   return 0.0;
 
@@ -926,7 +926,7 @@ int FixReaxCSpecies::nint(const double &r)
 
 /* ---------------------------------------------------------------------- */
 
-int FixReaxCSpecies::pack_forward_comm(int n, int *list, double *buf, 
+int FixReaxCSpecies::pack_forward_comm(int n, int *list, double *buf,
                                        int pbc_flag, int *pbc)
 {
   int i,j,m;

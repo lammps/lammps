@@ -71,7 +71,7 @@ class FixBondCreate : public Fix {
 
   class RanMars *random;
   class NeighList *list;
-  
+
   int countflag,commflag;
   int nlevels_respa;
   int nangles,ndihedrals,nimpropers;

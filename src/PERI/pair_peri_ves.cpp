@@ -15,9 +15,9 @@
    Contributing authors: Rezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_peri_ves.h"
 #include "atom.h"
 #include "domain.h"
@@ -111,9 +111,9 @@ void PairPeriVES::compute(int eflag, int vflag)
   double *s0 = atom->s0;
   double **x0 = atom->x0;
   double **r0 = ((FixPeriNeigh *) modify->fix[ifix_peri])->r0;
-  double **deviatorextention = 
+  double **deviatorextention =
     ((FixPeriNeigh *) modify->fix[ifix_peri])->deviatorextention;
-  double **deviatorBackextention = 
+  double **deviatorBackextention =
     ((FixPeriNeigh *) modify->fix[ifix_peri])->deviatorBackextention;
   tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
@@ -258,7 +258,7 @@ void PairPeriVES::compute(int eflag, int vflag)
     itype = type[i];
     jnum = npartner[i];
     first = true;
-    
+
     for (jj = 0; jj < jnum; jj++) {
       if (partner[i][jj] == 0) continue;
       j = atom->map(partner[i][jj]);
@@ -299,7 +299,7 @@ void PairPeriVES::compute(int eflag, int vflag)
 
       omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       omega_minus = influence_function(delx0,dely0,delz0);
-        
+
       rk = ( (3.0 * bulkmodulus[itype][itype]) * vfrac[j] * vfrac_scale *
         ( (omega_plus * theta[i] / wvolume[i]) +
           ( omega_minus * theta[j] / wvolume[j] ) ) ) * r0[i][jj];
@@ -309,37 +309,37 @@ void PairPeriVES::compute(int eflag, int vflag)
 
       // for viscoelasticity
       lambdai=m_lambdai[itype][itype];
-      double taui = m_taubi[itype][itype];  
+      double taui = m_taubi[itype][itype];
       double c1 = taui/timestepsize;
       decay=exp(-1.0/c1);
       betai=1.-c1*(1.-decay);
 
-      double deviatoric_extension = 
+      double deviatoric_extension =
         dr - (theta[i]* r0[i][jj] / 3.0);
       deltaed = deviatoric_extension-deviatorextention[i][jj];
- 
+
       // back extention at current step
 
-      edbNp1 = deviatorextention[i][jj]*(1-decay) + 
+      edbNp1 = deviatorextention[i][jj]*(1-decay) +
         deviatorBackextention[i][jj]*decay+betai*deltaed;
 
-      rkNew = ((1-lambdai)*15.0) * 
+      rkNew = ((1-lambdai)*15.0) *
         ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale ) *
-        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * 
+        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) *
         deviatoric_extension;
-      rkNew += (lambdai*15.0) * 
+      rkNew += (lambdai*15.0) *
         ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale ) *
-        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * 
+        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) *
         (deviatoric_extension-edbNp1);
 
       if (r > 0.0) fbondViscoElastic = -(rkNew/r);
       else fbondViscoElastic = 0.0;
 
-      // total Force: elastic + viscoelastic 
+      // total Force: elastic + viscoelastic
 
       fbondFinal=fbond+fbondViscoElastic;
       fbond=fbondFinal;
-         
+
       f[i][0] += delx*fbond;
       f[i][1] += dely*fbond;
       f[i][2] += delz*fbond;
@@ -347,10 +347,10 @@ void PairPeriVES::compute(int eflag, int vflag)
       // since I-J is double counted, set newton off & use 1/2 factor and I,I
 
       if (eflag) evdwl =  ((0.5 * 15 * (1 - lambdai) * shearmodulus[itype][itype]/wvolume[i] *
-                    omega_plus * deviatoric_extension * 
-                    deviatoric_extension) + 
+                    omega_plus * deviatoric_extension *
+                    deviatoric_extension) +
                     (0.5 * 15 * lambdai * shearmodulus[itype][itype]/wvolume[i] *
-                    omega_plus * (deviatoric_extension-edbNp1) * 
+                    omega_plus * (deviatoric_extension-edbNp1) *
                     (deviatoric_extension-edbNp1))) * vfrac[j] * vfrac_scale;
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,
                            0.5*fbond*vfrac[i],delx,dely,delz);
@@ -375,7 +375,7 @@ void PairPeriVES::compute(int eflag, int vflag)
                          (alpha[itype][jtype] * stretch));
 
       first = false;
-    }  
+    }
   }
 
   // store new s0
@@ -482,7 +482,7 @@ void PairPeriVES::init_style()
 {
   // error checks
 
-  if (!atom->peri_flag) 
+  if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");

@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_tersoff_mod_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -227,7 +227,7 @@ void PairTersoffMODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeFullA<FULL,0> >(0,inum),*this);
     DeviceType::fence();
     ev_all += ev;
-    
+
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeFullB<FULL,1> >(0,ignum),*this,ev);
     else
@@ -317,7 +317,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeHalf<N
     const F_FLOAT tmp_fce = ters_fc_k(itype,jtype,jtype,r);
     const F_FLOAT tmp_fcd = ters_dfc(itype,jtype,jtype,r);
     const F_FLOAT tmp_exp = exp(-paramskk(itype,jtype,jtype).lam1 * r);
-    const F_FLOAT frep = -paramskk(itype,jtype,jtype).biga * tmp_exp * 
+    const F_FLOAT frep = -paramskk(itype,jtype,jtype).biga * tmp_exp *
 	    		  (tmp_fcd - tmp_fce*paramskk(itype,jtype,jtype).lam1) / r;
     const F_FLOAT eng = tmp_fce * paramskk(itype,jtype,jtype).biga * tmp_exp;
 
@@ -335,7 +335,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeHalf<N
   }
 
   // attractive: bond order
- 
+
   for (jj = 0; jj < jnum; jj++) {
     j = d_neighbors(i,jj);
     j &= NEIGHMASK;
@@ -350,7 +350,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeHalf<N
     bo_ij = 0.0;
     if (rsq1 > cutsq1) continue;
     rij = sqrt(rsq1);
-    
+
     for (kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       k = d_neighbors(i,kk);
@@ -386,12 +386,12 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeHalf<N
 
     if (EVFLAG) {
       if (eflag) ev.evdwl += eng;
-      if (vflag_either || eflag_atom) 
+      if (vflag_either || eflag_atom)
 	this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,fatt,delx1,dely1,delz1);
     }
 
     // attractive: three-body force
-    
+
     for (kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       k = d_neighbors(i,kk);
@@ -477,7 +477,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullA<
     const F_FLOAT tmp_fce = ters_fc_k(itype,jtype,jtype,r);
     const F_FLOAT tmp_fcd = ters_dfc(itype,jtype,jtype,r);
     const F_FLOAT tmp_exp = exp(-paramskk(itype,jtype,jtype).lam1 * r);
-    const F_FLOAT frep = -paramskk(itype,jtype,jtype).biga * tmp_exp * 
+    const F_FLOAT frep = -paramskk(itype,jtype,jtype).biga * tmp_exp *
 	    		  (tmp_fcd - tmp_fce*paramskk(itype,jtype,jtype).lam1) / r;
     const F_FLOAT eng = tmp_fce * paramskk(itype,jtype,jtype).biga * tmp_exp;
 
@@ -488,13 +488,13 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullA<
     if (EVFLAG) {
       if (eflag)
         ev.evdwl += 0.5*eng;
-      if (vflag_either || eflag_atom) 
+      if (vflag_either || eflag_atom)
 	this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,frep,delx,dely,delz);
     }
   }
 
   // attractive: bond order
- 
+
   for (jj = 0; jj < jnum; jj++) {
     j = d_neighbors(i,jj);
     j &= NEIGHMASK;
@@ -509,7 +509,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullA<
     bo_ij = 0.0;
     if (rsq1 > cutsq1) continue;
     rij = sqrt(rsq1);
-    
+
     for (kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       k = d_neighbors(i,kk);
@@ -542,12 +542,12 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullA<
 
     if (EVFLAG) {
       if (eflag) ev.evdwl += 0.5*eng;
-      if (vflag_either || eflag_atom) 
+      if (vflag_either || eflag_atom)
 	this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,fatt,delx1,dely1,delz1);
     }
 
     // attractive: three-body force
-    
+
     for (kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       k = d_neighbors(i,kk);
@@ -608,7 +608,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullB<
   const int jnum = d_numneigh[i];
 
   // attractive: bond order
- 
+
   for (jj = 0; jj < jnum; jj++) {
     j = d_neighbors(i,jj);
     j &= NEIGHMASK;
@@ -626,7 +626,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullB<
     rij = sqrt(rsq1);
 
     j_jnum = d_numneigh[j];
-    
+
     for (kk = 0; kk < j_jnum; kk++) {
       k = d_neighbors(j,kk);
       if (k == i) continue;
@@ -659,14 +659,14 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullB<
     f(i,2) -= delz1*fatt;
 
     if (EVFLAG) {
-      if (eflag) 
+      if (eflag)
         ev.evdwl += 0.5 * eng;
-      if (vflag_either || eflag_atom) 
+      if (vflag_either || eflag_atom)
 	this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,fatt,delx1,dely1,delz1);
     }
 
     // attractive: three-body force
-    
+
     for (kk = 0; kk < j_jnum; kk++) {
       k = d_neighbors(j,kk);
       if (k == i) continue;
@@ -718,14 +718,14 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeFullB<
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffMODKokkos<DeviceType>::ters_fc_k(const int &i, const int &j,
-		const int &k, const F_FLOAT &r) const 
+		const int &k, const F_FLOAT &r) const
 {
   const F_FLOAT ters_R = paramskk(i,j,k).bigr;
   const F_FLOAT ters_D = paramskk(i,j,k).bigd;
 
   if (r < ters_R-ters_D) return 1.0;
   if (r > ters_R+ters_D) return 0.0;
-  return 0.5*(1.0 - 1.125*sin(MY_PI2*(r - ters_R)/ters_D) - 
+  return 0.5*(1.0 - 1.125*sin(MY_PI2*(r - ters_R)/ters_D) -
               0.125*sin(3.0*MY_PI2*(r - ters_R)/ters_D));
 }
 
@@ -734,14 +734,14 @@ double PairTersoffMODKokkos<DeviceType>::ters_fc_k(const int &i, const int &j,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffMODKokkos<DeviceType>::ters_dfc(const int &i, const int &j,
-		const int &k, const F_FLOAT &r) const 
+		const int &k, const F_FLOAT &r) const
 {
   const F_FLOAT ters_R = paramskk(i,j,k).bigr;
   const F_FLOAT ters_D = paramskk(i,j,k).bigd;
 
   if (r < ters_R-ters_D) return 0.0;
   if (r > ters_R+ters_D) return 0.0;
-  return -(0.375*MY_PI4/ters_D) * (3.0*cos(MY_PI2*(r - ters_R)/ters_D) + 
+  return -(0.375*MY_PI4/ters_D) * (3.0*cos(MY_PI2*(r - ters_R)/ters_D) +
                                    cos(3.0*MY_PI2*(r - ters_R)/ters_D));
 }
 
@@ -751,7 +751,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffMODKokkos<DeviceType>::bondorder(const int &i, const int &j, const int &k,
 	const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
-	const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const 
+	const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const
 {
   F_FLOAT arg, ex_delr;
 
@@ -781,9 +781,9 @@ double PairTersoffMODKokkos<DeviceType>::
   const F_FLOAT ters_c5 = paramskk(i,j,k).c5;
   const F_FLOAT tmp_h = (paramskk(i,j,k).h - cos)*(paramskk(i,j,k).h - cos);
 
-  return ters_c1 + (ters_c2*tmp_h/(ters_c3 + tmp_h)) * 
+  return ters_c1 + (ters_c2*tmp_h/(ters_c3 + tmp_h)) *
       (1.0 + ters_c4*exp(-ters_c5*tmp_h));
- 
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -801,7 +801,7 @@ double PairTersoffMODKokkos<DeviceType>::
   const F_FLOAT g1 = (paramskk(i,j,k).h - cos)/(ters_c3 + tmp_h);
   const F_FLOAT g2 = exp(-ters_c5*tmp_h);
 
-  return -2.0*ters_c2*g1*((1 + ters_c4*g2)*(1 + g1*(cos - paramskk(i,j,k).h)) - 
+  return -2.0*ters_c2*g1*((1 + ters_c4*g2)*(1 + g1*(cos - paramskk(i,j,k).h)) -
                             tmp_h*ters_c4*ters_c5*g2);
 }
 
@@ -810,10 +810,10 @@ double PairTersoffMODKokkos<DeviceType>::
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffMODKokkos<DeviceType>::ters_fa_k(const int &i, const int &j,
-		const int &k, const F_FLOAT &r) const 
+		const int &k, const F_FLOAT &r) const
 {
   if (r > paramskk(i,j,k).bigr + paramskk(i,j,k).bigd) return 0.0;
-  return -paramskk(i,j,k).bigb * exp(-paramskk(i,j,k).lam2 * r) 
+  return -paramskk(i,j,k).bigb * exp(-paramskk(i,j,k).lam2 * r)
 	  * ters_fc_k(i,j,k,r);
 }
 
@@ -822,7 +822,7 @@ double PairTersoffMODKokkos<DeviceType>::ters_fa_k(const int &i, const int &j,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffMODKokkos<DeviceType>::ters_dfa(const int &i, const int &j,
-		const int &k, const F_FLOAT &r) const 
+		const int &k, const F_FLOAT &r) const
 {
   if (r > paramskk(i,j,k).bigr + paramskk(i,j,k).bigd) return 0.0;
   return paramskk(i,j,k).bigb * exp(-paramskk(i,j,k).lam2 * r) *
@@ -834,12 +834,12 @@ double PairTersoffMODKokkos<DeviceType>::ters_dfa(const int &i, const int &j,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffMODKokkos<DeviceType>::ters_bij_k(const int &i, const int &j,
-		const int &k, const F_FLOAT &bo) const 
+		const int &k, const F_FLOAT &bo) const
 {
   const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
-  if (tmp > paramskk(i,j,k).ca1) 
+  if (tmp > paramskk(i,j,k).ca1)
     return pow(tmp, -paramskk(i,j,k).powern/(2.0*paramskk(i,j,k).powern_del));
-  if (tmp < paramskk(i,j,k).ca4) 
+  if (tmp < paramskk(i,j,k).ca4)
     return 1.0;
   return pow(1.0 + pow(tmp,paramskk(i,j,k).powern), -1.0/(2.0*paramskk(i,j,k).powern_del));
 }
@@ -849,17 +849,17 @@ double PairTersoffMODKokkos<DeviceType>::ters_bij_k(const int &i, const int &j,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffMODKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
-		const int &k, const F_FLOAT &bo) const 
+		const int &k, const F_FLOAT &bo) const
 {
   const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
-  if (tmp > paramskk(i,j,k).ca1) 
+  if (tmp > paramskk(i,j,k).ca1)
     return -0.5*(paramskk(i,j,k).powern/paramskk(i,j,k).powern_del)*
 	  pow(tmp,-0.5*(paramskk(i,j,k).powern/paramskk(i,j,k).powern_del)) / bo;
-  if (tmp < paramskk(i,j,k).ca4) 
+  if (tmp < paramskk(i,j,k).ca4)
     return 0.0;
-			  
+
   const F_FLOAT tmp_n = pow(tmp,paramskk(i,j,k).powern);
-  return -0.5 *(paramskk(i,j,k).powern/paramskk(i,j,k).powern_del)* 
+  return -0.5 *(paramskk(i,j,k).powern/paramskk(i,j,k).powern_del)*
 	  pow(1.0+tmp_n, -1.0-(1.0/(2.0*paramskk(i,j,k).powern_del)))*tmp_n / bo;
 }
 
@@ -1125,7 +1125,7 @@ void PairTersoffMODKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffMODKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, const int &j, const int &k, 
+void PairTersoffMODKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, const int &j, const int &k,
 	F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const
 {
 
@@ -1197,7 +1197,7 @@ void PairTersoffMODKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION 
+KOKKOS_INLINE_FUNCTION
 int PairTersoffMODKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
 }

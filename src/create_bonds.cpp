@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "create_bonds.h"
 #include "atom.h"
 #include "domain.h"
@@ -39,7 +39,7 @@ void CreateBonds::command(int narg, char **arg)
     error->all(FLERR,"Create_bonds command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use create_bonds unless atoms have IDs");
-  if (atom->molecular != 1) 
+  if (atom->molecular != 1)
     error->all(FLERR,"Cannot use create_bonds with non-molecular system");
 
   if (narg != 5) error->all(FLERR,"Illegal create_bonds command");
@@ -57,7 +57,7 @@ void CreateBonds::command(int narg, char **arg)
   double rmin = force->numeric(FLERR,arg[3]);
   double rmax = force->numeric(FLERR,arg[4]);
 
-  if (btype <= 0 || btype > atom->nbondtypes) 
+  if (btype <= 0 || btype > atom->nbondtypes)
     error->all(FLERR,"Invalid bond type in create_bonds command");
   if (rmin > rmax) error->all(FLERR,"Illegal create_bonds command");
 
@@ -136,7 +136,7 @@ void CreateBonds::command(int narg, char **arg)
   tagint **bond_atom = atom->bond_atom;
   double newton_bond = force->newton_bond;
   int nlocal = atom->nlocal;
-  
+
   int i,j,ii,jj,inum,jnum,flag;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -161,7 +161,7 @@ void CreateBonds::command(int narg, char **arg)
       // only consider bond creation if I,J distance between 2 cutoffs
       // compute rsq identically on both I,J loop iterations
       // if I,J tags equal, do not bond atom to itself
-      
+
       if (tag[i] < tag[j]) {
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

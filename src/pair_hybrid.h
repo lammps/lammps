@@ -20,7 +20,7 @@ PairStyle(hybrid,PairHybrid)
 #ifndef LMP_PAIR_HYBRID_H
 #define LMP_PAIR_HYBRID_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pair.h"
 
 namespace LAMMPS_NS {

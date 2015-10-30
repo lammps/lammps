@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -18,7 +18,7 @@ PairStyle(tersoff/mod,PairTersoffMOD)
 #else
 
 #ifndef LMP_PAIR_TERSOFF_MOD_H
-#define LMP_PAIR_TERSOFF_MOD_H 
+#define LMP_PAIR_TERSOFF_MOD_H
 
 #include "pair_tersoff.h"
 
@@ -28,7 +28,7 @@ class PairTersoffMOD : public PairTersoff {
  public:
   PairTersoffMOD(class LAMMPS *);
   ~PairTersoffMOD() {}
- 
+
  protected:
   void read_file(char *);
   virtual void setup();
@@ -54,7 +54,7 @@ class PairTersoffMOD : public PairTersoff {
     const double ters_c5 = param->c5;
     const double tmp_h = (param->h - costheta)*(param->h - costheta);
 
-    return ters_c1 + (ters_c2*tmp_h/(ters_c3 + tmp_h)) * 
+    return ters_c1 + (ters_c2*tmp_h/(ters_c3 + tmp_h)) *
       (1.0 + ters_c4*exp(-ters_c5*tmp_h));
   }
 
@@ -68,9 +68,9 @@ class PairTersoffMOD : public PairTersoff {
     const double g1 = (param->h - costheta)/(ters_c3 + tmp_h);
     const double g2 = exp(-ters_c5*tmp_h);
 
-    return -2.0*ters_c2*g1*((1 + ters_c4*g2)*(1 + g1*(costheta - param->h)) - 
+    return -2.0*ters_c2*g1*((1 + ters_c4*g2)*(1 + g1*(costheta - param->h)) -
                             tmp_h*ters_c4*ters_c5*g2);
-  } 
+  }
 };
 
 }

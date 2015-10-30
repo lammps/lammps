@@ -28,7 +28,7 @@ class AtomNeighbors
   const int num_neighs;
 
   KOKKOS_INLINE_FUNCTION
-  AtomNeighbors(int* const & firstneigh, const int & _num_neighs, 
+  AtomNeighbors(int* const & firstneigh, const int & _num_neighs,
                 const int & stride):
   num_neighs(_num_neighs), _firstneigh(firstneigh), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION

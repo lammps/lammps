@@ -30,7 +30,7 @@ struct potdata {
   double (*vpair_spline)[4],(*dvpair_spline)[4];
   double r0,r1;
   int nr;
-  
+
   double mass,rcrit,rmax;
 
   int lang,lmax;
@@ -64,7 +64,7 @@ struct potdata2 {
   double (*vpair)[4][4],(*dvpair)[4][4];
   double r0,r1,T0,T1;
   int nr,nt;
-  
+
   potdata *potlist;
 
   double mass,rcrit,rmax;

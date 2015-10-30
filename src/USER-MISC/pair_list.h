@@ -46,7 +46,7 @@ class PairList : public Pair {
   struct morse_p { double d0, alpha, r0;  };
   struct lj126_p { double epsilon, sigma; };
 
-  union parm_u { 
+  union parm_u {
     struct harm_p harm;
     struct morse_p morse;
     struct lj126_p lj126;
@@ -57,7 +57,7 @@ class PairList : public Pair {
     double cutsq;       // cutoff**2 for this pair
     double offset;      // energy offset
     union parm_u parm;  // parameters for style
-  } list_parm_t;    
+  } list_parm_t;
 
  protected:
   double cut_global;    // global cutoff distance
@@ -77,7 +77,7 @@ class PairList : public Pair {
 E: Not all pairs processed in pair_style list
 
 Not all interacting pairs for which coefficients were found. This can be intentional
-and then you need to set the 'nocheck' option. If not, it usually means that the 
+and then you need to set the 'nocheck' option. If not, it usually means that the
 communication cutoff is too small. This can be ameliorated by either increasing
 the cutoff in the pair_style command or the communication cutoff.
 

@@ -25,7 +25,7 @@ ComputeStyle(pe/tally,ComputePETally)
 namespace LAMMPS_NS {
 
 class ComputePETally : public Compute {
-  
+
  public:
   ComputePETally(class LAMMPS *, int, char **);
   virtual ~ComputePETally();

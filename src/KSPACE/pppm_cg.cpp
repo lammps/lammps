@@ -15,10 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "atom.h"
 #include "gridcomm.h"
@@ -193,7 +193,7 @@ void PPPMCG::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    if (differentiation_flag == 1 && vflag_atom) 
+    if (differentiation_flag == 1 && vflag_atom)
       cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
     else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);

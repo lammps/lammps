@@ -16,10 +16,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_charmm_coul_long_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -153,14 +153,14 @@ void PairLJCharmmCoulLongSoft::compute(int eflag, int vflag)
         if (rsq < cut_ljsq) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
             switch2 = 12.0 * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-            philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj);
             forcelj = forcelj*switch1 + philj*switch2;
           }
@@ -185,7 +185,7 @@ void PairLJCharmmCoulLongSoft::compute(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq) {
-            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
@@ -270,7 +270,7 @@ void PairLJCharmmCoulLongSoft::compute_inner()
 
         r4sig6 = rsq*rsq / lj2[itype][jtype];
         denlj = lj3[itype][jtype] + rsq*r4sig6;
-        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
           (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
         fpair = forcecoul + factor_lj*forcelj;
@@ -365,14 +365,14 @@ void PairLJCharmmCoulLongSoft::compute_middle()
 
         r4sig6 = rsq*rsq / lj2[itype][jtype];
         denlj = lj3[itype][jtype] + rsq*r4sig6;
-        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
           (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
         if (rsq > cut_lj_innersq) {
           switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
             (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
           switch2 = 12.0 * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-          philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+          philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj);
           forcelj = forcelj*switch1 + philj*switch2;
         }
@@ -497,14 +497,14 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
         if (rsq < cut_ljsq && rsq > cut_in_off_sq) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
             switch2 = 12.0 * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-            philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj);
             forcelj = forcelj*switch1 + philj*switch2;
           }
@@ -535,7 +535,7 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
           if (rsq < cut_ljsq) {
             r4sig6 = rsq*rsq / lj2[itype][jtype];
             denlj = lj3[itype][jtype] + rsq*r4sig6;
-            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
@@ -555,27 +555,27 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
           if (rsq <= cut_in_off_sq) {
             r4sig6 = rsq*rsq / lj2[itype][jtype];
             denlj = lj3[itype][jtype] + rsq*r4sig6;
-            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
               (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
                 (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
               switch2 = 12.0 * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-              philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+              philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
                 (1.0/(denlj*denlj) - 1.0/denlj);
               forcelj = forcelj*switch1 + philj*switch2;
             }
           } else if (rsq <= cut_in_on_sq) {
             r4sig6 = rsq*rsq / lj2[itype][jtype];
             denlj = lj3[itype][jtype] + rsq*r4sig6;
-            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
               (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
                 (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
               switch2 = 12.0 * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-              philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+              philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
                 (1.0/(denlj*denlj) - 1.0/denlj);
               forcelj = forcelj*switch1 + philj*switch2;
             }
@@ -971,13 +971,13 @@ double PairLJCharmmCoulLongSoft::single(int i, int j, int itype, int jtype,
   if (rsq < cut_ljsq) {
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
-    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
       (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
     if (rsq > cut_lj_innersq) {
       switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
         (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
       switch2 = 12.0 * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-      philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+      philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
         (1.0/(denlj*denlj) - 1.0/denlj);
       forcelj = forcelj*switch1 + philj*switch2;
     }
@@ -993,7 +993,7 @@ double PairLJCharmmCoulLongSoft::single(int i, int j, int itype, int jtype,
   }
 
   if (rsq < cut_ljsq) {
-    philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+    philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
       (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
     if (rsq > cut_lj_innersq) {
       switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *

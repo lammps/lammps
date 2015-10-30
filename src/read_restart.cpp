@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
-#include "dirent.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
+#include <dirent.h>
 #include "read_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -110,13 +110,13 @@ void ReadRestart::command(int narg, char **arg)
   if (strstr(arg[0],".mpiio")) mpiioflag = 1;
   else mpiioflag = 0;
 
-  if (multiproc && mpiioflag) 
+  if (multiproc && mpiioflag)
     error->all(FLERR,
                "Read restart MPI-IO input not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);
-    if (!mpiio->mpiio_exists) 
+    if (!mpiio->mpiio_exists)
       error->all(FLERR,"Reading from MPI-IO filename when "
                  "MPIIO package is not installed");
   }
@@ -234,7 +234,7 @@ void ReadRestart::command(int narg, char **arg)
     }
 
     for (int iproc = 0; iproc < nprocs_file; iproc++) {
-      if (read_int() != PERPROC) 
+      if (read_int() != PERPROC)
         error->all(FLERR,"Invalid flag in peratom section of restart file");
 
       n = read_int();
@@ -294,16 +294,16 @@ void ReadRestart::command(int narg, char **arg)
       }
 
       fread(&flag,sizeof(int),1,fp);
-      if (flag != PROCSPERFILE) 
+      if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       int procsperfile;
       fread(&procsperfile,sizeof(int),1,fp);
 
       for (int i = 0; i < procsperfile; i++) {
         fread(&flag,sizeof(int),1,fp);
-        if (flag != PERPROC) 
+        if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
-        
+
         fread(&n,sizeof(int),1,fp);
         if (n > maxbuf) {
           maxbuf = n;
@@ -342,7 +342,7 @@ void ReadRestart::command(int narg, char **arg)
     int fileproc = static_cast<int> ((bigint) icluster * nprocs/nfile);
     int fcluster = static_cast<int> ((bigint) fileproc * nfile/nprocs);
     if (fcluster < icluster) fileproc++;
-    int fileprocnext = 
+    int fileprocnext =
       static_cast<int> ((bigint) (icluster+1) * nprocs/nfile);
     fcluster = static_cast<int> ((bigint) fileprocnext * nfile/nprocs);
     if (fcluster < icluster+1) fileprocnext++;
@@ -371,7 +371,7 @@ void ReadRestart::command(int narg, char **arg)
 
     if (filereader) {
       fread(&flag,sizeof(int),1,fp);
-      if (flag != PROCSPERFILE) 
+      if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       fread(&procsperfile,sizeof(int),1,fp);
     }
@@ -383,7 +383,7 @@ void ReadRestart::command(int narg, char **arg)
     for (int i = 0; i < procsperfile; i++) {
       if (filereader) {
         fread(&flag,sizeof(int),1,fp);
-        if (flag != PERPROC) 
+        if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
         fread(&n,sizeof(int),1,fp);
@@ -666,7 +666,7 @@ void ReadRestart::header(int incompatible)
         if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
                             version,universe->version);
       }
-      if (incompatible) 
+      if (incompatible)
         error->all(FLERR,"Restart file incompatible with current version");
       delete [] version;
 
@@ -729,7 +729,7 @@ void ReadRestart::header(int incompatible)
           procgrid[1] != comm->user_procgrid[1]) flag = 1;
       if (comm->user_procgrid[2] != 0 &&
           procgrid[2] != comm->user_procgrid[2]) flag = 1;
-      if (flag && me == 0) 
+      if (flag && me == 0)
         error->warning(FLERR,"Restart file used different 3d processor grid");
 
     // don't set newton_pair, leave input script value unchanged
@@ -894,7 +894,7 @@ void ReadRestart::header(int incompatible)
       atom->sortfreq = read_int();
     } else if (flag == ATOM_SORTBIN) {
       atom->userbinsize = read_double();
-      
+
     } else if (flag == COMM_MODE) {
       comm->mode = read_int();
     } else if (flag == COMM_CUTOFF) {
@@ -996,7 +996,7 @@ void ReadRestart::file_layout()
       if (mpiioflag && mpiioflag_file == 0)
         error->all(FLERR,"Restart file is not a MPI-IO file");
 
-      if (mpiioflag) { 
+      if (mpiioflag) {
         bigint *nproc_chunk_offsets;
         memory->create(nproc_chunk_offsets,nprocs,
                        "write_restart:nproc_chunk_offsets");
@@ -1016,45 +1016,45 @@ void ReadRestart::file_layout()
           int *nproc_chunk_number;
           memory->create(nproc_chunk_number,nprocs,
                          "write_restart:nproc_chunk_number");
-          
+
           fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
-          
+
           int init_chunk_number = nprocs_file/nprocs;
           int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
-          
+
           for (int i = 0; i < nprocs; i++) {
             if (i < num_extra_chunks)
               nproc_chunk_number[i] = init_chunk_number+1;
             else
               nproc_chunk_number[i] = init_chunk_number;
           }
-          
+
           int all_written_send_sizes_index = 0;
           bigint current_offset = 0;
           for (int i=0;i<nprocs;i++) {
             nproc_chunk_offsets[i] = current_offset;
             nproc_chunk_sizes[i] = 0;
             for (int j=0;j<nproc_chunk_number[i];j++) {
-              nproc_chunk_sizes[i] += 
+              nproc_chunk_sizes[i] +=
                 all_written_send_sizes[all_written_send_sizes_index];
-              current_offset += 
-                (all_written_send_sizes[all_written_send_sizes_index] * 
+              current_offset +=
+                (all_written_send_sizes[all_written_send_sizes_index] *
                  sizeof(double));
               all_written_send_sizes_index++;
             }
-          
+
           }
           memory->destroy(all_written_send_sizes);
           memory->destroy(nproc_chunk_number);
         }
 
         // scatter chunk sizes and offsets to all procs
-        
+
         MPI_Scatter(nproc_chunk_sizes, 1, MPI_LMP_BIGINT,
                     &assignedChunkSize , 1, MPI_LMP_BIGINT, 0,world);
         MPI_Scatter(nproc_chunk_offsets, 1, MPI_LMP_BIGINT,
                     &assignedChunkOffset , 1, MPI_LMP_BIGINT, 0,world);
-        
+
         memory->destroy(nproc_chunk_sizes);
         memory->destroy(nproc_chunk_offsets);
       }
@@ -1089,10 +1089,10 @@ void ReadRestart::magic_string()
   int count;
   if (me == 0) count = fread(str,sizeof(char),n,fp);
   MPI_Bcast(&count,1,MPI_INT,0,world);
-  if (count < n) 
+  if (count < n)
     error->all(FLERR,"Invalid LAMMPS restart file");
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0) 
+  if (strcmp(str,MAGIC_STRING) != 0)
     error->all(FLERR,"Invalid LAMMPS restart file");
   delete [] str;
 }

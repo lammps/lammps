@@ -19,10 +19,10 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h" 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include "lmptype.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "read_dump.h"
 #include "reader.h"
 #include "style_reader.h"
@@ -810,8 +810,8 @@ void ReadDump::process_atoms(int n)
 
       if (!wrapped) xbox = ybox = zbox = 0;
 
-      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
-        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }
@@ -899,8 +899,8 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
-        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }

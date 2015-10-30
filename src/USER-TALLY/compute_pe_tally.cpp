@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_pe_tally.h"
 #include "atom.h"
 #include "group.h"
@@ -90,7 +90,7 @@ void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton,
 
   if (did_compute != update->ntimestep) {
     did_compute = update->ntimestep;
-    
+
     // grow local eatom array if necessary
     // needs to be atom->nmax in length
 
@@ -189,7 +189,7 @@ void ComputePETally::compute_peratom()
     const int nall = atom->nlocal + atom->nghost;
     for (int i = atom->nlocal; i < nall; ++i)
       eatom[i][0] = eatom[i][1] = 0.0;
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------

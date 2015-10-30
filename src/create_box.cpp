@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "create_box.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -110,49 +110,49 @@ void CreateBox::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bond/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->bonds_allow) 
+      if (!atom->avec->bonds_allow)
         error->all(FLERR,"No bonds allowed with this atom style");
       atom->nbondtypes = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"angle/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->angles_allow) 
+      if (!atom->avec->angles_allow)
         error->all(FLERR,"No angles allowed with this atom style");
       atom->nangletypes = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dihedral/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->dihedrals_allow) 
+      if (!atom->avec->dihedrals_allow)
         error->all(FLERR,"No dihedrals allowed with this atom style");
       atom->ndihedraltypes = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"improper/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->impropers_allow) 
+      if (!atom->avec->impropers_allow)
         error->all(FLERR,"No impropers allowed with this atom style");
       atom->nimpropertypes = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/bond/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->bonds_allow) 
+      if (!atom->avec->bonds_allow)
         error->all(FLERR,"No bonds allowed with this atom style");
       atom->bond_per_atom = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/angle/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->angles_allow) 
+      if (!atom->avec->angles_allow)
         error->all(FLERR,"No angles allowed with this atom style");
       atom->angle_per_atom = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/dihedral/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->dihedrals_allow) 
+      if (!atom->avec->dihedrals_allow)
         error->all(FLERR,"No dihedrals allowed with this atom style");
       atom->dihedral_per_atom = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/improper/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      if (!atom->avec->impropers_allow) 
+      if (!atom->avec->impropers_allow)
         error->all(FLERR,"No impropers allowed with this atom style");
       atom->improper_per_atom = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;

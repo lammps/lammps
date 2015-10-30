@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "gridcomm.h"
 #include "comm.h"
 #include "kspace.h"
@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
                    int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
                    int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-                   int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi) 
+                   int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
   : Pointers(lmp)
 {
   gridcomm = gcomm;
@@ -74,9 +74,9 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
 GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
                    int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
                    int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-                   int oxlo_max, int oxhi_max, int oylo_max, int oyhi_max, 
+                   int oxlo_max, int oxhi_max, int oylo_max, int oyhi_max,
                    int ozlo_max, int ozhi_max,
-                   int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi) 
+                   int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
   : Pointers(lmp)
 {
   gridcomm = gcomm;
@@ -194,7 +194,7 @@ int GridComm::ghost_overlap()
   if (ghostyhi > inyhi-inylo+1) nearest = 1;
   if (ghostzlo > inzhi-inzlo+1) nearest = 1;
   if (ghostzhi > inzhi-inzlo+1) nearest = 1;
-  
+
   int nearest_all;
   MPI_Allreduce(&nearest,&nearest_all,1,MPI_INT,MPI_MIN,gridcomm);
 
@@ -230,14 +230,14 @@ void GridComm::setup()
   while (notdone) {
     if (nswap == maxswap) {
       maxswap += SWAPDELTA;
-      swap = (Swap *) 
+      swap = (Swap *)
         memory->srealloc(swap,maxswap*sizeof(Swap),"Commgrid:swap");
     }
 
     swap[nswap].sendproc = procxlo;
     swap[nswap].recvproc = procxhi;
     sendplanes = MIN(sendlast-sendfirst+1,ghostxlo-nsent);
-    swap[nswap].npack = 
+    swap[nswap].npack =
       indices(swap[nswap].packlist,
               sendfirst,sendfirst+sendplanes-1,inylo,inyhi,inzlo,inzhi);
 
@@ -246,7 +246,7 @@ void GridComm::setup()
                    &recvplanes,1,MPI_INT,procxhi,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
-    swap[nswap].nunpack = 
+    swap[nswap].nunpack =
       indices(swap[nswap].unpacklist,
               recvfirst,recvfirst+recvplanes-1,inylo,inyhi,inzlo,inzhi);
 
@@ -272,14 +272,14 @@ void GridComm::setup()
   while (notdone) {
     if (nswap == maxswap) {
       maxswap += 1;
-      swap = (Swap *) 
+      swap = (Swap *)
         memory->srealloc(swap,maxswap*sizeof(Swap),"Commgrid:swap");
     }
 
     swap[nswap].sendproc = procxhi;
     swap[nswap].recvproc = procxlo;
     sendplanes = MIN(sendlast-sendfirst+1,ghostxhi-nsent);
-    swap[nswap].npack = 
+    swap[nswap].npack =
       indices(swap[nswap].packlist,
               sendlast-sendplanes+1,sendlast,inylo,inyhi,inzlo,inzhi);
 
@@ -288,7 +288,7 @@ void GridComm::setup()
                    &recvplanes,1,MPI_INT,procxlo,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
-    swap[nswap].nunpack = 
+    swap[nswap].nunpack =
       indices(swap[nswap].unpacklist,
               recvlast-recvplanes+1,recvlast,inylo,inyhi,inzlo,inzhi);
 
@@ -314,14 +314,14 @@ void GridComm::setup()
   while (notdone) {
     if (nswap == maxswap) {
       maxswap += SWAPDELTA;
-      swap = (Swap *) 
+      swap = (Swap *)
         memory->srealloc(swap,maxswap*sizeof(Swap),"Commgrid:swap");
     }
 
     swap[nswap].sendproc = procylo;
     swap[nswap].recvproc = procyhi;
     sendplanes = MIN(sendlast-sendfirst+1,ghostylo-nsent);
-    swap[nswap].npack = 
+    swap[nswap].npack =
       indices(swap[nswap].packlist,
               outxlo,outxhi,sendfirst,sendfirst+sendplanes-1,inzlo,inzhi);
 
@@ -330,7 +330,7 @@ void GridComm::setup()
                    &recvplanes,1,MPI_INT,procyhi,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
-    swap[nswap].nunpack = 
+    swap[nswap].nunpack =
       indices(swap[nswap].unpacklist,
               outxlo,outxhi,recvfirst,recvfirst+recvplanes-1,inzlo,inzhi);
 
@@ -356,14 +356,14 @@ void GridComm::setup()
   while (notdone) {
     if (nswap == maxswap) {
       maxswap += 1;
-      swap = (Swap *) 
+      swap = (Swap *)
         memory->srealloc(swap,maxswap*sizeof(Swap),"Commgrid:swap");
     }
 
     swap[nswap].sendproc = procyhi;
     swap[nswap].recvproc = procylo;
     sendplanes = MIN(sendlast-sendfirst+1,ghostyhi-nsent);
-    swap[nswap].npack = 
+    swap[nswap].npack =
       indices(swap[nswap].packlist,
               outxlo,outxhi,sendlast-sendplanes+1,sendlast,inzlo,inzhi);
 
@@ -372,7 +372,7 @@ void GridComm::setup()
                    &recvplanes,1,MPI_INT,procylo,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
-    swap[nswap].nunpack = 
+    swap[nswap].nunpack =
       indices(swap[nswap].unpacklist,
               outxlo,outxhi,recvlast-recvplanes+1,recvlast,inzlo,inzhi);
 
@@ -398,14 +398,14 @@ void GridComm::setup()
   while (notdone) {
     if (nswap == maxswap) {
       maxswap += SWAPDELTA;
-      swap = (Swap *) 
+      swap = (Swap *)
         memory->srealloc(swap,maxswap*sizeof(Swap),"Commgrid:swap");
     }
 
     swap[nswap].sendproc = proczlo;
     swap[nswap].recvproc = proczhi;
     sendplanes = MIN(sendlast-sendfirst+1,ghostzlo-nsent);
-    swap[nswap].npack = 
+    swap[nswap].npack =
       indices(swap[nswap].packlist,
               outxlo,outxhi,outylo,outyhi,sendfirst,sendfirst+sendplanes-1);
 
@@ -414,7 +414,7 @@ void GridComm::setup()
                    &recvplanes,1,MPI_INT,proczhi,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
-    swap[nswap].nunpack = 
+    swap[nswap].nunpack =
       indices(swap[nswap].unpacklist,
               outxlo,outxhi,outylo,outyhi,recvfirst,recvfirst+recvplanes-1);
 
@@ -440,14 +440,14 @@ void GridComm::setup()
   while (notdone) {
     if (nswap == maxswap) {
       maxswap += 1;
-      swap = (Swap *) 
+      swap = (Swap *)
         memory->srealloc(swap,maxswap*sizeof(Swap),"Commgrid:swap");
     }
 
     swap[nswap].sendproc = proczhi;
     swap[nswap].recvproc = proczlo;
     sendplanes = MIN(sendlast-sendfirst+1,ghostzhi-nsent);
-    swap[nswap].npack = 
+    swap[nswap].npack =
       indices(swap[nswap].packlist,
               outxlo,outxhi,outylo,outyhi,sendlast-sendplanes+1,sendlast);
 
@@ -456,7 +456,7 @@ void GridComm::setup()
                    &recvplanes,1,MPI_INT,proczlo,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
-    swap[nswap].nunpack = 
+    swap[nswap].nunpack =
       indices(swap[nswap].unpacklist,
               outxlo,outxhi,outylo,outyhi,recvlast-recvplanes+1,recvlast);
 
@@ -490,7 +490,7 @@ void GridComm::setup()
 void GridComm::forward_comm(KSpace *kspace, int which)
 {
   for (int m = 0; m < nswap; m++) {
-    if (swap[m].sendproc == me) 
+    if (swap[m].sendproc == me)
       kspace->pack_forward(which,buf2,swap[m].npack,swap[m].packlist);
     else
       kspace->pack_forward(which,buf1,swap[m].npack,swap[m].packlist);
@@ -502,7 +502,7 @@ void GridComm::forward_comm(KSpace *kspace, int which)
                swap[m].sendproc,0,gridcomm);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
-    
+
     kspace->unpack_forward(which,buf2,swap[m].nunpack,swap[m].unpacklist);
   }
 }
@@ -515,7 +515,7 @@ void GridComm::forward_comm(KSpace *kspace, int which)
 void GridComm::reverse_comm(KSpace *kspace, int which)
 {
   for (int m = nswap-1; m >= 0; m--) {
-    if (swap[m].recvproc == me) 
+    if (swap[m].recvproc == me)
       kspace->pack_reverse(which,buf2,swap[m].nunpack,swap[m].unpacklist);
     else
       kspace->pack_reverse(which,buf1,swap[m].nunpack,swap[m].unpacklist);
@@ -527,7 +527,7 @@ void GridComm::reverse_comm(KSpace *kspace, int which)
                swap[m].recvproc,0,gridcomm);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
-    
+
     kspace->unpack_reverse(which,buf2,swap[m].npack,swap[m].packlist);
   }
 }
@@ -538,7 +538,7 @@ void GridComm::reverse_comm(KSpace *kspace, int which)
      outzlo_max:outzhi_max)
 ------------------------------------------------------------------------- */
 
-int GridComm::indices(int *&list, 
+int GridComm::indices(int *&list,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);

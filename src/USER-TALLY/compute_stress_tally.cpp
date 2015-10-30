@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_stress_tally.h"
 #include "atom.h"
 #include "group.h"
@@ -91,7 +91,7 @@ void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newto
 
   if (did_compute != update->ntimestep) {
     did_compute = update->ntimestep;
-    
+
     // grow local stress array if necessary
     // needs to be atom->nmax in length
 
@@ -128,7 +128,7 @@ void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newto
     const double v3 = dx*dy*fpair;
     const double v4 = dx*dz*fpair;
     const double v5 = dy*dz*fpair;
-  
+
     if (newton || i < nlocal) {
       virial[0] += v0; stress[i][0] += v0;
       virial[1] += v1; stress[i][1] += v1;
@@ -197,7 +197,7 @@ double ComputeStressTally::compute_scalar()
 
   MPI_Allreduce(virial,vector,size_peratom_cols,MPI_DOUBLE,MPI_SUM,world);
 
-  if (domain->dimension == 3) 
+  if (domain->dimension == 3)
     scalar = (vector[0]+vector[1]+vector[2])/3.0;
   else
     scalar = (vector[0]+vector[1])/2.0;

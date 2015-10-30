@@ -19,7 +19,7 @@ PairStyle(lj/long/coul/long,PairLJLongCoulLong)
 
 #ifndef LMP_PAIR_LJ_LONG_COUL_LONG_H
 #define LMP_PAIR_LJ_LONG_COUL_LONG_H
- 
+
 #include "pair.h"
 
 namespace LAMMPS_NS {

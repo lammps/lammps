@@ -16,9 +16,9 @@
    based on fix spring by: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_smd.h"
 #include "atom.h"
 #include "comm.h"

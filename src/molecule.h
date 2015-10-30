@@ -63,15 +63,15 @@ class Molecule : protected Pointers {
   int *num_bond;       // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
   tagint **bond_atom;
-  
+
   int *num_angle;
   int **angle_type;
   tagint **angle_atom1,**angle_atom2,**angle_atom3;
-  
+
   int *num_dihedral;
   int **dihedral_type;
   tagint **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
-  
+
   int *num_improper;
   int **improper_type;
   tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
@@ -93,7 +93,7 @@ class Molecule : protected Pointers {
 
   double maxradius;    // max radius of any atom in molecule
   double molradius;    // radius of molecule from geometric center
-                       // including finite-size particle radii 
+                       // including finite-size particle radii
   int comatom;         // index (1-Natom) of atom closest to COM
   double maxextent;    // furthest any atom in molecule is from comatom
 

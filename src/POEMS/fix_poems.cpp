@@ -17,11 +17,11 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "workspace.h"
 #include "fix_poems.h"
 #include "atom.h"
@@ -165,7 +165,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
     tagint itmp;
     MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    if (itmp+1 > MAXSMALLINT) 
+    if (itmp+1 > MAXSMALLINT)
       error->all(FLERR,"Too many molecules for fix poems");
     int maxmol = (int) itmp;
 
@@ -208,7 +208,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
     if (natom2body[i] > MAXBODY) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) 
+  if (flagall)
     error->all(FLERR,"Atom in too many rigid bodies - boost MAXBODY");
 
   // create all nbody-length arrays
@@ -1057,7 +1057,7 @@ void FixPOEMS::jointbuild()
     bodyflag[jlist[i][1]]++;
   }
   for (i = 0; i < nbody; i++)
-    if (bodyflag[i] > 2) 
+    if (bodyflag[i] > 2)
       error->all(FLERR,"Tree structure in joint connections");
   delete [] bodyflag;
 

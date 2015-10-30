@@ -16,10 +16,10 @@
                          Chandra Veer Singh (Cornell)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_adp.h"
 #include "atom.h"
 #include "force.h"
@@ -934,7 +934,7 @@ void PairADP::grab(FILE *fp, int n, double *list)
 
 /* ---------------------------------------------------------------------- */
 
-int PairADP::pack_forward_comm(int n, int *list, double *buf, 
+int PairADP::pack_forward_comm(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
   int i,j,m;

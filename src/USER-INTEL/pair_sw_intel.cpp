@@ -15,10 +15,10 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_sw_intel.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -147,7 +147,7 @@ void PairSWIntel::compute(int eflag, int vflag,
 template <int SPQ, int EVFLAG, int EFLAG, class flt_t, class acc_t>
 void PairSWIntel::eval(const int offload, const int vflag,
                        IntelBuffers<flt_t,acc_t> *buffers,
-                       const ForceConst<flt_t> &fc, const int astart, 
+                       const ForceConst<flt_t> &fc, const int astart,
 		       const int aend, const int pad_width)
 {
   const int inum = aend - astart;
@@ -323,10 +323,10 @@ void PairSWIntel::eval(const int offload, const int vflag,
           const int jtype = tjtype[jj];
           const flt_t rsq1 = trsq[jj];
 
-          const flt_t r1 = sqrt(rsq1); 
+          const flt_t r1 = sqrt(rsq1);
           const flt_t rinvsq1 = (flt_t)1.0 / rsq1;
           const flt_t rainv1 = (flt_t)1.0 / (r1 - p2fi[jtype].cut);
-	  
+
 	  // two-body interactions, skip half of them
 	  flt_t rp, rq;
 	  if (SPQ == 1) {
@@ -342,7 +342,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	  flt_t expsrainv = exp(p2fi[jtype].sigma * rainv1);
 	  if (jj >= ejnumhalf) expsrainv = (flt_t)0.0;
 	  const flt_t fpair = (p2fi[jtype].c1 * rp - p2fi[jtype].c2 * rq +
-			       (p2fi[jtype].c3 * rp -p2fi[jtype].c4 * rq) * 
+			       (p2fi[jtype].c3 * rp -p2fi[jtype].c4 * rq) *
 			       rainvsq) * expsrainv * rinvsq1;
 
 	  fxtmp -= delx * fpair;
@@ -355,7 +355,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	  if (EVFLAG) {
 	    if (EFLAG) {
 	      flt_t evdwl;
-	      evdwl = (p2ei[jtype].c5 * rp - p2ei[jtype].c6 * rq) * 
+	      evdwl = (p2ei[jtype].c5 * rp - p2ei[jtype].c6 * rq) *
 	    	      expsrainv;
 	      sevdwl += evdwl;
 	      if (eatom) {
@@ -390,7 +390,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	    const flt_t expgsrainv2 = exp(gsrainv2);
 
 	    const flt_t rinv12 = (flt_t)1.0 / (r1 * r2);
-	    const flt_t cs = (delx * delr2[0] + dely * delr2[1] + 
+	    const flt_t cs = (delx * delr2[0] + dely * delr2[1] +
                               delz * delr2[2]) * rinv12;
 	    const flt_t delcs = cs - p3i[joffset + ktype].costheta;
 	    const flt_t delcssq = delcs*delcs;
@@ -400,11 +400,11 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	    else kfactor = (flt_t)1.0;
 
 	    const flt_t facexp = expgsrainv1*expgsrainv2*kfactor;
-	    const flt_t facrad = p3i[joffset + ktype].lambda_epsilon * 
+	    const flt_t facrad = p3i[joffset + ktype].lambda_epsilon *
 	                         facexp * delcssq;
 	    const flt_t frad1 = facrad*gsrainvsq1;
 	    const flt_t frad2 = facrad*gsrainvsq2;
-	    const flt_t facang = p3i[joffset + ktype].lambda_epsilon2 * 
+	    const flt_t facang = p3i[joffset + ktype].lambda_epsilon2 *
 	                         facexp * delcs;
 	    const flt_t facang12 = rinv12*facang;
 	    const flt_t csfacang = cs*facang;
@@ -420,7 +420,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	    fjxtmp += fjx;
 	    fjytmp += fjy;
 	    fjztmp += fjz;
-	      
+
 	    if (EVFLAG) {
 	      if (EFLAG) {
 	        const flt_t evdwl = facrad * (flt_t)0.5;
@@ -430,7 +430,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 		  fjtmp += (acc_t)0.33333333 * facrad;
 		}
 	      }
-	      IP_PRE_ev_tally_nbor3v(vflag, fjx, fjy, fjz, 
+	      IP_PRE_ev_tally_nbor3v(vflag, fjx, fjy, fjz,
 				     delx, dely, delz);
 	    }
 	  } // for kk
@@ -441,7 +441,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
           if (EFLAG)
 	    if (eatom) f[j].w += fjtmp;
         } // for jj
-	
+
         f[i].x += fxtmp;
         f[i].y += fytmp;
         f[i].z += fztmp;

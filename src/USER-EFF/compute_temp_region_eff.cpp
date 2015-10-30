@@ -15,10 +15,10 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_temp_region_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -148,7 +148,7 @@ double ComputeTempRegionEff::compute_scalar()
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
   dof = domain->dimension * tarray_all[0] - extra_dof;
-  if (dof < 0.0 && tarray_all[0] > 0.0) 
+  if (dof < 0.0 && tarray_all[0] > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
 
   int one = 0;

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -2793,7 +2793,7 @@ void FixShakeCuda::post_force_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-int FixShakeCuda::pack_forward_comm(int n, int* list, double* buf, 
+int FixShakeCuda::pack_forward_comm(int n, int* list, double* buf,
                                     int pbc_flag, int* pbc)
 {
   if(cuda->finished_setup) {

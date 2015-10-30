@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "output.h"
 #include "style_dump.h"
 #include "atom.h"
@@ -552,7 +552,7 @@ void Output::add_dump(int narg, char **arg)
       error->all(FLERR,"Reuse of dump ID");
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find dump group ID");
-  if (force->inumeric(FLERR,arg[3]) <= 0) 
+  if (force->inumeric(FLERR,arg[3]) <= 0)
     error->all(FLERR,"Invalid dump frequency");
 
   // extend Dump list if necessary
@@ -771,7 +771,7 @@ void Output::create_restart(int narg, char **arg)
   if (strchr(arg[1],'%')) multiproc = comm->nprocs;
   else multiproc = 0;
   if (nfile == 2) {
-    if (multiproc && !strchr(arg[2],'%')) 
+    if (multiproc && !strchr(arg[2],'%'))
       error->all(FLERR,"Both restart files must use % or neither");
     if (!multiproc && strchr(arg[2],'%'))
       error->all(FLERR,"Both restart files must use % or neither");
@@ -781,7 +781,7 @@ void Output::create_restart(int narg, char **arg)
   if (strstr(arg[1],".mpi")) mpiioflag = 1;
   else mpiioflag = 0;
   if (nfile == 2) {
-    if (mpiioflag && !strstr(arg[2],".mpi")) 
+    if (mpiioflag && !strstr(arg[2],".mpi"))
       error->all(FLERR,"Both restart files must use MPI-IO or neither");
     if (!mpiioflag && strstr(arg[2],".mpi"))
       error->all(FLERR,"Both restart files must use MPI-IO or neither");

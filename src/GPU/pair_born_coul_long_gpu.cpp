@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_born_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,7 +33,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "kspace.h"
 #include "gpu_extra.h"
 
@@ -51,9 +51,9 @@ using namespace MathConst;
 // External functions from cuda library for atom decomposition
 
 int borncl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                    double **host_born1, double **host_born2, 
-                    double **host_born3, double **host_a, 
-                    double **host_c, double **host_d, 
+                    double **host_born1, double **host_born2,
+                    double **host_born3, double **host_a,
+                    double **host_c, double **host_d,
                     double **sigma, double **offset, double *special_lj,
                     const int inum, const int nall, const int max_nbors,
                     const int maxspecial, const double cell_size,
@@ -63,7 +63,7 @@ int borncl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
 void borncl_gpu_clear();
 int** borncl_gpu_compute_n(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, double *sublo,
-                           double *subhi, tagint *tag, int **nspecial, 
+                           double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum,  const double cpu_time,
@@ -79,13 +79,13 @@ double borncl_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulLongGPU::PairBornCoulLongGPU(LAMMPS *lmp) : 
+PairBornCoulLongGPU::PairBornCoulLongGPU(LAMMPS *lmp) :
   PairBornCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -103,12 +103,12 @@ void PairBornCoulLongGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;    
+  int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = borncl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
@@ -147,7 +147,7 @@ void PairBornCoulLongGPU::init_style()
   if (!atom->q_flag)
     error->all(FLERR,
       "Pair style born/coul/long/gpu requires atom attribute q");
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,
        "Cannot use newton pair with born/coul/long/gpu pair style");
 
@@ -179,12 +179,12 @@ void PairBornCoulLongGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = borncl_gpu_init(atom->ntypes+1, cutsq,  rhoinv, 
+  int success = borncl_gpu_init(atom->ntypes+1, cutsq,  rhoinv,
                                 born1, born2, born3, a, c, d, sigma,
                                 offset, force->special_lj, atom->nlocal,
                   	        atom->nlocal+atom->nghost, 300, maxspecial,
                    	        cell_size, gpu_mode, screen, cut_ljsq,
-                                cut_coulsq, force->special_coul, 
+                                cut_coulsq, force->special_coul,
                                 force->qqrd2e, g_ewald);
 
   GPU_EXTRA::check_flag(success,error,world);
@@ -284,7 +284,7 @@ void PairBornCoulLongGPU::cpu_compute(int start, int inum, int eflag,
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
+            evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv
               + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;

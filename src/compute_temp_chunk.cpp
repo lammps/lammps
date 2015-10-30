@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_temp_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -236,7 +236,7 @@ double ComputeTempChunk::compute_scalar()
         if (mask[i] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
-          t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+          t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
             rmass[i];
           mycount++;
         }
@@ -509,7 +509,7 @@ void ComputeTempChunk::temperature(int icol)
         if (mask[i] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
-          sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+          sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
             rmass[i];
           count[index]++;
         }

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 #include "modify.h"
 #include "style_compute.h"
 #include "style_fix.h"
@@ -231,7 +231,7 @@ void Modify::init()
     }
 
   for (i = 0; i < ncompute; i++)
-    if (!compute[i]->dynamic_group_allow && 
+    if (!compute[i]->dynamic_group_allow &&
         group->dynamic[compute[i]->igroup]) {
       char str[128];
       sprintf(str,"Compute %s does not allow use of dynamic group",fix[i]->id);
@@ -696,7 +696,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   //   since some fixes access domain settings in their constructor
   // MUST change NEXCEPT above when add new fix to this list
 
-  const char *exceptions[NEXCEPT] = 
+  const char *exceptions[NEXCEPT] =
     {"GPU","OMP","INTEL","property/atom","cmap"};
 
   if (domain->box_exist == 0) {
@@ -731,7 +731,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (ifix < nfix) {
     newflag = 0;
-    
+
     int match = 0;
     if (strcmp(arg[2],fix[ifix]->style) == 0) match = 1;
     if (!match && trysuffix && lmp->suffix_enable) {
@@ -955,7 +955,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     }
   }
 
-  if (compute[ncompute] == NULL && 
+  if (compute[ncompute] == NULL &&
       compute_map->find(arg[2]) != compute_map->end()) {
     ComputeCreator compute_creator = (*compute_map)[arg[2]];
     compute[ncompute] = compute_creator(lmp,narg,arg);
@@ -989,7 +989,7 @@ void Modify::modify_compute(int narg, char **arg)
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) 
+  if (icompute == ncompute)
     error->all(FLERR,"Could not find compute_modify ID");
 
   compute[icompute]->modify_params(narg-1,&arg[1]);

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -13,12 +13,12 @@
 
 /* Single-processor "stub" versions of MPI routines */
 
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdint.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <sys/time.h>
-#include "mpi.h"
+#include <mpi.h>
 
 /* data structure for double/int */
 
@@ -250,7 +250,7 @@ int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Waitany(int count, MPI_Request *request, int *index, 
+int MPI_Waitany(int count, MPI_Request *request, int *index,
                 MPI_Status *status)
 {
   printf("MPI Stub WARNING: Should not wait on message from self\n");
@@ -306,7 +306,7 @@ MPI_Comm MPI_Comm_f2c(MPI_Fint comm) { return comm; };
 
 //* ---------------------------------------------------------------------- */
 
-int MPI_Comm_group(MPI_Comm comm, MPI_Group *group) 
+int MPI_Comm_group(MPI_Comm comm, MPI_Group *group)
 {
    *group = comm;
    return 0;
@@ -314,7 +314,7 @@ int MPI_Comm_group(MPI_Comm comm, MPI_Group *group)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm) 
+int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm)
 {
    *newcomm = group;
    return 0;
@@ -371,7 +371,7 @@ int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
 
 /* store size of user datatype in extra lists */
 
-int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
+int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
                         MPI_Datatype *newtype)
 {
   if (nextra_datatype == MAXEXTRA_DATATYPE) return -1;
@@ -384,7 +384,7 @@ int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
 
 /* ---------------------------------------------------------------------- */
 
-/* set value of user datatype to internal negative index, 
+/* set value of user datatype to internal negative index,
    based on match of ptr */
 
 int MPI_Type_commit(MPI_Datatype *datatype)
@@ -556,7 +556,7 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
 /* copy values from data1 to data2 */
 
-int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype, 
+int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                 void *recvbuf, int recvcount, MPI_Datatype recvtype,
                 int root, MPI_Comm comm)
 {

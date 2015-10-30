@@ -20,7 +20,7 @@ FixStyle(ave/histo/weight,FixAveHistoWeight)
 #ifndef LMP_FIX_AVE_HISTO_WEIGHT_H
 #define LMP_FIX_AVE_HISTO_WEIGHT_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix_ave_histo.h"
 
 namespace LAMMPS_NS {
@@ -34,7 +34,7 @@ class FixAveHistoWeight : public FixAveHisto {
  private:
   void bin_one_weights(double, double);
   void bin_vector_weights(int, double *, int, double *, int);
-  void bin_atoms_weights(double *, int, double *, int);  
+  void bin_atoms_weights(double *, int, double *, int);
 };
 
 }

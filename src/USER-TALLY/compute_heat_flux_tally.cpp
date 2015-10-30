@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_heat_flux_tally.h"
 #include "atom.h"
 #include "group.h"
@@ -91,7 +91,7 @@ void ComputeHeatFluxTally::pair_tally_callback(int i, int j, int nlocal, int new
 
   if (did_compute != update->ntimestep) {
     did_compute = update->ntimestep;
- 
+
     // grow local stress and eatom arrays if necessary
     // needs to be atom->nmax in length
 
@@ -233,7 +233,7 @@ void ComputeHeatFluxTally::compute_vector()
   // compute heat currents
   // heat flux vector = jc[3] + jv[3]
   // jc[3] = convective portion of heat flux = sum_i (ke_i + pe_i) v_i[3]
-  // jv[3] = virial portion of heat flux = sum_i (stress_tensor_i . v_i[3])                
+  // jv[3] = virial portion of heat flux = sum_i (stress_tensor_i . v_i[3])
   // normalization by volume is not included
   // J = sum_i( (0.5*m*v_i^2 + 0.5*(evdwl_i+ecoul_i))*v_i +
   //              + (F_ij . v_i)*dR_ij/2 )

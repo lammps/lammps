@@ -15,11 +15,11 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "comm_brick.h"
 #include "comm_tiled.h"
 #include "universe.h"
@@ -1027,7 +1027,7 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
       if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
-    
+
     // unpack buffer
 
     fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
@@ -1258,7 +1258,7 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
   // loop over dimensions
 
   for (int dim = 0; dim < 3; dim++) {
-    
+
     // no exchange if only one proc in a dimension
 
     if (procgrid[dim] == 1) continue;
@@ -1278,12 +1278,12 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
     } else nrecv2 = 0;
 
     if (nrecv > maxrecv) grow_recv(nrecv);
-    
+
     MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
               world,&request);
     MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
     MPI_Wait(&request,MPI_STATUS_IGNORE);
-    
+
     if (procgrid[dim] > 2) {
       MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
                 world,&request);

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "displace_atoms.h"
 #include "atom.h"
 #include "modify.h"
@@ -44,7 +44,7 @@ DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceAtoms::~DisplaceAtoms() 
+DisplaceAtoms::~DisplaceAtoms()
 {
   memory->destroy(mvec);
 }
@@ -190,7 +190,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     delete random;
   }
- 
+
   // rotate atoms by right-hand rule by theta around R
   // P = point = vector = point of rotation
   // R = vector = axis of rotation
@@ -205,7 +205,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   if (style == ROTATE) {
     double axis[3],point[3];
     double a[3],b[3],c[3],d[3],disp[3],runit[3];
-    
+
     int dim = domain->dimension;
     point[0] = xscale*force->numeric(FLERR,arg[2]);
     point[1] = yscale*force->numeric(FLERR,arg[3]);

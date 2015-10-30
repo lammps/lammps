@@ -22,10 +22,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "float.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <float.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_smd_ulsph.h"
 #include "atom.h"
 #include "domain.h"

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "write_data.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -198,7 +198,7 @@ void WriteData::write(char *file)
   // extra sections managed by fixes
 
   for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->wd_section) 
+    if (modify->fix[i]->wd_section)
       for (int m = 0; m < modify->fix[i]->wd_section; m++) fix(i,m);
 
   // close data file
@@ -243,10 +243,10 @@ void WriteData::header()
   }
 
   for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->wd_header) 
-      for (int m = 0; m < modify->fix[i]->wd_header; m++) 
+    if (modify->fix[i]->wd_header)
+      for (int m = 0; m < modify->fix[i]->wd_header; m++)
         modify->fix[i]->write_data_header(fp,m);
-  
+
   fprintf(fp,"\n");
 
   fprintf(fp,"%-1.16e %-1.16e xlo xhi\n",domain->boxlo[0],domain->boxhi[0]);
@@ -349,7 +349,7 @@ void WriteData::atoms()
 
       atom->avec->write_data(fp,recvrow,buf);
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
@@ -400,10 +400,10 @@ void WriteData::velocities()
         MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
         recvrow /= ncol;
       } else recvrow = sendrow;
-      
+
       atom->avec->write_vel(fp,recvrow,buf);
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
@@ -457,7 +457,7 @@ void WriteData::bonds()
       atom->avec->write_bond(fp,recvrow,buf,index);
       index += recvrow;
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_LMP_TAGINT,0,0,world);
@@ -507,11 +507,11 @@ void WriteData::angles()
         MPI_Get_count(&status,MPI_LMP_TAGINT,&recvrow);
         recvrow /= ncol;
       } else recvrow = sendrow;
-      
+
       atom->avec->write_angle(fp,recvrow,buf,index);
       index += recvrow;
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_LMP_TAGINT,0,0,world);
@@ -579,11 +579,11 @@ void WriteData::dihedrals()
         MPI_Get_count(&status,MPI_LMP_TAGINT,&recvrow);
         recvrow /= ncol;
       } else recvrow = sendrow;
-      
+
       atom->avec->write_dihedral(fp,recvrow,buf,index);
       index += recvrow;
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_LMP_TAGINT,0,0,world);
@@ -651,11 +651,11 @@ void WriteData::impropers()
         MPI_Get_count(&status,MPI_LMP_TAGINT,&recvrow);
         recvrow /= ncol;
       } else recvrow = sendrow;
-      
+
       atom->avec->write_improper(fp,recvrow,buf,index);
       index += recvrow;
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_LMP_TAGINT,0,0,world);
@@ -709,7 +709,7 @@ void WriteData::fix(int ifix, int mth)
       modify->fix[ifix]->write_data_section(mth,fp,recvrow,buf,index);
       index += recvrow;
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);

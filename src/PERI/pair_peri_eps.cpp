@@ -15,9 +15,9 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_peri_eps.h"
 #include "atom.h"
 #include "domain.h"
@@ -108,7 +108,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
   double *s0 = atom->s0;
   double **x0 = atom->x0;
   double **r0 = ((FixPeriNeigh *) modify->fix[ifix_peri])->r0;
-  double **deviatorPlasticextension = 
+  double **deviatorPlasticextension =
     ((FixPeriNeigh *) modify->fix[ifix_peri])->deviatorPlasticextension;
   tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
@@ -146,7 +146,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -204,10 +204,10 @@ void PairPeriEPS::compute(int eflag, int vflag)
   }
 
   // grow bond forces array if necessary
-  
+
   int  maxpartner = 0;
   for (i = 0; i < nlocal; i++) maxpartner = MAX(maxpartner,npartner[i]);
-  
+
 
   if (atom->nmax > nmax) {
     memory->destroy(s0_new);
@@ -215,21 +215,21 @@ void PairPeriEPS::compute(int eflag, int vflag)
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");
     memory->create(theta,nmax,"pair:theta");
-    
+
   }
-  
+
   // ******** temp array to store Plastic extension *********** ///
   // create on heap to reduce stack use and to allow for faster zeroing
   double **deviatorPlasticExtTemp;
   memory->create(deviatorPlasticExtTemp,nlocal,maxpartner,"pair:plastext");
   memset(&(deviatorPlasticExtTemp[0][0]),0,sizeof(double)*nlocal*maxpartner);
   // ******** temp array to store Plastic extension *********** ///
-                 
-   
+
+
 
   // compute the dilatation on each particle
   compute_dilatation();
-  
+
   // communicate dilatation (theta) of each particle
   comm->forward_comm_pair(this);
 
@@ -268,27 +268,27 @@ void PairPeriEPS::compute(int eflag, int vflag)
     itype = type[i];
     jnum = npartner[i];
     first = true;
-        
+
 
     double yieldStress = m_yieldstress[itype][itype];
     double horizon = cut[itype][itype];
     double tdnorm = compute_DeviatoricForceStateNorm(i);
-    double pointwiseYieldvalue = 25.0 * yieldStress * 
+    double pointwiseYieldvalue = 25.0 * yieldStress *
                             yieldStress / 8 / M_PI / pow(horizon,5);
-                                              
-        
+
+
     double fsurf = (tdnorm * tdnorm)/2 - pointwiseYieldvalue;
     bool elastic = true;
 
     double alphavalue = (15 * shearmodulus[itype][itype]) /wvolume[i];
-       
-      
+
+
     if (fsurf>0) {
       elastic = false;
       deltalambda = ((tdnorm /sqrt(2.0 * pointwiseYieldvalue)) - 1.0) / alphavalue;
       double templambda = lambdaValue[i];
       lambdaValue[i] = templambda + deltalambda;
-    } 
+    }
 
     for (jj = 0; jj < jnum; jj++) {
       if (partner[i][jj] == 0) continue;
@@ -320,7 +320,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
 
       if (fabs(dr) < 2.2204e-016) {
           dr = 0.0;
-      }    
+      }
 
       // scale vfrac[j] if particle j near the horizon
 
@@ -328,35 +328,35 @@ void PairPeriEPS::compute(int eflag, int vflag)
         vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) +
           (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
-    
+
       omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       omega_minus = influence_function(delx0,dely0,delz0);
-             
-      //Elastic Part            
+
+      //Elastic Part
       rk = ((3.0 * bulkmodulus[itype][itype]) * ( (omega_plus * theta[i] / wvolume[i]) +
          ( omega_minus * theta[j] / wvolume[j] ) ) ) * r0[i][jj];
-        
+
       if (r > 0.0) fbond = -((rk/r) * vfrac[j] * vfrac_scale);
       else fbond = 0.0;
-      
+
       //Plastic part
-              
+
       double deviatoric_extension = dr - (theta[i]* r0[i][jj] / 3.0);
       edpNp1 = deviatorPlasticextension[i][jj];
-  
+
       double tdtrialValue = ( 15 * shearmodulus[itype][itype]) *
-        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * 
-           (deviatoric_extension - edpNp1);    
-         
+        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) *
+           (deviatoric_extension - edpNp1);
+
       if(elastic) {
         rkNew = tdtrialValue;
       }
       else {
         rkNew = (sqrt(2.0*pointwiseYieldvalue) * tdtrialValue) / tdnorm;
         deviatorPlasticExtTemp[i][jj] = edpNp1 + rkNew * deltalambda;
-      }  
-      
-                       
+      }
+
+
       if (r > 0.0) fbondElastoPlastic = -((rkNew/r) * vfrac[j] * vfrac_scale);
       else fbondElastoPlastic = 0.0;
 
@@ -364,17 +364,17 @@ void PairPeriEPS::compute(int eflag, int vflag)
       // total Force state: elastic +  plastic
       fbondFinal=fbond+fbondElastoPlastic;
       fbond=fbondFinal;
-      
-   
+
+
       f[i][0] += delx*fbond;
       f[i][1] += dely*fbond;
       f[i][2] += delz*fbond;
-      
+
 
       // since I-J is double counted, set newton off & use 1/2 factor and I,I
 
       if (eflag) evdwl =  (0.5 * 15 * shearmodulus[itype][itype]/wvolume[i] *
-                       omega_plus * (deviatoric_extension - edpNp1) * 
+                       omega_plus * (deviatoric_extension - edpNp1) *
                       (deviatoric_extension-edpNp1)) * vfrac[j] * vfrac_scale;
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,
                            0.5*fbond*vfrac[i],delx,dely,delz);
@@ -395,13 +395,13 @@ void PairPeriEPS::compute(int eflag, int vflag)
                          (alpha[itype][jtype] * stretch));
 
       first = false;
-    }    
+    }
   }
 
   // store new s0
 
   memcpy(s0,s0_new,sizeof(double)*nlocal);
-  
+
   memcpy(&(deviatorPlasticextension[0][0]),
          &(deviatorPlasticExtTemp[0][0]),
          sizeof(double)*nlocal*maxpartner);
@@ -502,7 +502,7 @@ void PairPeriEPS::init_style()
 {
   // error checks
 
-  if (!atom->peri_flag) 
+  if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
@@ -607,7 +607,7 @@ double PairPeriEPS::influence_function(double xi_x, double xi_y, double xi_z)
 {
   double r = sqrt(xi_x*xi_x + xi_y*xi_y + xi_z*xi_z);
   double omega;
-  
+
   if (fabs(r) < 2.2204e-016)
     error->one(FLERR,"Divide by 0 in influence function");
   omega = 1.0/r;
@@ -726,11 +726,11 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
   tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
   double *wvolume = ((FixPeriNeigh *) modify->fix[ifix_peri])->wvolume;
-  double **deviatorPlasticextension = 
+  double **deviatorPlasticextension =
     ((FixPeriNeigh *) modify->fix[ifix_peri])->deviatorPlasticextension;
 
   int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
-  
+
   // compute the dilatation theta
 
     xtmp = x[i][0];
@@ -749,7 +749,7 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
       if (j < 0) {
         partner[i][jj] = 0;
         continue;
-      }     
+      }
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -762,10 +762,10 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
       r = sqrt(rsq);
       dr = r - r0[i][jj];
       if (fabs(dr) < 2.2204e-016) dr = 0.0;
-      
+
       // scale vfrac[j] if particle j near the horizon
       double vfrac_scale;
-      
+
       jtype = type[j];
       double delta = cut[itype][jtype];
 
@@ -775,21 +775,21 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
         vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) +
           (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
-      
+
       double ed = dr - (theta[i] * r0[i][jj])/3;
       double edPNP1 = deviatorPlasticextension[i][jj];
 
       jtype = type[j];
       delta = cut[itype][jtype];
-      
+
       double omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       double omega_minus = influence_function(delx0,dely0,delz0);
-      
+
       tdtrial = ( 15 * shearmodulus[itype][itype]) *
            ((omega_plus * theta[i] / wvolume[i]) +
              ( omega_minus * theta[j] / wvolume[j] ) ) * (ed - edPNP1);
-          
-      norm += tdtrial * tdtrial * vfrac[j] * vfrac_scale;   
+
+      norm += tdtrial * tdtrial * vfrac[j] * vfrac_scale;
     }
   return sqrt(norm);
 }

@@ -16,10 +16,10 @@
      Based on fix qeq/reax by H. Metin Aktulga
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq.h"
 #include "atom.h"
 #include "comm.h"
@@ -49,7 +49,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
-  
+
   nevery = force->inumeric(FLERR,arg[3]);
   cutoff = force->numeric(FLERR,arg[4]);
   tolerance = force->numeric(FLERR,arg[5]);
@@ -101,7 +101,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   s_hist = t_hist = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
-  
+
   for( int i = 0; i < atom->nmax; i++ )
     for (int j = 0; j < nprev; ++j )
       s_hist[i][j] = t_hist[i][j] = atom->q[i];
@@ -618,7 +618,7 @@ double FixQEq::parallel_dot( double *v1, double *v2, int n)
     if (atom->mask[i] & groupbit)
       my_dot += v1[i] * v2[i];
   }
-  
+
   MPI_Allreduce( &my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world );
 
   return res;

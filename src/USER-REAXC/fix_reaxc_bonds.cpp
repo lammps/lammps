@@ -15,8 +15,8 @@
    Contributing author: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_ave_atom.h"
 #include "fix_reaxc_bonds.h"
 #include "atom.h"
@@ -243,7 +243,7 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local, 
+void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
                                int natoms, int maxnum)
 {
   int i, j, k, itype;

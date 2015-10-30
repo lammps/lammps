@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    (based on Stillinger-Weber pair style)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_nb3b_harmonic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define DELTA 4
 #define SMALL 0.001
-#define PI 3.141592653589793238462643383279 
+#define PI 3.141592653589793238462643383279
 
 /* ---------------------------------------------------------------------- */
 
@@ -170,7 +170,7 @@ void PairNb3bHarmonic::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairNb3bHarmonic::settings(int narg, char **arg)
@@ -226,7 +226,7 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
   }
 
   // read potential file and initialize potential parameters
-  
+
   read_file(arg[2]);
   setup();
 
@@ -388,7 +388,7 @@ void PairNb3bHarmonic::read_file(char *file)
     params[nparams].cutoff = atof(words[5]);
 
     if (params[nparams].k_theta < 0.0 || params[nparams].theta0 < 0.0 ||
-        params[nparams].cutoff < 0.0) 
+        params[nparams].cutoff < 0.0)
       error->all(FLERR,"Illegal nb3b/harmonic parameter");
 
     nparams++;
@@ -416,7 +416,7 @@ void PairNb3bHarmonic::setup()
       for (k = 0; k < nelements; k++) {
 	n = -1;
 	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement && 
+	  if (i == params[m].ielement && j == params[m].jelement &&
 	      k == params[m].kelement) {
 	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
 	    n = m;
@@ -430,7 +430,7 @@ void PairNb3bHarmonic::setup()
 
   // set cutsq using shortcut to reduce neighbor list for accelerated
   // calculations. cut must remain unchanged as it is a potential parameter
-  // (cut = a*sigma) 
+  // (cut = a*sigma)
 
   for (m = 0; m < nparams; m++) {
 
@@ -448,12 +448,12 @@ void PairNb3bHarmonic::setup()
     rtmp = sqrt(params[m].cutsq);
     if (rtmp > cutmax) cutmax = rtmp;
   }
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
 
-void PairNb3bHarmonic::threebody(Param *paramij, Param *paramik, 
+void PairNb3bHarmonic::threebody(Param *paramij, Param *paramik,
                                  Param *paramijk,
                                  double rsq1, double rsq2,
                                  double *delr1, double *delr2,
@@ -463,32 +463,32 @@ void PairNb3bHarmonic::threebody(Param *paramij, Param *paramik,
   double r1,r2,c,s,a,a11,a12,a22;
 
   // angle (cos and sin)
-  
+
   r1 = sqrt(rsq1);
   r2 = sqrt(rsq2);
-  
+
   c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
   c /= r1*r2;
-  
+
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
-  
+
   s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
-  
+
   // force & energy
-  
+
   dtheta = acos(c) - paramijk->theta0;
   tk = paramijk->k_theta * dtheta;
-  
+
   if (eflag) eng = tk*dtheta;
-  
+
   a = -2.0 * tk * s;
   a11 = a*c / rsq1;
   a12 = -a / (r1*r2);
   a22 = a*c / rsq2;
-  
+
   fj[0] = a11*delr1[0] + a12*delr2[0];
   fj[1] = a11*delr1[1] + a12*delr2[1];
   fj[2] = a11*delr1[2] + a12*delr2[2];

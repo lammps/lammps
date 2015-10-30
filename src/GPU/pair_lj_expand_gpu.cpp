@@ -15,9 +15,9 @@
    Contributing author: Inderaj Bains (NVIDIA), ibains@nvidia.com
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_expand_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -167,7 +167,7 @@ void PairLJExpandGPU::init_style()
 void PairLJExpandGPU::reinit()
 {
   Pair::reinit();
-  
+
   lje_gpu_reinit(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4, offset, shift);
 }
 

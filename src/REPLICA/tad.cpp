@@ -19,11 +19,11 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h" 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include "lmptype.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "tad.h"
 #include "universe.h"
 #include "update.h"
@@ -104,14 +104,14 @@ void TAD::command(int narg, char **arg)
 
   char *id_compute = new char[strlen(arg[6])+1];
   strcpy(id_compute,arg[6]);
-  
+
   // quench minimizer is set by min_style command
   // NEB minimizer is set by options, default = quickmin
 
   int n = strlen(update->minimize_style) + 1;
   min_style = new char[n];
   strcpy(min_style,update->minimize_style);
-  
+
   options(narg-7,&arg[7]);
 
   // total # of timesteps must be multiple of t_event
@@ -396,12 +396,12 @@ void TAD::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
-    if (universe->ulogfile) 
+    if (universe->ulogfile)
       fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
   }

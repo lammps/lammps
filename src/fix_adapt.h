@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixAdapt : public Fix {
  public:
   int diamflag;        // 1 if atom diameters will vary, for AtomVecGranular
-  int chgflag; 
+  int chgflag;
 
   FixAdapt(class LAMMPS *, int, char **);
   ~FixAdapt();

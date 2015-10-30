@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_line_lj_omp.h"
 #include "atom.h"
 #include "comm.h"

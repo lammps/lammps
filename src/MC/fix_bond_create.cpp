@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_bond_create.h"
 #include "update.h"
 #include "respa.h"
@@ -222,19 +222,19 @@ void FixBondCreate::init()
 
   if (atype && force->angle) {
     angleflag = 1;
-    if (atype > atom->nangletypes) 
+    if (atype > atom->nangletypes)
       error->all(FLERR,"Fix bond/create angle type is invalid");
   } else angleflag = 0;
 
   if (dtype && force->dihedral) {
     dihedralflag = 1;
-    if (dtype > atom->ndihedraltypes) 
+    if (dtype > atom->ndihedraltypes)
       error->all(FLERR,"Fix bond/create dihedral type is invalid");
   } else dihedralflag = 0;
 
   if (itype && force->improper) {
     improperflag = 1;
-    if (itype > atom->nimpropertypes) 
+    if (itype > atom->nimpropertypes)
       error->all(FLERR,"Fix bond/create improper type is invalid");
   } else improperflag = 0;
 
@@ -294,7 +294,7 @@ void FixBondCreate::setup(int vflag)
         bondcount[i]++;
         if (newton_bond) {
           m = atom->map(bond_atom[i][j]);
-          if (m < 0) 
+          if (m < 0)
             error->one(FLERR,"Fix bond/create needs ghost atoms "
                        "from further away");
           bondcount[m]++;
@@ -605,7 +605,7 @@ void FixBondCreate::check_ghosts()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) 
+  if (flagall)
     error->all(FLERR,"Fix bond/create needs ghost atoms from further away");
   lastcheck = update->ntimestep;
 }
@@ -729,7 +729,7 @@ void FixBondCreate::rebuild_special_one(int m)
   cn2 = cn1;
   for (i = 0; i < cn1; i++) {
     n = atom->map(copy[i]);
-    if (n < 0) 
+    if (n < 0)
       error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
     slist = special[n];
     n1 = nspecial[n][0];
@@ -748,7 +748,7 @@ void FixBondCreate::rebuild_special_one(int m)
   cn3 = cn2;
   for (i = cn1; i < cn2; i++) {
     n = atom->map(copy[i]);
-    if (n < 0) 
+    if (n < 0)
       error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
     slist = special[n];
     n1 = nspecial[n][0];
@@ -842,7 +842,7 @@ void FixBondCreate::create_angles(int m)
   for (i = 0; i < n1; i++) {
     i2 = s1list[i];
     i2local = atom->map(i2);
-    if (i2local < 0) 
+    if (i2local < 0)
       error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
     s2list = special[i2local];
     n2 = nspecial[i2local][0];
@@ -923,7 +923,7 @@ void FixBondCreate::create_dihedrals(int m)
       i3 = s2list[j];
       if (force->newton_bond && i2 > i3) continue;
       i3local = atom->map(i3);
-      if (i3local < 0) 
+      if (i3local < 0)
         error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
       s3list = special[i3local];
       n3 = nspecial[i3local][0];
@@ -962,7 +962,7 @@ void FixBondCreate::create_dihedrals(int m)
     i1 = s2list[i];
     if (force->newton_bond && i2 > i1) continue;
     i1local = atom->map(i1);
-    if (i1local < 0) 
+    if (i1local < 0)
       error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
     s3list = special[i1local];
     n3 = nspecial[i1local][0];
@@ -1012,7 +1012,7 @@ void FixBondCreate::create_dihedrals(int m)
   for (i = 0; i < n1; i++) {
     i2 = s1list[i];
     i2local = atom->map(i2);
-    if (i2local < 0) 
+    if (i2local < 0)
       error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
     s2list = special[i2local];
     n2 = nspecial[i2local][0];
@@ -1021,7 +1021,7 @@ void FixBondCreate::create_dihedrals(int m)
       i3 = s2list[j];
       if (i3 == i1) continue;
       i3local = atom->map(i3);
-      if (i3local < 0) 
+      if (i3local < 0)
         error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
       s3list = special[i3local];
       n3 = nspecial[i3local][0];
@@ -1138,7 +1138,7 @@ void FixBondCreate::create_impropers(int m)
   for (i = 0; i < n2; i++) {
     i1 = s2list[i];
     i1local = atom->map(i1);
-    if (i1local < 0) 
+    if (i1local < 0)
       error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
     s1list = special[i1local];
     n1 = nspecial[i1local][0];
@@ -1410,7 +1410,7 @@ void FixBondCreate::print_bb()
     printf("\n");
     printf("TAG " TAGINT_FORMAT ": %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
     for (int j = 0; j < atom->num_dihedral[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
              TAGINT_FORMAT ",", atom->dihedral_atom1[i][j],
 	     atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
 	     atom->dihedral_atom4[i][j]);
@@ -1418,7 +1418,7 @@ void FixBondCreate::print_bb()
     printf("\n");
     printf("TAG " TAGINT_FORMAT ": %d nimpropers: ",atom->tag[i],atom->num_improper[i]);
     for (int j = 0; j < atom->num_improper[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
              TAGINT_FORMAT ",",atom->improper_atom1[i][j],
 	     atom->improper_atom2[i][j],atom->improper_atom3[i][j],
 	     atom->improper_atom4[i][j]);
@@ -1435,7 +1435,7 @@ void FixBondCreate::print_bb()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::print_copy(const char *str, tagint m, 
+void FixBondCreate::print_copy(const char *str, tagint m,
                               int n1, int n2, int n3, int *v)
 {
   printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);

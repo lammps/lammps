@@ -45,7 +45,7 @@ struct DomainPBCFunctor {
 
   DomainPBCFunctor(double* _lo, double* _hi, double* _period,
                    DAT::tdual_x_array _x, DAT::tdual_v_array _v,
-                   DAT::tdual_int_1d _mask, DAT::tdual_imageint_1d _image, 
+                   DAT::tdual_int_1d _mask, DAT::tdual_imageint_1d _image,
                    int _deform_groupbit, double* _h_rate,
                    int _xperiodic, int _yperiodic, int _zperiodic):
     x(_x.view<DeviceType>()), v(_v.view<DeviceType>()),
@@ -82,7 +82,7 @@ struct DomainPBCFunctor {
         image[i] = otherdims | idim;
       }
     }
-    
+
     if (PERIODIC && yperiodic) {
       if (x(i,1) < lo[1]) {
         x(i,1) += period[1];
@@ -110,7 +110,7 @@ struct DomainPBCFunctor {
         image[i] = otherdims | (idim << IMGBITS);
       }
     }
-    
+
     if (PERIODIC && zperiodic) {
       if (x(i,2) < lo[2]) {
         x(i,2) += period[2];
@@ -174,13 +174,13 @@ void DomainKokkos::pbc()
 
   if (xperiodic || yperiodic || zperiodic) {
     if (deform_vremap) {
-      DomainPBCFunctor<LMPDeviceType,1,1> 
+      DomainPBCFunctor<LMPDeviceType,1,1>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
       Kokkos::parallel_for(nlocal,f);
     } else {
-      DomainPBCFunctor<LMPDeviceType,1,0> 
+      DomainPBCFunctor<LMPDeviceType,1,0>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
@@ -188,13 +188,13 @@ void DomainKokkos::pbc()
     }
   } else {
     if (deform_vremap) {
-      DomainPBCFunctor<LMPDeviceType,0,1> 
+      DomainPBCFunctor<LMPDeviceType,0,1>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
       Kokkos::parallel_for(nlocal,f);
     } else {
-      DomainPBCFunctor<LMPDeviceType,0,0> 
+      DomainPBCFunctor<LMPDeviceType,0,0>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
@@ -226,7 +226,7 @@ void DomainKokkos::remap_all()
 
   if (triclinic == 0) {
     for (int i=0; i<3; i++) {
-      lo[i] = boxlo[i]; 
+      lo[i] = boxlo[i];
       hi[i] = boxhi[i];
       period[i] = prd[i];
     }
@@ -269,7 +269,7 @@ void DomainKokkos::operator()(TagDomain_remap_all, const int &i) const {
       }
       x(i,0) = MAX(x(i,0),lo[0]);
     }
-    
+
     if (yperiodic) {
       while (x(i,1) < lo[1]) {
         x(i,1) += period[1];
@@ -289,7 +289,7 @@ void DomainKokkos::operator()(TagDomain_remap_all, const int &i) const {
       }
       x(i,1) = MAX(x(i,1),lo[1]);
     }
-    
+
     if (zperiodic) {
       while (x(i,2) < lo[2]) {
         x(i,2) += period[2];
@@ -357,8 +357,8 @@ void DomainKokkos::operator()(TagDomain_image_flip, const int &i) const {
   ybox -= p_flip*zbox;
   xbox -= m_flip*ybox + n_flip*zbox;
 
-  image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
-    (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+  image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+    (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
     (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
 }
 

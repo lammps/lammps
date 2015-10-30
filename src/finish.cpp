@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
 #include "finish.h"
 #include "timer.h"
 #include "universe.h"
@@ -105,7 +105,7 @@ void Finish::end(int flag)
   // loop stats
 
   if (timer->has_loop()) {
-    
+
     // overall loop time
 
     time_loop = timer->get_wall(Timer::TOTAL);
@@ -115,7 +115,7 @@ void Finish::end(int flag)
     MPI_Allreduce(&cpu_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     cpu_loop = tmp/nprocs;
     if (time_loop > 0.0) cpu_loop = cpu_loop/time_loop*100.0;
- 
+
     if (me == 0) {
       int ntasks = nprocs * nthreads;
       const char fmt1[] = "Loop time of %g on %d procs "
@@ -147,7 +147,7 @@ void Finish::end(int flag)
         } else {
           double hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 3600.0;
           double ns_day = 24.0*3600.0 / t_step * update->dt / one_fs/1000000.0;
-          const char perf[] = 
+          const char perf[] =
             "Performance: %.3f ns/day, %.3f hours/ns, %.3f timesteps/s\n";
           if (screen) fprintf(screen,perf,ns_day,hrs_ns,step_t);
           if (logfile) fprintf(logfile,perf,ns_day,hrs_ns,step_t);
@@ -157,7 +157,7 @@ void Finish::end(int flag)
       // CPU use on MPI tasks and OpenMP threads
 
 #ifdef LMP_USER_OMP
-      const char fmt2[] = 
+      const char fmt2[] =
         "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
       if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
       if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
@@ -180,7 +180,7 @@ void Finish::end(int flag)
 
   if (timer->has_normal())
     time_other = timer->get_wall(Timer::TOTAL) - timer->get_wall(Timer::ALL);
-   
+
   // minimization stats
 
   if (minflag) {
@@ -430,7 +430,7 @@ void Finish::end(int flag)
     if (atom->molecular)
       mpi_timings("Bond",timer,Timer::BOND,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);
-    
+
     if (force->kspace)
       mpi_timings("Kspace",timer,Timer::KSPACE,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);
@@ -464,7 +464,7 @@ void Finish::end(int flag)
   }
 
 #ifdef LMP_USER_OMP
-  const char thr_hdr_fmt[] = 
+  const char thr_hdr_fmt[] =
     "\nThread timing breakdown (MPI rank %d):\nTotal threaded time %.4g / %.1f%%\n";
   const char thr_header[] =
     "Section |  min time  |  avg time  |  max time  |%varavg| %total\n"
@@ -540,7 +540,7 @@ void Finish::end(int flag)
       nsample *= 2;
       nfft = force->kspace->timing_1d(nsample,time1d);
     }
-    
+
     time1d = nsteps * time1d / nsample;
     MPI_Allreduce(&time1d,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time1d = tmp/nprocs;
@@ -833,7 +833,7 @@ void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
 {
   double tmp, time_max, time_min, time_sq;
   double time = t->get_wall(tt);
-  
+
   double time_cpu = t->get_cpu(tt);
   if (time/time_loop < 0.001)  // insufficient timer resolution!
     time_cpu = 1.0;

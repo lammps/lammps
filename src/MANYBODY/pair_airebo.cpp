@@ -17,11 +17,11 @@
      Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
 #include "pair_airebo.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -4196,7 +4196,7 @@ double PairAIREBO::memory_usage()
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
-  
+
   bytes += 2*maxlocal * sizeof(double);
   return bytes;
 }

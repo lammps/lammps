@@ -94,7 +94,7 @@ static void transprod_generic(const double * restrict A,
       C[i*lda+(j+1)] = s;
     }
 }
-  
+
 static void transtrace3_generic(const double * restrict A,
 				const double * restrict B0,double * restrict tout0,
 				const double * restrict B1,double * restrict tout1,
@@ -146,7 +146,7 @@ mgpt_linalg::mgpt_linalg() {
   tr_trace = transtrace3_error;
   single = 0;
 }
-  
+
 mgpt_linalg::mgpt_linalg(int n,int single_precision) {
 
   mgpt_linalg::matrix_size = n;

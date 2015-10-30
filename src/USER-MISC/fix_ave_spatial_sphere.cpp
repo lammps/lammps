@@ -15,9 +15,9 @@
    Adapted from fix ave/spatial by Niall Jackson <niall.jackson@gmail.com>
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_spatial_sphere.h"
 #include "atom.h"
 #include "update.h"
@@ -55,17 +55,17 @@ enum{ONE,RUNNING,WINDOW};
 
 FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
   Fix(lmp, narg, arg) {
-  
+
   if (narg < 12) error->all(FLERR, "Illegal fix ave/spatial/sphere command");
-  
+
   MPI_Comm_rank(world, &me);
-  
+
   nevery= force->inumeric(FLERR, arg[3]);
   nrepeat= force->inumeric(FLERR, arg[4]);
   nfreq= force->inumeric(FLERR, arg[5]);
-  
+
   global_freq= nfreq;
-  
+
   for (int iarg = 6; iarg < 9; ++iarg) {
     int dim= iarg-6;
     origin_ids[dim]= NULL;
@@ -104,11 +104,11 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
 
       if(origin_type[dim] == COMPUTE) {
         int icompute= modify->find_compute(origin_ids[dim]);
-        if(icompute < 0) 
+        if(icompute < 0)
           error->all(FLERR,
                      "Compute ID for fix ave/spatial/sphere does not exist");
 
-        if(origin_index[dim] == 0 && 
+        if(origin_index[dim] == 0 &&
            modify->compute[icompute]->scalar_flag != 0)
           error->all(FLERR,"Compute for fix ave/spatial/sphere does not calculate a scalar");
         else if(origin_index[dim] && modify->compute[icompute]->vector_flag == 0)
@@ -127,14 +127,14 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
       origin[dim]= force->numeric(FLERR, arg[iarg]);
     }
   }
-  
+
   //the extrema of the radius
   r_min= force->numeric(FLERR, arg[9]);
   r_max= force->numeric(FLERR, arg[10]);
- 
+
   //and finally, the number of spherical bins
   nbins= force->inumeric(FLERR, arg[11]);
-  
+
   if (r_min >= r_max) {
       error->all(FLERR, "r_min must be less than r_max in fix ave/spatial/sphere");
   }
@@ -142,17 +142,17 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
   if (nbins <= 0) {
       error->all(FLERR, "nbins must be positive in fix ave/spatial/sphere");
   }
-  
+
   int iarg= 12;
   which= new int[narg-12];
   argindex= new int[narg-12];
   ids= new char*[narg-12];
   value2index= new int[narg-12];
   nvalues= 0;
-  
+
   while(iarg < narg) {
     ids[nvalues]= NULL;
-    
+
     if(strcmp(arg[iarg], "vx") == 0) {
         which[nvalues] = V;
         argindex[nvalues++]= 0;
@@ -183,12 +183,12 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
       if(arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if(arg[iarg][0] == 'f') which[nvalues] = FIX;
       else if(arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
-      
+
       //strip the v_/c_/f_ off the front of the variable name
       int n= strlen(arg[iarg]);
       char *suffix= new char[n];
       strcpy(suffix, &arg[iarg][2]);
-    
+
       //does the variable name contain a [?
       //(in other words, is this an array element?)
       char *ptr= strchr(suffix, '[');
@@ -203,7 +203,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
       } else {
         argindex[nvalues]= 0;
       }
-      
+
       //store the name of the variable
       n= strlen(suffix)+1;
       ids[nvalues]= new char[n];
@@ -212,10 +212,10 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
       //tidy up the array we allocated earlier
       delete[] suffix;
     } else break;
-    
+
     iarg++;
   }
-  
+
   //process the optional arguments
   normflag= ALL; //normalise the average right at the end
   scaleflag= LATTICE; // lattice units are the default
@@ -228,7 +228,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
   char *title1= NULL;
   char *title2= NULL;
   char *title3= NULL;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial/sphere command");
@@ -303,7 +303,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/spatial/sphere command");
   }
-  
+
   //setup and error checking
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/spatial/sphere command");
@@ -311,7 +311,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
     error->all(FLERR,"Illegal fix ave/spatial/sphere command");
   if (ave != RUNNING && overwrite)
     error->all(FLERR,"Illegal fix ave/spatial/sphere command");
-  
+
   //setup the variables that we need to average
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
@@ -367,7 +367,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
       no_change_box= 1;
     }
   }
-  
+
   if(scaleflag == LATTICE) {
     scale= domain->lattice->xlattice;
     if(domain->lattice->xlattice != domain->lattice->ylattice
@@ -379,7 +379,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
   } else {
     scale= 1.0;
   }
-  
+
   //apply the scaling factors
   origin[0]*= scale;
   origin[1]*= scale;
@@ -390,7 +390,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
   r_maxsq= r_max*r_max;
   deltar= (r_max-r_min)/nbins;
   inv_deltar= 1.0/deltar;
-  
+
   //print file comment lines
   if (fp && me == 0) {
     if (title1) {
@@ -401,7 +401,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
       for (int i= 0; i < 3; ++i) {
         if(origin_type[i] == CONSTANT) fprintf(fp,"%g",origin[i]);
         else fprintf(fp,"%s",arg[i+6]);
-        
+
         if(i != 2) fprintf(fp, ", ");
         else fprintf(fp, ")");
       }
@@ -424,13 +424,13 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
   delete [] title1;
   delete [] title2;
   delete [] title3;
-  
+
   //this fix produces a global array
   array_flag= 1;
   size_array_rows= BIG;
   size_array_cols= 1 + 1 + nvalues;
   extarray= 0; //intensive value (don't divide by N when we output this)
-  
+
   //initialization of remaining variables
   irepeat= 0;
   iwindow= window_limit= 0;
@@ -446,7 +446,7 @@ FixAveSpatialSphere::FixAveSpatialSphere(LAMMPS* lmp, int narg, char** arg) :
   count_list= NULL;
   values_one= values_many= values_sum= values_total= NULL;
   values_list= NULL;
-  
+
   //nvalid = next step on which end_of_step does something
   nvalid= nextvalid();
   //make every compute update itself on step nvalid
@@ -505,11 +505,11 @@ void FixAveSpatialSphere::init()
   //set up the region and check it's valid
   if(regionflag) {
     int iregion= domain->find_region(idregion);
-    if(iregion == -1) 
+    if(iregion == -1)
       error->all(FLERR,"Region ID for fix ave/spatial/sphere does not exist");
     region = domain->regions[iregion];
   }
-  
+
   // set indices and check validity of all computes,fixes,variables
   // check that fix frequency is acceptable
 
@@ -552,8 +552,8 @@ void FixAveSpatialSphere::init()
 
     } else value2index[m] = -1;
   }
-  
-  
+
+
   // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
   if (nvalid < update->ntimestep) {
     irepeat = 0;
@@ -583,7 +583,7 @@ void FixAveSpatialSphere::end_of_step()
 
   //update region if necessary
   if (regionflag) region->prematch();
-  
+
   //zero out arrays that accumulate over many samples
   if(irepeat == 0) {
     for(int m= 0; m < nbins; m++) {
@@ -594,23 +594,23 @@ void FixAveSpatialSphere::end_of_step()
 
   //if in reduced units, we need to update the bin volumes
   if (scaleflag == REDUCED && domain->box_change) set_bin_volumes();
-  
+
   //zero out arrays for one sample
   for(int m= 0; m < nbins; m++) {
     count_one[m]= 0.0;
     for (int i= 0; i < nvalues; i++) values_one[m][i]= 0.0;
   }
-  
+
   //bin each atom
   int *mask= atom->mask;
   int nlocal= atom->nlocal;
-  
+
   if (nlocal > maxatom) {
     maxatom= atom->nmax;
     memory->destroy(bin);
     memory->create(bin,maxatom,"ave/spatial/sphere:bin");
   }
-  
+
   // perform the computation for one sample
   // accumulate results of attributes,computes,fixes,variables to local copy
   // sum within each bin, only include atoms in fix group
@@ -621,11 +621,11 @@ void FixAveSpatialSphere::end_of_step()
   //each atom gets either the number of the bin into which
   //it fits, or -1
   bin_atoms();
-  
+
   for(int m= 0; m < nvalues; m++) {
     int n= value2index[m];
     int j= argindex[m];
-    
+
     if(which[m] == V || which[m] == F) {
       double **attribute;
       if(which[m] == V) attribute= atom->v;
@@ -696,7 +696,7 @@ void FixAveSpatialSphere::end_of_step()
           values_one[bin[i]][m] += varatom[i];
     }
   }
-  
+
   // process a single sample
   // if normflag = ALL, accumulate values,count separately to many
   // if normflag = SAMPLE, one = value/count, accumulate one to many
@@ -720,7 +720,7 @@ void FixAveSpatialSphere::end_of_step()
       count_sum[m] += count_many[m];
     }
   }
-  
+
   // done if irepeat < nrepeat
   // else reset irepeat and nvalid
   irepeat++;
@@ -729,14 +729,14 @@ void FixAveSpatialSphere::end_of_step()
     modify->addstep_compute(nvalid);
     return;
   }
-  
+
   irepeat++;
   if (irepeat < nrepeat) {
     nvalid += nevery;
     modify->addstep_compute(nvalid);
     return;
   }
-  
+
   irepeat = 0;
   nvalid = ntimestep+nfreq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
@@ -745,7 +745,7 @@ void FixAveSpatialSphere::end_of_step()
   // if normflag = ALL, final is total value / total count
   // if normflag = SAMPLE, final is sum of ave / repeat
   // exception is densities: normalized by repeat, not total count
-  
+
   double repeat = nrepeat;
   double mv2d = force->mv2d;
   if (normflag == ALL) {
@@ -810,7 +810,7 @@ void FixAveSpatialSphere::end_of_step()
     if (window_limit) norm = nwindow;
     else norm = iwindow;
   }
-  
+
   // output result to file
 
   if (fp && me == 0) {
@@ -852,21 +852,21 @@ void FixAveSpatialSphere::setup_bins()
     memory->grow(values_many,nbins,nvalues,"ave/spatial/sphere:values_many");
     memory->grow(values_sum,nbins,nvalues,"ave/spatial/sphere:values_sum");
     memory->grow(values_total,nbins,nvalues,"ave/spatial/sphere:values_total");
-    
+
     //the count and value lists are only relevant for windowed averaging
     if(ave == WINDOW) {
       memory->create(count_list,nwindow,nbins,"ave/spatial/sphere:count_list");
       memory->create(values_list,nwindow,nbins,nvalues,
                      "ave/spatial/sphere:values_list");
     }
-    
+
     //reinitialize the regrown count and values
     for(int m= 0; m < nbins; m++) {
       for(int i= 0; i < nvalues; i++) values_total[m][i]= 0.0;
       count_total[m]= 0.0;
     }
   }
-  
+
   //set the bin coordinates
   for(int i= 0; i < nbins; i++)
     coord[i]= r_min + (i+0.5)*deltar;
@@ -904,7 +904,7 @@ void FixAveSpatialSphere::set_bin_volumes()
    assign atoms to bins
 ------------------------------------------------------------------------- */
 
-void FixAveSpatialSphere::bin_atoms() 
+void FixAveSpatialSphere::bin_atoms()
 {
   //update the origin coordinates if necessary
   //unscale the existing coordinates
@@ -938,7 +938,7 @@ void FixAveSpatialSphere::bin_atoms()
   double **x= atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   double *prd,*prd_half;
   //deal with the periodic boundary conditions
   if(domain->periodicity[0] || domain->periodicity[1] || domain->periodicity[2]) {
@@ -950,16 +950,16 @@ void FixAveSpatialSphere::bin_atoms()
       prd_half= domain->prd_half;
     }
   }
- 
+
   double rsq, tmp;
-  
+
   if(!regionflag) {
     if(scaleflag == REDUCED) {
       //convert the atomic coordinates into reduced coordinates
       domain->x2lamda(nlocal);
     }
     for(int i= 0; i < nlocal; i++) {
-      if(mask[i] & groupbit) {      
+      if(mask[i] & groupbit) {
         rsq= 0.0;
         for(int dim= 0; dim < 3; dim++) {
           tmp= x[i][dim] - origin[dim];

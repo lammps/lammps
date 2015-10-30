@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -310,7 +310,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // increment lock counter in compute chunk/atom
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
-  //   so that locking spans multiple timesteps 
+  //   so that locking spans multiple timesteps
 
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
@@ -339,13 +339,13 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         if (ncoord == 0) fprintf(fp,"# Chunk Ncount");
         else if (ncoord == 1) fprintf(fp,"# Chunk Coord1 Ncount");
         else if (ncoord == 2) fprintf(fp,"# Chunk Coord1 Coord2 Ncount");
-        else if (ncoord == 3) 
+        else if (ncoord == 3)
           fprintf(fp,"# Chunk Coord1 Coord2 Coord3 Ncount");
       } else {
         if (ncoord == 0) fprintf(fp,"# Chunk OrigID Ncount");
         else if (ncoord == 1) fprintf(fp,"# Chunk OrigID Coord1 Ncount");
         else if (ncoord == 2) fprintf(fp,"# Chunk OrigID Coord1 Coord2 Ncount");
-        else if (ncoord == 3) 
+        else if (ncoord == 3)
           fprintf(fp,"# Chunk OrigID Coord1 Coord2 Coord3 Ncount");
       }
       for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[7+i]);
@@ -526,7 +526,7 @@ void FixAveChunk::end_of_step()
   // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
     error->all(FLERR,"Invalid timestep reset for fix ave/chunk");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
@@ -541,8 +541,8 @@ void FixAveChunk::end_of_step()
   //   if ave = RUNNING/WINDOW and not yet locked:
   //     set forever, will be unlocked in fix destructor
   // wrap setup_chunks in clearstep/addstep b/c it may invoke computes
-  //   both nevery and nfreq are future steps, 
-  //   since call below to cchunk->ichunk() 
+  //   both nevery and nfreq are future steps,
+  //   since call below to cchunk->ichunk()
   //     does not re-invoke internal cchunk compute on this same step
 
   if (irepeat == 0) {
@@ -666,15 +666,15 @@ void FixAveChunk::end_of_step()
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
-            values_one[index][m] += 
+            values_one[index][m] +=
               (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
           }
       } else {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
-            values_one[index][m] += 
-              (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+            values_one[index][m] +=
+              (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
               mass[type[i]];
           }
       }
@@ -760,7 +760,7 @@ void FixAveChunk::end_of_step()
       if (count_many[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == TEMPERATURE)
-            values_many[m][j] += mvv2e*values_one[m][j] / 
+            values_many[m][j] += mvv2e*values_one[m][j] /
               ((cdof + adof*count_many[m]) * boltz);
           else if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS ||
                    scaleflag == NOSCALE)

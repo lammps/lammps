@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Tomas Oppelstrup, LLNL (oppelstrup2@llnl.gov) 
+   Contributing authors: Tomas Oppelstrup, LLNL (oppelstrup2@llnl.gov)
    and John Moriarty, LLNL (moriarty2@llnl.gov)
 
    Fast MGPT algorithm developed by Tomas Oppelstrup (2015) based on the
@@ -55,7 +55,7 @@ public:
   public:
     Doublet(const Doublet &t) : i(t.i),j(t.j) {}
     Doublet(int ii,int jj) : i(ii < jj ? ii:jj),j(ii < jj ? jj : ii) {}
-    
+
     Doublet operator=(const Doublet &t) {
       i = t.i;
       j = t.j;
@@ -66,9 +66,9 @@ public:
     }
     int hash() const { return i*333331 + j*331; }
   };
-  
+
   template<typename T,typename K> class Hash {
-    
+
     class Link {
     public:
       T data;
@@ -90,7 +90,7 @@ public:
 	::operator delete(((void **) ptr)[-1]);
       }
     };
-    
+
     int isprime(int x) {
       if(x%2 == 0)
 	return 0;
@@ -103,13 +103,13 @@ public:
 	return 1;
     }
   }
-    
+
     int size,used;
     Link **table;
-    
+
     int maxlength,nstep,nsearch;
   public:
-    
+
     class Iterator {
       Hash &H;
       int idx;
@@ -131,7 +131,7 @@ public:
       K *key() { return &p->key; }
       T *data() { return &p->data; }
       Link *link() { return p; }
-      
+
       int operator==(const Iterator &a) {
 	return idx==a.idx && p==a.p;
       }
@@ -139,23 +139,23 @@ public:
 	return !(*this == a);
       }
     };
-    
+
     Hash(int sz) {
       while(!isprime(sz)) sz = sz + 1;
       size = sz;
       used = 0;
-      
-      
+
+
       table = new Link *[size];
       for(int i = 0; i<size; i++)
 	table[i] = 0;
-      
+
       /* Counters for statistics */
       maxlength = 0;
       nstep = 0;
       nsearch = 0;
     }
-    
+
     ~Hash() {
       for(int i = 0; i<size; i++) {
 	Link *p = table[i];
@@ -170,7 +170,7 @@ public:
 
     Iterator begin() { return Iterator(*this); }
     Iterator end() { return Iterator(*this,size,0); }
-    
+
     int Size() { return size; }
     int Used() { return used; }
     int NSearch() { return nsearch; }
@@ -183,7 +183,7 @@ public:
 	printf("(1) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
 	exit(1);
       }
-      
+
       used = used + 1;
       if(1) {
 	table[idx] = new Link(key,table[idx]);
@@ -191,7 +191,7 @@ public:
       } else { /* This is for threading... and incomplete */
 	typedef Link *LinkPtr;
 	LinkPtr ptr = table[idx],last = 0,dataptr = new Link(key,0);
-	
+
 	while(ptr != 0) {
 	  last = ptr;
 	  ptr = ptr->next;
@@ -225,7 +225,7 @@ public:
 	  last->next = p->next;
 	delete p;
       }
-    
+
       if(count > maxlength)
 	maxlength = count;
       nsearch = nsearch + 1;
@@ -240,25 +240,25 @@ public:
 	printf("(3) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
 	exit(1);
       }
-      
-      
+
+
       p = table[idx];
       while(p != 0 && !(p->key == key)) {
 	p = p->next;
 	count = count + 1;
       }
-      
+
       if(count > maxlength)
 	maxlength = count;
       nsearch = nsearch + 1;
       nstep = nstep + count;
-      
+
       if(p != 0) p->hits++;
-      
+
       return (p == 0) ? 0 : &p->data;
     }
   };
-  
+
  public:
   PairMGPT(class LAMMPS *);
   ~PairMGPT();
@@ -268,17 +268,17 @@ public:
   void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
-  
+
  private:
-  
+
   void read_files(const char* parminFile, const char* potinFile, double vol);
   void allocate();
-  
+
   struct Matrix {
     static int sz;
-    
+
     double m[8][8];
-    
+
     int align_check() {
       return ((((unsigned long long int) m) & 31) > 0);
     }
@@ -323,7 +323,7 @@ public:
       Matrix P;
       for(int i = 1; i<=sz; i++)
 	for(int j = 0; j<=sz; j++)
-	  P.m[i][j] = m[i][j] * x; 
+	  P.m[i][j] = m[i][j] * x;
       return P;
     }
     Matrix operator/(double x) const {
@@ -399,7 +399,7 @@ public:
   triplet_data *get_triplet(const double xx[][3],int i,int j,int k,
 			    Hash<bond_data,Doublet> *bhash,triplet_data *twork,
 			    double *dvir_ij_p,double *dvir_ik_p);
-  
+
   int c1_outside(const double a[3],
 		 int triclinic,const double alpha[3]) {
     const double stol = 1e-5;
@@ -410,16 +410,16 @@ public:
 	if(cog < domain->sublo_lamda[p]-0.5*rmax*alpha[p]-stol) return 1;
 	if(cog > domain->subhi_lamda[p]+0.5*rmax*alpha[p]+stol) return 1;
       }
-      
+
     } else {
       double rout = 0.0;
-      
-      
+
+
       for(int p = 0; p<3; p++) {
 	double cog = a[p];
 	if(cog < domain->sublo[p]-0.5*rmax-stol) return 1;
 	if(cog > domain->subhi[p]+0.5*rmax+stol) return 1;
-	
+
 	if(cog < domain->sublo[p]-stol) {
 	  double t = cog - (domain->sublo[p]-stol);
 	  rout = rout + t*t;
@@ -427,9 +427,9 @@ public:
 	  double t = cog - (domain->subhi[p]+stol);
 	  rout = rout + t*t;
 	}
-	
+
       }
-      
+
       if(rout > 0.25*rmax*rmax)
 	return 1;
     }
@@ -439,7 +439,7 @@ public:
   int c2_outside(const double a[3],const double b[3],
 		 int triclinic,const double alpha[3]) {
     const double stol = 1e-5;
-    
+
     if(triclinic) {
       for(int p = 0; p<3; p++) {
 	double cog = 0.5*(a[p] + b[p]);
@@ -453,7 +453,7 @@ public:
 	double cog = 0.5*(a[p] + b[p]);
 	if(cog < domain->sublo[p]-0.5*rcrit-stol) return 1;
 	if(cog > domain->subhi[p]+0.5*rcrit+stol) return 1;
-	
+
 	if(cog < domain->sublo[p]-stol) {
 	  double t = cog - (domain->sublo[p]-stol);
 	  rout = rout + t*t;
@@ -461,9 +461,9 @@ public:
 	  double t = cog - (domain->subhi[p]+stol);
 	  rout = rout + t*t;
 	}
-	
+
       }
-      
+
       if(rout > 0.25*rcrit*rcrit)
 	return 1;
     }
@@ -478,7 +478,7 @@ public:
       *s1 = triclinic ? domain->subhi_lamda : domain->subhi;
     double weight = 1.0;
     const double stol = 1e-5;
-    
+
     for(int p = 0; p<3; p++) {
       double cog = 0.0,q,w,n = 0.0;
       if(a != 0) { cog = cog + a[p]; n = n + 1; }
@@ -486,10 +486,10 @@ public:
       if(c != 0) { cog = cog + c[p]; n = n + 1; }
       if(d != 0) { cog = cog + d[p]; n = n + 1; }
       cog = cog * (1.0/n);
-      
+
       if(cog < 0.5*(s0[p]+s1[p])) q = cog - s0[p];
       else q = s1[p] - cog;
-      
+
       w = q*(0.5/stol) + 0.5;
       if(w > 1.0) w = 1.0;
       if(w < 0.0) w = 0.0;
@@ -497,21 +497,21 @@ public:
     }
     return weight;
   }
-  
+
   void force_debug_3t(double xx[][3],
 		      int i0,int j0,int k0,
 		      int i ,int j ,int k ,
 		      double dfix,double dfiy,double dfiz,
 		      double dfjx,double dfjy,double dfjz,
 		      double dfkx,double dfky,double dfkz);
-  
+
   void force_debug_3v(double xx[][3],
 		      int i0,int j0,int k0,
 		      int i ,int j ,int k ,
 		      double dfix,double dfiy,double dfiz,
 		      double dfjx,double dfjy,double dfjz,
 		      double dfkx,double dfky,double dfkz);
-  
+
   void force_debug_4(double xx[][3],
 		     int i0,int j0,int k0,int m0,
 		     int i ,int j ,int k ,int m ,
@@ -519,14 +519,14 @@ public:
 		     double dfjx,double dfjy,double dfjz,
 		     double dfkx,double dfky,double dfkz,
 		     double dfmx,double dfmy,double dfmz);
-  
+
   double numderiv3t(double xx[][3],int i,int j,int k,int p);
   double numderiv3v(double xx[][3],int i,int j,int k,int p,int ipert);
   double numderiv4(double xx[][3],int i,int j,int k,int m,int p);
   void compute_x(const int *nnei,const int * const *nlist,
 		 double *e_s,double *e_p,double *e_t,double *e_q,
 		 int evflag,int newton_pair);
-  
+
   /* Reimplementation of bond matrix computation */
   void fl_deriv_new(double r,double ri,double xhat,double yhat,double zhat,
 		    double &fl_0,double &fl_x,double &fl_y,double &fl_z,
@@ -554,7 +554,7 @@ public:
     }
     return h;
   }
-  
+
   /// This function calculates the trace of the matrix product of ha and hb.
   inline double trace(const Matrix& ha, const Matrix& hb) const {
     double zquan = 0.0;
@@ -571,7 +571,7 @@ public:
   inline void transprod(const Matrix& a,const Matrix& b,Matrix &c) const
     {
       int i,j,k;
-      
+
       if(lmax == 5) {
 	const int n = 5;
 	for(i = 1; i<=n; i++)
@@ -616,12 +616,12 @@ public:
     {
       int i,k;
       double s = 0.0;
-      
+
       if(linalg.single)
 	return transtrace_s((const float (*)[8]) &a.m[1][0],(const float (*)[8]) &b.m[1][0]);
 
       //printf("Calling transtrace... That is shit\n");
-      
+
       if(lmax == 5) {
 	const int n = 5;
 	for(i = 1; i<=n; i++)
@@ -640,7 +640,7 @@ public:
       }
       return s;
     }
-  
+
   double cutoff;
   //double vpair[601];
   //double ktan[601];
@@ -651,32 +651,32 @@ public:
   double rcrit;
   //double evol0, pvol0, pot_input_vol;
   //double epsr, epsa;
-  
+
   int thrion;
   int fourion;
-  
+
   //int mode;
   double ddl[5];
   int lmax, lang;
   Matrix del0;
   double anorm3, anorm4;
-  
+
   // Flag indicating whether volumetric pressure should be used.
   // Volumetric pressure means that terms emanating from the
   // derivative of the energy with respect to the potential atomic
   // volume parameter is included.
   int volpres_flag,nbody_flag;
-  
+
   potdata splinepot;
 };
-  
+
 }
 
 #endif
 #endif
 
 /* ----------------------------------------------------------------------
- * Fast Model Generalized Pseudopotential Theory (MGPT) interatomic 
+ * Fast Model Generalized Pseudopotential Theory (MGPT) interatomic
  * potential routine.
  *
  * Copyright (2015) Lawrence Livermore National Security, LLC.

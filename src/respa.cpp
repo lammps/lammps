@@ -15,8 +15,8 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "respa.h"
 #include "neighbor.h"
 #include "atom.h"
@@ -269,7 +269,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     cutoff[3] = cutoff[1];
   }
 
-  // ensure that pair->compute() is run properly when the "hybrid" keyword is not used. 
+  // ensure that pair->compute() is run properly when the "hybrid" keyword is not used.
   if (nhybrid_styles < 1) {
     pair_compute = 1;
     tally_global = 1;
@@ -628,7 +628,7 @@ void Respa::recurse(int ilevel)
         }
         timer->stamp();
         comm->exchange();
-        if (atom->sortfreq > 0 && 
+        if (atom->sortfreq > 0 &&
             update->ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_balance.h"
 #include "balance.h"
 #include "update.h"
@@ -103,7 +103,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (lbstyle == BISECTION && comm->style == 0) 
+  if (lbstyle == BISECTION && comm->style == 0)
     error->all(FLERR,"Fix balance rcb cannot be used with comm_style brick");
 
   // create instance of Balance class

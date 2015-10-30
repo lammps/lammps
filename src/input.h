@@ -14,7 +14,7 @@
 #ifndef LMP_INPUT_H
 #define LMP_INPUT_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 #include <map>
 #include <string>
@@ -33,7 +33,7 @@ class Input : protected Pointers {
   void file();                   // process all input
   void file(const char *);       // process an input script
   char *one(const char *);       // process a single command
-  void substitute(char *&, char *&, int &, int &, int);  
+  void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
 
  private:

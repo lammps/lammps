@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "angle.h"
 #include "atom.h"
 #include "comm.h"
@@ -66,7 +66,7 @@ Angle::~Angle()
 
 void Angle::init()
 {
-  if (!allocated && atom->nangletypes) 
+  if (!allocated && atom->nangletypes)
     error->all(FLERR,"Angle coeffs are not set");
   for (int i = 1; i <= atom->nangletypes; i++)
     if (setflag[i] == 0) error->all(FLERR,"All angle coeffs are not set");

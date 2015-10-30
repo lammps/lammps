@@ -16,10 +16,10 @@
                         for swapping atoms of different masses
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_viscosity.h"
 #include "atom.h"
 #include "domain.h"
@@ -73,7 +73,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
       nswap = force->inumeric(FLERR,arg[iarg+1]);
-      if (nswap <= 0) 
+      if (nswap <= 0)
         error->all(FLERR,"Fix viscosity swap value must be positive");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vtarget") == 0) {

@@ -15,9 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_temp_csld.h"
 #include "atom.h"
 #include "force.h"
@@ -138,7 +138,7 @@ void FixTempCSLD::init()
 
   if (has_shake > 0)
     error->all(FLERR,"Fix temp/csld is not compatible with fix rattle or fix shake");
-  
+
   // check variable
 
   if (tstr) {
@@ -222,7 +222,7 @@ void FixTempCSLD::end_of_step()
       v[i][2] = vz;
     }
   }
-  
+
   // mixing factors
   const double c1 = exp(-update->dt/t_period);
   const double c2 = sqrt((1.0-c1*c1)*t_target/temperature->compute_scalar());

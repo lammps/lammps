@@ -15,8 +15,8 @@
    Contributing authors: Timothy Sirk (ARL), Pieter in't Veld (BASF)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_srp.h"
 #include "atom.h"
 #include "force.h"
@@ -49,22 +49,22 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // per-atom array width 2
   peratom_flag = 1;
-  size_peratom_cols = 2;                                                  
+  size_peratom_cols = 2;
 
-  // initial allocation of atom-based array                      
+  // initial allocation of atom-based array
   // register with Atom class
   array = NULL;
-  grow_arrays(atom->nmax);                                                
+  grow_arrays(atom->nmax);
 
-  // extends pack_exchange() 
+  // extends pack_exchange()
   atom->add_callback(0);
   atom->add_callback(1); // restart
-  atom->add_callback(2); 
+  atom->add_callback(2);
 
-  // zero 
-  for (int i = 0; i < atom->nmax; i++) 
-    for (int m = 0; m < 3; m++) 
-      array[i][m] = 0.0; 
+  // zero
+  for (int i = 0; i < atom->nmax; i++)
+    for (int m = 0; m < 3; m++)
+      array[i][m] = 0.0;
 
   // assume setup of fix is needed to insert particles
   // is true if reading from datafile
@@ -72,7 +72,7 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // might be true if reading from restart
   // a restart file written during the run has bond particles as per atom data
   // a restart file written after the run does not have bond particles
-  setup = 1; 
+  setup = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,7 +106,7 @@ void FixSRP::init()
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
   // the highest numbered atom type should be reserved for bond particles (bptype)
-  // set bptype, unless it will be read from restart 
+  // set bptype, unless it will be read from restart
   if(!restart_reset) bptype = atom->ntypes;
 
   // check if bptype is already in use
@@ -118,24 +118,24 @@ void FixSRP::init()
         if(!restart_reset)
           error->all(FLERR,"Fix SRP requires an extra atom type");
         else
-          setup = 0; 
+          setup = 0;
       }
- 
+
   // setup neigh exclusions for diff atom types
   // bond particles do not interact with other types
   // type bptype only interacts with itself
   char* arg1[4];
-  arg1[0] = (char *) "exclude"; 
-  arg1[1] = (char *) "type"; 
+  arg1[0] = (char *) "exclude";
+  arg1[1] = (char *) "type";
   char c0[20];
   char c1[20];
 
   for(int z = 1; z < bptype; z++)
   {
    sprintf(c0, "%d", z);
-   arg1[2] = c0; 
+   arg1[2] = c0;
    sprintf(c1, "%d", bptype);
-   arg1[3] = c1; 
+   arg1[3] = c1;
    neighbor->modify_params(4, arg1);
   }
 }
@@ -192,19 +192,19 @@ void FixSRP::setup_pre_force(int zz)
    xone[1] = (xold[i][1] + xold[j][1])*0.5;
    xone[2] = (xold[i][2] + xold[j][2])*0.5;
 
-   // record longest bond 
+   // record longest bond
    // this used to set ghost cutoff
     delx = xold[j][0] - xold[i][0];
     dely = xold[j][1] - xold[i][1];
     delz = xold[j][2] - xold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if(rsq > rsqold) rsqold = rsq; 
+    if(rsq > rsqold) rsqold = rsq;
 
    // make one particle for each bond
    // i is local
    // if newton bond, always make particle
    // if j is local, always make particle
-   // if j is ghost, decide from tag  
+   // if j is ghost, decide from tag
 
    if( force->newton_bond || j < nlocal || tagold[i] > tagold[j] ){
         atom->natoms += 1;
@@ -246,7 +246,7 @@ void FixSRP::setup_pre_force(int zz)
   // ghost atoms must be present for bonds on edge of neighbor cutoff
   // extend cutghost slightly more than half of the longest bond
   MPI_Allreduce(&rsqold,&rsqmax,1,MPI_DOUBLE,MPI_MAX,world);
-  rmax = sqrt(rsqmax); 
+  rmax = sqrt(rsqmax);
   double cutneighmax_srp = neighbor->cutneighmax + 0.51*rmax;
 
   // find smallest cutghost
@@ -262,7 +262,7 @@ void FixSRP::setup_pre_force(int zz)
       sprintf(str, "Extending ghost comm cutoff. New %f, old %f.", cutneighmax_srp, cutghostmin);
       error->message(FLERR,str);
     }
-    // cutghost updated by comm->setup 
+    // cutghost updated by comm->setup
     comm->cutghostuser = cutneighmax_srp;
   }
 
@@ -270,7 +270,7 @@ void FixSRP::setup_pre_force(int zz)
   // move owned to new procs
   // get ghosts
   // build neigh lists again
-  
+
   // if triclinic, lambda coords needed for pbc, exchange, borders
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
@@ -290,7 +290,7 @@ void FixSRP::setup_pre_force(int zz)
   // new atom counts
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  // zero all forces 
+  // zero all forces
   for(int i = 0; i < nall; i++)
     for(int n = 0; n < 3; n++)
       atom->f[i][n] = 0.0;
@@ -308,7 +308,7 @@ void FixSRP::setup_pre_force(int zz)
 
 void FixSRP::pre_exchange()
 {
-  // update ghosts 
+  // update ghosts
   comm->forward_comm();
 
   // reassign bond particle coordinates to midpoint of bonds
@@ -328,7 +328,7 @@ void FixSRP::pre_exchange()
     if(j < 0) error->all(FLERR,"Fix SRP failed to map atom");
     j = domain->closest_image(ii,j);
 
-    // position of bond particle ii 
+    // position of bond particle ii
     atom->x[ii][0] = (x[i][0] + x[j][0])*0.5;
     atom->x[ii][1] = (x[i][1] + x[j][1])*0.5;
     atom->x[ii][2] = (x[i][2] + x[j][2])*0.5;
@@ -374,7 +374,7 @@ void FixSRP::copy_arrays(int i, int j, int delflag)
 void FixSRP::set_arrays(int i)
 {
   array[i][0] = -1;
-  array[i][1] = -1; 
+  array[i][1] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -438,9 +438,9 @@ int FixSRP::unpack_border(int n, int first, double *buf)
 void FixSRP::post_run()
 {
   // all bond particles are removed after each run
-  // useful for write_data and write_restart commands 
+  // useful for write_data and write_restart commands
   // since those commands occur between runs
- 
+
   bigint natoms_previous = atom->natoms;
   int nlocal = atom->nlocal;
   int* dlist;
@@ -508,7 +508,7 @@ void FixSRP::post_run()
   comm->borders();
   // change back to box coordinates
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-} 
+}
 
 /* ----------------------------------------------------------------------
    pack values in local atom-based arrays for restart file
@@ -518,7 +518,7 @@ int FixSRP::pack_restart(int i, double *buf)
 {
   int m = 0;
   buf[m++] = 3;
-  buf[m++] = array[i][0]; 
+  buf[m++] = array[i][0];
   buf[m++] = array[i][1];
   return m;
 }
@@ -527,17 +527,17 @@ int FixSRP::pack_restart(int i, double *buf)
    unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
-void FixSRP::unpack_restart(int nlocal, int nth) 
+void FixSRP::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
 // skip to Nth set of extra values
-  int m = 0; 
+  int m = 0;
   for (int i = 0; i < nth; i++){
     m += static_cast<int> (extra[nlocal][m]);
   }
 
-  m++; 
+  m++;
   array[nlocal][0] = extra[nlocal][m++];
   array[nlocal][1] = extra[nlocal][m++];
 
@@ -561,7 +561,7 @@ int FixSRP::size_restart(int nlocal)
 }
 
 /* ----------------------------------------------------------------------
-   pack global state of Fix 
+   pack global state of Fix
 ------------------------------------------------------------------------- */
 
 void FixSRP::write_restart(FILE *fp)

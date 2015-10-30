@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_tip4p_long_soft_omp.h"
 #include "atom.h"
 #include "domain.h"
@@ -260,7 +260,7 @@ void PairTIP4PLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
           denc = sqrt(lam2[itype][jtype] + rsq);
-          prefactor = qqrd2e * lam1[itype][jtype] 
+          prefactor = qqrd2e * lam1[itype][jtype]
             * qtmp*q[j] / (denc*denc*denc);
 
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);

@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_cut_coul_msm_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,7 +33,7 @@
 #include "update.h"
 #include "domain.h"
 #include "kspace.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -56,7 +56,7 @@ int ** ljcm_gpu_compute_n(const int ago, const int inum,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum, const double cpu_time,
                           bool &success, double *host_q, double *boxlo, double *prd);
-void ljcm_gpu_compute(const int ago, const int inum, const int nall, 
+void ljcm_gpu_compute(const int ago, const int inum, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
@@ -72,7 +72,7 @@ PairLJCutCoulMSMGPU::PairLJCutCoulMSMGPU(LAMMPS *lmp) :
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -90,10 +90,10 @@ void PairLJCutCoulMSMGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -132,8 +132,8 @@ void PairLJCutCoulMSMGPU::compute(int eflag, int vflag)
 void PairLJCutCoulMSMGPU::init_style()
 {
   cut_respa = NULL;
-  
-  if (force->newton_pair) 
+
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with lj/cut/coul/msm/gpu pair style");
 
   if (force->kspace->scalar_pressure_flag)
@@ -161,7 +161,7 @@ void PairLJCutCoulMSMGPU::init_style()
   // setup force tables
 
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
-  
+
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
@@ -192,7 +192,7 @@ double PairLJCutCoulMSMGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulMSMGPU::cpu_compute(int start, int inum, int eflag, int vflag, 
+void PairLJCutCoulMSMGPU::cpu_compute(int start, int inum, int eflag, int vflag,
                                int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
@@ -209,7 +209,7 @@ void PairLJCutCoulMSMGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = start; ii < inum; ii++) {
@@ -289,7 +289,7 @@ void PairLJCutCoulMSMGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             evdwl *= factor_lj;
           } else evdwl = 0.0;
         }
-        
+
         if (evflag) ev_tally_full(i,evdwl,ecoul,fpair,delx,dely,delz);
       }
     }

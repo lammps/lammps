@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -201,7 +201,7 @@ void PairLJCutKokkos<DeviceType>::init_style()
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa) 
+    if (respa)
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
@@ -211,7 +211,7 @@ void PairLJCutKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value && 
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;

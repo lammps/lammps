@@ -80,7 +80,7 @@ PairList::~PairList()
 void PairList::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = 
+  else evflag = vflag_fdotr = eflag_global =
     vflag_global = eflag_atom = vflag_atom = 0;
 
   const int nlocal = atom->nlocal;
@@ -138,7 +138,7 @@ void PairList::compute(int eflag, int vflag)
 	const double r = sqrt(rsq);
 	const double dr = par.parm.morse.r0 - r;
 	const double dexp = exp(par.parm.morse.alpha * dr);
-	fpair = 2.0*par.parm.morse.d0*par.parm.morse.alpha 
+	fpair = 2.0*par.parm.morse.d0*par.parm.morse.alpha
                 * (dexp*dexp - dexp) / r;
 
 	if (eflag_either)
@@ -148,11 +148,11 @@ void PairList::compute(int eflag, int vflag)
 
 	const double r6inv = r2inv*r2inv*r2inv;
 	const double sig6  = mypow(par.parm.lj126.sigma,6);
-	fpair =  24.0*par.parm.lj126.epsilon*r6inv 
+	fpair =  24.0*par.parm.lj126.epsilon*r6inv
                  * (2.0*sig6*sig6*r6inv - sig6) * r2inv;
 
 	if (eflag_either)
-	  epair = 4.0*par.parm.lj126.epsilon*r6inv 
+	  epair = 4.0*par.parm.lj126.epsilon*r6inv
                   * (sig6*sig6*r6inv - sig6) - par.offset;
       }
 
@@ -169,7 +169,7 @@ void PairList::compute(int eflag, int vflag)
       }
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,epair,0.0,fpair,dx,dy,dz);
-    } 
+    }
   }
   if (vflag_fdotr) virial_fdotr_compute();
 
@@ -236,7 +236,7 @@ void PairList::settings(int narg, char **arg)
 
     // skip empty lines
     if (!ptr) continue;
-    
+
     // skip comment lines starting with #
     if (*ptr == '#') continue;
 

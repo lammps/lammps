@@ -40,7 +40,7 @@ void makespline(int ntab,int stride,double tab[],double C[][4]) {
 
   double h_left,h_right,d;
   int i,j;
-  
+
   /* Second order second derivative approximation
      at end points. */
   h_left  =
@@ -58,7 +58,7 @@ void makespline(int ntab,int stride,double tab[],double C[][4]) {
     A[j+2][0] = 1.0;  A[j+2][1] = 2.0;  A[j+2][2] = -1.0;  y[j+2] = -d;
     A[j+3][0] = 2.0;  A[j+3][1] = 2.0;  A[j+3][2] = -2.0;  y[j+3] = 2.0*d;
   }
-  
+
   j = 3*(ntab-2);
   d = tab[stride*(ntab-1)] - tab[stride*(ntab-2)];
   A[j+1][0] = 1.0;  A[j+1][1] = 1.0;  A[j+1][2] =  1.0;  y[j+1] = d;
@@ -82,9 +82,9 @@ void evalcubic(double p[4],double x,double *y,double *dy,double *d2y) {
 
   t1 = p[2] + x*p[3];
   t2 = p[1] + x*t1;
-  
+
   t3 = t1 + x*p[3];
-  
+
   *y = p[0] + x*t2;
   *dy = (t2 + x*t3);
   *d2y = 2.0*(t3 + x*p[3]);
@@ -115,9 +115,9 @@ void evalspline(int n,double x0,double x1,double C[][4],
   } else {
     t1 = p[2] + xhat*p[3];
     t2 = p[1] + xhat*t1;
-    
+
     t3 = t1 + xhat*p[3];
- 
+
     *y = p[0] + xhat*t2;
     *dy = (t2 + xhat*t3)*dxinv;
     *d2y = 2.0*(t3 + xhat*p[3])*(dxinv*dxinv);

@@ -20,7 +20,7 @@ FixStyle(print,FixPrint)
 #ifndef LMP_FIX_PRINT_H
 #define LMP_FIX_PRINT_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {

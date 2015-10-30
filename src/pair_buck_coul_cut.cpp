@@ -15,9 +15,9 @@
    Contributing author: Eduardo Bringa (LLNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_buck_coul_cut.h"
 #include "atom.h"
 #include "comm.h"
@@ -219,7 +219,7 @@ void PairBuckCoulCut::settings(int narg, char **arg)
 
 void PairBuckCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) 
+  if (narg < 5 || narg > 7)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 

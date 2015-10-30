@@ -20,7 +20,7 @@ FixStyle(saed/vtk,FixSAEDVTK)
 #ifndef LMP_FIX_SAED_VTK_H
 #define LMP_FIX_SAED_VTK_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -60,7 +60,7 @@ class FixSAEDVTK : public Fix {
   void options(int, char **);
 
   bigint nextvalid();
-  
+
   class ComputeSAED *compute_saed;
 
   double  Zone[3];           // Zone axis to view SAED
@@ -77,7 +77,7 @@ class FixSAEDVTK : public Fix {
   double  prd_inv[3];        // Inverse spacing of unit cell
 
   char    *filename;         // user-specified file
-  int     nOutput; 
+  int     nOutput;
   int     Dim[3];
   bool    manual;            // Turn on manual recpiprocal map
 

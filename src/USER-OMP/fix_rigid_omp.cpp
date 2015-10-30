@@ -157,7 +157,7 @@ void FixRigidOMP::final_integrate()
 
      // we likely have only a rather number of groups so we loops
      // over bodies and thread over all atoms for each of them.
-     
+
      for (int ib = 0; ib < nbody; ++ib) {
        double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
        int i;
@@ -212,7 +212,7 @@ void FixRigidOMP::final_integrate()
 #else
        const int tid = 0;
 #endif
- 
+
        for (int i = 0; i < nlocal; i++) {
 	 const int ibody = body[i];
 	 if ((ibody < 0) || (ibody % nthreads != tid)) continue;
@@ -616,7 +616,7 @@ void FixRigidOMP::set_v_thr()
     }
   }
 
-  // set omega, angmom of each extended particle 
+  // set omega, angmom of each extended particle
   // XXX: extended particle info not yet multi-threaded
 
   if (extended) {

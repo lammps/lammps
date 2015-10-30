@@ -5,16 +5,16 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_dipole_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -26,7 +26,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "string.h"
+#include <string.h>
 
 
 using namespace LAMMPS_NS;
@@ -50,7 +50,7 @@ PairLJCutDipoleLong::PairLJCutDipoleLong(LAMMPS *lmp) : Pair(lmp)
 }
 
 /* ----------------------------------------------------------------------
-   free all arrays 
+   free all arrays
 ------------------------------------------------------------------------- */
 
 PairLJCutDipoleLong::~PairLJCutDipoleLong()
@@ -153,7 +153,7 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
 	  pdotp = mu[i][0]*mu[j][0] + mu[i][1]*mu[j][1] + mu[i][2]*mu[j][2];
 	  pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
 	  pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
-	    
+
 	  g0 = qtmp*q[j];
 	  g1 = qtmp*pjdotr - q[j]*pidotr + pdotp;
 	  g2 = -pidotr*pjdotr;
@@ -166,10 +166,10 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
 
 	    g0b1_g1b2_g2b3 = g0*b1 + g1*b2 + g2*b3;
 	    fdx = delx * g0b1_g1b2_g2b3 -
-	      b1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) + 
+	      b1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) +
 	      b2 * (pjdotr*mu[i][0] + pidotr*mu[j][0]);
 	    fdy = dely * g0b1_g1b2_g2b3 -
-	      b1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) + 
+	      b1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) +
 	      b2 * (pjdotr*mu[i][1] + pidotr*mu[j][1]);
 	    fdz = delz * g0b1_g1b2_g2b3 -
 	      b1 * (qtmp*mu[j][2] - q[j]*mu[i][2]) +
@@ -204,13 +204,13 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
 	    d1 = (d0 + pre1*expm2) * r2inv;
 	    d2 = (3.0*d1 + pre2*expm2) * r2inv;
 	    d3 = (5.0*d2 + pre3*expm2) * r2inv;
-	    
+
 	    g0d1_g1d2_g2d3 = g0*d1 + g1*d2 + g2*d3;
 	    fax = delx * g0d1_g1d2_g2d3 -
-	      d1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) + 
+	      d1 * (qtmp*mu[j][0] - q[j]*mu[i][0]) +
 	      d2 * (pjdotr*mu[i][0] + pidotr*mu[j][0]);
 	    fay = dely * g0d1_g1d2_g2d3 -
-	      d1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) + 
+	      d1 * (qtmp*mu[j][1] - q[j]*mu[i][1]) +
 	      d2 * (pjdotr*mu[i][1] + pidotr*mu[j][1]);
 	    faz = delz * g0d1_g1d2_g2d3 -
 	      d1 * (qtmp*mu[j][2] - q[j]*mu[i][2]) +
@@ -271,7 +271,7 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
 	fx = qqrd2e*forcecoulx + delx*fforce;
 	fy = qqrd2e*forcecouly + dely*fforce;
 	fz = qqrd2e*forcecoulz + delz*fforce;
-	
+
 	// force & torque accumulation
 
 	f[i][0] += fx;
@@ -316,7 +316,7 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLJCutDipoleLong::allocate()
@@ -343,12 +343,12 @@ void PairLJCutDipoleLong::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLJCutDipoleLong::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) 
+  if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   cut_lj_global = force->numeric(FLERR,arg[0]);
@@ -371,7 +371,7 @@ void PairLJCutDipoleLong::settings(int narg, char **arg)
 
 void PairLJCutDipoleLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -419,12 +419,12 @@ double PairLJCutDipoleLong::init_one(int i, int j)
   lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
-     
+
   if (offset_flag) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;
-  
+
   cut_ljsq[j][i] = cut_ljsq[i][j];
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
@@ -449,7 +449,7 @@ void PairLJCutDipoleLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL) 
+  if (force->kspace == NULL)
     error->all(FLERR,"Pair style requires a KSpace style");
 
   g_ewald = force->kspace->g_ewald;

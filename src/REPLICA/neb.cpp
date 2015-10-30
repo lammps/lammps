@@ -15,11 +15,11 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h" 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include "lmptype.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "neb.h"
 #include "universe.h"
 #include "atom.h"
@@ -418,11 +418,11 @@ void NEB::readfile(char *file, int flag)
 
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
-      
+
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
-      
+
       // adjust atom coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas
       // for flag = 1, replace existing coord with new coord

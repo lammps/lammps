@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "improper.h"
 #include "atom.h"
 #include "comm.h"
@@ -51,7 +51,7 @@ Improper::Improper(LAMMPS *lmp) : Pointers(lmp)
 /* ---------------------------------------------------------------------- */
 
 Improper::~Improper()
-{ 
+{
   if (copymode) return;
 
   memory->destroy(eatom);
@@ -64,7 +64,7 @@ Improper::~Improper()
 
 void Improper::init()
 {
-  if (!allocated && atom->nimpropertypes) 
+  if (!allocated && atom->nimpropertypes)
     error->all(FLERR,"Improper coeffs are not set");
   for (int i = 1; i <= atom->nimpropertypes; i++)
     if (setflag[i] == 0) error->all(FLERR,"All improper coeffs are not set");

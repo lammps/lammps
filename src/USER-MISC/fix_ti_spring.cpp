@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------
-    Contributing authors: 
+    Contributing authors:
              Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_ti_spring.h"
 #include "atom.h"
 #include "update.h"
@@ -28,13 +28,13 @@
 #include "error.h"
 #include "force.h"
 
-using namespace LAMMPS_NS; 
-using namespace FixConst;  
+using namespace LAMMPS_NS;
+using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) : 
-  Fix(lmp, narg, arg) 
+FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 6 || narg > 8)
     error->all(FLERR,"Illegal fix ti/spring command");
@@ -84,11 +84,11 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   if (narg > 6) {
     if (strcmp(arg[6], "function") == 0) sf = force->inumeric(FLERR,arg[7]);
     else error->all(FLERR,"Illegal fix ti/spring switching function");
-    if ((sf!=1) && (sf!=2)) 
+    if ((sf!=1) && (sf!=2))
       error->all(FLERR,"Illegal fix ti/spring switching function");
   }
-  lambda  =  switch_func(0); 
-  dlambda = dswitch_func(0); 
+  lambda  =  switch_func(0);
+  dlambda = dswitch_func(0);
 
   espring = 0.0;
 }
@@ -196,8 +196,8 @@ void FixTISpring::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTISpring::initial_integrate(int vflag) 
-{ 
+void FixTISpring::initial_integrate(int vflag)
+{
   // Update the coupling parameter value.
   const bigint t = update->ntimestep - (t0+t_equil);
   const double r_switch = 1.0/t_switch;
@@ -211,7 +211,7 @@ void FixTISpring::initial_integrate(int vflag)
     lambda  =    switch_func(1.0 - (t - t_switch - t_equil)*r_switch);
     dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)*r_switch);
   }
-} 
+}
 
 /* ----------------------------------------------------------------------
    energy of stretched springs
@@ -311,11 +311,11 @@ void FixTISpring::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
-  
+
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;
-  
+
   xoriginal[nlocal][0] = extra[nlocal][m++];
   xoriginal[nlocal][1] = extra[nlocal][m++];
   xoriginal[nlocal][2] = extra[nlocal][m++];
@@ -343,7 +343,7 @@ int FixTISpring::size_restart(int nlocal)
      Switching function.
 ------------------------------------------------------------------------- */
 
-double FixTISpring::switch_func(double t) 
+double FixTISpring::switch_func(double t)
 {
   if (sf == 1) return t;
 
@@ -356,7 +356,7 @@ double FixTISpring::switch_func(double t)
      Switching function derivative.
 ------------------------------------------------------------------------- */
 
-double FixTISpring::dswitch_func(double t) 
+double FixTISpring::dswitch_func(double t)
 {
   if(sf == 1) return 1.0/t_switch;
 

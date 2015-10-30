@@ -16,10 +16,10 @@
                          Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_vashishta.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -496,7 +496,7 @@ void PairVashishta::setup()
     params[m].lam1inv = 1.0/params[m].lambda1;
     params[m].lam4inv = 1.0/params[m].lambda4;
     params[m].zizj = params[m].zi*params[m].zj * force->qqr2e;
-    // note that bigd does not have 1/2 factor 
+    // note that bigd does not have 1/2 factor
     params[m].mbigd = params[m].bigd;
     params[m].heta = params[m].bigh*params[m].eta;
     params[m].big2b = 2.0*params[m].bigb;
@@ -513,14 +513,14 @@ void PairVashishta::setup()
       exp(-params[m].lam1rc);
     params[m].vrcc3 = params[m].mbigd*params[m].rc4inv *
       exp(-params[m].lam4rc);
-    params[m].vrc = params[m].bigh*params[m].rceta + 
-      params[m].vrcc2 - params[m].vrcc3 - 
+    params[m].vrc = params[m].bigh*params[m].rceta +
+      params[m].vrcc2 - params[m].vrcc3 -
       params[m].bigw*params[m].rc6inv;
 
-    params[m].dvrc = 
-      params[m].vrcc3 * (4.0*params[m].rcinv+params[m].lam4inv) 
+    params[m].dvrc =
+      params[m].vrcc3 * (4.0*params[m].rcinv+params[m].lam4inv)
       + params[m].big6w * params[m].rc6inv * params[m].rcinv
-      - params[m].heta * params[m].rceta*params[m].rcinv 
+      - params[m].heta * params[m].rceta*params[m].rcinv
       - params[m].vrcc2 * (params[m].rcinv+params[m].lam1inv);
     params[m].c0 = params[m].cut*params[m].dvrc - params[m].vrc;
   }
@@ -551,11 +551,11 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
   vc2 = param->zizj * exp(-lam1r)/r;
   vc3 = param->mbigd * r4inv*exp(-lam4r);
 
-  fforce = (param->dvrc*r 
+  fforce = (param->dvrc*r
 	    - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv
 	       - param->heta*reta - vc2 - lam1r*vc2)
 	    ) * rinvsq;
-  if (eflag) eng = param->bigh*reta 
+  if (eflag) eng = param->bigh*reta
 	       + vc2 - vc3 - param->bigw*r6inv
 	       - r*param->dvrc + param->c0;
 }

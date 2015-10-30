@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "region_intersect.h"
 #include "domain.h"
 #include "error.h"
@@ -43,7 +43,7 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
     idsub[nregion] = new char[m];
     strcpy(idsub[nregion],arg[iarg+3]);
     iregion = domain->find_region(idsub[nregion]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
   }
@@ -117,7 +117,7 @@ void RegIntersect::init()
   int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
     iregion = domain->find_region(idsub[ilist]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;
   }

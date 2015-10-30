@@ -53,7 +53,7 @@
 #include <ctime>
 #include <cmath>
 #ifdef _OPENMP
-#include "omp.h"
+#include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;

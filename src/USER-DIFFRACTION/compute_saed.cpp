@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -15,9 +15,9 @@
    Contributing authors: Shawn Coleman & Douglas Spearot (Arkansas)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
 #include "math_const.h"
 #include "compute_saed.h"
 #include "compute_saed_consts.h"
@@ -29,8 +29,8 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -61,16 +61,16 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   me = comm->me;
 
   // Checking errors specific to the compute
-  if (dimension == 2) 
+  if (dimension == 2)
     error->all(FLERR,"Compute SAED does not work with 2d structures");
-  if (narg < 4+ntypes) 
+  if (narg < 4+ntypes)
     error->all(FLERR,"Illegal Compute SAED Command");
-  if (triclinic == 1) 
-    error->all(FLERR,"Compute SAED does not work with triclinic structures"); 
-  
+  if (triclinic == 1)
+    error->all(FLERR,"Compute SAED does not work with triclinic structures");
+
   vector_flag = 1;
   extvector = 0;
- 
+
   // Store radiation wavelength
   lambda = atof(arg[3]);
   if (lambda < 0)
@@ -82,7 +82,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < ntypes; i++){
     ztype[i] = SAEDmaxType + 1;
   }
-  for (int i=0; i<ntypes; i++) {   
+  for (int i=0; i<ntypes; i++) {
        for(int j = 0; j < SAEDmaxType; j++){
          if (strcasecmp(arg[iarg],SAEDtypeList[j]) == 0) {
          ztype[i] = j;
@@ -99,40 +99,40 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   c[0] = 1; c[1] = 1; c[2] = 1;
   dR_Ewald = 0.01 / 2;
   manual = false;
-  double manual_double=0; 
+  double manual_double=0;
   echo = false;
 
   // Process optional args
   while (iarg < narg) {
-    
+
     if (strcmp(arg[iarg],"Kmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute SAED Command");
       Kmax = atof(arg[iarg+1]);
-      if (Kmax / 2 < 0 || Kmax / 2 > 6) 
+      if (Kmax / 2 < 0 || Kmax / 2 > 6)
         error->all(FLERR,"Compute SAED: |K|max/2 must be between 0 and 6 ");
       iarg += 2;
-        
+
     } else if (strcmp(arg[iarg],"Zone") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal Compute SAED Command");
       Zone[0] = atof(arg[iarg+1]);
       Zone[1] = atof(arg[iarg+2]);
       Zone[2] = atof(arg[iarg+3]);
       iarg += 4;
-      
+
     } else if (strcmp(arg[iarg],"c") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal Compute SAED Command");
       c[0] = atof(arg[iarg+1]);
       c[1] = atof(arg[iarg+2]);
       c[2] = atof(arg[iarg+3]);
-      if (c[0] < 0 || c[1] < 0 || c[2] < 0) 
-        error->all(FLERR,"Compute SAED: dKs must be greater than 0");  
+      if (c[0] < 0 || c[1] < 0 || c[2] < 0)
+        error->all(FLERR,"Compute SAED: dKs must be greater than 0");
       iarg += 4;
-      
+
     } else if (strcmp(arg[iarg],"dR_Ewald") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute SAED Command");
       dR_Ewald = atof(arg[iarg+1]);
-      if (dR_Ewald < 0) 
-        error->all(FLERR,"Compute SAED: dR_Ewald slice must be greater than 0"); 
+      if (dR_Ewald < 0)
+        error->all(FLERR,"Compute SAED: dR_Ewald slice must be greater than 0");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"echo") == 0) {
@@ -141,41 +141,41 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"manual") == 0) {
       manual = true;
-      manual_double = 1; 
-      iarg += 1;        
-                
+      manual_double = 1;
+      iarg += 1;
+
     } else error->all(FLERR,"Illegal Compute SAED Command");
   }
-  
+
   // Zone flag to capture entire recrocal space volume
   if (  (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
   } else {
-      R_Ewald = (1 / lambda); 
-      double Rnorm = R_Ewald/ sqrt(Zone[0] * Zone[0] + 
+      R_Ewald = (1 / lambda);
+      double Rnorm = R_Ewald/ sqrt(Zone[0] * Zone[0] +
                      Zone[1] * Zone[1] +  Zone[2]* Zone[2]);
-      Zone[0] = Zone[0] * Rnorm; 
-      Zone[1] = Zone[1] * Rnorm; 
-      Zone[2] = Zone[2] * Rnorm; 
+      Zone[0] = Zone[0] * Rnorm;
+      Zone[1] = Zone[1] * Rnorm;
+      Zone[2] = Zone[2] * Rnorm;
   }
 
   // Procedure to determine how many rows are needed given the constraints on 2theta
-  // Calculating spacing between reciprical lattice points 
+  // Calculating spacing between reciprical lattice points
   // Using distance based on periodic repeating distance
-  if (!manual) {  
+  if (!manual) {
     if (!periodicity[0] && !periodicity[1] && !periodicity[2])
       error->all(FLERR,"Compute SAED must have at least one periodic boundary unless manual spacing specified");
 
     double *prd;
-    double ave_inv = 0.0; 
+    double ave_inv = 0.0;
     prd = domain->prd;
     if (periodicity[0]){
-      prd_inv[0] = 1 / prd[0]; 
+      prd_inv[0] = 1 / prd[0];
       ave_inv += prd_inv[0];
-    } 
+    }
     if (periodicity[1]){
       prd_inv[1] = 1 / prd[1];
       ave_inv += prd_inv[1];
-    } 
+    }
     if (periodicity[2]){
       prd_inv[2] = 1 / prd[2];
       ave_inv += prd_inv[2];
@@ -184,34 +184,34 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     // Using the average inverse dimensions for non-periodic direction
     ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
     if (!periodicity[0]){
-      prd_inv[0] = ave_inv; 
-    } 
+      prd_inv[0] = ave_inv;
+    }
     if (!periodicity[1]){
       prd_inv[1] = ave_inv;
-    } 
+    }
     if (!periodicity[2]){
       prd_inv[2] = ave_inv;
     }
   }
 
-  // Use manual mapping of reciprocal lattice 
+  // Use manual mapping of reciprocal lattice
   if (manual) {
     for (int i=0; i<3; i++) {
       prd_inv[i] = 1.0;
     }
-  } 
-  
+  }
+
   // Find reprical spacing and integer dimensions
   for (int i=0; i<3; i++) {
     dK[i] = prd_inv[i]*c[i];
     Knmax[i] = ceil(Kmax / dK[i]);
   }
- 
+
   // Finding the intersection of the reciprical space and Ewald sphere
   int n = 0;
   double dinv2, r2, EmdR2, EpdR2;
   double K[3];
-  
+
   // Zone flag to capture entire recrocal space volume
   if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
@@ -222,9 +222,9 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
           K[2] = k * dK[2];
           dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
           if (dinv2 < Kmax * Kmax) n++;
-        } 
+        }
       }
-    } 
+    }
   } else {
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
       for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
@@ -238,14 +238,14 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
             for (int m=0; m<3; m++)
               r2 += pow(K[m] - Zone[m],2.0);
             EmdR2 = pow(R_Ewald - dR_Ewald,2);
-            EpdR2 = pow(R_Ewald + dR_Ewald,2);          
+            EpdR2 = pow(R_Ewald + dR_Ewald,2);
             if  ( (r2 >  EmdR2 ) && (r2 < EpdR2 ) ) {
               n++;
             }
           }
-        } 
+        }
       }
-    } 
+    }
   }
 
   if (me == 0) {
@@ -254,13 +254,13 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
       fprintf(screen,"Reciprocal point spacing in k1,k2,k3 = %g %g %g\n-----\n",
               dK[0], dK[1], dK[2]);
     }
-  }  
+  }
 
   nRows = n;
   size_vector = n;
   memory->create(vector,size_vector,"saed:vector");
   memory->create(store_tmp,3*size_vector,"saed:store_tmp");
-  
+
 
   // Create vector of variables to be passed to fix ave/time/saed
   saed_var[0] = lambda;
@@ -291,7 +291,7 @@ void ComputeSAED::init()
   double dinv2, r2, EmdR2, EpdR2;
   double K[3];
   int n = 0;
-  
+
   // Zone 0 0 0 flag to capture entire recrocal space volume
   if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
@@ -307,8 +307,8 @@ void ComputeSAED::init()
             store_tmp[3*n+2] = k;
             n++;
           }
-        } 
-      } 
+        }
+      }
     }
   } else {
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
@@ -323,7 +323,7 @@ void ComputeSAED::init()
             for (int m=0; m<3; m++)
               r2 += pow(K[m] - Zone[m],2.0);
             EmdR2 = pow(R_Ewald - dR_Ewald,2);
-            EpdR2 = pow(R_Ewald + dR_Ewald,2);          
+            EpdR2 = pow(R_Ewald + dR_Ewald,2);
             if  ( (r2 >  EmdR2 ) && (r2 < EpdR2 ) ) {
               store_tmp[3*n] = i;
               store_tmp[3*n+1] = j;
@@ -332,8 +332,8 @@ void ComputeSAED::init()
             }
           }
         }
-      } 
-    } 
+      }
+    }
   }
   if (n != nRows)  error->all(FLERR,"Compute SAED Nrows inconsistent");
 
@@ -379,7 +379,7 @@ void ComputeSAED::compute_vector()
      typelocal[nlocalgroup]=type[ii];
      nlocalgroup++;
     }
-  }    
+  }
 
 /*
   double *x = new double [3*nlocal];
@@ -397,10 +397,10 @@ void ComputeSAED::compute_vector()
 
  // determining paramater set to use based on maximum S = sin(theta)/lambda
   double Smax = Kmax / 2;
-  
+
   int offset = 0;                 // offset the ASFSAED matrix for appropriate value
   if (Smax <= 2) offset = 0;
-  if (Smax > 2)  offset = 10;     
+  if (Smax > 2)  offset = 10;
 
   // Setting up OMP
 #if defined(_OPENMP)
@@ -429,7 +429,7 @@ void ComputeSAED::compute_vector()
     double K[3];
     double dinv2 = 0.0;
     double dinv  = 0.0;
-    double SinTheta_lambda = 0.0; 
+    double SinTheta_lambda = 0.0;
     double inners = 0.0;
 
 #if defined(_OPENMP)
@@ -442,11 +442,11 @@ void ComputeSAED::compute_vector()
       K[0] = i * dK[0];
       K[1] = j * dK[1];
       K[2] = k * dK[2];
-      
+
       dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
       dinv = sqrt(dinv2);
       SinTheta_lambda = 0.5*dinv;
-              
+
       Fatom1 = 0.0;
       Fatom2 = 0.0;
 
@@ -508,14 +508,14 @@ void ComputeSAED::compute_vector()
   bytes += 3.0 * nlocalgroup * sizeof(double); // xlocal
   bytes += nlocalgroup * sizeof(int); // typelocal
   bytes += 3.0 * nRows * sizeof(int); // store_temp
-  
+
   if (me == 0 && echo) {
     if (screen)
       fprintf(screen," 100%% \nTime ellapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
   }
 
   delete [] xlocal;
-  delete [] typelocal; 
+  delete [] typelocal;
   delete [] scratch;
   delete [] Fvec;
 }
@@ -532,7 +532,7 @@ double ComputeSAED::memory_usage()
   bytes += 3.0 * nlocalgroup * sizeof(double); // xlocal
   bytes += nlocalgroup * sizeof(int); // typelocal
   bytes += 3.0 * nRows * sizeof(int); // store_temp
-  
+
   return bytes;
 }
 

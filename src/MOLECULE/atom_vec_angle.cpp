@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "atom_vec_angle.h"
 #include "atom.h"
 #include "comm.h"
@@ -865,7 +865,7 @@ int AtomVecAngle::pack_data_hybrid(int i, double *buf)
 void AtomVecAngle::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT " " TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT " " TAGINT_FORMAT
             " %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
             (int) ubuf(buf[i][2]).i,

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_force_tally.h"
 #include "atom.h"
 #include "group.h"
@@ -91,7 +91,7 @@ void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton
 
   if (did_compute != update->ntimestep) {
     did_compute = update->ntimestep;
-    
+
     // grow local force array if necessary
     // needs to be atom->nmax in length
 

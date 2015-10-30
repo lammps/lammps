@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,9 +16,9 @@
                         Stan Moore (Sandia) for dipole terms
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_efield.h"
 #include "atom.h"
 #include "update.h"
@@ -149,14 +149,14 @@ void FixEfield::init()
   qflag = muflag = 0;
   if (atom->q_flag) qflag = 1;
   if (atom->mu_flag && atom->torque_flag) muflag = 1;
-  if (!qflag && !muflag) 
+  if (!qflag && !muflag)
     error->all(FLERR,"Fix efield requires atom attribute q or mu");
 
   // check variables
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) 
+    if (xvar < 0)
       error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
@@ -164,7 +164,7 @@ void FixEfield::init()
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) 
+    if (yvar < 0)
       error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
@@ -172,7 +172,7 @@ void FixEfield::init()
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) 
+    if (zvar < 0)
       error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
@@ -180,7 +180,7 @@ void FixEfield::init()
   }
   if (estr) {
     evar = input->variable->find(estr);
-    if (evar < 0) 
+    if (evar < 0)
       error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->atomstyle(evar)) estyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
@@ -295,7 +295,7 @@ void FixEfield::post_force(int vflag)
           f[i][0] += fx;
           f[i][1] += fy;
           f[i][2] += fz;
-          
+
           domain->unmap(x[i],image[i],unwrap);
           fsum[0] -= fx*unwrap[0]+fy*unwrap[1]+fz*unwrap[2];
           fsum[1] += fx;
@@ -412,7 +412,7 @@ double FixEfield::memory_usage()
   double bytes = 0.0;
   if (varflag == ATOM) bytes = atom->nmax*4 * sizeof(double);
   return bytes;
-} 
+}
 
 /* ----------------------------------------------------------------------
    return energy added by fix

@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include "fix_shake.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -355,7 +355,7 @@ void FixShake::init()
   // set equilibrium angle distances
 
   int nlocal = atom->nlocal;
-  
+
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
     if (force->angle == NULL)
@@ -436,7 +436,7 @@ void FixShake::setup(int vflag)
   // half timestep constraint on pre-step, full timestep thereafter
 
   if (strstr(update->integrate_style,"verlet")) {
-    respa   = 0;   
+    respa   = 0;
     dtv     = update->dt;
     dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     FixShake::post_force(vflag);
@@ -444,7 +444,7 @@ void FixShake::setup(int vflag)
 
   } else {
     respa  = 1;
-    dtv = step_respa[0]; 
+    dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;
 
@@ -499,7 +499,7 @@ void FixShake::pre_neighbor()
         atom2 = atom->map(shake_atom[i][1]);
         if (atom1 == -1 || atom2 == -1) {
           char str[128];
-          sprintf(str,"Shake atoms " TAGINT_FORMAT " " TAGINT_FORMAT 
+          sprintf(str,"Shake atoms " TAGINT_FORMAT " " TAGINT_FORMAT
                   " missing on proc %d at step " BIGINT_FORMAT,
                   shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
           error->one(FLERR,str);
@@ -511,7 +511,7 @@ void FixShake::pre_neighbor()
         atom3 = atom->map(shake_atom[i][2]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
           char str[128];
-          sprintf(str,"Shake atoms " 
+          sprintf(str,"Shake atoms "
                   TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
                   " missing on proc %d at step " BIGINT_FORMAT,
                   shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
@@ -526,8 +526,8 @@ void FixShake::pre_neighbor()
         atom4 = atom->map(shake_atom[i][3]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
           char str[128];
-          sprintf(str,"Shake atoms " 
-                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+          sprintf(str,"Shake atoms "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " "
                   TAGINT_FORMAT " " TAGINT_FORMAT
                   " missing on proc %d at step " BIGINT_FORMAT,
                   shake_atom[i][0],shake_atom[i][1],
@@ -570,7 +570,7 @@ void FixShake::post_force(int vflag)
     else if (shake_flag[m] == 4) shake4(m);
     else shake3angle(m);
   }
-  
+
   // store vflag for coordinate_constraints_end_of_step()
 
   vflag_post_force = vflag;
@@ -670,7 +670,7 @@ void FixShake::find_clusters()
   tagint tagprev;
   double massone;
   tagint *buf;
-  
+
   if (me == 0 && screen) {
     if (!rattle) fprintf(screen,"Finding SHAKE clusters ...\n");
     else fprintf(screen,"Finding RATTLE clusters ...\n");
@@ -685,7 +685,7 @@ void FixShake::find_clusters()
   double *rmass = atom->rmass;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  
+
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
 
@@ -956,7 +956,7 @@ void FixShake::find_clusters()
   comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf);
 
   // store partner info returned to me
-  
+
   m = 0;
   while (m < size) {
     i = atom->map(buf[m]);
@@ -2289,7 +2289,7 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
     tagint *batom = atommols[imol]->bond_atom[iatom];
     btype = atommols[imol]->bond_type[iatom];
     nbonds = atommols[imol]->num_bond[iatom];
-    
+
     for (m = 0; m < nbonds; m++) {
       if (n1 == tag[i] && n2 == batom[m]+tagprev) break;
       if (n1 == batom[m]+tagprev && n2 == tag[i]) break;
@@ -2346,7 +2346,7 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
     tagint *aatom3 = atommols[imol]->angle_atom3[iatom];
     atype = atommols[imol]->angle_type[iatom];
     nangles = atommols[imol]->num_angle[iatom];
-    
+
     for (m = 0; m < nangles; m++) {
       if (n1 == aatom1[m]+tagprev && n2 == aatom3[m]+tagprev) break;
       if (n1 == aatom3[m]+tagprev && n2 == aatom1[m]+tagprev) break;
@@ -2456,7 +2456,7 @@ void FixShake::update_arrays(int i, int atom_offset)
     shake_atom[i][0] += atom_offset;
     shake_atom[i][1] += atom_offset;
     shake_atom[i][2] += atom_offset;
-  } else if (flag == 2) { 
+  } else if (flag == 2) {
     shake_atom[i][0] += atom_offset;
     shake_atom[i][1] += atom_offset;
   } else if (flag == 3) {
@@ -2602,7 +2602,7 @@ int FixShake::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixShake::pack_forward_comm(int n, int *list, double *buf, 
+int FixShake::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -2691,7 +2691,7 @@ void FixShake::coordinate_constraints_end_of_step() {
     dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     FixShake::post_force(vflag_post_force);
     if (!rattle) dtfsq = update->dt * update->dt * force->ftm2v;
-  } 
+  }
   else {
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;

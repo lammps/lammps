@@ -16,10 +16,10 @@
                          Axel Kohylmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_gle.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -82,11 +82,11 @@ void StabCholesky(int n, const double* MMt, double* M)
         for (k=0; k<i; ++k) D[i]-=L[midx(n,i,k)]*L[midx(n,i,k)]*D[k];
     }
 
-    for(i=0; i<n; ++i) 
+    for(i=0; i<n; ++i)
     {
-#ifdef GLE_DEBUG		
-		if (D[i]<0) fprintf(stderr,"GLE Cholesky: Negative diagonal term %le, has been set to zero.\n", D[i]);			
-#endif		
+#ifdef GLE_DEBUG
+		if (D[i]<0) fprintf(stderr,"GLE Cholesky: Negative diagonal term %le, has been set to zero.\n", D[i]);
+#endif
 		D[i]=(D[i]>0.?sqrt(D[i]):0.);
 	}
 

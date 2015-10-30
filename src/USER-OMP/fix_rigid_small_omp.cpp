@@ -120,7 +120,7 @@ void FixRigidSmallOMP::final_integrate()
   const int nlocal = atom->nlocal;
   const int nthreads=comm->nthreads;
   int i, ibody;
-  
+
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(ibody) schedule(static)
 #endif
@@ -139,7 +139,7 @@ void FixRigidSmallOMP::final_integrate()
 #if defined(_OPENMP)
 #pragma omp parallel default(none) private(i,ibody)
 #endif
-  {       
+  {
 #if defined(_OPENMP)
     const int tid = omp_get_thread_num();
 #else
@@ -149,7 +149,7 @@ void FixRigidSmallOMP::final_integrate()
     for (i = 0; i < nlocal; i++) {
       ibody = atom2body[i];
       if ((ibody < 0) || (ibody % nthreads != tid)) continue;
-    
+
       Body &b = body[ibody];
 
       double unwrap[3];
@@ -203,7 +203,7 @@ void FixRigidSmallOMP::final_integrate()
   }
 
   // update vcm and angmom, recompute omega
-  
+
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(ibody) schedule(static)
 #endif
@@ -562,7 +562,7 @@ void FixRigidSmallOMP::set_v_thr()
     }
   }
 
-  // set omega, angmom of each extended particle 
+  // set omega, angmom of each extended particle
   // XXX: extended particle info not yet multi-threaded
 
   if (extended) {

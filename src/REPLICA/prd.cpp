@@ -19,11 +19,11 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h" 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include "lmptype.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "prd.h"
 #include "universe.h"
 #include "update.h"
@@ -431,12 +431,12 @@ void PRD::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
   }
@@ -695,7 +695,7 @@ void PRD::share_event(int ireplica, int flag, int decrement)
   if (flag != 2) delta *= universe->nworlds;
   if (delta > 0 && flag != 2) delta -= decrement;
   delta += corr_adjust;
-  
+
   // delta passed to store_event_prd() should make its clock update
   //   be consistent with clock in main PRD loop
   // don't change the clock or timestep if this is a restart

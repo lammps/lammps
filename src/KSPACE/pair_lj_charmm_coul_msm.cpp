@@ -15,10 +15,10 @@
    Contributing authors: Paul Crozier (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_charmm_coul_msm.h"
 #include "atom.h"
 #include "comm.h"
@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulMSM::PairLJCharmmCoulMSM(LAMMPS *lmp) : 
+PairLJCharmmCoulMSM::PairLJCharmmCoulMSM(LAMMPS *lmp) :
   PairLJCharmmCoulLong(lmp)
 {
   ewaldflag = pppmflag = 0;
@@ -135,9 +135,9 @@ void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
             prefactor = qqrd2e * qtmp*q[j]/r;
-            egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul); 
-            fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul); 
-            forcecoul = prefactor * fgamma; 
+            egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
+            fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
+            forcecoul = prefactor * fgamma;
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
           } else {
             union_int_float_t rsq_lookup;
@@ -240,8 +240,8 @@ void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
     for (i = 0; i < 3; i++) virial[i] += force->pair->eng_coul/3.0;
     for (int i = 0; i < nmax; i++) {
       f[i][0] += ftmp[i][0];
-      f[i][1] += ftmp[i][1];  
-      f[i][2] += ftmp[i][2];  
+      f[i][1] += ftmp[i][1];
+      f[i][2] += ftmp[i][2];
     }
   }
 }
@@ -321,9 +321,9 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
             prefactor = qqrd2e * qtmp*q[j]/r;
-            egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul); 
-            fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul); 
-            forcecoul = prefactor * (fgamma - 1.0); 
+            egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
+            fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
+            forcecoul = prefactor * (fgamma - 1.0);
             if (rsq > cut_in_off_sq) {
               if (rsq < cut_in_on_sq) {
                 rsw = (r - cut_in_off)/cut_in_diff;
@@ -412,7 +412,7 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
         if (vflag) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq) {
-              forcecoul = prefactor * fgamma; 
+              forcecoul = prefactor * fgamma;
               if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
             } else {
               table = vtable[itable] + fraction*dvtable[itable];

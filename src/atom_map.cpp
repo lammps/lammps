@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
@@ -47,7 +47,7 @@ void Atom::map_init(int check)
 
   // if not recreating:
   // for array, initialize current map_tag_max values
-  // for hash, set all buckets to empty, put all entries in free list 
+  // for hash, set all buckets to empty, put all entries in free list
 
   if (!recreate) {
     if (map_style == 1) {
@@ -69,7 +69,7 @@ void Atom::map_init(int check)
       map_maxarray = map_tag_max;
       memory->create(map_array,map_maxarray+1,"atom:map_array");
       for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
-      
+
     } else {
 
       // map_nhash = max # of atoms that can be hashed on this proc
@@ -91,7 +91,7 @@ void Atom::map_init(int check)
       // set all buckets to empty
       // set hash to map_nhash in length
       // put all hash entries in free list and point them to each other
-      
+
       map_bucket = new int[map_nbucket];
       for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
 
@@ -301,7 +301,7 @@ int Atom::map_style_set()
   // if user-selected, use that setting
   // else if map_tag_max > 1M, use hash
   // else use array
-  
+
   int map_style_old = map_style;
   if (map_user) map_style = map_user;
   else if (map_tag_max > 1000000) map_style = 2;

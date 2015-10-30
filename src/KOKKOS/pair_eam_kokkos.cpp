@@ -15,10 +15,10 @@
    Contributing authors: Stan Moore (SNL), Christian Trott (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_eam_kokkos.h"
@@ -278,7 +278,7 @@ void PairEAMKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value && 
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
@@ -294,7 +294,7 @@ void PairEAMKokkos<DeviceType>::init_style()
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with pair eam/kk");
   }
-  
+
 }
 
 /* ----------------------------------------------------------------------
@@ -480,7 +480,7 @@ void PairEAMKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_ho
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf, 
+int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
                                int pbc_flag, int *pbc)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
@@ -518,7 +518,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMUnpackForwardComm, const in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, 
+int PairEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
   int i,j;
@@ -585,7 +585,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
 
   // rho = density at each atom
   // loop over neighbors of my atoms
-  
+
   // The rho array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*, typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > rho = v_rho;
 
@@ -626,7 +626,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
         rho[j] += ((rhor.x*p + rhor.y)*p + rhor.z)*p + rhor.w;
       }
     }
-  
+
   }
   rho[i] += rhotmp;
 }
@@ -714,7 +714,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
       const F_FLOAT4 rhor = d_rhor_spline_b(d_type2rhor_ji,m);
       rhotmp += ((rhor.x*p + rhor.y)*p + rhor.z)*p + rhor.w;
     }
-  
+
   }
   d_rho[i] += rhotmp;
 

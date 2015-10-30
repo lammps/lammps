@@ -16,10 +16,10 @@
                         for swapping atoms of different masses
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_thermal_conductivity.h"
 #include "atom.h"
 #include "force.h"

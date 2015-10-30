@@ -185,10 +185,10 @@ void Torsion_Angles( reax_system *system, control_params *control,
 	continue;
       if( system->my_atoms[j].orig_id == system->my_atoms[k].orig_id ) {
         if (system->my_atoms[k].x[2] <  system->my_atoms[j].x[2]) continue;
-      	if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] && 
+      	if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] &&
       	    system->my_atoms[k].x[1] <  system->my_atoms[j].x[1]) continue;
-        if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] && 
-      	    system->my_atoms[k].x[1] == system->my_atoms[j].x[1] && 
+        if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] &&
+      	    system->my_atoms[k].x[1] == system->my_atoms[j].x[1] &&
       	    system->my_atoms[k].x[0] <  system->my_atoms[j].x[0]) continue;
       }
 

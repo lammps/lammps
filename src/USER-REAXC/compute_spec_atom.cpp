@@ -5,14 +5,14 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "compute_spec_atom.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -196,7 +196,7 @@ void ComputeSpecAtom::pack_q(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  
+
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = q[i];
@@ -213,7 +213,7 @@ void ComputeSpecAtom::pack_x(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  
+
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = x[i][0];
@@ -230,7 +230,7 @@ void ComputeSpecAtom::pack_y(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  
+
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = x[i][1];
@@ -247,7 +247,7 @@ void ComputeSpecAtom::pack_z(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  
+
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = x[i][2];
@@ -264,7 +264,7 @@ void ComputeSpecAtom::pack_vx(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  
+
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = v[i][0];
@@ -281,7 +281,7 @@ void ComputeSpecAtom::pack_vy(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  
+
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = v[i][1];
@@ -298,7 +298,7 @@ void ComputeSpecAtom::pack_vz(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  
+
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = v[i][2];

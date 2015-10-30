@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "comm_tiled.h"
 #include "comm_brick.h"
 #include "atom.h"
@@ -123,7 +123,7 @@ void CommTiled::init()
 
   // temporary restrictions
 
-  if (triclinic) 
+  if (triclinic)
     error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
   if (mode == MULTI)
     error->all(FLERR,"Cannot yet use comm_style tiled with multi-mode comm");
@@ -222,7 +222,7 @@ void CommTiled::setup()
         lo1[idim] = subhi[idim];
         hi1[idim] = subhi[idim] + cut;
       }
-      
+
       two = 0;
       if (idir == 0 && periodicity[idim] && lo1[idim] < boxlo[idim]) two = 1;
       if (idir == 1 && periodicity[idim] && hi1[idim] > boxhi[idim]) two = 1;
@@ -305,16 +305,16 @@ void CommTiled::setup()
       //      = obox in other 2 dims
       // if sbox touches other proc's sub-box boundaries in lower dims,
       //   extend sbox in those lower dims to include ghost atoms
-      
+
       double oboxlo[3],oboxhi[3],sbox[6];
 
       for (i = 0; i < noverlap; i++) {
         pbc_flag[iswap][i] = 0;
         pbc[iswap][i][0] = pbc[iswap][i][1] = pbc[iswap][i][2] =
           pbc[iswap][i][3] = pbc[iswap][i][4] = pbc[iswap][i][5] = 0;
-        
+
         (this->*box_other)(idim,idir,overlap[i],oboxlo,oboxhi);
-        
+
         if (i < noverlap1) {
           sbox[0] = MAX(oboxlo[0],lo1[0]);
           sbox[1] = MAX(oboxlo[1],lo1[1]);
@@ -352,7 +352,7 @@ void CommTiled::setup()
           if (sbox[1] == oboxlo[1]) sbox[1] -= cut;
           if (sbox[4] == oboxhi[1]) sbox[4] += cut;
         }
-        
+
         memcpy(sendbox[iswap][i],sbox,6*sizeof(double));
       }
 
@@ -412,7 +412,7 @@ void CommTiled::setup()
     MPI_Barrier(world);
 
     // reallocate exchproc and exchnum if needed based on noverlap
-    
+
     if (noverlap > nexchprocmax[idim]) {
       while (nexchprocmax[idim] < noverlap) nexchprocmax[idim] += DELTA_PROCS;
       delete [] exchproc[idim];
@@ -429,7 +429,7 @@ void CommTiled::setup()
 
   if (cutzero) {
     for (i = 0; i < nswap; i++) {
-      nsendproc[i] = nrecvproc[i] = 
+      nsendproc[i] = nrecvproc[i] =
         sendother[i] = recvother[i] = sendself[i] = 0;
     }
   }
@@ -596,7 +596,7 @@ void CommTiled::reverse_comm()
                                          reverse_recv_offset[iswap][irecv]]);
         }
       }
-      
+
     } else {
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++)
@@ -709,7 +709,7 @@ void CommTiled::exchange()
         int flag = 0;
         for (int k = 0; k < nexchproc[dim]; k++)
           if (proc == exchproc[k]) flag = 1;
-        if (!flag) 
+        if (!flag)
           printf("Losing exchange atom: dim %d me %d %proc %d: %g %g %g\n",
                  dim,me,proc,x[i][0],x[i][1],x[i][2]);
         */
@@ -814,7 +814,7 @@ void CommTiled::borders()
 
     x = atom->x;
     if (iswap % 2 == 0) nlast = atom->nlocal + atom->nghost;
-      
+
     ncountall = 0;
     for (m = 0; m < nsendproc[iswap]; m++) {
       bbox = sendbox[iswap][m];
@@ -879,7 +879,7 @@ void CommTiled::borders()
     for (m = 0; m < nsendproc[iswap]; m++) {
       size_reverse_recv[iswap][m] = sendnum[iswap][m]*size_reverse;
       if (m == 0) reverse_recv_offset[iswap][0] = 0;
-      else reverse_recv_offset[iswap][m] = 
+      else reverse_recv_offset[iswap][m] =
              reverse_recv_offset[iswap][m-1] + sendnum[iswap][m-1];
     }
 
@@ -896,7 +896,7 @@ void CommTiled::borders()
         forward_recv_offset[iswap][0] = 0;
       } else {
         firstrecv[iswap][m] = firstrecv[iswap][m-1] + recvnum[iswap][m-1];
-        forward_recv_offset[iswap][m] = 
+        forward_recv_offset[iswap][m] =
           forward_recv_offset[iswap][m-1] + recvnum[iswap][m-1];
       }
     }
@@ -972,7 +972,7 @@ void CommTiled::borders()
     // increment ghost atoms
 
     n = nrecvproc[iswap];
-    if (n) 
+    if (n)
       atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
   }
 
@@ -1375,7 +1375,7 @@ void CommTiled::reverse_comm_dump(Dump *dump)
 ------------------------------------------------------------------------- */
 
 void CommTiled::forward_comm_array(int nsize, double **array)
-{ 
+{
   int i,j,k,m,iatom,last,irecv,nsend,nrecv;
 
   // insure send/recv bufs are big enough for nsize
@@ -1491,12 +1491,12 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
     split = zsplit;
   }
 
-  if (index < 0 || index > procgrid[idim]) 
+  if (index < 0 || index > procgrid[idim])
     error->one(FLERR,"Comm tiled invalid index in box drop brick");
 
   while (1) {
     lower = boxlo[idim] + prd[idim]*split[index];
-    if (index < procgrid[idim]-1) 
+    if (index < procgrid[idim]-1)
       upper = boxlo[idim] + prd[idim]*split[index+1];
     else upper = boxhi[idim];
     if (lower >= hi[idim] || upper <= lo[idim]) break;
@@ -1529,7 +1529,7 @@ void CommTiled::box_drop_tiled(int idim, double *lo, double *hi, int &indexme)
   box_drop_tiled_recurse(lo,hi,0,nprocs-1,indexme);
 }
 
-void CommTiled::box_drop_tiled_recurse(double *lo, double *hi, 
+void CommTiled::box_drop_tiled_recurse(double *lo, double *hi,
                                        int proclower, int procupper,
                                        int &indexme)
 {
@@ -1557,8 +1557,8 @@ void CommTiled::box_drop_tiled_recurse(double *lo, double *hi,
   int procmid = proclower + (procupper - proclower) / 2 + 1;
   int idim = rcbinfo[procmid].dim;
   double cut = boxlo[idim] + prd[idim]*rcbinfo[procmid].cutfrac;
-  
-  if (lo[idim] < cut) 
+
+  if (lo[idim] < cut)
     box_drop_tiled_recurse(lo,hi,proclower,procmid-1,indexme);
   if (hi[idim] > cut)
     box_drop_tiled_recurse(lo,hi,procmid,procupper,indexme);
@@ -1571,8 +1571,8 @@ void CommTiled::box_drop_tiled_recurse(double *lo, double *hi,
 void CommTiled::box_other_brick(int idim, int idir,
                                 int proc, double *lo, double *hi)
 {
-  lo[0] = sublo[0]; lo[1] = sublo[1]; lo[2] = sublo[2]; 
-  hi[0] = subhi[0]; hi[1] = subhi[1]; hi[2] = subhi[2]; 
+  lo[0] = sublo[0]; lo[1] = sublo[1]; lo[2] = sublo[2];
+  hi[0] = subhi[0]; hi[1] = subhi[1]; hi[2] = subhi[2];
 
   int other1,other2,oproc;
   double *split;
@@ -1604,7 +1604,7 @@ void CommTiled::box_other_brick(int idim, int idir,
 
     if (proc == oproc) {
       lo[idim] = boxlo[idim] + prd[idim]*split[index];
-      if (split[index+1] < 1.0) 
+      if (split[index+1] < 1.0)
         hi[idim] = boxlo[idim] + prd[idim]*split[index+1];
       else hi[idim] = boxhi[idim];
       return;
@@ -1657,7 +1657,7 @@ int CommTiled::box_touch_tiled(int proc, int idim, int idir)
   if (idir == 0) {
     if (rcbinfo[proc].mysplit[idim][1] == rcbinfo[me].mysplit[idim][0])
       return 1;
-    else if (rcbinfo[proc].mysplit[idim][1] == 1.0 && 
+    else if (rcbinfo[proc].mysplit[idim][1] == 1.0 &&
              rcbinfo[me].mysplit[idim][0] == 0.0)
       return 1;
 
@@ -1667,7 +1667,7 @@ int CommTiled::box_touch_tiled(int proc, int idim, int idir)
   } else {
     if (rcbinfo[proc].mysplit[idim][0] == rcbinfo[me].mysplit[idim][1])
       return 1;
-    else if (rcbinfo[proc].mysplit[idim][0] == 0.0 && 
+    else if (rcbinfo[proc].mysplit[idim][0] == 0.0 &&
              rcbinfo[me].mysplit[idim][1] == 1.0)
       return 1;
   }
@@ -1749,14 +1749,14 @@ int CommTiled::point_drop_tiled(int idim, double *x)
    recursive point drop thru RCB tree
 ------------------------------------------------------------------------- */
 
-int CommTiled::point_drop_tiled_recurse(double *x, 
+int CommTiled::point_drop_tiled_recurse(double *x,
                                         int proclower, int procupper)
 {
   // end recursion when partition is a single proc
   // return proc
 
   if (proclower == procupper) return proclower;
-  
+
   // drop point on side of cut it is on
   // use < criterion so point is not on high edge of proc sub-domain
   // procmid = 1st processor in upper half of partition
@@ -1800,8 +1800,8 @@ void CommTiled::coord2proc_setup()
 {
   if (!rcbnew) return;
 
-  if (!rcbinfo) 
-    rcbinfo = (RCBinfo *) 
+  if (!rcbinfo)
+    rcbinfo = (RCBinfo *)
       memory->smalloc(nprocs*sizeof(RCBinfo),"comm:rcbinfo");
   rcbnew = 0;
   RCBinfo rcbone;
@@ -1831,7 +1831,7 @@ int CommTiled::coord2proc(double *x, int &igx, int &igy, int &igz)
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc
 ------------------------------------------------------------------------- */
-  
+
 void CommTiled::grow_send(int n, int flag)
 {
   maxsend = static_cast<int> (BUFFACTOR * n);

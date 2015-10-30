@@ -21,10 +21,10 @@
    see J. Chem. Phys. 133, 154103 (2010)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_correlate_long.h"
 #include "update.h"
 #include "modify.h"
@@ -114,7 +114,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"type") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       if (strcmp(arg[iarg+1],"auto") == 0) type = AUTO;
       else if (strcmp(arg[iarg+1],"upper") == 0) type = UPPER;
@@ -125,27 +125,27 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
       else error->all(FLERR,"Illegal fix ave/correlate/long command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       startstep = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ncorr") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       numcorrelators = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nlen") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       p = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ncount") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       m = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
@@ -160,7 +160,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       delete [] title1;
       int n = strlen(arg[iarg+1]) + 1;
@@ -168,7 +168,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
       strcpy(title1,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       delete [] title2;
       int n = strlen(arg[iarg+1]) + 1;
@@ -309,7 +309,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
   }
 
   for (int i=0;i<length;i++) t[i]=0.0;
-  for (int i=0;i<npair;i++) 
+  for (int i=0;i<npair;i++)
     for (int j=0;j<length;j++) f[i][j]=0.0;
 
 
@@ -336,11 +336,11 @@ FixAveCorrelateLong::~FixAveCorrelateLong()
   memory->destroy(values);
   memory->destroy(shift);
   memory->destroy(shift2);
-  memory->destroy(correlation);  
-  memory->destroy(accumulator);  
-  memory->destroy(accumulator2);  
-  memory->destroy(ncorrelation);  
-  memory->destroy(naccumulator);  
+  memory->destroy(correlation);
+  memory->destroy(accumulator);
+  memory->destroy(accumulator2);
+  memory->destroy(ncorrelation);
+  memory->destroy(naccumulator);
   memory->destroy(insertindex);
   memory->destroy(t);
   memory->destroy(f);
@@ -412,7 +412,7 @@ void FixAveCorrelateLong::end_of_step()
   // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
     error->all(FLERR,"Invalid timestep reset for fix ave/correlate/long");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
@@ -622,7 +622,7 @@ void FixAveCorrelateLong::add(const int i, const double w, const unsigned int k)
 /* ----------------------------------------------------------------------
    Add 2 scalar values to the cross-correlator k of pair i
 ------------------------------------------------------------------------- */
-void FixAveCorrelateLong::add(const int i, const double wA, const double wB, 
+void FixAveCorrelateLong::add(const int i, const double wA, const double wB,
                         const unsigned int k) {
   if (k == numcorrelators) return;
   if (k > kmax) kmax=k;
@@ -687,7 +687,7 @@ bigint FixAveCorrelateLong::nextvalid()
 
 
 /* ----------------------------------------------------------------------
-   memory_usage 
+   memory_usage
 ------------------------------------------------------------------------- */
 double FixAveCorrelateLong::memory_usage() {
   //    shift:            npair x numcorrelators x p
@@ -698,11 +698,11 @@ double FixAveCorrelateLong::memory_usage() {
   //    ncorrelation:     numcorrelators x p
   //    naccumulator:     numcorrelators
   //    insertindex:      numcorrelators
-  //    t:		numcorrelators x p	
+  //    t:		numcorrelators x p
   //    f:		npair x numcorrelators x p
   double bytes = (4*npair*numcorrelators*p + 2*npair*numcorrelators
                   + numcorrelators*p)*sizeof(double)
-    + numcorrelators*p*sizeof(unsigned long int) 
+    + numcorrelators*p*sizeof(unsigned long int)
     + 2*numcorrelators*sizeof(unsigned int);
   return bytes;
 }
@@ -720,7 +720,7 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
     memory->create(list,nsize,"correlator:list");
     list[n++]=npair;
     list[n++]=numcorrelators;
-    list[n++]=p;     
+    list[n++]=p;
     list[n++]=m;
     list[n++]=nvalid;
     list[n++]=nvalid_last;
@@ -740,7 +740,7 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
       list[n++]=insertindex[i];
     }
 
-    int size = n*sizeof(double); 
+    int size = n*sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),n,fp);
     memory->destroy(list);
@@ -754,17 +754,17 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
 void FixAveCorrelateLong::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf; 
+  double *list = (double *) buf;
   int npairin = static_cast<int> (list[n++]);
-  int numcorrelatorsin = static_cast<int> (list[n++]);      
-  int pin = static_cast<int> (list[n++]);      
-  int min = static_cast<int> (list[n++]);      
-  nvalid = static_cast<int> (list[n++]);      
-  nvalid_last = static_cast<int> (list[n++]);      
+  int numcorrelatorsin = static_cast<int> (list[n++]);
+  int pin = static_cast<int> (list[n++]);
+  int min = static_cast<int> (list[n++]);
+  nvalid = static_cast<int> (list[n++]);
+  nvalid_last = static_cast<int> (list[n++]);
 
   if ((npairin!=npair) || (numcorrelatorsin!=numcorrelators)
       || (pin!=p) || (min!=m))
-    error->all(FLERR,"Fix ave/correlate/long: restart and input data are different"); 
+    error->all(FLERR,"Fix ave/correlate/long: restart and input data are different");
 
   for (int i=0;i<npair;i++)
     for (int j=0;j<numcorrelators;j++) {
@@ -777,7 +777,7 @@ void FixAveCorrelateLong::restart(char *buf)
       accumulator2[i][j] = list[n++];
     }
   for (int i=0;i<numcorrelators;i++) {
-    for (int j=0;j<p;j++) 
+    for (int j=0;j<p;j++)
       ncorrelation[i][j] = static_cast<unsigned long int>(list[n++]);
     naccumulator[i] = static_cast<unsigned int> (list[n++]);
     insertindex[i] = static_cast<unsigned int> (list[n++]);

@@ -47,7 +47,7 @@ class FixGLD : public Fix {
   int size_restart(int);
   int maxsize_restart();
   void init_s_gld();
-  
+
  protected:
   double dtv,dtf;
   double *step_respa;

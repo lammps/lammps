@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dump_custom.h"
 #include "atom.h"
 #include "force.h"
@@ -104,7 +104,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   ioptional = parse_fields(narg,arg);
 
-  if (ioptional < narg && 
+  if (ioptional < narg &&
       strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
     error->all(FLERR,"Invalid attribute in dump custom command");
   size_one = nfield = ioptional - 5;
@@ -581,7 +581,7 @@ int DumpCustom::count()
         imageint *image = atom->image;
         double yprd = domain->yprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = x[i][1] + 
+          dchoose[i] = x[i][1] +
             ((image[i] >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
         ptr = dchoose;
         nstride = 1;
@@ -637,7 +637,7 @@ int DumpCustom::count()
         double boxxlo = domain->boxlo[0];
         double invxprd = 1.0/domain->xprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][0] - boxxlo) * invxprd + 
+          dchoose[i] = (x[i][0] - boxxlo) * invxprd +
             (image[i] & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
@@ -649,7 +649,7 @@ int DumpCustom::count()
         double invyprd = 1.0/domain->yprd;
         for (i = 0; i < nlocal; i++)
           dchoose[i] =
-            (x[i][1] - boxylo) * invyprd + 
+            (x[i][1] - boxylo) * invyprd +
             (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
@@ -660,7 +660,7 @@ int DumpCustom::count()
         double boxzlo = domain->boxlo[2];
         double invzprd = 1.0/domain->zprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][2] - boxzlo) * invzprd + 
+          dchoose[i] = (x[i][2] - boxzlo) * invzprd +
             (image[i] >> IMG2BITS) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
@@ -949,13 +949,13 @@ int DumpCustom::convert_string(int n, double *mybuf)
     }
 
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) 
+      if (vtype[j] == INT)
         offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
-      else if (vtype[j] == DOUBLE) 
+      else if (vtype[j] == DOUBLE)
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
       else if (vtype[j] == STRING)
         offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
-      else if (vtype[j] == BIGINT) 
+      else if (vtype[j] == BIGINT)
         offset += sprintf(&sbuf[offset],vformat[j],
                           static_cast<bigint> (mybuf[m]));
       m++;
@@ -1002,7 +1002,7 @@ void DumpCustom::write_lines(int n, double *mybuf)
       else if (vtype[j] == DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
       else if (vtype[j] == STRING)
         fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
-      else if (vtype[j] == BIGINT) 
+      else if (vtype[j] == BIGINT)
         fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
       m++;
     }
@@ -1306,7 +1306,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
       n = atom->find_custom(suffix,tmp);
       if (n < 0)
         error->all(FLERR,"Could not find custom per-atom property ID");
-      
+
       if (tmp != 1)
         error->all(FLERR,"Custom per-atom property ID is not floating point");
 
@@ -1328,7 +1328,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
       n = atom->find_custom(suffix,tmp);
       if (n < 0)
         error->all(FLERR,"Could not find custom per-atom property ID");
-      
+
       if (tmp != 0)
         error->all(FLERR,"Custom per-atom property ID is not integer");
 
@@ -1438,7 +1438,7 @@ int DumpCustom::add_custom(char *id, int flag)
     memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
   flag_custom = (int *)
     memory->srealloc(flag_custom,(ncustom+1)*sizeof(int),"dump:flag_custom");
-  
+
   int n = strlen(id) + 1;
   id_custom[ncustom] = new char[n];
   strcpy(id_custom[ncustom],id);
@@ -1703,7 +1703,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
       int tmp = -1;
       n = atom->find_custom(suffix,tmp);
-      if ((n < 0) || (tmp != 1)) 
+      if ((n < 0) || (tmp != 1))
         error->all(FLERR,"Could not find dump modify "
                    "custom atom floating point property ID");
 
@@ -1724,7 +1724,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
       int tmp = -1;
       n = atom->find_custom(suffix,tmp);
-      if ((n < 0) || (tmp != 0)) 
+      if ((n < 0) || (tmp != 0))
         error->all(FLERR,"Could not find dump modify "
                    "custom atom integer property ID");
 
@@ -1830,7 +1830,7 @@ void DumpCustom::pack_variable(int n)
 
 void DumpCustom::pack_custom(int n)
 {
-  
+
   int index = field2index[n];
 
   if (flag_custom[index] == 0) { // integer

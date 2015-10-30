@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_store.h"
 #include "atom.h"
 #include "memory.h"
@@ -53,7 +53,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (vecflag)
     for (int i = 0; i < nlocal; i++)
       vstore[i] = 0.0;
-  else 
+  else
     for (int i = 0; i < nlocal; i++)
       for (int j = 0; j < nvalues; j++)
 	astore[i][j] = 0.0;
@@ -132,7 +132,7 @@ int FixStore::pack_exchange(int i, double *buf)
 int FixStore::unpack_exchange(int nlocal, double *buf)
 {
   if (vecflag) vstore[nlocal] = buf[0];
-  else 
+  else
     for (int m = 0; m < nvalues; m++)
       astore[nlocal][m] = buf[m];
   return nvalues;
@@ -168,7 +168,7 @@ void FixStore::unpack_restart(int nlocal, int nth)
 
   if (vecflag) vstore[nlocal] = extra[nlocal][m];
   else
-    for (int i = 0; i < nvalues; i++) 
+    for (int i = 0; i < nvalues; i++)
       astore[nlocal][i] = extra[nlocal][m++];
 }
 

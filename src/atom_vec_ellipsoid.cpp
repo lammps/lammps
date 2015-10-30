@@ -15,7 +15,7 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -1134,7 +1134,7 @@ void AtomVecEllipsoid::create_atom(int itype, double *coord)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::data_atom(double *coord, imageint imagetmp, 
+void AtomVecEllipsoid::data_atom(double *coord, imageint imagetmp,
                                  char **values)
 {
   int nlocal = atom->nlocal;
@@ -1301,7 +1301,7 @@ int AtomVecEllipsoid::pack_data_hybrid(int i, double *buf)
 void AtomVecEllipsoid::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %d %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             (int) ubuf(buf[i][2]).i,
@@ -1357,7 +1357,7 @@ int AtomVecEllipsoid::pack_vel_hybrid(int i, double *buf)
 void AtomVecEllipsoid::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
             (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],
             buf[i][4],buf[i][5],buf[i][6]);
@@ -1391,7 +1391,7 @@ bigint AtomVecEllipsoid::memory_usage()
 
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
-  if (atom->memcheck("torque")) 
+  if (atom->memcheck("torque"))
     bytes += memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("ellipsoid")) bytes += memory->usage(ellipsoid,nmax);
 

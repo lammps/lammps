@@ -103,7 +103,7 @@ NeighList::~NeighList()
 
 /* ---------------------------------------------------------------------- */
 
-void NeighList::setup_pages(int pgsize_caller, int oneatom_caller, 
+void NeighList::setup_pages(int pgsize_caller, int oneatom_caller,
                             int dnum_caller)
 {
   pgsize = pgsize_caller;

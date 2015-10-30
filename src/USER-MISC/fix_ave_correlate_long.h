@@ -20,7 +20,7 @@ FixStyle(ave/correlate/long,FixAveCorrelateLong)
 #ifndef LMP_FIX_AVE_CORRELATE_LONG_H
 #define LMP_FIX_AVE_CORRELATE_LONG_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -37,19 +37,19 @@ class FixAveCorrelateLong : public Fix {
   void write_restart(FILE *);
   void restart(char *);
   double memory_usage();
- 
+
   double *t; // Time steps for result arrays
   double **f; // Result arrays
   unsigned int npcorr;
 
  private:
   // NOT OPTIMAL: shift2 and accumulator2 only needed in cross-correlations
-  double ***shift, *** shift2; 
+  double ***shift, *** shift2;
   double ***correlation;
   double **accumulator, **accumulator2;
-  unsigned long int **ncorrelation; 
-  unsigned int *naccumulator; 
-  unsigned int *insertindex; 
+  unsigned long int **ncorrelation;
+  unsigned int *naccumulator;
+  unsigned int *insertindex;
 
   unsigned int numcorrelators; // Recommended 20
   unsigned int p; // Points per correlator (recommended 16)
@@ -75,7 +75,7 @@ class FixAveCorrelateLong : public Fix {
   void accumulate();
   void evaluate();
   bigint nextvalid();
-  
+
   void add(const int i, const double w, const unsigned int k = 0);
   void add(const int i, const double wA, const double wB, const unsigned int k = 0);
 

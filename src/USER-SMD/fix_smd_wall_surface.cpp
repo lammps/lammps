@@ -15,7 +15,7 @@
  Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
  ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "fix_smd_wall_surface.h"
 #include "atom.h"
 #include "domain.h"

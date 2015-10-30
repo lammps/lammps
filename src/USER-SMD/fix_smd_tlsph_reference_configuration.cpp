@@ -25,9 +25,9 @@
  ------------------------------------------------------------------------- */
 
 #include "lattice.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
 #include "fix_smd_tlsph_reference_configuration.h"
 #include "atom.h"
 #include "comm.h"

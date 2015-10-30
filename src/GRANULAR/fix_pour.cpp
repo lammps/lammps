@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_pour.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -123,10 +123,10 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix pour molecule must have coordinates");
       if (onemols[i]->typeflag == 0)
         error->all(FLERR,"Fix pour molecule must have atom types");
-      if (ntype+onemols[i]->ntypes <= 0 || 
+      if (ntype+onemols[i]->ntypes <= 0 ||
           ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix pour mol command");
-      
+
       if (atom->molecular == 2 && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix pour molecule template ID must be same "
                    "as atom style template ID");
@@ -238,7 +238,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     } else if (dstyle == POLY) {
       volume_one = 0.0;
       for (int i = 0; i < npoly; i++)
-        volume_one += (4.0/3.0 * MY_PI * 
+        volume_one += (4.0/3.0 * MY_PI *
           radius_poly[i]*radius_poly[i]*radius_poly[i]) * frac_poly[i];
     }
   } else {
@@ -301,7 +301,7 @@ int FixPour::setmask()
 
 void FixPour::init()
 {
-  if (domain->triclinic) 
+  if (domain->triclinic)
     error->all(FLERR,"Cannot use fix pour with triclinic box");
 
   // insure gravity fix exists
@@ -516,7 +516,7 @@ void FixPour::pre_exchange()
           // default to 0.5, if radii not defined in Molecule
           //   same as atom->avec->create_atom(), invoked below
 
-          if (onemols[imol]->radiusflag) 
+          if (onemols[imol]->radiusflag)
             coords[i][3] = onemols[imol]->radius[i];
           else coords[i][3] = 0.5;
 
@@ -781,7 +781,7 @@ int FixPour::outside(int dim, double value, double lo, double hi)
     } else {
       if (value < lo || value > hi) return 1;
     }
-  } 
+  }
 
   if (value < lo || value > hi) return 1;
   return 0;
@@ -819,7 +819,7 @@ void FixPour::xyz_random(double h, double *coord)
 double FixPour::radius_sample()
 {
   if (dstyle == ONE) return radius_one;
-  if (dstyle == RANGE) return radius_lo + 
+  if (dstyle == RANGE) return radius_lo +
                          random->uniform()*(radius_hi-radius_lo);
 
   double value = random->uniform();
@@ -884,9 +884,9 @@ void FixPour::options(int narg, char **arg)
       if (mode != MOLECULE) error->all(FLERR,"Illegal fix deposit command");
       if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix deposit command");
       molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
-      for (int i = 1; i < nmol; i++) 
+      for (int i = 1; i < nmol; i++)
         molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
-      if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON) 
+      if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON)
         error->all(FLERR,"Illegal fix deposit command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
@@ -934,7 +934,7 @@ void FixPour::options(int narg, char **arg)
         dstyle = POLY;
         npoly = force->inumeric(FLERR,arg[iarg+2]);
         if (npoly <= 0) error->all(FLERR,"Illegal fix pour command");
-        if (iarg+3 + 2*npoly > narg) 
+        if (iarg+3 + 2*npoly > narg)
           error->all(FLERR,"Illegal fix pour command");
         radius_poly = new double[npoly];
         frac_poly = new double[npoly];

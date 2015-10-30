@@ -16,7 +16,7 @@
                         Copyright (C) 2007
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_ackland_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -246,7 +246,7 @@ void ComputeAcklandAtom::compute_peratom()
         double delta_bcc = delta_cp + 1.0;
         int chi56m4 = chi[5]+chi[6]-chi[4];
 
-        // note that chi[7] presumed zero 
+        // note that chi[7] presumed zero
         if (chi56m4 != 0) delta_bcc = 0.35*chi[4]/(double)chi56m4;
 
         double delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6))
@@ -258,7 +258,7 @@ void ComputeAcklandAtom::compute_peratom()
 
 	 // Identification of the local structure according to the reference
 
-        if (delta_bcc >= 0.1 && delta_cp >= 0.1 && delta_fcc >= 0.1 
+        if (delta_bcc >= 0.1 && delta_cp >= 0.1 && delta_fcc >= 0.1
             && delta_hcp >= 0.1) structure[i] = UNKNOWN;
 
 	// not part of Ackland-Jones 2006; included for backward compatibility

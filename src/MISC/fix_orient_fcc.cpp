@@ -15,10 +15,10 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
-#include "mpi.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <mpi.h>
 #include "fix_orient_fcc.h"
 #include "atom.h"
 #include "update.h"

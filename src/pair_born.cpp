@@ -15,10 +15,10 @@
    Contributing Author: Sai Jayaraman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_born.h"
 #include "atom.h"
 #include "comm.h"
@@ -33,7 +33,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBorn::PairBorn(LAMMPS *lmp) : Pair(lmp) 
+PairBorn::PairBorn(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
 }

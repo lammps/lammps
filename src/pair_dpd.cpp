@@ -15,9 +15,9 @@
    Contributing author: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_dpd.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -214,7 +214,7 @@ void PairDPD::settings(int narg, char **arg)
 
 void PairDPD::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 

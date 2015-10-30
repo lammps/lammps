@@ -15,9 +15,9 @@
    Contributing author: Mark Sears (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "temper.h"
 #include "universe.h"
 #include "domain.h"

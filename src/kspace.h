@@ -45,9 +45,9 @@ class KSpace : protected Pointers {
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
   int differentiation_flag;
-  int neighrequest_flag;         // used to avoid obsolete construction 
+  int neighrequest_flag;         // used to avoid obsolete construction
                                  // of neighbor lists
-  int mixflag;                   // 1 if geometric mixing rules are enforced 
+  int mixflag;                   // 1 if geometric mixing rules are enforced
                                  // for LJ coefficients
   int slabflag;
   int scalar_pressure_flag;      // 1 if using MSM fast scalar pressure
@@ -64,9 +64,9 @@ class KSpace : protected Pointers {
   double accuracy_absolute;         // user-specifed accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
                                     // accurary = acc_rel * two_charge_force
-  double accuracy_real_6;           // real space accuracy for 
+  double accuracy_real_6;           // real space accuracy for
                                     // dispersion solver (force units)
-  double accuracy_kspace_6;         // reciprocal space accuracy for 
+  double accuracy_kspace_6;         // reciprocal space accuracy for
                                     // dispersion solver (force units)
   int auto_disp_flag;		    // use automatic paramter generation for pppm/disp
   double two_charge_force;          // force in user units of two point
@@ -134,7 +134,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164177
 ------------------------------------------------------------------------- */
 
-  double gamma(const double &rho) const 
+  double gamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order/2;
@@ -154,7 +154,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
-  double dgamma(const double &rho) const 
+  double dgamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order/2;
@@ -168,7 +168,7 @@ class KSpace : protected Pointers {
       return dg;
     } else return (-1.0/rho/rho);
   }
-  
+
   double **get_gcons() { return gcons; }
   double **get_dgcons() { return dgcons; }
 

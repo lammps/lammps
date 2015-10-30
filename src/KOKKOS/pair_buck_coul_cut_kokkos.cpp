@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_buck_coul_cut_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -63,7 +63,7 @@ PairBuckCoulCutKokkos<DeviceType>::PairBuckCoulCutKokkos(LAMMPS *lmp):PairBuckCo
 template<class DeviceType>
 PairBuckCoulCutKokkos<DeviceType>::~PairBuckCoulCutKokkos()
 {
-  
+
   if (!copymode) {
     memory->destroy_kokkos(k_eatom,eatom);
     memory->destroy_kokkos(k_vatom,vatom);

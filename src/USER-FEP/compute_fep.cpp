@@ -15,10 +15,10 @@
    Contributing author: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "math.h"
-#include "mpi.h"
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <mpi.h>
 #include "comm.h"
 #include "update.h"
 #include "atom.h"
@@ -144,7 +144,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"yes") == 0) volumeflag = 1;
       else error->all(FLERR,"Illegal optional keyword in compute fep");
       iarg += 2;
-    } else 
+    } else
       error->all(FLERR,"Illegal optional keyword in compute fep");
   }
 
@@ -220,7 +220,7 @@ void ComputeFEP::init()
       if (pair == NULL) error->all(FLERR,"compute fep pair style "
                                    "does not exist");
       void *ptr = pair->extract(pert->pparam,pert->pdim);
-      if (ptr == NULL) 
+      if (ptr == NULL)
         error->all(FLERR,"compute fep pair style param not supported");
 
       pert->array = (double **) ptr;
@@ -335,10 +335,10 @@ void ComputeFEP::compute_vector()
   }
 
   // accumulate force/energy/virial from /gpu pair styles
-  // this is required as to empty the answer queue, 
+  // this is required as to empty the answer queue,
   // otherwise the force compute on the GPU in the next step would be incorrect
   if (fixgpu) fixgpu->post_force(vflag);
-    
+
   pe1 = compute_epair();
 
   restore_qfev();   // restore charge, force, energy, virial array values
@@ -398,14 +398,14 @@ void ComputeFEP::perturb_params()
 
       if (pert->aparam == CHARGE) {      // modify charges
         int *atype = atom->type;
-        double *q = atom->q; 
+        double *q = atom->q;
         int *mask = atom->mask;
         int natom = atom->nlocal + atom->nghost;
-        
+
         for (i = 0; i < natom; i++)
           if (atype[i] >= pert->ilo && atype[i] <= pert->ihi)
             if (mask[i] & groupbit)
-              q[i] += delta; 
+              q[i] += delta;
 
       }
     }
@@ -519,9 +519,9 @@ void ComputeFEP::backup_qfev()
 
   double **f = atom->f;
   for (i = 0; i < natom; i++) {
-    f_orig[i][0] = f[i][0]; 
-    f_orig[i][1] = f[i][1]; 
-    f_orig[i][2] = f[i][2]; 
+    f_orig[i][0] = f[i][0];
+    f_orig[i][1] = f[i][1];
+    f_orig[i][2] = f[i][2];
   }
 
   eng_vdwl_orig = force->pair->eng_vdwl;
@@ -552,7 +552,7 @@ void ComputeFEP::backup_qfev()
   }
 
   if (chgflag) {
-    double *q = atom->q; 
+    double *q = atom->q;
     for (i = 0; i < nall; i++)
       q_orig[i] = q[i];
 
@@ -564,7 +564,7 @@ void ComputeFEP::backup_qfev()
       kvirial_orig[3] = force->kspace->virial[3];
       kvirial_orig[4] = force->kspace->virial[4];
       kvirial_orig[5] = force->kspace->virial[5];
-      
+
       if (update->eflag_atom) {
         double *keatom = force->kspace->eatom;
         for (i = 0; i < natom; i++)
@@ -598,9 +598,9 @@ void ComputeFEP::restore_qfev()
 
   double **f = atom->f;
   for (i = 0; i < natom; i++) {
-    f[i][0] = f_orig[i][0]; 
-    f[i][1] = f_orig[i][1]; 
-    f[i][2] = f_orig[i][2]; 
+    f[i][0] = f_orig[i][0];
+    f[i][1] = f_orig[i][1];
+    f[i][2] = f_orig[i][2];
   }
 
   force->pair->eng_vdwl = eng_vdwl_orig;
@@ -631,7 +631,7 @@ void ComputeFEP::restore_qfev()
   }
 
   if (chgflag) {
-    double *q = atom->q; 
+    double *q = atom->q;
     for (i = 0; i < nall; i++)
       q[i] = q_orig[i];
 
@@ -643,7 +643,7 @@ void ComputeFEP::restore_qfev()
       force->kspace->virial[3] = kvirial_orig[3];
       force->kspace->virial[4] = kvirial_orig[4];
       force->kspace->virial[5] = kvirial_orig[5];
-    
+
       if (update->eflag_atom) {
         double *keatom = force->kspace->eatom;
         for (i = 0; i < natom; i++)

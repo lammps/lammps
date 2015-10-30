@@ -95,11 +95,11 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      if (strcmp(arg[iarg+1],"single") == 0) 
+      if (strcmp(arg[iarg+1],"single") == 0)
         _precision_mode = PREC_MODE_SINGLE;
-      else if (strcmp(arg[iarg+1],"mixed") == 0) 
+      else if (strcmp(arg[iarg+1],"mixed") == 0)
         _precision_mode = PREC_MODE_MIXED;
-      else if (strcmp(arg[iarg+1],"double") == 0) 
+      else if (strcmp(arg[iarg+1],"double") == 0)
         _precision_mode = PREC_MODE_DOUBLE;
       else error->all(FLERR,"Illegal package intel command");
       iarg += 2;
@@ -176,7 +176,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // set OpenMP threads
   // nomp is user setting, default = 0
-  
+
   #if defined(_OPENMP)
   #if defined(__INTEL_COMPILER)
   kmp_set_blocktime(0);
@@ -232,7 +232,7 @@ FixIntel::~FixIntel()
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance != 0.0 && time1 != NULL && time2 != NULL && 
+    if (_offload_balance != 0.0 && time1 != NULL && time2 != NULL &&
 	overflow != NULL) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(time1,time2,overflow:alloc_if(0) free_if(1))
@@ -315,7 +315,7 @@ void FixIntel::pair_init_check()
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_offload_balance != 0.0) atom->sortfreq = 1;
-  
+
   if (force->newton_pair == 0)
     _offload_noghost = 0;
   else if (_offload_ghost == 0)
@@ -327,7 +327,7 @@ void FixIntel::pair_init_check()
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance !=0.0 && time1 != NULL && time2 != NULL && 
+    if (_offload_balance !=0.0 && time1 != NULL && time2 != NULL &&
 	overflow != NULL) {
       #pragma offload_transfer target(mic:_cop)  \
         nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
@@ -419,7 +419,7 @@ void FixIntel::check_neighbor_intel()
     if (_offload_balance != 0.0 && neighbor->requests[i]->intel == 0) {
       _full_host_list = 1;
       _offload_noghost = 0;
-    }	
+    }
     #endif
     if (neighbor->requests[i]->skip)
       error->all(FLERR, "Cannot yet use hybrid styles with Intel package.");
@@ -532,7 +532,7 @@ void FixIntel::output_timing_data() {
         #endif
 	double ht = timers[TIME_HOST_NEIGHBOR] + timers[TIME_HOST_PAIR] +
 	  timers[TIME_OFFLOAD_WAIT];
-	double ct = timers[TIME_OFFLOAD_NEIGHBOR] + 
+	double ct = timers[TIME_OFFLOAD_NEIGHBOR] +
 	  timers[TIME_OFFLOAD_PAIR];
 	double tt = MAX(ht,ct);
 	if (timers[TIME_OFFLOAD_LATENCY] / tt > 0.07 && _separate_coi == 0)

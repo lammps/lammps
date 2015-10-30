@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -17,7 +17,7 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_rigid_nph.h"
 #include "domain.h"
 #include "modify.h"
@@ -29,14 +29,14 @@ using namespace LAMMPS_NS;
 
 FixRigidNPH::FixRigidNPH(LAMMPS *lmp, int narg, char **arg) :
   FixRigidNH(lmp, narg, arg)
-{ 
+{
   // other setting are made by parent
 
   scalar_flag = 1;
   restart_global = 1;
   box_change_size = 1;
   extscalar = 1;
-    
+
   // error checks
 
   if (pstat_flag == 0)
@@ -65,15 +65,15 @@ FixRigidNPH::FixRigidNPH(LAMMPS *lmp, int narg, char **arg) :
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";  
+  newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tcomputeflag = 1;
-  
+
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
-  
+
   n = strlen(id) + 7;
   id_press = new char[n];
   strcpy(id_press,id);

@@ -15,11 +15,11 @@
    Contributing authors: Pieter in 't Veld (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
@@ -195,8 +195,8 @@ void EwaldDisp::init()
       //Try Newton Solver
       //Use old method to get guess
       g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoff;
-    
-      double g_ewald_new = 
+
+      double g_ewald_new =
         NewtonSolve(g_ewald,(*cutoff),natoms,shape_det(domain->h),b2);
       if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
       else error->warning(FLERR,"Ewald/disp Newton solver failed, "
@@ -205,7 +205,7 @@ void EwaldDisp::init()
       //Try Newton Solver
       //Use old method to get guess
       g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoff;
-      double g_ewald_new = 
+      double g_ewald_new =
         NewtonSolve(g_ewald,(*cutoff),natoms,shape_det(domain->h),M2);
       if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
       else error->warning(FLERR,"Ewald/disp Newton solver failed, "
@@ -289,7 +289,7 @@ void EwaldDisp::setup()
    compute RMS accuracy for a dimension
 ------------------------------------------------------------------------- */
 
-double EwaldDisp::rms(int km, double prd, bigint natoms, 
+double EwaldDisp::rms(int km, double prd, bigint natoms,
                       double q2, double b2, double M2)
 {
   double value = 0.0;
@@ -930,7 +930,7 @@ void EwaldDisp::compute_energy()
     if (func[0]) {                                        // 1/r
       sum[0] += *(ke++)*(cek->re*cek->re+cek->im*cek->im);
       if (func[3]) cek_coul = cek;
-      ++cek; 
+      ++cek;
     }
     if (func[1]) {                                        // geometric 1/r^6
       sum[1] += *(ke++)*(cek->re*cek->re+cek->im*cek->im); ++cek; }
@@ -1161,7 +1161,7 @@ void EwaldDisp::compute_virial_dipole()
         ++cek;
       }
       if (func[1]) {                                        // geometric 1/r^6
-        ke++; 
+        ke++;
         ++cek;
       }
       if (func[2]) {                                        // arithmetic 1/r^6
@@ -1404,7 +1404,7 @@ void EwaldDisp::compute_slabcorr()
   double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) 
+  for (int i = 0; i < nlocal; i++)
     f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
 
   // add on torque corrections
@@ -1423,7 +1423,7 @@ void EwaldDisp::compute_slabcorr()
    Newton solver used to find g_ewald for LJ systems
 ------------------------------------------------------------------------- */
 
-double EwaldDisp::NewtonSolve(double x, double Rc, 
+double EwaldDisp::NewtonSolve(double x, double Rc,
                               bigint natoms, double vol, double b2)
 {
   double dx,tol;
@@ -1474,7 +1474,7 @@ double EwaldDisp::f(double x, double Rc, bigint natoms, double vol, double b2)
  Calculate numerical derivative f'(x)
  ------------------------------------------------------------------------- */
 
-double EwaldDisp::derivf(double x, double Rc, 
+double EwaldDisp::derivf(double x, double Rc,
                          bigint natoms, double vol, double b2)
 {
   double h = 0.000001;  //Derivative step-size

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "comm.h"
 #include "universe.h"
 #include "atom.h"
@@ -33,7 +33,7 @@
 #include "error.h"
 
 #ifdef _OPENMP
-#include "omp.h"
+#include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;
@@ -134,7 +134,7 @@ void Comm::copy_arrays(Comm *oldcomm)
                    "comm:grid2proc");
     memcpy(&grid2proc[0][0][0],&oldcomm->grid2proc[0][0][0],
            (procgrid[0]*procgrid[1]*procgrid[2])*sizeof(int));
-    
+
     memory->create(xsplit,procgrid[0]+1,"comm:xsplit");
     memory->create(ysplit,procgrid[1]+1,"comm:ysplit");
     memory->create(zsplit,procgrid[2]+1,"comm:zsplit");
@@ -195,14 +195,14 @@ void Comm::init()
 
   for (int i = 0; i < modify->nfix; i++)
     size_border += modify->fix[i]->comm_border;
-  
+
   // per-atom limits for communication
   // maxexchange = max # of datums in exchange comm, set in exchange()
   // maxforward = # of datums in largest forward comm
   // maxreverse = # of datums in largest reverse comm
   // query pair,fix,compute,dump for their requirements
   // pair style can force reverse comm even if newton off
- 	 
+
   maxforward = MAX(size_forward,size_border);
   maxreverse = size_reverse;
 

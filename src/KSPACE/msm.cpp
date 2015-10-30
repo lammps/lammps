@@ -15,11 +15,11 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "msm.h"
 #include "atom.h"
 #include "comm.h"
@@ -148,7 +148,7 @@ void MSM::init()
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"MSM can only currently be used with "
                         "comm_style brick");
 
@@ -165,7 +165,7 @@ void MSM::init()
 
   if (order%2 != 0) error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
 
-  if (sizeof(FFT_SCALAR) != 8) 
+  if (sizeof(FFT_SCALAR) != 8)
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
                "(remove -DFFT_SINGLE from Makefile and recompile)");
 
@@ -359,7 +359,7 @@ void MSM::setup()
   double ay = a;
   double az = a;
 
-  // transform the interaction sphere in box coords to an 
+  // transform the interaction sphere in box coords to an
   // ellipsoid in lamda (0-1) coords to
   // get the direct sum interaction limits for a triclinic system
 
@@ -408,7 +408,7 @@ void MSM::setup()
   else
     boxlo = domain->boxlo_lamda;
 
-  // ghost grid points depend on direct sum interaction limits, 
+  // ghost grid points depend on direct sum interaction limits,
   // so need to recompute local grid
 
   set_grid_local();
@@ -457,17 +457,17 @@ void MSM::compute(int eflag, int vflag)
     }
   }
 
-  // if atom count has changed, update qsum and qsqsum 
+  // if atom count has changed, update qsum and qsqsum
 
   if (atom->natoms != natoms_original) {
     qsum_qsq();
     natoms_original = atom->natoms;
   }
-  
+
   // return if there are no charges
-  
+
   if (qsqsum == 0.0) return;
-  
+
   // invoke allocate_peratom() if needed for first time
 
   if (vflag_atom && !peratom_allocate_flag) {
@@ -500,7 +500,7 @@ void MSM::compute(int eflag, int vflag)
   particle_map();
   make_rho();
 
-  // all procs reverse communicate charge density values from 
+  // all procs reverse communicate charge density values from
   // their ghost grid points
   // to fully sum contribution in their 3d grid
 
@@ -3136,7 +3136,7 @@ void MSM::get_g_direct()
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
 
-          // transform grid point pair-wise distance from lamda (0-1) coords to box coords          
+          // transform grid point pair-wise distance from lamda (0-1) coords to box coords
 
           if (triclinic) {
             tmp[0] = xdiff;

@@ -15,9 +15,9 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_time.h"
 #include "update.h"
 #include "force.h"
@@ -192,7 +192,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
           modify->compute[icompute]->size_vector_variable == 0)
         error->all(FLERR,
                    "Fix ave/time compute vector is accessed out-of-range");
-      if (argindex[i] && modify->compute[icompute]->size_vector_variable) 
+      if (argindex[i] && modify->compute[icompute]->size_vector_variable)
         varlen[i] = 1;
 
     } else if (which[i] == COMPUTE && mode == VECTOR) {
@@ -235,7 +235,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix ave/time fix does not calculate a vector");
       if (argindex[i] && modify->fix[ifix]->array_flag == 0)
         error->all(FLERR,"Fix ave/time fix does not calculate an array");
-      if (argindex[i] && modify->fix[ifix]->size_array_rows_variable) 
+      if (argindex[i] && modify->fix[ifix]->size_array_rows_variable)
         error->all(FLERR,"Fix ave/time fix array cannot be variable length");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_array_cols)
         error->all(FLERR,"Fix ave/time fix array is accessed out-of-range");
@@ -274,12 +274,12 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     else nrows = 1;
     memory->create(column,nrows,"ave/time:column");
   }
-  
+
   // enable locking of row count by this fix for computes of variable length
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
-  //   so that locking spans multiple timesteps 
+  //   so that locking spans multiple timesteps
 
-  if (any_variable_length && 
+  if (any_variable_length &&
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
     for (int i = 0; i < nvalues; i++)
       if (varlen[i]) {
@@ -288,7 +288,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       }
     lockforever = 0;
   }
-    
+
   // print file comment lines
   // for mode = VECTOR, cannot use arg to print
   // since array args may have been expanded to multiple vectors
@@ -461,13 +461,13 @@ FixAveTime::~FixAveTime()
 {
   // decrement lock counter in compute chunk/atom, it if still exists
 
-  if (any_variable_length && 
+  if (any_variable_length &&
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
     for (int i = 0; i < nvalues; i++)
       if (varlen[i]) {
         int icompute = modify->find_compute(ids[i]);
         if (icompute >= 0) {
-          if (ave == RUNNING || ave == WINDOW) 
+          if (ave == RUNNING || ave == WINDOW)
             modify->compute[icompute]->unlock(this);
           modify->compute[icompute]->lock_disable();
         }
@@ -559,7 +559,7 @@ void FixAveTime::end_of_step()
   // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
     error->all(FLERR,"Invalid timestep reset for fix ave/time");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
@@ -729,8 +729,8 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   //   if ave = RUNNING/WINDOW and not yet locked:
   //     set forever, will be unlocked in fix destructor
   // wrap setup_chunks in clearstep/addstep b/c it may invoke computes
-  //   both nevery and nfreq are future steps, 
-  //   since call below to cchunk->ichunk() 
+  //   both nevery and nfreq are future steps,
+  //   since call below to cchunk->ichunk()
   //     does not re-invoke internal cchunk compute on this same step
 
   if (irepeat == 0) {
@@ -786,7 +786,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
           compute->invoked_flag |= INVOKED_VECTOR;
         }
         double *cvector = compute->vector;
-        for (i = 0; i < nrows; i++) 
+        for (i = 0; i < nrows; i++)
           column[i] = cvector[i];
 
       } else {
@@ -928,7 +928,7 @@ int FixAveTime::column_length(int dynamic)
       if (varlen[i]) continue;
       if (which[i] == COMPUTE) {
         int icompute = modify->find_compute(ids[i]);
-        if (argindex[i] == 0) 
+        if (argindex[i] == 0)
           lengthone = modify->compute[icompute]->size_vector;
         else lengthone = modify->compute[icompute]->size_array_rows;
       } else if (which[i] == FIX) {
@@ -960,7 +960,7 @@ int FixAveTime::column_length(int dynamic)
         else if (lengthone != length)
           error->all(FLERR,"Fix ave/time columns are inconsistent lengths");
       } else {
-        if (lengthone != nrows) 
+        if (lengthone != nrows)
           error->all(FLERR,"Fix ave/time columns are inconsistent lengths");
       }
     }

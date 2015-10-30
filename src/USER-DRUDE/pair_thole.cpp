@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_thole.h"
 #include "atom.h"
 #include "comm.h"
@@ -213,7 +213,7 @@ void PairThole::settings(int narg, char **arg)
 
 void PairThole::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 5) 
+  if (narg < 3 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -222,7 +222,7 @@ void PairThole::coeff(int narg, char **arg)
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
   double polar_one = force->numeric(FLERR,arg[2]);
-  double thole_one = thole_global; 
+  double thole_one = thole_global;
   double cut_one = cut_global;
   if (narg >=4) thole_one = force->numeric(FLERR,arg[3]);
   if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
@@ -255,7 +255,7 @@ void PairThole::init_style()
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) error->all(FLERR, "Pair thole requires fix drude");  
+  if (ifix == modify->nfix) error->all(FLERR, "Pair thole requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
   neighbor->request(this,instance_me);
@@ -401,7 +401,7 @@ double PairThole::single(int i, int j, int itype, int jtype,
     dcoul = force->qqrd2e * qi * qj * scale[itype][jtype] * rinv;
     factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
     fforce = factor_f * dcoul * r2inv;
-    factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul; 
+    factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
     phicoul = factor_e * dcoul;
   }
 

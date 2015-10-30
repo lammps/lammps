@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "ctype.h"
+#include <mpi.h>
+#include <string.h>
+#include <ctype.h>
 #include "lammps.h"
 #include "style_angle.h"
 #include "style_atom.h"
@@ -455,24 +455,24 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
                  "lmptype.h are not compatible");
 
 #ifdef LAMMPS_SMALLBIG
-  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 || 
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 ||
       sizeof(tagint) != 4 || sizeof(bigint) != 8)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_BIGBIG
-  if (sizeof(smallint) != 4 || sizeof(imageint) != 8 || 
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 8 ||
       sizeof(tagint) != 8 || sizeof(bigint) != 8)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_SMALLSMALL
-  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 || 
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 ||
       sizeof(tagint) != 4 || sizeof(bigint) != 4)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 
   // error check on accelerator packages
 
-  if (cudaflag == 1 && kokkosflag == 1) 
+  if (cudaflag == 1 && kokkosflag == 1)
     error->all(FLERR,"Cannot use -cuda on and -kokkos on together");
 
   // create Cuda class if USER-CUDA installed, unless explicitly switched off
@@ -696,7 +696,7 @@ void LAMMPS::post_create()
     error->all(FLERR,"Using suffix gpu without GPU package installed");
   if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
     error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
-  if (strcmp(suffix,"kk") == 0 && 
+  if (strcmp(suffix,"kk") == 0 &&
       (kokkos == NULL || kokkos->kokkos_exists == 0))
     error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
   if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
@@ -810,12 +810,12 @@ void LAMMPS::help()
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"
           "-pscreen basename           : basename for partition screens (-ps)\n"
-          "-restart rfile dfile ...    : convert restart to data file (-r)\n" 
+          "-restart rfile dfile ...    : convert restart to data file (-r)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-suffix cuda/gpu/opt/omp    : style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n");
-  
+
   fprintf(screen,"Style options compiled with this executable\n\n");
 
   int pos = 80;
@@ -941,7 +941,7 @@ void LAMMPS::print_style(const char *str, int &pos)
   if (isupper(str[0])) return;
 
   int len = strlen(str);
-  if (pos+len > 80) { 
+  if (pos+len > 80) {
     fprintf(screen,"\n");
     pos = 0;
   }

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_omega_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) : 
+ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute omega/chunk command");
@@ -219,12 +219,12 @@ void ComputeOmegaChunk::compute_array()
       ione[0][1]*ione[1][2]*ione[2][0] + ione[0][2]*ione[1][0]*ione[2][1] -
       ione[0][0]*ione[1][2]*ione[2][1] - ione[0][1]*ione[1][0]*ione[2][2] -
       ione[2][0]*ione[1][1]*ione[0][2];
-    
+
     if (determinant > 0.0)
       for (int i = 0; i < 3; i++)
         for (int j = 0; j < 3; j++)
           inverse[i][j] /= determinant;
-    
+
     omega[i][0] = inverse[0][0]*angmom[i][0] + inverse[0][1]*angmom[i][1] +
       inverse[0][2]*angmom[i][2];
     omega[i][1] = inverse[1][0]*angmom[i][0] + inverse[1][1]*angmom[i][1] +

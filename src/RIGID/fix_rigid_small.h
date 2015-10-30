@@ -155,12 +155,12 @@ class FixRigidSmall : public Fix {
   class RanMars *random;            // RNG
 
   int tstat_flag,pstat_flag;        // 0/1 = no/yes thermostat/barostat
-  
+
   int t_chain,t_iter,t_order;
 
   double p_start[3],p_stop[3];
   double p_period[3],p_freq[3];
-  int p_flag[3];  
+  int p_flag[3];
   int pcouple,pstyle;
   int p_chain;
 

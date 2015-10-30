@@ -15,8 +15,8 @@
    Contributing author: Carsten Svaneborg, science@zqex.dk
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_harmonic_shift_cut.h"
 #include "atom.h"
 #include "neighbor.h"

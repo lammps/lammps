@@ -142,7 +142,7 @@ class Pair : protected Pointers {
   virtual void compute_outer(int, int) {}
 
   virtual double single(int, int, int, int,
-                        double, double, double, 
+                        double, double, double,
 			double& fforce) {
     fforce = 0.0;
     return 0.0;

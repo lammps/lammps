@@ -20,7 +20,7 @@ AngleStyle(hybrid,AngleHybrid)
 #ifndef LMP_ANGLE_HYBRID_H
 #define LMP_ANGLE_HYBRID_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "angle.h"
 
 namespace LAMMPS_NS {

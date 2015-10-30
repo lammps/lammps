@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_bond_swap.h"
 #include "atom.h"
 #include "force.h"
@@ -652,7 +652,7 @@ int FixBondSwap::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 

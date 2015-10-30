@@ -71,7 +71,7 @@ class FixBondBreak : public Fix {
   void break_impropers(int, tagint, tagint);
   void rebuild_special_one(int);
   int dedup(int, int, tagint *);
-  
+
   // DEBUG
 
   void print_bb();

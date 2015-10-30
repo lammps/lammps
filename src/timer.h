@@ -36,7 +36,7 @@ class Timer : protected Pointers {
   void stamp(enum ttype which=START) {
     if (_level > LOOP) _stamp(which);
   }
-  
+
   void barrier_start();
   void barrier_stop();
 

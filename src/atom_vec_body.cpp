@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_body.h"
 #include "style_body.h"
 #include "body.h"
@@ -1301,7 +1301,7 @@ int AtomVecBody::data_atom_hybrid(int nlocal, char **values)
    unpack one body from Bodies section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecBody::data_body(int m, int ninteger, int ndouble, 
+void AtomVecBody::data_body(int m, int ninteger, int ndouble,
                              char **ivalues, char **dvalues)
 {
   if (body[m]) error->one(FLERR,"Assigning body parameters to non-body atom");
@@ -1466,7 +1466,7 @@ bigint AtomVecBody::memory_usage()
 
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
-  if (atom->memcheck("torque")) bytes += 
+  if (atom->memcheck("torque")) bytes +=
                                   memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("body")) bytes += memory->usage(body,nmax);
 
@@ -1496,8 +1496,8 @@ void AtomVecBody::check(int flag)
     }
   }
   for (int i = atom->nlocal; i < atom->nlocal+atom->nghost; i++) {
-    if (atom->body[i] >= 0 && 
-        (atom->body[i] < nlocal_bonus || 
+    if (atom->body[i] >= 0 &&
+        (atom->body[i] < nlocal_bonus ||
          atom->body[i] >= nlocal_bonus+nghost_bonus)) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD BBB");
@@ -1516,7 +1516,7 @@ void AtomVecBody::check(int flag)
     }
   }
   for (int i = nlocal_bonus; i < nlocal_bonus+nghost_bonus; i++) {
-    if (bonus[i].ilocal < atom->nlocal || 
+    if (bonus[i].ilocal < atom->nlocal ||
         bonus[i].ilocal >= atom->nlocal+atom->nghost) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD EEE");

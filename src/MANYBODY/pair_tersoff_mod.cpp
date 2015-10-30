@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -13,13 +13,13 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL) - original Tersoff implementation
-                        Vitaly Dozhdikov (JIHT of RAS) - MOD addition 
+                        Vitaly Dozhdikov (JIHT of RAS) - MOD addition
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_tersoff_mod.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -162,15 +162,15 @@ void PairTersoffMOD::read_file(char *file)
     params[nparams].c4 = atof(words[18]);
     params[nparams].c5 = atof(words[19]);
 
-    // currently only allow m exponent of 1 
+    // currently only allow m exponent of 1
 
     params[nparams].powermint = int(params[nparams].powerm);
 
     if (
-	params[nparams].lam3 < 0.0 || params[nparams].powern < 0.0 || 
-	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 || 
+	params[nparams].lam3 < 0.0 || params[nparams].powern < 0.0 ||
+	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
 	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
-	params[nparams].bigd < 0.0 || 
+	params[nparams].bigd < 0.0 ||
                                params[nparams].bigd > params[nparams].bigr ||
 	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
 	params[nparams].powerm - params[nparams].powermint != 0.0 ||
@@ -201,7 +201,7 @@ void PairTersoffMOD::setup()
       for (k = 0; k < nelements; k++) {
 	n = -1;
 	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement && 
+	  if (i == params[m].ielement && j == params[m].jelement &&
 	      k == params[m].kelement) {
 	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
 	    n = m;
@@ -227,7 +227,7 @@ void PairTersoffMOD::setup()
   cutmax = 0.0;
   for (m = 0; m < nparams; m++)
     if (params[m].cut > cutmax) cutmax = params[m].cut;
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -238,7 +238,7 @@ double PairTersoffMOD::zeta(Param *param, double rsqij, double rsqik,
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
-  costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] + 
+  costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
 	      delrij[2]*delrik[2]) / (rij*rik);
 
   if (param->powermint == 3) arg = pow(param->lam3 * (rij-rik),3.0);
@@ -247,7 +247,7 @@ double PairTersoffMOD::zeta(Param *param, double rsqij, double rsqik,
   if (arg > 69.0776) ex_delr = 1.e30;
   else if (arg < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(arg);
-  
+
   return ters_fc(rik,param) * ters_gijk_mod(costheta,param) * ex_delr;
 }
 
@@ -257,10 +257,10 @@ double PairTersoffMOD::ters_fc(double r, Param *param)
 {
   double ters_R = param->bigr;
   double ters_D = param->bigd;
-  
+
   if (r < ters_R-ters_D) return 1.0;
   if (r > ters_R+ters_D) return 0.0;
-  return 0.5*(1.0 - 1.125*sin(MY_PI2*(r - ters_R)/ters_D) - 
+  return 0.5*(1.0 - 1.125*sin(MY_PI2*(r - ters_R)/ters_D) -
               0.125*sin(3*MY_PI2*(r - ters_R)/ters_D));
 }
 
@@ -270,10 +270,10 @@ double PairTersoffMOD::ters_fc_d(double r, Param *param)
 {
   double ters_R = param->bigr;
   double ters_D = param->bigd;
-  
+
   if (r < ters_R-ters_D) return 0.0;
   if (r > ters_R+ters_D) return 0.0;
-  return -(0.375*MY_PI4/ters_D) * (3*cos(MY_PI2*(r - ters_R)/ters_D) + 
+  return -(0.375*MY_PI4/ters_D) * (3*cos(MY_PI2*(r - ters_R)/ters_D) +
                                    cos(3*MY_PI2*(r - ters_R)/ters_D));
 }
 
@@ -295,9 +295,9 @@ double PairTersoffMOD::ters_bij_d(double zeta, Param *param)
   if (tmp > param->ca1) return -0.5*(param->powern/param->powern_del)*
 	  pow(tmp,-0.5*(param->powern/param->powern_del)) / zeta;
   if (tmp < param->ca4) return 0.0;
-			  
+
   double tmp_n = pow(tmp,param->powern);
-  return -0.5 *(param->powern/param->powern_del)* 
+  return -0.5 *(param->powern/param->powern_del)*
 	  pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern_del)))*tmp_n / zeta;
 }
 

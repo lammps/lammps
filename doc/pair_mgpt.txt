@@ -53,7 +53,7 @@ d/f bands, the multi-ion potentials are evaluated on the fly during a
 simulation through d- or f-state matrix multiplication, and the forces
 that move the ions are determined analytically.  Fast matrix-MGPT
 algorithms have been developed independently by Glosli
-("Glosli"_#Glosi, "Moriarty3"_#Moriarty3) and by Oppelstrup
+("Glosli"_#Glosli, "Moriarty3"_#Moriarty3) and by Oppelstrup
 ("Oppelstrup"_#Oppelstrup)
 
 The {mgpt} pair style calculates forces, energies, and the total

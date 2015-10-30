@@ -993,6 +993,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       //  ===============================
       j = jlist[jj];
+      j &= NEIGHMASK;
       jtype = map[type[j]];
       jtag = tag[j]; jq = q[j];
 
@@ -2336,7 +2337,9 @@ void PairSMTBQ::QForce_charge(int loop)
   if (loop == 0) {
     //   ==================
 
-
+    memset(sbcov,0,sizeof(double)*atom->nmax);
+    memset(coord,0,sizeof(double)*atom->nmax);
+    memset(sbmet,0,sizeof(double)*atom->nmax);
 
     for (ii = 0; ii < inum; ii ++) {
       //--------------------------------
@@ -2344,8 +2347,6 @@ void PairSMTBQ::QForce_charge(int loop)
       itype = map[type[i]];
 
       gp = flag_QEq[i];
-
-      sbcov[i] =coord[i]= sbmet[i] = 0.0;
 
       itype = map[type[i]];
       xtmp = x[i][0];
@@ -2445,6 +2446,7 @@ void PairSMTBQ::QForce_charge(int loop)
       for (jj = 0; jj < jnum; jj++)
         {
           j = jlist[jj];
+          j &= NEIGHMASK;
           jtype = map[type[j]];
           m = intype[itype][jtype];
           jq = q[j];
@@ -2959,7 +2961,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
       jnum = numneigh[i];
       for (jj = 0; jj < jnum; jj++ )
         {
-          j = jlist[jj] ; jtype = map[type[j]];
+          j = jlist[jj] ;
+          j &= NEIGHMASK;
+          jtype = map[type[j]];
           if (jtype == itype) continue;
           m = intype[itype][jtype];
 
@@ -3143,7 +3147,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
       jnum = numneigh[i];
       for (jj = 0; jj < jnum; jj++ )
         {
-          j = jlist[jj] ; jtype = map[type[j]];
+          j = jlist[jj] ;
+          j &= NEIGHMASK;
+          jtype = map[type[j]];
           if (jtype != 0) continue;
 
           m = 0;

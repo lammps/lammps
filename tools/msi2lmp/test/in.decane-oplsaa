@@ -1,0 +1,14 @@
+log log.decane-oplsaa
+units real
+atom_style full
+pair_style lj/cut/coul/cut 15.0
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+
+read_data decane-oplsaa.data
+
+thermo_style multi
+minimize 0.0 0.0 100 1000
+
+write_data decane-oplsaa.data2

@@ -1,0 +1,40 @@
+!BIOSYM molecular_data 4
+ 
+!Date: Tue Jul 02 12:34:43 2013   Materials Studio Generated MDF file
+ 
+#topology
+
+@column 1 element
+@column 2 atom_type
+@column 3 charge_group
+@column 4 isotope
+@column 5 formal_charge
+@column 6 charge
+@column 7 switching_atom
+@column 8 oop_flag
+@column 9 chirality_flag
+@column 10 occupancy
+@column 11 xray_temp_factor
+@column 12 connections
+ 
+@molecule benzene
+ 
+XXXX_1:H1           H  h       1     0  0     0.1020 0 0 8 1.0000  0.0000 C2 
+XXXX_1:C2           C  cp      1     0  0    -0.1020 0 0 8 1.0000  0.0000 H1 C3/1.5 C7/1.5 
+XXXX_1:C3           C  cp      1     0  0    -0.1020 0 0 8 1.0000  0.0000 C2/1.5 C4/1.5 H9 
+XXXX_1:C4           C  cp      1     0  0    -0.1020 0 0 8 1.0000  0.0000 C3/1.5 C5/1.5 H10 
+XXXX_1:C5           C  cp      1     0  0    -0.1020 0 0 8 1.0000  0.0000 C4/1.5 H8 C6/1.5 
+XXXX_1:C6           C  cp      1     0  0    -0.1020 0 0 8 1.0000  0.0000 C5/1.5 C7/1.5 H11 
+XXXX_1:C7           C  cp      1     0  0    -0.1020 0 0 8 1.0000  0.0000 C2/1.5 C6/1.5 H12 
+XXXX_1:H8           H  h       1     0  0     0.1020 0 0 8 1.0000  0.0000 C5 
+XXXX_1:H9           H  h       1     0  0     0.1020 0 0 8 1.0000  0.0000 C3 
+XXXX_1:H10          H  h       1     0  0     0.1020 0 0 8 1.0000  0.0000 C4 
+XXXX_1:H11          H  h       1     0  0     0.1020 0 0 8 1.0000  0.0000 C6 
+XXXX_1:H12          H  h       1     0  0     0.1020 0 0 8 1.0000  0.0000 C7 
+ 
+!
+#symmetry
+@periodicity 3 xyz
+@group (P1)
+
+#end

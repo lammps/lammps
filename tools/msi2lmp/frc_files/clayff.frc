@@ -1,0 +1,154 @@
+!CLAYFF forcefield
+
+#atom_types	cvff
+
+!Ver  Ref  Type    Mass      Element  Connections   Comment
+!---- ---  ----  ----------  -------  -----------------------------------------
+ 1.0   1    st     28.08550    Si          4  
+ 1.0   1    ao     26.98154    Al          6     
+ 1.0   1    at     26.98154    Al          4   
+ 1.0   1   mgo     24.30500    Mg          6   
+ 1.0   1   cao     40.08000    Ca          6
+ 1.0   1   feo     55.84700    Fe          6
+ 1.0   1   lio     6.941000    Li          6
+ 1.0   1    ob    15.99940      O          2
+ 1.0   1  obss     15.99940     O          3   
+ 1.0   1  obts     15.99940     O          2   
+ 1.0   1  obos     15.99940     O          2   
+ 1.0   1   ohs     15.99940     O          2   
+ 1.0   1    oh     15.99940     O          2
+ 1.0   1   oh-     15.99940     O          1
+ 1.0   1    o*     15.99940     O          2
+ 1.0   1    ho     1.007970     H          1   
+ 1.0   1    h*     1.007970     H          1
+ 1.0   1    Na     22.99000    Na          0
+ 1.0   1     K     39.10        K          0 
+ 1.0   1    Cs     132.9100    Cs          0
+ 1.0   1    Ca     40.07980    Ca          0
+ 1.0   1    Ba     137.3300    Ba          0 
+ 1.0   1    Mg      24.3050    Mg          0
+ 1.0   1    Sr      87.6200    Sr          0
+ 1.0   1    Pb     207.2000    Pb          0
+ 1.0   1    Cl     35.45300    Cl          0
+
+
+#equivalence	cvff 
+
+> Equivalence table for any variant of cvff 
+
+!		         	  Equivalences
+!                 -----------------------------------------
+!Ver  Ref   Type  NonB     Bond    Angle    Torsion    OOP
+!---- ---   ----  ----     ----    -----    -------    ----
+ 1.0   1    h     h        h        h        h         h   
+
+
+
+#auto_equivalence	cvff_auto
+
+!		         	  Equivalences
+!                 -----------------------------------------                       
+!Ver  Ref   Type  NonB Bond   Bond     Angle    Angle     Torsion   Torsion      OOP      OOP 
+!                      Inct           End atom Apex atom End Atoms Center Atoms End Atom Center Atom
+!---- ---   ----  ---- ------ ----  ---------- --------- --------- -----------  -------- ----------- 
+ 2.0  18    h     h     h     h_       h_       h_        h_        h_           h_       h_
+
+
+
+#hbond_definition	cvff 
+
+
+#morse_bond	cvff 
+
+> E = D * (1 - exp(-ALPHA*(R - R0)))^2
+
+!Ver  Ref     I     J          R0         D           ALPHA
+!---- ---    ----  ----     -------    --------      -------
+ 2.3  23     no    o-        1.2178    140.2486      2.0000
+
+
+
+#quadratic_bond	cvff 
+
+> E = K2 * (R - R0)^2
+
+!Ver  Ref     I     J          R0         K2    
+!---- ---    ----  ----     -------    -------- 
+ 2.1  28      oh   ho        1.0000    553.9350
+ 2.1  28     ohs   ho        1.0000    553.9350
+
+
+#quadratic_angle	cvff 
+
+> E = K2 * (Theta - Theta0)^2
+
+!Ver  Ref     I     J     K       Theta0         K2        
+!---- ---    ----  ----  ----    --------     -------
+ 2.3  23     cp    cp    c'      120.0000     34.6799
+
+
+
+#torsion_1      cvff_auto
+
+> E = Kphi * [ 1 + cos(n*Phi - Phi0) ]
+
+!Ver  Ref     I     J      K      L           Kphi        n           Phi0
+!---- ---    ----  ----   ----   ----      -------      ------     -------
+ 2.0  18     *     c_     n3n_   *          0.0500        3         0.
+                                                                      
+                                                                      
+
+#out_of_plane	cvff_auto
+
+> E = Kchi * [ 1 + cos(n*Chi - Chi0) ]
+
+!Ver  Ref     I     J     K     L           Kchi        n           Chi0
+!---- ---    ----  ----  ----  ----      -------      ------     -------
+ 2.0  18     *     c'_   *      *        10.0000        2       180.0000
+
+
+#nonbond(12-6)	cvff 
+
+@type A-B
+@combination geometric
+
+> E = Aij/r^12 - Bij/r^6
+> where  Aij = sqrt( Ai * Aj )
+>        Bij = sqrt( Bi * Bj )
+
+!Ver  Ref     I           A             B 
+!---- ---    ----    -----------   -----------
+ 1.0   1    st           12.3645       0.00954
+ 1.0   1    ao          196.1446       0.03230
+ 1.0   1    at           12.3645       0.00954
+ 1.0   1   mgo         1636.3265       0.07688
+ 1.0   1   cao         17814.73	       0.5987 
+ 1.0   1   feo           702.54	       0.0504
+ 1.0   1   lio           112.01	       0.0201
+ 1.0   1    ob       629358.0000     625.50000
+ 1.0   1  obss      629358.0000     625.50000
+ 1.0   1  obts      629358.0000     625.50000
+ 1.0   1  obos      629358.0000     625.50000
+ 1.0   1   ohs      629358.0000     625.50000
+ 1.0   1    oh      629358.0000     625.50000
+ 1.0   1   oh-      629358.0000     625.50000
+ 1.0   1    o*      629358.0000     625.50000
+ 1.0   1    ho        0.00000001       0.00000
+ 1.0   1    h*        0.00000001       0.00000
+ 1.0   1    Na       14763.1719      87.65132
+ 1.0   1    K        754506.86       549.37
+ 1.0   1    Cs       3998193.96	    1264.63
+ 1.0   1    Ca      125966.6068     224.46969
+ 1.0   1    Ba      1799606.56	    582.25
+ 1.0   1    Mg      1369.00	     69.22
+ 1.0   1    Sr      1185860.37	    688.73
+ 1.0   1    Pb      861150.71	    638.08
+ 1.0   1    Cl      21081006.97     2905.31
+
+
+#bond_increments        cvff
+
+!Ver  Ref     I     J       DeltaIJ     DeltaJI
+!---- ---    ----  ----     -------     -------
+ 2.3  23     no    o-        0.1684     -0.1684             
+

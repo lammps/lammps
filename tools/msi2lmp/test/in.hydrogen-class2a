@@ -1,0 +1,12 @@
+log log.hydrogen-class2a
+units real
+atom_style full
+pair_style lj/class2/coul/cut 15.0
+bond_style class2
+
+read_data hydrogen-class2a.data
+
+thermo_style multi
+minimize 0.0 0.0 100 1000
+
+write_data hydrogen-class2a.data2

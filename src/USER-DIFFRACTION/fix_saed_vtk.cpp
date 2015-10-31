@@ -16,8 +16,8 @@
    Incorporating SAED: Shawn Coleman (Arkansas)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_saed_vtk.h"
 #include "update.h"
 #include "modify.h"
@@ -29,7 +29,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "math.h"
+#include <math.h>
 #include "domain.h"
 
 using namespace LAMMPS_NS;
@@ -67,7 +67,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues != 1) error->all(FLERR,"Illegal fix saed/vtk command");
 
   options(narg,arg);
-  
+
   which = 0;
   ids = NULL;
 
@@ -90,9 +90,9 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       delete [] suffix;
 
       int icompute = modify->find_compute(ids);
-      if (icompute < 0) 
+      if (icompute < 0)
         error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
-      
+
       Compute *compute = modify->compute[icompute];
 
       // Check that specified compute is for SAED
@@ -118,9 +118,9 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       // Standard error check for fix/ave/time
       if (compute->vector_flag == 0)
         error->all(FLERR,"Fix saed/vtk compute does not calculate a vector");
-      if (compute->extvector != 0) 
-        error->all(FLERR,"Illegal fix saed/vtk command"); 
-        
+      if (compute->extvector != 0)
+        error->all(FLERR,"Illegal fix saed/vtk command");
+
       nrows = compute->size_vector;
       nvalues++;
       iarg++;
@@ -154,7 +154,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   size_vector = nrows;
 
   if (nOutput == 0) {
-  
+
     // SAED specific paramaters needed
     int *periodicity = domain->periodicity;
     // Zone flag to capture entire recrocal space volume
@@ -184,7 +184,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       prd_inv[2] = 1 / prd[2];
       ave_inv += prd_inv[2];
     }
- 
+
     // Using the average inverse dimensions for non-periodic direction
     ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
     if (!periodicity[0]){
@@ -197,12 +197,12 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       prd_inv[2] = ave_inv;
     }
 
-    // Use manual mapping of reciprocal lattice 
+    // Use manual mapping of reciprocal lattice
     if (manual) {
       for (int i=0; i<3; i++) {
         prd_inv[i] = 1.0;
       }
-    } 
+    }
 
     // Find integer dimensions of the reciprocal lattice box bounds
     if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
@@ -210,13 +210,13 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
         dK[i] = prd_inv[i]*c[i];
         Knmax[i] = ceil(Kmax / dK[i]);
         Knmin[i] = -Knmax[i];
-      } 
+      }
     } else {
 
       for (int i=0; i<3; i++) {
         Knmax[i] = -10000;
         Knmin[i] =  10000;
-      }       
+      }
       double dinv2 = 0.0;
       double r = 0.0;
       double K[3];
@@ -224,8 +224,8 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       for (int i=0; i<3; i++) {
         dK[i] = prd_inv[i]*c[i];
         Ksearch[i] = ceil(Kmax / dK[i]);
-      } 
-  
+      }
+
       for (int k = -Ksearch[2]; k <= Ksearch[2]; k++) {
         for (int j = -Ksearch[1]; j <= Ksearch[1]; j++) {
           for (int i = -Ksearch[0]; i <= Ksearch[0]; i++) {
@@ -237,21 +237,21 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
               r=0.0;
               for (int m=0; m<3; m++) r += pow(K[m] - Zone[m],2.0);
-              r = sqrt(r);     
+              r = sqrt(r);
               if  ( (r >  (R_Ewald - dR_Ewald) ) && (r < (R_Ewald + dR_Ewald) ) ){
-                
+
                 if ( i < Knmin[0] ) Knmin[0] = i;
                 if ( j < Knmin[1] ) Knmin[1] = j;
-                if ( k < Knmin[2] ) Knmin[2] = k;                
-                
+                if ( k < Knmin[2] ) Knmin[2] = k;
+
                 if ( i > Knmax[0] ) Knmax[0] = i;
                 if ( j > Knmax[1] ) Knmax[1] = j;
-                if ( k > Knmax[2] ) Knmax[2] = k; 
+                if ( k > Knmax[2] ) Knmax[2] = k;
               }
             }
-          } 
+          }
         }
-      } 
+      }
     }
 
    // Finding dimensions for vtk files
@@ -306,7 +306,7 @@ void FixSAEDVTK::init()
 {
   // set current indices for all computes,fixes,variables
 
- 
+
   int icompute = modify->find_compute(ids);
   if (icompute < 0)
     error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
@@ -347,7 +347,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
   int icompute = modify->find_compute(ids);
   if (icompute < 0)
     error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
- 
+
   if (irepeat == 0)
     for (int i = 0; i < nrows; i++)
        vector[i] = 0.0;
@@ -367,7 +367,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
   }
 
   double *vector = compute->vector;
-  
+
   // done if irepeat < nrepeat
   // else reset irepeat and nvalid
 
@@ -405,8 +405,8 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
       vector_total[i] += vector[i];
       if (window_limit) vector_total[i] -= vector_list[iwindow][i];
         vector_list[iwindow][i] = vector[i];
-    } 
-    
+    }
+
     iwindow++;
     if (iwindow == nwindow) {
       iwindow = 0;
@@ -420,7 +420,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
 
   if (fp && me == 0) {
     if (nOutput > 0) {
-      fclose(fp);  
+      fclose(fp);
 
       char nName [128];
       sprintf(nName,"%s.%d.vtk",filename,nOutput);
@@ -443,9 +443,9 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
     fprintf(fp,"POINT_DATA %d\n",  Dim[0] *  Dim[1] * Dim[2] );
     fprintf(fp,"SCALARS intensity float\n");
     fprintf(fp,"LOOKUP_TABLE default\n");
-    
+
     filepos = ftell(fp);
- 
+
     if (overwrite) fseek(fp,filepos,SEEK_SET);
 
      // Finding the intersection of the reciprical space and Ewald sphere
@@ -509,7 +509,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
         }
       }
     }
-  nOutput++;   
+  nOutput++;
 }
 
 /* ----------------------------------------------------------------------
@@ -543,7 +543,7 @@ void FixSAEDVTK::options(int narg, char **arg)
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
       if (me == 0) {
-      
+
          nOutput = 0;
          int n = strlen(arg[iarg+1]) + 1;
          filename = new char[n];
@@ -557,7 +557,7 @@ void FixSAEDVTK::options(int narg, char **arg)
           char str[128];
           sprintf(str,"Cannot open fix saed/vtk file %s",nName);
           error->one(FLERR,str);
-        }    
+        }
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {

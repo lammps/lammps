@@ -22,7 +22,7 @@ FixStyle(ave/spatial/sphere,FixAveSpatialSphere)
 #ifndef LMP_FIX_AVE_SPATIAL_SPHERE_H
 #define LMP_FIX_AVE_SPATIAL_SPHERE_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -37,13 +37,13 @@ class FixAveSpatialSphere : public Fix {
   void end_of_step();
   double memory_usage();
   double compute_array(int,int);
-  
+
  private:
   int me; //rank of the MPI Process
   int nfreq; //fix nfreq parameter
   int nrepeat; //fix nrepeat parameter
   bigint nvalid; //the next timestep on which I'll be invoked
-  
+
   //controls for various optional behaviours
   int normflag; //what type of normalisation to do
   int norm;
@@ -57,9 +57,9 @@ class FixAveSpatialSphere : public Fix {
   int ave; //averaging mode
   int nwindow; //number of averaging windows
   int iwindow; //current window
-  int window_limit; 
+  int window_limit;
   int overwrite; //continuously overwrite the output (requires ave running)
-  
+
   //used to keep track of which per-atom values we deal with
   int nvalues; //number of variables to average
   int *argindex; //if the variable is an array, this is the offset in that array
@@ -68,7 +68,7 @@ class FixAveSpatialSphere : public Fix {
   char **ids; //names of the variables
   int maxvar; //current size of the varatom array
   double* varatom; //contains the peratom values of a variable
-  
+
   //details of the sphere and the bins
   int maxbin; //current number of bins in memory (relevant if box changes)
   int nbins; //number of spherical bins
@@ -86,17 +86,17 @@ class FixAveSpatialSphere : public Fix {
   double r_min, r_minsq; //minimum radius, and its square
   double r_max, r_maxsq; //maximum radius, and its square
   double deltar, inv_deltar; //radial width of a bin, and its inverse (and their squares)
-  
+
   void setup_bins(); //create the bin arrays
   void set_bin_volumes(); //calculate the volume of each bin
   void bin_atoms(); //put the atom into bins based on their coordinates
   bigint nextvalid(); //return the next timestep on which this is invoked
-  
+
   //NEED TO BE CATEGORISED
   int irepeat;
   double **count_list;
   double ***values_list;
-  
+
 };
 
 }

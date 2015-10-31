@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_event.h"
 #include "atom.h"
 #include "update.h"

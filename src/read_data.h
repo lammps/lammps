@@ -20,7 +20,7 @@ CommandStyle(read_data,ReadData)
 #ifndef LMP_READ_DATA_H
 #define LMP_READ_DATA_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -72,7 +72,7 @@ class ReadData : protected Pointers {
   int extra_dihedral_types,extra_improper_types;
   int groupbit;
 
-  int nfix;         
+  int nfix;
   int *fix_index;
   char **fix_header;
   char **fix_section;

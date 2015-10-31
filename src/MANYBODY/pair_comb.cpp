@@ -18,10 +18,10 @@
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
@@ -73,7 +73,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   phin = NULL;
   dphin = NULL;
   erpaw = NULL;
-  
+
   sht_num = NULL;
   sht_first = NULL;
 
@@ -2002,7 +2002,7 @@ void PairComb::Over_cor(Param *param, double rsq1, int NCoi,
 
 /* ---------------------------------------------------------------------- */
 
-int PairComb::pack_forward_comm(int n, int *list, double *buf, 
+int PairComb::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,m;

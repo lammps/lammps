@@ -15,7 +15,7 @@
 #define LMP_FORCE_H
 
 #include "pointers.h"
-#include "stdio.h"
+#include <stdio.h>
 #include <map>
 #include <string>
 

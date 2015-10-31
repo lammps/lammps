@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
-#include "ctype.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "kokkos.h"
 #include "lammps.h"
 #include "force.h"
@@ -44,7 +44,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       device = atoi(arg[iarg+1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"g") == 0 || 
+    } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       int ngpu = atoi(arg[iarg+1]);
@@ -208,9 +208,9 @@ void KokkosLMP::accelerator(int narg, char **arg)
 int KokkosLMP::neigh_list_kokkos(int m)
 {
   NeighborKokkos *nk = (NeighborKokkos *) neighbor;
-  if (nk->lists_host[m] && nk->lists_host[m]->d_numneigh.dimension_0()) 
+  if (nk->lists_host[m] && nk->lists_host[m]->d_numneigh.dimension_0())
     return 1;
-  if (nk->lists_device[m] && nk->lists_device[m]->d_numneigh.dimension_0()) 
+  if (nk->lists_device[m] && nk->lists_device[m]->d_numneigh.dimension_0())
     return 1;
   return 0;
 }

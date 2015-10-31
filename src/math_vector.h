@@ -18,8 +18,8 @@
 #ifndef LMP_MATH_VECTOR_H
 #define LMP_MATH_VECTOR_H
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 
 #define VECTOR_NULL        {0, 0, 0}
 #define SHAPE_NULL        {0, 0, 0, 0, 0, 0}

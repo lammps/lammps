@@ -15,9 +15,9 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_heat.h"
 #include "atom.h"
 #include "domain.h"
@@ -121,7 +121,7 @@ void FixHeat::init()
 
   if (hstr) {
     hvar = input->variable->find(hstr);
-    if (hvar < 0) 
+    if (hvar < 0)
       error->all(FLERR,"Variable name for fix heat does not exist");
     if (input->variable->equalstyle(hvar)) hstyle = EQUAL;
     else if (input->variable->atomstyle(hvar)) hstyle = ATOM;
@@ -196,7 +196,7 @@ void FixHeat::end_of_step()
 
   if (hstyle != ATOM) {
     heat = heat_input*nevery*update->dt*force->ftm2v;
-    double escale = 
+    double escale =
       (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
     if (escale < 0.0) error->all(FLERR,"Fix heat kinetic energy went negative");
     scale = sqrt(escale);
@@ -231,9 +231,9 @@ void FixHeat::end_of_step()
       for (i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
           heat = vheat[i]*nevery*update->dt*force->ftm2v;
-          vscale[i] = 
+          vscale[i] =
             (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
-          if (vscale[i] < 0.0) 
+          if (vscale[i] < 0.0)
             error->all(FLERR,
                        "Fix heat kinetic energy of an atom went negative");
           scale = sqrt(vscale[i]);
@@ -261,9 +261,9 @@ void FixHeat::end_of_step()
       for (i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           heat = vheat[i]*nevery*update->dt*force->ftm2v;
-          vscale[i] = 
+          vscale[i] =
             (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
-          if (vscale[i] < 0.0) 
+          if (vscale[i] < 0.0)
             error->all(FLERR,
                        "Fix heat kinetic energy of an atom went negative");
           scale = sqrt(vscale[i]);
@@ -295,7 +295,7 @@ void FixHeat::end_of_step()
 double FixHeat::compute_scalar()
 {
   double average_scale = scale;
-  if (hstyle == ATOM) {  
+  if (hstyle == ATOM) {
     double scale_sum = 0.0;
     int ncount = 0;
     int *mask = atom->mask;

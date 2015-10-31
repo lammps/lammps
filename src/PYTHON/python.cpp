@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "Python.h"
+#include <Python.h>
 #include "python.h"
 #include "force.h"
 #include "input.h"
@@ -75,7 +75,7 @@ void Python::command(int narg, char **arg)
     if (noutput) {
       str = input->variable->pythonstyle(pfuncs[ifunc].ovarname,
                                          pfuncs[ifunc].name);
-      if (!str) 
+      if (!str)
         error->all(FLERR,"Python variable does not match Python function");
     }
 
@@ -185,7 +185,7 @@ void Python::command(int narg, char **arg)
   PyObject *pModule = (PyObject *) pyMain;
   PyObject *pFunc = PyObject_GetAttrString(pModule,pfuncs[ifunc].name);
   if (!pFunc) error->all(FLERR,"Could not find Python function");
-  if (!PyCallable_Check(pFunc)) 
+  if (!PyCallable_Check(pFunc))
     error->all(FLERR,"Python function is not callable");
   pfuncs[ifunc].pFunc = (void *) pFunc;
 
@@ -216,28 +216,28 @@ void Python::invoke_function(int ifunc, char *result)
     if (itype == INT) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str) 
+        if (!str)
           error->all(FLERR,"Could not evaluate Python function input variable");
         pValue = PyInt_FromLong(atoi(str));
       } else pValue = PyInt_FromLong(pfuncs[ifunc].ivalue[i]);
     } else if (itype == DOUBLE) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str) 
+        if (!str)
           error->all(FLERR,"Could not evaluate Python function input variable");
         pValue = PyFloat_FromDouble(atof(str));
       } else pValue = PyFloat_FromDouble(pfuncs[ifunc].dvalue[i]);
     } else if (itype == STRING) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str) 
+        if (!str)
           error->all(FLERR,"Could not evaluate Python function input variable");
         pValue = PyString_FromString(str);
       } else pValue = PyString_FromString(pfuncs[ifunc].svalue[i]);
     } else if (itype == PTR) {
       pValue = PyCObject_FromVoidPtr((void *) lmp,NULL);
     }
-    PyTuple_SetItem(pArgs,i,pValue); 
+    PyTuple_SetItem(pArgs,i,pValue);
   }
 
   // call the Python function
@@ -297,7 +297,7 @@ int Python::create_entry(char *name)
   if (ifunc < 0) {
     ifunc = nfunc;
     nfunc++;
-    pfuncs = (PyFunc *) 
+    pfuncs = (PyFunc *)
       memory->srealloc(pfuncs,nfunc*sizeof(struct PyFunc),"python:pfuncs");
     int n = strlen(name) + 1;
     pfuncs[ifunc].name = new char[n];
@@ -306,10 +306,10 @@ int Python::create_entry(char *name)
 
   pfuncs[ifunc].ninput = ninput;
   pfuncs[ifunc].noutput = noutput;
-  
+
   if (!format && ninput+noutput)
     error->all(FLERR,"Invalid python command");
-  else if (format && strlen(format) != ninput+noutput) 
+  else if (format && strlen(format) != ninput+noutput)
     error->all(FLERR,"Invalid python command");
 
   // process inputs as values or variables
@@ -361,12 +361,12 @@ int Python::create_entry(char *name)
     } else if (type == 'p') {
       pfuncs[ifunc].ivarflag[i] = 0;
       pfuncs[ifunc].itype[i] = PTR;
-      if (strcmp(istr[i],"SELF") != 0) 
+      if (strcmp(istr[i],"SELF") != 0)
         error->all(FLERR,"Invalid python command");
 
     } else error->all(FLERR,"Invalid python command");
   }
-  
+
   // process output as value or variable
 
   pfuncs[ifunc].ovarname = NULL;

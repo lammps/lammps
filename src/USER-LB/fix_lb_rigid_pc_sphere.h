@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -90,7 +90,7 @@ class FixLbRigidPCSphere : public Fix {
   double tfactor;           // scale factor on temperature of rigid bodies
 
   int inner_nodes;          // ==1 if certain particle are inside the rigid
-                            //  body and should not interact with the fluid. 
+                            //  body and should not interact with the fluid.
                             //  ==0 otherwise.
   int igroupinner;          // specifies the particles which are inside the
                             //  spherical rigid body, and do not interact with
@@ -98,7 +98,7 @@ class FixLbRigidPCSphere : public Fix {
 
   void set_xv();
   void set_v();
-  
+
   void compute_up();
 
   class FixLbFluid *fix_lb_fluid;

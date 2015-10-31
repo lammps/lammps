@@ -36,9 +36,9 @@
                   of j.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
 #include "improper_ring.h"
 #include "atom.h"
 #include "comm.h"

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "create_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -225,7 +225,7 @@ void CreateAtoms::command(int narg, char **arg)
     onemol->compute_center();
 
     // molecule random number generator, different for each proc
-    
+
     ranmol = new RanMars(lmp,molseed+comm->me);
   }
 
@@ -422,8 +422,8 @@ void CreateAtoms::command(int narg, char **arg)
 
     int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
-    // increment total bonds,angles,etc 
-    
+    // increment total bonds,angles,etc
+
     bigint nmolme = molcreate;
     bigint nmoltotal;
     MPI_Allreduce(&nmolme,&nmoltotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -509,7 +509,7 @@ void CreateAtoms::command(int narg, char **arg)
               improper_atom4[ilocal][j] += offset;
             }
           if (onemol->specialflag)
-            for (int j = 0; j < nspecial[ilocal][2]; j++) 
+            for (int j = 0; j < nspecial[ilocal][2]; j++)
               special[ilocal][j] += offset;
         }
         ilocal++;

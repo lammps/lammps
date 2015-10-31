@@ -15,7 +15,7 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "write_dump.h"
 #include "style_dump.h"
 #include "dump.h"
@@ -71,7 +71,7 @@ void WriteDump::command(int narg, char **arg)
   // write out one frame and then delete the dump again
   // set multifile_override for DumpImage so that filename needs no "*"
 
-  if (strcmp(arg[1],"image") == 0) 
+  if (strcmp(arg[1],"image") == 0)
     ((DumpImage *) dump)->multifile_override = 1;
 
   if (strcmp(arg[1],"cfg") == 0)

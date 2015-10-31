@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------
-    Contributing authors: 
+    Contributing authors:
              Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
- 
-#include "stdlib.h" 
-#include "string.h"  
-#include "math.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include "fix_ti_rs.h"
 #include "atom.h"
 #include "update.h"
@@ -34,7 +34,7 @@ using namespace FixConst;
 
 // Class constructor initialize all variables.
 
-FixTIRS::FixTIRS(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg) 
+FixTIRS::FixTIRS(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   // Checking the input information.
   if (narg < 7 || narg > 9) error->all(FLERR,"Illegal fix ti/rs command");
@@ -48,10 +48,10 @@ FixTIRS::FixTIRS(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // Time variables.
   t_switch  = force->bnumeric(FLERR,arg[5]);
   t_equil   = force->bnumeric(FLERR,arg[6]);
-  t0 = update->ntimestep;    
+  t0 = update->ntimestep;
   if (t_switch <= 0) error->all(FLERR,"Illegal fix ti/rs command");
   if (t_equil  <= 0) error->all(FLERR,"Illegal fix ti/rs command");
- 
+
   // Coupling parameter limits and initialization.
   l_initial = force->numeric(FLERR,arg[3]);
   l_final   = force->numeric(FLERR,arg[4]);
@@ -68,7 +68,7 @@ FixTIRS::FixTIRS(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-FixTIRS::~FixTIRS() 
+FixTIRS::~FixTIRS()
 {
   // unregister callbacks to this fix from Atom class
   atom->delete_callback(id,0);
@@ -77,7 +77,7 @@ FixTIRS::~FixTIRS()
 
 /* ---------------------------------------------------------------------- */
 
-int FixTIRS::setmask() 
+int FixTIRS::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
@@ -95,7 +95,7 @@ void FixTIRS::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTIRS::setup(int vflag) 
+void FixTIRS::setup(int vflag)
 {
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
@@ -116,7 +116,7 @@ void FixTIRS::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTIRS::post_force(int vflag) 
+void FixTIRS::post_force(int vflag)
 {
 
   int *mask  = atom->mask;
@@ -126,7 +126,7 @@ void FixTIRS::post_force(int vflag)
   // Scaling forces.
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      f[i][0] = lambda * f[i][0]; 
+      f[i][0] = lambda * f[i][0];
       f[i][1] = lambda * f[i][1];
       f[i][2] = lambda * f[i][2];
     }
@@ -149,7 +149,7 @@ void FixTIRS::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTIRS::initial_integrate(int vflag) 
+void FixTIRS::initial_integrate(int vflag)
 {
   // Update the coupling parameter value.
   const bigint t = update->ntimestep - (t0+t_equil);
@@ -181,7 +181,7 @@ double FixTIRS::switch_func(double t)
 {
   if (sf == 2) return l_initial / (1 + t * (l_initial/l_final - 1));
   if (sf == 3) return l_initial / (1 + log2(1+t) * (l_initial/l_final - 1));
-  
+
   // Default option is sf = 1.
   return l_initial + (l_final - l_initial) * t;
 }

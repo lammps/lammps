@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_line.h"
 #include "atom.h"
 #include "comm.h"
@@ -1221,7 +1221,7 @@ int AtomVecLine::pack_vel_hybrid(int i, double *buf)
 void AtomVecLine::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
             (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],
             buf[i][4],buf[i][5],buf[i][6]);
@@ -1256,7 +1256,7 @@ bigint AtomVecLine::memory_usage()
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
-  if (atom->memcheck("torque")) 
+  if (atom->memcheck("torque"))
     bytes += memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("line")) bytes += memory->usage(line,nmax);
 

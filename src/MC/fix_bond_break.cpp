@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_bond_break.h"
 #include "update.h"
 #include "respa.h"
@@ -402,7 +402,7 @@ void FixBondBreak::check_ghosts()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) 
+  if (flagall)
     error->all(FLERR,"Fix bond/break needs ghost atoms from further away");
   lastcheck = update->ntimestep;
 }
@@ -465,7 +465,7 @@ void FixBondBreak::update_topology()
 
     if (influenced) rebuild_special_one(i);
   }
-  
+
   int newton_bond = force->newton_bond;
 
   int all;
@@ -829,7 +829,7 @@ void FixBondBreak::print_bb()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::print_copy(const char *str, tagint m, 
+void FixBondBreak::print_copy(const char *str, tagint m,
                               int n1, int n2, int n3, int *v)
 {
   printf("%s %i: %d %d %d nspecial: ",str,m,n1,n2,n3);

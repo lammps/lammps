@@ -15,9 +15,9 @@
    Contributing authors: Paul Crozier (SNL), Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
 #include "compute_rdf.h"
 #include "atom.h"
 #include "update.h"

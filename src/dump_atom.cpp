@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "dump_atom.h"
 #include "domain.h"
 #include "atom.h"
@@ -422,9 +422,9 @@ int DumpAtom::convert_image(int n, double *mybuf)
     }
 
     offset += sprintf(&sbuf[offset],format,
-                      static_cast<tagint> (mybuf[m]), 
+                      static_cast<tagint> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),
-                      mybuf[m+2],mybuf[m+3],mybuf[m+4], 
+                      mybuf[m+2],mybuf[m+3],mybuf[m+4],
                       static_cast<int> (mybuf[m+5]),
                       static_cast<int> (mybuf[m+6]),
                       static_cast<int> (mybuf[m+7]));

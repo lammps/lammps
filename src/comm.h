@@ -89,7 +89,7 @@ class Comm : protected Pointers {
   // exchange of info on neigh stencil
   // set processor mapping options
 
-  virtual void forward_comm_array(int, double **) = 0;  
+  virtual void forward_comm_array(int, double **) = 0;
   virtual int exchange_variable(int, double *, double *&) = 0;
   int binary(double, int, double *);
 
@@ -106,8 +106,8 @@ class Comm : protected Pointers {
 
   void ring(int, int, void *, int, void (*)(int, char *),
             void *, int self = 1);
-  int read_lines_from_file(FILE *, int, int, char *);  
-  int read_lines_from_file_universe(FILE *, int, int, char *);  
+  int read_lines_from_file(FILE *, int, int, char *);
+  int read_lines_from_file_universe(FILE *, int, int, char *);
 
  protected:
   int bordergroup;           // only communicate this group in borders
@@ -121,7 +121,7 @@ class Comm : protected Pointers {
   int size_border;                  // # of datums in forward border comm
 
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
-  int maxexchange;                  // max # of datums/atom in exchange comm 
+  int maxexchange;                  // max # of datums/atom in exchange comm
 
   int gridflag;                     // option for creating 3d grid
   int mapflag;                      // option for mapping procs to 3d grid

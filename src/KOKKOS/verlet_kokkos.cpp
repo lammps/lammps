@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "verlet_kokkos.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 VerletKokkos::VerletKokkos(LAMMPS *lmp, int narg, char **arg) :
-  Verlet(lmp, narg, arg) 
+  Verlet(lmp, narg, arg)
 {
   atomKK = (AtomKokkos *) atom;
 }

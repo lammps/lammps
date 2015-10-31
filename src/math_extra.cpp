@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 #include "math_extra.h"
 
 #define MAXJACOBI 50
@@ -230,7 +230,7 @@ void richardson(double *q, double *m, double *w, double *moments, double dtq)
    apply evolution operators to quat, quat momentum
    Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
-void no_squish_rotate(int k, double *p, double *q, double *inertia, 
+void no_squish_rotate(int k, double *p, double *q, double *inertia,
                       double dt)
 {
   double phi,c_phi,s_phi,kp[4],kq[4];

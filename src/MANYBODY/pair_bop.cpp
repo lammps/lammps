@@ -32,11 +32,11 @@
    Rules"_http://lammps.sandia.gov/open_source.html
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
 #include "pair_bop.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -49,7 +49,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "ctype.h"
+#include <ctype.h>
 
 using namespace LAMMPS_NS;
 
@@ -779,14 +779,14 @@ void PairBOP::gneigh()
         max_check3++;
       }
     }
- 
+
     BOP_index[i]=neigh_total;
     BOP_index3[i]=neigh_total3;
     BOP_total[i]=max_check;
     BOP_total3[i]=max_check3;
     neigh_total+=max_check;
     neigh_total3+=max_check3;
-    
+
     if(max_check>maxneigh||max_check3>maxneigh3){
        maxneigh=max_check;
        maxneigh3=max_check3;
@@ -901,9 +901,9 @@ void PairBOP::gneigh()
       for(jj=0;jj<nlisti;jj++) {
         temp_ij=BOP_index[i]+jj;
         j=iilist[neigh_index[temp_ij]];
-          
+
         jtype = map[type[j]]+1;
-  
+
         if(itype==jtype)
           i12=itype-1;
         else if(itype<jtype)
@@ -1231,7 +1231,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
   ilist = list->ilist;
   firstneigh = list->firstneigh;
   MPI_Comm_rank(world,&me);
-  
+
   if(nb_sg==0) {
     nb_sg=(maxneigh)*(maxneigh/2);
   }
@@ -1246,7 +1246,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
   } else {
     i=itmp;
   }
-  
+
   i_tag=tag[i];
   itype = map[type[i]]+1;
 
@@ -1467,7 +1467,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                 r_jk=rij[temp_jk];
               }
             }
-            
+
             sig_flag=0;
             for(nsearch=0;nsearch<nSigBk;nsearch++) {
               ncmp=itypeSigBk[nsearch];
@@ -1579,7 +1579,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
 //1st CC is Eq. 11 (c) for i atom where j & k=neighbor of i
 
             AA=AA+gfactorsq*betaS_ik*betaS_ik;
-            
+
 //agpdpr1 is derivative of AA w.r.t. Beta(rik)
 //app1 is derivative of AA w.r.t. cos(theta_jik)
 
@@ -1706,8 +1706,8 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                         *dis_jk[1]*r_ij*r_ij)/(r_ij*r_ij*r_jk*r_jk);
                     dcA_ijk[2][1]=(-dis_ij[2]*r_ij*r_jk-cosAng_ijk
                         *dis_jk[2]*r_ij*r_ij)/(r_ij*r_ij*r_jk*r_jk);
-                  } 
-                } else { 
+                  }
+                } else {
                   if(neigh_flag[temp_jkp]) {
                     pass_jkp=1;
                     dis_jkp[0]=disij[0][temp_jkp];
@@ -1734,8 +1734,8 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                     dcA_ijk[0][1]=dcAng[ang_ijk][0][ngjk];
                     dcA_ijk[1][1]=dcAng[ang_ijk][1][ngjk];
                     dcA_ijk[2][1]=dcAng[ang_ijk][2][ngjk];
-                  } 
-                } 
+                  }
+                }
                 if(pass_jkp==1) {
                   amean=cosAng_ijk;
                   if(amean<-1.0) amean=-1.0;
@@ -1792,7 +1792,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                       ngkj=0;
                     }
                     ang_ikj=cos_index[k]+nikj;
-               
+
                     cosAng_ikj=cosAng[ang_ikj];
                     dcA_ikj[0][0]=dcAng[ang_ikj][0][ngki];
                     dcA_ikj[1][0]=dcAng[ang_ikj][1][ngki];
@@ -2133,7 +2133,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                   }
                 }
               }
-  
+
 // j and k are different neighbors of i and k' is a neighbor k not equal to i
 
               for(ltmp=0;ltmp<nlistk;ltmp++) {
@@ -2198,7 +2198,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                       dBetaS_kkp=dBetaS[temp_kkp];
                     }
                   }
-                  if(pass_kkp==1) { 
+                  if(pass_kkp==1) {
                     sig_flag=0;
                     for(nsearch=0;nsearch<nSigBk;nsearch++) {
                       ncmp=itypeSigBk[nsearch];
@@ -2252,7 +2252,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                       dcA_ikkp[1][1]=dcAng[ang_ikkp][1][ngli];
                       dcA_ikkp[2][1]=dcAng[ang_ikkp][2][ngli];
                     }
-                     
+
                     nb_kkp=nb_t;
                     nb_t++;
                     if(nb_t>nb_sg) {
@@ -2301,7 +2301,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
 //where j , k =neighbor of i & k' =neighbor of k
 
                     CC=CC+gfactor*rfactor;
-  
+
 //agpdpr1 is derivative of CC 3rd term w.r.t. Beta(r_ik)
 //agpdpr2 is derivative of CC 3rd term w.r.t. Beta(r_kk')
 //app1 is derivative of CC 3rd term w.r.t. cos(theta_jik)
@@ -2353,7 +2353,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                 kp=jlist[ni_jkp];
                 kptype = map[type[kp]]+1;
                 kplist=firstneigh[kp];
- 
+
                 same_kkpk=0;
                 same_jkpj=0;
                 nlistkp=BOP_total[kp];
@@ -2705,7 +2705,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                         *(betaS_kkp+small2);
                     rfactor=pow(rfactor0,2.0/3.0);
                     drfactor=2.0/3.0*pow(rfactor0,-1.0/3.0);
- 
+
 //EE is Eq. 25(notes)
 
                     EE=EE+gfactor*rfactor;
@@ -2786,7 +2786,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
           temp_jk=BOP_index[j]+ktmp;
           ni_jk=neigh_index[temp_jk];
           k=jlist[ni_jk];
-          
+
           klist=firstneigh[k];
           ktype=map[type[k]]+1;
           nlistk=BOP_total[k];
@@ -2889,7 +2889,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
               dcA_ijk[2][1]=dcAng[ang_ijk][2][ngk];
             }
           }
-          if(pass_jk==1) {      
+          if(pass_jk==1) {
             nb_jk=nb_t;
             nb_t++;
             if(nb_t>nb_sg) {
@@ -3171,11 +3171,11 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                     gfactor=gfactor1*gfactor2*gfactor3;
                     rfactorrt=betaS_jk*betaS_jkp;
                     rfactor=rfactorrt*rfactorrt;
-  
+
 //2nd DD is Eq. 11 (c) for j atom where i , k & k'=neighbor of j
 
                     DD=DD+2.0*gfactor*rfactor;
-  
+
 //agpdpr1 is derivative of DD  w.r.t. Beta(r_jk)
 //agpdpr2 is derivative of DD  w.r.t. Beta(r_jk')
 //app1 is derivative of DD  w.r.t. cos(theta_ijk)
@@ -3222,7 +3222,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                         app2*dcA_ijkp[2][1]
                         +app3*dcA_kjkp[2][1]
                         +agpdpr2*dis_jkp[2];
-  
+
                   }
                 }
               }
@@ -3397,11 +3397,11 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
                     gfactor=gfactorsq*gfactorsq2;
                     rfactorrt=betaS_jk*betaS_kkp;
                     rfactor=rfactorrt*rfactorrt;
-  
+
 //3rd DD is Eq. 11 (c) for j atom where i & k=neighbor of j & k'=neighbor of k
 
                     DD=DD+gfactor*rfactor;
-  
+
 //agpdpr1 is derivative of DD  3rd term w.r.t. Beta(r_jk)
 //agpdpr2 is derivative of DD  3rd term w.r.t. Beta(r_kk')
 //app1 is derivative of DD  3rd term w.r.t. cos(theta_ijk)
@@ -3454,7 +3454,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
         sigB=0.0;
         sig_flag=1;
       }
-      if(sig_flag==0){ 
+      if(sig_flag==0){
       if(sigma_a[iij]==0){
         if(sig_flag==0) {
           if(AA<0.0)
@@ -3684,7 +3684,7 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
 //This loop is to ensure there is not an error for atoms with no neighbors (deposition)
 
 // sigB is the final expression for (a) Eq. 6 and (b) Eq. 11
- 
+
       if(nb_t==0) {
         if(j>i) {
           bt_sg[0].dSigB1[0]=bndtmp1*dis_ij[0];
@@ -3764,11 +3764,11 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
             part2=1.0-part1*EE1/part0;
             part3=dsigB1*part1/part0;
             part4=part3/part0*EE1;
-        
+
 // sigB is the final expression for (a) Eq. 6 and (b) Eq. 11
 
             sigB=dsigB1*part2;
- 
+
             pp1=2.0*betaS_ij;
             xtmp[0]=x[bt_j][0]-x[bt_i][0];
             xtmp[1]=x[bt_j][1]-x[bt_i][1];
@@ -4674,7 +4674,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
                         +2.0*cosAng_ijkp*(1.0-cosSq);
                       angFactor4=2.0*angFactor*angFactor-(1.0-cosSq)*(1.0-cosSq1);
                         betaCapSum=.5*betaCapSq1*betaCapSq2;
-  
+
 //4th BB is 4th term of Eq. 38 (a) where i , k and k' =neighbors j
 
                       BB=BB+betaCapSum*angFactor4;
@@ -5036,12 +5036,12 @@ void PairBOP::read_table(char *filename)
         }
       }
     }
-    if(nws==3) { 
+    if(nws==3) {
       sscanf(s,"%d %d %d",&nr,&ntheta,&nBOt);
       npower=2;
       if(ntheta<=10) npower=ntheta;
     }
-    else { 
+    else {
       sscanf(s,"%d %d",&nr,&nBOt);
       ntheta=0;
       npower=3;
@@ -5077,7 +5077,7 @@ void PairBOP::read_table(char *filename)
   memory->create(gfunc5,bop_types,bop_types,bop_types,ntheta,"BOP:gfunc5");
   memory->create(gfunc6,bop_types,bop_types,bop_types,ntheta,"BOP:gfunc6");
   memory->create(gpara,bop_types,bop_types,bop_types,npower+1,"BOP:gpara");
- 
+
   allocate();
   if (me == 0) {
     FILE *fp = force->open_potential(filename);
@@ -5115,7 +5115,7 @@ void PairBOP::read_table(char *filename)
         for(j=0;j<bop_types;j++)
           for(k=j;k<bop_types;k++) {
             if(npower<=2) {
-              for(m=0;m<ntheta;m++) { 
+              for(m=0;m<ntheta;m++) {
                 fgets(s,MAXLINE,fp);
                 sscanf(s,"%lf%lf%lf%lf%lf",&gfunc[j][i][k][n],&gfunc[j][i][k][n+1]
                     ,&gfunc[j][i][k][n+2],&gfunc[j][i][k][n+3],&gfunc[j][i][k][n+4]);
@@ -5372,11 +5372,11 @@ void PairBOP::read_table(char *filename)
               gfunc4[j][i][k][ntheta-1]=gfunc1[j][i][k][m]/dtheta;
               gfunc5[j][i][k][ntheta-1]=2.0*gfunc2[j][i][k][m]/dtheta;
               gfunc6[j][i][k][ntheta-1]=3.0*gfunc3[j][i][k][m]/dtheta;
-            } 
-          } 
-        } 
-      } 
-    } 
+            }
+          }
+        }
+      }
+    }
     for(i=0;i<bop_types;i++) {
       for(j=0;j<bop_types;j++) {
         for(k=0;k<j;k++) {
@@ -5393,11 +5393,11 @@ void PairBOP::read_table(char *filename)
           } else {
             for(n=0;n<npower+1;n++) {
               gpara[j][i][k][n]=gpara[k][i][j][n];
-            } 
-          } 
-        } 
-      } 
-    } 
+            }
+          }
+        }
+      }
+    }
     fclose(fp);
   }
   MPI_Bcast(&rdBO,1,MPI_DOUBLE,0,world);
@@ -5736,7 +5736,7 @@ double PairBOP::memory_usage()
     bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
   } else {
     bytes += bop_types*bop_types*bop_types*npower+1 *sizeof(double);
-  }  
+  }
   return bytes;
 }
 

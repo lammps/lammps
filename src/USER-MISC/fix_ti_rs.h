@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-    Contributing authors: 
+    Contributing authors:
              Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */

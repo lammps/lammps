@@ -57,10 +57,10 @@ class PairCoulStreitz : public Pair {
   double cut_coul, cut_coulsq;
   double *cut_respa;
   double **scale;
-  
+
   // Wolf
   double g_wolf, woself, dwoself;
-  
+
   // Ewald
   double g_ewald;
 
@@ -73,11 +73,11 @@ class PairCoulStreitz : public Pair {
   double self(Param *, double);
   void coulomb_integral_wolf(double, double, double, double &, double &,
         double &, double &);
-  void wolf_sum(double, double, double, double, double, double, double, 
+  void wolf_sum(double, double, double, double, double, double, double,
 		  double, double &, double &);
   void coulomb_integral_ewald(double, double, double, double &, double &,
         double &, double &);
-  void ewald_sum(double, double, double, double, double, double, double, 
+  void ewald_sum(double, double, double, double, double, double, double,
 		  double, double &, double &, double);
 
 };

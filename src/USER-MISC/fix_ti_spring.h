@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-    Contributing authors: 
+    Contributing authors:
              Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
@@ -44,7 +44,7 @@ class FixTISpring : public Fix {
   void   initial_integrate(int);
   double compute_scalar();
   double compute_vector(int);
-  
+
   double memory_usage();
   void   grow_arrays(int);
   void   copy_arrays(int, int, int);

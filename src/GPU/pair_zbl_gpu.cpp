@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_zbl_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,30 +33,30 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1, 
-                 double **host_sw2, double **host_sw3, double **host_sw4, 
-                 double **host_sw5, double **host_d1a, double **host_d2a, 
-                 double **host_d3a, double **host_d4a, double **host_zze, 
+int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1,
+                 double **host_sw2, double **host_sw3, double **host_sw4,
+                 double **host_sw5, double **host_d1a, double **host_d2a,
+                 double **host_d3a, double **host_d4a, double **host_zze,
                  double cut_globalsq, double cut_innersq, double cut_inner,
-                 const int inum, const int nall, const int max_nbors,  
-                 const int maxspecial, const double cell_size, 
+                 const int inum, const int nall, const int max_nbors,
+                 const int maxspecial, const double cell_size,
                  int &gpu_mode, FILE *screen);
 void zbl_gpu_clear();
 int ** zbl_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type, 
+                         const int nall, double **host_x, int *host_type,
                          double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,
                          const double cpu_time, bool &success);
-void zbl_gpu_compute(const int ago, const int inum, const int nall, 
+void zbl_gpu_compute(const int ago, const int inum, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
@@ -70,7 +70,7 @@ PairZBLGPU::PairZBLGPU(LAMMPS *lmp) : PairZBL(lmp), gpu_mode(GPU_FORCE)
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -88,10 +88,10 @@ void PairZBLGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -100,7 +100,7 @@ void PairZBLGPU::compute(int eflag, int vflag)
                                    atom->x, atom->type, domain->sublo,
                                    domain->subhi, atom->tag, atom->nspecial,
                                    atom->special, eflag, vflag, eflag_atom,
-                                   vflag_atom, host_start, 
+                                   vflag_atom, host_start,
                                    &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
@@ -127,7 +127,7 @@ void PairZBLGPU::compute(int eflag, int vflag)
 
 void PairZBLGPU::init_style()
 {
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with zbl/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -153,10 +153,10 @@ void PairZBLGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = zbl_gpu_init(atom->ntypes+1, cutsq, sw1, sw2, sw3, sw4, 
-                             sw5, d1a, d2a, d3a, d4a, zze, 
+  int success = zbl_gpu_init(atom->ntypes+1, cutsq, sw1, sw2, sw3, sw4,
+                             sw5, d1a, d2a, d3a, d4a, zze,
                              cut_globalsq, cut_innersq, cut_inner,
-                             atom->nlocal, atom->nlocal+atom->nghost, 
+                             atom->nlocal, atom->nlocal+atom->nghost,
                              300, maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -177,7 +177,7 @@ double PairZBLGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairZBLGPU::cpu_compute(int start, int inum, int eflag, int vflag, 
+void PairZBLGPU::cpu_compute(int start, int inum, int eflag, int vflag,
                              int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -215,7 +215,7 @@ void PairZBLGPU::cpu_compute(int start, int inum, int eflag, int vflag,
 
       	if (rsq > cut_innersq) {
 	        t = r - cut_inner;
-	        fswitch = t*t * 
+	        fswitch = t*t *
       	    (sw1[itype][jtype] + sw2[itype][jtype]*t);
       	  fpair += fswitch;
       	}
@@ -229,7 +229,7 @@ void PairZBLGPU::cpu_compute(int start, int inum, int eflag, int vflag,
           evdwl = e_zbl(r, itype, jtype);
       	  evdwl += sw5[itype][jtype];
       	  if (rsq > cut_innersq) {
-      	    eswitch = t*t*t * 
+      	    eswitch = t*t*t *
       	      (sw3[itype][jtype] + sw4[itype][jtype]*t);
       	    evdwl += eswitch;
       	  }

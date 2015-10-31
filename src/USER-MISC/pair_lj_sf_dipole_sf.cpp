@@ -15,8 +15,8 @@
    Contributing author: Mario Orsi (U Southampton), orsimario@gmail.com
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "pair_lj_sf_dipole_sf.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "string.h"
+#include <string.h>
 
 using namespace LAMMPS_NS;
 

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_chunk_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -99,8 +99,8 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     which = MOLECULE;
     iarg = 4;
 
-  } else if (strstr(arg[3],"c_") == arg[3] || 
-             strstr(arg[3],"f_") == arg[3] || 
+  } else if (strstr(arg[3],"c_") == arg[3] ||
+             strstr(arg[3],"f_") == arg[3] ||
              strstr(arg[3],"v_") == arg[3]) {
     if (arg[3][0] == 'c') which = COMPUTE;
     else if (arg[3][0] == 'f') which = FIX;
@@ -118,7 +118,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       argindex = atoi(ptr+1);
       *ptr = '\0';
     } else argindex = 0;
-    
+
     n = strlen(suffix) + 1;
     cfvid = new char[n];
     strcpy(cfvid,suffix);
@@ -172,7 +172,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
       if (limit) {
-        if (iarg+1 > narg) 
+        if (iarg+1 > narg)
           error->all(FLERR,"Illegal compute chunk/atom command");
         if (strcmp(arg[iarg+1],"max") == 0) limitstyle = LIMITMAX;
         else if (strcmp(arg[iarg+1],"exact") == 0) limitstyle = LIMITEXACT;
@@ -209,11 +209,11 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal compute chunk/atom command");
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
       else minflag[idim] = COORD;
-      if (minflag[idim] == COORD) 
+      if (minflag[idim] == COORD)
         minvalue[idim] = force->numeric(FLERR,arg[iarg+2]);
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
       else maxflag[idim] = COORD;
-      if (maxflag[idim] == COORD) 
+      if (maxflag[idim] == COORD)
         maxvalue[idim] = force->numeric(FLERR,arg[iarg+3]);
       else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 4;
@@ -251,17 +251,17 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (which == MOLECULE && !atom->molecule_flag) 
+  if (which == MOLECULE && !atom->molecule_flag)
     error->all(FLERR,"Compute chunk/atom molecule for non-molecular system");
 
   if (!binflag && discard == MIXED)
     error->all(FLERR,"Compute chunk/atom without bins "
                "cannot use discard mixed");
-  if (which == BIN1D && delta[0] <= 0.0) 
+  if (which == BIN1D && delta[0] <= 0.0)
     error->all(FLERR,"Illegal compute chunk/atom command");
   if (which == BIN2D && (delta[0] <= 0.0 || delta[1] <= 0.0))
     error->all(FLERR,"Illegal compute chunk/atom command");
-  if (which == BIN3D && 
+  if (which == BIN3D &&
       (delta[0] <= 0.0 || delta[1] <= 0.0 || delta[2] <= 0.0))
       error->all(FLERR,"Illegal compute chunk/atom command");
 
@@ -452,7 +452,7 @@ void ComputeChunkAtom::init()
       if (molecule[i] > maxone) maxone = molecule[i];
     tagint maxall;
     MPI_Allreduce(&maxone,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    if (maxall > MAXSMALLINT) 
+    if (maxall > MAXSMALLINT)
       error->all(FLERR,"Molecule IDs too large for compute chunk/atom");
   }
 
@@ -486,7 +486,7 @@ void ComputeChunkAtom::init()
     id_fix = new char[n];
     strcpy(id_fix,id);
     strcat(id_fix,"_COMPUTE_STORE");
-  
+
     char **newarg = new char*[5];
     newarg[0] = id_fix;
     newarg[1] = group->names[igroup];
@@ -535,7 +535,7 @@ void ComputeChunkAtom::compute_peratom()
     memory->create(chunk,nmax,"chunk/atom:chunk");
     vector_atom = chunk;
   }
-  
+
   setup_chunks();
   compute_ichunk();
 
@@ -672,13 +672,13 @@ void ComputeChunkAtom::compute_ichunk()
   // if newly calculated IDs need to persist, store them in fixstore
   // yes if idsflag = ONCE or idsflag = NFREQ and lock is in place
 
-  if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) { 
+  if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) {
     double *vstore = fixstore->vstore;
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) vstore[i] = ichunk[i];
   }
 
-  // one-time check if which = MOLECULE and 
+  // one-time check if which = MOLECULE and
   // any chunks do not contain all atoms in the molecule
 
   if (molcheck) {
@@ -740,14 +740,14 @@ int ComputeChunkAtom::setup_chunks()
 
   if (which == TYPE) nchunk = atom->ntypes;
   else if (!binflag) {
-    
+
     int nlocal = atom->nlocal;
     int hi = -1;
     for (int i = 0; i < nlocal; i++) {
       if (exclude[i]) continue;
       if (ichunk[i] > hi) hi = ichunk[i];
     }
-      
+
     MPI_Allreduce(&hi,&nchunk,1,MPI_INT,MPI_MAX,world);
     if (nchunk <= 0) nchunk = 1;
   }
@@ -810,7 +810,7 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   if (regionflag) {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit && 
+      if (mask[i] & groupbit &&
           region->match(x[i][0],x[i][1],x[i][2])) exclude[i] = 0;
       else exclude[i] = 1;
     }
@@ -932,7 +932,7 @@ void ComputeChunkAtom::compress_chunk_ids()
   bigint nbone = n;
   bigint nball;
   MPI_Allreduce(&nbone,&nball,1,MPI_LMP_BIGINT,MPI_SUM,world);
-                            
+
   // create my list of populated IDs
 
   int *list = NULL;
@@ -963,9 +963,9 @@ void ComputeChunkAtom::compress_chunk_ids()
     displs[0] = 0;
     for (int iproc = 1; iproc < nprocs; iproc++)
       displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-    
+
     // allgatherv acquires list of populated IDs from all procs
-    
+
     MPI_Allgatherv(list,n,MPI_INT,listall,recvcounts,displs,MPI_INT,world);
 
     // add all unique IDs in listall to my hash
@@ -1039,7 +1039,7 @@ void ComputeChunkAtom::check_molecules()
 
   if (!compress) {
     for (int i = 0; i < nlocal; i++) {
-      if (molecule[i] > 0 && molecule[i] <= nchunk && 
+      if (molecule[i] > 0 && molecule[i] <= nchunk &&
           ichunk[i] == 0) flag = 1;
     }
   } else {
@@ -1049,7 +1049,7 @@ void ComputeChunkAtom::check_molecules()
       if (hash->find(molid) != hash->end() && ichunk[i] == 0) flag = 1;
     }
   }
-  
+
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall && comm->me == 0)
@@ -1238,10 +1238,10 @@ void ComputeChunkAtom::atom2bin1d()
       if (xremap < boxlo[idim]) xremap += prd[idim];
       if (xremap >= boxhi[idim]) xremap -= prd[idim];
     }
-      
+
     ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
     if (xremap < offset[0]) ibin--;
-      
+
     if (discard == MIXED) {
       if (!minflag[idim]) ibin = MAX(ibin,0);
       else if (ibin < 0) {
@@ -1260,7 +1260,7 @@ void ComputeChunkAtom::atom2bin1d()
       exclude[i] = 1;
       continue;
     }
-      
+
     ichunk[i] = ibin+1;
   }
 
@@ -1312,10 +1312,10 @@ void ComputeChunkAtom::atom2bin2d()
       if (xremap < boxlo[idim]) xremap += prd[idim];
       if (xremap >= boxhi[idim]) xremap -= prd[idim];
     }
-      
+
     i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
     if (xremap < offset[0]) i1bin--;
-      
+
     if (discard == MIXED) {
       if (!minflag[idim]) i1bin = MAX(i1bin,0);
       else if (i1bin < 0) {
@@ -1420,7 +1420,7 @@ void ComputeChunkAtom::atom2bin3d()
 
     i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
     if (xremap < offset[0]) i1bin--;
-    
+
     if (discard == MIXED) {
       if (!minflag[idim]) i1bin = MAX(i1bin,0);
       else if (i1bin < 0) {
@@ -1439,7 +1439,7 @@ void ComputeChunkAtom::atom2bin3d()
       exclude[i] = 1;
       continue;
     }
-    
+
     yremap = x[i][jdim];
     if (periodicity[jdim]) {
       if (yremap < boxlo[jdim]) yremap += prd[jdim];
@@ -1495,7 +1495,7 @@ void ComputeChunkAtom::atom2bin3d()
       exclude[i] = 1;
       continue;
     }
-    
+
     ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
     ichunk[i] = ibin+1;
   }
@@ -1521,9 +1521,9 @@ void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
   else if (strcmp(arg[iarg+1],"center") == 0) originflag[idim] = CENTER;
   else if (strcmp(arg[iarg+1],"upper") == 0) originflag[idim] = UPPER;
   else originflag[idim] = COORD;
-  if (originflag[idim] == COORD) 
+  if (originflag[idim] == COORD)
     origin[idim] = force->numeric(FLERR,arg[iarg+1]);
-  
+
   delta[idim] = force->numeric(FLERR,arg[iarg+2]);
 }
 

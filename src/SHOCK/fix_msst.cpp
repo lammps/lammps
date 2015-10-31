@@ -17,9 +17,9 @@
    See Reed, Fried, Joannopoulos, Phys Rev Lett, 90, 235503 (2003)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_msst.h"
 #include "atom.h"
 #include "force.h"

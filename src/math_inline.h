@@ -13,7 +13,7 @@ namespace MathInline {
 
 // IEEE 754 double precision floating point data manipulation
 
-typedef union 
+typedef union
 {
     double   f;
     uint64_t u;
@@ -4171,7 +4171,7 @@ static double sqrtlgx2byx(const double x)
 
     val.f = x*x;
     hx = val.s.i1;
-    
+
     /* extract exponent and subtract bias */
     ipart = (((hx & FM_DOUBLE_EMASK) >> FM_DOUBLE_MBITS) - FM_DOUBLE_BIAS);
 

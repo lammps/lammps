@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_gran_hooke_history_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -23,7 +23,7 @@
 #include "neigh_list.h"
 #include "update.h"
 
-#include "string.h"
+#include <string.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

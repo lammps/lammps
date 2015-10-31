@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -15,9 +15,9 @@
    Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 #include "fix_lb_pc.h"
 #include "atom.h"
 #include "force.h"
@@ -29,7 +29,7 @@
 #include "domain.h"
 #include "fix_lb_fluid.h"
 #include "modify.h"
-#include "mpi.h"
+#include <mpi.h>
 #include "group.h"
 
 using namespace LAMMPS_NS;
@@ -64,7 +64,7 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
     }
 
   if(groupbit_lb_fluid == 0)
-    error->all(FLERR,"the lb/fluid fix must also be used if using the lb/pc fix");     
+    error->all(FLERR,"the lb/fluid fix must also be used if using the lb/pc fix");
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -72,7 +72,7 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
     if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
       error->one(FLERR,"can only use the lb/pc fix for an atom if also using the lb/fluid fix for that atom");
   }
-     
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +80,7 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
 FixLbPC::~FixLbPC() {
 
   atom->delete_callback(id,0);
-  
+
   memory->destroy(force_old);
   memory->destroy(up);
   memory->destroy(up_old);
@@ -108,7 +108,7 @@ void FixLbPC::init()
   double dt_lb = fix_lb_fluid->dt_lb;
 
   MPI_Comm_rank(world,&me);
-  
+
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
 
@@ -121,7 +121,7 @@ void FixLbPC::init()
 void FixLbPC::initial_integrate(int vflag) {
 
   double dtfm;
-  
+
   double **x = atom->x;
   double dx[3];
   double **v = atom->v;
@@ -144,13 +144,13 @@ void FixLbPC::initial_integrate(int vflag) {
     force_old[i][2] = f[i][2];
   }
 
-   
+
   if(rmass){
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf/rmass[i];
-	expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/rmass[i]);	
-	
+	expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/rmass[i]);
+
 	dx[0] = dtv*v[i][0] + 0.5*(f[i][0]*force->ftm2v - Gamma_MD[type[i]]*(v[i][0]-up[i][0]))*dtv*dtv/rmass[i];
 	dx[1] = dtv*v[i][1] + 0.5*(f[i][1]*force->ftm2v - Gamma_MD[type[i]]*(v[i][1]-up[i][1]))*dtv*dtv/rmass[i];
 	dx[2] = dtv*v[i][2] + 0.5*(f[i][2]*force->ftm2v - Gamma_MD[type[i]]*(v[i][2]-up[i][2]))*dtv*dtv/rmass[i];
@@ -158,20 +158,20 @@ void FixLbPC::initial_integrate(int vflag) {
 	x[i][0] += dx[0];
 	x[i][1] += dx[1];
 	x[i][2] += dx[2];
-	
+
 	// Approximation for v
 	if(Gamma_MD[type[i]] == 0.0){
 	  v[i][0] += f[i][0]*dtfm;
 	  v[i][1] += f[i][1]*dtfm;
 	  v[i][2] += f[i][2]*dtfm;
 	}else{
- 	  v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma + 
+ 	  v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
  	    f[i][0]*force->ftm2v/Gamma_MD[type[i]] + up[i][0];
- 	  v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma + 
+ 	  v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
  	    f[i][1]*force->ftm2v/Gamma_MD[type[i]] + up[i][1];
- 	  v[i][2] = (v[i][2]-up[i][2]-f[i][2]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma + 
+ 	  v[i][2] = (v[i][2]-up[i][2]-f[i][2]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
  	    f[i][2]*force->ftm2v/Gamma_MD[type[i]] + up[i][2];
-	}	  
+	}
       }
     }
 
@@ -180,7 +180,7 @@ void FixLbPC::initial_integrate(int vflag) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf/mass[type[i]];
-	expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/mass[type[i]]);	
+	expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/mass[type[i]]);
 
 	dx[0] = dtv*v[i][0] + 0.5*(f[i][0]*force->ftm2v - Gamma_MD[type[i]]*(v[i][0]-up[i][0]))*dtv*dtv/mass[type[i]];
 	dx[1] = dtv*v[i][1] + 0.5*(f[i][1]*force->ftm2v - Gamma_MD[type[i]]*(v[i][1]-up[i][1]))*dtv*dtv/mass[type[i]];
@@ -189,18 +189,18 @@ void FixLbPC::initial_integrate(int vflag) {
 	x[i][0] += dx[0];
 	x[i][1] += dx[1];
 	x[i][2] += dx[2];
-	
+
 	// Approximation for v
 	if(Gamma_MD[type[i]] == 0.0){
 	  v[i][0] += f[i][0]*dtfm;
 	  v[i][1] += f[i][1]*dtfm;
 	  v[i][2] += f[i][2]*dtfm;
 	}else{
- 	  v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma + 
+ 	  v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
  	    f[i][0]*force->ftm2v/Gamma_MD[type[i]] + up[i][0];
- 	  v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma + 
+ 	  v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
  	    f[i][1]*force->ftm2v/Gamma_MD[type[i]] + up[i][1];
- 	  v[i][2] = (v[i][2]-up[i][2]-f[i][2]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma + 
+ 	  v[i][2] = (v[i][2]-up[i][2]-f[i][2]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
  	    f[i][2]*force->ftm2v/Gamma_MD[type[i]] + up[i][2];
 	}
       }
@@ -222,14 +222,14 @@ void FixLbPC::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   compute_up();
-  
+
   if(rmass){
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf/rmass[i];
 	expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/rmass[i]);
 	DMDcoeff = (dtv - rmass[i]*(1.0-expminusdttimesgamma)/Gamma_MD[type[i]]);
-	
+
 	if(Gamma_MD[type[i]] == 0.0){
 	  v[i][0] += 0.5*(f[i][0] - force_old[i][0])*dtfm;
 	  v[i][1] += 0.5*(f[i][1] - force_old[i][1])*dtfm;
@@ -239,7 +239,7 @@ void FixLbPC::final_integrate()
 	  v[i][1] += DMDcoeff*((f[i][1] - force_old[i][1])*force->ftm2v/Gamma_MD[type[i]] + up[i][1] - up_old[i][1])/dtv;
 	  v[i][2] += DMDcoeff*((f[i][2] - force_old[i][2])*force->ftm2v/Gamma_MD[type[i]] + up[i][2] - up_old[i][2])/dtv;
 	}
-	
+
 
       }
     }
@@ -250,7 +250,7 @@ void FixLbPC::final_integrate()
 	dtfm = dtf/mass[type[i]];
 	expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/mass[type[i]]);
 	DMDcoeff = (dtv - mass[type[i]]*(1.0-expminusdttimesgamma)/Gamma_MD[type[i]]);
-       
+
 	if(Gamma_MD[type[i]] == 0.0){
 	  v[i][0] += 0.5*(f[i][0] - force_old[i][0])*dtfm;
 	  v[i][1] += 0.5*(f[i][1] - force_old[i][1])*dtfm;
@@ -259,7 +259,7 @@ void FixLbPC::final_integrate()
 	  v[i][0] += DMDcoeff*((f[i][0] - force_old[i][0])*force->ftm2v/Gamma_MD[type[i]] + up[i][0] - up_old[i][0])/dtv;
 	  v[i][1] += DMDcoeff*((f[i][1] - force_old[i][1])*force->ftm2v/Gamma_MD[type[i]] + up[i][1] - up_old[i][1])/dtv;
 	  v[i][2] += DMDcoeff*((f[i][2] - force_old[i][2])*force->ftm2v/Gamma_MD[type[i]] + up[i][2] - up_old[i][2])/dtv;
-	}	
+	}
 
       }
     }
@@ -359,18 +359,18 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
    double dt_lb = fix_lb_fluid->dt_lb;
    double FfP[64];
    int trilinear_stencil = fix_lb_fluid->trilinear_stencil;
-   
+
    for(i=0; i<nlocal; i++){
     if(mask[i] & groupbit){
 
       //Calculate nearest leftmost grid point.
       //Since array indices from 1 to subNb-2 correspond to the
-      // local subprocessor domain (not indices from 0), use the 
+      // local subprocessor domain (not indices from 0), use the
       // ceiling value.
       ix = (int)ceil((x[i][0]-domain->sublo[0])/dx_lb);
       iy = (int)ceil((x[i][1]-domain->sublo[1])/dx_lb);
       iz = (int)ceil((x[i][2]-domain->sublo[2])/dx_lb);
-      
+
       //Calculate distances to the nearest points.
       dx1 = x[i][0] - (domain->sublo[0] + (ix-1)*dx_lb);
       dy1 = x[i][1] - (domain->sublo[1] + (iy-1)*dx_lb);
@@ -380,13 +380,13 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
       dx1 = dx1/dx_lb;
       dy1 = dy1/dx_lb;
       dz1 = dz1/dx_lb;
-   
+
       up[i][0]=0.0; up[i][1]=0.0; up[i][2]=0.0;
       if(trilinear_stencil==0){
 	isten=0;
 	for(ii=-1; ii<3; ii++){
 	  rsq=(-dx1+ii)*(-dx1+ii);
-	  
+
 	  if(rsq>=4)
 	    weightx=0.0;
 	  else{
@@ -424,12 +424,12 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
 	      ixp = ix+ii;
 	      iyp = iy+jj;
 	      izp = iz+kk;
-	      
-	      
+
+
 	      if(ixp==-1) ixp=subNbx+2;
 	      if(iyp==-1) iyp=subNby+2;
 	      if(izp==-1) izp=subNbz+2;
-	      
+
 	      FfP[isten] = weightx*weighty*weightz;
 	      // interpolated velocity based on delta function.
 	      for(k=0; k<3; k++){
@@ -447,11 +447,11 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
 	FfP[5] = dx1*(1.-dy1)*dz1;
 	FfP[6] = dx1*dy1*(1.-dz1);
 	FfP[7] = dx1*dy1*dz1;
-	
+
 	ixp = (ix+1);
 	iyp = (iy+1);
 	izp = (iz+1);
-	
+
 	for (k=0; k<3; k++) { 	// tri-linearly interpolated velocity at node
 	  up[i][k] = u_lb[ix][iy][iz][k]*FfP[0]
 	    + u_lb[ix][iy][izp][k]*FfP[1]
@@ -460,9 +460,9 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
 	    + u_lb[ixp][iy][iz][k]*FfP[4]
 	    + u_lb[ixp][iy][izp][k]*FfP[5]
 	    + u_lb[ixp][iyp][iz][k]*FfP[6]
-	    + u_lb[ixp][iyp][izp][k]*FfP[7];	  
+	    + u_lb[ixp][iyp][izp][k]*FfP[7];
 	}
-      }    
+      }
       for(k=0; k<3; k++)
 	up[i][k] = up[i][k]*dx_lb/dt_lb;
 

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "verlet_intel.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -160,7 +160,7 @@ void VerletIntel::setup()
 	sync_mode = 1;
     }
   }
-  
+
   if (sync_mode == 1) fix_intel->sync_coprocessor();
   #endif
 
@@ -238,7 +238,7 @@ void VerletIntel::setup_minimal(int flag)
 	sync_mode = 1;
     }
   }
-  
+
   if (sync_mode == 1) fix_intel->sync_coprocessor();
   #endif
 

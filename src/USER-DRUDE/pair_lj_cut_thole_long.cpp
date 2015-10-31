@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_thole_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -115,7 +115,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -133,7 +133,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
       di_closest = domain->closest_image(i, di);
       if (drudetype[type[i]] == CORE_TYPE)
         dqi = -q[di];
-      else 
+      else
         dqi = qi;
     }
 
@@ -179,7 +179,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
               forcecoul -= (1.0-factor_coul)*prefactor;
             }
           }
-          
+
           if (drudetype[type[i]] != NOPOL_TYPE &&
               drudetype[type[j]] != NOPOL_TYPE){
             if (j != di_closest){
@@ -242,7 +242,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
       }
     }
   }
-  
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -320,7 +320,7 @@ void PairLJCutTholeLong::coeff(int narg, char **arg)
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double polar_one = force->numeric(FLERR,arg[4]);
-  double thole_one = thole_global; 
+  double thole_one = thole_global;
   if (narg >=6) thole_one = force->numeric(FLERR,arg[5]);
 
   double cut_lj_one = cut_lj_global;
@@ -650,7 +650,7 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
         factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr))))
             - factor_coul;
         forcecoul += factor_f * dcoul;
-        factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul; 
+        factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
       }
     }
   } else forcecoul = 0.0;

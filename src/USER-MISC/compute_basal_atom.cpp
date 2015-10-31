@@ -16,7 +16,7 @@
                         Copyright (C) 2013
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_basal_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -164,7 +164,7 @@ void ComputeBasalAtom::compute_peratom()
       for (jj = 0; jj < jnum; jj++) {
       	j = jlist[jj];
 	j &= NEIGHMASK;
-	
+
       	delx = xtmp - x[j][0];
       	dely = ytmp - x[j][1];
       	delz = ztmp - x[j][2];
@@ -172,7 +172,7 @@ void ComputeBasalAtom::compute_peratom()
       	if (rsq < cutsq) {
 	  distsq[n] = rsq;
 	  nearest[n++] = j;
-	}  
+	}
       }
 
       // Select 6 nearest neighbors
@@ -220,7 +220,7 @@ void ComputeBasalAtom::compute_peratom()
 	  if (norm_k <= 0.) {continue;}
 	  bond_angle = (x_ij*x_ik + y_ij*y_ik + z_ij*z_ik) / (norm_j*norm_k);
 	  //find all bond angles that are about 180 degrees
-	  if (-1. <= bond_angle && bond_angle < -0.945) { 
+	  if (-1. <= bond_angle && bond_angle < -0.945) {
 		x3[chi[0]] = x_ik - x_ij;
 		y3[chi[0]] = y_ik - y_ij;
 		z3[chi[0]] = z_ik - z_ij;
@@ -416,7 +416,7 @@ void ComputeBasalAtom::compute_peratom()
       else BPV[i][0] = BPV[i][1] = BPV[i][2] = 0.0;
 
       //normalize BPV:
-      double Mag = sqrt(BPV[i][0]*BPV[i][0] + 
+      double Mag = sqrt(BPV[i][0]*BPV[i][0] +
                         BPV[i][1]*BPV[i][1] + BPV[i][2]*BPV[i][2]);
       if (Mag > 0){
         BPV[i][0] = BPV[i][0]/Mag;

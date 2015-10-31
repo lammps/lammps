@@ -24,11 +24,11 @@
   Given a table of ntab data points tab, assumed to be sampled
   on an equidistant grid, compute coefficients of interpolating
   cubic polynimials, one per interval (i.e. ntab-1 polynomials).
-  
+
   Input point i is located at tab[i*stride].
-  
+
   Coefficients of output polynomial j are at C[j][0..3];
-  
+
   The piecewise polynimials form a C^2 function which
   approximates the input function to fourth order.
 

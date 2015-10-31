@@ -143,7 +143,7 @@ void Neighbor::half_bin_no_newton_intel(NeighList *list)
   int host_start = off_end;;
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->full_host_list()) host_start = 0;
-  if (exclude) 
+  if (exclude)
     error->all(FLERR, "Exclusion lists not yet supported for Intel offload");
   #endif
 
@@ -214,7 +214,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
 				sizeof(ATOM_T));
       buffers->thr_pack(ifrom, ito, 0);
     }
@@ -492,9 +492,9 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
               ofind_special(which, special, nspecial, i, tag[j], special_flag);
             #ifdef _LMP_INTEL_OFFLOAD
 	    if (j >= nlocal) {
-	      if (j == nall) 
+	      if (j == nall)
 		jlist[jj] = nall_offset;
-	      else if (which > 0) 
+	      else if (which > 0)
 		jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
 	      else jlist[jj]-=ghost_offset;
             } else
@@ -571,7 +571,7 @@ void Neighbor::half_bin_newton_intel(NeighList *list)
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->full_host_list()) host_start = 0;
   offload_noghost = fix->offload_noghost();
-  if (exclude) 
+  if (exclude)
     error->all(FLERR, "Exclusion lists not yet supported for Intel offload");
   #endif
 
@@ -587,7 +587,7 @@ void Neighbor::half_bin_newton_intel(NeighList *list)
 	                       0, off_end, fix);
 	hbni<float,double,1,1>(0, list, fix->get_mixed_buffers(),
 	                       host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
 	hbni<float,double,0,1>(1, list, fix->get_mixed_buffers(),
@@ -602,25 +602,25 @@ void Neighbor::half_bin_newton_intel(NeighList *list)
                                 0, off_end, fix);
         hbni<double,double,1,1>(0, list, fix->get_double_buffers(),
                                 host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         hbni<double,double,0,1>(1, list, fix->get_double_buffers(),
                                 0, off_end, fix);
         hbni<double,double,0,1>(0, list, fix->get_double_buffers(),
                                 host_start, nlocal, fix);
-      }  
+      }
     } else {
       #ifdef _LMP_INTEL_OFFLOAD
       if (offload_noghost) {
-        hbni<float,float,1,1>(1, list, fix->get_single_buffers(), 0, off_end, 
+        hbni<float,float,1,1>(1, list, fix->get_single_buffers(), 0, off_end,
 	                      fix);
         hbni<float,float,1,1>(0, list, fix->get_single_buffers(),
                               host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
-        hbni<float,float,0,1>(1, list, fix->get_single_buffers(), 0, off_end, 
+        hbni<float,float,0,1>(1, list, fix->get_single_buffers(), 0, off_end,
 	                      fix);
         hbni<float,float,0,1>(0, list, fix->get_single_buffers(),
                               host_start, nlocal, fix);
@@ -634,7 +634,7 @@ void Neighbor::half_bin_newton_intel(NeighList *list)
 	                       0, off_end, fix);
 	hbni<float,double,1,0>(0, list, fix->get_mixed_buffers(),
 	                       host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
 	hbni<float,double,0,0>(1, list, fix->get_mixed_buffers(),
@@ -649,25 +649,25 @@ void Neighbor::half_bin_newton_intel(NeighList *list)
                                 0, off_end, fix);
         hbni<double,double,1,0>(0, list, fix->get_double_buffers(),
                                 host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         hbni<double,double,0,0>(1, list, fix->get_double_buffers(),
                                 0, off_end, fix);
         hbni<double,double,0,0>(0, list, fix->get_double_buffers(),
                                 host_start, nlocal, fix);
-      }  
+      }
     } else {
       #ifdef _LMP_INTEL_OFFLOAD
       if (offload_noghost) {
-        hbni<float,float,1,0>(1, list, fix->get_single_buffers(), 0, off_end, 
+        hbni<float,float,1,0>(1, list, fix->get_single_buffers(), 0, off_end,
 	                      fix);
         hbni<float,float,1,0>(0, list, fix->get_single_buffers(),
                               host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
-        hbni<float,float,0,0>(1, list, fix->get_single_buffers(), 0, off_end, 
+        hbni<float,float,0,0>(1, list, fix->get_single_buffers(), 0, off_end,
 	                      fix);
         hbni<float,float,0,0>(0, list, fix->get_single_buffers(),
                               host_start, nlocal, fix);
@@ -703,7 +703,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
 				sizeof(ATOM_T));
       buffers->thr_pack(ifrom, ito, 0);
     }
@@ -717,7 +717,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     fix->start_watch(TIME_HOST_NEIGHBOR);
     if (INTEL_NBOR_PAD > 1)
       pad = INTEL_NBOR_PAD * sizeof(float) / sizeof(flt_t);
-  }    
+  }
   const int pad_width = pad;
 
   if (aend-astart == 0) {
@@ -845,7 +845,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
       #ifdef _LMP_INTEL_OFFLOAD
       int lmin = e_nall, lmax = -1, gmin = e_nall, gmax = -1;
       #endif
-      
+
       const int num = aend - astart;
       int tid, ifrom, ito;
       IP_PRE_omp_range_id(ifrom, ito, tid, num, nthreads);
@@ -1044,7 +1044,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 	    if (j >= nlocal) {
 	      if (j == e_nall)
 		jlist[jj] = nall_offset;
-	      else if (which > 0) 
+	      else if (which > 0)
 		jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
 	      else jlist[jj]-=ghost_offset;
             } else
@@ -1121,7 +1121,7 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->full_host_list()) host_start = 0;
   offload_noghost = fix->offload_noghost();
-  if (exclude) 
+  if (exclude)
     error->all(FLERR, "Exclusion lists not yet supported for Intel offload");
   #endif
 
@@ -1137,7 +1137,7 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
   			        0, off_end, fix);
         hbnti<float,double,1,1>(0, list, fix->get_mixed_buffers(),
   			        host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         hbnti<float,double,0,1>(1, list, fix->get_mixed_buffers(),
@@ -1153,7 +1153,7 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
         hbnti<double,double,1,1>(0, list, fix->get_double_buffers(),
 			         host_start, nlocal, fix, off_end);
       } else
-      #endif 
+      #endif
       {
         hbnti<double,double,0,1>(1, list, fix->get_double_buffers(),
 			         0, off_end, fix);
@@ -1167,7 +1167,7 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
 	  		       0, off_end, fix);
         hbnti<float,float,1,1>(0, list, fix->get_single_buffers(),
 			       host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         hbnti<float,float,0,1>(1, list, fix->get_single_buffers(),
@@ -1184,7 +1184,7 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
   			        0, off_end, fix);
         hbnti<float,double,1,0>(0, list, fix->get_mixed_buffers(),
   			        host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         hbnti<float,double,0,0>(1, list, fix->get_mixed_buffers(),
@@ -1199,7 +1199,7 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
 	  		         0, off_end, fix);
         hbnti<double,double,1,0>(0, list, fix->get_double_buffers(),
 			         host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         hbnti<double,double,0,0>(1, list, fix->get_double_buffers(),
@@ -1214,7 +1214,7 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
 	  		       0, off_end, fix);
         hbnti<float,float,1,0>(0, list, fix->get_single_buffers(),
 			       host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         hbnti<float,float,0,0>(1, list, fix->get_single_buffers(),
@@ -1253,7 +1253,7 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
 				sizeof(ATOM_T));
       buffers->thr_pack(ifrom, ito, 0);
     }
@@ -1548,9 +1548,9 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
               ofind_special(which, special, nspecial, i, tag[j], special_flag);
             #ifdef _LMP_INTEL_OFFLOAD
 	    if (j >= nlocal) {
-	      if (j == e_nall) 
+	      if (j == e_nall)
 		jlist[jj] = nall_offset;
-	      else if (which > 0) 
+	      else if (which > 0)
 		jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
 	      else jlist[jj]-=ghost_offset;
             } else
@@ -1643,7 +1643,7 @@ void Neighbor::full_bin_intel(NeighList *list)
                               0, off_end, fix);
         fbi<float,double,1,1>(0, list, fix->get_mixed_buffers(),
                               host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         fbi<float,double,0,1>(1, list, fix->get_mixed_buffers(),
@@ -1658,7 +1658,7 @@ void Neighbor::full_bin_intel(NeighList *list)
                                0, off_end, fix);
         fbi<double,double,1,1>(0, list, fix->get_double_buffers(),
                                host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         fbi<double,double,0,1>(1, list, fix->get_double_buffers(),
@@ -1669,14 +1669,14 @@ void Neighbor::full_bin_intel(NeighList *list)
     } else {
       #ifdef _LMP_INTEL_OFFLOAD
       if (offload_noghost) {
-        fbi<float,float,1,1>(1, list, fix->get_single_buffers(), 0, off_end, 
+        fbi<float,float,1,1>(1, list, fix->get_single_buffers(), 0, off_end,
 			     fix);
         fbi<float,float,1,1>(0, list, fix->get_single_buffers(),
                              host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
-        fbi<float,float,0,1>(1, list, fix->get_single_buffers(), 0, off_end, 
+        fbi<float,float,0,1>(1, list, fix->get_single_buffers(), 0, off_end,
 			     fix);
         fbi<float,float,0,1>(0, list, fix->get_single_buffers(),
                              host_start, nlocal, fix);
@@ -1690,7 +1690,7 @@ void Neighbor::full_bin_intel(NeighList *list)
                               0, off_end, fix);
         fbi<float,double,1,0>(0, list, fix->get_mixed_buffers(),
                               host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         fbi<float,double,0,0>(1, list, fix->get_mixed_buffers(),
@@ -1705,7 +1705,7 @@ void Neighbor::full_bin_intel(NeighList *list)
                                0, off_end, fix);
         fbi<double,double,1,0>(0, list, fix->get_double_buffers(),
                                host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
         fbi<double,double,0,0>(1, list, fix->get_double_buffers(),
@@ -1716,14 +1716,14 @@ void Neighbor::full_bin_intel(NeighList *list)
     } else {
       #ifdef _LMP_INTEL_OFFLOAD
       if (offload_noghost) {
-        fbi<float,float,1,0>(1, list, fix->get_single_buffers(), 0, off_end, 
+        fbi<float,float,1,0>(1, list, fix->get_single_buffers(), 0, off_end,
 			     fix);
         fbi<float,float,1,0>(0, list, fix->get_single_buffers(),
                              host_start, nlocal, fix, off_end);
-      } else 
+      } else
       #endif
       {
-        fbi<float,float,0,0>(1, list, fix->get_single_buffers(), 0, off_end, 
+        fbi<float,float,0,0>(1, list, fix->get_single_buffers(), 0, off_end,
 			     fix);
         fbi<float,float,0,0>(0, list, fix->get_single_buffers(),
                              host_start, nlocal, fix);
@@ -1957,7 +1957,7 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
 	      } else {
 		if (x[j].z < ztmp) flist = 1;
 		else if (x[j].z == ztmp && x[j].y < ytmp) flist = 1;
-		else if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) 
+		else if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp)
 		  flist = 1;
 	      }
 	      if (flist) {
@@ -1980,8 +1980,8 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
                     neighptr[n++] = j;
                 } else
  		  neighptr[n++] = j;
-              } 
-	      
+              }
+
               #ifdef _LMP_INTEL_OFFLOAD
 	      if (j < nlocal) {
                 if (j < lmin) lmin = j;

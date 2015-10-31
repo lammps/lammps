@@ -104,7 +104,7 @@ int NeighRequest::identical(NeighRequest *other)
   //   prevents an old fix from being unfix/refix in same memory location
   //   and appearing to be old, when it is really new
   //   only needed for classes with persistent neigh lists: Fix, Compute, Pair
-  
+
   if (other->unprocessed) same = 0;
 
   if (requestor != other->requestor) same = 0;

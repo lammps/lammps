@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_hybrid.h"
 #include "atom.h"
 #include "domain.h"
@@ -207,7 +207,7 @@ void AtomVecHybrid::clear_bonus()
 
 void AtomVecHybrid::force_clear(int n, size_t nbytes)
 {
-  for (int k = 0; k < nstyles; k++) 
+  for (int k = 0; k < nstyles; k++)
     if (styles[k]->forceclearflag) styles[k]->force_clear(n,nbytes);
 }
 
@@ -1024,7 +1024,7 @@ int AtomVecHybrid::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::pack_property_atom(int multiindex, double *buf, 
+void AtomVecHybrid::pack_property_atom(int multiindex, double *buf,
                                        int nvalues, int groupbit)
 {
   int k = multiindex % nstyles;

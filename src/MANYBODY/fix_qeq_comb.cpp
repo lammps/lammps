@@ -15,10 +15,10 @@
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_comb.h"
 #include "pair_comb3.h"
 #include "fix_qeq_comb.h"
@@ -289,7 +289,7 @@ double FixQEQComb::memory_usage()
 }
 /* ---------------------------------------------------------------------- */
 
-int FixQEQComb::pack_forward_comm(int n, int *list, double *buf, 
+int FixQEQComb::pack_forward_comm(int n, int *list, double *buf,
                                   int pbc_flag, int *pbc)
 {
   int i,j,m;

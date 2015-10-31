@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_tri.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -1669,7 +1669,7 @@ int AtomVecTri::pack_vel_hybrid(int i, double *buf)
 void AtomVecTri::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
             (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],
             buf[i][4],buf[i][5],buf[i][6]);
@@ -1704,7 +1704,7 @@ bigint AtomVecTri::memory_usage()
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
-  if (atom->memcheck("torque")) bytes += 
+  if (atom->memcheck("torque")) bytes +=
                                   memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("tri")) bytes += memory->usage(tri,nmax);
 

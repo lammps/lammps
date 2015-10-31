@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_electron.h"
 #include "atom.h"
 #include "comm.h"
@@ -908,7 +908,7 @@ int AtomVecElectron::pack_data_hybrid(int i, double *buf)
 void AtomVecElectron::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %d %-1.16e %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,buf[i][2],
             (int) ubuf(buf[i][3]).i,buf[i][4],buf[i][5],buf[i][6],buf[i][7],
@@ -992,7 +992,7 @@ int AtomVecElectron::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecElectron::pack_property_atom(int index, double *buf, 
+void AtomVecElectron::pack_property_atom(int index, double *buf,
                                          int nvalues, int groupbit)
 {
   int *mask = atom->mask;
@@ -1046,7 +1046,7 @@ bigint AtomVecElectron::memory_usage()
   if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
   if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
   if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
-  if (atom->memcheck("erforce")) 
+  if (atom->memcheck("erforce"))
     bytes += memory->usage(erforce,nmax*comm->nthreads);
 
   return bytes;

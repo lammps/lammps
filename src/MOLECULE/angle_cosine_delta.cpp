@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U), akohlmey at gmail.com
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "angle_cosine_delta.h"
 #include "atom.h"
 #include "neighbor.h"

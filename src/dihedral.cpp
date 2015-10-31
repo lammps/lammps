@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "dihedral.h"
 #include "atom.h"
 #include "comm.h"
@@ -67,7 +67,7 @@ Dihedral::~Dihedral()
 
 void Dihedral::init()
 {
-  if (!allocated && atom->ndihedraltypes) 
+  if (!allocated && atom->ndihedraltypes)
     error->all(FLERR,"Dihedral coeffs are not set");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     if (setflag[i] == 0) error->all(FLERR,"All dihedral coeffs are not set");

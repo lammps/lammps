@@ -245,7 +245,7 @@ class Atom : protected Pointers {
   int find_custom(char *, int &);
   int add_custom(char *, int);
   void remove_custom(int, int);
-  
+
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
   void *extract(char *);

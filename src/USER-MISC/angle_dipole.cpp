@@ -15,8 +15,8 @@
    Contributing author: Mario Orsi (U Southampton), orsimario@gmail.com
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "angle_dipole.h"
 #include "atom.h"
 #include "neighbor.h"

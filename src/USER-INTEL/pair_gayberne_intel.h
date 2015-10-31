@@ -55,9 +55,9 @@ class PairGayBerneIntel : public PairGayBerne {
   template <class flt_t>
   class ForceConst {
    public:
-    typedef struct { 
-      flt_t cutsq, lj1, lj2, offset, sigma, epsilon, lshape; 
-      int form; 
+    typedef struct {
+      flt_t cutsq, lj1, lj2, offset, sigma, epsilon, lshape;
+      int form;
     } fc_packed1;
     typedef struct { flt_t lj3, lj4; } fc_packed2;
     typedef struct { flt_t shape2[4], well[4]; } fc_packed3;

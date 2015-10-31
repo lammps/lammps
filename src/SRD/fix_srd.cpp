@@ -15,9 +15,9 @@
    Contributing authors: Jeremy Lechman (SNL), Pieter in 't Veld (BASF)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_srd.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -185,9 +185,9 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"rescale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
-      if (strcmp(arg[iarg+1],"no") == 0) 
+      if (strcmp(arg[iarg+1],"no") == 0)
         rescale_rotate = rescale_collide = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) 
+      else if (strcmp(arg[iarg+1],"yes") == 0)
         rescale_rotate = rescale_collide = 1;
       else if (strcmp(arg[iarg+1],"rotate") == 0) {
         rescale_rotate = 1;
@@ -337,7 +337,7 @@ void FixSRD::init()
     error->all(FLERR,"Fix srd no-slip requires atom attribute torque");
   if (initflag && update->dt != dt_big)
     error->all(FLERR,"Cannot change timestep once fix srd is setup");
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"Fix srd can only currently be used with "
                         "comm_style brick");
 
@@ -745,7 +745,7 @@ void FixSRD::post_force(int vflag)
         if (ix < 0 || ix >= nbin2x || iy < 0 || iy >= nbin2y ||
             iz < 0 || iz >= nbin2z) {
           if (screen) {
-            fprintf(screen,"SRD particle " TAGINT_FORMAT 
+            fprintf(screen,"SRD particle " TAGINT_FORMAT
                     " on step " BIGINT_FORMAT "\n",
                     atom->tag[i],update->ntimestep);
             fprintf(screen,"v = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
@@ -961,7 +961,7 @@ void FixSRD::reset_velocities()
     if (dimension == 3) axis = irandom / 2;
 
     vsq = 0.0;
-    for (j = binhead[i]; j >= 0; j = binnext[j]) {   
+    for (j = binhead[i]; j >= 0; j = binnext[j]) {
       if (axis == 0) {
         u[0] = v[j][0]-vave[0];
         u[1] = sign ? v[j][2]-vave[2] : vave[2]-v[j][2];
@@ -983,7 +983,7 @@ void FixSRD::reset_velocities()
 
     if (n > 1) vbin[i].value[0] = vsq;
   }
-   
+
   if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
 
   if (tstat) {
@@ -1009,11 +1009,11 @@ void FixSRD::reset_velocities()
 
       // tbin = thermal temperature of particles in bin
       // scale = scale factor for thermal velocity
-      
+
       tbin = vbin[i].value[0]/(n-dof_tstat) * tfactor;
       scale = sqrt(temperature_srd/tbin);
       vsq = 0.0;
-      for (j = binhead[i]; j >= 0; j = binnext[j]) {	
+      for (j = binhead[i]; j >= 0; j = binnext[j]) {
         u[0] = (v[j][0] - vave[0]) * scale;
         u[1] = (v[j][1] - vave[1]) * scale;
         u[2] = (v[j][2] - vave[2]) * scale;
@@ -1246,7 +1246,7 @@ void FixSRD::xbin_unpack(double *buf, BinAve *vbin, int n, int *list, int nval)
   int m = 0;
   for (int i = 0; i < n; i++) {
     j = list[i];
-    for (k = 0; k < nval; k++) 
+    for (k = 0; k < nval; k++)
       vbin[j].value[k] += buf[m++];
   }
 }
@@ -1339,7 +1339,7 @@ void FixSRD::collisions_single()
               if (type != WALL) {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
-                        "inside big particle " TAGINT_FORMAT 
+                        "inside big particle " TAGINT_FORMAT
                         " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
 		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
@@ -1498,7 +1498,7 @@ void FixSRD::collisions_multi()
               if (type != WALL) {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
-                        "inside big particle " TAGINT_FORMAT 
+                        "inside big particle " TAGINT_FORMAT
                         " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
 		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
@@ -2505,7 +2505,7 @@ int FixSRD::update_srd(int i, double dt, double *xscoll, double *vsnew,
       xs[2] < srdlo[2] || xs[2] > srdhi[2]) {
     if (screen) {
       error->warning(FLERR,"Fix srd particle moved outside valid domain");
-      fprintf(screen,"  particle " TAGINT_FORMAT 
+      fprintf(screen,"  particle " TAGINT_FORMAT
               " on proc %d at timestep " BIGINT_FORMAT,
               atom->tag[i],me,update->ntimestep);
       fprintf(screen,"  xnew %g %g %g\n",xs[0],xs[1],xs[2]);
@@ -4007,7 +4007,7 @@ void FixSRD::print_collision(int i, int j, int ibounce,
   double **v = atom->v;
 
   if (type != WALL) {
-    printf("COLLISION between SRD " TAGINT_FORMAT 
+    printf("COLLISION between SRD " TAGINT_FORMAT
            " and BIG " TAGINT_FORMAT "\n",atom->tag[i],atom->tag[j]);
     printf("  bounce # = %d\n",ibounce+1);
     printf("  local indices: %d %d\n",i,j);

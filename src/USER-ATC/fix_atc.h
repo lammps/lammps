@@ -17,19 +17,19 @@ namespace LAMMPS_NS {
   class  NeighList;
 
   /**
-   *  @class FixATC 
-   *  @brief Class for an atom-to-continuum (ATC) Lammps fix. 
+   *  @class FixATC
+   *  @brief Class for an atom-to-continuum (ATC) Lammps fix.
    */
 
   class FixATC : public Fix {
-  public: 
+  public:
     /** constructor & destructor */
     FixATC(class LAMMPS *, int, char **);
     ~FixATC();
 
     /** initialization functions */
     void init();
-    void init_list(int id, NeighList *ptr) ; 
+    void init_list(int id, NeighList *ptr) ;
     void setup(int vflag);
     void min_setup(int vflag);
 
@@ -55,32 +55,32 @@ namespace LAMMPS_NS {
     void min_setup_pre_exchange();
     void min_pre_exchange();
 
-    double memory_usage(); 
+    double memory_usage();
     void grow_arrays(int);
     void copy_arrays(int, int, int);
 
     /** pack_exchange called from atom_vec->pack_exchange()
-       and packs fix-specific data for a given real (local) 
+       and packs fix-specific data for a given real (local)
        atom being sent to another processor.  */
     int pack_exchange(int, double *);
 
     /** unpack_exchange called from atom_vec->unpack_exchange()
-       and unpacks fix-specific data for a given real (local) 
+       and unpacks fix-specific data for a given real (local)
        atom received from another processor. */
     int unpack_exchange(int, double *);
 
     /** pack_comm called from comm->forward_comm_fix and
        packs fix-specific data for a given ghost atom
        from exchange with another proc */
-    int pack_forward_comm(int , int *, double *, int, int *);  
- 
+    int pack_forward_comm(int , int *, double *, int, int *);
+
     /** unpack_comm called from comm->forward_comm_fix and
        unpacks fix-specific data for a given ghost atom
        from exchange with another proc */
     void unpack_forward_comm(int, int, double *);
 
     /** pre_neighbor is used to modify fix-specific data
-       and is called before neighbor list is built in 
+       and is called before neighbor list is built in
        neighbor->build().  */
     void pre_neighbor();
     void setup_pre_neighbor();

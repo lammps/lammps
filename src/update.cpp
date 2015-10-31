@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "update.h"
 #include "integrate.h"
 #include "min.h"
@@ -261,8 +261,8 @@ void Update::set_units(const char *style)
 
     dt = 2.0;
     neighbor->skin = 0.1;
-                                              
-  } else if (strcmp(style,"nano") == 0) {  
+
+  } else if (strcmp(style,"nano") == 0) {
     force->boltz = 0.013806504;
     force->hplanck = 6.62606896e-4;
     force->mvv2e = 1.0;
@@ -279,7 +279,7 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0e-1;
     force->femtosecond = 1.0e-6;
     force->qelectron = 1.0;
-       
+
     dt = 0.00045;
     neighbor->skin = 0.1;
 
@@ -339,11 +339,11 @@ void Update::new_integrate(char *style, int narg, char **arg,
 #include "style_integrate.h"
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
-      
+
       else success = 0;
       if (success) return;
     }
-    
+
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
@@ -358,7 +358,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 #include "style_integrate.h"
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
-      
+
       else success = 0;
       if (success) return;
     }

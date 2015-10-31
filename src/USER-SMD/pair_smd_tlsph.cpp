@@ -23,10 +23,10 @@
  ------------------------------------------------------------------------- */
 
 #include "group.h"
-#include "math.h"
-#include "float.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <float.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_smd_tlsph.h"
 #include "fix_smd_tlsph_reference_configuration.h"
 #include "atom.h"

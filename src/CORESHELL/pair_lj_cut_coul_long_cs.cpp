@@ -15,10 +15,10 @@
    Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_long_cs.h"
 #include "atom.h"
 #include "comm.h"
@@ -124,8 +124,8 @@ void PairLJCutCoulLongCS::compute(int eflag, int vflag)
             r = sqrt(rsq);
             prefactor = qqrd2e * qtmp*q[j];
             if (factor_coul < 1.0) {
-              // When bonded parts are being calculated a minimal distance (EPS_EWALD) 
-              // has to be added to the prefactor and erfc in order to make the 
+              // When bonded parts are being calculated a minimal distance (EPS_EWALD)
+              // has to be added to the prefactor and erfc in order to make the
               // used approximation functions for the Ewald correction valid
               grij = g_ewald * (r+EPS_EWALD);
               expm2 = exp(-grij*grij);

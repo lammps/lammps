@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,8 +16,8 @@
    [ based on angle_harmonic.cpp]
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "angle_quartic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -112,7 +112,7 @@ void AngleQuartic::compute(int eflag, int vflag)
     dtheta = acos(c) - theta0[type];
     dtheta2 = dtheta * dtheta;
     dtheta3 = dtheta2 * dtheta;
-    tk =  2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 
+    tk =  2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 +
       4.0 * k4[type] * dtheta3;
 
     if (eflag) {
@@ -225,7 +225,7 @@ void AngleQuartic::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void AngleQuartic::read_restart(FILE *fp)

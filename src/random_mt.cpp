@@ -18,7 +18,7 @@
 //
 // Uses the Marsaglia RNG in RanMars to generate the initial seeds
 
-#include "math.h"
+#include <math.h>
 #include "random_mt.h"
 #include "random_mars.h"
 #include "math_inline.h"

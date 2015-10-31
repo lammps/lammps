@@ -14,7 +14,7 @@
 #ifndef MPI_STUBS
 #define MPI_STUBS
 
-#include "stdlib.h"
+#include <stdlib.h>
 
 /* use C bindings for MPI interface */
 
@@ -64,7 +64,7 @@ extern "C" {
 
 #define MPI_MAX_PROCESSOR_NAME 128
 
-typedef void MPI_User_function(void *invec, void *inoutvec, 
+typedef void MPI_User_function(void *invec, void *inoutvec,
                                int *len, MPI_Datatype *datatype);
 
 /* MPI data structs */
@@ -127,7 +127,7 @@ int MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
                    int *source, int *dest);
 int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
 
-int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
+int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
                         MPI_Datatype *newtype);
 int MPI_Type_commit(MPI_Datatype *datatype);
 int MPI_Type_free(MPI_Datatype *datatype);
@@ -158,8 +158,8 @@ int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                 void *recvbuf, int *recvcounts, int *displs,
                 MPI_Datatype recvtype, int root, MPI_Comm comm);
-int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype, 
-                void *recvbuf, int recvcount, MPI_Datatype recvtype, 
+int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                void *recvbuf, int recvcount, MPI_Datatype recvtype,
                 int root, MPI_Comm comm);
 int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
                  MPI_Datatype sendtype, void *recvbuf, int recvcount,

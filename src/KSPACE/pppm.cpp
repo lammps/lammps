@@ -18,11 +18,11 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "pppm.h"
 #include "atom.h"
 #include "comm.h"
@@ -67,7 +67,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
- 
+
   pppmflag = 1;
   group_group_enable = 1;
 
@@ -91,7 +91,7 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   vg = NULL;
   fkx = fky = fkz = NULL;
 
-  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = 
+  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 =
     sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
 
   density_A_brick = density_B_brick = NULL;
@@ -182,7 +182,7 @@ void PPPM::init()
                "slab correction");
   if (domain->dimension == 2) error->all(FLERR,
                                          "Cannot use PPPM with 2d simulation");
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"PPPM can only currently be used with "
                         "comm_style brick");
 
@@ -304,7 +304,7 @@ void PPPM::init()
     order--;
     iteration++;
   }
-  
+
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
   if (!overlap_allowed && cgtmp->ghost_overlap())
     error->all(FLERR,"PPPM grid stencil extends "
@@ -623,11 +623,11 @@ void PPPM::compute(int eflag, int vflag)
     qsum_qsq();
     natoms_original = atom->natoms;
   }
-  
+
   // return if there are no charges
-  
+
   if (qsqsum == 0.0) return;
-  
+
   // convert atoms from box to lamda coords
 
   if (triclinic == 0) boxlo = domain->boxlo;
@@ -673,7 +673,7 @@ void PPPM::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    if (differentiation_flag == 1 && vflag_atom) 
+    if (differentiation_flag == 1 && vflag_atom)
       cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
     else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
@@ -1073,7 +1073,7 @@ void PPPM::set_grid_global()
     }
 
     // scale grid for triclinic skew
-    
+
     if (triclinic) {
       double tmp[3];
       tmp[0] = nx_pppm/xprd;
@@ -1165,7 +1165,7 @@ double PPPM::compute_qopt()
 {
   double qopt = 0.0;
   double *prd = domain->prd;
-  
+
   const double xprd = prd[0];
   const double yprd = prd[1];
   const double zprd = prd[2];
@@ -1452,7 +1452,7 @@ void PPPM::set_grid_local()
       nzhi_in = nzhi_out = nz_pppm - 1;
     nzhi_out = MIN(nzhi_out,nz_pppm-1);
   }
-    
+
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
   // proc owns entire x-dimension, clumps of columns in y,z dimensions
@@ -2772,7 +2772,7 @@ void PPPM::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
     FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3349,7 +3349,7 @@ void PPPM::poisson_groups(int AA_flag)
   }
 
   // triclinic system
-  
+
   if (triclinic) {
     poisson_groups_triclinic();
     return;
@@ -3464,7 +3464,7 @@ void PPPM::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
     if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
       if (AA_flag) continue;
 
-    if (mask[i] & groupbit_A) { 
+    if (mask[i] & groupbit_A) {
       qsum_A += q[i];
       dipole_A += q[i]*x[i][2];
       dipole_r2_A += q[i]*x[i][2]*x[i][2];

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    Implementation of the colored thermostat for quantum nuclear effects
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_qtb.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -54,7 +54,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   nevery = 1;
-  
+
   t_target = 300.0;
   t_period = 1.0;
   fric_coef = 1/t_period;
@@ -86,7 +86,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
       N_f = atof(arg[iarg+1]); if (N_f <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qtb command");
-  } 
+  }
 
   // allocate qtb
   gfactor1 = NULL;
@@ -99,7 +99,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   fran = NULL;
   id_temp = NULL;
   temperature = NULL;
-  
+
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
 
@@ -162,7 +162,7 @@ void FixQTB::init()
 
   //initiate the counter \mu
   counter_mu=0;
-  
+
   //set up the h time step for updating the random force \delta{}h=\frac{\pi}{\Omega_{max}}
   if (int(1.0/(2*f_max*dtv)) == 0) {
     if (comm->me == 0) printf ("Warning: Either f_max is too high or the time step is too big, setting f_max to be 1/timestep!\n");
@@ -186,8 +186,8 @@ void FixQTB::init()
 
   // generate random number array with zero mean and variance equal 1/12.
   int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) { 
-    for (int m = 0; m < 2*N_f; m++) { 
+  for (int i = 0; i < nlocal; i++) {
+    for (int m = 0; m < 2*N_f; m++) {
       random_array_0[i][m] = random->uniform()-0.5;
       random_array_1[i][m] = random->uniform()-0.5;
       random_array_2[i][m] = random->uniform()-0.5;
@@ -196,7 +196,7 @@ void FixQTB::init()
 
   // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
   for (int k = 0; k < 2*N_f; k++) {
-    double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1 
+    double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
     if(k == N_f) {
       omega_H[k]=sqrt(force->boltz * t_target);
     } else {
@@ -207,7 +207,7 @@ void FixQTB::init()
   }
 
   // construct the signal filter H, filter has the unit of of sqrt(energy) \sqrt{2N_f}^{-1}H\left(t_n\right)
-  for (int n = 0; n < 2*N_f; n++) { 
+  for (int n = 0; n < 2*N_f; n++) {
     time_H[n] = 0;
     double t_n=(n-N_f);
     for (int k = 0; k < 2*N_f; k++) {
@@ -254,14 +254,14 @@ void FixQTB::post_force(int vflag)
   if (counter_mu == alpha) {
     //propagate h_timestep ahead
     for (int j = 0; j < nlocal; j++) {
-      
+
       //update random array
-      for (int m = 0; m < 2*N_f-1; m++) { 
+      for (int m = 0; m < 2*N_f-1; m++) {
 	    random_array_0[j][m] = random_array_0[j][m+1];
-	    random_array_1[j][m] = random_array_1[j][m+1];  
-	    random_array_2[j][m] = random_array_2[j][m+1];  
+	    random_array_1[j][m] = random_array_1[j][m+1];
+	    random_array_2[j][m] = random_array_2[j][m+1];
       }
-      random_array_0[j][2*N_f-1] = random->uniform()-0.5;	 
+      random_array_0[j][2*N_f-1] = random->uniform()-0.5;
       random_array_1[j][2*N_f-1] = random->uniform()-0.5;
       random_array_2[j][2*N_f-1] = random->uniform()-0.5;
     }
@@ -280,9 +280,9 @@ void FixQTB::post_force(int vflag)
       if (mask[j] & groupbit) {
         gamma3 = gfactor3[type[j]];
 
-        for (int m = 0; m < 2*N_f; m++) { 
+        for (int m = 0; m < 2*N_f; m++) {
           fran[j][0] += time_H[m] * random_array_0[j][2*N_f-m-1];
-          fran[j][1] += time_H[m] * random_array_1[j][2*N_f-m-1]; 
+          fran[j][1] += time_H[m] * random_array_1[j][2*N_f-m-1];
           fran[j][2] += time_H[m] * random_array_2[j][2*N_f-m-1];
         }
         fran[j][0] = fran[j][0]*gamma3;
@@ -297,27 +297,27 @@ void FixQTB::post_force(int vflag)
   fsum[1]=0.0; fsumall[1]=0.0;
   fsum[2]=0.0; fsumall[2]=0.0;
 
-  for (int j = 0; j < nlocal; j++) { 
+  for (int j = 0; j < nlocal; j++) {
     //sum over each atom
     if (mask[j] & groupbit) {
       gamma1 = gfactor1[type[j]];
-      
+
       fsum[0]+=fran[j][0]-gamma1*v[j][0];
       fsum[1]+=fran[j][1]-gamma1*v[j][1];
       fsum[2]+=fran[j][2]-gamma1*v[j][2];
-    } 
+    }
   }
-  
+
   //compute force sums
   MPI_Allreduce(fsum,fsumall,3,MPI_DOUBLE,MPI_SUM,world);
-  
+
   //implement random forces
   for (int j = 0; j < nlocal; j++) {
     //make sure there is no net force on the system
     f[j][0] -= fsumall[0]/ntotal;
     f[j][1] -= fsumall[1]/ntotal;
     f[j][2] -= fsumall[2]/ntotal;
-    
+
     if (mask[j] & groupbit) {
       gamma1 = gfactor1[type[j]];
 
@@ -399,7 +399,7 @@ void FixQTB::copy_arrays(int i, int j, int delflag)
     random_array_1[j][m] = random_array_1[i][m];
     random_array_2[j][m] = random_array_2[i][m];
   }
-  
+
   for (int m = 0; m < 3; m++)
     fran[j][m] = fran[i][m];
 }

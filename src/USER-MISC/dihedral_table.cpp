@@ -1300,7 +1300,7 @@ void DihedralTable::compute_table(Table *tb)
         tb->e[i]= cyc_lin(tb->phifile,tb->efile,tb->ninput,MY_2PI,phi);
       }
       // In the linear case, if the user did not specify the forces, then we
-      // must generate the "f" array. Do this using linear interpolation 
+      // must generate the "f" array. Do this using linear interpolation
       // of the e array (which itself was generated above)
       for (int i = 0; i < tablength; i++) {
         int im1 = i-1; if (im1 < 0) im1 += tablength;

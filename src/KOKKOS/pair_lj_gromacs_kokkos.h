@@ -108,7 +108,7 @@ class PairLJGromacsKokkos : public PairLJGromacs {
   typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,
     d_ctable, d_dctable, d_etable, d_detable;
-  
+
   int neighflag;
   int nlocal,nall,eflag,vflag;
 

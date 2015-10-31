@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_gromacs_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "kspace.h"
 #include "gpu_extra.h"
 
@@ -46,7 +46,7 @@ int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                    const int nall, const int max_nbors, const int maxspecial,
                    const double cell_size, int &gpu_mode, FILE *screen,
                    double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
-                   double **host_ljsw4, double **host_ljsw5, 
+                   double **host_ljsw4, double **host_ljsw5,
                    double **cut_inner, double **cut_innersq);
 void ljgrm_gpu_clear();
 int ** ljgrm_gpu_compute_n(const int ago, const int inum_full,
@@ -65,13 +65,13 @@ double ljgrm_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairLJGromacsGPU::PairLJGromacsGPU(LAMMPS *lmp) : 
+PairLJGromacsGPU::PairLJGromacsGPU(LAMMPS *lmp) :
   PairLJGromacs(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -89,12 +89,12 @@ void PairLJGromacsGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;    
+  int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = ljgrm_gpu_compute_n(neighbor->ago, inum, nall,
@@ -128,7 +128,7 @@ void PairLJGromacsGPU::compute(int eflag, int vflag)
 
 void PairLJGromacsGPU::init_style()
 {
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with lj/gromacs/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -155,7 +155,7 @@ void PairLJGromacsGPU::init_style()
   int success = ljgrm_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
 			                         force->special_lj, atom->nlocal,
                                atom->nlocal+atom->nghost, 300, maxspecial,
-                               cell_size, gpu_mode, screen, ljsw1, ljsw2, 
+                               cell_size, gpu_mode, screen, ljsw1, ljsw2,
                                ljsw3, ljsw4, ljsw5, cut_inner, cut_inner_sq);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -218,7 +218,7 @@ void PairLJGromacsGPU::cpu_compute(int start, int inum, int eflag,
       	r6inv = r2inv*r2inv*r2inv;
         forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
       	if (rsq > cut_inner_sq[itype][jtype]) {
-          r = sqrt(rsq); 
+          r = sqrt(rsq);
           t = r - cut_inner[itype][jtype];
        	  fswitch = r*t*t*(ljsw1[itype][jtype] + ljsw2[itype][jtype]*t);
 	        forcelj += fswitch;

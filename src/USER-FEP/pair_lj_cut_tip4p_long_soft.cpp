@@ -17,10 +17,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_tip4p_long_soft.h"
 #include "angle.h"
 #include "atom.h"
@@ -183,7 +183,7 @@ void PairLJCutTIP4PLongSoft::compute(int eflag, int vflag)
 
         r4sig6 = rsq*rsq / lj2[itype][jtype];
         denlj = lj3[itype][jtype] + rsq*r4sig6;
-        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
           (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
         forcelj *= factor_lj;
@@ -196,7 +196,7 @@ void PairLJCutTIP4PLongSoft::compute(int eflag, int vflag)
         f[j][2] -= delz*forcelj;
 
         if (eflag) {
-          evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+          evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
             (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
           evdwl *= factor_lj;
         } else evdwl = 0.0;

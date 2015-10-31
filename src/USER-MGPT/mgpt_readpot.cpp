@@ -39,7 +39,7 @@ static double fl(double r,int mode,double rp,double p1,double al,double r0,doubl
     term = pow(rp/r, p1);
   else
     term = exp(-p1*(pow(r/rp, pn) - 1.0)/pn);
-  
+
   if (r <= r0) return term;
   double quan = al*(r/r0 - 1.0)*(r/r0 - 1.0);
   if(mode <= 2)
@@ -102,7 +102,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
 		__FILE__,__LINE__,
 		metal,ipot,mode,
 		metalx,ipotx,modex);
-	exit(1);	
+	exit(1);
       }
     }
 
@@ -129,7 +129,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
 	    __FILE__,__LINE__,potin_file);
     exit(1);
   }
-  
+
   if(0) {
     printf("Before sort:\n");
     for(int i = 0; i<n; i++)
@@ -196,7 +196,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
     if(0) {
       printf("getparmindata() ==> nvol = %d, vol0 = %.6f, x0= %.6f, x1 = %.6f, dx = %.6f\n",
 	     nvol,vol0,x0,x1,dx);
-    }    
+    }
   } else {
     /* Two-line version, reparse this line, and read second line */
     sscanf(line,"%lf %lf %lf %lf",&x0,&x1,&dx,&vol0);
@@ -375,7 +375,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 	double alp = al,alm = al;
 	if(mode == 2 || mode == 4 || mode == 6) alm = 125.0;
 	al = alp;
-	
+
 	double r = r0 + j*(r1-r0)/(nr-1);
 
 	double rrws = r/rws;
@@ -386,7 +386,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 	double v2a = vatab[i]*fl2*fl2;
 	double v2b = vbtab[i]*fl2;
 	double fscr = 1.0;
-	
+
 	if(bscreen == 1 && rrws >= r0rws) {
 	  double arg = rrws/r0rwstab[i];
 	  double arg1 = arg - 1.0;
@@ -402,7 +402,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 	    dp=2.0*al*al*arg*arg13/(1.+al*arg12);
 	  }
 	  fscr = f*f;
-	}	
+	}
 
 	double vpair_tmp = vpairtab[i*nr+j];
 	vpairtab[i*nr+j] = vpairtab[i*nr+j]*fscr + v2a - v2b;
@@ -421,7 +421,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
 
       }
-      
+
     }
   }
   fclose(in);
@@ -488,10 +488,10 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
   if(1) {
     printf("%% READPOT PARAMETERS:\n");
-    
+
     printf("%% ddl = %15.5e  %15.5e  %15.5e  %15.5e\n",ddl[1],ddl[2],ddl[3],ddl[4]);
     printf("%% anorm3 = %15.5e  anorm4 = %15.5e\n",anorm3,anorm4);
-    
+
     printf("%% x  = %15.5e    pn  = %15.5e\n",x,pn);
     printf("%% va = %15.5e    dva = %15.5e\n",va,dva);
     printf("%% vb = %15.5e    dvb = %15.5e\n",vb,dvb);

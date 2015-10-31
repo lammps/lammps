@@ -231,7 +231,7 @@ void PairEAMCuda::array2spline()
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAMCuda::pack_forward_comm(int n, int* iswap, double* buf, 
+int PairEAMCuda::pack_forward_comm(int n, int* iswap, double* buf,
                                    int pbc_flag, int* pbc)
 {
   Cuda_PairEAMCuda_PackComm(&cuda->shared_data, n, *iswap, buf);

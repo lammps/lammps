@@ -36,9 +36,9 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include "limits.h"
-#include "stdint.h"
-#include "inttypes.h"
+#include <limits.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 // grrr - IBM Power6 does not provide this def in their system header files
 

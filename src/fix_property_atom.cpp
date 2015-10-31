@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_property_atom.h"
 #include "atom.h"
 #include "comm.h"
@@ -50,7 +50,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (atom->molecule_flag)
         error->all(FLERR,"Fix property/atom mol when atom_style "
                    "already has molecule attribute");
-      if (molecule_flag) 
+      if (molecule_flag)
         error->all(FLERR,"Fix property/atom cannot specify mol twice");
       style[nvalue] = MOLECULE;
       atom->molecule_flag = molecule_flag = 1;
@@ -59,7 +59,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (atom->q_flag)
         error->all(FLERR,"Fix property/atom q when atom_style "
                    "already has charge attribute");
-      if (q_flag) 
+      if (q_flag)
         error->all(FLERR,"Fix property/atom cannot specify q twice");
       style[nvalue] = CHARGE;
       atom->q_flag = q_flag = 1;
@@ -68,7 +68,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       style[nvalue] = INTEGER;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
-      if (index[nvalue] >= 0) 
+      if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0);
       nvalue++;
@@ -76,7 +76,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       style[nvalue] = DOUBLE;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
-      if (index[nvalue] >= 0) 
+      if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],1);
       nvalue++;
@@ -106,7 +106,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     int flag = 0;
     for (int i = 0; i < nvalue; i++)
       if (style[i] == MOLECULE || style[i] == CHARGE) flag = 1;
-    if (flag && comm->me == 0) 
+    if (flag && comm->me == 0)
       error->warning(FLERR,"Fix property/atom mol or charge w/out "
                      "ghost communication");
   }
@@ -240,7 +240,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
         else if (style[j] == CHARGE) atom->q[m] = atof(values[j+1]);
         else if (style[j] == INTEGER)
           atom->ivector[index[j]][m] = atoi(values[j+1]);
-        else if (style[j] == DOUBLE) 
+        else if (style[j] == DOUBLE)
           atom->dvector[index[j]][m] = atof(values[j+1]);
       }
     }
@@ -333,7 +333,7 @@ void FixPropertyAtom::write_data_section_keyword(int mth, FILE *fp)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixPropertyAtom::write_data_section(int mth, FILE *fp, 
+void FixPropertyAtom::write_data_section(int mth, FILE *fp,
                                          int n, double **buf, int index)
 {
   int m;
@@ -370,7 +370,7 @@ double FixPropertyAtom::memory_usage()
 /* ----------------------------------------------------------------------
    allocate atom-based arrays
    initialize new values to 0,
-   since AtomVec class won't do it as atoms are added, 
+   since AtomVec class won't do it as atoms are added,
    e.g. in create_atom() or data_atom()
 ------------------------------------------------------------------------- */
 
@@ -515,11 +515,11 @@ int FixPropertyAtom::pack_exchange(int i, double *buf)
 int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 {
   for (int m = 0; m < nvalue; m++) {
-    if (style[m] == MOLECULE) 
+    if (style[m] == MOLECULE)
       atom->molecule[nlocal] = (tagint) ubuf(buf[m]).i;
     else if (style[m] == CHARGE)
       atom->q[nlocal] = buf[m];
-    else if (style[m] == INTEGER) 
+    else if (style[m] == INTEGER)
       atom->ivector[index[m]][nlocal] = (int) ubuf(buf[m]).i;
     else if (style[m] == DOUBLE)
       atom->dvector[index[m]][nlocal] = buf[m];
@@ -561,11 +561,11 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
   m++;
 
   for (int i = 0; i < nvalue; i++) {
-    if (style[i] == MOLECULE) 
+    if (style[i] == MOLECULE)
       atom->molecule[nlocal] = (tagint) ubuf(extra[nlocal][m++]).i;
     else if (style[i] == CHARGE)
       atom->q[nlocal] = extra[nlocal][m++];
-    else if (style[i] == INTEGER) 
+    else if (style[i] == INTEGER)
       atom->ivector[index[i]][nlocal] = (int) ubuf(extra[nlocal][m++]).i;
     else if (style[i] == DOUBLE)
       atom->dvector[index[i]][nlocal] = extra[nlocal][m++];

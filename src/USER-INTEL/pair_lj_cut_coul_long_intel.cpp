@@ -12,7 +12,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_cut_coul_long_intel.h"
 #include "atom.h"
 #include "comm.h"
@@ -53,7 +53,7 @@ PairLJCutCoulLongIntel::~PairLJCutCoulLongIntel()
 void PairLJCutCoulLongIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED)
-    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(), 
+    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
                           force_const_single);
   else if (fix->precision()==FixIntel::PREC_MODE_DOUBLE)
     compute<double,double>(eflag, vflag, fix->get_double_buffers(),
@@ -88,13 +88,13 @@ void PairLJCutCoulLongIntel::compute(int eflag, int vflag,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
 				nthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
-  
+
   if (evflag || vflag_fdotr) {
     int ovflag = 0;
     if (vflag_fdotr) ovflag = 2;
@@ -216,7 +216,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
     *timer_compute = MIC_Wtime();
     #endif
 
-    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall, 
+    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall,
 			      f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
@@ -389,7 +389,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
                 if (eatom) {
                   if (NEWTON_PAIR || i < nlocal)
                     fwtmp += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
-                  if (NEWTON_PAIR || j < nlocal) 
+                  if (NEWTON_PAIR || j < nlocal)
                     f[j].w += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
                 }
               }
@@ -409,7 +409,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
       #pragma omp barrier
       #endif
       IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			     nlocal, minlocal, nthreads, f_start, f_stride, 
+			     nlocal, minlocal, nthreads, f_start, f_stride,
 			     x);
     } // end of omp parallel region
     if (EVFLAG) {
@@ -454,7 +454,7 @@ void PairLJCutCoulLongIntel::init_style()
     error->all(FLERR,
                "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
-  
+
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
   _cop = fix->coprocessor_number();

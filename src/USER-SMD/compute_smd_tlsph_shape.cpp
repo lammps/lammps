@@ -22,7 +22,7 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_smd_tlsph_shape.h"
 #include "atom.h"
 #include "update.h"
@@ -34,8 +34,8 @@
 #include "pair.h"
 #include <iostream>
 #include <stdio.h>
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include <Eigen/Eigen>
 #include <Eigen/Geometry>
 using namespace Eigen;

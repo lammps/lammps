@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    References: Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_dsf.h"
 #include "atom.h"
 #include "comm.h"
@@ -79,11 +79,11 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double prefactor,erfcc,erfcd,t;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
@@ -98,7 +98,7 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -110,7 +110,7 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     if (eflag) {
       double e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
       ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
@@ -142,7 +142,7 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
           erfcd = exp(-alpha*alpha*r*r);
           t = 1.0 / (1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-          forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
+          forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                    r*f_shift) * r;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
@@ -218,7 +218,7 @@ void PairLJCutCoulDSF::settings(int narg, char **arg)
   cut_lj_global = force->numeric(FLERR,arg[1]);
   if (narg == 2) cut_coul = cut_lj_global;
   else cut_coul = force->numeric(FLERR,arg[2]);
-  
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -236,20 +236,20 @@ void PairLJCutCoulDSF::settings(int narg, char **arg)
 
 void PairLJCutCoulDSF::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
-  
+
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
 
   double cut_lj_one = cut_lj_global;
   if (narg == 5) cut_lj_one = force->numeric(FLERR,arg[4]);
-    
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -276,10 +276,10 @@ void PairLJCutCoulDSF::init_style()
   neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
-  double erfcc = erfc(alpha*cut_coul); 
+  double erfcc = erfc(alpha*cut_coul);
   double erfcd = exp(-alpha*alpha*cut_coul*cut_coul);
-  f_shift = -(erfcc/cut_coulsq + 2.0/MY_PIS*alpha*erfcd/cut_coul); 
-  e_shift = erfcc/cut_coul - f_shift*cut_coul; 
+  f_shift = -(erfcc/cut_coulsq + 2.0/MY_PIS*alpha*erfcd/cut_coul);
+  e_shift = erfcc/cut_coul - f_shift*cut_coul;
 }
 
 /* ----------------------------------------------------------------------
@@ -297,17 +297,17 @@ double PairLJCutCoulDSF::init_one(int i, int j)
 
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
-  
+
   lj1[i][j] = 48.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
-     
+
   if (offset_flag) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;
-  
+
   cut_ljsq[j][i] = cut_ljsq[i][j];
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
@@ -329,17 +329,17 @@ double PairLJCutCoulDSF::init_one(int i, int j)
       if (type[k] == j) count[1] += 1.0;
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-        
+
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-               sig6 * (sig6 - 3.0*rc6) / (9.0*rc9); 
-    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-               sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9); 
-  } 
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+               sig6 * (sig6 - 3.0*rc6) / (9.0*rc9);
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+               sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9);
+  }
 
   return cut;
 }
@@ -436,7 +436,7 @@ double PairLJCutCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
 {
   double r2inv,r6inv,r,erfcc,erfcd,prefactor;
   double forcecoul,forcelj,phicoul,philj;
-  
+
   r2inv = 1.0/rsq;
   if (rsq < cut_ljsq[itype][jtype]) {
     r6inv = r2inv*r2inv*r2inv;
@@ -446,14 +446,14 @@ double PairLJCutCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
     prefactor = factor_coul * force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    erfcc = erfc(alpha*r); 
+    erfcc = erfc(alpha*r);
     erfcd = exp(-alpha*alpha*r*r);
-    forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
+    forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
       r*f_shift) * r;
   } else forcecoul = 0.0;
-  
+
   fforce = (forcecoul + factor_lj*forcelj) * r2inv;
-      
+
   double eng = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
     philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
@@ -461,11 +461,11 @@ double PairLJCutCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
     eng += factor_lj*philj;
   }
 
-  if (rsq < cut_coulsq) { 
+  if (rsq < cut_coulsq) {
     phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
     eng += phicoul;
-  } 
-  
+  }
+
   return eng;
 }
 

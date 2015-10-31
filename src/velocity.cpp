@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "velocity.h"
 #include "atom.h"
 #include "update.h"
@@ -104,7 +104,7 @@ void Velocity::command(int narg, char **arg)
   // b/c methods invoked in the compute/fix perform forward/reverse comm
 
   int initcomm = 0;
-  if (style == ZERO && rfix >= 0 && 
+  if (style == ZERO && rfix >= 0 &&
       strcmp(modify->fix[rfix]->style,"rigid/small") == 0) initcomm = 1;
   if ((style == CREATE || style == SET) && temperature &&
       strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;

@@ -16,7 +16,7 @@
    new LAMMPS-specific functions can be added
 */
 
-#include "mpi.h"
+#include <mpi.h>
 
 /* ifdefs allow this file to be included in a C program */
 

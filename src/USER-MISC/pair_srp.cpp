@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
- 
+
 /* ----------------------------------------------------------------------
    Contributing authors: Timothy Sirk (ARL), Pieter in't Veld (BASF)
 
@@ -25,26 +25,26 @@ There is an example script for this package in examples/USER/srp.
 Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h" 
-#include "pair_srp.h" 
-#include "atom.h" 
-#include "comm.h" 
-#include "force.h" 
-#include "neighbor.h" 
-#include "neigh_list.h" 
-#include "memory.h" 
-#include "error.h" 
-#include "domain.h" 
+#include <stdlib.h>
+#include "pair_srp.h"
+#include "atom.h"
+#include "comm.h"
+#include "force.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "memory.h"
+#include "error.h"
+#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_srp.h"
 #include "thermo.h"
 #include "output.h"
-#include "string.h"
+#include <string.h>
 #include "citeme.h"
- 
-using namespace LAMMPS_NS; 
- 
+
+using namespace LAMMPS_NS;
+
 #define SMALL 1.0e-10
 #define BIG 1e10
 #define ONETWOBIT 0x40000000
@@ -65,10 +65,10 @@ static int srp_instance = 0;
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp) 
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
 {
-  writedata = 1; 
- 
+  writedata = 1;
+
   if (lmp->citeme) lmp->citeme->add(cite_srp);
 
   nextra = 1;
@@ -77,8 +77,8 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
   fix_id[0] = '0' + srp_instance / 10;
   fix_id[1] = '0' + srp_instance % 10;
   ++srp_instance;
-} 
- 
+}
+
 /* ----------------------------------------------------------------------
  allocate all arrays
  ------------------------------------------------------------------------- */
@@ -102,19 +102,19 @@ void PairSRP::allocate()
     maxcount = 0;
 }
 
-/* ---------------------------------------------------------------------- 
- free 
- ------------------------------------------------------------------------- */ 
+/* ----------------------------------------------------------------------
+ free
+ ------------------------------------------------------------------------- */
 
-PairSRP::~PairSRP() 
-{ 
-    if (allocated) 
-    { 
-        memory->destroy(setflag); 
-        memory->destroy(cutsq); 
-        memory->destroy(cut); 
-        memory->destroy(a0); 
-        memory->destroy(segment); 
+PairSRP::~PairSRP()
+{
+    if (allocated)
+    {
+        memory->destroy(setflag);
+        memory->destroy(cutsq);
+        memory->destroy(cut);
+        memory->destroy(a0);
+        memory->destroy(segment);
     }
 
   // check nfix in case all fixes have already been deleted
@@ -122,24 +122,24 @@ PairSRP::~PairSRP()
   free(fix_id);
 }
 
-/* ---------------------------------------------------------------------- 
- compute bond-bond repulsions 
- ------------------------------------------------------------------------- */ 
- 
-void PairSRP::compute(int eflag, int vflag) 
+/* ----------------------------------------------------------------------
+ compute bond-bond repulsions
+ ------------------------------------------------------------------------- */
+
+void PairSRP::compute(int eflag, int vflag)
 
 {
-    // setup energy and virial 
-    if (eflag || vflag) 
-        ev_setup(eflag, vflag); 
-    else 
-        evflag = vflag_fdotr = 0; 
+    // setup energy and virial
+    if (eflag || vflag)
+        ev_setup(eflag, vflag);
+    else
+        evflag = vflag_fdotr = 0;
 
-    double **x = atom->x; 
-    double **f = atom->f; 
-    int nlocal = atom->nlocal; 
-    int nall = nlocal + atom->nghost; 
-    int i0, i1, j0, j1; 
+    double **x = atom->x;
+    double **f = atom->f;
+    int nlocal = atom->nlocal;
+    int nall = nlocal + atom->nghost;
+    int i0, i1, j0, j1;
     int i,j,ii,jj,inum,jnum;
     double dijsq, dij;
 
@@ -155,8 +155,8 @@ void PairSRP::compute(int eflag, int vflag)
     double fx, fy, fz;
     evdwl = 0.0;
 
-    // mapping global to local for atoms inside bond particles 
-    // exclude 1-2 neighs if requested 
+    // mapping global to local for atoms inside bond particles
+    // exclude 1-2 neighs if requested
     if (neighbor->ago == 0){
       remapBonds(nall);
       if(exclude) onetwoexclude(ilist, inum, jlist, numneigh, firstneigh);
@@ -164,9 +164,9 @@ void PairSRP::compute(int eflag, int vflag)
 
   // this pair style only used with hybrid
   // due to exclusions
-  // each atom i is type bptype  
-  // each neigh j is type bptype 
-  
+  // each atom i is type bptype
+  // each neigh j is type bptype
+
   // using midpoint distance option
   if(midpoint){
 
@@ -194,18 +194,18 @@ void PairSRP::compute(int eflag, int vflag)
 
         // midpt dist bond 0 and 1
         dx = 0.5*(x[i0][0] - x[i1][0] + x[j0][0] - x[j1][0]);
-        dy = 0.5*(x[i0][1] - x[i1][1] + x[j0][1] - x[j1][1]);  
-        dz = 0.5*(x[i0][2] - x[i1][2] + x[j0][2] - x[j1][2]);  
+        dy = 0.5*(x[i0][1] - x[i1][1] + x[j0][1] - x[j1][1]);
+        dz = 0.5*(x[i0][2] - x[i1][2] + x[j0][2] - x[j1][2]);
         dijsq = dx*dx + dy*dy + dz*dz;
 
         if (dijsq < cutsq[bptype][bptype]){
         dij = sqrt(dijsq);
 
-        if (dij < SMALL) 
+        if (dij < SMALL)
           continue;     // dij can be 0.0 with soft potentials
 
         wd = 1.0 - dij / cut[bptype][bptype];
-        fpair = 0.5 * a0[bptype][bptype] * wd / dij; // 0.5 factor for lever rule 
+        fpair = 0.5 * a0[bptype][bptype] * wd / dij; // 0.5 factor for lever rule
 
         // force for bond 0, beads 0,1
         //force between bonds
@@ -245,10 +245,10 @@ void PairSRP::compute(int eflag, int vflag)
         }
       }
    }
- } 
+ }
   else{
   // using min distance option
-  
+
     for (ii = 0; ii < inum; ii++) {
 
       i = ilist[ii];
@@ -275,13 +275,13 @@ void PairSRP::compute(int eflag, int vflag)
 
         if (dijsq < cutsq[bptype][bptype]){
 
-        dij = sqrt(dijsq); 
+        dij = sqrt(dijsq);
 
         if (dij < SMALL)
  	  continue;     // dij can be 0.0 with soft potentials
 
         wd = 1.0 - dij / cut[bptype][bptype];
-        fpair = a0[bptype][bptype] * wd / dij; 
+        fpair = a0[bptype][bptype] * wd / dij;
 
         // force for bond 0, beads 0,1
         lever0 = 0.5 + ti; // assign force according to lever rule
@@ -365,7 +365,7 @@ void PairSRP::settings(int narg, char **arg)
   int iarg = 3;
   // default exclude 1-2
   // scaling for 1-2, etc not supported
-  exclude = 1; 
+  exclude = 1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"exclude") == 0) {
@@ -393,7 +393,7 @@ void PairSRP::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
- set coeffs 
+ set coeffs
  ------------------------------------------------------------------------- */
 
 void PairSRP::coeff(int narg, char **arg)
@@ -460,7 +460,7 @@ void PairSRP::init_style()
 
   // bond particles do not contribute to energy or virial
   // bond particles do not belong to group all
-  // but thermo normalization is by nall 
+  // but thermo normalization is by nall
   // therefore should turn off normalization
   int me;
   MPI_Comm_rank(world,&me);
@@ -468,7 +468,7 @@ void PairSRP::init_style()
   arg1[0] = (char *) "norm";
   arg1[1] = (char *) "no";
   output->thermo->modify_params(2, arg1);
-  if (me == 0) 
+  if (me == 0)
     error->message(FLERR,"Thermo normalization turned off by pair srp");
 
   neighbor->request(this,instance_me);
@@ -488,13 +488,13 @@ double PairSRP::init_one(int i, int j)
 
   return cut[i][j];
 }
- 
-/* ---------------------------------------------------------------------- 
+
+/* ----------------------------------------------------------------------
  find min distance for bonds i0/j0 and i1/j1
- ------------------------------------------------------------------------- */ 
+ ------------------------------------------------------------------------- */
 inline void PairSRP::getMinDist(double** &x, double &dx, double &dy, double &dz, double &ti, double &tj, int &i0, int &j0, int &i1, int &j1)
-{ 
-    // move these outside the loop 
+{
+    // move these outside the loop
     double diffx0, diffy0, diffz0, diffx1, diffy1, diffz1, dPx, dPy, dPz, RiRi, RiRj, RjRj;
     double denom, termx0, termy0, termz0, num0, termx1, termy1, termz1, num1;
 
@@ -504,7 +504,7 @@ inline void PairSRP::getMinDist(double** &x, double &dx, double &dy, double &dz,
     diffz0 = x[j0][2] - x[i0][2];
 
     // compute midpt dist from 1st atom, 2nd bond
-    diffx1 = x[j1][0] - x[i1][0]; 
+    diffx1 = x[j1][0] - x[i1][0];
     diffy1 = x[j1][1] - x[i1][1];
     diffz1 = x[j1][2] - x[i1][2];
 
@@ -520,22 +520,22 @@ inline void PairSRP::getMinDist(double** &x, double &dx, double &dy, double &dz,
     denom = RiRj*RiRj - RiRi*RjRj;
 
     // handle case of parallel lines
-    // reduce to midpt distance 
-    if (fabs(denom) < SMALL){ 
+    // reduce to midpt distance
+    if (fabs(denom) < SMALL){
         if(denom < 0) denom = -BIG;
         else denom = BIG;
-    } 
+    }
 
-    // calc ti  
+    // calc ti
     termx0 = RiRj*diffx1 - RjRj*diffx0;
     termy0 = RiRj*diffy1 - RjRj*diffy0;
     termz0 = RiRj*diffz1 - RjRj*diffz0;
     num0 = dPx*termx0 + dPy*termy0 + dPz*termz0;
     ti = num0 / denom;
-    if (ti > 0.5) ti = 0.5; 
-    if (ti < -0.5) ti = -0.5; 
- 
-    // calc tj  
+    if (ti > 0.5) ti = 0.5;
+    if (ti < -0.5) ti = -0.5;
+
+    // calc tj
     termx1 = RiRj*diffx0 - RiRi*diffx1;
     termy1 = RiRj*diffy0 - RiRi*diffy1;
     termz1 = RiRj*diffz0 - RiRi*diffz1;
@@ -543,28 +543,28 @@ inline void PairSRP::getMinDist(double** &x, double &dx, double &dy, double &dz,
     tj = -num1/ denom;
     if (tj > 0.5)  tj = 0.5;
     if (tj < -0.5) tj = -0.5;
- 
-    // min dist 
+
+    // min dist
     dx = dPx - ti*diffx0 + tj*diffx1;
     dy = dPy - ti*diffy0 + tj*diffy1;
     dz = dPz - ti*diffz0 + tj*diffz1;
-} 
+}
 
-/* -------------------------------------------------------- 
+/* --------------------------------------------------------
 map global id of atoms in stored by each bond particle
- ------------------------------------------------------- */ 
+ ------------------------------------------------------- */
 inline void PairSRP::remapBonds(int &nall)
 {
   if(nall > maxcount){
-    memory->grow(segment, nall, 2, "pair:segment");    
+    memory->grow(segment, nall, 2, "pair:segment");
     maxcount = nall;
   }
 
   // loop over all bond particles
   // each bond paricle holds two bond atoms
   // map global ids of bond atoms to local ids
-  // might not be able to map both bond atoms of j, if j is outside neighcut  
-  // these are not on neighlist, so are not used 
+  // might not be able to map both bond atoms of j, if j is outside neighcut
+  // these are not on neighlist, so are not used
   int tmp;
   srp = f_srp->array_atom;
 
@@ -581,18 +581,18 @@ inline void PairSRP::remapBonds(int &nall)
     }
 }
 
-/* -------------------------------------------------------- 
+/* --------------------------------------------------------
 add exclusions for 1-2 neighs, if requested
-more complex exclusions or scaling probably not needed 
- ------------------------------------------------------- */ 
+more complex exclusions or scaling probably not needed
+ ------------------------------------------------------- */
 inline void PairSRP::onetwoexclude(int* &ilist, int &inum, int* &jlist, int* &numneigh, int** &firstneigh)
 {
     int i0, i1, j0, j1;
     int i,j,ii,jj,jnum;
 
     // encode neighs with exclusions
-    // only need 1-2 info for normal uses of srp 
-    // add 1-3, etc later if ever needed 
+    // only need 1-2 info for normal uses of srp
+    // add 1-3, etc later if ever needed
 
     for (ii = 0; ii < inum; ii++) {
 
@@ -611,7 +611,7 @@ inline void PairSRP::onetwoexclude(int* &ilist, int &inum, int* &jlist, int* &nu
         i1 = segment[j][0];
         j1 = segment[j][1];
 
-        // check for a 1-2 neigh 
+        // check for a 1-2 neigh
         if(i0 == i1 || i0 == j1 || i1 == j0 || j0 == j1){
           j |= ONETWOBIT;
           jlist[jj] = j;
@@ -640,7 +640,7 @@ void PairSRP::write_data_all(FILE *fp)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d %g %g\n",i,j,a0[i][j],cut[i][j]);
 }
- 
+
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */

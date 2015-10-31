@@ -36,7 +36,7 @@ class PairLJSDKCoulMSM : public PairLJSDKCoulLong {
   virtual void compute(int, int);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
- 
+
 private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval_msm();
 

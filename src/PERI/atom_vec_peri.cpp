@@ -15,9 +15,9 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include "float.h"
-#include "stdlib.h"
-#include "string.h"
+#include <float.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_peri.h"
 #include "atom.h"
 #include "comm.h"
@@ -877,7 +877,7 @@ int AtomVecPeri::pack_data_hybrid(int i, double *buf)
 void AtomVecPeri::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],buf[i][4],buf[i][5],buf[i][6],
@@ -912,7 +912,7 @@ int AtomVecPeri::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecPeri::pack_property_atom(int index, double *buf, 
+void AtomVecPeri::pack_property_atom(int index, double *buf,
                                      int nvalues, int groupbit)
 {
   int *mask = atom->mask;

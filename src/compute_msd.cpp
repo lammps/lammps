@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_msd.h"
 #include "atom.h"
 #include "update.h"
@@ -85,7 +85,7 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
       else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
 
     // adjust for COM if requested
-    
+
     if (comflag) {
       double cm[3];
       masstotal = group->mass(igroup);

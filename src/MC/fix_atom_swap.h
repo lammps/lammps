@@ -20,7 +20,7 @@ FixStyle(atom/swap,FixAtomSwap)
 #ifndef LMP_FIX_MCSWAP_H
 #define LMP_FIX_MCSWAP_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -65,12 +65,12 @@ class FixAtomSwap : public Fix {
   int nswaptypes,nmutypes;
   int *type_list;
   double *mu;
-  
+
   double nswap_attempts;
   double nswap_successes;
 
   bool unequal_cutoffs;
-  
+
   int atom_swap_nmax;
   double beta;
   double *qtype;
@@ -82,7 +82,7 @@ class FixAtomSwap : public Fix {
 
   class RanPark *random_equal;
   class RanPark *random_unequal;
-  
+
   class Compute *c_pe;
 
   void options(int, char **);

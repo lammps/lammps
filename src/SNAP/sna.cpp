@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "sna.h"
-#include "math.h"
+#include <math.h>
 #include "math_const.h"
 #include "math_extra.h"
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "openmp_snap.h"
 
 #include "memory.h"
@@ -51,11 +51,11 @@ using namespace MathConst;
    m2 = beta+b    or 2*beta = 2*m2 - j2
    m =  gamma+c      2*gamma = 2*m - j
 
-   in this way: 
+   in this way:
 
-   -a <= alpha <= a 
-   -b <= beta <= b 
-   -c <= gamma <= c 
+   -a <= alpha <= a
+   -b <= beta <= b
+   -c <= gamma <= c
 
    becomes:
 
@@ -65,10 +65,10 @@ using namespace MathConst;
 
    and the requirement that
    a+b+c be integral implies that
-   j1+j2+j must be even. 
+   j1+j2+j must be even.
    The requirement that:
-   
-   gamma = alpha+beta 
+
+   gamma = alpha+beta
 
    becomes:
 
@@ -88,7 +88,7 @@ using namespace MathConst;
    0 <= ma, mb <= j.
 
    For the bispectrum components B(J1,J2,J) we convert to:
-   
+
    j1 = 2*J1
    j2 = 2*J2
    j = 2*J
@@ -101,8 +101,8 @@ using namespace MathConst;
 
    |j1-j2| <= j <= j1+j2, for j1+j2+j even integer
 
-   or 
-   
+   or
+
    j = |j1-j2|, |j1-j2|+2,...,j1+j2-2,j1+j2
 
    [1] Albert Bartok-Partay, "Gaussian Approximation..."
@@ -291,7 +291,7 @@ void SNA::grow_rij(int newnmax)
     memory->destroy(rcutij);
     memory->create(rij, nmax, 3, "pair:rij");
     memory->create(inside, nmax, "pair:inside");
-    memory->create(wj, nmax, "pair:wj"); 
+    memory->create(wj, nmax, "pair:wj");
     memory->create(rcutij, nmax, "pair:rcutij");
  }
 }
@@ -304,7 +304,7 @@ void SNA::compute_ui(int jnum)
   double rsq, r, x, y, z, z0, theta0;
 
   // utot(j,ma,mb) = 0 for all j,ma,ma
-  // utot(j,ma,ma) = 1 for all j,ma 
+  // utot(j,ma,ma) = 1 for all j,ma
   // for j in neighbors of i:
   //   compute r0 = (x,y,z,z0)
   //   utot(j,ma,mb) += u(r0;j,ma,mb) for all j,ma,mb
@@ -344,7 +344,7 @@ void SNA::compute_ui_omp(int jnum, int sub_threads)
   double rsq, r, x, y, z, z0, theta0;
 
   // utot(j,ma,mb) = 0 for all j,ma,ma
-  // utot(j,ma,ma) = 1 for all j,ma 
+  // utot(j,ma,ma) = 1 for all j,ma
   // for j in neighbors of i:
   //   compute r0 = (x,y,z,z0)
   //   utot(j,ma,mb) += u(r0;j,ma,mb) for all j,ma,mb
@@ -412,7 +412,7 @@ void SNA::compute_zi()
 	  for(int ma = 0; ma <= j; ma++) {
 	    zarray_r[j1][j2][j][ma][mb] = 0.0;
 	    zarray_i[j1][j2][j][ma][mb] = 0.0;
-	    
+
 	    for(int ma1 = MAX(0, (2 * ma - j - j2 + j1) / 2);
 		ma1 <= MIN(j1, (2 * ma - j + j2 + j1) / 2); ma1++) {
 	      sumb1_r = 0.0;
@@ -424,10 +424,10 @@ void SNA::compute_zi()
               mb1 <= MIN(j1, (2 * mb - j + j2 + j1) / 2); mb1++) {
 
 		mb2 = (2 * mb - j - (2 * mb1 - j1) + j2) / 2;
-		sumb1_r += cgarray[j1][j2][j][mb1][mb2] * 
+		sumb1_r += cgarray[j1][j2][j][mb1][mb2] *
 		  (uarraytot_r[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2] -
 		   uarraytot_i[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2]);
-		sumb1_i += cgarray[j1][j2][j][mb1][mb2] * 
+		sumb1_i += cgarray[j1][j2][j][mb1][mb2] *
 		  (uarraytot_r[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2] +
 		   uarraytot_i[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2]);
 	      } // end loop over mb1
@@ -829,7 +829,7 @@ void SNA::compute_dbidrj()
   double sumzdu_r[3];
   double** jjjzarray_r;
   double** jjjzarray_i;
-  double jjjmambzarray_r; 
+  double jjjmambzarray_r;
   double jjjmambzarray_i;
 
 #ifdef TIMING_INFO
@@ -1182,21 +1182,21 @@ void SNA::compute_uarray(double x, double y, double z,
 	rootpq = rootpqarray[j - ma][j - mb];
         uarray_r[j][ma][mb] +=
           rootpq *
-          (a_r * uarray_r[j - 1][ma][mb] + 
+          (a_r * uarray_r[j - 1][ma][mb] +
 	   a_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma][mb] +=
           rootpq *
-          (a_r * uarray_i[j - 1][ma][mb] - 
+          (a_r * uarray_i[j - 1][ma][mb] -
 	   a_i * uarray_r[j - 1][ma][mb]);
 
 	rootpq = rootpqarray[ma + 1][j - mb];
         uarray_r[j][ma + 1][mb] =
           -rootpq *
-          (b_r * uarray_r[j - 1][ma][mb] + 
+          (b_r * uarray_r[j - 1][ma][mb] +
 	   b_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma + 1][mb] =
           -rootpq *
-          (b_r * uarray_i[j - 1][ma][mb] - 
+          (b_r * uarray_i[j - 1][ma][mb] -
 	   b_i * uarray_r[j - 1][ma][mb]);
       }
     }
@@ -1216,7 +1216,7 @@ void SNA::compute_uarray(double x, double y, double z,
     	} else {
     	  uarray_r[j][j-ma][j-mb] = -uarray_r[j][ma][mb];
     	  uarray_i[j][j-ma][j-mb] = uarray_i[j][ma][mb];
-    	}	  
+    	}
       }
     }
   }
@@ -1254,21 +1254,21 @@ void SNA::compute_uarray_omp(double x, double y, double z,
 	rootpq = rootpqarray[j - ma][j - mb];
         uarray_r[j][ma][mb] +=
 	  rootpq *
-          (a_r * uarray_r[j - 1][ma][mb] + 
+          (a_r * uarray_r[j - 1][ma][mb] +
 	   a_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma][mb] +=
 	  rootpq *
-          (a_r * uarray_i[j - 1][ma][mb] - 
+          (a_r * uarray_i[j - 1][ma][mb] -
 	   a_i * uarray_r[j - 1][ma][mb]);
 
 	rootpq = rootpqarray[ma + 1][j - mb];
         uarray_r[j][ma + 1][mb] =
 	  -rootpq *
-          (b_r * uarray_r[j - 1][ma][mb] + 
+          (b_r * uarray_r[j - 1][ma][mb] +
 	   b_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma + 1][mb] =
 	  -rootpq *
-          (b_r * uarray_i[j - 1][ma][mb] - 
+          (b_r * uarray_i[j - 1][ma][mb] -
 	   b_i * uarray_r[j - 1][ma][mb]);
       }
     }
@@ -1284,21 +1284,21 @@ void SNA::compute_uarray_omp(double x, double y, double z,
       rootpq = rootpqarray[j - ma][mb];
       uarray_r[j][ma][mb] +=
 	rootpq *
-        (b_r * uarray_r[j - 1][ma][mb - 1] - 
+        (b_r * uarray_r[j - 1][ma][mb - 1] -
 	 b_i * uarray_i[j - 1][ma][mb - 1]);
       uarray_i[j][ma][mb] +=
 	rootpq *
-        (b_r * uarray_i[j - 1][ma][mb - 1] + 
+        (b_r * uarray_i[j - 1][ma][mb - 1] +
 	 b_i * uarray_r[j - 1][ma][mb - 1]);
 
       rootpq = rootpqarray[ma + 1][mb];
       uarray_r[j][ma + 1][mb] =
 	rootpq *
-        (a_r * uarray_r[j - 1][ma][mb - 1] - 
+        (a_r * uarray_r[j - 1][ma][mb - 1] -
 	 a_i * uarray_i[j - 1][ma][mb - 1]);
       uarray_i[j][ma + 1][mb] =
 	rootpq *
-        (a_r * uarray_i[j - 1][ma][mb - 1] + 
+        (a_r * uarray_i[j - 1][ma][mb - 1] +
 	 a_i * uarray_r[j - 1][ma][mb - 1]);
     }
   }
@@ -1776,7 +1776,7 @@ void SNA::init_clebsch_gordan()
 
 	    sum = 0.0;
 
-	    for (int z = MAX(0, MAX(-(j - j2 + aa2) 
+	    for (int z = MAX(0, MAX(-(j - j2 + aa2)
 				   / 2, -(j - j1 - bb2) / 2));
 		z <= MIN((j1 + j2 - j) / 2,
 			 MIN((j1 - aa2) / 2, (j2 + bb2) / 2));
@@ -1807,7 +1807,7 @@ void SNA::init_clebsch_gordan()
 }
 
 /* ----------------------------------------------------------------------
-   pre-compute table of sqrt[p/m2], p, q = 1,twojmax 
+   pre-compute table of sqrt[p/m2], p, q = 1,twojmax
    the p = 0, q = 0 entries are allocated and skipped for convenience.
 ------------------------------------------------------------------------- */
 

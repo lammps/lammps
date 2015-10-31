@@ -15,10 +15,10 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_gran_hooke_history.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -472,12 +472,12 @@ void PairGranHookeHistory::init_style()
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
     if (ipour >= 0) {
       itype = i;
-      onerad_dynamic[i] = 
+      onerad_dynamic[i] =
         *((double *) modify->fix[ipour]->extract("radius",itype));
     }
     if (idep >= 0) {
       itype = i;
-      onerad_dynamic[i] = 
+      onerad_dynamic[i] =
         *((double *) modify->fix[idep]->extract("radius",itype));
     }
   }
@@ -759,7 +759,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf, 
+int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf,
                                             int pbc_flag, int *pbc)
 {
   int i,j,m;

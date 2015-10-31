@@ -20,7 +20,7 @@ ImproperStyle(cvff,ImproperCvff)
 #ifndef LMP_IMPROPER_CVFF_H
 #define LMP_IMPROPER_CVFF_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "improper.h"
 
 namespace LAMMPS_NS {

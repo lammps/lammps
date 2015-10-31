@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_soft_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 #include "math_const.h"
 
@@ -48,13 +48,13 @@ void soft_gpu_reinit(const int ntypes, double **cutsq, double **host_prefactor,
                      double **host_cut);
 void soft_gpu_clear();
 int ** soft_gpu_compute_n(const int ago, const int inum,
-                           const int nall, double **host_x, int *host_type, 
+                           const int nall, double **host_x, int *host_type,
                            double *sublo, double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum,
                            const double cpu_time, bool &success);
-void soft_gpu_compute(const int ago, const int inum, const int nall, 
+void soft_gpu_compute(const int ago, const int inum, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,
                        const bool eatom, const bool vatom, int &host_start,
@@ -70,7 +70,7 @@ PairSoftGPU::PairSoftGPU(LAMMPS *lmp) : PairSoft(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -88,10 +88,10 @@ void PairSoftGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -100,7 +100,7 @@ void PairSoftGPU::compute(int eflag, int vflag)
                                      atom->x, atom->type, domain->sublo,
                                      domain->subhi, atom->tag, atom->nspecial,
                                      atom->special, eflag, vflag, eflag_atom,
-                                     vflag_atom, host_start, 
+                                     vflag_atom, host_start,
                                      &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
@@ -127,7 +127,7 @@ void PairSoftGPU::compute(int eflag, int vflag)
 
 void PairSoftGPU::init_style()
 {
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with soft/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -168,7 +168,7 @@ void PairSoftGPU::init_style()
 void PairSoftGPU::reinit()
 {
   Pair::reinit();
-  
+
   soft_gpu_reinit(atom->ntypes+1, cutsq, prefactor, cut);
 }
 
@@ -182,7 +182,7 @@ double PairSoftGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairSoftGPU::cpu_compute(int start, int inum, int eflag, int vflag, 
+void PairSoftGPU::cpu_compute(int start, int inum, int eflag, int vflag,
                                int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;

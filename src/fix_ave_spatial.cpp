@@ -15,9 +15,9 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_spatial.h"
 #include "atom.h"
 #include "update.h"
@@ -83,7 +83,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg+1],"center") == 0) originflag[ndim] = CENTER;
     else if (strcmp(arg[iarg+1],"upper") == 0) originflag[ndim] = UPPER;
     else originflag[ndim] = COORD;
-    if (originflag[ndim] == COORD) 
+    if (originflag[ndim] == COORD)
       origin[ndim] = force->numeric(FLERR,arg[iarg+1]);
 
     delta[ndim] = force->numeric(FLERR,arg[iarg+2]);
@@ -208,11 +208,11 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix ave/spatial command");
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
       else minflag[idim] = COORD;
-      if (minflag[idim] == COORD) 
+      if (minflag[idim] == COORD)
         minvalue[idim] = force->numeric(FLERR,arg[iarg+2]);
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
       else maxflag[idim] = COORD;
-      if (maxflag[idim] == COORD) 
+      if (maxflag[idim] == COORD)
         maxvalue[idim] = force->numeric(FLERR,arg[iarg+3]);
       else error->all(FLERR,"Illegal fix ave/spatial command");
       iarg += 4;
@@ -552,7 +552,7 @@ void FixAveSpatial::end_of_step()
   // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
     error->all(FLERR,"Invalid timestep reset for fix ave/spatial");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
@@ -619,7 +619,7 @@ void FixAveSpatial::end_of_step()
             values_one[bin[i]][m] += attribute[i][j];
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) &&
               bin[i] >= 0)
             values_one[bin[i]][m] += attribute[i][j];
       }
@@ -634,7 +634,7 @@ void FixAveSpatial::end_of_step()
             values_one[bin[i]][m] += 1.0;
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) &&
               bin[i] >= 0)
             values_one[bin[i]][m] += 1.0;
       }
@@ -654,7 +654,7 @@ void FixAveSpatial::end_of_step()
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) &&
               bin[i] >= 0) {
             if (rmass) values_one[bin[i]][m] += rmass[i];
             else values_one[bin[i]][m] += mass[type[i]];
@@ -682,7 +682,7 @@ void FixAveSpatial::end_of_step()
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) &&
               bin[i] >= 0) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
             else values_one[bin[i]][m] += array[i][jm1];
@@ -705,7 +705,7 @@ void FixAveSpatial::end_of_step()
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) &&
               bin[i] >= 0) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
             else values_one[bin[i]][m] += array[i][jm1];
@@ -730,7 +730,7 @@ void FixAveSpatial::end_of_step()
             values_one[bin[i]][m] += varatom[i];
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) &&
               bin[i] >= 0)
             values_one[bin[i]][m] += varatom[i];
       }

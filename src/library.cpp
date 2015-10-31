@@ -14,9 +14,9 @@
 // C or Fortran style library interface to LAMMPS
 // customize by adding new LAMMPS-specific functions
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "library.h"
 #include "lammps.h"
 #include "universe.h"
@@ -405,7 +405,7 @@ int lammps_get_natoms(void *ptr)
    data must be pre-allocated by caller to correct length
 ------------------------------------------------------------------------- */
 
-void lammps_gather_atoms(void *ptr, char *name, 
+void lammps_gather_atoms(void *ptr, char *name,
                          int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;

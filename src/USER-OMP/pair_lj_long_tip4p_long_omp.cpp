@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_long_tip4p_long_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -1158,7 +1158,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
       jtype = type[j];
 
       if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
-        r2inv = 1.0/rsq;				
+        r2inv = 1.0/rsq;
 	register double rn = r2inv*r2inv*r2inv;
 	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
 	else {					// special case
@@ -1397,7 +1397,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
       jtype = type[j];
 
       if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
-        r2inv = 1.0/rsq;				
+        r2inv = 1.0/rsq;
 	register double rn = r2inv*r2inv*r2inv;
 	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
 	else {					// special case

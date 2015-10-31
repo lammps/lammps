@@ -403,7 +403,7 @@ void FixQMMM::exchange_positions()
       maxbuf = atom->nmax*size_one;
       comm_buf = memory->smalloc(maxbuf,"qmmm:comm_buf");
     }
-    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
+    struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (comm->me == 0) {
       MPI_Status status;
@@ -498,7 +498,7 @@ void FixQMMM::exchange_forces()
 
   if (qmmm_role == QMMM_ROLE_MASTER) {
     MPI_Request req[2];
-    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
+    struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (comm->me == 0) {
       // receive QM forces from QE
@@ -605,7 +605,7 @@ void FixQMMM::init()
       memory->create(qm_force,3*num_qm,"qmmm:qm_force");
 
       const char fmt[] = "Initializing QM/MM master with %d QM atoms\n";
-      
+
       if (screen)  fprintf(screen,fmt,num_qm);
       if (logfile) fprintf(logfile,fmt,num_qm);
 
@@ -613,7 +613,7 @@ void FixQMMM::init()
         const char fm2[] = "Electrostatic coupling with %d atoms\n";
         if (screen)  fprintf(screen,fm2,num_mm);
         if (logfile) fprintf(logfile,fm2,num_mm);
-      } 
+      }
 
     } else if (qmmm_role == QMMM_ROLE_SLAVE) {
 
@@ -627,7 +627,7 @@ void FixQMMM::init()
       memory->create(qm_force,3*num_qm,"qmmm:qm_force");
 
       const char fmt[] = "Initializing QM/MM slave with %d QM atoms\n";
-      
+
       if (screen)  fprintf(screen,fmt,num_qm);
       if (logfile) fprintf(logfile,fmt,num_qm);
 
@@ -684,7 +684,7 @@ void FixQMMM::init()
       qm_remap=taginthash_keys(qm_hash);
 
       if (verbose > 1) {
-        const char fmt[] = "qm_remap[%d]=" TAGINT_FORMAT 
+        const char fmt[] = "qm_remap[%d]=" TAGINT_FORMAT
                            "  qm_hash[" TAGINT_FORMAT "]=" TAGINT_FORMAT "\n";
         // print hashtable and reverse mapping
         for (i=0; i < num_qm; ++i) {
@@ -740,7 +740,7 @@ void FixQMMM::post_force(int vflag)
 double FixQMMM::memory_usage(void)
 {
   double bytes;
-  
+
   bytes = sizeof(FixQMMM);
   bytes += maxbuf;
   bytes += 6*num_qm*sizeof(double);

@@ -15,7 +15,7 @@
    Contributing authors: Amalie Frischknecht and Ahmed Ismail (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pppm_tip4p.h"
 #include "atom.h"
 #include "domain.h"
@@ -296,7 +296,7 @@ void PPPMTIP4P::fieldforce_ad()
 
   for (i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -306,7 +306,7 @@ void PPPMTIP4P::fieldforce_ad()
     dx = nx+shiftone - (xi[0]-boxlo[0])*delxinv;
     dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
-    
+
     compute_rho1d(dx,dy,dz);
     compute_drho1d(dx,dy,dz);
 
@@ -327,7 +327,7 @@ void PPPMTIP4P::fieldforce_ad()
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;
-    
+
     // convert E-field to force and substract self forces
 
     const double qfactor = qqrd2e * scale;
@@ -375,7 +375,7 @@ void PPPMTIP4P::fieldforce_ad()
 
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
+   interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4P::fieldforce_peratom()
@@ -401,7 +401,7 @@ void PPPMTIP4P::fieldforce_peratom()
 
   for (i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -424,7 +424,7 @@ void PPPMTIP4P::fieldforce_peratom()
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           x0 = y0*rho1d[0][l];
-          if (eflag_atom) u_pa += x0*u_brick[mz][my][mx];	
+          if (eflag_atom) u_pa += x0*u_brick[mz][my][mx];
           if (vflag_atom) {
             v0 += x0*v0_brick[mz][my][mx];
             v1 += x0*v1_brick[mz][my][mx];

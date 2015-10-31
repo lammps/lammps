@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_nh_kokkos.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -245,7 +245,7 @@ void FixNHKokkos<DeviceType>::final_integrate()
 
   // re-compute temp before nh_v_press()
   // only needed for temperature computes with BIAS on reneighboring steps:
-  //   b/c some biases store per-atom values (e.g. temp/profile) 
+  //   b/c some biases store per-atom values (e.g. temp/profile)
   //   per-atom values are invalid if reneigh/comm occurred
   //     since temp->compute() in initial_integrate()
 

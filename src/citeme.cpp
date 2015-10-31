@@ -18,7 +18,7 @@
 
 using namespace LAMMPS_NS;
 
-static const char cite_header[] = 
+static const char cite_header[] =
   "This LAMMPS simulation made specific use of work described in the\n"
   "following references.  See http://lammps.sandia.gov/cite.html\n"
   "for details.\n\n";
@@ -34,7 +34,7 @@ CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp)
   cs = new citeset();
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    write out nag-line at the end of the regular output and clean up
 ------------------------------------------------------------------------- */
 

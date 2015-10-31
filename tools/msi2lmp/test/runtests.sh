@@ -184,3 +184,6 @@ echo
 echo "Total error count: $errors / $counter"
 echo
 
+echo "Total error count: $errors / $counter"
+echo
+

@@ -15,8 +15,8 @@
    Contributing author: Laurent Joly (U Lyon, France), ljoly.ulyon@gmail.com
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_addtorque.h"
 #include "atom.h"
 #include "update.h"
@@ -109,21 +109,21 @@ void FixAddTorque::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) 
+    if (xvar < 0)
       error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) 
+    if (yvar < 0)
       error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) 
+    if (zvar < 0)
       error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else error->all(FLERR,"Variable for fix addtorque is invalid style");

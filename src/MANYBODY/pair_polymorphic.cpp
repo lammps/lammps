@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    Based on pair_tersoff by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_polymorphic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -280,7 +280,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
           costheta = (delr1[0]*delr2[0] + delr1[1]*delr2[1] +
                       delr1[2]*delr2[2]) / (r1*r2);
-          iparam_ijk = elem3param[jel][iel][kel]; 
+          iparam_ijk = elem3param[jel][iel][kel];
           TripletParameters & trip = tripletParameters[iparam_ijk];
 
           wfac= (q.W)->value(r2);
@@ -331,7 +331,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
           iparam_ijk = elem3param[jel][iel][kel];
           TripletParameters & trip = tripletParameters[iparam_ijk];
- 
+
           attractive(&q,&trip,prefactor,r1,r2,delr1,delr2,fi,fj,fk);
 
           f[i][0] += fi[0];
@@ -366,7 +366,7 @@ void PairPolymorphic::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairPolymorphic::settings(int narg, char **arg)
@@ -459,8 +459,8 @@ void PairPolymorphic::coeff(int narg, char **arg)
   // type_map = atom type to element in potential file
   if (type_map) { delete [] type_map; }
   type_map = new int[ntypes+1];
-  for (int i = 0; i < ntypes+1; i++) { 
-    type_map[i] = -1; 
+  for (int i = 0; i < ntypes+1; i++) {
+    type_map[i] = -1;
   }
   // elements = list of requested element names (ntypes long)
   char** elements = new char*[ntypes];
@@ -479,7 +479,7 @@ void PairPolymorphic::coeff(int narg, char **arg)
   setup();
 
   if (elements)
-    for (int i = 0; i < ntypes; i++) 
+    for (int i = 0; i < ntypes; i++)
       if (elements[i]) delete [] elements[i];
   delete [] elements;
 
@@ -547,7 +547,7 @@ void PairPolymorphic::read_file(char *file, char** elements)
         break;
       }
     }
-    if (j == nelements) 
+    if (j == nelements)
       error->all(FLERR,"Element not defined in potential file");
   }
   if (comm->me == 0) { printf("\n"); }
@@ -586,42 +586,42 @@ void PairPolymorphic::read_file(char *file, char** elements)
     read_line(fp,line);
     ptr = strtok(line," \t\n\r\f"); // 1st token
     strcpy(ftype,ptr);
-    p.U = create_function(ftype,fp); 
+    p.U = create_function(ftype,fp);
   }
   for (int i = 0; i < npair; i++) { // V
     PairParameters & p = pairParameters[i];
     read_line(fp,line);
     ptr = strtok(line," \t\n\r\f"); // 1st token
     strcpy(ftype,ptr);
-    p.V = create_function(ftype,fp); 
+    p.V = create_function(ftype,fp);
   }
   for (int i = 0; i < npair; i++) { // W
     PairParameters & p = pairParameters[i];
     read_line(fp,line);
     ptr = strtok(line," \t\n\r\f"); // 1st token
     strcpy(ftype,ptr);
-    p.W = create_function(ftype,fp); 
+    p.W = create_function(ftype,fp);
   }
   for (int i = 0; i < npair; i++) { // P
     PairParameters & p = pairParameters[i];
     read_line(fp,line);
     ptr = strtok(line," \t\n\r\f"); // 1st token
     strcpy(ftype,ptr);
-    p.P = create_function(ftype,fp); 
+    p.P = create_function(ftype,fp);
   }
   for (int i = 0; i < ntriple; i++) { // G
     TripletParameters & p = tripletParameters[i];
     read_line(fp,line);
     ptr = strtok(line," \t\n\r\f"); // 1st token
     strcpy(ftype,ptr);
-    p.G = create_function(ftype,fp); 
+    p.G = create_function(ftype,fp);
   }
   for (int i = 0; i < npair; i++) { // F
     PairParameters & p = pairParameters[i];
     read_line(fp,line);
     ptr = strtok(line," \t\n\r\f"); // 1st token
     strcpy(ftype,ptr);
-    p.F = create_function(ftype,fp); 
+    p.F = create_function(ftype,fp);
   }
   if (comm->me == 0) { fclose(fp); }
 }
@@ -633,11 +633,11 @@ C1function * PairPolymorphic::create_function(char* ftype, FILE* fp)
   char * ptr;
   if (strcmp(ftype,"spline")==0) { // N, min, max, values
     C1tabularFunction * f = new C1tabularFunction();
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     int n = atof(ptr);
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double xmin = atof(ptr);
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double xmax = atof(ptr);
     double * table = new double[n];
     read_array(fp,n,table);
@@ -646,28 +646,28 @@ C1function * PairPolymorphic::create_function(char* ftype, FILE* fp)
     return f;
   }
   else if (strcmp(ftype,"constant") == 0) {
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double c = atof(ptr);
     return new C1constant(c);
   }
   else if (strcmp(ftype,"exponential") == 0) {
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double c = atof(ptr);
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double lambda = atof(ptr);
     return new C1exponential(c,lambda);
   }
   else if (strcmp(ftype,"sine") == 0) {
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double c = atof(ptr);
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double w = atof(ptr);
     return new C1sine(c,w);
   }
   else if (strcmp(ftype,"cosine") == 0) {
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double c = atof(ptr);
-    ptr = strtok(NULL," \t\n\r\f"); 
+    ptr = strtok(NULL," \t\n\r\f");
     double w = atof(ptr);
     return new C1cosine(c,w);
   }
@@ -717,7 +717,7 @@ void PairPolymorphic::attractive(PairParameters *p, TripletParameters *trip,
 
   rijinv = 1.0/rij;
   vec3_scale(rijinv,delrij,rij_hat);
-  
+
   rikinv = 1.0/rik;
   vec3_scale(rikinv,delrik,rik_hat);
 

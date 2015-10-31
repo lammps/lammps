@@ -16,10 +16,10 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_sdk_coul_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -190,7 +190,7 @@ void PairLJSDKCoulLong::eval()
             fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
-            if (EFLAG) ecoul = qtmp*q[j] * 
+            if (EFLAG) ecoul = qtmp*q[j] *
                          (etable[itable] + fraction*detable[itable]);
             if (factor_coul < 1.0) {
               table = ctable[itable] + fraction*dctable[itable];
@@ -319,7 +319,7 @@ void PairLJSDKCoulLong::settings(int narg, char **arg)
 
 void PairLJSDKCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) 
+  if (narg < 5 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -394,16 +394,16 @@ double PairLJSDKCoulLong::init_one(int i, int j)
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
 
-  lj1[i][j] = lj_prefact[ljt] * lj_pow1[ljt] * epsilon[i][j] * 
+  lj1[i][j] = lj_prefact[ljt] * lj_pow1[ljt] * epsilon[i][j] *
     pow(sigma[i][j],lj_pow1[ljt]);
-  lj2[i][j] = lj_prefact[ljt] * lj_pow2[ljt] * epsilon[i][j] * 
+  lj2[i][j] = lj_prefact[ljt] * lj_pow2[ljt] * epsilon[i][j] *
     pow(sigma[i][j],lj_pow2[ljt]);
   lj3[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
   lj4[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
 
   if (offset_flag) {
     double ratio = sigma[i][j] / cut_lj[i][j];
-    offset[i][j] = lj_prefact[ljt] * epsilon[i][j] * 
+    offset[i][j] = lj_prefact[ljt] * epsilon[i][j] *
       (pow(ratio,lj_pow1[ljt]) - pow(ratio,lj_pow2[ljt]));
   } else offset[i][j] = 0.0;
 

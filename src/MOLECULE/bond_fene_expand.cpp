@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_fene_expand.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -90,7 +90,7 @@ void BondFENEExpand::compute(int eflag, int vflag)
 
     if (rlogarg < 0.1) {
       char str[128];
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " " 
+      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       error->warning(FLERR,str,0);

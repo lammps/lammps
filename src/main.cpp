@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "lammps.h"
 #include "input.h"
-#include "stdio.h"
+#include <stdio.h>
 
 using namespace LAMMPS_NS;
 

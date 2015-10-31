@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_buck_coul_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -125,7 +125,7 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;          
+        r2inv = 1.0/rsq;
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
@@ -251,7 +251,7 @@ void PairBuckCoulLong::settings(int narg, char **arg)
 
 void PairBuckCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) 
+  if (narg < 5 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -360,7 +360,7 @@ void PairBuckCoulLong::init_style()
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this,instance_me);
-  
+
   // setup force tables
 
   if (ncoultablebits) init_tables(cut_coul,NULL);

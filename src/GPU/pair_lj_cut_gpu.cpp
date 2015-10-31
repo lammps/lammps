@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_cut_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -91,7 +91,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -170,7 +170,7 @@ void PairLJCutGPU::init_style()
 void PairLJCutGPU::reinit()
 {
   Pair::reinit();
-  
+
   ljl_gpu_reinit(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4, offset);
 }
 

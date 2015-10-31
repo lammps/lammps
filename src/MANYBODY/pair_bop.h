@@ -26,7 +26,7 @@ PairStyle(bop,PairBOP)
 #define LMP_PAIR_BOP_H
 
 #include "pair.h"
-#include "time.h"
+#include <time.h>
 #include "update.h"
 
 namespace LAMMPS_NS {
@@ -91,7 +91,7 @@ class PairBOP : public Pair {
   double *sigma_rc,*pi_rc,*phi_rc,*r1,*sigma_beta0;
   double *pi_beta0,*phi0,*sigma_n,*pi_n,*phi_m;
   double *sigma_nc,*pi_nc,*phi_nc;
-  double *pro,*sigma_delta,*sigma_c,*sigma_a;  
+  double *pro,*sigma_delta,*sigma_c,*sigma_a;
   double *sigma_f,*sigma_k,*small3;
   double small1,small2,small3g,small4,small5,small6,small7;
   double which,alpha,alpha1,beta1,gamma1,alpha2,beta2,alpha3;

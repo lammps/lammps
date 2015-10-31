@@ -17,8 +17,8 @@
             "Parallel Unconstrained Min", Plantenga, SAND98-8201
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "atom.h"
 #include "fix_minimize.h"
 #include "min_hftn.h"

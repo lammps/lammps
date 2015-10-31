@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -18,8 +18,8 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_lb_momentum.h"
 #include "atom.h"
 #include "domain.h"
@@ -63,7 +63,7 @@ FixLbMomentum::FixLbMomentum(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix lb/momentum command");
 
   if (linear)
-    if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 || 
+    if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 ||
 	zflag < 0 || zflag > 1) error->all(FLERR,"Illegal fix lb/momentum command");
 
   // cannot have 0 atoms in group
@@ -74,7 +74,7 @@ FixLbMomentum::FixLbMomentum(LAMMPS *lmp, int narg, char **arg) :
   for(int ifix=0; ifix<modify->nfix; ifix++)
     if(strcmp(modify->fix[ifix]->style,"lb/fluid")==0)
       fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
-  
+
 
 
 }
@@ -146,7 +146,7 @@ void FixLbMomentum::end_of_step()
 	}
     MPI_Allreduce(&masslbloc,&masslb,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&momentumlbloc[0],&momentumlb[0],3,MPI_DOUBLE,MPI_SUM,world);
-    
+
     momentumlb[0] *= dm_lb*dx_lb/dt_lb;
     momentumlb[1] *= dm_lb*dx_lb/dt_lb;
     momentumlb[2] *= dm_lb*dx_lb/dt_lb;
@@ -156,7 +156,7 @@ void FixLbMomentum::end_of_step()
     vcmtotal[0] = (masstotal*vcm[0] + momentumlb[0])/(masslb + masstotal);
     vcmtotal[1] = (masstotal*vcm[1] + momentumlb[1])/(masslb + masstotal);
     vcmtotal[2] = (masstotal*vcm[2] + momentumlb[2])/(masslb + masstotal);
-    
+
     //Subtract vcm from the particles.
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -200,7 +200,7 @@ void FixLbMomentum::end_of_step()
 			    u_lb[i][j][k][0]*ucmy*ucmz+ucmx*u_lb[i][j][k][1]*u_lb[i][j][k][2]-
 			    ucmx*u_lb[i][j][k][1]*ucmz-ucmx*ucmy*u_lb[i][j][k][2]+
 			    ucmx*ucmy*ucmz);
-	    etacov[14]=0.0;	  
+	    etacov[14]=0.0;
 	  }else{
 	    etacov[0] = 0.0;
 	    etacov[1] = rho*ucmx;
@@ -212,8 +212,8 @@ void FixLbMomentum::end_of_step()
 	    etacov[7]=rho*(u_lb[i][j][k][0]*ucmy+u_lb[i][j][k][1]*ucmx-ucmx*ucmy);
 	    etacov[8]=rho*(u_lb[i][j][k][0]*ucmz+u_lb[i][j][k][2]*ucmx-ucmx*ucmz);
 	    etacov[9]=rho*(u_lb[i][j][k][1]*ucmz+u_lb[i][j][k][2]*ucmy-ucmy*ucmz);
-	    etacov[10] = 0.0; 
-	    etacov[11] = 0.0; 
+	    etacov[10] = 0.0;
+	    etacov[11] = 0.0;
 	    etacov[12] = 0.0;
 	    etacov[13] = 0.0;
 	    etacov[14] = 0.0;
@@ -221,13 +221,13 @@ void FixLbMomentum::end_of_step()
 	    etacov[16] = 0.0;
 	    etacov[17] = 0.0;
 	    etacov[18] = 0.0;
-	  }	    
+	  }
 
 	  for(int l=0; l<numvel; l++)
 	    for(int ii=0; ii<numvel; ii++){
 	      f_lb[i][j][k][l] -= w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
-	    }    
-  
+	    }
+
 
 	  if(typeLB == 2){
 	    double ****feqold = fix_lb_fluid->feqold;
@@ -243,7 +243,7 @@ void FixLbMomentum::end_of_step()
 	    u_old[0] = u_old[0]/density_old;
 	    u_old[1] = u_old[1]/density_old;
 	    u_old[2] = u_old[2]/density_old;
-	    
+
 	    if(numvel==15){
 	      etacov[0]=0.0;
 	      etacov[1]=density_old*ucmx;
@@ -262,7 +262,7 @@ void FixLbMomentum::end_of_step()
 				      u_old[0]*ucmy*ucmz+ucmx*u_old[1]*u_old[2]-
 				      ucmx*u_old[1]*ucmz-ucmx*ucmy*u_old[2]+
 				      ucmx*ucmy*ucmz);
-	      etacov[14]=0.0;  
+	      etacov[14]=0.0;
 	    }else{
 	      etacov[0] = 0.0;
 	      etacov[1] = density_old*ucmx;
@@ -274,8 +274,8 @@ void FixLbMomentum::end_of_step()
 	      etacov[7] = density_old*(u_lb[i][j][k][0]*ucmy+u_lb[i][j][k][1]*ucmx-ucmx*ucmy);
 	      etacov[8] = density_old*(u_lb[i][j][k][0]*ucmz+u_lb[i][j][k][2]*ucmx-ucmx*ucmz);
 	      etacov[9] = density_old*(u_lb[i][j][k][1]*ucmz+u_lb[i][j][k][2]*ucmy-ucmy*ucmz);
-	      etacov[10] = 0.0; 
-	      etacov[11] = 0.0; 
+	      etacov[10] = 0.0;
+	      etacov[11] = 0.0;
 	      etacov[12] = 0.0;
 	      etacov[13] = 0.0;
 	      etacov[14] = 0.0;
@@ -284,13 +284,13 @@ void FixLbMomentum::end_of_step()
 	      etacov[17] = 0.0;
 	      etacov[18] = 0.0;
 	    }
-	    
+
 	    for(int l=0; l<numvel; l++)
 	      for(int ii=0; ii<numvel; ii++){
 		feqold[i][j][k][l] -= w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
 		feqoldn[i][j][k][l] -= w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
 	      }
-	  } 
+	  }
 	}
   }
 

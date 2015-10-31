@@ -15,10 +15,10 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_tersoff_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -37,19 +37,19 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int tersoff_gpu_init(const int ntypes, const int inum, const int nall, 
+int tersoff_gpu_init(const int ntypes, const int inum, const int nall,
                      const int max_nbors, const double cell_size, int &gpu_mode,
-                     FILE *screen, int* host_map, const int nelements, 
-                     int*** host_elem2param, const int nparams, 
-                     const double* ts_lam1, const double* ts_lam2, 
-                     const double* ts_lam3, const double* ts_powermint, 
+                     FILE *screen, int* host_map, const int nelements,
+                     int*** host_elem2param, const int nparams,
+                     const double* ts_lam1, const double* ts_lam2,
+                     const double* ts_lam3, const double* ts_powermint,
                      const double* ts_biga, const double* ts_bigb,
-                     const double* ts_bigr, const double* ts_bigd, 
-                     const double* ts_c1, const double* ts_c2, 
-                     const double* ts_c3, const double* ts_c4, 
-                     const double* ts_c, const double* ts_d, 
-                     const double* ts_h, const double* ts_gamma, 
-                     const double* ts_beta, const double* ts_powern, 
+                     const double* ts_bigr, const double* ts_bigd,
+                     const double* ts_c1, const double* ts_c2,
+                     const double* ts_c3, const double* ts_c4,
+                     const double* ts_c, const double* ts_d,
+                     const double* ts_h, const double* ts_gamma,
+                     const double* ts_beta, const double* ts_powern,
                      const double* ts_cutsq);
 void tersoff_gpu_clear();
 int ** tersoff_gpu_compute_n(const int ago, const int inum_full,
@@ -59,10 +59,10 @@ int ** tersoff_gpu_compute_n(const int ago, const int inum_full,
                     const bool eatom, const bool vatom, int &host_start,
                     int **ilist, int **jnum, const double cpu_time,
                     bool &success);
-void tersoff_gpu_compute(const int ago, const int nlocal, const int nall, 
-                    const int nlist, double **host_x, int *host_type, 
-                    int *ilist, int *numj, int **firstneigh, const bool eflag, 
-                    const bool vflag, const bool eatom, const bool vatom, 
+void tersoff_gpu_compute(const int ago, const int nlocal, const int nall,
+                    const int nlist, double **host_x, int *host_type,
+                    int *ilist, int *numj, int **firstneigh, const bool eflag,
+                    const bool vflag, const bool eatom, const bool vatom,
                     int &host_start, const double cpu_time, bool &success);
 double tersoff_gpu_bytes();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
@@ -120,8 +120,8 @@ void PairTersoffGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
 
     tersoff_gpu_compute(neighbor->ago, atom->nlocal, nall, inum+list->gnum,
-                   atom->x, atom->type, ilist, numneigh, firstneigh, eflag, 
-                   vflag, eflag_atom, vflag_atom, host_start, cpu_time, 
+                   atom->x, atom->type, ilist, numneigh, firstneigh, eflag,
+                   vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                    success);
   }
   if (!success)
@@ -159,7 +159,7 @@ void PairTersoffGPU::init_style()
   lam1 = lam2 = lam3 = powermint = NULL;
   biga = bigb = bigr = bigd = NULL;
   c1 = c2 = c3 = c4 = NULL;
-  c = d = h = gamma = NULL; 
+  c = d = h = gamma = NULL;
   beta = powern = _cutsq = NULL;
 
   memory->create(lam1,nparams,"pair:lam1");
@@ -204,12 +204,12 @@ void PairTersoffGPU::init_style()
     _cutsq[i] = params[i].cutsq;
   }
 
-  int success = tersoff_gpu_init(atom->ntypes+1, atom->nlocal, 
-                                 atom->nlocal+atom->nghost, 300, 
-                                 cell_size, gpu_mode, screen, map, nelements, 
+  int success = tersoff_gpu_init(atom->ntypes+1, atom->nlocal,
+                                 atom->nlocal+atom->nghost, 300,
+                                 cell_size, gpu_mode, screen, map, nelements,
                                  elem2param, nparams, lam1, lam2, lam3,
-                                 powermint, biga, bigb, bigr, bigd, 
-                                 c1, c2, c3, c4, c, d, h, gamma, 
+                                 powermint, biga, bigb, bigr, bigd,
+                                 c1, c2, c3, c4, c, d, h, gamma,
                                  beta, powern, _cutsq);
 
   memory->destroy(lam1);
@@ -232,7 +232,7 @@ void PairTersoffGPU::init_style()
   memory->destroy(powern);
   memory->destroy(_cutsq);
 
-  if (success == -10) 
+  if (success == -10)
     error->all(FLERR, "Pair tersoff/gpu only works with 1 thread per atom for now.");
 
   GPU_EXTRA::check_flag(success,error,world);

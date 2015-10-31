@@ -15,10 +15,10 @@
    Contributing author: Xiaowang Zhou (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_eim.h"
 #include "atom.h"
 #include "force.h"
@@ -1084,7 +1084,7 @@ double PairEIM::funccoul(int i, int j, double r)
 
 /* ---------------------------------------------------------------------- */
 
-int PairEIM::pack_forward_comm(int n, int *list, double *buf, 
+int PairEIM::pack_forward_comm(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
   int i,j,m;

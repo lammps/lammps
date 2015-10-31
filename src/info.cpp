@@ -15,7 +15,7 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "info.h"
 #include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
@@ -243,7 +243,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
-            commstyles[comm->style], commlayout[comm->layout]); 
+            commstyles[comm->style], commlayout[comm->layout]);
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",
             comm->ghost_velocity ? "yes" : "no");
 

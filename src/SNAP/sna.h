@@ -122,9 +122,9 @@ private:
   void compute_duarray(double, double, double,
                        double, double, double, double, double);
 
-  // if number of atoms are small use per atom arrays 
+  // if number of atoms are small use per atom arrays
   // for twojmax arrays, rij, inside, bvec
-  // this will increase the memory footprint considerably, 
+  // this will increase the memory footprint considerably,
   // but allows parallel filling and reuse of these arrays
   int use_shared_arrays;
 

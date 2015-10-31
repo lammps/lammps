@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 
-#include "mpi.h"
+#include <mpi.h>
 #include <cstring>
 #include <cstdlib>
 #include "fix_aveforce_cuda.h"

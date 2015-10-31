@@ -15,10 +15,10 @@
    Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -170,24 +170,24 @@ Neighbor::~Neighbor()
   delete [] cuttype;
   delete [] cuttypesq;
   delete [] fixchecklist;
-  
+
   memory->destroy(xhold);
-  
+
   memory->destroy(binhead);
   memory->destroy(bins);
-  
+
   memory->destroy(ex1_type);
   memory->destroy(ex2_type);
   memory->destroy(ex_type);
-  
+
   memory->destroy(ex1_group);
   memory->destroy(ex2_group);
   delete [] ex1_bit;
   delete [] ex2_bit;
-  
+
   memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
-  
+
   for (int i = 0; i < nlist; i++) delete lists[i];
   delete [] lists;
   delete [] pair_build;
@@ -195,12 +195,12 @@ Neighbor::~Neighbor()
   delete [] blist;
   delete [] glist;
   delete [] slist;
-  
+
   for (int i = 0; i < nrequest; i++) delete requests[i];
   memory->sfree(requests);
   for (int i = 0; i < old_nrequest; i++) delete old_requests[i];
   memory->sfree(old_requests);
-  
+
   memory->destroy(bondlist);
   memory->destroy(anglelist);
   memory->destroy(dihedrallist);
@@ -449,7 +449,7 @@ void Neighbor::init()
   // no need to re-create if:
   //   neigh style, triclinic, pgsize, oneatom have not changed
   //   current requests = old requests
-  // first archive request params for current requests 
+  // first archive request params for current requests
   //   before Neighbor possibly changes them below
 
   for (i = 0; i < nrequest; i++) requests[i]->archive();
@@ -594,7 +594,7 @@ void Neighbor::init()
           requests[i]->half_from_full = 1;
           lists[i]->listfull = lists[j];
         }
-        
+
       // fix/compute requests:
       // whether request is occasional or not doesn't matter
       // if request = half and non-skip pair half/respaouter exists,
@@ -792,7 +792,7 @@ void Neighbor::init()
 
   // output neighbor list info, only first time or when info changes
 
-  if (!same || every != old_every || delay != old_delay || 
+  if (!same || every != old_every || delay != old_delay ||
       old_check != dist_check || old_cutoff != cutneighmax) {
     if (me == 0) {
       const double cutghost = MAX(cutneighmax,comm->cutghostuser);
@@ -817,7 +817,7 @@ void Neighbor::init()
         fprintf(logfile,"  ghost atom cutoff = %g\n",cutghost);
         if (style != NSQ)
           fprintf(logfile,"  binsize = %g -> bins = %g %g %g\n",binsize,
-	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize), 
+	          ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
                   ceil(bbox[2]/binsize));
       }
       if (screen) {
@@ -1069,7 +1069,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
             else pb = &Neighbor::half_bin_no_newton_ghost;
           } else if (triclinic == 0) {
             pb = &Neighbor::half_bin_newton;
-          } else if (triclinic == 1) 
+          } else if (triclinic == 1)
             pb = &Neighbor::half_bin_newton_tri;
         } else if (rq->newton == 1) {
           if (triclinic == 0) pb = &Neighbor::half_bin_newton;
@@ -2140,7 +2140,7 @@ bigint Neighbor::memory_usage()
     bytes += memory->usage(binhead,maxhead);
   }
 
-  for (int i = 0; i < nrequest; i++) 
+  for (int i = 0; i < nrequest; i++)
     if (lists[i]) bytes += lists[i]->memory_usage();
 
   bytes += memory->usage(bondlist,maxbond,3);

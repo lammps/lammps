@@ -15,8 +15,8 @@
  Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "fix_nh_eff.h"
 #include "atom.h"
 #include "atom_vec.h"

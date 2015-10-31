@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_temp_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -55,7 +55,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/asphere command");
       tempbias = 1;
       int n = strlen(arg[iarg+1]) + 1;
@@ -63,7 +63,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
       strcpy(id_bias,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/asphere command");
       if (strcmp(arg[iarg+1],"rotate") == 0) mode = ROTATE;
       else if (strcmp(arg[iarg+1],"all") == 0) mode = ALL;
@@ -107,7 +107,7 @@ void ComputeTempAsphere::init()
 
   if (tempbias) {
     int i = modify->find_compute(id_bias);
-    if (i < 0) 
+    if (i < 0)
       error->all(FLERR,"Could not find compute ID for temperature bias");
     tbias = modify->compute[i];
     if (tbias->tempflag == 0)
@@ -267,7 +267,7 @@ double ComputeTempAsphere::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic || tempbias == 2) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0) 
+  if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;

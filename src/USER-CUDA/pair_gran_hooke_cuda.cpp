@@ -197,12 +197,12 @@ void PairGranHookeCuda::init_style()
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
     if (ipour >= 0) {
       itype = i;
-      onerad_dynamic[i] = 
+      onerad_dynamic[i] =
         *((double *) modify->fix[ipour]->extract("radius",itype));
     }
     if (idep >= 0) {
       itype = i;
-      onerad_dynamic[i] = 
+      onerad_dynamic[i] =
         *((double *) modify->fix[idep]->extract("radius",itype));
     }
   }

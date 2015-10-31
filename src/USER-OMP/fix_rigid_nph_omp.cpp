@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -17,7 +17,7 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_rigid_nph_omp.h"
 #include "domain.h"
 #include "modify.h"
@@ -29,24 +29,24 @@ using namespace LAMMPS_NS;
 
 FixRigidNPHOMP::FixRigidNPHOMP(LAMMPS *lmp, int narg, char **arg) :
   FixRigidNHOMP(lmp, narg, arg)
-{ 
+{
   // other setting are made by parent
 
   scalar_flag = 1;
   restart_global = 1;
   box_change_size = 1;
   extscalar = 1;
-    
+
   // error checks
 
   if (pstat_flag == 0)
     error->all(FLERR,"Pressure control must be used with fix nph/omp");
   if (tstat_flag == 1)
     error->all(FLERR,"Temperature control must not be used with fix nph/omp");
-  if (p_start[0] < 0.0 || p_start[1] < 0.0 || p_start[2] < 0.0 || 
+  if (p_start[0] < 0.0 || p_start[1] < 0.0 || p_start[2] < 0.0 ||
       p_stop[0] < 0.0 || p_stop[1] < 0.0 || p_stop[2] < 0.0)
     error->all(FLERR,"Target pressure for fix rigid/nph/omp cannot be 0.0");
-  
+
   // convert input periods to frequency
   p_freq[0] = p_freq[1] = p_freq[2] = 0.0;
 
@@ -67,15 +67,15 @@ FixRigidNPHOMP::FixRigidNPHOMP(LAMMPS *lmp, int narg, char **arg) :
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";  
+  newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tcomputeflag = 1;
-  
+
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
-  
+
   n = strlen(id) + 7;
   id_press = new char[n];
   strcpy(id_press,id);

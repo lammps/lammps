@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,11 +32,11 @@ class FixRigidNHSmall : public FixRigidSmall {
   void write_restart(FILE *);
   void restart(char *buf);
   void reset_target(double);
-  
+
  protected:
   double boltz,nktv2p,mvv2e;          // boltzman constant, conversion factors
 
-  int dimension;                      // # of dimensions  
+  int dimension;                      // # of dimensions
   int nf_t,nf_r;                      // trans/rot degrees of freedom
   double onednft,onednfr;             // factors 1 + dimension/trans(rot) degrees of freedom
   double *w,*wdti1,*wdti2,*wdti4;     // Yoshida-Suzuki coefficients
@@ -44,13 +44,13 @@ class FixRigidNHSmall : public FixRigidSmall {
   double *eta_t,*eta_r;               // trans/rot thermostat positions
   double *eta_dot_t,*eta_dot_r;       // trans/rot thermostat velocities
   double *f_eta_t,*f_eta_r;           // trans/rot thermostat forces
-  
+
   double epsilon_mass[3], *q_b;       // baro/thermo masses
   double epsilon[3],*eta_b;           // baro/thermo positions
   double epsilon_dot[3],*eta_dot_b;   // baro/thermo velocities
   double *f_eta_b;                    // thermo forces
   double akin_t,akin_r;               // translational/rotational kinetic energies
-  
+
   int kspace_flag;                    // 1 if KSpace invoked, 0 if not
   int nrigidfix;                      // number of rigid fixes
   int *rfix;                          // indicies of rigid fixes
@@ -60,18 +60,18 @@ class FixRigidNHSmall : public FixRigidSmall {
   int pdim,g_f;                       // number of barostatted dims, total DoFs
   double p_hydro;                     // hydrostatic target pressure
   double p_freq_max;                  // maximum barostat frequency
-  
+
   double mtk_term1,mtk_term2;         // Martyna-Tobias-Klein corrections
 
   double t_target,t_current;
   double t_freq;
-  
+
   char *id_temp,*id_press;
   class Compute *temperature,*pressure;
   int tcomputeflag,pcomputeflag;
 
   void couple();
-  void remap();  
+  void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();
 

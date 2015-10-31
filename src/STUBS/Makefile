@@ -22,7 +22,7 @@ OBJ = 		$(SRC:.c=.o)
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-O -fPIC
+CCFLAGS =	-O -fPIC -I.
 ARCHIVE =	ar
 ARCHFLAG =	rs
 

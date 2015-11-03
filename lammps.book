@@ -79,7 +79,7 @@ doc/thermo.html
 doc/thermo_style.html
 doc/thermo_modify.html
 doc/timestep.html
-doc/timers.html
+doc/timer.html
 doc/units.html
 doc/variable.html
 doc/velocity.html
@@ -118,6 +118,7 @@ doc/fix_atc.html
 doc/fix_atom_swap.html
 doc/fix_ave_atom.html
 doc/fix_ave_correlate.html
+doc/fix_ave_correlate_long.html
 doc/fix_ave_chunk.html
 doc/fix_ave_histo.html
 doc/fix_ave_spatial.html
@@ -130,7 +131,6 @@ doc/fix_bond_create.html
 doc/fix_bond_swap.html
 doc/fix_box_relax.html
 doc/fix_colvars.html
-doc/fix_countdown.html
 doc/fix_deform.html
 doc/fix_deposit.html
 doc/fix_drag.html
@@ -202,7 +202,7 @@ doc/fix_qeq_comb.html
 doc/fix_qeq_reax.html
 doc/fix_qmmm.html
 doc/fix_qtb.html
-doc/fix_reax_bonds.html
+doc/fix_reaxc_bonds.html
 doc/fix_reaxc_species.html
 doc/fix_recenter.html
 doc/fix_restrain.html
@@ -276,7 +276,6 @@ doc/compute_gyration.html
 doc/compute_gyration_chunk.html
 doc/compute_heat_flux.html
 doc/compute_improper_local.html
-doc/compute_inertia.html
 doc/compute_inertia_chunk.html
 doc/compute_ke.html
 doc/compute_ke_atom.html
@@ -327,6 +326,7 @@ doc/compute_smd_ulsph_stress.html
 doc/compute_smd_vol.html
 doc/compute_temp_drude.html
 doc/compute_stress_atom.html
+doc/compute_tally.html
 doc/compute_temp.html
 doc/compute_temp_asphere.html
 doc/compute_temp_chunk.html
@@ -398,6 +398,7 @@ doc/pair_nb3b_harmonic.html
 doc/pair_meam.html
 doc/pair_meam_spline.html
 doc/pair_meam_sw_spline.html
+doc/pair_mgpt.html
 doc/pair_mie.html
 doc/pair_morse.html
 doc/pair_nm.html
@@ -406,7 +407,6 @@ doc/pair_peri.html
 doc/pair_polymorphic.html
 doc/pair_quip.html
 doc/pair_reax_c.html
-doc/pair_reax.html
 doc/pair_resquared.html
 doc/pair_sdk.html
 doc/pair_snap.html
@@ -415,6 +415,7 @@ doc/pair_smd_hertz.html
 doc/pair_smd_tlsph.html
 doc/pair_smd_triangulated_surface.html
 doc/pair_smd_ulsph.html
+doc/pair_smtbq.html
 doc/pair_sph_heatconduction.html
 doc/pair_sph_idealgas.html
 doc/pair_sph_lj.html
@@ -430,6 +431,7 @@ doc/pair_tersoff_mod.html
 doc/pair_tersoff_zbl.html
 doc/pair_thole.html
 doc/pair_tri_lj.html
+doc/pair_vashishta.html
 doc/pair_write.html
 doc/pair_yukawa.html
 doc/pair_yukawa_colloid.html

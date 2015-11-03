@@ -124,8 +124,15 @@ cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices mingw32/ocl_get_devices.ex
 cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices mingw64/ocl_get_devices.exe
 
 # determine os vendor and release for installer tweaks.
-vendor=$(grep  release /etc/issue | cut -d \  -f 1)
-release=$(grep  release /etc/issue | cut -d \  -f 3)
+if [ -f /etc/os-release ]
+then \
+  . /etc/os-release
+  vendor="${NAME}"
+  release="${VERSION_ID}"
+else
+  vendor=$(grep  release /etc/issue | cut -d \  -f 1)
+  release=$(grep  release /etc/issue | cut -d \  -f 3)
+fi
 arch=$(uname -m)
 
 # convert text files into CR/LF format.

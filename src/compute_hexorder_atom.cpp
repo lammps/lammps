@@ -122,7 +122,6 @@ void ComputeHexOrderAtom::compute_peratom()
   int i,j,m,ii,jj,inum,jnum,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double *count;
 
   invoked_peratom = update->ntimestep;
 

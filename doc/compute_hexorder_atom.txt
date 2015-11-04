@@ -1,0 +1,117 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute hexorder/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID hexorder/atom cutoff type1 type2 ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+hexorder/atom = style name of this compute command
+cutoff = distance within which to count neighbors (distance units)
+typeN = atom type for Nth order parameter (see asterisk form below) :ul
+
+[Examples:]
+
+compute 1 all hexorder/atom 2.0
+compute 1 all hexorder/atom 6.0 1 2
+compute 1 all hexorder/atom 6.0 2*4 5*8 * :pre
+
+[Description:]
+
+Define a computation that calculates one or more hexatic bond orientational 
+order parameters for each atom in a group. The hexatic bond orientational order 
+parameter {q}6 "(Nelson)"_#Nelson for an atom is a complex number (stored as two real numbers).
+It is defined as follows:
+
+:c,image(Eqs/hexorder.jpg)
+
+where the sum is over atoms of the specified atom type(s) that are within 
+the specified cutoff distance from the central atom. The angle theta
+is formed by the bond vector rij and the {x} axis. theta is calculated
+only using the {x} and {y} components, whereas the distance from the
+central atom is calculated using all three  
+{x}, {y}, and {z} components of the bond vector.
+Atoms not in the group 
+are included in the order parameter of atoms in the group. 
+
+If the neighbors of the central atom lie on a hexagonal lattice, 
+then |{q}6| = 1.  
+The complex phase of {q}6 depends on the orientation of the 
+lattice relative to the {x} axis. For a liquid in which the 
+atomic neighborhood lacks orientational symmettry, |{q}6| << 1.
+
+The {typeN} keywords allow you to specify which atom types contribute
+to each order parameter.  One order parameter is computed for
+each of the {typeN} keywords listed.  If no {typeN} keywords are
+listed, a single order parameter is calculated, which includes
+atoms of all types (same as the "*" format, see below).
+
+The {typeN} keywords can be specified in one of two ways.  An explicit
+numeric value can be used, as in the 2nd example above.  Or a
+wild-card asterisk can be used to specify a range of atom types.  This
+takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
+atom types, then an asterisk with no numeric values means all types
+from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+The value of all order parameters will be 0.0+0.0i for atoms not in the
+specified compute group. An order parameter for atoms that have no 
+neighbors of the specified atom type within the cutoff distance will
+be 0.0+0.0i.
+
+The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently.
+
+IMPORTANT NOTE: If you have a bonded system, then the settings of
+"special_bonds"_special_bonds.html command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the "special_bonds"_special_bonds.html
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the order parameter.  One way
+to get around this, is to write a dump file, and use the
+"rerun"_rerun.html command to compute the order parameter for snapshots
+in the dump file.  The rerun script can use a
+"special_bonds"_special_bonds.html command that includes all pairs in
+the neighbor list.
+
+[Output info:]
+
+If single {type1} keyword is specified (or if none are specified),
+this compute calculates a per-atom array with 2 columns, giving the
+real and imaginary parts of the order parameter, respectively.  
+If multiple {typeN} keywords are specified, this compute calculates 
+a per-atom array with 2*N columns, with each consecutive pair of 
+columns giving the real and imaginary parts of one order parameter.  
+
+These values can be accessed by any command that uses
+per-atom values from a compute as input.  See "Section_howto
+15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+options.
+
+The per-atom array values will be floating point numbers, as
+explained above.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute coord/atom"_compute_coord_atom.html
+
+[Default:] none
+
+:line
+
+:link(Nelson)
+[(Nelson)] Nelson, Halperin, Phys Rev B, 19, 2457 (1979).

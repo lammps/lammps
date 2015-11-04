@@ -38,33 +38,12 @@ using namespace LAMMPS_NS;
 ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute hexorder/atom command");
+  if (narg != 4) error->all(FLERR,"Illegal compute hexorder/atom command");
 
   double cutoff = force->numeric(FLERR,arg[3]);
   cutsq = cutoff*cutoff;
 
-  ncol = narg-4 + 1;
-  int ntypes = atom->ntypes;
-  typelo = new int[ncol];
-  typehi = new int[ncol];
-
-  if (narg == 4) {
-    ncol = 2;
-    typelo[0] = 1;
-    typehi[0] = ntypes;
-  } else {
-    ncol = 0;
-    int iarg = 4;
-    while (iarg < narg) {
-      force->bounds(arg[iarg],ntypes,typelo[ncol],typehi[ncol]);
-      if (typelo[ncol] > typehi[ncol])
-        error->all(FLERR,"Illegal compute hexorder/atom command");
-      typelo[ncol+1] = typelo[ncol];
-      typehi[ncol+1] = typehi[ncol];
-      ncol+=2;
-      iarg++;
-    }
-  }
+  ncol = 2;
 
   peratom_flag = 1;
   size_peratom_cols = ncol;
@@ -77,8 +56,6 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeHexOrderAtom::~ComputeHexOrderAtom()
 {
-  delete [] typelo;
-  delete [] typehi;
   memory->destroy(q6array);
 }
 
@@ -119,10 +96,9 @@ void ComputeHexOrderAtom::init_list(int id, NeighList *ptr)
 
 void ComputeHexOrderAtom::compute_peratom()
 {
-  int i,j,m,ii,jj,inum,jnum,jtype;
+  int i,j,m,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double *count;
 
   invoked_peratom = update->ntimestep;
 
@@ -148,93 +124,43 @@ void ComputeHexOrderAtom::compute_peratom()
   // use full neighbor list to count atoms less than cutoff
 
   double **x = atom->x;
-  int *type = atom->type;
   int *mask = atom->mask;
 
-  if (ncol == 2) {
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      double* q6 = q6array[i];
-      q6[0] = q6[1] = 0.0;
-      if (mask[i] & groupbit) {
-        xtmp = x[i][0];
-        ytmp = x[i][1];
-        ztmp = x[i][2];
-        jlist = firstneigh[i];
-        jnum = numneigh[i];
-
-	double usum = 0.0;
-        double vsum = 0.0;
-	int ncount = 0;
-
-        for (jj = 0; jj < jnum; jj++) {
-          j = jlist[jj];
-          j &= NEIGHMASK;
-
-          jtype = type[j];
-          delx = xtmp - x[j][0];
-          dely = ytmp - x[j][1];
-          delz = ztmp - x[j][2];
-          rsq = delx*delx + dely*dely + delz*delz;
-          if (rsq < cutsq && jtype >= typelo[0] && jtype <= typehi[0]) {
-	    double u, v;
-	    calc_q6(delx, dely, u, v);
-	    usum += u;
-	    vsum += v;
-	    ncount++;
-	  }
-	}
-	if (ncount > 0) {
-	  double ninv = 1.0/ncount ;
-	  q6[0] = usum*ninv;
-	  q6[1] = vsum*ninv;
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    double* q6 = q6array[i];
+    q6[0] = q6[1] = 0.0;
+    if (mask[i] & groupbit) {
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+      
+      double usum = 0.0;
+      double vsum = 0.0;
+      int ncount = 0;
+      
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
+	j &= NEIGHMASK;
+	
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+	if (rsq < cutsq) {
+	  double u, v;
+	  calc_q6(delx, dely, u, v);
+	  usum += u;
+	  vsum += v;
+	  ncount++;
 	}
       }
-    }
-  } else {
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      double* q6 = q6array[i];
-      for (m = 0; m < ncol; m++) q6[m] = 0.0;
-
-      if (mask[i] & groupbit) {
-        xtmp = x[i][0];
-        ytmp = x[i][1];
-        ztmp = x[i][2];
-        jlist = firstneigh[i];
-        jnum = numneigh[i];
-
-	for (m = 0; m < ncol; m+=2) {
-
-	  double usum = 0.0;
-	  double vsum = 0.0;
-	  int ncount = 0;
-	
-	  for (jj = 0; jj < jnum; jj++) {
-	    j = jlist[jj];
-	    j &= NEIGHMASK;
-	
-	    jtype = type[j];
-	    delx = xtmp - x[j][0];
-	    dely = ytmp - x[j][1];
-	    delz = ztmp - x[j][2];
-	    rsq = delx*delx + dely*dely + delz*delz;
-	    if (rsq < cutsq) {
-	      if (jtype >= typelo[m] && jtype <= typehi[m]) {
-		double u, v;
-		calc_q6(delx, dely, u, v);
-		usum += u;
-		vsum += v;
-		ncount++;
-	      }
-	    }
-	    if (ncount > 0) {
-	      double ninv = 1.0/ncount ;
-	      q6[m] = usum*ninv;
-	      q6[m+1] = vsum*ninv;
-	    }
-	  }
-        }
+      if (ncount > 0) {
+	double ninv = 1.0/ncount ;
+	q6[0] = usum*ninv;
+	q6[1] = vsum*ninv;
       }
     }
   }

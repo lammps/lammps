@@ -15,53 +15,35 @@ compute ID group-ID hexorder/atom cutoff type1 type2 ... :pre
 ID, group-ID are documented in "compute"_compute.html command
 hexorder/atom = style name of this compute command
 cutoff = distance within which to count neighbors (distance units)
-typeN = atom type for Nth order parameter (see asterisk form below) :ul
 
 [Examples:]
 
-compute 1 all hexorder/atom 2.0
-compute 1 all hexorder/atom 6.0 1 2
-compute 1 all hexorder/atom 6.0 2*4 5*8 * :pre
+compute 1 all hexorder/atom 2.0 :pre
 
 [Description:]
 
-Define a computation that calculates one or more hexatic bond orientational 
-order parameters for each atom in a group. The hexatic bond orientational order 
-parameter {q}6 "(Nelson)"_#Nelson for an atom is a complex number (stored as two real numbers).
-It is defined as follows:
+Define a computation that calculates {q}6 the hexatic bond-orientational 
+order parameter for each atom in a group. This order 
+parameter was introduced by "Nelson and Halperin"_#Nelson as a way to detect
+hexagonal symmetry in two-dimensional systems. For a each atoms, {q}6 
+is a complex number (stored as two real numbers) defined as follows:
 
 :c,image(Eqs/hexorder.jpg)
 
-where the sum is over atoms of the specified atom type(s) that are within 
+where the sum is over all atoms that are within 
 the specified cutoff distance from the central atom. The angle theta
 is formed by the bond vector rij and the {x} axis. theta is calculated
 only using the {x} and {y} components, whereas the distance from the
 central atom is calculated using all three  
 {x}, {y}, and {z} components of the bond vector.
-Atoms not in the group 
+Neighbor atoms not in the group 
 are included in the order parameter of atoms in the group. 
 
 If the neighbors of the central atom lie on a hexagonal lattice, 
 then |{q}6| = 1.  
 The complex phase of {q}6 depends on the orientation of the 
 lattice relative to the {x} axis. For a liquid in which the 
-atomic neighborhood lacks orientational symmettry, |{q}6| << 1.
-
-The {typeN} keywords allow you to specify which atom types contribute
-to each order parameter.  One order parameter is computed for
-each of the {typeN} keywords listed.  If no {typeN} keywords are
-listed, a single order parameter is calculated, which includes
-atoms of all types (same as the "*" format, see below).
-
-The {typeN} keywords can be specified in one of two ways.  An explicit
-numeric value can be used, as in the 2nd example above.  Or a
-wild-card asterisk can be used to specify a range of atom types.  This
-takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
-atom types, then an asterisk with no numeric values means all types
-from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
+atomic neighborhood lacks orientational symmetry, |{q}6| << 1.
 
 The value of all order parameters will be zero for atoms not in the
 specified compute group. An order parameter for atoms that have no 
@@ -88,19 +70,15 @@ the neighbor list.
 
 [Output info:]
 
-If single {type1} keyword is specified (or if none are specified),
-this compute calculates a per-atom array with 2 columns, giving the
+This compute calculates a per-atom array with 2 columns, giving the
 real and imaginary parts of {q}6, respectively.  
-If multiple {typeN} keywords are specified, this compute calculates 
-a per-atom array with 2*N columns, with each consecutive pair of 
-columns giving the real and imaginary parts of {q}6.  
 
 These values can be accessed by any command that uses
 per-atom values from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
-The per-atom array values will be pairs of numbers representing the
+The per-atom array contain pairs of numbers representing the
 real and imaginary parts of {q}6, a complex number subject to the
 constraint |{q}6| <= 1.
 

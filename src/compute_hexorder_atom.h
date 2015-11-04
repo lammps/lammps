@@ -38,7 +38,6 @@ class ComputeHexOrderAtom : public Compute {
   double cutsq;
   class NeighList *list;
 
-  int *typelo,*typehi;
   double **q6array;
 
   void calc_q6(double, double, double&, double&);

@@ -63,10 +63,10 @@ from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-The value of all order parameters will be 0.0+0.0i for atoms not in the
+The value of all order parameters will be zero for atoms not in the
 specified compute group. An order parameter for atoms that have no 
 neighbors of the specified atom type within the cutoff distance will
-be 0.0+0.0i.
+be zero.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
@@ -90,18 +90,19 @@ the neighbor list.
 
 If single {type1} keyword is specified (or if none are specified),
 this compute calculates a per-atom array with 2 columns, giving the
-real and imaginary parts of the order parameter, respectively.  
+real and imaginary parts of {q}6, respectively.  
 If multiple {typeN} keywords are specified, this compute calculates 
 a per-atom array with 2*N columns, with each consecutive pair of 
-columns giving the real and imaginary parts of one order parameter.  
+columns giving the real and imaginary parts of {q}6.  
 
 These values can be accessed by any command that uses
 per-atom values from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
-The per-atom array values will be floating point numbers, as
-explained above.
+The per-atom array values will be pairs of numbers representing the
+real and imaginary parts of {q}6, a complex number subject to the
+constraint |{q}6| <= 1.
 
 [Restrictions:] none
 

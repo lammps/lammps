@@ -10,26 +10,31 @@ compute hexorder/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID hexorder/atom :pre
+compute ID group-ID hexorder/atom keyword values ... :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-hexorder/atom = style name of this compute command
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+hexorder/atom = style name of this compute command :l
+zero or more keyword/value pairs may be appended :l
+keyword = {degree} :l
+  {n} value = degree of order parameter :pre
+:ule
 
 [Examples:]
 
-compute 1 all hexorder/atom :pre
+compute 1 all hexorder/atom 
+compute 1 all hexorder/atom n 4 :pre
 
 [Description:]
 
-Define a computation that calculates {q}6 the hexatic bond-orientational 
-order parameter for each atom in a group. This order 
+Define a computation that calculates {qn} the bond-orientational 
+order parameter for each atom in a group. The hexatic ({n} = 6) order 
 parameter was introduced by "Nelson and Halperin"_#Nelson as a way to detect
-hexagonal symmetry in two-dimensional systems. For each atom, {q}6 
+hexagonal symmetry in two-dimensional systems. For each atom, {qn} 
 is a complex number (stored as two real numbers) defined as follows:
 
 :c,image(Eqs/hexorder.jpg)
 
-where the sum is over the six nearest neighbors 
+where the sum is over the {n} nearest neighbors 
 of the central atom. The angle theta
 is formed by the bond vector rij and the {x} axis. theta is calculated
 only using the {x} and {y} components, whereas the distance from the
@@ -38,16 +43,16 @@ central atom is calculated using all three
 Neighbor atoms not in the group 
 are included in the order parameter of atoms in the group. 
 
-If the neighbors of the central atom lie on a hexagonal lattice, 
-then |{q}6| = 1.  
+The optional keyword {n} sets the degree of the order parameter. 
+The default value is 6. If the neighbors of the central atom 
+lie on a hexagonal lattice, then |{q}6| = 1.  
 The complex phase of {q}6 depends on the orientation of the 
 lattice relative to the {x} axis. For a liquid in which the 
 atomic neighborhood lacks orientational symmetry, |{q}6| << 1.
 
-The value of all order parameters will be zero for atoms not in the
-specified compute group. If the atom does not have 6 neighbors (within
-the potential cutoff), then its centro-symmetry parameter is set to
-zero.
+The value of {qn} will be zero for atoms not in the
+specified compute group. If the atom has less than {n} neighbors (within
+the potential cutoff), then {qn} is set to zero.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
@@ -70,7 +75,7 @@ the neighbor list.
 [Output info:]
 
 This compute calculates a per-atom array with 2 columns, giving the
-real and imaginary parts of {q}6, respectively.  
+real and imaginary parts of {qn}, respectively.  
 
 These values can be accessed by any command that uses
 per-atom values from a compute as input.  See "Section_howto
@@ -78,8 +83,8 @@ per-atom values from a compute as input.  See "Section_howto
 options.
 
 The per-atom array contain pairs of numbers representing the
-real and imaginary parts of {q}6, a complex number subject to the
-constraint |{q}6| <= 1.
+real and imaginary parts of {qn}, a complex number subject to the
+constraint |{qn}| <= 1.
 
 [Restrictions:] none
 
@@ -87,7 +92,9 @@ constraint |{q}6| <= 1.
 
 "compute coord/atom"_compute_coord_atom.html, "compute centro/atom"_compute_centro_atom.html
 
-[Default:] none
+[Default:] 
+
+The option default is {n} = 6.
 
 :line
 

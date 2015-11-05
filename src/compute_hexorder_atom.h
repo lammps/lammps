@@ -42,6 +42,8 @@ class ComputeHexOrderAtom : public Compute {
   double **q6array;
 
   void calc_q6(double, double, double&, double&);
+  void calc_q4(double, double, double&, double&);
+  void calc_qn(double, double, double&, double&);
   void select2(int, int, double *, int *);
 };
 

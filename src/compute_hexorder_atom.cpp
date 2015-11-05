@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <math.h>
+#include <complex>
 #include <string.h>
 #include <stdlib.h>
 #include "compute_hexorder_atom.h"
@@ -38,10 +39,24 @@ using namespace LAMMPS_NS;
 ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute hexorder/atom command");
+  if (narg < 3 ) error->all(FLERR,"Illegal compute hexorder/atom command");
+
+  nnn = 6;
+
+  // process optional args
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"degree") == 0) {
+      if (iarg+1 > narg) error->all(FLERR,"Illegal lattice command");
+      nnn = force->numeric(FLERR,arg[iarg+1]);
+      if (nnn < 0)
+        error->all(FLERR,"Illegal lattice command");
+      iarg += 2;
+    }
+  }
 
   ncol = 2;
-
   peratom_flag = 1;
   size_peratom_cols = ncol;
 
@@ -50,7 +65,6 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   maxneigh = 0;
   distsq = NULL;
   nearest = NULL;
-  nnn = 6;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,7 +201,7 @@ void ComputeHexOrderAtom::compute_peratom()
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	double u, v;
-	calc_q6(delx, dely, u, v);
+	calc_qn(delx, dely, u, v);
 	usum += u;
 	vsum += v;
       }
@@ -197,6 +211,8 @@ void ComputeHexOrderAtom::compute_peratom()
   }
 }
 
+// this might be faster than pow(std::complex) on some platforms
+
 inline void ComputeHexOrderAtom::calc_q6(double delx, double dely, double &u, double &v) {
   double rinv = 1.0/sqrt(delx*delx+dely*dely);
   double x = delx*rinv;
@@ -205,8 +221,21 @@ inline void ComputeHexOrderAtom::calc_q6(double delx, double dely, double &u, do
   double b1 = y*y;
   double b2 = b1*b1;
   double b3 = b2*b1;
+
+  // (x + i y)^6 coeffs: 1, 6, -15, -20, 15, 6, -1
+
   u = ((  a - 15*b1)*a + 15*b2)*a - b3;
   v = ((6*a - 20*b1)*a +  6*b2)*x*y;
+}
+
+inline void ComputeHexOrderAtom::calc_qn(double delx, double dely, double &u, double &v) {
+  double rinv = 1.0/sqrt(delx*delx+dely*dely);
+  double x = delx*rinv;
+  double y = dely*rinv;
+  std::complex<double> z = x + y*1i;
+  std::complex<double> zn = pow(z,nnn);
+  u = real(zn);
+  v = imag(zn);
 }
 
 /* ----------------------------------------------------------------------

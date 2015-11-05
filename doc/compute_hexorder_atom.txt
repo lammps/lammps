@@ -85,7 +85,7 @@ constraint |{q}6| <= 1.
 
 [Related commands:]
 
-"compute coord/atom"_compute_coord_atom.html
+"compute coord/atom"_compute_coord_atom.html, "compute centro/atom"_compute_centro_atom.html
 
 [Default:] none
 

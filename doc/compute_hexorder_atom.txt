@@ -10,28 +10,27 @@ compute hexorder/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID hexorder/atom cutoff type1 type2 ... :pre
+compute ID group-ID hexorder/atom :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 hexorder/atom = style name of this compute command
-cutoff = distance within which to count neighbors (distance units)
 
 [Examples:]
 
-compute 1 all hexorder/atom 2.0 :pre
+compute 1 all hexorder/atom :pre
 
 [Description:]
 
 Define a computation that calculates {q}6 the hexatic bond-orientational 
 order parameter for each atom in a group. This order 
 parameter was introduced by "Nelson and Halperin"_#Nelson as a way to detect
-hexagonal symmetry in two-dimensional systems. For a each atoms, {q}6 
+hexagonal symmetry in two-dimensional systems. For each atom, {q}6 
 is a complex number (stored as two real numbers) defined as follows:
 
 :c,image(Eqs/hexorder.jpg)
 
-where the sum is over all atoms that are within 
-the specified cutoff distance from the central atom. The angle theta
+where the sum is over the six nearest neighbors 
+of the central atom. The angle theta
 is formed by the bond vector rij and the {x} axis. theta is calculated
 only using the {x} and {y} components, whereas the distance from the
 central atom is calculated using all three  
@@ -46,9 +45,9 @@ lattice relative to the {x} axis. For a liquid in which the
 atomic neighborhood lacks orientational symmetry, |{q}6| << 1.
 
 The value of all order parameters will be zero for atoms not in the
-specified compute group. An order parameter for atoms that have no 
-neighbors of the specified atom type within the cutoff distance will
-be zero.
+specified compute group. If the atom does not have 6 neighbors (within
+the potential cutoff), then its centro-symmetry parameter is set to
+zero.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms

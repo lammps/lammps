@@ -34,13 +34,15 @@ class ComputeHexOrderAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,ncol;
-  double cutsq;
+  int nmax,maxneigh,ncol,nnn;
   class NeighList *list;
+  double *distsq;
+  int *nearest;
 
   double **q6array;
 
   void calc_q6(double, double, double&, double&);
+  void select2(int, int, double *, int *);
 };
 
 }
@@ -59,11 +61,6 @@ command-line option when running LAMMPS to see the offending line.
 E: Compute hexorder/atom requires a pair style be defined
 
 Self-explantory.
-
-E: Compute hexorder/atom cutoff is longer than pairwise cutoff
-
-Cannot compute order parameter at distances longer than the pair cutoff,
-since those atoms are not in the neighbor list.
 
 W: More than one compute hexorder/atom
 

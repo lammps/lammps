@@ -38,10 +38,7 @@ using namespace LAMMPS_NS;
 ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute hexorder/atom command");
-
-  double cutoff = force->numeric(FLERR,arg[3]);
-  cutsq = cutoff*cutoff;
+  if (narg != 3) error->all(FLERR,"Illegal compute hexorder/atom command");
 
   ncol = 2;
 
@@ -50,6 +47,10 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   q6array = NULL;
+  maxneigh = 0;
+  distsq = NULL;
+  nearest = NULL;
+  nnn = 6;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,6 +58,8 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
 ComputeHexOrderAtom::~ComputeHexOrderAtom()
 {
   memory->destroy(q6array);
+  memory->destroy(distsq);
+  memory->destroy(nearest);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,9 +68,6 @@ void ComputeHexOrderAtom::init()
 {
   if (force->pair == NULL)
     error->all(FLERR,"Compute hexorder/atom requires a pair style be defined");
-  if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,
-               "Compute hexorder/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
@@ -102,7 +102,7 @@ void ComputeHexOrderAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
 
-  // grow coordination array if necessary
+  // grow order parameter array if necessary
 
   if (atom->nlocal > nmax) {
     memory->destroy(q6array);
@@ -120,16 +120,16 @@ void ComputeHexOrderAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // compute order parameter(s) for each atom in group
+  // compute order parameter for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
   double **x = atom->x;
   int *mask = atom->mask;
+  double cutsq = force->pair->cutforce * force->pair->cutforce;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     double* q6 = q6array[i];
-    q6[0] = q6[1] = 0.0;
     if (mask[i] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -137,31 +137,62 @@ void ComputeHexOrderAtom::compute_peratom()
       jlist = firstneigh[i];
       jnum = numneigh[i];
       
+      // insure distsq and nearest arrays are long enough
+
+      if (jnum > maxneigh) {
+        memory->destroy(distsq);
+        memory->destroy(nearest);
+        maxneigh = jnum;
+        memory->create(distsq,maxneigh,"hexcoord/atom:distsq");
+        memory->create(nearest,maxneigh,"hexcoord/atom:nearest");
+      }
+
+      // loop over list of all neighbors within force cutoff
+      // distsq[] = distance sq to each
+      // nearest[] = atom indices of neighbors
+
+      int ncount = 0;
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= NEIGHMASK;
+
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < cutsq) {
+          distsq[ncount] = rsq;
+          nearest[ncount++] = j;
+        }
+      }
+
+      // if not nnn neighbors, order parameter = 0;
+
+      if (ncount < nnn) {
+	q6[0] = q6[1] = 0.0;
+        continue;
+      }
+
+      // store nnn nearest neighs in 1st nnn locations of distsq and nearest
+
+      select2(nnn,ncount,distsq,nearest);
+
       double usum = 0.0;
       double vsum = 0.0;
-      int ncount = 0;
       
-      for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
+      for (jj = 0; jj < nnn; jj++) {
+	j = nearest[jj];
 	j &= NEIGHMASK;
 	
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq < cutsq) {
-	  double u, v;
-	  calc_q6(delx, dely, u, v);
-	  usum += u;
-	  vsum += v;
-	  ncount++;
-	}
+	double u, v;
+	calc_q6(delx, dely, u, v);
+	usum += u;
+	vsum += v;
       }
-      if (ncount > 0) {
-	double ninv = 1.0/ncount ;
-	q6[0] = usum*ninv;
-	q6[1] = vsum*ninv;
-      }
+      q6[0] = usum/nnn;
+      q6[1] = vsum/nnn;
     }
   }
 }
@@ -176,6 +207,70 @@ inline void ComputeHexOrderAtom::calc_q6(double delx, double dely, double &u, do
   double b3 = b2*b1;
   u = ((  a - 15*b1)*a + 15*b2)*a - b3;
   v = ((6*a - 20*b1)*a +  6*b2)*x*y;
+}
+
+/* ----------------------------------------------------------------------
+   select2 routine from Numerical Recipes (slightly modified)
+   find k smallest values in array of length n
+   sort auxiliary array at same time
+------------------------------------------------------------------------- */
+
+#define SWAP(a,b)   tmp = a; a = b; b = tmp;
+#define ISWAP(a,b) itmp = a; a = b; b = itmp;
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeHexOrderAtom::select2(int k, int n, double *arr, int *iarr)
+{
+  int i,ir,j,l,mid,ia,itmp;
+  double a,tmp;
+
+  arr--;
+  iarr--;
+  l = 1;
+  ir = n;
+  for (;;) {
+    if (ir <= l+1) {
+      if (ir == l+1 && arr[ir] < arr[l]) {
+        SWAP(arr[l],arr[ir])
+        ISWAP(iarr[l],iarr[ir])
+      }
+      return;
+    } else {
+      mid=(l+ir) >> 1;
+      SWAP(arr[mid],arr[l+1])
+      ISWAP(iarr[mid],iarr[l+1])
+      if (arr[l] > arr[ir]) {
+        SWAP(arr[l],arr[ir])
+        ISWAP(iarr[l],iarr[ir])
+      }
+      if (arr[l+1] > arr[ir]) {
+        SWAP(arr[l+1],arr[ir])
+        ISWAP(iarr[l+1],iarr[ir])
+      }
+      if (arr[l] > arr[l+1]) {
+        SWAP(arr[l],arr[l+1])
+        ISWAP(iarr[l],iarr[l+1])
+      }
+      i = l+1;
+      j = ir;
+      a = arr[l+1];
+      ia = iarr[l+1];
+      for (;;) {
+        do i++; while (arr[i] < a);
+        do j--; while (arr[j] > a);
+        if (j < i) break;
+        SWAP(arr[i],arr[j])
+        ISWAP(iarr[i],iarr[j])
+      }
+      arr[l+1] = arr[j];
+      arr[j] = a;
+      iarr[l+1] = iarr[j];
+      iarr[j] = ia;
+      if (j >= k) ir = j-1;
+      if (j <= k) l = i;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

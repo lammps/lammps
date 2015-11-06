@@ -44,11 +44,13 @@ Neighbor atoms not in the group
 are included in the order parameter of atoms in the group. 
 
 The optional keyword {n} sets the degree of the order parameter. 
-The default value is 6. If the neighbors of the central atom 
-lie on a hexagonal lattice, then |{q}6| = 1.  
-The complex phase of {q}6 depends on the orientation of the 
-lattice relative to the {x} axis. For a liquid in which the 
-atomic neighborhood lacks orientational symmetry, |{q}6| << 1.
+The default value is 6. For a perfect hexagonal lattice,
+{q}6 = exp(6 i phi) for all atoms, where the constant 0 < phi < pi/3 
+depends only on the orientation of the lattice relative to the x axis.  
+In an isotropic liquid, local neighborhoods may still exhibit 
+weak hexagonal symmetry, but because the orientational correlation
+decays quickly with distance, the value of phi will be different for
+different atoms, and |<{q}6>| << 1.
 
 The value of {qn} will be zero for atoms not in the
 specified compute group. If the atom has less than {n} neighbors (within

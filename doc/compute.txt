@@ -197,6 +197,7 @@ page"_Section_commands.html#cmd_5.
 "gyration"_compute_gyration.html - radius of gyration of group of atoms
 "gyration/chunk"_compute_gyration_chunk.html - radius of gyration for each chunk
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
+"hexorder/atom"_compute_hexorder_atom.html - bond orientational order parameter q6
 "improper/local"_compute_improper_local.html - angle of each improper
 "inertia/chunk"_compute_inertia_chunk.html - inertia tensor for each chunk
 "ke"_compute_ke.html - translational kinetic energy

@@ -684,6 +684,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "gyration"_compute_gyration.html,
 "gyration/chunk"_compute_gyration_chunk.html,
 "heat/flux"_compute_heat_flux.html,
+"hexorder/atom"_compute_hexorder_atom.html,
 "improper/local"_compute_improper_local.html,
 "inertia/chunk"_compute_inertia_chunk.html,
 "ke"_compute_ke.html,

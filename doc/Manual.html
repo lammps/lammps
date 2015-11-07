@@ -1,456 +1,478 @@
+<HTML>
+<!-- HTML_ONLY -->
+<HEAD>
+<TITLE>LAMMPS Users Manual</TITLE>
+<META NAME="docnumber" CONTENT="6 Nov 2015 version">
+<META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
+<META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
+</HEAD>
+
+<BODY>
+
+<!-- END_HTML_ONLY -->
+
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>LAMMPS Documentation &mdash; LAMMPS 15 May 2015 version documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
-  
-
-  
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
-        <link rel="next" title="1. Introduction" href="Section_intro.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-
-        
-          <a href="#" class="icon icon-home"> LAMMPS
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-        
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
-          
-          
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
-</ul>
-
-          
-        
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="#">LAMMPS</a>
-      </nav>
 
 
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="#">Docs</a> &raquo;</li>
-      
-    <li>LAMMPS Documentation</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="http://lammps.sandia.gov">Website</a>
-            <a href="Section_commands.html#comm">Commands</a>
-        
-      </li>
-  </ul>
-  <hr/>
-  
-    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_intro.html" class="btn btn-neutral float-right" title="1. Introduction" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
-  
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <H1></H1><div class="section" id="lammps-documentation">
-<h1>LAMMPS Documentation<a class="headerlink" href="#lammps-documentation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="aug-2015-version">
-<h2>10 Aug 2015 version<a class="headerlink" href="#aug-2015-version" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="version-info">
-<h2>Version info:<a class="headerlink" href="#version-info" title="Permalink to this headline">¶</a></h2>
-<p>The LAMMPS &#8220;version&#8221; is the date when it was released, such as 1 May
+
+
+<HR>
+
+<H1></H1>
+
+<CENTER><H3>LAMMPS Documentation 
+</H3></CENTER>
+<CENTER><H4>6 Nov 2015 version 
+</H4></CENTER>
+<H4>Version info: 
+</H4>
+<P>The LAMMPS "version" is the date when it was released, such as 1 May
 2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a
-feature, we release it immediately, and post a notice on <a class="reference external" href="http://lammps.sandia.gov/bug.html">this page of the WWW site</a>.  Each dated copy of LAMMPS contains all the
+feature, we release it immediately, and post a notice on <A HREF = "http://lammps.sandia.gov/bug.html">this page of
+the WWW site</A>.  Each dated copy of LAMMPS contains all the
 features and bug-fixes up to and including that version date. The
 version date is printed to the screen and logfile every time you run
 LAMMPS. It is also in the file src/version.h and in the LAMMPS
 directory name created when you unpack a tarball, and at the top of
-the first page of the manual (this page).</p>
-<ul class="simple">
-<li>If you browse the HTML doc pages on the LAMMPS WWW site, they always
-describe the most current version of LAMMPS.</li>
-<li>If you browse the HTML doc pages included in your tarball, they
-describe the version you have.</li>
-<li>The <a class="reference external" href="Manual.pdf">PDF file</a> on the WWW site or in the tarball is updated
-about once per month.  This is because it is large, and we don&#8217;t want
-it to be part of every patch.</li>
-<li>There is also a <a class="reference external" href="Developer.pdf">Developer.pdf</a> file in the doc
+the first page of the manual (this page).
+</P>
+<UL><LI>If you browse the HTML doc pages on the LAMMPS WWW site, they always
+describe the most current version of LAMMPS. 
+
+<LI>If you browse the HTML doc pages included in your tarball, they
+describe the version you have. 
+
+<LI>The <A HREF = "Manual.pdf">PDF file</A> on the WWW site or in the tarball is updated
+about once per month.  This is because it is large, and we don't want
+it to be part of every patch. 
+
+<LI>There is also a <A HREF = "Developer.pdf">Developer.pdf</A> file in the doc
 directory, which describes the internal structure and algorithms of
-LAMMPS.</li>
-</ul>
-<p>LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
-Simulator.</p>
-<p>LAMMPS is a classical molecular dynamics simulation code designed to
+LAMMPS.  
+</UL>
+<P>LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
+Simulator.
+</P>
+<P>LAMMPS is a classical molecular dynamics simulation code designed to
 run efficiently on parallel computers.  It was developed at Sandia
 National Laboratories, a US Department of Energy facility, with
 funding from the DOE.  It is an open-source code, distributed freely
-under the terms of the GNU Public License (GPL).</p>
-<p>The primary developers of LAMMPS are <a class="reference external" href="http://www.sandia.gov/~sjplimp">Steve Plimpton</a>, Aidan
+under the terms of the GNU Public License (GPL).
+</P>
+<P>The primary developers of LAMMPS are <A HREF = "http://www.sandia.gov/~sjplimp">Steve Plimpton</A>, Aidan
 Thompson, and Paul Crozier who can be contacted at
-sjplimp,athomps,pscrozi at sandia.gov.  The <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a> at
-<a class="reference external" href="http://lammps.sandia.gov">http://lammps.sandia.gov</a> has more information about the code and its
-uses.</p>
-<hr class="docutils" />
-<p>The LAMMPS documentation is organized into the following sections.  If
+sjplimp,athomps,pscrozi at sandia.gov.  The <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> at
+http://lammps.sandia.gov has more information about the code and its
+uses.
+</P>
+
+
+
+
+<HR>
+
+<P>The LAMMPS documentation is organized into the following sections.  If
 you find errors or omissions in this manual or have suggestions for
 useful information to add, please send an email to the developers so
-we can improve the LAMMPS documentation.</p>
-<p>Once you are familiar with LAMMPS, you may want to bookmark <a class="reference internal" href="Section_commands.html#comm"><span>this page</span></a> at Section_commands.html#comm since
-it gives quick access to documentation for all LAMMPS commands.</p>
-<p><a class="reference external" href="Manual.pdf">PDF file</a> of the entire manual, generated by
-<a class="reference external" href="http://freecode.com/projects/htmldoc">htmldoc</a></p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_intro.html#what-is-lammps">1.1. What is LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_intro.html#lammps-features">1.2. LAMMPS features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_intro.html#lammps-non-features">1.3. LAMMPS non-features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_intro.html#open-source-distribution">1.4. Open source distribution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_intro.html#acknowledgments-and-citations">1.5. Acknowledgments and citations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#what-s-in-the-lammps-distribution">2.1. What&#8217;s in the LAMMPS distribution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#making-lammps">2.2. Making LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#making-lammps-with-optional-packages">2.3. Making LAMMPS with optional packages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#building-lammps-via-the-make-py-tool">2.4. Building LAMMPS via the Make.py tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#building-lammps-as-a-library">2.5. Building LAMMPS as a library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#running-lammps">2.6. Running LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#command-line-options">2.7. Command-line options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#lammps-screen-output">2.8. LAMMPS screen output</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_start.html#tips-for-users-of-previous-lammps-versions">2.9. Tips for users of previous LAMMPS versions</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#lammps-input-script">3.1. LAMMPS input script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#parsing-rules">3.2. Parsing rules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#input-script-structure">3.3. Input script structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#commands-listed-by-category">3.4. Commands listed by category</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#individual-commands">3.5. Individual commands</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#fix-styles">3.6. Fix styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#compute-styles">3.7. Compute styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#pair-style-potentials">3.8. Pair_style potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#bond-style-potentials">3.9. Bond_style potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#angle-style-potentials">3.10. Angle_style potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#dihedral-style-potentials">3.11. Dihedral_style potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#improper-style-potentials">3.12. Improper_style potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_commands.html#kspace-solvers">3.13. Kspace solvers</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#standard-packages">4.1. Standard packages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-compress-package">4.2. Build instructions for COMPRESS package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-gpu-package">4.3. Build instructions for GPU package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-kim-package">4.4. Build instructions for KIM package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-kokkos-package">4.5. Build instructions for KOKKOS package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-kspace-package">4.6. Build instructions for KSPACE package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-meam-package">4.7. Build instructions for MEAM package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-poems-package">4.8. Build instructions for POEMS package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-python-package">4.9. Build instructions for PYTHON package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-reax-package">4.10. Build instructions for REAX package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-voronoi-package">4.11. Build instructions for VORONOI package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#build-instructions-for-xtc-package">4.12. Build instructions for XTC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-packages">4.13. User packages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-atc-package">4.14. USER-ATC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-awpmd-package">4.15. USER-AWPMD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-cg-cmm-package">4.16. USER-CG-CMM package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-colvars-package">4.17. USER-COLVARS package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-cuda-package">4.18. USER-CUDA package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-diffraction-package">4.19. USER-DIFFRACTION package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-drude-package">4.20. USER-DRUDE package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-eff-package">4.21. USER-EFF package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-fep-package">4.22. USER-FEP package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-h5md-package">4.23. USER-H5MD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-intel-package">4.24. USER-INTEL package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-lb-package">4.25. USER-LB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-mgpt-package">4.26. USER-MGPT package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-misc-package">4.27. USER-MISC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-molfile-package">4.28. USER-MOLFILE package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-omp-package">4.29. USER-OMP package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-phonon-package">4.30. USER-PHONON package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-qmmm-package">4.31. USER-QMMM package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-qtb-package">4.32. USER-QTB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-reaxc-package">4.33. USER-REAXC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-smd-package">4.34. USER-SMD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-smtbq-package">4.35. USER-SMTBQ package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_packages.html#user-sph-package">4.36. USER-SPH package</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_accelerate.html#measuring-performance">5.1. Measuring performance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_accelerate.html#general-strategies">5.2. General strategies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_accelerate.html#packages-with-optimized-styles">5.3. Packages with optimized styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_accelerate.html#comparison-of-various-accelerator-packages">5.4. Comparison of various accelerator packages</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#restarting-a-simulation">6.1. Restarting a simulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#d-simulations">6.2. 2d simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#charmm-amber-and-dreiding-force-fields">6.3. CHARMM, AMBER, and DREIDING force fields</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#running-multiple-simulations-from-one-input-script">6.4. Running multiple simulations from one input script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#multi-replica-simulations">6.5. Multi-replica simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#granular-models">6.6. Granular models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#tip3p-water-model">6.7. TIP3P water model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#tip4p-water-model">6.8. TIP4P water model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#spc-water-model">6.9. SPC water model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#coupling-lammps-to-other-codes">6.10. Coupling LAMMPS to other codes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#visualizing-lammps-snapshots">6.11. Visualizing LAMMPS snapshots</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#triclinic-non-orthogonal-simulation-boxes">6.12. Triclinic (non-orthogonal) simulation boxes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#nemd-simulations">6.13. NEMD simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#finite-size-spherical-and-aspherical-particles">6.14. Finite-size spherical and aspherical particles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#output-from-lammps-thermo-dumps-computes-fixes-variables">6.15. Output from LAMMPS (thermo, dumps, computes, fixes, variables)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#thermostatting-barostatting-and-computing-temperature">6.16. Thermostatting, barostatting, and computing temperature</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#walls">6.17. Walls</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#elastic-constants">6.18. Elastic constants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#library-interface-to-lammps">6.19. Library interface to LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#calculating-thermal-conductivity">6.20. Calculating thermal conductivity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#calculating-viscosity">6.21. Calculating viscosity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#calculating-a-diffusion-coefficient">6.22. Calculating a diffusion coefficient</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#using-chunks-to-calculate-system-properties">6.23. Using chunks to calculate system properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#setting-parameters-for-the-kspace-style-pppm-disp-command">6.24. Setting parameters for the <code class="docutils literal"><span class="pre">kspace_style</span> <span class="pre">pppm/disp</span></code> command</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#polarizable-models">6.25. Polarizable models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#adiabatic-core-shell-model">6.26. Adiabatic core/shell model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_howto.html#drude-induced-dipoles">6.27. Drude induced dipoles</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#amber2lmp-tool">9.1. amber2lmp tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#binary2txt-tool">9.2. binary2txt tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#ch2lmp-tool">9.3. ch2lmp tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#chain-tool">9.4. chain tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#colvars-tools">9.5. colvars tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#createatoms-tool">9.6. createatoms tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#data2xmovie-tool">9.7. data2xmovie tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#eam-database-tool">9.8. eam database tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#eam-generate-tool">9.9. eam generate tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#eff-tool">9.10. eff tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#emacs-tool">9.11. emacs tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#fep-tool">9.12. fep tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#i-pi-tool">9.13. i-pi tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#ipp-tool">9.14. ipp tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#kate-tool">9.15. kate tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#lmp2arc-tool">9.16. lmp2arc tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#lmp2cfg-tool">9.17. lmp2cfg tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#lmp2vmd-tool">9.18. lmp2vmd tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#matlab-tool">9.19. matlab tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#micelle2d-tool">9.20. micelle2d tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#moltemplate-tool">9.21. moltemplate tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#msi2lmp-tool">9.22. msi2lmp tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#phonon-tool">9.23. phonon tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#polymer-bonding-tool">9.24. polymer bonding tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#pymol-asphere-tool">9.25. pymol_asphere tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#python-tool">9.26. python tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#reax-tool">9.27. reax tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#restart2data-tool">9.28. restart2data tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#vim-tool">9.29. vim tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#xmgrace-tool">9.30. xmgrace tool</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_tools.html#xmovie-tool">9.31. xmovie tool</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#atom-styles">10.1. Atom styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#bond-angle-dihedral-improper-potentials">10.2. Bond, angle, dihedral, improper potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#compute-styles">10.3. Compute styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#dump-styles">10.4. Dump styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#dump-custom-output-options">10.5. Dump custom output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#fix-styles">10.6. Fix styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#input-script-commands">10.7. Input script commands</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#kspace-computations">10.8. Kspace computations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#minimization-styles">10.9. Minimization styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#pairwise-potentials">10.10. Pairwise potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#region-styles">10.11. Region styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#body-styles">10.12. Body styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#thermodynamic-output-options">10.13. Thermodynamic output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#variable-options">10.14. Variable options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_modify.html#submitting-new-features-for-inclusion-in-lammps">10.15. Submitting new features for inclusion in LAMMPS</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#overview-of-running-lammps-from-python">11.1. Overview of running LAMMPS from Python</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#overview-of-using-python-from-a-lammps-script">11.2. Overview of using Python from a LAMMPS script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#building-lammps-as-a-shared-library">11.3. Building LAMMPS as a shared library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#installing-the-python-wrapper-into-python">11.4. Installing the Python wrapper into Python</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#extending-python-with-mpi-to-run-in-parallel">11.5. Extending Python with MPI to run in parallel</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#testing-the-python-lammps-interface">11.6. Testing the Python-LAMMPS interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#using-lammps-from-python">11.7. Using LAMMPS from Python</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_python.html#example-python-scripts-that-use-lammps">11.8. Example Python scripts that use LAMMPS</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_errors.html#common-problems">12.1. Common problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_errors.html#reporting-bugs">12.2. Reporting bugs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_errors.html#error-warning-messages">12.3. Error &amp; warning messages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_errors.html#error">12.4. Errors:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_errors.html#warnings">12.5. Warnings:</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Section_history.html#coming-attractions">13.1. Coming attractions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Section_history.html#past-versions">13.2. Past versions</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
-</ul>
-</BODY></div>
+we can improve the LAMMPS documentation.
+</P>
+<P>Once you are familiar with LAMMPS, you may want to bookmark <A HREF = "Section_commands.html#comm">this
+page</A> at Section_commands.html#comm since
+it gives quick access to documentation for all LAMMPS commands.
+</P>
+<P><A HREF = "Manual.pdf">PDF file</A> of the entire manual, generated by
+<A HREF = "http://freecode.com/projects/htmldoc">htmldoc</A>
+</P>
+<P><!-- RST
+</P>
+<P>.. toctree::
+   :maxdepth: 2
+   :numbered: // comment
+</P>
+<P>   Section_intro
+   Section_start
+   Section_commands
+   Section_packages
+   Section_accelerate
+   Section_howto
+   Section_example
+   Section_perf
+   Section_tools
+   Section_modify
+   Section_python
+   Section_errors
+   Section_history
+</P>
+<P>Indices and tables
+==================
+</P>
+<P>* :ref:`genindex` // comment
+* :ref:`search` // comment
+</P>
+<P>END_RST -->
+</P>
+<OL><LI><!-- HTML_ONLY -->
+<A HREF = "Section_intro.html">Introduction</A> 
+
+<UL>  1.1 <A HREF = "Section_intro.html#intro_1">What is LAMMPS</A> 
+<BR>
+  1.2 <A HREF = "Section_intro.html#intro_2">LAMMPS features</A> 
+<BR>
+  1.3 <A HREF = "Section_intro.html#intro_3">LAMMPS non-features</A> 
+<BR>
+  1.4 <A HREF = "Section_intro.html#intro_4">Open source distribution</A> 
+<BR>
+  1.5 <A HREF = "Section_intro.html#intro_5">Acknowledgments and citations</A> 
+<BR></UL>
+<LI><A HREF = "Section_start.html">Getting started</A> 
+
+<UL>  2.1 <A HREF = "Section_start.html#start_1">What's in the LAMMPS distribution</A> 
+<BR>
+  2.2 <A HREF = "Section_start.html#start_2">Making LAMMPS</A> 
+<BR>
+  2.3 <A HREF = "Section_start.html#start_3">Making LAMMPS with optional packages</A> 
+<BR>
+  2.4 <A HREF = "Section_start.html#start_4">Building LAMMPS via the Make.py script</A> 
+<BR>
+  2.5 <A HREF = "Section_start.html#start_5">Building LAMMPS as a library</A> 
+<BR>
+  2.6 <A HREF = "Section_start.html#start_6">Running LAMMPS</A> 
+<BR>
+  2.7 <A HREF = "Section_start.html#start_7">Command-line options</A> 
+<BR>
+  2.8 <A HREF = "Section_start.html#start_8">Screen output</A> 
+<BR>
+  2.9 <A HREF = "Section_start.html#start_9">Tips for users of previous versions</A> 
+<BR></UL>
+<LI><A HREF = "Section_commands.html">Commands</A> 
+
+<UL>  3.1 <A HREF = "Section_commands.html#cmd_1">LAMMPS input script</A> 
+<BR>
+  3.2 <A HREF = "Section_commands.html#cmd_2">Parsing rules</A> 
+<BR>
+  3.3 <A HREF = "Section_commands.html#cmd_3">Input script structure</A> 
+<BR>
+  3.4 <A HREF = "Section_commands.html#cmd_4">Commands listed by category</A> 
+<BR>
+  3.5 <A HREF = "Section_commands.html#cmd_5">Commands listed alphabetically</A> 
+<BR></UL>
+<LI><A HREF = "Section_packages.html">Packages</A> 
+
+<UL>  4.1 <A HREF = "Section_packages.html#pkg_1">Standard packages</A> 
+<BR>
+  4.2 <A HREF = "Section_packages.html#pkg_2">User packages</A> 
+<BR></UL>
+<LI><A HREF = "Section_accelerate.html">Accelerating LAMMPS performance</A> 
+
+<UL>  5.1 <A HREF = "Section_accelerate.html#acc_1">Measuring performance</A> 
+<BR>
+  5.2 <A HREF = "Section_accelerate.html#acc_2">Algorithms and code options to boost performace</A> 
+<BR>
+  5.3 <A HREF = "Section_accelerate.html#acc_3">Accelerator packages with optimized styles</A> 
+<BR>
+<UL>    5.3.1 <A HREF = "accelerate_cuda.html">USER-CUDA package</A> 
+<BR>
+    5.3.2 <A HREF = "accelerate_gpu.html">GPU package</A> 
+<BR>
+    5.3.3 <A HREF = "accelerate_intel.html">USER-INTEL package</A> 
+<BR>
+    5.3.4 <A HREF = "accelerate_kokkos.html">KOKKOS package</A> 
+<BR>
+    5.3.5 <A HREF = "accelerate_omp.html">USER-OMP package</A> 
+<BR>
+    5.3.6 <A HREF = "accelerate_opt.html">OPT package</A> 
+<BR></UL>
+  5.4 <A HREF = "Section_accelerate.html#acc_4">Comparison of various accelerator packages</A> 
+<BR></UL>
+<LI><A HREF = "Section_howto.html">How-to discussions</A> 
+
+<UL>  6.1 <A HREF = "Section_howto.html#howto_1">Restarting a simulation</A> 
+<BR>
+  6.2 <A HREF = "Section_howto.html#howto_2">2d simulations</A> 
+<BR>
+  6.3 <A HREF = "Section_howto.html#howto_3">CHARMM and AMBER force fields</A> 
+<BR>
+  6.4 <A HREF = "Section_howto.html#howto_4">Running multiple simulations from one input script</A> 
+<BR>
+  6.5 <A HREF = "Section_howto.html#howto_5">Multi-replica simulations</A> 
+<BR>
+  6.6 <A HREF = "Section_howto.html#howto_6">Granular models</A> 
+<BR>
+  6.7 <A HREF = "Section_howto.html#howto_7">TIP3P water model</A> 
+<BR>
+  6.8 <A HREF = "Section_howto.html#howto_8">TIP4P water model</A> 
+<BR>
+  6.9 <A HREF = "Section_howto.html#howto_9">SPC water model</A> 
+<BR>
+  6.10 <A HREF = "Section_howto.html#howto_10">Coupling LAMMPS to other codes</A> 
+<BR>
+  6.11 <A HREF = "Section_howto.html#howto_11">Visualizing LAMMPS snapshots</A> 
+<BR>
+  6.12 <A HREF = "Section_howto.html#howto_12">Triclinic (non-orthogonal) simulation boxes</A> 
+<BR>
+  6.13 <A HREF = "Section_howto.html#howto_13">NEMD simulations</A> 
+<BR>
+  6.14 <A HREF = "Section_howto.html#howto_14">Finite-size spherical and aspherical particles</A> 
+<BR>
+  6.15 <A HREF = "Section_howto.html#howto_15">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</A> 
+<BR>
+  6.16 <A HREF = "Section_howto.html#howto_16">Thermostatting, barostatting, and compute temperature</A> 
+<BR>
+  6.17 <A HREF = "Section_howto.html#howto_17">Walls</A> 
+<BR>
+  6.18 <A HREF = "Section_howto.html#howto_18">Elastic constants</A> 
+<BR>
+  6.19 <A HREF = "Section_howto.html#howto_19">Library interface to LAMMPS</A> 
+<BR>
+  6.20 <A HREF = "Section_howto.html#howto_20">Calculating thermal conductivity</A> 
+<BR>
+  6.21 <A HREF = "Section_howto.html#howto_21">Calculating viscosity</A> 
+<BR>
+  6.22 <A HREF = "Section_howto.html#howto_22">Calculating a diffusion coefficient</A> 
+<BR>
+  6.23 <A HREF = "Section_howto.html#howto_23">Using chunks to calculate system properties</A> 
+<BR>
+  6.24 <A HREF = "Section_howto.html#howto_24">Setting parameters for pppm/disp</A> 
+<BR>
+  6.25 <A HREF = "Section_howto.html#howto_25">Polarizable models</A> 
+<BR>
+  6.26 <A HREF = "Section_howto.html#howto_26">Adiabatic core/shell model</A> 
+<BR>
+  6.27 <A HREF = "Section_howto.html#howto_27">Drude induced dipoles</A> 
+<BR></UL>
+<LI><A HREF = "Section_example.html">Example problems</A> 
+
+<LI><A HREF = "Section_perf.html">Performance & scalability</A> 
+
+<LI><A HREF = "Section_tools.html">Additional tools</A> 
+
+<LI><A HREF = "Section_modify.html">Modifying & extending LAMMPS</A> 
+
+<UL>  10.1 <A HREF = "Section_modify.html#mod_1">Atom styles</A> 
+<BR>
+  10.2 <A HREF = "Section_modify.html#mod_2">Bond, angle, dihedral, improper potentials</A> 
+<BR>
+  10.3 <A HREF = "Section_modify.html#mod_3">Compute styles</A> 
+<BR>
+  10.4 <A HREF = "Section_modify.html#mod_4">Dump styles</A> 
+<BR>
+  10.5 <A HREF = "Section_modify.html#mod_5">Dump custom output options</A> 
+<BR>
+  10.6 <A HREF = "Section_modify.html#mod_6">Fix styles</A> 
+<BR>
+  10.7 <A HREF = "Section_modify.html#mod_7">Input script commands</A> 
+<BR>
+  10.8 <A HREF = "Section_modify.html#mod_8">Kspace computations</A> 
+<BR>
+  10.9 <A HREF = "Section_modify.html#mod_9">Minimization styles</A> 
+<BR>
+  10.10 <A HREF = "Section_modify.html#mod_10">Pairwise potentials</A> 
+<BR>
+  10.11 <A HREF = "Section_modify.html#mod_11">Region styles</A> 
+<BR>
+  10.12 <A HREF = "Section_modify.html#mod_12">Body styles</A> 
+<BR>
+  10.13 <A HREF = "Section_modify.html#mod_13">Thermodynamic output options</A> 
+<BR>
+  10.14 <A HREF = "Section_modify.html#mod_14">Variable options</A> 
+<BR>
+  10.15 <A HREF = "Section_modify.html#mod_15">Submitting new features for inclusion in LAMMPS</A> 
+<BR></UL>
+<LI><A HREF = "Section_python.html">Python interface</A> 
+
+<UL>  11.1 <A HREF = "Section_python.html#py_1">Overview of running LAMMPS from Python</A> 
+<BR>
+  11.2 <A HREF = "Section_python.html#py_2">Overview of using Python from a LAMMPS script</A> 
+<BR>
+  11.3 <A HREF = "Section_python.html#py_3">Building LAMMPS as a shared library</A> 
+<BR>
+  11.4 <A HREF = "Section_python.html#py_4">Installing the Python wrapper into Python</A> 
+<BR>
+  11.5 <A HREF = "Section_python.html#py_5">Extending Python with MPI to run in parallel</A> 
+<BR>
+  11.6 <A HREF = "Section_python.html#py_6">Testing the Python-LAMMPS interface</A> 
+<BR>
+  11.7 <A HREF = "py_7">Using LAMMPS from Python</A> 
+<BR>
+  11.8 <A HREF = "py_8">Example Python scripts that use LAMMPS</A> 
+<BR></UL>
+<LI><A HREF = "Section_errors.html">Errors</A> 
+
+<UL>  12.1 <A HREF = "Section_errors.html#err_1">Common problems</A> 
+<BR>
+  12.2 <A HREF = "Section_errors.html#err_2">Reporting bugs</A> 
+<BR>
+  12.3 <A HREF = "Section_errors.html#err_3">Error & warning messages</A> 
+<BR></UL>
+<LI><A HREF = "Section_history.html">Future and history</A> 
+
+<UL>  13.1 <A HREF = "Section_history.html#hist_1">Coming attractions</A> 
+<BR>
+  13.2 <A HREF = "Section_history.html#hist_2">Past versions</A> 
+<BR></UL>
+
+</OL>
 
 
-           </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_intro.html" class="btn btn-neutral float-right" title="1. Introduction" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright .
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
 
 
-  
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
 
-  
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
 
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
 
-</body>
-</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- END_HTML_ONLY -->
+
+</BODY>
+
+</HTML>

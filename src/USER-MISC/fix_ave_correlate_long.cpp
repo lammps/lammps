@@ -424,6 +424,7 @@ void FixAveCorrelateLong::end_of_step()
 
   for (i = 0; i < nvalues; i++) {
     m = value2index[i];
+    scalar = 0.0;
 
     // invoke compute if not previously invoked
 

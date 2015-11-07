@@ -167,7 +167,7 @@ int RegCone::inside(double x, double y, double z)
 {
   double del1,del2,dist;
   double currentradius;
-  int inside;
+  int inside = 0;
 
   if (axis == 'x') {
     del1 = y - c1;

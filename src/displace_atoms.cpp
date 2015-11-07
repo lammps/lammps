@@ -302,10 +302,7 @@ void DisplaceAtoms::move(int idim, char *arg, double scale)
       if (mask[i] & groupbit) x[i][idim] += delta;
 
   } else {
-    int n = strlen(&arg[2]) + 1;
-    char *vstr = new char[n];
-    strcpy(vstr,&arg[2]);
-    int ivar = input->variable->find(vstr);
+    int ivar = input->variable->find(arg+2);
     if (ivar < 0)
       error->all(FLERR,"Variable name for displace_atoms does not exist");
 

@@ -817,7 +817,7 @@ double Variable::compute_equal(int ivar)
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
-  double value;
+  double value = 0.0;
   if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],NULL);
   else if (style[ivar] == PYTHON) {
     int ifunc = python->find(data[ivar][0]);

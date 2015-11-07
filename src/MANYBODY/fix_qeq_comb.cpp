@@ -33,7 +33,6 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "iostream"
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

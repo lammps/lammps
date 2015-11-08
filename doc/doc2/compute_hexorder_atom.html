@@ -1,0 +1,115 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute hexorder/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID hexorder/atom keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>hexorder/atom = style name of this compute command 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>degree</I> 
+
+<PRE>  <I>n</I> value = degree of order parameter 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all hexorder/atom 
+compute 1 all hexorder/atom n 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates <I>qn</I> the bond-orientational 
+order parameter for each atom in a group. The hexatic (<I>n</I> = 6) order 
+parameter was introduced by <A HREF = "#Nelson">Nelson and Halperin</A> as a way to detect
+hexagonal symmetry in two-dimensional systems. For each atom, <I>qn</I> 
+is a complex number (stored as two real numbers) defined as follows:
+</P>
+<CENTER><IMG SRC = "Eqs/hexorder.jpg">
+</CENTER>
+<P>where the sum is over the <I>n</I> nearest neighbors 
+of the central atom. The angle theta
+is formed by the bond vector rij and the <I>x</I> axis. theta is calculated
+only using the <I>x</I> and <I>y</I> components, whereas the distance from the
+central atom is calculated using all three  
+<I>x</I>, <I>y</I>, and <I>z</I> components of the bond vector.
+Neighbor atoms not in the group 
+are included in the order parameter of atoms in the group. 
+</P>
+<P>The optional keyword <I>n</I> sets the degree of the order parameter. 
+The default value is 6. For a perfect hexagonal lattice,
+<I>q</I>6 = exp(6 i phi) for all atoms, where the constant 0 < phi < pi/3 
+depends only on the orientation of the lattice relative to the x axis.  
+In an isotropic liquid, local neighborhoods may still exhibit 
+weak hexagonal symmetry, but because the orientational correlation
+decays quickly with distance, the value of phi will be different for
+different atoms, and |<<I>q</I>6>| << 1.
+</P>
+<P>The value of <I>qn</I> will be zero for atoms not in the
+specified compute group. If the atom has less than <I>n</I> neighbors (within
+the potential cutoff), then <I>qn</I> is set to zero.
+</P>
+<P>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently.
+</P>
+<P>IMPORTANT NOTE: If you have a bonded system, then the settings of
+<A HREF = "special_bonds.html">special_bonds</A> command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the <A HREF = "special_bonds.html">special_bonds</A>
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the order parameter.  One way
+to get around this, is to write a dump file, and use the
+<A HREF = "rerun.html">rerun</A> command to compute the order parameter for snapshots
+in the dump file.  The rerun script can use a
+<A HREF = "special_bonds.html">special_bonds</A> command that includes all pairs in
+the neighbor list.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom array with 2 columns, giving the
+real and imaginary parts of <I>qn</I>, respectively.  
+</P>
+<P>These values can be accessed by any command that uses
+per-atom values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The per-atom array contain pairs of numbers representing the
+real and imaginary parts of <I>qn</I>, a complex number subject to the
+constraint |<I>qn</I>| <= 1.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_coord_atom.html">compute coord/atom</A>, <A HREF = "compute_centro_atom.html">compute centro/atom</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>The option default is <I>n</I> = 6.
+</P>
+<HR>
+
+<A NAME = "Nelson"></A>
+
+<P><B>(Nelson)</B> Nelson, Halperin, Phys Rev B, 19, 2457 (1979).
+</P>
+</HTML>

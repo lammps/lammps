@@ -139,13 +139,16 @@ also numbers >= 0.0.
 since processors (in parallel) don't know about atom coordinates for
 atoms further away than that distance.  If you want an RDF for larger
 distances, you can use the <A HREF = "rerun.html">rerun</A> command to post-process
-a dump file. The definition of g(r) used by LAMMPS is only appropriate
+a dump file and set the cutoff for the potential to be longer in the
+rerun script.  Note that in the rerun context, the force cutoff is
+arbitrary, since you aren't running dynamics and thus are not changing
+your model.  The definition of g(r) used by LAMMPS is only appropriate
 for characterizing atoms that are uniformly distributed throughout the
 simulation cell. In such cases, the coordination number is still
 correct and meaningful.  As an example, if a large simulation cell
 contains only one atom of type <I>itypeN</I> and one of <I>jtypeN</I>, then g(r)
 will register an arbitrarily large spike at whatever distance they
-happen to be at, and zero everywhere else.  coord(r) will show a step
+happen to be at, and zero everywhere else.  Coord(r) will show a step
 change from zero to one at the location of the spike in g(r).
 </P>
 <P><B>Related commands:</B>

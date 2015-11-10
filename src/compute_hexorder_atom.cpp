@@ -232,7 +232,8 @@ inline void ComputeHexOrderAtom::calc_qn(double delx, double dely, double &u, do
   double rinv = 1.0/sqrt(delx*delx+dely*dely);
   double x = delx*rinv;
   double y = dely*rinv;
-  std::complex<double> z = x + y*1i;
+  //  std::complex<double> z = std::complex<double>(x, y);
+  std::complex<double> z(x, y);
   std::complex<double> zn = pow(z,nnn);
   u = real(zn);
   v = imag(zn);

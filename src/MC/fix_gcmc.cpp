@@ -253,8 +253,8 @@ void FixGCMC::options(int narg, char **arg)
         error->warning(FLERR,"Molecule template for "
                        "fix gcmc has multiple molecules");
       mode = MOLECULE;
-      onemols = &atom->molecules[imol];
-      nmol = onemols[0]->nset;
+      onemols = atom->molecules;
+      nmol = onemols[imol]->nset;
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");

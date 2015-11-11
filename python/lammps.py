@@ -127,7 +127,7 @@ class lammps:
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
-    elif (style == 1) || (style == 2):
+    elif (style == 1) or (style == 2):
       if type == 1:
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
       elif type == 2:

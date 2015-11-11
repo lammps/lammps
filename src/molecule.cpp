@@ -110,6 +110,7 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   // last molecule if have scanned all args
 
   if (iarg == narg) last = 1;
+  else last = 0;
 
   // initialize all fields to empty
 

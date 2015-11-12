@@ -121,22 +121,23 @@ class lammps:
   # double was allocated by library interface function
   
   def extract_fix(self,id,style,type,i=0,j=0):
-    if type == 0:
-      if style > 0: return None
+    if style == 0:
       self.lib.lammps_extract_fix.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
-    if type == 1:
-      self.lib.lammps_extract_fix.restype = POINTER(c_double)
+    elif (style == 1) or (style == 2):
+      if type == 1:
+        self.lib.lammps_extract_fix.restype = POINTER(c_double)
+      elif type == 2:
+        self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
+      else:
+        return None
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       return ptr
-    if type == 2:
-      self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
-      return ptr
-    return None
+    else:
+      return None
 
   # free memory for 1 double or 1 vector of doubles via lammps_free()
   # for vector, must copy nlocal returned values to local c_double vector

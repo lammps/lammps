@@ -14,15 +14,18 @@ compute ID group-ID hexorder/atom keyword values ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 hexorder/atom = style name of this compute command :l
-zero or more keyword/value pairs may be appended :l
-keyword = {degree} :l
+one or more keyword/value pairs may be appended :l
+keyword = {n} or {nnn} or {cutoff} 
+  {cutoff} value = distance cutoff
+  {nnn} value = number of nearest neighbors
   {n} value = degree of order parameter :pre
+
 :ule
 
 [Examples:]
 
 compute 1 all hexorder/atom 
-compute 1 all hexorder/atom n 4 :pre
+compute 1 all hexorder/atom n 4 nnn 4 cutoff 1.2 :pre
 
 [Description:]
 
@@ -34,7 +37,7 @@ is a complex number (stored as two real numbers) defined as follows:
 
 :c,image(Eqs/hexorder.jpg)
 
-where the sum is over the {n} nearest neighbors 
+where the sum is over the {nnn} nearest neighbors 
 of the central atom. The angle theta
 is formed by the bond vector rij and the {x} axis. theta is calculated
 only using the {x} and {y} components, whereas the distance from the
@@ -43,18 +46,30 @@ central atom is calculated using all three
 Neighbor atoms not in the group 
 are included in the order parameter of atoms in the group. 
 
+The optional keyword {cutoff} defines the distance cutoff
+used when searching for neighbors. The default value, also
+the maximum allowable value, is the cutoff specified
+by the pair style.
+
+The optional keyword {nnn} defines the number of nearest
+neighbors used to calculate {qn}. The default value is 6.
+If the value is NULL, then all neighbors up to the 
+distance cutoff are used.
+
 The optional keyword {n} sets the degree of the order parameter. 
-The default value is 6. For a perfect hexagonal lattice,
+The default value is 6. For a perfect hexagonal lattice with 
+{nnn} = 6,
 {q}6 = exp(6 i phi) for all atoms, where the constant 0 < phi < pi/3 
-depends only on the orientation of the lattice relative to the x axis.  
+depends only on the orientation of the lattice relative to the {x} axis.  
 In an isotropic liquid, local neighborhoods may still exhibit 
 weak hexagonal symmetry, but because the orientational correlation
 decays quickly with distance, the value of phi will be different for
-different atoms, and |<{q}6>| << 1.
+different atoms, and so when {q}6 is averaged over all the atoms 
+in the system, |<{q}6>| << 1.
 
-The value of {qn} will be zero for atoms not in the
-specified compute group. If the atom has less than {n} neighbors (within
-the potential cutoff), then {qn} is set to zero.
+The value of {qn} is set to zero for atoms not in the
+specified compute group, as well as for atoms that have less than 
+{nnn} neighbors within the distance cutoff.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
@@ -67,8 +82,8 @@ interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the "special_bonds"_special_bonds.html
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
-those pairs will not be included in the order parameter.  One way
-to get around this, is to write a dump file, and use the
+those pairs will not be included in the order parameter.  This difficulty
+can be circumvented by writing a dump file, and using the
 "rerun"_rerun.html command to compute the order parameter for snapshots
 in the dump file.  The rerun script can use a
 "special_bonds"_special_bonds.html command that includes all pairs in
@@ -77,26 +92,23 @@ the neighbor list.
 [Output info:]
 
 This compute calculates a per-atom array with 2 columns, giving the
-real and imaginary parts of {qn}, respectively.  
+real and imaginary parts {qn}, a complex number restricted to the 
+unit disk of the complex plane i.e. Re({qn})^2 + Im({qn})^2 <= 1 .
 
 These values can be accessed by any command that uses
 per-atom values from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
-The per-atom array contain pairs of numbers representing the
-real and imaginary parts of {qn}, a complex number subject to the
-constraint |{qn}| <= 1.
-
 [Restrictions:] none
 
 [Related commands:]
 
-"compute coord/atom"_compute_coord_atom.html, "compute centro/atom"_compute_centro_atom.html
+"compute orientorder/atom"_compute_orientorder_atom.html, "compute coord/atom"_compute_coord_atom.html, "compute centro/atom"_compute_centro_atom.html
 
 [Default:] 
 
-The option default is {n} = 6.
+The option defaults are {n} = 6, {nnn} = 6, {cutoff} = pair style cutoff
 
 :line
 

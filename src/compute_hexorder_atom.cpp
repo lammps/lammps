@@ -140,7 +140,7 @@ void ComputeHexOrderAtom::init_list(int id, NeighList *ptr)
 
 void ComputeHexOrderAtom::compute_peratom()
 {
-  int i,j,m,ii,jj,inum,jnum;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -264,7 +264,6 @@ inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &
     if(dely > 0.0) ntheta = nnn * MY_PI / 2.0;
     else ntheta = nnn * 3.0 * MY_PI / 2.0;
   } else ntheta = nnn * atan(dely / delx);
-  ntheta = nnn * atan(dely / delx);
   u = cos(ntheta);
   v = sin(ntheta);
 }

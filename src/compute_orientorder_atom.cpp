@@ -172,7 +172,7 @@ void ComputeOrientOrderAtom::init_list(int id, NeighList *ptr)
 
 void ComputeOrientOrderAtom::compute_peratom()
 {
-  int i,j,m,ii,jj,inum,jnum;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 

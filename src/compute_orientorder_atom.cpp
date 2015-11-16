@@ -260,8 +260,10 @@ void ComputeOrientOrderAtom::compute_peratom()
       if (nnn > 0) {
 	select3(nnn,ncount,distsq,nearest,rlist);
 	calc_boop(rlist, nnn, qn, qlist, nqlist);
-      } else
-	calc_boop(rlist, ncount, qn, qlist, nqlist);
+      } else { // nnn == 0
+        if (ncount > 0)
+	  calc_boop(rlist, ncount, qn, qlist, nqlist);
+      }
     }
   }
 }

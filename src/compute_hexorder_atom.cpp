@@ -264,7 +264,6 @@ inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &
     if(dely > 0.0) ntheta = nnn * MY_PI / 2.0;
     else ntheta = nnn * 3.0 * MY_PI / 2.0;
   } else ntheta = nnn * atan(dely / delx);
-  ntheta = nnn * atan(dely / delx);
   u = cos(ntheta);
   v = sin(ntheta);
 }

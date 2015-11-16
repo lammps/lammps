@@ -249,7 +249,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
       // if not nnn neighbors, order parameter = 0;
 
-      if (ncount < nnn) {
+      if ((ncount == 0) || (ncount < nnn)) {
 	for (int iw = 0; iw < nqlist; iw++)
 	  qn[iw] = 0.0;
         continue;
@@ -259,15 +259,10 @@ void ComputeOrientOrderAtom::compute_peratom()
 
       if (nnn > 0) {
 	select3(nnn,ncount,distsq,nearest,rlist);
-	calc_boop(rlist, nnn, qn, qlist, nqlist);
-      } else { // nnn == 0
-	if (ncount > 0)
-	  calc_boop(rlist, ncount, qn, qlist, nqlist);
-	else { // ncount == 0
-	  for (int iw = 0; iw < nqlist; iw++)
-	    qn[iw] = 0.0;
-	}
+	ncount = nnn;
       }
+
+      calc_boop(rlist, ncount, qn, qlist, nqlist);
     }
   }
 }

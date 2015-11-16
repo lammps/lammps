@@ -13,8 +13,6 @@
 //       email                : ndactrung@gmail.com
 // ***************************************************************************/
 
-#define THREE_CONCURRENT
-
 #ifdef NV_KERNEL
 #include "lal_tersoff_extra.h"
 
@@ -25,7 +23,6 @@ texture<float4> ts2_tex;
 texture<float4> ts3_tex;
 texture<float4> ts4_tex;
 texture<float4> ts5_tex;
-texture<float> zeta_tex;
 #else
 texture<int4,1> pos_tex;
 texture<int4> ts1_tex;
@@ -33,7 +30,6 @@ texture<int4> ts2_tex;
 texture<int4> ts3_tex;
 texture<int4> ts4_tex;
 texture<int4> ts5_tex;
-texture<int2> zeta_tex;
 #endif
 
 #else
@@ -43,17 +39,27 @@ texture<int2> zeta_tex;
 #define ts3_tex ts3
 #define ts4_tex ts4
 #define ts5_tex ts5
-#define zeta_tex zetaij
 #endif
+
+//#define THREE_CONCURRENT
 
 #define THIRD (numtyp)0.66666667
 
+#define zeta_idx(nbor_mem, packed_mem, nbor_pitch, n_stride, t_per_atom,    \
+                 i, nbor_j, offset_j, idx)                                  \
+  if (nbor_mem==packed_mem) {                                               \
+    int jj = (nbor_j-offset_j-2*nbor_pitch)/n_stride;                       \
+    idx = jj*n_stride + i*t_per_atom + offset_j;                            \
+  } else {                                                                  \
+    idx = nbor_j;                                                           \
+  }
+
 #if (ARCH < 300)
 
-#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
-                      eflag, vflag, ans, engv)                              \
+#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv)                    \
   if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[6][BLOCK_ELLIPSE];                               \
+    __local acctyp red_acc[6][BLOCK_PAIR];                                  \
     red_acc[0][tid]=f.x;                                                    \
     red_acc[1][tid]=f.y;                                                    \
     red_acc[2][tid]=f.z;                                                    \
@@ -100,16 +106,27 @@ texture<int2> zeta_tex;
     ans[ii]=old;                                                            \
   }
 
+#define store_zeta(z, tid, t_per_atom, offset)                              \
+  if (t_per_atom>1) {                                                       \
+    red_acc[tid]=z;                                                         \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      if (offset < s) {                                                     \
+        red_acc[tid] += red_acc[tid+s];                                     \
+      }                                                                     \
+    }                                                                       \
+    z=red_acc[tid];                                                         \
+  }
+
 #else
 
-#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
-                      eflag, vflag, ans, engv)                              \
+#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv)                    \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-        f.x += shfl_xor(f.x, s, t_per_atom);                                \
-        f.y += shfl_xor(f.y, s, t_per_atom);                                \
-        f.z += shfl_xor(f.z, s, t_per_atom);                                \
-        energy += shfl_xor(energy, s, t_per_atom);                          \
+      f.x += shfl_xor(f.x, s, t_per_atom);                                  \
+      f.y += shfl_xor(f.y, s, t_per_atom);                                  \
+      f.z += shfl_xor(f.z, s, t_per_atom);                                  \
+      energy += shfl_xor(energy, s, t_per_atom);                            \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
@@ -137,42 +154,64 @@ texture<int2> zeta_tex;
     ans[ii]=old;                                                            \
   }
 
+#define store_zeta(z, tid, t_per_atom, offset)                              \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      z += shfl_xor(z, s, t_per_atom);                                      \
+    }                                                                       \
+  }
+
 #endif
 
 // Tersoff is currently used for 3 elements at most: 3*3*3 = 27 entries
 // while the block size should never be less than 32.
 // SHARED_SIZE = 32 for now to reduce the pressure on the shared memory per block
 // must be increased if there will be more than 3 elements in the future.
+
 #define SHARED_SIZE 32
 
 __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
                              const __global numtyp4 *restrict ts1_in,
                              const __global numtyp4 *restrict ts2_in,
+                             const __global numtyp4 *restrict ts3_in,
                              const __global numtyp4 *restrict ts4_in,
+                             const __global numtyp4 *restrict ts5_in,
                              const __global numtyp *restrict cutsq,
-                             const __global int *restrict map,
-                             const __global int *restrict elem2param,
+                             const __global int *restrict map_in,
+                             const __global int *restrict elem2param_in,
                              const int nelements, const int nparams,
-                             __global numtyp * zetaij,
-                             const __global int * dev_nbor, 
-                             const __global int * dev_packed, 
-                             const int nall, const int inum,
+                             __global numtyp4 * zetaij,
+                             const __global int * dev_nbor,
+                             const __global int * dev_packed,
+                             const int eflag, const int nall, const int inum,
                              const int nbor_pitch, const int t_per_atom) {
   __local int tpa_sq,n_stride;
   tpa_sq = fast_mul(t_per_atom,t_per_atom);
 
   int tid, ii, offset;
   atom_info(tpa_sq,ii,tid,offset);
-  
+
   // must be increased if there will be more than 3 elements in the future.
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
+  __local numtyp4 ts3[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
+  __local numtyp4 ts5[SHARED_SIZE];
+  __local int elem2param[SHARED_SIZE];
+  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
+    ts3[tid]=ts3_in[tid];
     ts4[tid]=ts4_in[tid];
+    ts5[tid]=ts5_in[tid];
+    elem2param[tid]=elem2param_in[tid];
+    map[tid]=map_in[tid];
   }
+
+  numtyp z = (numtyp)0;
+  __local numtyp red_acc[BLOCK_PAIR];
+  if (tid<BLOCK_PAIR) red_acc[tid] = (numtyp)0;
 
   __syncthreads();
 
@@ -191,7 +230,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
     itype=map[itype];
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-  
+
       int j=dev_packed[nbor_j];
       j &= NEIGHMASK;
 
@@ -206,31 +245,32 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
       delr1.z = jx.z-ix.z;
       numtyp rsq1 = delr1.x*delr1.x+delr1.y*delr1.y+delr1.z*delr1.z;
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];      
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       if (rsq1 > cutsq[ijparam]) continue;
-      
+
       // compute zeta_ij
-      numtyp z = (numtyp)0;
+      z = (numtyp)0;
+
       int nbor_k = nborj_start-offset_j+offset_k;
-      for ( ; nbor_k < nbor_end; nbor_k+=n_stride) { 
+      for ( ; nbor_k < nbor_end; nbor_k+=n_stride) {
         int k=dev_packed[nbor_k];
         k &= NEIGHMASK;
-        
+
         if (k == j) continue;
-        
+
         numtyp4 kx; fetch4(kx,k,pos_tex); //x_[k];
         int ktype=kx.w;
         ktype=map[ktype];
-           
+
         // Compute rik
         delr2.x = kx.x-ix.x;
         delr2.y = kx.y-ix.y;
         delr2.z = kx.z-ix.z;
         numtyp rsq2 = delr2.x*delr2.x+delr2.y*delr2.y+delr2.z*delr2.z;
-     
-        int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];   
+
+        int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
         if (rsq2 > cutsq[ijkparam]) continue;
-        
+
         numtyp4 ts1_ijkparam = ts1[ijkparam]; //fetch4(ts1_ijkparam,ijkparam,ts1_tex);
         numtyp ijkparam_lam3 = ts1_ijkparam.z;
         numtyp ijkparam_powermint = ts1_ijkparam.w;
@@ -241,17 +281,48 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
         numtyp ijkparam_c = ts4_ijkparam.x;
         numtyp ijkparam_d = ts4_ijkparam.y;
         numtyp ijkparam_h = ts4_ijkparam.z;
-        numtyp ijkparam_gamma = ts4_ijkparam.w;  
+        numtyp ijkparam_gamma = ts4_ijkparam.w;
         z += zeta(ijkparam_powermint, ijkparam_lam3, ijkparam_bigr, ijkparam_bigd,
                   ijkparam_c, ijkparam_d, ijkparam_h, ijkparam_gamma,
                   rsq1, rsq2, delr1, delr2);
       }
 
-      int jj = (nbor_j-offset_j-2*nbor_pitch)/n_stride;  
-      int idx = jj*n_stride + i*t_per_atom + offset_j;
-      zetaij[idx] = z;
-    } // for nbor
+      //int jj = (nbor_j-offset_j-2*nbor_pitch)/n_stride;
+      //int idx = jj*n_stride + i*t_per_atom + offset_j;
+      int idx;
+      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+               i, nbor_j, offset_j, idx);
+      store_zeta(z, tid, t_per_atom, offset_k);
 
+      numtyp4 ts1_ijparam = ts1[ijparam]; //fetch4(ts1_ijparam,ijparam,ts1_tex);
+      numtyp ijparam_lam2 = ts1_ijparam.y;
+      numtyp4 ts2_ijparam = ts2[ijparam]; //fetch4(ts2_ijparam,ijparam,ts2_tex);
+      numtyp ijparam_bigb = ts2_ijparam.y;
+      numtyp ijparam_bigr = ts2_ijparam.z;
+      numtyp ijparam_bigd = ts2_ijparam.w;
+      numtyp4 ts3_ijparam = ts3[ijparam]; //fetch4(ts3_ijparam,ijparam,ts3_tex);
+      numtyp ijparam_c1 = ts3_ijparam.x;
+      numtyp ijparam_c2 = ts3_ijparam.y;
+      numtyp ijparam_c3 = ts3_ijparam.z;
+      numtyp ijparam_c4 = ts3_ijparam.w;
+      numtyp4 ts5_ijparam = ts5[ijparam]; //fetch4(ts5_ijparam,ijparam,ts5_tex);
+      numtyp ijparam_beta = ts5_ijparam.x;
+      numtyp ijparam_powern = ts5_ijparam.y;
+
+      if (offset_k == 0) {
+        numtyp fpfeng[4];
+        force_zeta(ijparam_bigb, ijparam_bigr, ijparam_bigd, ijparam_lam2,
+                   ijparam_beta, ijparam_powern, ijparam_c1, ijparam_c2, ijparam_c3,
+                   ijparam_c4, rsq1, z, eflag, fpfeng);
+        numtyp4 zij;
+        zij.x = fpfeng[0];
+        zij.y = fpfeng[1];
+        zij.z = fpfeng[2];
+        zij.w = z;
+        zetaij[idx] = zij;
+      }
+
+    } // for nbor
   } // if ii
 }
 
@@ -259,15 +330,15 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
                                   const __global numtyp4 *restrict ts1_in,
                                   const __global numtyp4 *restrict ts2_in,
                                   const __global numtyp *restrict cutsq,
-                                  const __global int *restrict map,
-                                  const __global int *restrict elem2param,
+                                  const __global int *restrict map_in,
+                                  const __global int *restrict elem2param_in,
                                   const int nelements, const int nparams,
-                                  const __global int * dev_nbor, 
-                                  const __global int * dev_packed, 
-                                  __global acctyp4 *restrict ans, 
-                                  __global acctyp *restrict engv, 
-                                  const int eflag, const int vflag, 
-                                  const int inum, const int nbor_pitch, 
+                                  const __global int * dev_nbor,
+                                  const __global int * dev_packed,
+                                  __global acctyp4 *restrict ans,
+                                  __global acctyp *restrict engv,
+                                  const int eflag, const int vflag,
+                                  const int inum, const int nbor_pitch,
                                   const int t_per_atom) {
   __local int n_stride;
   int tid, ii, offset;
@@ -275,9 +346,13 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
 
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
+  __local int elem2param[SHARED_SIZE];
+  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
+    elem2param[tid]=elem2param_in[tid];
+    map[tid]=map_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -298,9 +373,9 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     itype=map[itype];
-    
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       j &= NEIGHMASK;
 
@@ -325,7 +400,7 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
         numtyp ijparam_bigr = ts2_ijparam.z;
         numtyp ijparam_bigd = ts2_ijparam.w;
 
-        repulsive(ijparam_bigr, ijparam_bigd, ijparam_lam1, ijparam_biga, 
+        repulsive(ijparam_bigr, ijparam_bigd, ijparam_lam1, ijparam_biga,
                   rsq, eflag, feng);
 
         numtyp force = feng[0];
@@ -333,8 +408,8 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) 
-          energy+=feng[1]; 
+        if (eflag>0)
+          energy+=feng[1];
         if (vflag>0) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
@@ -352,41 +427,40 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
 
 }
 
-__kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_, 
+__kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
                                      const __global numtyp4 *restrict ts1_in,
                                      const __global numtyp4 *restrict ts2_in,
-                                     const __global numtyp4 *restrict ts3_in,
                                      const __global numtyp4 *restrict ts4_in,
-                                     const __global numtyp4 *restrict ts5_in,
                                      const __global numtyp *restrict cutsq,
-                                     const __global int *restrict map,
-                                     const __global int *restrict elem2param,
+                                     const __global int *restrict map_in,
+                                     const __global int *restrict elem2param_in,
                                      const int nelements, const int nparams,
-                                     const __global numtyp *restrict zetaij,
-                                     const __global int * dev_nbor, 
-                                     const __global int * dev_packed, 
-                                     __global acctyp4 *restrict ans, 
-                                     __global acctyp *restrict engv, 
-                                     const int eflag, const int vflag, 
-                                     const int inum,  const int nbor_pitch, 
+                                     const __global numtyp4 *restrict zetaij,
+                                     const __global int * dev_nbor,
+                                     const __global int * dev_packed,
+                                     __global acctyp4 *restrict ans,
+                                     __global acctyp *restrict engv,
+                                     const int eflag, const int vflag,
+                                     const int inum,  const int nbor_pitch,
                                      const int t_per_atom, const int evatom) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
+  numtyp lam3, powermint, bigr, bigd, c, d, h, gamma;
 
   int tid, ii, offset;
   atom_info(tpa_sq,ii,tid,offset); // offset ranges from 0 to tpa_sq-1
 
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
-  __local numtyp4 ts3[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
-  __local numtyp4 ts5[SHARED_SIZE];
+  __local int elem2param[SHARED_SIZE];
+  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
-    ts3[tid]=ts3_in[tid];
     ts4[tid]=ts4_in[tid];
-    ts5[tid]=ts5_in[tid];
+    elem2param[tid]=elem2param_in[tid];
+    map[tid]=map_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -395,9 +469,10 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
+  numtyp tpainv = ucl_recip((numtyp)t_per_atom);
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end;
 
@@ -408,11 +483,11 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
     int nborj_start = nbor_j;
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w; 
+    int itype=ix.w;
     itype=map[itype];
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-  
+
       int j=dev_packed[nbor_j];
       j &= NEIGHMASK;
 
@@ -430,43 +505,24 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       if (rsq1 > cutsq[ijparam]) continue;
       numtyp r1 = ucl_sqrt(rsq1);
-      numtyp r1inv = ucl_recip(r1);
-    
+      numtyp r1inv = ucl_rsqrt(rsq1);
+
       // look up for zeta_ij
 
-      int jj = (nbor_j-offset_j-2*nbor_pitch) / n_stride; 
-      int idx = jj*n_stride + i*t_per_atom + offset_j;
-      numtyp zeta_ij = (numtyp)0;
-      fetch(zeta_ij,idx,zeta_tex); // zeta_ij = zetaij[idx];
-
-      numtyp fpfeng[4];
-      {
-      numtyp4 ts1_ijparam = ts1[ijparam]; //fetch4(ts1_ijparam,ijparam,ts1_tex);
-      numtyp ijparam_lam2 = ts1_ijparam.y;         
-      numtyp4 ts2_ijparam = ts2[ijparam]; //fetch4(ts2_ijparam,ijparam,ts2_tex);
-      numtyp ijparam_bigb = ts2_ijparam.y;
-      numtyp ijparam_bigr = ts2_ijparam.z;
-      numtyp ijparam_bigd = ts2_ijparam.w;
-      numtyp4 ts3_ijparam = ts3[ijparam]; //fetch4(ts3_ijparam,ijparam,ts3_tex);
-      numtyp ijparam_c1 = ts3_ijparam.x;
-      numtyp ijparam_c2 = ts3_ijparam.y;
-      numtyp ijparam_c3 = ts3_ijparam.z;
-      numtyp ijparam_c4 = ts3_ijparam.w;
-      numtyp4 ts5_ijparam = ts5[ijparam]; //fetch4(ts5_ijparam,ijparam,ts5_tex);
-      numtyp ijparam_beta = ts5_ijparam.x;
-      numtyp ijparam_powern = ts5_ijparam.y;
-      force_zeta(ijparam_bigb, ijparam_bigr, ijparam_bigd, ijparam_lam2,
-                 ijparam_beta, ijparam_powern, ijparam_c1, ijparam_c2, ijparam_c3,
-                 ijparam_c4, rsq1, zeta_ij, eflag, fpfeng);
-      }
-      numtyp force = fpfeng[0];
+      //int jj = (nbor_j-offset_j-2*nbor_pitch) / n_stride;
+      //int idx = jj*n_stride + i*t_per_atom + offset_j;
+      int idx;
+      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+               i, nbor_j, offset_j, idx);
+      numtyp4 zeta_ij = zetaij[idx]; // fetch(zeta_ij,idx,zeta_tex);
+      numtyp force = zeta_ij.x*tpainv;
+      numtyp prefactor = zeta_ij.y;
       f.x += delr1[0]*force;
       f.y += delr1[1]*force;
       f.z += delr1[2]*force;
-      numtyp prefactor = fpfeng[1];
 
       if (eflag>0) {
-        energy+=fpfeng[2];
+        energy+=zeta_ij.z*tpainv;
       }
       if (vflag>0) {
         numtyp mforce = -force;
@@ -498,32 +554,26 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
         int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
         if (rsq2 > cutsq[ijkparam]) continue;
         numtyp r2 = ucl_sqrt(rsq2);
-        numtyp r2inv = ucl_recip(r2);
+        numtyp r2inv = ucl_rsqrt(rsq2);
 
         numtyp fi[3], fj[3], fk[3];
-        {
         numtyp4 ts1_ijkparam = ts1[ijkparam]; //fetch4(ts1_ijkparam,ijkparam,ts1_tex);
-        numtyp ijkparam_lam3 = ts1_ijkparam.z;
-        numtyp ijkparam_powermint = ts1_ijkparam.w;
+        lam3 = ts1_ijkparam.z;
+        powermint = ts1_ijkparam.w;
         numtyp4 ts2_ijkparam = ts2[ijkparam]; //fetch4(ts2_ijkparam,ijkparam,ts2_tex);
-        numtyp ijkparam_bigr = ts2_ijkparam.z;
-        numtyp ijkparam_bigd = ts2_ijkparam.w;
+        bigr = ts2_ijkparam.z;
+        bigd = ts2_ijkparam.w;
         numtyp4 ts4_ijkparam = ts4[ijkparam]; //fetch4(ts4_ijkparam,ijkparam,ts4_tex);
-        numtyp ijkparam_c = ts4_ijkparam.x;
-        numtyp ijkparam_d = ts4_ijkparam.y;
-        numtyp ijkparam_h = ts4_ijkparam.z;
-        numtyp ijkparam_gamma = ts4_ijkparam.w;
-        if (vflag>0) 
-          attractive(ijkparam_bigr, ijkparam_bigd, ijkparam_powermint,
-                     ijkparam_lam3, ijkparam_c, ijkparam_d, ijkparam_h, 
-                     ijkparam_gamma, prefactor, r1, r1inv, r2, r2inv, delr1, delr2,
-                     fi, fj, fk);
-        else 
-          attractive_fi(ijkparam_bigr, ijkparam_bigd, ijkparam_powermint,
-                        ijkparam_lam3, ijkparam_c, ijkparam_d, ijkparam_h, 
-                        ijkparam_gamma, prefactor, r1, r1inv, r2, r2inv, delr1, delr2,
-                        fi);
-        }
+        c = ts4_ijkparam.x;
+        d = ts4_ijkparam.y;
+        h = ts4_ijkparam.z;
+        gamma = ts4_ijkparam.w;
+        if (vflag>0)
+          attractive(bigr, bigd, powermint, lam3, c, d, h, gamma,
+                     prefactor, r1, r1inv, r2, r2inv, delr1, delr2, fi, fj, fk);
+        else
+          attractive_fi(bigr, bigd, powermint, lam3, c, d, h, gamma,
+                        prefactor, r1, r1inv, r2, r2inv, delr1, delr2, fi);
         f.x += fi[0];
         f.y += fi[1];
         f.z += fi[2];
@@ -545,48 +595,47 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
       } // nbor_k
     } // for nbor_j
 
-    store_answers_p(f,energy,virial,ii,inum,tid,t_per_atom,
+    store_answers_p(f,energy,virial,ii,inum,tid,tpa_sq,
                      offset,eflag,vflag,ans,engv);
   } // if ii
 }
 
-__kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_, 
+__kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
                                   const __global numtyp4 *restrict ts1_in,
                                   const __global numtyp4 *restrict ts2_in,
-                                  const __global numtyp4 *restrict ts3_in,
                                   const __global numtyp4 *restrict ts4_in,
-                                  const __global numtyp4 *restrict ts5_in,
                                   const __global numtyp *restrict cutsq,
-                                  const __global int *restrict map,
-                                  const __global int *restrict elem2param,
+                                  const __global int *restrict map_in,
+                                  const __global int *restrict elem2param_in,
                                   const int nelements, const int nparams,
-                                  const __global numtyp *restrict zetaij,
-                                  const __global int * dev_nbor, 
-                                  const __global int * dev_packed, 
-                                  __global acctyp4 *restrict ans, 
-                                  __global acctyp *restrict engv, 
-                                  const int eflag, const int vflag, 
-                                  const int inum,  const int nbor_pitch, 
+                                  const __global numtyp4 *restrict zetaij,
+                                  const __global int * dev_nbor,
+                                  const __global int * dev_packed,
+                                  __global acctyp4 *restrict ans,
+                                  __global acctyp *restrict engv,
+                                  const int eflag, const int vflag,
+                                  const int inum,  const int nbor_pitch,
                                   const int t_per_atom) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
+  numtyp lam3, powermint, bigr, bigd, c, d, h, gamma;
 
   int tid, ii, offset;
   atom_info(tpa_sq,ii,tid,offset);
 
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
-  __local numtyp4 ts3[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
-  __local numtyp4 ts5[SHARED_SIZE];
+  __local int elem2param[SHARED_SIZE];
+  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
-    ts3[tid]=ts3_in[tid];
     ts4[tid]=ts4_in[tid];
-    ts5[tid]=ts5_in[tid];
+    elem2param[tid]=elem2param_in[tid];
+    map[tid]=map_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -594,8 +643,10 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
+  __local int red_acc[2*BLOCK_PAIR];
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
 
@@ -603,14 +654,14 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
               n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
-    int nborj_start = nbor_j;
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w; 
+    int itype=ix.w;
     itype=map[itype];
 
+    numtyp tpainv = ucl_recip((numtyp)t_per_atom);
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-  
+
       int j=dev_packed[nbor_j];
       j &= NEIGHMASK;
 
@@ -628,7 +679,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       if (rsq1 > cutsq[ijparam]) continue;
       numtyp r1 = ucl_sqrt(rsq1);
-      numtyp r1inv = ucl_recip(r1);
+      numtyp r1inv = ucl_rsqrt(rsq1);
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -636,7 +687,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       mdelr1[2] = -delr1[2];
 
       int nbor_k=j+nbor_pitch;
-      int numk=dev_nbor[nbor_k]; 
+      int numk=dev_nbor[nbor_k];
       if (dev_nbor==dev_packed) {
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
@@ -650,50 +701,41 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       int nbork_start = nbor_k;
 
       // look up for zeta_ji: find i in the j's neighbor list
-      int ijnum = 0;
-      for ( ; nbor_k<k_end; nbor_k+=n_stride) { // tpa = 1
+      int m = tid / t_per_atom;
+      int ijnum = -1;
+      for ( ; nbor_k<k_end; nbor_k+=n_stride) {
         int k=dev_packed[nbor_k];
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
+          red_acc[2*m+0] = ijnum;
+          red_acc[2*m+1] = offset_k;
           break;
         }
       }
 
-      int iix = (ijnum - offset_j - 2*nbor_pitch) / n_stride; 
-      int idx = iix*n_stride + j*t_per_atom + offset_j;
-      numtyp zeta_ji = (numtyp)0;
-      fetch(zeta_ji,idx,zeta_tex); // zeta_ji = zetaij[idx];
-
-      numtyp fpfeng[4];
-      int jiparam=elem2param[jtype*nelements*nelements+itype*nelements+itype];
-      {
-      numtyp4 ts1_jiparam = ts1[jiparam]; //fetch4(ts1_jiparam,jiparam,ts1_tex);
-      numtyp jiparam_lam2 = ts1_jiparam.y;         
-      numtyp4 ts2_jiparam = ts2[jiparam]; //fetch4(ts2_jiparam,jiparam,ts2_tex);
-      numtyp jiparam_bigb = ts2_jiparam.y;
-      numtyp jiparam_bigr = ts2_jiparam.z;
-      numtyp jiparam_bigd = ts2_jiparam.w;
-      numtyp4 ts3_jiparam = ts3[jiparam]; //fetch4(ts3_jiparam,jiparam,ts3_tex);
-      numtyp jiparam_c1 = ts3_jiparam.x;
-      numtyp jiparam_c2 = ts3_jiparam.y;
-      numtyp jiparam_c3 = ts3_jiparam.z;
-      numtyp jiparam_c4 = ts3_jiparam.w;
-      numtyp4 ts5_jiparam = ts5[jiparam]; //fetch4(ts5_jiparam,jiparam,ts5_tex);
-      numtyp jiparam_beta = ts5_jiparam.x;
-      numtyp jiparam_powern = ts5_jiparam.y;
-      force_zeta(jiparam_bigb, jiparam_bigr, jiparam_bigd, jiparam_lam2,
-                 jiparam_beta, jiparam_powern, jiparam_c1, jiparam_c2, jiparam_c3,
-                 jiparam_c4, rsq1, zeta_ji, eflag, fpfeng);
+      int offset_kf;
+      if (ijnum >= 0) {
+        offset_kf = offset_k;
+      } else {
+        ijnum = red_acc[2*m+0];
+        offset_kf = red_acc[2*m+1];
       }
-      numtyp force = fpfeng[0];
+
+      //int iix = (ijnum - offset_kf - 2*nbor_pitch) / n_stride;
+      //int idx = iix*n_stride + j*t_per_atom + offset_kf;
+      int idx;
+      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+               j, ijnum, offset_kf, idx);
+      numtyp4 zeta_ji = zetaij[idx]; // fetch(zeta_ji,idx,zeta_tex);
+      numtyp force = zeta_ji.x*tpainv;
+      numtyp prefactor_ji = zeta_ji.y;
       f.x += delr1[0]*force;
       f.y += delr1[1]*force;
       f.z += delr1[2]*force;
-      numtyp prefactor = fpfeng[1];
 
       if (eflag>0) {
-        energy+=fpfeng[2];
+        energy+=zeta_ji.z*tpainv;
       }
       if (vflag>0) {
         numtyp mforce = -force;
@@ -706,7 +748,6 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       }
 
       // attractive forces
-
       for (nbor_k = nbork_start ; nbor_k<k_end; nbor_k+=n_stride) {
         int k=dev_packed[nbor_k];
         k &= NEIGHMASK;
@@ -726,81 +767,53 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
 
         if (rsq2 > cutsq[jikparam]) continue;
         numtyp r2 = ucl_sqrt(rsq2);
-        numtyp r2inv = ucl_recip(r2);
+        numtyp r2inv = ucl_rsqrt(rsq2);
+        numtyp4 ts1_param, ts2_param, ts4_param;
+        numtyp fi[3];
 
-        numtyp fj[3], fk[3];
-        {
-        numtyp4 ts1_jikparam = ts1[jikparam]; //fetch4(ts1_jikparam,jikparam,ts1_tex);
-        numtyp jikparam_lam3 = ts1_jikparam.z;
-        numtyp jikparam_powermint = ts1_jikparam.w;
-        numtyp4 ts2_jikparam = ts2[jikparam]; //fetch4(ts2_jikparam,jikparam,ts2_tex);
-        numtyp jikparam_bigr = ts2_jikparam.z;
-        numtyp jikparam_bigd = ts2_jikparam.w;
-        numtyp4 ts4_jikparam = ts4[jikparam]; //fetch4(ts4_jikparam,jikparam,ts4_tex);
-        numtyp jikparam_c = ts4_jikparam.x;
-        numtyp jikparam_d = ts4_jikparam.y;
-        numtyp jikparam_h = ts4_jikparam.z;
-        numtyp jikparam_gamma = ts4_jikparam.w;
-        attractive_fj(jikparam_bigr, jikparam_bigd, jikparam_powermint, 
-                      jikparam_lam3, jikparam_c, jikparam_d, jikparam_h, 
-                      jikparam_gamma, prefactor, r1, r1inv, r2, r2inv, mdelr1, delr2, 
-                      fj);
-        }
-        f.x += fj[0];
-        f.y += fj[1];
-        f.z += fj[2];
+        ts1_param = ts1[jikparam]; //fetch4(ts1_jikparam,jikparam,ts1_tex);
+        lam3 = ts1_param.z;
+        powermint = ts1_param.w;
+        ts2_param = ts2[jikparam]; //fetch4(ts2_jikparam,jikparam,ts2_tex);
+        bigr = ts2_param.z;
+        bigd = ts2_param.w;
+        ts4_param = ts4[jikparam]; //fetch4(ts4_jikparam,jikparam,ts4_tex);
+        c = ts4_param.x;
+        d = ts4_param.y;
+        h = ts4_param.z;
+        gamma = ts4_param.w;
+        attractive_fj(bigr, bigd, powermint, lam3, c, d, h, gamma,
+                      prefactor_ji, r1, r1inv, r2, r2inv, mdelr1, delr2, fi);
+        f.x += fi[0];
+        f.y += fi[1];
+        f.z += fi[2];
 
-        int kk = (nbor_k - offset_k - 2*nbor_pitch) / n_stride; // tpa = 1
-        int idx = kk*n_stride + j*t_per_atom + offset_k;
-        numtyp zeta_jk = (numtyp)0;
-        fetch(zeta_jk,idx,zeta_tex); // zetaij[idx];
-
-        numtyp prefactor_jk;
-        int jkparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype];
-        {
-        numtyp4 ts1_jkparam = ts1[jkparam]; //fetch4(ts1_jkparam,jkparam,ts1_tex);
-        numtyp jkparam_lam2 = ts1_jkparam.y;         
-        numtyp4 ts2_jkparam = ts2[jkparam]; //fetch4(ts2_jkparam,jkparam,ts2_tex);
-        numtyp jkparam_bigb = ts2_jkparam.y;
-        numtyp jkparam_bigr = ts2_jkparam.z;
-        numtyp jkparam_bigd = ts2_jkparam.w;
-        numtyp4 ts3_jkparam = ts3[jkparam]; //fetch4(ts3_jkparam,jkparam,ts3_tex);
-        numtyp jkparam_c1 = ts3_jkparam.x;
-        numtyp jkparam_c2 = ts3_jkparam.y;
-        numtyp jkparam_c3 = ts3_jkparam.z;
-        numtyp jkparam_c4 = ts3_jkparam.w;
-        numtyp4 ts5_jkparam = ts5[jkparam]; //fetch4(ts5_jkparam,jkparam,ts5_tex);
-        numtyp jkparam_beta = ts5_jkparam.x;
-        numtyp jkparam_powern = ts5_jkparam.y;
-        prefactor_jk = (numtyp)-0.5 * 
-          ters_fa(r2, jkparam_bigb, jkparam_bigr, jkparam_bigd, jkparam_lam2) *
-          ters_bij_d(zeta_jk, jkparam_beta, jkparam_powern, 
-                     jkparam_c1, jkparam_c2, jkparam_c3, jkparam_c4);
-        }
-
+        //int kk = (nbor_k - offset_k - 2*nbor_pitch) / n_stride;
+        //int idx = kk*n_stride + j*t_per_atom + offset_k;
+        int idx;
+        zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+                 j, nbor_k, offset_k, idx);
+        numtyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
+        numtyp prefactor_jk = zeta_jk.y;
         int jkiparam=elem2param[jtype*nelements*nelements+ktype*nelements+itype];
-        {
-        numtyp4 ts1_jkiparam = ts1[jkiparam]; //fetch4(ts1_jkiparam,jkiparam,ts1_tex);
-        numtyp jkiparam_lam3 = ts1_jkiparam.z;
-        numtyp jkiparam_powermint = ts1_jkiparam.w;
-        numtyp4 ts2_jkiparam = ts2[jkiparam]; //fetch4(ts2_jkiparam,jkiparam,ts2_tex);
-        numtyp jkiparam_bigr = ts2_jkiparam.z;
-        numtyp jkiparam_bigd = ts2_jkiparam.w;
-        numtyp4 ts4_jkiparam = ts4[jkiparam]; //fetch4(ts4_jkiparam,jkiparam,ts4_tex);
-        numtyp jkiparam_c = ts4_jkiparam.x;
-        numtyp jkiparam_d = ts4_jkiparam.y;
-        numtyp jkiparam_h = ts4_jkiparam.z;
-        numtyp jkiparam_gamma = ts4_jkiparam.w;
-        attractive_fk(jkiparam_bigr, jkiparam_bigd, jkiparam_powermint, 
-                      jkiparam_lam3,jkiparam_c, jkiparam_d, jkiparam_h, 
-                      jkiparam_gamma, prefactor_jk, r2, r2inv, r1, r1inv, 
-                      delr2, mdelr1, fk);
-        }
-        f.x += fk[0];
-        f.y += fk[1];
-        f.z += fk[2];
-      }
-    } // for nbor
+        ts1_param = ts1[jkiparam]; //fetch4(ts1_jkiparam,jkiparam,ts1_tex);
+        lam3 = ts1_param.z;
+        powermint = ts1_param.w;
+        ts2_param = ts2[jkiparam]; //fetch4(ts2_jkiparam,jkiparam,ts2_tex);
+        bigr = ts2_param.z;
+        bigd = ts2_param.w;
+        ts4_param = ts4[jkiparam]; //fetch4(ts4_jkiparam,jkiparam,ts4_tex);
+        c = ts4_param.x;
+        d = ts4_param.y;
+        h = ts4_param.z;
+        gamma = ts4_param.w;
+        attractive_fk(bigr, bigd, powermint, lam3, c, d, h, gamma,
+                      prefactor_jk, r2, r2inv, r1, r1inv, delr2, mdelr1, fi);
+        f.x += fi[0];
+        f.y += fi[1];
+        f.z += fi[2];
+      } // for nbor_k
+    } // for nbor_j
 
     #ifdef THREE_CONCURRENT
     store_answers(f,energy,virial,ii,inum,tid,tpa_sq,offset,
@@ -809,45 +822,43 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
     store_answers_p(f,energy,virial,ii,inum,tid,tpa_sq,offset,
                     eflag,vflag,ans,engv);
     #endif
-
   } // if ii
 }
 
-__kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_, 
+__kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global numtyp4 *restrict ts1_in,
                                         const __global numtyp4 *restrict ts2_in,
-      	                                const __global numtyp4 *restrict ts3_in,
       	                                const __global numtyp4 *restrict ts4_in,
-                                        const __global numtyp4 *restrict ts5_in,
                                         const __global numtyp *restrict cutsq,
-                                        const __global int *restrict map,
-                                        const __global int *restrict elem2param,
+                                        const __global int *restrict map_in,
+                                        const __global int *restrict elem2param_in,
                                         const int nelements, const int nparams,
-                                        const __global numtyp *restrict zetaij,
-                                        const __global int * dev_nbor, 
-                                        const __global int * dev_packed, 
-                                        __global acctyp4 *restrict ans, 
-                                        __global acctyp *restrict engv, 
-                                        const int eflag, const int vflag, 
-                                        const int inum,  const int nbor_pitch, 
+                                        const __global numtyp4 *restrict zetaij,
+                                        const __global int * dev_nbor,
+                                        const __global int * dev_packed,
+                                        __global acctyp4 *restrict ans,
+                                        __global acctyp *restrict engv,
+                                        const int eflag, const int vflag,
+                                        const int inum,  const int nbor_pitch,
                                         const int t_per_atom) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
+  numtyp lam3, powermint, bigr, bigd, c, d, h, gamma;
 
   int tid, ii, offset;
   atom_info(tpa_sq,ii,tid,offset);
-  
+
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
-  __local numtyp4 ts3[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
-  __local numtyp4 ts5[SHARED_SIZE];
+  __local int elem2param[SHARED_SIZE];
+  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
-    ts3[tid]=ts3_in[tid];
     ts4[tid]=ts4_in[tid];
-    ts5[tid]=ts5_in[tid];
+    elem2param[tid]=elem2param_in[tid];
+    map[tid]=map_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -857,8 +868,10 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
+  __local int red_acc[2*BLOCK_PAIR];
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
 
@@ -868,11 +881,12 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
     int offset_k=tid & (t_per_atom-1);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w; 
+    int itype=ix.w;
     itype=map[itype];
 
+    numtyp tpainv = ucl_recip((numtyp)t_per_atom);
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-  
+
       int j=dev_packed[nbor_j];
       j &= NEIGHMASK;
 
@@ -888,10 +902,9 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
-
       if (rsq1 > cutsq[ijparam]) continue;
       numtyp r1 = ucl_sqrt(rsq1);
-      numtyp r1inv = ucl_recip(r1);
+      numtyp r1inv = ucl_rsqrt(rsq1);
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -899,7 +912,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       mdelr1[2] = -delr1[2];
 
       int nbor_k=j+nbor_pitch;
-      int numk=dev_nbor[nbor_k]; 
+      int numk=dev_nbor[nbor_k];
       if (dev_nbor==dev_packed) {
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
@@ -913,50 +926,41 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       int nbork_start = nbor_k;
 
       // look up for zeta_ji
-      int ijnum = 0;
+      int m = tid / t_per_atom;
+      int ijnum = -1;
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
         int k=dev_packed[nbor_k];
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
+          red_acc[2*m+0] = ijnum;
+          red_acc[2*m+1] = offset_k;
           break;
         }
       }
 
-      int iix = (ijnum - offset_j - 2*nbor_pitch) / n_stride;
-      int idx = iix*n_stride + j*t_per_atom + offset_j;
-      numtyp zeta_ji = (numtyp)0;
-      fetch(zeta_ji,idx,zeta_tex); // zetaij[idx];
-
-      numtyp fpfeng[4];
-      int jiparam=elem2param[jtype*nelements*nelements+itype*nelements+itype];
-      {
-      numtyp4 ts1_jiparam = ts1[jiparam]; //fetch4(ts1_jiparam,jiparam,ts1_tex);
-      numtyp jiparam_lam2 = ts1_jiparam.y;         
-      numtyp4 ts2_jiparam = ts2[jiparam]; //fetch4(ts2_jiparam,jiparam,ts2_tex);
-      numtyp jiparam_bigb = ts2_jiparam.y;
-      numtyp jiparam_bigr = ts2_jiparam.z;
-      numtyp jiparam_bigd = ts2_jiparam.w;
-      numtyp4 ts3_jiparam = ts3[jiparam]; //fetch4(ts3_jiparam,jiparam,ts3_tex);
-      numtyp jiparam_c1 = ts3_jiparam.x;
-      numtyp jiparam_c2 = ts3_jiparam.y;
-      numtyp jiparam_c3 = ts3_jiparam.z;
-      numtyp jiparam_c4 = ts3_jiparam.w;
-      numtyp4 ts5_jiparam = ts5[jiparam]; //fetch4(ts5_jiparam,jiparam,ts5_tex);
-      numtyp jiparam_beta = ts5_jiparam.x;
-      numtyp jiparam_powern = ts5_jiparam.y;
-      force_zeta(jiparam_bigb, jiparam_bigr, jiparam_bigd, jiparam_lam2,
-                 jiparam_beta, jiparam_powern, jiparam_c1, jiparam_c2, jiparam_c3,
-                 jiparam_c4, rsq1, zeta_ji, eflag, fpfeng);
+      int offset_kf;
+      if (ijnum >= 0) {
+        offset_kf = offset_k;
+      } else {
+        ijnum = red_acc[2*m+0];
+        offset_kf = red_acc[2*m+1];
       }
-      numtyp force = fpfeng[0];
+
+      //int iix = (ijnum - offset_kf - 2*nbor_pitch) / n_stride;
+      //int idx = iix*n_stride + j*t_per_atom + offset_kf;
+      int idx;
+      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+               j, ijnum, offset_kf, idx);
+      numtyp4 zeta_ji = zetaij[idx]; //  fetch(zeta_ji,idx,zeta_tex);
+      numtyp force = zeta_ji.x*tpainv;
+      numtyp prefactor = zeta_ji.y;
       f.x += delr1[0]*force;
       f.y += delr1[1]*force;
       f.z += delr1[2]*force;
-      numtyp prefactor = fpfeng[1];
 
       if (eflag>0) {
-        energy+=fpfeng[2];
+        energy+=zeta_ji.z*tpainv;
       }
       if (vflag>0) {
         numtyp mforce = -force;
@@ -969,7 +973,6 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       }
 
       // attractive forces
-
       for (nbor_k = nbork_start; nbor_k<k_end; nbor_k+=n_stride) {
         int k=dev_packed[nbor_k];
         k &= NEIGHMASK;
@@ -989,26 +992,23 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
 
         if (rsq2 > cutsq[jikparam]) continue;
         numtyp r2 = ucl_sqrt(rsq2);
-        numtyp r2inv = ucl_recip(r2);
+        numtyp r2inv = ucl_rsqrt(rsq2);
 
         numtyp fi[3], fj[3], fk[3];
-        {
-        numtyp4 ts1_jikparam = ts1[jikparam]; //fetch4(ts1_jikparam,jikparam,ts1_tex);
-        numtyp jikparam_lam3 = ts1_jikparam.z;
-        numtyp jikparam_powermint = ts1_jikparam.w;
-        numtyp4 ts2_jikparam = ts2[jikparam]; //fetch4(ts2_jikparam,jikparam,ts2_tex);
-        numtyp jikparam_bigr = ts2_jikparam.z;
-        numtyp jikparam_bigd = ts2_jikparam.w;
-        numtyp4 ts4_jikparam = ts4[jikparam]; //fetch4(ts4_jikparam,jikparam,ts4_tex);
-        numtyp jikparam_c = ts4_jikparam.x;
-        numtyp jikparam_d = ts4_jikparam.y;
-        numtyp jikparam_h = ts4_jikparam.z;
-        numtyp jikparam_gamma = ts4_jikparam.w;
-        attractive(jikparam_bigr, jikparam_bigd, jikparam_powermint,
-                   jikparam_lam3, jikparam_c, jikparam_d, jikparam_h, 
-                   jikparam_gamma, prefactor, r1, r1inv, r2, r2inv, mdelr1, delr2,
-                   fi, fj, fk);
-        }
+        numtyp4 ts1_param, ts2_param, ts4_param;
+        ts1_param = ts1[jikparam]; //fetch4(ts1_jikparam,jikparam,ts1_tex);
+        lam3 = ts1_param.z;
+        powermint = ts1_param.w;
+        ts2_param = ts2[jikparam]; //fetch4(ts2_jikparam,jikparam,ts2_tex);
+        bigr = ts2_param.z;
+        bigd = ts2_param.w;
+        ts4_param = ts4[jikparam]; //fetch4(ts4_jikparam,jikparam,ts4_tex);
+        c = ts4_param.x;
+        d = ts4_param.y;
+        h = ts4_param.z;
+        gamma = ts4_param.w;
+        attractive(bigr, bigd, powermint, lam3, c, d, h, gamma,
+                   prefactor, r1, r1inv, r2, r2inv, mdelr1, delr2, fi, fj, fk);
         f.x += fj[0];
         f.y += fj[1];
         f.z += fj[2];
@@ -1020,52 +1020,28 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         virial[4] += THIRD*(mdelr1[0]*fj[2] + delr2[0]*fk[2]);
         virial[5] += THIRD*(mdelr1[1]*fj[2] + delr2[1]*fk[2]);
 
-        int kk = (nbor_k - offset_k - 2*nbor_pitch) / n_stride;
-        int idx = kk*n_stride + j*t_per_atom + offset_k;
-        numtyp zeta_jk = (numtyp)0;
-        fetch(zeta_jk,idx,zeta_tex); // zetaij[idx];
-
-        numtyp prefactor_jk;
-        int jkparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype];
-        {
-        numtyp4 ts1_jkparam = ts1[jkparam]; //fetch4(ts1_jkparam,jkparam,ts1_tex);
-        numtyp jkparam_lam2 = ts1_jkparam.y;         
-        numtyp4 ts2_jkparam = ts2[jkparam]; //fetch4(ts2_jkparam,jkparam,ts2_tex);
-        numtyp jkparam_bigb = ts2_jkparam.y;
-        numtyp jkparam_bigr = ts2_jkparam.z;
-        numtyp jkparam_bigd = ts2_jkparam.w;
-        numtyp4 ts3_jkparam = ts3[jkparam]; //fetch4(ts3_jkparam,jkparam,ts3_tex);
-        numtyp jkparam_c1 = ts3_jkparam.x;
-        numtyp jkparam_c2 = ts3_jkparam.y;
-        numtyp jkparam_c3 = ts3_jkparam.z;
-        numtyp jkparam_c4 = ts3_jkparam.w;
-        numtyp4 ts5_jkparam = ts5[jkparam]; //fetch4(ts5_jkparam,jkparam,ts5_tex);
-        numtyp jkparam_beta = ts5_jkparam.x;
-        numtyp jkparam_powern = ts5_jkparam.y;
-        prefactor_jk = (numtyp)-0.5 *
-          ters_fa(r2, jkparam_bigb, jkparam_bigr, jkparam_bigd, jkparam_lam2) *
-          ters_bij_d(zeta_jk, jkparam_beta, jkparam_powern, 
-                     jkparam_c1, jkparam_c2, jkparam_c3, jkparam_c4);
-        }
+        //int kk = (nbor_k - offset_k - 2*nbor_pitch) / n_stride;
+        //int idx = kk*n_stride + j*t_per_atom + offset_k;
+        int idx;
+        zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
+                 j, nbor_k, offset_k, idx);
+        numtyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
+        numtyp prefactor_jk = zeta_jk.y;
 
         int jkiparam=elem2param[jtype*nelements*nelements+ktype*nelements+itype];
-        {
-        numtyp4 ts1_jkiparam = ts1[jkiparam]; //fetch4(ts1_jkiparam,jkiparam,ts1_tex);
-        numtyp jkiparam_lam3 = ts1_jkiparam.z;
-        numtyp jkiparam_powermint = ts1_jkiparam.w;
-        numtyp4 ts2_jkiparam = ts2[jkiparam]; //fetch4(ts2_jkiparam,jkiparam,ts2_tex);
-        numtyp jkiparam_bigr = ts2_jkiparam.z;
-        numtyp jkiparam_bigd = ts2_jkiparam.w;
-        numtyp4 ts4_jkiparam = ts4[jkiparam]; //fetch4(ts4_jkiparam,jkiparam,ts4_tex);
-        numtyp jkiparam_c = ts4_jkiparam.x;
-        numtyp jkiparam_d = ts4_jkiparam.y;
-        numtyp jkiparam_h = ts4_jkiparam.z;
-        numtyp jkiparam_gamma = ts4_jkiparam.w;
-        attractive(jkiparam_bigr, jkiparam_bigd, jkiparam_powermint,
-                   jkiparam_lam3, jkiparam_c, jkiparam_d, jkiparam_h, 
-                   jkiparam_gamma, prefactor_jk, r2, r2inv, r1, r1inv, delr2, mdelr1,
-                   fi, fj, fk);
-        }
+        ts1_param = ts1[jkiparam]; //fetch4(ts1_jkiparam,jkiparam,ts1_tex);
+        lam3 = ts1_param.z;
+        powermint = ts1_param.w;
+        ts2_param = ts2[jkiparam]; //fetch4(ts2_jkiparam,jkiparam,ts2_tex);
+        bigr = ts2_param.z;
+        bigd = ts2_param.w;
+        ts4_param = ts4[jkiparam]; //fetch4(ts4_jkiparam,jkiparam,ts4_tex);
+        c = ts4_param.x;
+        d = ts4_param.y;
+        h = ts4_param.z;
+        gamma = ts4_param.w;
+        attractive(bigr, bigd, powermint, lam3, c, d, h, gamma,
+                   prefactor_jk, r2, r2inv, r1, r1inv, delr2, mdelr1, fi, fj, fk);
         f.x += fk[0];
         f.y += fk[1];
         f.z += fk[2];
@@ -1088,3 +1064,4 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
     #endif
   } // if ii
 }
+

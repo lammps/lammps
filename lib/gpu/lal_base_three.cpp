@@ -194,7 +194,7 @@ inline int BaseThreeT::build_nbor_list(const int inum, const int host_inum,
   resize_atom(inum,nall,success);
   resize_local(nall,host_inum,nbor->max_nbors(),success);
   if (!success)
-    return 1;
+    return 0;
   atom->cast_copy_x(host_x,host_type);
 
   int mn;

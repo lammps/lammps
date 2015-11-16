@@ -1,7 +1,7 @@
 /// **************************************************************************
 //                              tersoff_extra.h
 //                             -------------------
-//                              Trung Dac Nguyen 
+//                              Trung Dac Nguyen
 //
 //  Device code for Tersoff math routines
 //
@@ -26,7 +26,7 @@
 
 /* ---------------------------------------------------------------------- */
 
-ucl_inline numtyp vec3_dot(const numtyp x[3], const numtyp y[3]) 
+ucl_inline numtyp vec3_dot(const numtyp x[3], const numtyp y[3])
 {
   return (x[0]*y[0] + x[1]*y[1] + x[2]*y[2]);
 }
@@ -36,12 +36,12 @@ ucl_inline void vec3_add(const numtyp x[3], const numtyp y[3], numtyp z[3])
   z[0] = x[0]+y[0]; z[1] = x[1]+y[1]; z[2] = x[2]+y[2];
 }
 
-ucl_inline void vec3_scale(const numtyp k, const numtyp x[3], numtyp y[3]) 
+ucl_inline void vec3_scale(const numtyp k, const numtyp x[3], numtyp y[3])
 {
   y[0] = k*x[0]; y[1] = k*x[1]; y[2] = k*x[2];
 }
 
-ucl_inline void vec3_scaleadd(const numtyp k, const numtyp x[3], 
+ucl_inline void vec3_scaleadd(const numtyp k, const numtyp x[3],
                               const numtyp y[3], numtyp z[3])
 {
   z[0] = k*x[0]+y[0]; z[1] = k*x[1]+y[1]; z[2] = k*x[2]+y[2];
@@ -51,14 +51,14 @@ ucl_inline void vec3_scaleadd(const numtyp k, const numtyp x[3],
 
 ucl_inline numtyp ters_gijk(const numtyp costheta,
                             const numtyp param_c,
-                            const numtyp param_d, 
+                            const numtyp param_d,
                             const numtyp param_h,
-                            const numtyp param_gamma) 
+                            const numtyp param_gamma)
 {
   const numtyp ters_c = param_c * param_c;
   const numtyp ters_d = param_d * param_d;
   const numtyp hcth = param_h - costheta;
-  return param_gamma*((numtyp)1.0 + ters_c*ucl_recip(ters_d) - 
+  return param_gamma*((numtyp)1.0 + ters_c*ucl_recip(ters_d) -
          ters_c *ucl_recip(ters_d + hcth*hcth));
 }
 
@@ -66,9 +66,9 @@ ucl_inline numtyp ters_gijk(const numtyp costheta,
 
 ucl_inline numtyp ters_gijk_d(const numtyp costheta,
                               const numtyp param_c,
-                              const numtyp param_d, 
-                              const numtyp param_h, 
-                              const numtyp param_gamma) 
+                              const numtyp param_d,
+                              const numtyp param_h,
+                              const numtyp param_gamma)
 {
   const numtyp ters_c = param_c * param_c;
   const numtyp ters_d = param_d * param_d;
@@ -80,12 +80,12 @@ ucl_inline numtyp ters_gijk_d(const numtyp costheta,
 
 /* ---------------------------------------------------------------------- */
 
-ucl_inline void costheta_d(const numtyp rij_hat[3], 
+ucl_inline void costheta_d(const numtyp rij_hat[3],
                            const numtyp rij,
-                           const numtyp rik_hat[3], 
+                           const numtyp rik_hat[3],
                            const numtyp rik,
-                           numtyp *dri, 
-                           numtyp *drj, 
+                           numtyp *dri,
+                           numtyp *drj,
                            numtyp *drk)
 {
   // first element is derivative wrt Ri, second wrt Rj, third wrt Rk
@@ -131,85 +131,87 @@ ucl_inline numtyp ters_fa(const numtyp r,
                           const numtyp param_lam2)
 {
   if (r > param_bigr + param_bigd) return (numtyp)0.0;
-  return -param_bigb * ucl_exp(-param_lam2 * r) * 
+  return -param_bigb * ucl_exp(-param_lam2 * r) *
     ters_fc(r,param_bigr,param_bigd);
 }
 
 /* ---------------------------------------------------------------------- */
 
 ucl_inline numtyp ters_fa_d(const numtyp r,
-                            const numtyp param_bigb, 
+                            const numtyp param_bigb,
                             const numtyp param_bigr,
                             const numtyp param_bigd,
                             const numtyp param_lam2)
 {
   if (r > param_bigr + param_bigd) return (numtyp)0.0;
-  return param_bigb * ucl_exp(-param_lam2 * r) * (param_lam2 * 
+  return param_bigb * ucl_exp(-param_lam2 * r) * (param_lam2 *
     ters_fc(r,param_bigr,param_bigd) - ters_fc_d(r,param_bigr,param_bigd));
 }
 
 /* ---------------------------------------------------------------------- */
 
 ucl_inline numtyp ters_bij(const numtyp zeta,
-                           const numtyp param_beta, 
+                           const numtyp param_beta,
                            const numtyp param_powern,
-                           const numtyp param_c1, 
-                           const numtyp param_c2, 
+                           const numtyp param_c1,
+                           const numtyp param_c2,
                            const numtyp param_c3,
                            const numtyp param_c4)
 {
   numtyp tmp = param_beta * zeta;
   if (tmp > param_c1) return ucl_rsqrt(tmp);
   if (tmp > param_c2)
-    return ((numtyp)1.0 - ucl_powr(tmp,-param_powern) / 
+    return ((numtyp)1.0 - ucl_powr(tmp,-param_powern) /
       ((numtyp)2.0*param_powern))*ucl_rsqrt(tmp);
   if (tmp < param_c4) return (numtyp)1.0;
   if (tmp < param_c3)
     return (numtyp)1.0 - ucl_powr(tmp,param_powern)/((numtyp)2.0*param_powern);
-  return ucl_powr((numtyp)1.0 + ucl_powr(tmp,param_powern), 
+  return ucl_powr((numtyp)1.0 + ucl_powr(tmp,param_powern),
     (numtyp)-1.0/((numtyp)2.0*param_powern));
 }
 
 /* ---------------------------------------------------------------------- */
 
 ucl_inline numtyp ters_bij_d(const numtyp zeta,
-                             const numtyp param_beta, 
+                             const numtyp param_beta,
                              const numtyp param_powern,
-                             const numtyp param_c1, 
-                             const numtyp param_c2, 
+                             const numtyp param_c1,
+                             const numtyp param_c2,
                              const numtyp param_c3,
                              const numtyp param_c4)
 {
   numtyp tmp = param_beta * zeta;
-  if (tmp > param_c1) 
+  if (tmp > param_c1)
     return param_beta * (numtyp)-0.5*ucl_powr(tmp,(numtyp)-1.5);
   if (tmp > param_c2)
     return param_beta * ((numtyp)-0.5*ucl_powr(tmp,(numtyp)-1.5) *
-      ((numtyp)1.0 - (numtyp)0.5 * ((numtyp)1.0 + (numtyp)1.0 / 
-      ((numtyp)2.0 * param_powern)) * ucl_powr(tmp,-param_powern)));
+    // error in negligible 2nd term fixed 9/30/2015
+		// (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
+      ((numtyp)1.0 - ((numtyp)1.0 + (numtyp)1.0 /((numtyp)2.0 * param_powern)) *
+       ucl_powr(tmp,-param_powern)));
   if (tmp < param_c4) return (numtyp)0.0;
   if (tmp < param_c3)
     return (numtyp)-0.5*param_beta * ucl_powr(tmp,param_powern-(numtyp)1.0);
 
   numtyp tmp_n = ucl_powr(tmp,param_powern);
-  return (numtyp)-0.5 * ucl_powr((numtyp)1.0+tmp_n, (numtyp) - 
+  return (numtyp)-0.5 * ucl_powr((numtyp)1.0+tmp_n, (numtyp) -
     (numtyp)1.0-((numtyp)1.0 / ((numtyp)2.0 * param_powern)))*tmp_n / zeta;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ucl_inline void ters_zetaterm_d(const numtyp prefactor,
-                                const numtyp rij_hat[3], 
+                                const numtyp rij_hat[3],
                                 const numtyp rij,
-                                const numtyp rik_hat[3], 
+                                const numtyp rik_hat[3],
                                 const numtyp rik,
-                                const numtyp param_bigr, 
+                                const numtyp param_bigr,
                                 const numtyp param_bigd,
                                 const numtyp param_powermint,
                                 const numtyp param_lam3,
                                 const numtyp param_c,
                                 const numtyp param_d,
-                                const numtyp param_h, 
+                                const numtyp param_h,
                                 const numtyp param_gamma,
                                 numtyp dri[3],
                                 numtyp drj[3],
@@ -229,7 +231,7 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 
-  if ((int)param_powermint == 3)  
+  if ((int)param_powermint == 3)
     ex_delr_d = (numtyp)3.0*param_lam3*t*t*ex_delr;
   else ex_delr_d = param_lam3 * ex_delr;
 
@@ -269,17 +271,17 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
 }
 
 ucl_inline void ters_zetaterm_d_fi(const numtyp prefactor,
-                                   const numtyp rij_hat[3], 
+                                   const numtyp rij_hat[3],
                                    const numtyp rij,
-                                   const numtyp rik_hat[3], 
+                                   const numtyp rik_hat[3],
                                    const numtyp rik,
-                                   const numtyp param_bigr, 
+                                   const numtyp param_bigr,
                                    const numtyp param_bigd,
                                    const numtyp param_powermint,
                                    const numtyp param_lam3,
                                    const numtyp param_c,
                                    const numtyp param_d,
-                                   const numtyp param_h, 
+                                   const numtyp param_h,
                                    const numtyp param_gamma,
                                    numtyp dri[3])
 {
@@ -297,7 +299,7 @@ ucl_inline void ters_zetaterm_d_fi(const numtyp prefactor,
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 
-  if ((int)param_powermint == 3)  
+  if ((int)param_powermint == 3)
     ex_delr_d = (numtyp)3.0*param_lam3*t*t*ex_delr;
   else ex_delr_d = param_lam3 * ex_delr;
 
@@ -319,17 +321,17 @@ ucl_inline void ters_zetaterm_d_fi(const numtyp prefactor,
 }
 
 ucl_inline void ters_zetaterm_d_fj(const numtyp prefactor,
-                                   const numtyp rij_hat[3], 
+                                   const numtyp rij_hat[3],
                                    const numtyp rij,
-                                   const numtyp rik_hat[3], 
+                                   const numtyp rik_hat[3],
                                    const numtyp rik,
-                                   const numtyp param_bigr, 
+                                   const numtyp param_bigr,
                                    const numtyp param_bigd,
                                    const numtyp param_powermint,
                                    const numtyp param_lam3,
                                    const numtyp param_c,
                                    const numtyp param_d,
-                                   const numtyp param_h, 
+                                   const numtyp param_h,
                                    const numtyp param_gamma,
                                    numtyp drj[3])
 {
@@ -346,7 +348,7 @@ ucl_inline void ters_zetaterm_d_fj(const numtyp prefactor,
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 
-  if ((int)param_powermint == 3)  
+  if ((int)param_powermint == 3)
     ex_delr_d = (numtyp)3.0*param_lam3*t*t*ex_delr;
   else ex_delr_d = param_lam3 * ex_delr;
 
@@ -365,17 +367,17 @@ ucl_inline void ters_zetaterm_d_fj(const numtyp prefactor,
 }
 
 ucl_inline void ters_zetaterm_d_fk(const numtyp prefactor,
-                                   const numtyp rij_hat[3], 
+                                   const numtyp rij_hat[3],
                                    const numtyp rij,
-                                   const numtyp rik_hat[3], 
+                                   const numtyp rik_hat[3],
                                    const numtyp rik,
-                                   const numtyp param_bigr, 
+                                   const numtyp param_bigr,
                                    const numtyp param_bigd,
                                    const numtyp param_powermint,
                                    const numtyp param_lam3,
                                    const numtyp param_c,
                                    const numtyp param_d,
-                                   const numtyp param_h, 
+                                   const numtyp param_h,
                                    const numtyp param_gamma,
                                    numtyp drk[3])
 {
@@ -393,7 +395,7 @@ ucl_inline void ters_zetaterm_d_fk(const numtyp prefactor,
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 
-  if ((int)param_powermint == 3)  
+  if ((int)param_powermint == 3)
     ex_delr_d = (numtyp)3.0*param_lam3*t*t*ex_delr;
   else ex_delr_d = param_lam3 * ex_delr;
 
@@ -419,20 +421,20 @@ ucl_inline void repulsive(const numtyp param_bigr,
                           const numtyp param_bigd,
                           const numtyp param_lam1,
                           const numtyp param_biga,
-                          const numtyp rsq, 
-                          const int eflag, 
+                          const numtyp rsq,
+                          const int eflag,
                           numtyp *ans)
-{ 
-  numtyp r,tmp_fc,tmp_fc_d,tmp_exp;                    
-  r = ucl_sqrt(rsq);                                   
-  tmp_fc = ters_fc(r,param_bigr,param_bigd);      
-  tmp_fc_d = ters_fc_d(r,param_bigr,param_bigd);       
-  tmp_exp = ucl_exp(-param_lam1 * r);                      
+{
+  numtyp r,tmp_fc,tmp_fc_d,tmp_exp;
+  r = ucl_sqrt(rsq);
+  tmp_fc = ters_fc(r,param_bigr,param_bigd);
+  tmp_fc_d = ters_fc_d(r,param_bigr,param_bigd);
+  tmp_exp = ucl_exp(-param_lam1 * r);
   // fforce
-  ans[0] = -param_biga*tmp_exp*(tmp_fc_d - tmp_fc*param_lam1)*ucl_recip(r); 
+  ans[0] = -param_biga*tmp_exp*(tmp_fc_d - tmp_fc*param_lam1)*ucl_recip(r);
   // eng
-  if (eflag) ans[1] = tmp_fc * param_biga * tmp_exp; 
-}   
+  if (eflag) ans[1] = tmp_fc * param_biga * tmp_exp;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -441,7 +443,7 @@ ucl_inline numtyp zeta(const numtyp param_powermint,
                        const numtyp param_bigr,
                        const numtyp param_bigd,
                        const numtyp param_c,
-                       const numtyp param_d, 
+                       const numtyp param_d,
                        const numtyp param_h,
                        const numtyp param_gamma,
                        const numtyp rsqij,
@@ -464,23 +466,23 @@ ucl_inline numtyp zeta(const numtyp param_powermint,
   else if (arg < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(arg);
 
-  return ters_fc(rik,param_bigr,param_bigd) * 
+  return ters_fc(rik,param_bigr,param_bigd) *
          ters_gijk(costheta,param_c, param_d, param_h, param_gamma) * ex_delr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ucl_inline void force_zeta(const numtyp param_bigb, 
+ucl_inline void force_zeta(const numtyp param_bigb,
                            const numtyp param_bigr,
                            const numtyp param_bigd,
                            const numtyp param_lam2,
-                           const numtyp param_beta, 
+                           const numtyp param_beta,
                            const numtyp param_powern,
-                           const numtyp param_c1, 
-                           const numtyp param_c2, 
+                           const numtyp param_c1,
+                           const numtyp param_c2,
                            const numtyp param_c3,
                            const numtyp param_c4,
-                           const numtyp rsq, 
+                           const numtyp rsq,
                            const numtyp zeta_ij,
                            const int eflag,
                            numtyp fpfeng[4])
@@ -494,7 +496,7 @@ ucl_inline void force_zeta(const numtyp param_bigb,
                  param_c1,param_c2, param_c3, param_c4);
   fpfeng[0] = (numtyp)0.5*bij*fa_d * ucl_recip(r); // fforce
   fpfeng[1] = (numtyp)-0.5*fa * ters_bij_d(zeta_ij,param_beta, param_powern,
-           param_c1,param_c2, param_c3, param_c4); // prefactor 
+           param_c1,param_c2, param_c3, param_c4); // prefactor
   if (eflag) fpfeng[2] = (numtyp)0.5*bij*fa; // eng
 }
 
@@ -504,23 +506,23 @@ ucl_inline void force_zeta(const numtyp param_bigb,
    use param_ijk cutoff for rik test
 ------------------------------------------------------------------------- */
 
-ucl_inline void attractive(const numtyp param_bigr, 
+ucl_inline void attractive(const numtyp param_bigr,
                            const numtyp param_bigd,
                            const numtyp param_powermint,
                            const numtyp param_lam3,
                            const numtyp param_c,
                            const numtyp param_d,
-                           const numtyp param_h, 
+                           const numtyp param_h,
                            const numtyp param_gamma,
                            const numtyp prefactor,
-                           const numtyp rij, 
-                           const numtyp rijinv, 
+                           const numtyp rij,
+                           const numtyp rijinv,
                            const numtyp rik,
-                           const numtyp rikinv, 
-                           const numtyp delrij[3], 
+                           const numtyp rikinv,
+                           const numtyp delrij[3],
                            const numtyp delrik[3],
-                           numtyp fi[3], 
-                           numtyp fj[3], 
+                           numtyp fi[3],
+                           numtyp fj[3],
                            numtyp fk[3])
 {
   numtyp rij_hat[3],rik_hat[3];
@@ -531,20 +533,20 @@ ucl_inline void attractive(const numtyp param_bigr,
                   param_c, param_d, param_h, param_gamma, fi, fj, fk);
 }
 
-ucl_inline void attractive_fi(const numtyp param_bigr, 
+ucl_inline void attractive_fi(const numtyp param_bigr,
                               const numtyp param_bigd,
                               const numtyp param_powermint,
                               const numtyp param_lam3,
                               const numtyp param_c,
                               const numtyp param_d,
-                              const numtyp param_h, 
+                              const numtyp param_h,
                               const numtyp param_gamma,
                               const numtyp prefactor,
-                              const numtyp rij, 
-                              const numtyp rijinv, 
+                              const numtyp rij,
+                              const numtyp rijinv,
                               const numtyp rik,
-                              const numtyp rikinv, 
-                              const numtyp delrij[3], 
+                              const numtyp rikinv,
+                              const numtyp delrij[3],
                               const numtyp delrik[3],
                               numtyp fi[3])
 {
@@ -556,20 +558,20 @@ ucl_inline void attractive_fi(const numtyp param_bigr,
                   param_c, param_d, param_h, param_gamma, fi);
 }
 
-ucl_inline void attractive_fj(const numtyp param_bigr, 
+ucl_inline void attractive_fj(const numtyp param_bigr,
                               const numtyp param_bigd,
                               const numtyp param_powermint,
                               const numtyp param_lam3,
                               const numtyp param_c,
                               const numtyp param_d,
-                              const numtyp param_h, 
+                              const numtyp param_h,
                               const numtyp param_gamma,
                               const numtyp prefactor,
-                              const numtyp rij, 
-                              const numtyp rijinv, 
+                              const numtyp rij,
+                              const numtyp rijinv,
                               const numtyp rik,
-                              const numtyp rikinv, 
-                              const numtyp delrij[3], 
+                              const numtyp rikinv,
+                              const numtyp delrij[3],
                               const numtyp delrik[3],
                               numtyp fj[3])
 {
@@ -581,20 +583,20 @@ ucl_inline void attractive_fj(const numtyp param_bigr,
                      param_c, param_d, param_h, param_gamma, fj);
 }
 
-ucl_inline void attractive_fk(const numtyp param_bigr, 
+ucl_inline void attractive_fk(const numtyp param_bigr,
                               const numtyp param_bigd,
                               const numtyp param_powermint,
                               const numtyp param_lam3,
                               const numtyp param_c,
                               const numtyp param_d,
-                              const numtyp param_h, 
+                              const numtyp param_h,
                               const numtyp param_gamma,
                               const numtyp prefactor,
-                              const numtyp rij, 
-                              const numtyp rijinv, 
+                              const numtyp rij,
+                              const numtyp rijinv,
                               const numtyp rik,
-                              const numtyp rikinv, 
-                              const numtyp delrij[3], 
+                              const numtyp rikinv,
+                              const numtyp delrij[3],
                               const numtyp delrik[3],
                               numtyp fk[3])
 {

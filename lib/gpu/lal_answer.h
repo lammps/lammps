@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -49,14 +49,18 @@ class Answer {
   inline void inum(const int n) { _inum=n; }
   /// Return the maximum number of atoms that can be stored currently
   inline int max_inum() const { return _max_local; }
-  
+  /// Return the number of fields used for energy and virial
+  inline int ev_fields(const int mode) const {
+    return (mode == 1) ? _ev_fields : _e_fields;
+  }
+
   /// Memory usage per atom in this class
-  int bytes_per_atom() const; 
+  int bytes_per_atom() const;
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param rot True if atom storage needs quaternions **/
   bool init(const int inum, const bool charge, const bool rot, UCL_Device &dev);
-  
+
   /// Check if we have enough device storage and realloc if not
   inline void resize(const int inum, bool &success) {
     _inum=inum;
@@ -67,14 +71,14 @@ class Answer {
       _gpu_bytes=engv.device.row_bytes()+force.device.row_bytes();
     }
   }
-  
+
   /// If already initialized by another LAMMPS style, add fields as necessary
   /** \param rot True if atom storage needs quaternions **/
   bool add_fields(const bool charge, const bool rot);
-  
+
   /// Free all memory on host and device
   void clear();
- 
+
   /// Return the total amount of host memory used by class in bytes
   double host_memory_usage() const;
 
@@ -92,12 +96,12 @@ class Answer {
   inline double transfer_time() {
     return time_answer.total_seconds();
   }
-  
+
   /// Return the total time for data cast/pack
   inline double cast_time() { return _time_cast; }
-  
+
   /// Return number of bytes used on device
-  inline double gpu_bytes() { return _gpu_bytes; } 
+  inline double gpu_bytes() { return _gpu_bytes; }
 
   // -------------------------COPY FROM GPU -------------------------------
 
@@ -108,7 +112,7 @@ class Answer {
   /// Copy answers from device into read buffer asynchronously
   void copy_answers(const bool eflag, const bool vflag,
                     const bool ef_atom, const bool vf_atom, int *ilist);
-  
+
   /// Copy energy and virial data into LAMMPS memory
   double energy_virial(double *eatom, double **vatom, double *virial);
 
@@ -119,7 +123,7 @@ class Answer {
   /// Add forces and torques from the GPU into a LAMMPS pointer
   void get_answers(double **f, double **tor);
 
-  inline double get_answers(double **f, double **tor, double *eatom, 
+  inline double get_answers(double **f, double **tor, double *eatom,
                             double **vatom, double *virial, double &ecoul) {
     double ta=MPI_Wtime();
     time_answer.sync_stop();
@@ -130,7 +134,7 @@ class Answer {
     _time_cast+=MPI_Wtime()-ts;
     return evdw;
   }
-  
+
   /// Return the time the CPU was idle waiting for GPU
   inline double cpu_idle_time() { return _time_cpu_idle; }
 
@@ -143,23 +147,23 @@ class Answer {
   UCL_Vector<acctyp,acctyp> force;
   /// Energy and virial per-atom storage
   UCL_Vector<acctyp,acctyp> engv;
-  
+
   /// Device timers
   UCL_Timer time_answer;
-  
+
   /// Geryon device
   UCL_Device *dev;
 
  private:
   bool alloc(const int inum);
-  
+
   bool _allocated, _eflag, _vflag, _ef_atom, _vf_atom, _rot, _charge, _other;
   int _max_local, _inum, _e_fields, _ev_fields, _ans_fields;
   int *_ilist;
   double _time_cast, _time_cpu_idle;
-  
+
   double _gpu_bytes;
-  
+
   bool _newton;
 };
 

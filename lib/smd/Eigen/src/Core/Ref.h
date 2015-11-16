@@ -244,6 +244,15 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
 //      std::cout << int(StrideType::InnerStrideAtCompileTime) << " - " << int(Derived::InnerStrideAtCompileTime) << "\n";
       construct(expr.derived(), typename Traits::template match<Derived>::type());
     }
+    
+    inline Ref(const Ref& other) : Base(other) {
+      // copy constructor shall not copy the m_object, to avoid unnecessary malloc and copy
+    }
+
+    template<typename OtherRef>
+    inline Ref(const RefBase<OtherRef>& other) {
+      construct(other.derived(), typename Traits::template match<OtherRef>::type());
+    }
 
   protected:
 

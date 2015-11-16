@@ -80,6 +80,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Index Index;
+    
+    typedef Matrix<Scalar,Size,Size,ColMajor,MaxColsAtCompileTime,MaxColsAtCompileTime> EigenvectorsType;
 
     /** \brief Real scalar type for \p _MatrixType.
       *
@@ -225,7 +227,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa eigenvalues()
       */
-    const MatrixType& eigenvectors() const
+    const EigenvectorsType& eigenvectors() const
     {
       eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
       eigen_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
@@ -356,7 +358,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
     
-    MatrixType m_eivec;
+    EigenvectorsType m_eivec;
     RealVectorType m_eivalues;
     typename TridiagonalizationType::SubDiagonalType m_subdiag;
     ComputationInfo m_info;
@@ -381,7 +383,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   * "implicit symmetric QR step with Wilkinson shift"
   */
 namespace internal {
-template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
+template<typename RealScalar, typename Scalar, typename Index>
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);
 }
 
@@ -413,7 +415,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   // declare some aliases
   RealVectorType& diag = m_eivalues;
-  MatrixType& mat = m_eivec;
+  EigenvectorsType& mat = m_eivec;
 
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
   mat = matrix.template triangularView<Lower>();
@@ -449,7 +451,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
     while (start>0 && m_subdiag[start-1]!=0)
       start--;
 
-    internal::tridiagonal_qr_step<MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor>(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
+    internal::tridiagonal_qr_step(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
   }
 
   if (iter <= m_maxIterations * n)
@@ -498,6 +500,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
   typedef typename MatrixType::Index Index;
+  typedef typename SolverType::EigenvectorsType EigenvectorsType;
   
   /** \internal
    * Computes the roots of the characteristic polynomial of \a m.
@@ -570,7 +573,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
             && "invalid option parameter");
     bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors;
     
-    MatrixType& eivecs = solver.m_eivec;
+    EigenvectorsType& eivecs = solver.m_eivec;
     VectorType& eivals = solver.m_eivalues;
   
     // Shift the matrix to the mean eigenvalue and map the matrix coefficients to [-1:1] to avoid over- and underflow.
@@ -652,6 +655,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
   typedef typename SolverType::MatrixType MatrixType;
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
+  typedef typename SolverType::EigenvectorsType EigenvectorsType;
   
   static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
@@ -673,7 +677,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
             && "invalid option parameter");
     bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors;
     
-    MatrixType& eivecs = solver.m_eivec;
+    EigenvectorsType& eivecs = solver.m_eivec;
     VectorType& eivals = solver.m_eivalues;
   
     // map the matrix coefficients to [-1:1] to avoid over- and underflow.
@@ -732,7 +736,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 }
 
 namespace internal {
-template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
+template<typename RealScalar, typename Scalar, typename Index>
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
 {
   using std::abs;
@@ -784,8 +788,7 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
     // apply the givens rotation to the unit matrix Q = Q * G
     if (matrixQ)
     {
-      // FIXME if StorageOrder == RowMajor this operation is not very efficient
-      Map<Matrix<Scalar,Dynamic,Dynamic,StorageOrder> > q(matrixQ,n,n);
+      Map<Matrix<Scalar,Dynamic,Dynamic,ColMajor> > q(matrixQ,n,n);
       q.applyOnTheRight(k,k+1,rot);
     }
   }

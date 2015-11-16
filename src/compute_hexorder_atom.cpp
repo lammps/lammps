@@ -15,7 +15,6 @@
    Contributing author:  Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
 #include <complex>
 #include <string.h>
 #include <stdlib.h>
@@ -31,8 +30,16 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "math_const.h"
+
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -41,17 +48,36 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute hexorder/atom command");
 
+  ndegree = 6;
   nnn = 6;
+  cutsq = 0.0;
 
   // process optional args
 
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"n") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
-      nnn = force->numeric(FLERR,arg[iarg+1]);
-      if (nnn < 0)
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
+      ndegree = force->numeric(FLERR,arg[iarg+1]);
+      if (ndegree < 0)
         error->all(FLERR,"Illegal compute hexorder/atom command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nnn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) 
+	nnn = 0;
+      else {
+	nnn = force->numeric(FLERR,arg[iarg+1]);
+	if (nnn < 0)
+	  error->all(FLERR,"Illegal compute hexorder/atom command");
+      }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"cutoff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
+      double cutoff = force->numeric(FLERR,arg[iarg+1]);
+      if (cutoff <= 0.0)
+        error->all(FLERR,"Illegal compute hexorder/atom command");
+      cutsq = cutoff*cutoff;
       iarg += 2;
     } else error->all(FLERR,"Illegal compute hexorder/atom command");
   }
@@ -61,7 +87,7 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = ncol;
 
   nmax = 0;
-  q6array = NULL;
+  qnarray = NULL;
   maxneigh = 0;
   distsq = NULL;
   nearest = NULL;
@@ -71,7 +97,7 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeHexOrderAtom::~ComputeHexOrderAtom()
 {
-  memory->destroy(q6array);
+  memory->destroy(qnarray);
   memory->destroy(distsq);
   memory->destroy(nearest);
 }
@@ -82,6 +108,10 @@ void ComputeHexOrderAtom::init()
 {
   if (force->pair == NULL)
     error->all(FLERR,"Compute hexorder/atom requires a pair style be defined");
+  if (cutsq == 0.0) cutsq = force->pair->cutforce * force->pair->cutforce;
+  else if (sqrt(cutsq) > force->pair->cutforce)
+    error->all(FLERR,
+               "Compute hexorder/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
@@ -119,10 +149,10 @@ void ComputeHexOrderAtom::compute_peratom()
   // grow order parameter array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy(q6array);
+    memory->destroy(qnarray);
     nmax = atom->nmax;
-    memory->create(q6array,nmax,ncol,"hexorder/atom:q6array");
-    array_atom = q6array;
+    memory->create(qnarray,nmax,ncol,"hexorder/atom:qnarray");
+    array_atom = qnarray;
   }
 
   // invoke full neighbor list (will copy or build if necessary)
@@ -139,11 +169,10 @@ void ComputeHexOrderAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  double cutsq = force->pair->cutforce * force->pair->cutforce;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    double* q6 = q6array[i];
+    double* qn = qnarray[i];
     if (mask[i] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -157,8 +186,8 @@ void ComputeHexOrderAtom::compute_peratom()
         memory->destroy(distsq);
         memory->destroy(nearest);
         maxneigh = jnum;
-        memory->create(distsq,maxneigh,"hexcoord/atom:distsq");
-        memory->create(nearest,maxneigh,"hexcoord/atom:nearest");
+        memory->create(distsq,maxneigh,"hexorder/atom:distsq");
+        memory->create(nearest,maxneigh,"hexorder/atom:nearest");
       }
 
       // loop over list of all neighbors within force cutoff
@@ -183,60 +212,61 @@ void ComputeHexOrderAtom::compute_peratom()
       // if not nnn neighbors, order parameter = 0;
 
       if (ncount < nnn) {
-	q6[0] = q6[1] = 0.0;
+	qn[0] = qn[1] = 0.0;
         continue;
       }
 
-      // store nnn nearest neighs in 1st nnn locations of distsq and nearest
+      // if nnn > 0, use only nearest nnn neighbors
 
-      select2(nnn,ncount,distsq,nearest);
+      if (nnn > 0) {
+	select2(nnn,ncount,distsq,nearest);
+	ncount = nnn;
+      }
 
       double usum = 0.0;
       double vsum = 0.0;
       
-      for (jj = 0; jj < nnn; jj++) {
+      for (jj = 0; jj < ncount; jj++) {
 	j = nearest[jj];
 	j &= NEIGHMASK;
 	
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	double u, v;
-	calc_qn(delx, dely, u, v);
+	calc_qn_complex(delx, dely, u, v);
 	usum += u;
 	vsum += v;
       }
-      q6[0] = usum/nnn;
-      q6[1] = vsum/nnn;
+      qn[0] = usum/nnn;
+      qn[1] = vsum/nnn;
     }
   }
 }
 
-// this might be faster than pow(std::complex) on some platforms
+// calculate order parameter using std::complex::pow function
 
-inline void ComputeHexOrderAtom::calc_q6(double delx, double dely, double &u, double &v) {
+inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, double &u, double &v) {
   double rinv = 1.0/sqrt(delx*delx+dely*dely);
   double x = delx*rinv;
   double y = dely*rinv;
-  double a = x*x;
-  double b1 = y*y;
-  double b2 = b1*b1;
-  double b3 = b2*b1;
-
-  // (x + i y)^6 coeffs: 1, 6, -15, -20, 15, 6, -1
-
-  u = ((  a - 15*b1)*a + 15*b2)*a - b3;
-  v = ((6*a - 20*b1)*a +  6*b2)*x*y;
-}
-
-inline void ComputeHexOrderAtom::calc_qn(double delx, double dely, double &u, double &v) {
-  double rinv = 1.0/sqrt(delx*delx+dely*dely);
-  double x = delx*rinv;
-  double y = dely*rinv;
-  //  std::complex<double> z = std::complex<double>(x, y);
   std::complex<double> z(x, y);
-  std::complex<double> zn = pow(z,nnn);
+  std::complex<double> zn = pow(z, nnn);
   u = real(zn);
   v = imag(zn);
+}
+
+// calculate order parameter using trig functions
+// this is usually slower, but can be used if <complex> not available
+
+inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
+  double ntheta;
+  if(fabs(delx) <= MY_EPSILON) {
+    if(dely > 0.0) ntheta = nnn * MY_PI / 2.0;
+    else ntheta = nnn * 3.0 * MY_PI / 2.0;
+  } else ntheta = nnn * atan(dely / delx);
+  ntheta = nnn * atan(dely / delx);
+  u = cos(ntheta);
+  v = sin(ntheta);
 }
 
 /* ----------------------------------------------------------------------
@@ -310,5 +340,8 @@ void ComputeHexOrderAtom::select2(int k, int n, double *arr, int *iarr)
 double ComputeHexOrderAtom::memory_usage()
 {
   double bytes = ncol*nmax * sizeof(double);
+  bytes += maxneigh * sizeof(double); 
+  bytes += maxneigh * sizeof(int); 
+
   return bytes;
 }

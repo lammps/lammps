@@ -435,8 +435,7 @@ void lammps_gather_atoms(void *ptr, char *name,
     if (count == 1) vector = (int *) vptr;
     else array = (int **) vptr;
 
-    int *copy;
-    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+    int *copy = (int*) data;
     for (i = 0; i < count*natoms; i++) copy[i] = 0;
 
     tagint *tag = lmp->atom->tag;
@@ -452,8 +451,7 @@ void lammps_gather_atoms(void *ptr, char *name,
           copy[offset++] = array[i][0];
       }
 
-    MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
-    lmp->memory->destroy(copy);
+    MPI_Allreduce(MPI_IN_PLACE,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
 
   } else {
     double *vector = NULL;
@@ -461,8 +459,7 @@ void lammps_gather_atoms(void *ptr, char *name,
     if (count == 1) vector = (double *) vptr;
     else array = (double **) vptr;
 
-    double *copy;
-    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+    double *copy = (double*) data;
     for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
 
     tagint *tag = lmp->atom->tag;
@@ -479,8 +476,7 @@ void lammps_gather_atoms(void *ptr, char *name,
       }
     }
 
-    MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
-    lmp->memory->destroy(copy);
+    MPI_Allreduce(MPI_IN_PLACE,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
   }
 }
 

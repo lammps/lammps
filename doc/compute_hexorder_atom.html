@@ -21,17 +21,17 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>n</I> or <I>nnn</I> or <I>cutoff</I> 
+<PRE>keyword = <I>degree</I> or <I>nnn</I> or <I>cutoff</I> 
   <I>cutoff</I> value = distance cutoff
   <I>nnn</I> value = number of nearest neighbors
-  <I>n</I> value = degree of order parameter 
+  <I>degree</I> value = degree <I>n</I> of order parameter 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all hexorder/atom 
-compute 1 all hexorder/atom n 4 nnn 4 cutoff 1.2 
+compute 1 all hexorder/atom degree 4 nnn 4 cutoff 1.2 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -62,7 +62,7 @@ neighbors used to calculate <I>qn</I>. The default value is 6.
 If the value is NULL, then all neighbors up to the 
 distance cutoff are used.
 </P>
-<P>The optional keyword <I>n</I> sets the degree of the order parameter. 
+<P>The optional keyword <I>degree</I> sets the degree <I>n</I> of the order parameter. 
 The default value is 6. For a perfect hexagonal lattice with 
 <I>nnn</I> = 6,
 <I>q</I>6 = exp(6 i phi) for all atoms, where the constant 0 < phi < pi/3 
@@ -114,7 +114,7 @@ options.
 </P>
 <P><B>Default:</B> 
 </P>
-<P>The option defaults are <I>n</I> = 6, <I>nnn</I> = 6, <I>cutoff</I> = pair style cutoff
+<P>The option defaults are <I>cutoff</I> = pair style cutoff, <I>nnn</I> = 6, <I>degree</I> = 6
 </P>
 <HR>
 

@@ -56,7 +56,7 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"n") == 0) {
+    if (strcmp(arg[iarg],"degree") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
       ndegree = force->numeric(FLERR,arg[iarg+1]);
       if (ndegree < 0)

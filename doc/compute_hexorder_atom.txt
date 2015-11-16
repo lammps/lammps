@@ -15,17 +15,17 @@ compute ID group-ID hexorder/atom keyword values ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 hexorder/atom = style name of this compute command :l
 one or more keyword/value pairs may be appended :l
-keyword = {n} or {nnn} or {cutoff} 
+keyword = {degree} or {nnn} or {cutoff} 
   {cutoff} value = distance cutoff
   {nnn} value = number of nearest neighbors
-  {n} value = degree of order parameter :pre
+  {degree} value = degree {n} of order parameter :pre
 
 :ule
 
 [Examples:]
 
 compute 1 all hexorder/atom 
-compute 1 all hexorder/atom n 4 nnn 4 cutoff 1.2 :pre
+compute 1 all hexorder/atom degree 4 nnn 4 cutoff 1.2 :pre
 
 [Description:]
 
@@ -56,7 +56,7 @@ neighbors used to calculate {qn}. The default value is 6.
 If the value is NULL, then all neighbors up to the 
 distance cutoff are used.
 
-The optional keyword {n} sets the degree of the order parameter. 
+The optional keyword {degree} sets the degree {n} of the order parameter. 
 The default value is 6. For a perfect hexagonal lattice with 
 {nnn} = 6,
 {q}6 = exp(6 i phi) for all atoms, where the constant 0 < phi < pi/3 
@@ -108,7 +108,7 @@ options.
 
 [Default:] 
 
-The option defaults are {n} = 6, {nnn} = 6, {cutoff} = pair style cutoff
+The option defaults are {cutoff} = pair style cutoff, {nnn} = 6, {degree} = 6
 
 :line
 

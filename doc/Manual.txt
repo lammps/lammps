@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="17 Nov 2015 version">
+<META NAME="docnumber" CONTENT="10 Aug 2015 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-17 Nov 2015 version :c,h4
+10 Aug 2015 version :c,h4
 
 Version info: :h4
 
@@ -85,7 +85,7 @@ it gives quick access to documentation for all LAMMPS commands.
 
 .. toctree::
    :maxdepth: 2
-   :numbered: // comment
+   :numbered:
    
    Section_intro
    Section_start
@@ -105,8 +105,8 @@ it gives quick access to documentation for all LAMMPS commands.
 Indices and tables
 ==================
 
-* :ref:`genindex` // comment
-* :ref:`search` // comment
+* :ref:`genindex`
+* :ref:`search`
    
 END_RST -->
 

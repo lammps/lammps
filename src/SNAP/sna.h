@@ -101,6 +101,10 @@ private:
   double**** duarray_r, **** duarray_i;
   double**** dbarray;
 
+  static const int nmaxfactorial = 167; 
+  static const double nfac_table[];
+  double factorial(int);
+
   void create_twojmax_arrays();
   void destroy_twojmax_arrays();
   void init_clebsch_gordan();
@@ -116,7 +120,6 @@ private:
                       double, double);
   void compute_uarray_omp(double, double, double,
                           double, double, int);
-  double factorial(int);
   double deltacg(int, int, int);
   int compute_ncoeff();
   void compute_duarray(double, double, double,

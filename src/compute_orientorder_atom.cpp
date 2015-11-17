@@ -249,7 +249,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
       // if not nnn neighbors, order parameter = 0;
 
-      if (ncount < nnn) {
+      if ((ncount == 0) || (ncount < nnn)) {
 	for (int iw = 0; iw < nqlist; iw++)
 	  qn[iw] = 0.0;
         continue;
@@ -259,11 +259,10 @@ void ComputeOrientOrderAtom::compute_peratom()
 
       if (nnn > 0) {
 	select3(nnn,ncount,distsq,nearest,rlist);
-	calc_boop(rlist, nnn, qn, qlist, nqlist);
-      } else { // nnn == 0
-        if (ncount > 0)
-	  calc_boop(rlist, ncount, qn, qlist, nqlist);
+	ncount = nnn;
       }
+
+      calc_boop(rlist, ncount, qn, qlist, nqlist);
     }
   }
 }
@@ -378,14 +377,8 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
 ------------------------------------------------------------------------- */
 
 void ComputeOrientOrderAtom::calc_boop(double **rlist, 
-				       int numNeighbors, double qn[], 
+				       int ncount, double qn[], 
 				       int qlist[], int nqlist) {
-
-  // DONE: Need to make this memory allocation dynamic, 
-  // DONE: Add error handling
-  // DONE: Add to memory usage
-  // DONE: Add options for different nnn and qlist
-
   for (int iw = 0; iw < nqlist; iw++) {
     int n = qlist[iw];
 
@@ -396,7 +389,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     }
   }
 
-  for(int ineigh = 0; ineigh < numNeighbors; ineigh++) {
+  for(int ineigh = 0; ineigh < ncount; ineigh++) {
     const double * const r = rlist[ineigh];
     double rmag = dist(r);
     if(rmag <= MY_EPSILON) {
@@ -444,7 +437,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     }
   }
 
-  double fac = sqrt(MY_4PI) / numNeighbors;
+  double fac = sqrt(MY_4PI) / ncount;
   for (int iw = 0; iw < nqlist; iw++) {
     int n = qlist[iw];
     double qm_sum = 0.0;

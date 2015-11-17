@@ -694,6 +694,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "msd/chunk"_compute_msd_chunk.html,
 "msd/nongauss"_compute_msd_nongauss.html,
 "omega/chunk"_compute_omega_chunk.html,
+"orientorder/atom"_compute_orientorder_atom.html,
 "pair"_compute_pair.html,
 "pair/local"_compute_pair_local.html,
 "pe (c)"_compute_pe.html,

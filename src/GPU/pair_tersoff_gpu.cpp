@@ -232,9 +232,6 @@ void PairTersoffGPU::init_style()
   memory->destroy(powern);
   memory->destroy(_cutsq);
 
-  if (success == -10)
-    error->all(FLERR, "Pair tersoff/gpu only works with 1 thread per atom for now.");
-
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {

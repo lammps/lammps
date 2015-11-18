@@ -37,7 +37,7 @@ texture<int4> sw3_tex;
 
 #define THIRD (numtyp)0.66666667
 
-#define THREE_CONCURRENT
+//#define THREE_CONCURRENT
 
 #if (ARCH < 300)
 

@@ -166,23 +166,19 @@ calculations accessed in the various ways described above.
 <P>Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
 available in LAMMPS.  They are also given in more compact form in the
-compute section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
+Compute section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
 </P>
 <P>There are also additional compute styles (not listed here) submitted
 by users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the compute
 section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
 </P>
-<P>There are also additional accelerated compute styles (note listed
-here) included in the LAMMPS distribution for faster performance on
-CPUs and GPUs.  The list of these with links to the individual styles
-are given in the compute section of <A HREF = "Section_commands.html#cmd_5">this
-page</A>.
-</P>
 <UL><LI><A HREF = "compute_bond_local.html">angle/local</A> - theta and energy of each angle
+<LI><A HREF = "compute_angmom_chunk.html">angmom/chunk</A> - angular momentum for each chunk
 <LI><A HREF = "compute_body_local.html">body/local</A> - attributes of body sub-particles
 <LI><A HREF = "compute_bond_local.html">bond/local</A> - distance and energy of each bond
 <LI><A HREF = "compute_centro_atom.html">centro/atom</A> - centro-symmetry parameter for each atom
+<LI><A HREF = "compute_chunk_atom.html">chunk/atom</A> - assign chunk IDs to each atom
 <LI><A HREF = "compute_cluster_atom.html">cluster/atom</A> - cluster ID for each atom
 <LI><A HREF = "compute_cna_atom.html">cna/atom</A> - common neighbor analysis (CNA) for each atom
 <LI><A HREF = "compute_com.html">com</A> - center-of-mass of group of atoms
@@ -211,6 +207,8 @@ page</A>.
 <LI><A HREF = "compute_msd.html">msd</A> - mean-squared displacement of group of atoms
 <LI><A HREF = "compute_msd_chunk.html">msd/chunk</A> - mean-squared displacement for each chunk
 <LI><A HREF = "compute_msd_nongauss.html">msd/nongauss</A> - MSD and non-Gaussian parameter of group of atoms
+<LI><A HREF = "compute_omega_chunk.html">omega/chunk</A> - angular velocity for each chunk
+<LI><A HREF = "compute_orientorder_atom.html">orientorder/atom</A> - Steinhardt bond orientational order parameters Ql
 <LI><A HREF = "compute_pair.html">pair</A> - values computed by a pair style
 <LI><A HREF = "compute_pair_local.html">pair/local</A> - distance/energy/force of each pairwise interaction
 <LI><A HREF = "compute_pe.html">pe</A> - potential energy

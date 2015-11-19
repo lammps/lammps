@@ -1,0 +1,129 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute orientorder/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID orientorder/atom keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>orientorder/atom = style name of this compute command 
+
+<LI>one or more keyword/value pairs may be appended 
+
+<PRE>keyword = <I>cutoff</I> or <I>nnn</I> or <I>ql</I> 
+  <I>cutoff</I> value = distance cutoff
+  <I>nnn</I> value = number of nearest neighbors
+  <I>degrees</I> values = nlvalues, l1, l2,...  
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all orientorder/atom 
+compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates a set of bond-orientational 
+order parameters <I>Ql</I> for each atom in a group. These order parameters
+were introduced by <A HREF = "#Steinhardt">Steinhardt et al.</A> as a way to
+characterize the local orientational order in atomic structures. 
+For each atom, <I>Ql</I> is a real number defined as follows:
+</P>
+<CENTER><IMG SRC = "Eqs/orientorder.jpg">
+</CENTER>
+<P>The first equation defines the spherical harmonic order parameters. 
+These are complex number components of the 3D analog of the 2D order 
+parameter <I>qn</I>, which is implemented as LAMMPS compute 
+<A HREF = "compute_hexorder_atom.html">hexorder/atom</A>. 
+The summation is over the <I>nnn</I> nearest 
+neighbors of the central atom. 
+The angles theta and phi are the standard spherical polar angles 
+defining the direction of the bond vector <I>rij</I>.
+The second equation defines <I>Ql</I>, which is a
+rotationally invariant scalar quantity obtained by summing 
+over all the components of degree <I>l</I>. 
+</P>
+<P>The optional keyword <I>cutoff</I> defines the distance cutoff
+used when searching for neighbors. The default value, also
+the maximum allowable value, is the cutoff specified
+by the pair style.
+</P>
+<P>The optional keyword <I>nnn</I> defines the number of nearest
+neighbors used to calculate <I>Ql</I>. The default value is 12.
+If the value is NULL, then all neighbors up to the 
+specified distance cutoff are used.
+</P>
+<P>The optional keyword <I>degrees</I> defines the list of order parameters to
+be computed.  The first argument <I>nlvalues</I> is the number of order 
+parameters. This is followed by that number of integers giving the
+degree of each order parameter. Because <I>Q</I>2 and all odd-degree 
+order parameters are zero for atoms in cubic crystals 
+(see <A HREF = "#Steinhardt">Steinhardt</A>), the default order parameters
+are <I>Q</I>4, <I>Q</I>6, <I>Q</I>8, <I>Q</I>10, and <I>Q</I>12. The correct 
+numerical values for commonly encountered high-symmetry 
+structures are given by <A HREF = "#Mickel">Mickel et al.</A>
+</P>
+<P>The value of <I>Ql</I> is set to zero for atoms not in the
+specified compute group, as well as for atoms that have less than 
+<I>nnn</I> neighbors within the distance cutoff.
+</P>
+<P>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently.
+</P>
+<P>IMPORTANT NOTE: If you have a bonded system, then the settings of
+<A HREF = "special_bonds.html">special_bonds</A> command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the <A HREF = "special_bonds.html">special_bonds</A>
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the order parameter.  This difficulty
+can be circumvented by writing a dump file, and using the
+<A HREF = "rerun.html">rerun</A> command to compute the order parameter for snapshots
+in the dump file.  The rerun script can use a
+<A HREF = "special_bonds.html">special_bonds</A> command that includes all pairs in
+the neighbor list.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom array with <I>nlvalues</I> columns, giving the
+<I>Ql</I> values for each atom, which are real numbers on the range 0 <= <I>Ql</I> <= 1.
+</P>
+<P>These values can be accessed by any command that uses
+per-atom values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_coord_atom.html">compute coord/atom</A>, <A HREF = "compute_centro_atom.html">compute centro/atom</A>, <A HREF = "compute_hexorder_atom.html">compute hexorder/atom</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>The option defaults are <I>cutoff</I> = pair style cutoff, <I>nnn</I> = 12, <I>degrees</I> = 5 4 6 8 9 10 12 i.e. <I>Q</I>4, <I>Q</I>6, <I>Q</I>8, <I>Q</I>10, and <I>Q</I>12. 
+</P>
+<HR>
+
+<A NAME = "Steinhardt"></A>
+
+<A NAME = "Mickel"></A><B>(Steinhardt)</B> P. Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983).
+
+
+<P><B>(Mickel)</B> W. Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke, J. Chem. Phys. 138, 044501 (2013).
+</P>
+</HTML>

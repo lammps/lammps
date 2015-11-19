@@ -94,8 +94,8 @@ g_filename    = __file__.split('/')[-1]
 g_module_name  = g_filename
 if g_filename.rfind('.py') != -1:
     g_module_name = g_filename[:g_filename.rfind('.py')]
-g_date_str     = '2015-8-17'
-g_version_str  = '0.80'
+g_date_str     = '2015-10-14'
+g_version_str  = '0.81'
 
 
 
@@ -1676,7 +1676,15 @@ def LookupNode(obj_name, starting_node, dbg_loc):
 class SimpleCounter(object):
     __slots__=["n","nincr"]
 
-    def __init__(self, n0 = 1, nincr = 1):
+    # static data attributes:
+    default_n0 = 1
+    default_nincr = 1
+
+    def __init__(self, n0 = None, nincr = None):
+        if n0 == None:
+            n0 = SimpleCounter.default_n0
+        if nincr == None:
+            nincr = SimpleCounter.default_nincr
         self.n = n0 - nincr
         self.nincr = nincr
 
@@ -1729,7 +1737,7 @@ class Category(object):
             self.bindings = bindings
 
         if counter is None:
-            self.counter = SimpleCounter(1,1)
+            self.counter = SimpleCounter()
         else:
             self.counter = counter
 

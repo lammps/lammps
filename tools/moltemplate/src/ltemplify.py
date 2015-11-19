@@ -217,8 +217,8 @@ def BelongsToSel(i, sel):
 try:
 
     g_program_name = __file__.split('/')[-1]  # = 'ltemplify.py'
-    g_version_str  = '0.49'
-    g_date_str     = '2015-8-11'
+    g_version_str  = '0.51'
+    g_date_str     = '2015-10-27'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     non_empty_output = False
@@ -674,9 +674,12 @@ try:
                         (boundary_ylo==None) or (boundary_yhi==None) or
                         (boundary_zlo==None) or (boundary_zhi==None)):
 
-                        raise InputError('Error: The DATA file lacks a boundary-box header.  You must specify:\n'
+                        raise InputError('Error: Either DATA file lacks a boundary-box header, or it is in the wrong\n'
+                                     '       place.  At the beginning of the file, you need to specify the box size:\n'
                                      '       xlo xhi ylo yhi zlo zhi   (and xy xz yz if triclinic)\n'
-                                     '       These numbers should appear before the \"Atoms\" section.\n'
+                                     '       These numbers should appear BEFORE the other sections in the data file\n'
+                                     '       (such as the \"Atoms\", \"Masses\", \"Bonds\", \"Pair Coeffs\" sections)\n'
+                                     '\n'
                                      '       Use this format (example):\n'
                                      '       -100.0 100.0 xhi xlo\n'
                                      '        0.0  200.0  yhi ylo\n'
@@ -788,8 +791,12 @@ try:
                                     tokens[i_molid]    = '$mol:id'+tokens[i_molid]
                                 l_data_atoms.append((' '*indent)+(' '.join(tokens)+'\n'))
                                 needed_atomids.add(atomid)
+
                                 needed_atomtypes.add(atomtype)
-                                needed_molids.add(molid)
+                                # Not all atom_styles have molids.
+                                # Check for this before adding.
+                                if molid != None:
+                                    needed_molids.add(molid)
 
                     for atomtype in needed_atomtypes:
                         assert(type(atomtype) is int)
@@ -808,7 +815,6 @@ try:
                         if ((max_needed_atomid == None) or
                             (max_needed_atomid < atomid)):
                             max_needed_atomid = atomid
-
                     for molid in needed_molids:
                         assert(type(molid) is int)
                         if ((min_needed_molid == None) or

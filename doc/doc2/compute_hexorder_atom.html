@@ -19,18 +19,19 @@
 
 <LI>hexorder/atom = style name of this compute command 
 
-<LI>zero or more keyword/value pairs may be appended 
+<LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>degree</I> 
-
-<PRE>  <I>n</I> value = degree of order parameter 
+<PRE>keyword = <I>degree</I> or <I>nnn</I> or <I>cutoff</I> 
+  <I>cutoff</I> value = distance cutoff
+  <I>nnn</I> value = number of nearest neighbors
+  <I>degree</I> value = degree <I>n</I> of order parameter 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all hexorder/atom 
-compute 1 all hexorder/atom n 4 
+compute 1 all hexorder/atom degree 4 nnn 4 cutoff 1.2 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -42,7 +43,7 @@ is a complex number (stored as two real numbers) defined as follows:
 </P>
 <CENTER><IMG SRC = "Eqs/hexorder.jpg">
 </CENTER>
-<P>where the sum is over the <I>n</I> nearest neighbors 
+<P>where the sum is over the <I>nnn</I> nearest neighbors 
 of the central atom. The angle theta
 is formed by the bond vector rij and the <I>x</I> axis. theta is calculated
 only using the <I>x</I> and <I>y</I> components, whereas the distance from the
@@ -51,18 +52,30 @@ central atom is calculated using all three
 Neighbor atoms not in the group 
 are included in the order parameter of atoms in the group. 
 </P>
-<P>The optional keyword <I>n</I> sets the degree of the order parameter. 
-The default value is 6. For a perfect hexagonal lattice,
+<P>The optional keyword <I>cutoff</I> defines the distance cutoff
+used when searching for neighbors. The default value, also
+the maximum allowable value, is the cutoff specified
+by the pair style.
+</P>
+<P>The optional keyword <I>nnn</I> defines the number of nearest
+neighbors used to calculate <I>qn</I>. The default value is 6.
+If the value is NULL, then all neighbors up to the 
+distance cutoff are used.
+</P>
+<P>The optional keyword <I>degree</I> sets the degree <I>n</I> of the order parameter. 
+The default value is 6. For a perfect hexagonal lattice with 
+<I>nnn</I> = 6,
 <I>q</I>6 = exp(6 i phi) for all atoms, where the constant 0 < phi < pi/3 
-depends only on the orientation of the lattice relative to the x axis.  
+depends only on the orientation of the lattice relative to the <I>x</I> axis.  
 In an isotropic liquid, local neighborhoods may still exhibit 
 weak hexagonal symmetry, but because the orientational correlation
 decays quickly with distance, the value of phi will be different for
-different atoms, and |<<I>q</I>6>| << 1.
+different atoms, and so when <I>q</I>6 is averaged over all the atoms 
+in the system, |<<I>q</I>6>| << 1.
 </P>
-<P>The value of <I>qn</I> will be zero for atoms not in the
-specified compute group. If the atom has less than <I>n</I> neighbors (within
-the potential cutoff), then <I>qn</I> is set to zero.
+<P>The value of <I>qn</I> is set to zero for atoms not in the
+specified compute group, as well as for atoms that have less than 
+<I>nnn</I> neighbors within the distance cutoff.
 </P>
 <P>The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
@@ -75,8 +88,8 @@ interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the <A HREF = "special_bonds.html">special_bonds</A>
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
-those pairs will not be included in the order parameter.  One way
-to get around this, is to write a dump file, and use the
+those pairs will not be included in the order parameter.  This difficulty
+can be circumvented by writing a dump file, and using the
 <A HREF = "rerun.html">rerun</A> command to compute the order parameter for snapshots
 in the dump file.  The rerun script can use a
 <A HREF = "special_bonds.html">special_bonds</A> command that includes all pairs in
@@ -85,26 +98,23 @@ the neighbor list.
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a per-atom array with 2 columns, giving the
-real and imaginary parts of <I>qn</I>, respectively.  
+real and imaginary parts <I>qn</I>, a complex number restricted to the 
+unit disk of the complex plane i.e. Re(<I>qn</I>)^2 + Im(<I>qn</I>)^2 <= 1 .
 </P>
 <P>These values can be accessed by any command that uses
 per-atom values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
 15</A> for an overview of LAMMPS output
 options.
 </P>
-<P>The per-atom array contain pairs of numbers representing the
-real and imaginary parts of <I>qn</I>, a complex number subject to the
-constraint |<I>qn</I>| <= 1.
-</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_coord_atom.html">compute coord/atom</A>, <A HREF = "compute_centro_atom.html">compute centro/atom</A>
+<P><A HREF = "compute_orientorder_atom.html">compute orientorder/atom</A>, <A HREF = "compute_coord_atom.html">compute coord/atom</A>, <A HREF = "compute_centro_atom.html">compute centro/atom</A>
 </P>
 <P><B>Default:</B> 
 </P>
-<P>The option default is <I>n</I> = 6.
+<P>The option defaults are <I>cutoff</I> = pair style cutoff, <I>nnn</I> = 6, <I>degree</I> = 6
 </P>
 <HR>
 

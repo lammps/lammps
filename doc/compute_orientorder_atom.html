@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute cluster/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute orientorder/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute cluster/atom command</li>
+    <li>compute orientorder/atom command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,40 +124,75 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="compute-cluster-atom-command">
-<span id="index-0"></span><h1>compute cluster/atom command<a class="headerlink" href="#compute-cluster-atom-command" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="compute-orientorder-atom-command">
+<span id="index-0"></span><h1>compute orientorder/atom command<a class="headerlink" href="#compute-orientorder-atom-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID cluster/atom cutoff
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID orientorder/atom keyword values ...
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>cluster/atom = style name of this compute command</li>
-<li>cutoff = distance within which to label atoms as part of same cluster (distance units)</li>
+<li>orientorder/atom = style name of this compute command</li>
+<li>one or more keyword/value pairs may be appended</li>
 </ul>
+<pre class="literal-block">
+keyword = <em>cutoff</em> or <em>nnn</em> or <em>ql</em>
+  <em>cutoff</em> value = distance cutoff
+  <em>nnn</em> value = number of nearest neighbors
+  <em>degrees</em> values = nlvalues, l1, l2,...
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all cluster/atom 1.0
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all orientorder/atom
+compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that assigns each atom a cluster ID.</p>
-<p>A cluster is defined as a set of atoms, each of which is within the
-cutoff distance from one or more other atoms in the cluster.  If an
-atom has no neighbors within the cutoff distance, then it is a 1-atom
-cluster.  The ID of every atom in the cluster will be the smallest
-atom ID of any atom in the cluster.</p>
-<p>Only atoms in the compute group are clustered and assigned cluster
-IDs.  Atoms not in the compute group are assigned a cluster ID = 0.</p>
+<p>Define a computation that calculates a set of bond-orientational
+order parameters <em>Ql</em> for each atom in a group. These order parameters
+were introduced by <a class="reference internal" href="#steinhardt"><span>Steinhardt et al.</span></a> as a way to
+characterize the local orientational order in atomic structures.
+For each atom, <em>Ql</em> is a real number defined as follows:</p>
+<img alt="_images/orientorder.jpg" class="align-center" src="_images/orientorder.jpg" />
+<p>The first equation defines the spherical harmonic order parameters.
+These are complex number components of the 3D analog of the 2D order
+parameter <em>qn</em>, which is implemented as LAMMPS compute
+<a class="reference internal" href="compute_hexorder_atom.html"><em>hexorder/atom</em></a>.
+The summation is over the <em>nnn</em> nearest
+neighbors of the central atom.
+The angles theta and phi are the standard spherical polar angles
+defining the direction of the bond vector <em>rij</em>.
+The second equation defines <em>Ql</em>, which is a
+rotationally invariant scalar quantity obtained by summing
+over all the components of degree <em>l</em>.</p>
+<p>The optional keyword <em>cutoff</em> defines the distance cutoff
+used when searching for neighbors. The default value, also
+the maximum allowable value, is the cutoff specified
+by the pair style.</p>
+<p>The optional keyword <em>nnn</em> defines the number of nearest
+neighbors used to calculate <em>Ql</em>. The default value is 12.
+If the value is NULL, then all neighbors up to the
+specified distance cutoff are used.</p>
+<p>The optional keyword <em>degrees</em> defines the list of order parameters to
+be computed.  The first argument <em>nlvalues</em> is the number of order
+parameters. This is followed by that number of integers giving the
+degree of each order parameter. Because <a href="#id1"><span class="problematic" id="id2">*</span></a>Q*2 and all odd-degree
+order parameters are zero for atoms in cubic crystals
+(see <a class="reference internal" href="#steinhardt"><span>Steinhardt</span></a>), the default order parameters
+are <a href="#id3"><span class="problematic" id="id4">*</span></a>Q*4, <a href="#id5"><span class="problematic" id="id6">*</span></a>Q*6, <a href="#id7"><span class="problematic" id="id8">*</span></a>Q*8, <a href="#id9"><span class="problematic" id="id10">*</span></a>Q*10, and <a href="#id11"><span class="problematic" id="id12">*</span></a>Q*12. The correct
+numerical values for commonly encountered high-symmetry
+structures are given by <a class="reference internal" href="#mickel"><span>Mickel et al.</span></a></p>
+<p>The value of <em>Ql</em> is set to zero for atoms not in the
+specified compute group, as well as for atoms that have less than
+<em>nnn</em> neighbors within the distance cutoff.</p>
 <p>The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
-too frequently or to have multiple compute/dump commands, each of a
-<em>clsuter/atom</em> style.</p>
+too frequently.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">If you have a bonded system, then the settings of
@@ -166,22 +201,19 @@ interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
-those pairs will not be included when computing the clusters. This
-does not apply when using long-range coulomb (<em>coul/long</em>, <em>coul/msm</em>,
-<em>coul/wolf</em> or similar.  One way to get around this would be to set
-special_bond scaling factors to very tiny numbers that are not exactly
-zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
-use the <a class="reference internal" href="rerun.html"><em>rerun</em></a> command to compute the clusters for
-snapshots in the dump file.  The rerun script can use a
+those pairs will not be included in the order parameter.  This difficulty
+can be circumvented by writing a dump file, and using the
+<a class="reference internal" href="rerun.html"><em>rerun</em></a> command to compute the order parameter for snapshots
+in the dump file.  The rerun script can use a
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command that includes all pairs in
 the neighbor list.</p>
 </div>
 <p><strong>Output info:</strong></p>
-<p>This compute calculates a per-atom vector, which can be accessed by
-any command that uses per-atom values from a compute as input.  See
-<a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of
-LAMMPS output options.</p>
-<p>The per-atom vector values will be an ID &gt; 0, as explained above.</p>
+<p>This compute calculates a per-atom array with <em>nlvalues</em> columns, giving the
+<em>Ql</em> values for each atom, which are real numbers on the range 0 &lt;= <em>Ql</em> &lt;= 1.</p>
+<p>These values can be accessed by any command that uses
+per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
@@ -190,8 +222,14 @@ LAMMPS output options.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="compute_coord_atom.html"><em>compute coord/atom</em></a></p>
-<p><strong>Default:</strong> none</p>
+<p><a class="reference internal" href="compute_coord_atom.html"><em>compute coord/atom</em></a>, <a class="reference internal" href="compute_centro_atom.html"><em>compute centro/atom</em></a>, <a class="reference internal" href="compute_hexorder_atom.html"><em>compute hexorder/atom</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are <em>cutoff</em> = pair style cutoff, <em>nnn</em> = 12, <em>degrees</em> = 5 4 6 8 9 10 12 i.e. <a href="#id13"><span class="problematic" id="id14">*</span></a>Q*4, <a href="#id15"><span class="problematic" id="id16">*</span></a>Q*6, <a href="#id17"><span class="problematic" id="id18">*</span></a>Q*8, <a href="#id19"><span class="problematic" id="id20">*</span></a>Q*10, and <a href="#id21"><span class="problematic" id="id22">*</span></a>Q*12.</p>
+<hr class="docutils" />
+<p id="mickel"><span id="steinhardt"></span><strong>(Steinhardt)</strong> P. Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983).</p>
+<p><strong>(Mickel)</strong> W. Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke, J. Chem. Phys. 138, 044501 (2013).</p>
 </div>
 </div>
 

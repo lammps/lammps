@@ -32,6 +32,7 @@ class ComputeTempDrude : public Compute {
   void init();
   void setup();
   void compute_vector();
+  double compute_scalar();
   int modify_param(int, char **);
 
  private:

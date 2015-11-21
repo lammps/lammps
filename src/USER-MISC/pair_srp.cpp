@@ -73,10 +73,22 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
 
   nextra = 1;
   segment = NULL;
+
+  // generate unique fix-id for this pair style instance
   fix_id = strdup("XX_FIX_SRP");
   fix_id[0] = '0' + srp_instance / 10;
   fix_id[1] = '0' + srp_instance % 10;
   ++srp_instance;
+
+  // create fix SRP instance here, as it has to
+  // be executed before all other fixes
+  char **fixarg = new char*[3];
+  fixarg[0] = fix_id;
+  fixarg[1] = (char *) "all";
+  fixarg[2] = (char *) "SRP";
+  modify->add_fix(3,fixarg);
+  f_srp = (FixSRP *) modify->fix[modify->nfix-1];
+  delete [] fixarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -436,16 +448,10 @@ void PairSRP::init_style()
   if (!force->newton_pair)
     error->all(FLERR,"PairSRP: Pair srp requires newton pair on");
 
-  // need fix srp
-  // invoke here instead of constructor
-  // to make restart possible
-  char **fixarg = new char*[3];
-  fixarg[0] = fix_id;
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "SRP";
-  modify->add_fix(3,fixarg);
-  f_srp = (FixSRP *) modify->fix[modify->nfix-1];
-  delete [] fixarg;
+  // verify that fix SRP is still defined and has not been changed.
+  int ifix = modify->find_fix(fix_id);
+  if (f_srp != (FixSRP *)modify->fix[ifix])
+    error->all(FLERR,"Fix SRP has been changed unexpectedly");
 
   // set bond type in fix srp
   // bonds of this type will be represented by bond particles

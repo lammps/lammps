@@ -881,19 +881,19 @@ void ReadData::header(int firstpass)
     } else if (strstr(line,"bonds")) {
       sscanf(line,BIGINT_FORMAT,&nbonds);
       if (addflag == NONE) atom->nbonds = nbonds;
-      else atom->nbonds += nbonds;
+      else if (firstpass) atom->nbonds += nbonds;
     } else if (strstr(line,"angles")) {
       sscanf(line,BIGINT_FORMAT,&nangles);
       if (addflag == NONE) atom->nangles = nangles;
-      else atom->nangles += nangles;
+      else if (firstpass) atom->nangles += nangles;
     } else if (strstr(line,"dihedrals")) {
       sscanf(line,BIGINT_FORMAT,&ndihedrals);
       if (addflag == NONE) atom->ndihedrals = ndihedrals;
-      else atom->ndihedrals += ndihedrals;
+      else if (firstpass) atom->ndihedrals += ndihedrals;
     } else if (strstr(line,"impropers")) {
       sscanf(line,BIGINT_FORMAT,&nimpropers);
       if (addflag == NONE) atom->nimpropers = nimpropers;
-      else atom->nimpropers += nimpropers;
+      else if (firstpass) atom->nimpropers += nimpropers;
 
     // Atom class type settings are only set by first data file
 

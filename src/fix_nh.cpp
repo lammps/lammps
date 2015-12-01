@@ -700,6 +700,11 @@ void FixNH::init()
 
 void FixNH::setup(int vflag)
 {
+  // tdof needed by compute_temp_target()
+
+  t_current = temperature->compute_scalar();
+  tdof = temperature->dof;
+  
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
@@ -725,9 +730,6 @@ void FixNH::setup(int vflag)
   }
 
   if (pstat_flag) compute_press_target();
-
-  t_current = temperature->compute_scalar();
-  tdof = temperature->dof;
 
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();

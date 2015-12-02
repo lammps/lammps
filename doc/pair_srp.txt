@@ -17,6 +17,7 @@ btype = bond type to apply SRP interactions to (can be wildcard, see below) :l
 distance = {min} or {mid} :l
 zero or more keyword/value pairs may be appended :l
 keyword = {exclude} :l
+  {bptype} value = atom type for bond particles
   {exclude} value = {yes} or {no} :pre
 :ule
 
@@ -78,17 +79,19 @@ The last coefficient is optional. If not specified, the global cutoff
 is used.
 
 IMPORTANT NOTE: Pair style srp considers each bond of type {btype} to
-be a fictitious "particle" of type {bptype}, where {bptype} is the
-largest atom type in the system.  There cannot be any actual particles
-assigned to this atom type.  This means you must specify the number of
-types in your system to be one larger would normally be the case,
-e.g. via the "create_box"_create_box.html or
-"read_data"_read_data.html commands.  These ficitious "bond particles"
-are inserted at the beginning of the run, and serve as placeholders
-that define the position of the bonds.  This allows neighbor lists to
-be constructed and pairwise interactions to be computed in almost the
-same way as is done for actual particles.  Because bonds interact only
-with other bonds, "pair_style hybrid"_pair_hybrid.html should be used
+be a fictitious "particle" of type {bptype}, where {bptype} is either
+the largest atom type in the system, or the type set by the {bptype}
+flag.  Any actual existing particles with this atom type will be deleted
+at the beginning of a run. This means you must specify the number of
+types in your system accordingly; usually to be one larger than what
+would normally be the case, e.g. via the "create_box"_create_box.html
+or by changing the header in your "data file"_read_data.html.
+The ficitious "bond particles" are inserted at the beginning of the
+run, and serve as placeholders that define the position of the bonds.
+ This allows neighbor lists to be constructed and pairwise interactions
+to be computed in almost the same way as is done for actual particles.
+ Because bonds interact only with other bonds,
+"pair_style hybrid"_pair_hybrid.html should be used
 to turn off interactions between atom type {bptype} and all other
 types of atoms.  An error will be flagged if "pair_style
 hybrid"_pair_hybrid.html is not used.

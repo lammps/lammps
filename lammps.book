@@ -275,6 +275,7 @@ doc/compute_group_group.html
 doc/compute_gyration.html
 doc/compute_gyration_chunk.html
 doc/compute_heat_flux.html
+doc/compute_hexorder_atom.html
 doc/compute_improper_local.html
 doc/compute_inertia_chunk.html
 doc/compute_ke.html
@@ -289,6 +290,7 @@ doc/compute_msd.html
 doc/compute_msd_chunk.html
 doc/compute_msd_nongauss.html
 doc/compute_omega_chunk.html
+doc/compute_orientorder_atom.html
 doc/compute_pair.html
 doc/compute_pair_local.html
 doc/compute_pe.html
@@ -395,6 +397,7 @@ doc/pair_lj_soft.html
 doc/pair_lubricate.html
 doc/pair_lubricateU.html
 doc/pair_nb3b_harmonic.html
+doc/pair_mdf.html
 doc/pair_meam.html
 doc/pair_meam_spline.html
 doc/pair_meam_sw_spline.html
@@ -485,6 +488,7 @@ doc/improper_class2.html
 doc/improper_coeff.html
 doc/improper_cossq.html
 doc/improper_cvff.html
+doc/improper_distance.html
 doc/improper_fourier.html
 doc/improper_harmonic.html
 doc/improper_hybrid.html

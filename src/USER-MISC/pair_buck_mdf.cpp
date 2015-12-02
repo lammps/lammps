@@ -11,10 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+/* ----------------------------------------------------------------------
+   Contributing author: Paolo Raiteri (Curtin University)
+------------------------------------------------------------------------- */
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_buck_mdf.h"
 #include "atom.h"
 #include "comm.h"
@@ -116,7 +120,7 @@ void PairBuckMDF::compute(int eflag, int vflag)
            tt = (1. + 3.*d + 6.*d*d)*dd*dd*dd;
  // minus the derivative of the tapering function
            dt = 30.* d*d * dd*dd * r / dp;
- 
+
            forcebuck = forcebuck*tt + phibuck*dt;
          } else {
            tt = 1;
@@ -134,7 +138,7 @@ void PairBuckMDF::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv; 
+          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv;
           if (rsq > cut_inner_sq[itype][jtype]) evdwl *= tt;
 
           evdwl *= factor_lj;

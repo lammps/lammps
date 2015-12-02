@@ -13,13 +13,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Aidan Thompson (SNL)
+   Contributing author: Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_mdf.h"
 #include "atom.h"
 #include "comm.h"
@@ -62,7 +62,6 @@ void PairLJMDF::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;
-  double r,t,rmin;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -360,7 +359,6 @@ double PairLJMDF::single(int i, int j, int itype, int jtype,
 {
   double r2inv,r6inv,forcelj,philj;
   double rr, dp, d, tt, dt, dd;
-  double rmin;
 
   r2inv = 1.0/rsq;
   r6inv = r2inv*r2inv*r2inv;

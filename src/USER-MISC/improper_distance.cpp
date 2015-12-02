@@ -5,15 +5,19 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
+/* ----------------------------------------------------------------------
+   Contributing author: Paolo Raiteri (Curtin University)
+------------------------------------------------------------------------- */
+
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
 #include "improper_distance.h"
 #include "atom.h"
 #include "comm.h"
@@ -136,15 +140,15 @@ void ImproperDistance::compute(int eflag, int vflag)
     f1[0] = a*( xna);
     f1[1] = a*( yna);
     f1[2] = a*( zna);
-         
+
     f2[0] = a*( -xna               -yab*(zbd-zbc)*rna +zab*(ybd-ybc)*rna -da*( -yna*(zbd-zbc) + zna*(ybd-ybc) )*rna);
     f2[1] = a*( +xab*(zbd-zbc)*rna -yna               +zab*(xbc-xbd)*rna -da*( +xna*(zbd-zbc) + zna*(xbc-xbd) )*rna);
     f2[2] = a*( -xab*(ybd-ybc)*rna -yab*(xbc-xbd)*rna -zna               -da*( +xna*(ybc-ybd) - yna*(xbc-xbd) )*rna);
-         
+
     f3[0] = a*( (           yab*zbd -zab*ybd ) *rna +da*( -yna*zbd +zna*ybd )*rna);
     f3[1] = a*( ( -xab*zbd          +zab*xbd ) *rna +da*( +xna*zbd -zna*xbd )*rna);
     f3[2] = a*( ( +xab*ybd -yab*xbd          ) *rna +da*( -xna*ybd +yna*xbd )*rna);
-         
+
     f4[0] = a*( (          -yab*zbc +zab*ybc ) *rna -da*( -yna*zbc +zna*ybc )*rna);
     f4[1] = a*( ( +xab*zbc          -zab*xbc ) *rna -da*( +xna*zbc -zna*xbc )*rna);
     f4[2] = a*( ( -xab*ybc +yab*xbc          ) *rna -da*( -xna*ybc +yna*xbc )*rna);
@@ -230,7 +234,7 @@ void ImproperDistance::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void ImproperDistance::write_restart(FILE *fp)
@@ -240,7 +244,7 @@ void ImproperDistance::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void ImproperDistance::read_restart(FILE *fp)

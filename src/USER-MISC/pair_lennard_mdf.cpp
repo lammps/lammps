@@ -13,13 +13,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Aidan Thompson (SNL)
+   Contributing author: Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lennard_mdf.h"
 #include "atom.h"
 #include "comm.h"
@@ -62,7 +62,6 @@ void PairLJ_AB_MDF::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;
-  double r,t,rmin;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -110,7 +109,7 @@ void PairLJ_AB_MDF::compute(int eflag, int vflag)
         forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 
         if (rsq > cut_inner_sq[itype][jtype]) {
-          philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);  
+          philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 
           rr = sqrt(rsq);
           dp = (cut[itype][jtype] - cut_inner[itype][jtype]);
@@ -360,7 +359,6 @@ double PairLJ_AB_MDF::single(int i, int j, int itype, int jtype,
 {
   double r2inv,r6inv,forcelj,philj;
   double rr, dp, d, tt, dt, dd;
-  double rmin;
 
   r2inv = 1.0/rsq;
   r6inv = r2inv*r2inv*r2inv;

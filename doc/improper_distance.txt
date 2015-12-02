@@ -40,7 +40,7 @@ K_4 (energy/distance^4) :ul
 [Restrictions:]
 
 This improper style can only be used if LAMMPS was built with the
-MOLECULE package (which it is by default).  See the "Making
+USER-MISC package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]

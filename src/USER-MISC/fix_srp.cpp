@@ -137,7 +137,8 @@ void FixSRP::setup_pre_force(int zz)
   AtomVec *avec = atom->avec;
   int **bondlist = neighbor->bondlist;
 
-  int nlocal = atom->nlocal;
+  int nlocal, nlocal_old;
+  nlocal = nlocal_old = atom->nlocal;
   bigint nall = atom->nlocal + atom->nghost;
   int nbondlist = neighbor->nbondlist;
   int i,j,n;
@@ -157,6 +158,8 @@ void FixSRP::setup_pre_force(int zz)
     xold[i][2] = x[i][2];
     tagold[i]=tag[i];
     dlist[i] = (type[i] == bptype) ? 1 : 0;
+    for (n = 0; n < 3; n++)
+      array[i][n] = 0.0;
   }
 
   // delete local atoms flagged in dlist
@@ -171,10 +174,7 @@ void FixSRP::setup_pre_force(int zz)
     } else i++;
   }
 
-  // reset nlocal and free temporary storage
   atom->nlocal = nlocal;
-  bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   memory->destroy(dlist);
 
   int nadd = 0;
@@ -211,7 +211,7 @@ void FixSRP::setup_pre_force(int zz)
     // if j is local, always make particle
     // if j is ghost, decide from tag
 
-    if ((force->newton_bond) || (j < nlocal) || (tagold[i] > tagold[j])) {
+    if ((force->newton_bond) || (j < nlocal_old) || (tagold[i] > tagold[j])) {
       atom->natoms++;
       avec->create_atom(bptype,xone);
       // pack tag i/j into buffer for comm
@@ -221,22 +221,17 @@ void FixSRP::setup_pre_force(int zz)
     }
   }
 
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
   // free temporary storage
   memory->destroy(xold);
   memory->destroy(tagold);
 
-  // assign tags for new atoms, update map
-  atom->tag_extend();
-  if (atom->map_style) {
-    atom->nghost = 0;
-    atom->map_init();
-    atom->map_set();
-  }
-
   char str[128];
   int nadd_all = 0, ndel_all = 0;
-  MPI_Allreduce(&nadd,&nadd_all,1,MPI_INT,MPI_SUM,world);
   MPI_Allreduce(&ndel,&ndel_all,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&nadd,&nadd_all,1,MPI_INT,MPI_SUM,world);
   if(comm->me == 0){
     sprintf(str, "Removed/inserted %d/%d bond particles.", ndel_all,nadd_all);
     error->message(FLERR,str);
@@ -267,6 +262,14 @@ void FixSRP::setup_pre_force(int zz)
     comm->cutghostuser = cutneighmax_srp;
   }
 
+  // assign tags for new atoms, update map
+  atom->tag_extend();
+  if (atom->map_style) {
+    atom->nghost = 0;
+    atom->map_init();
+    atom->map_set();
+  }
+
   // put new particles in the box before exchange
   // move owned to new procs
   // get ghosts
@@ -289,18 +292,23 @@ void FixSRP::setup_pre_force(int zz)
   neighbor->ncalls = 0;
 
   // new atom counts
+
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
+
   // zero all forces
-  for(int i = 0; i < nall; i++)
-    for(int n = 0; n < 3; n++)
-      atom->f[i][n] = 0.0;
+
+  for(i = 0; i < nall; i++)
+    atom->f[i][0] = atom->f[i][1] = atom->f[i][2] = 0.0;
 
   // do not include bond particles in thermo output
-  // remove them from all groups
-  for(int i=0; i< nlocal; i++)
-    if(atom->type[i] == bptype)
+  // remove them from all groups. set their velocity to zero.
+
+  for(i=0; i< nlocal; i++)
+    if(atom->type[i] == bptype) {
       atom->mask[i] = 0;
+      atom->v[i][0] = atom->v[i][1] = atom->v[i][2] = 0.0;
+    }
 }
 
 /* ----------------------------------------------------------------------

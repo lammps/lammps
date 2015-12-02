@@ -53,8 +53,11 @@ inner and outer cutoff.
 
 The tapering, {f(r)}, is done by using the
 "(Mei, Davenport and Fernando)"_#Mei function:
+
 :c,image(Eqs/pair_mdf-2.jpg)
+
 where
+
 :c,image(Eqs/pair_mdf-3.jpg)
 
 Here {r_m} is the inner cutoff radius and {r_cut} is the outer cutoff radius.
@@ -62,7 +65,7 @@ Here {r_m} is the inner cutoff radius and {r_cut} is the outer cutoff radius.
 :line
 
 For the {lj/mdf} pair_style, the potential energy, {E(r)},
-is the standard 12-6 Lennard-Jones written in the $\epsilon/\sigma$ form:
+is the standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 :c,image(Eqs/pair_mdf-4.jpg)
 
@@ -71,15 +74,15 @@ types via the pair_coeff command as in the examples above, or in the
 data file or restart files read by the read_data or read_restart
 commands, or by mixing as described below:
 
-\epsilon (energy units)
-\sigma (distance units)
+epsilon (energy units)
+sigma (distance units)
 r_m (distance units)
 r_{cut} (distance units) :ul
 
 :line
 
 For the {buck/mdf} pair_style, the potential energy, {E(r)}, is the
-standard 12-6 Lennard-Jones written in the $\epsilon/\sigma$ form:
+standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 :c,image(Eqs/pair_mdf-5.jpg)
 
@@ -108,9 +111,10 @@ r_{cut} (distance units) :ul
 
 [Restrictions:]
 
-This improper style can only be used if LAMMPS was built with the
-USER-MISC package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+These pair styles can only be used if LAMMPS was built with the
+USER-MISC package.
+See the "Making LAMMPS"_Section_start.html#start_3 section for
+more info on packages.
 
 [Related commands:]
 

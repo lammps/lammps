@@ -107,8 +107,7 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
 
     // initialize counter for average positions if requested
 
-    if (avflag) naverage = 1;
-
+    naverage = 0;
   }
 
   // displacement vector
@@ -179,9 +178,17 @@ void ComputeMSD::compute_vector()
   double msd[4];
   msd[0] = msd[1] = msd[2] = msd[3] = 0.0;
 
-
-
   double xtmp, ytmp, ztmp;
+
+  // update number of averages if requested
+
+  double navfac;
+  if (avflag) {
+    naverage++;
+    printf("naverage = %d\n",naverage);
+    navfac = 1.0/naverage;
+  }
+
 
   if (domain->triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
@@ -203,11 +210,9 @@ void ComputeMSD::compute_vector()
 	// use running average position for reference if requested
 
 	if (avflag) {
-	  double navfac = 1.0/(naverage+1);
-	  xoriginal[i][0] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  xoriginal[i][1] = (xoriginal[i][1]*naverage + ytmp)*navfac;
-	  xoriginal[i][2] = (xoriginal[i][2]*naverage + ztmp)*navfac;
-	  naverage++;
+	  xoriginal[i][0] = (xoriginal[i][0]*(naverage-1) + xtmp)*navfac;
+	  xoriginal[i][1] = (xoriginal[i][1]*(naverage-1) + ytmp)*navfac;
+	  xoriginal[i][2] = (xoriginal[i][2]*(naverage-1) + ztmp)*navfac;
 	}
       }
   } else {
@@ -230,11 +235,9 @@ void ComputeMSD::compute_vector()
 	// use running average position for reference if requested
 
 	if (avflag) {
-	  double navfac = 1.0/(naverage+1);
-	  xoriginal[i][0] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  xoriginal[i][1] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  xoriginal[i][2] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  naverage++;
+	  xoriginal[i][0] = (xoriginal[i][0]*(naverage-1) + xtmp)*navfac;
+	  xoriginal[i][1] = (xoriginal[i][0]*(naverage-1) + xtmp)*navfac;
+	  xoriginal[i][2] = (xoriginal[i][0]*(naverage-1) + xtmp)*navfac;
 	}
       }
   }

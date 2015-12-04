@@ -933,8 +933,8 @@ int FixAveTime::column_length(int dynamic)
         else lengthone = modify->compute[icompute]->size_array_rows;
       } else if (which[i] == FIX) {
         int ifix = modify->find_fix(ids[i]);
-        if (argindex[i] == 0) length = modify->fix[ifix]->size_vector;
-        else length = modify->fix[ifix]->size_array_rows;
+        if (argindex[i] == 0) lengthone = modify->fix[ifix]->size_vector;
+        else lengthone = modify->fix[ifix]->size_array_rows;
       }
       if (length == 0) length = lengthone;
       else if (lengthone != length)

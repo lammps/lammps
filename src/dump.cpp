@@ -25,6 +25,8 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "modify.h"
+#include "fix.h"
 
 using namespace LAMMPS_NS;
 
@@ -206,7 +208,13 @@ void Dump::init()
     // compute ntotal_reorder, nme_reorder, idlo/idhi to test against later
 
     reorderflag = 0;
-    if (sortcol == 0 && atom->tag_consecutive()) {
+
+    int gcmcflag = 0;
+    for (int i = 0; i < modify->nfix; i++)
+      if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
+	gcmcflag = 1;
+
+    if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
       tagint *tag = atom->tag;
       int *mask = atom->mask;
       int nlocal = atom->nlocal;

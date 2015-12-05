@@ -443,6 +443,8 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     double qm_sum = 0.0;
     for(int m = 0; m < 2*n+1; m++) {
       qm_sum += qnm_r[iw][m]*qnm_r[iw][m] + qnm_i[iw][m]*qnm_i[iw][m];
+      //      printf("Ylm^2 = %d %d %g\n",n,m,
+      //	     qnm_r[iw][m]*qnm_r[iw][m] + qnm_i[iw][m]*qnm_i[iw][m]);
     }
     qn[iw] = fac * sqrt(qm_sum / (2*n+1));
   }

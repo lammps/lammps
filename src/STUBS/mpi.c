@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/time.h>
-#include <mpi.h">
+#include <mpi.h>
 
 /* data structure for double/int */
 

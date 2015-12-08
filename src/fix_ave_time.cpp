@@ -172,7 +172,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/time command");
-  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nfreq % nevery || nrepeat*nevery > nfreq)
     error->all(FLERR,"Illegal fix ave/time command");
   if (ave != RUNNING && overwrite)
     error->all(FLERR,"Illegal fix ave/time command");
@@ -988,7 +988,7 @@ double FixAveTime::compute_vector(int i)
   if (i >= nrows) return 0.0;
   if (norm) {
     if (mode == SCALAR) return vector_total[i]/norm;
-    if (mode == VECTOR) return array_total[i][0];
+    if (mode == VECTOR) return array_total[i][0]/norm;
   }
   return 0.0;
 }

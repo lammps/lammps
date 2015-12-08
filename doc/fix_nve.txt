@@ -24,7 +24,7 @@ fix 1 all nve :pre
 
 [Description:]
 
-Perform constan NVE integration to update position and velocity for
+Perform constant NVE integration to update position and velocity for
 atoms in the group each timestep.  V is volume; E is energy.  This
 creates a system trajectory consistent with the microcanonical
 ensemble.

@@ -113,7 +113,9 @@ void FixSRP::init()
   char c0[20];
   char c1[20];
 
-  for(int z = 1; z < bptype; z++) {
+  for(int z = 1; z < atom->ntypes; z++) {
+    if(z == bptype)
+      continue;
     sprintf(c0, "%d", z);
     arg1[2] = c0;
     sprintf(c1, "%d", bptype);
@@ -215,8 +217,8 @@ void FixSRP::setup_pre_force(int zz)
       atom->natoms++;
       avec->create_atom(bptype,xone);
       // pack tag i/j into buffer for comm
-      array[atom->nlocal-1][0] = ubuf(tagold[i]).d;
-      array[atom->nlocal-1][1] = ubuf(tagold[j]).d;
+      array[atom->nlocal-1][0] = static_cast<double>(tagold[i]);
+      array[atom->nlocal-1][1] = static_cast<double>(tagold[j]);
       nadd++;
     }
   }
@@ -329,11 +331,11 @@ void FixSRP::pre_exchange()
   for(int ii = 0; ii < nlocal; ii++){
     if(atom->type[ii] != bptype) continue;
 
-    i = atom->map((tagint) ubuf(array[ii][0]).i);
+    i = atom->map(static_cast<tagint>(array[ii][0]));
     if(i < 0) error->all(FLERR,"Fix SRP failed to map atom");
     i = domain->closest_image(ii,i);
 
-    j = atom->map((tagint) ubuf(array[ii][1]).i);
+    j = atom->map(static_cast<tagint>(array[ii][1]));
     if(j < 0) error->all(FLERR,"Fix SRP failed to map atom");
     j = domain->closest_image(ii,j);
 

@@ -291,7 +291,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/spatial command");
-  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nfreq % nevery || nrepeat*nevery > nfreq)
     error->all(FLERR,"Illegal fix ave/spatial command");
   if (delta[0] <= 0.0) error->all(FLERR,"Illegal fix ave/spatial command");
   if (ndim >= 2 && delta[1] <= 0.0)

@@ -107,8 +107,7 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
 
     // initialize counter for average positions if requested
 
-    if (avflag) naverage = 1;
-
+    naverage = 0;
   }
 
   // displacement vector
@@ -179,9 +178,16 @@ void ComputeMSD::compute_vector()
   double msd[4];
   msd[0] = msd[1] = msd[2] = msd[3] = 0.0;
 
-
-
   double xtmp, ytmp, ztmp;
+
+  // update number of averages if requested
+
+  double navfac;
+  if (avflag) {
+    naverage++;
+    navfac = 1.0/(naverage+1);
+  }
+
 
   if (domain->triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
@@ -192,6 +198,15 @@ void ComputeMSD::compute_vector()
 	xtmp = x[i][0] + xbox*xprd - cm[0];
 	ytmp = x[i][1] + ybox*yprd - cm[1];
 	ztmp = x[i][2] + zbox*zprd - cm[2];
+
+	// use running average position for reference if requested
+
+	if (avflag) {
+	  xoriginal[i][0] = (xoriginal[i][0]*naverage + xtmp)*navfac;
+	  xoriginal[i][1] = (xoriginal[i][1]*naverage + ytmp)*navfac;
+	  xoriginal[i][2] = (xoriginal[i][2]*naverage + ztmp)*navfac;
+	}
+
         dx = xtmp - xoriginal[i][0];
         dy = ytmp - xoriginal[i][1];
         dz = ztmp - xoriginal[i][2];
@@ -200,15 +215,6 @@ void ComputeMSD::compute_vector()
         msd[2] += dz*dz;
         msd[3] += dx*dx + dy*dy + dz*dz;
 
-	// use running average position for reference if requested
-
-	if (avflag) {
-	  double navfac = 1.0/(naverage+1);
-	  xoriginal[i][0] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  xoriginal[i][1] = (xoriginal[i][1]*naverage + ytmp)*navfac;
-	  xoriginal[i][2] = (xoriginal[i][2]*naverage + ztmp)*navfac;
-	  naverage++;
-	}
       }
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -219,6 +225,15 @@ void ComputeMSD::compute_vector()
         xtmp = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - cm[0];
         ytmp = x[i][1] + h[1]*ybox + h[3]*zbox - cm[1];
         ztmp = x[i][2] + h[2]*zbox - cm[2];
+
+	// use running average position for reference if requested
+
+	if (avflag) {
+	  xoriginal[i][0] = (xoriginal[i][0]*naverage + xtmp)*navfac;
+	  xoriginal[i][1] = (xoriginal[i][0]*naverage + xtmp)*navfac;
+	  xoriginal[i][2] = (xoriginal[i][0]*naverage + xtmp)*navfac;
+	}
+
         dx = xtmp - xoriginal[i][0];
         dy = ytmp - xoriginal[i][1];
         dz = ztmp - xoriginal[i][2];
@@ -226,16 +241,6 @@ void ComputeMSD::compute_vector()
         msd[1] += dy*dy;
         msd[2] += dz*dz;
         msd[3] += dx*dx + dy*dy + dz*dz;
-
-	// use running average position for reference if requested
-
-	if (avflag) {
-	  double navfac = 1.0/(naverage+1);
-	  xoriginal[i][0] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  xoriginal[i][1] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  xoriginal[i][2] = (xoriginal[i][0]*naverage + xtmp)*navfac;
-	  naverage++;
-	}
       }
   }
 

@@ -120,7 +120,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || peratom_freq <= 0)
     error->all(FLERR,"Illegal fix ave/atom command");
-  if (peratom_freq % nevery || (nrepeat-1)*nevery >= peratom_freq)
+  if (peratom_freq % nevery || nrepeat*nevery > peratom_freq)
     error->all(FLERR,"Illegal fix ave/atom command");
 
   for (int i = 0; i < nvalues; i++) {

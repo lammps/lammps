@@ -101,7 +101,7 @@ private:
   double**** duarray_r, **** duarray_i;
   double**** dbarray;
 
-  static const int nmaxfactorial = 167; 
+  static const int nmaxfactorial = 167;
   static const double nfac_table[];
   double factorial(int);
 

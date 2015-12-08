@@ -48,9 +48,10 @@ fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box :pre
 [Description:]
 
 Insert an indenter within a simulation box.  The indenter repels all
-atoms that touch it, so it can be used to push into a material or as
-an obstacle in a flow.  Or it can be used as a constraining wall
-around a simulation; see the discussion of the {side} keyword below.
+atoms in the group that touch it, so it can be used to push into a
+material or as an obstacle in a flow.  Or it can be used as a
+constraining wall around a simulation; see the discussion of the
+{side} keyword below.
 
 The indenter can either be spherical or cylindrical or planar.  You
 must set one of those 3 keywords.

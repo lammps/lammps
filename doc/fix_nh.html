@@ -237,7 +237,7 @@ Martyna, Tobias and Klein in <a class="reference internal" href="#martyna"><span
 energy proposed by Parrinello and Rahman in
 <a class="reference internal" href="#parrinello"><span>(Parrinello)</span></a>.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al. in <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.</p>
+integrators derived by Tuckerman et al in <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.</p>
 <hr class="docutils" />
 <p>The thermostat parameters for fix styles <em>nvt</em> and <em>npt</em> is specified
 using the <em>temp</em> keyword.  Other thermostat-related keywords are
@@ -403,8 +403,8 @@ negligible.</p>
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into <em>tloop</em> substeps, each of
 length <em>dt</em>/<em>tloop</em>. This corresponds to using a first-order
-Suzuki-Yoshida scheme <span class="xref std std-ref">(Tuckerman2006)</span>.  The keyword
-<em>ploop</em> does the same thing for the barostat thermostat.</p>
+Suzuki-Yoshida scheme <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.  The keyword <em>ploop</em>
+does the same thing for the barostat thermostat.</p>
 <p>The keyword <em>nreset</em> controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
 or is given a value of zero, then the reference dimensions are set to
@@ -535,16 +535,16 @@ with <em>respa</em>, LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):</p>
 <img alt="_images/fix_nh1.jpg" class="align-center" src="_images/fix_nh1.jpg" />
-<p>This factorization differs somewhat from that of Tuckerman et al., in that
-the barostat is only updated at the outermost rRESPA level, whereas
-Tuckerman&#8217;s factorization requires splitting the pressure into pieces
-corresponding to the forces computed at each rRESPA level. In theory, the
-latter method will exhibit better numerical stability. In practice,
-because Pdamp is normally chosen to be a large multiple of the
-outermost rRESPA timestep, the barostat dynamics are not the
-limiting factor for numerical stability. Both
-factorizations are time-reversible and can be shown to preserve the phase
-space measure of the underlying non-Hamiltonian equations of motion.</p>
+<p>This factorization differs somewhat from that of Tuckerman et al, in
+that the barostat is only updated at the outermost rRESPA level,
+whereas Tuckerman&#8217;s factorization requires splitting the pressure into
+pieces corresponding to the forces computed at each rRESPA level. In
+theory, the latter method will exhibit better numerical stability. In
+practice, because Pdamp is normally chosen to be a large multiple of
+the outermost rRESPA timestep, the barostat dynamics are not the
+limiting factor for numerical stability. Both factorizations are
+time-reversible and can be shown to preserve the phase space measure
+of the underlying non-Hamiltonian equations of motion.</p>
 <hr class="docutils" />
 <p>The fix npt and fix nph commands can be used with rigid bodies or
 mixtures of rigid bodies and non-rigid particles (e.g. solvent).  But

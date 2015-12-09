@@ -183,9 +183,11 @@ parameters. This is followed by that number of integers giving the
 degree of each order parameter. Because <a href="#id1"><span class="problematic" id="id2">*</span></a>Q*2 and all odd-degree
 order parameters are zero for atoms in cubic crystals
 (see <a class="reference internal" href="#steinhardt"><span>Steinhardt</span></a>), the default order parameters
-are <a href="#id3"><span class="problematic" id="id4">*</span></a>Q*4, <a href="#id5"><span class="problematic" id="id6">*</span></a>Q*6, <a href="#id7"><span class="problematic" id="id8">*</span></a>Q*8, <a href="#id9"><span class="problematic" id="id10">*</span></a>Q*10, and <a href="#id11"><span class="problematic" id="id12">*</span></a>Q*12. The correct
-numerical values for commonly encountered high-symmetry
-structures are given by <a class="reference internal" href="#mickel"><span>Mickel et al.</span></a></p>
+are <a href="#id3"><span class="problematic" id="id4">*</span></a>Q*4, <a href="#id5"><span class="problematic" id="id6">*</span></a>Q*6, <a href="#id7"><span class="problematic" id="id8">*</span></a>Q*8, <a href="#id9"><span class="problematic" id="id10">*</span></a>Q*10, and <a href="#id11"><span class="problematic" id="id12">*</span></a>Q*12. For the
+FCC crystal with <a href="#id13"><span class="problematic" id="id14">*</span></a>nnn*=12, <a href="#id15"><span class="problematic" id="id16">*</span></a>Q*4 = sqrt(7/3)/8 = 0.19094....
+The numerical values of all order parameters up to <a href="#id17"><span class="problematic" id="id18">*</span></a>Q*12
+for a range of commonly encountered high-symmetry structures are given
+in Table I of <a class="reference internal" href="#mickel"><span>Mickel et al.</span></a>.</p>
 <p>The value of <em>Ql</em> is set to zero for atoms not in the
 specified compute group, as well as for atoms that have less than
 <em>nnn</em> neighbors within the distance cutoff.</p>
@@ -226,7 +228,7 @@ options.</p>
 </div>
 <div class="section" id="default">
 <h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The option defaults are <em>cutoff</em> = pair style cutoff, <em>nnn</em> = 12, <em>degrees</em> = 5 4 6 8 9 10 12 i.e. <a href="#id13"><span class="problematic" id="id14">*</span></a>Q*4, <a href="#id15"><span class="problematic" id="id16">*</span></a>Q*6, <a href="#id17"><span class="problematic" id="id18">*</span></a>Q*8, <a href="#id19"><span class="problematic" id="id20">*</span></a>Q*10, and <a href="#id21"><span class="problematic" id="id22">*</span></a>Q*12.</p>
+<p>The option defaults are <em>cutoff</em> = pair style cutoff, <em>nnn</em> = 12, <em>degrees</em> = 5 4 6 8 9 10 12 i.e. <a href="#id19"><span class="problematic" id="id20">*</span></a>Q*4, <a href="#id21"><span class="problematic" id="id22">*</span></a>Q*6, <a href="#id23"><span class="problematic" id="id24">*</span></a>Q*8, <a href="#id25"><span class="problematic" id="id26">*</span></a>Q*10, and <a href="#id27"><span class="problematic" id="id28">*</span></a>Q*12.</p>
 <hr class="docutils" />
 <p id="mickel"><span id="steinhardt"></span><strong>(Steinhardt)</strong> P. Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983).</p>
 <p><strong>(Mickel)</strong> W. Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke, J. Chem. Phys. 138, 044501 (2013).</p>

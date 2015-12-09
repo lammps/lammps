@@ -9,17 +9,7 @@
 
 # Parallel syntax: mpirun -np 4 simple.py in.lammps
 #                  in.lammps = LAMMPS input script
-
-# if run in parallel with script as-is:
-#   will invoke P instances of a one-processor run
-#   both Python and LAMMPS will run on single processors
-#   each will read same input file, write to same log.lammps file (bad)
-
-# if run in parallel after uncommening either Pypar or mpi4py sections below:
-#   will invoke 1 instance of a P-processor run
-#   both Python and LAMMPS will run in parallel
-#   see the split.py example for how to use multiple procs
-#     to run multiple LAMMPS jobs, each on a subset of procs
+# also need to uncomment either Pypar or mpi4py sections below
 
 import sys
 

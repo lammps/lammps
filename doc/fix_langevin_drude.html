@@ -158,7 +158,7 @@ fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Apply two Langevin thermostats as described in <a class="reference internal" href="tutorial_drude.html#jiang"><span>(Jiang)</span></a> for
+<p>Apply two Langevin thermostats as described in <a class="reference internal" href="#jiang"><span>(Jiang)</span></a> for
 thermalizing the reduced degrees of freedom of Drude oscillators.
 This link describes how to use the <a class="reference internal" href="tutorial_drude.html"><em>thermalized Drude oscillator model</em></a> in LAMMPS and polarizable models in LAMMPS
 are discussed in <a class="reference internal" href="Section_howto.html#howto-25"><span>this Section</span></a>.</p>
@@ -230,7 +230,7 @@ specify the Drude status of each atom type.</p>
 specified for this fix. A Drude electron will be transformed together
 with its cores even if it is not itself in the group.  It is safe to
 include Drude electrons or non-polarizable atoms in the group. The
-non-polarizable atoms will simply not be thermostatted as if they had
+non-polarizable atoms will simply be thermostatted as if they had
 a massless Drude partner (electron).</p>
 </div>
 <div class="admonition warning">
@@ -297,7 +297,7 @@ subtracting off an equal part of it from each center of mass in the
 group. As a result, the total center of mass of a system with zero
 initial momentum will not drift over time.</p>
 <p>The actual temperatures of cores and Drude particles, in
-center-of-mass and relatice coordinates, respectively, can be
+center-of-mass and relative coordinates, respectively, can be
 calculated using the <a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a>
 command.</p>
 <hr class="docutils" />
@@ -306,30 +306,34 @@ command.</p>
 fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
 fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
 fix NVE DRUDES nve
-thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TATOM c_TDRUDE f_TEMP[1] f_TEMP[2]
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE[1] c_TDRUDE[2]
 </pre></div>
 </div>
 <p>Comments:</p>
 <ul class="simple">
-<li>Drude particles should not be in the rigid group, otherwise the Drude</li>
-<li>oscillators will be frozen and the system will lose its</li>
-<li>polarizability.  <em>zero yes</em> avoids a drift of the center of mass of</li>
-<li>the system, but is a bit slower.  use two different random seeds to</li>
-<li>avoid unphysical correlations.  temperature is controlled by the fix</li>
-<li><em>langevin/drude</em>, so the time-integration fixes do not thermostate.</li>
-<li>don&#8217;t forget to time-integrate both cores and Drude particles.</li>
-<li>pressure is time-integrated only once by using <em>nve</em> for Drude</li>
-<li>particles and <em>nph</em> for atoms/cores (or vice versa). Do not use <em>nph</em></li>
-<li>for both.  contrary to the alternative thermostating using Nose-Hoover</li>
-<li>thermostat fix <em>npt</em> and fix <em>drude/transform</em>, the <em>fix_modify</em></li>
-<li>command is not required here, because the fix <em>nph</em> computes the</li>
-<li>global pressure even if its group is <em>ATOMS</em>. This is what we want. If</li>
-<li>we thermostated <em>ATOMS</em> using <em>npt</em>, the pressure should be the global</li>
-<li>one, but the temperature should be only that of the cores. That&#8217;s why</li>
-<li>the command <em>fix_modify</em> should be called in that case.  f_TEMP[1]</li>
-<li>and f_TEMP[2] contain the reduced temperatures of the cores/atoms</li>
-<li>and of the Drude particles (see below). They should be 300. and 1. on</li>
-<li>average here.</li>
+<li>Drude particles should not be in the rigid group, otherwise the Drude
+oscillators will be frozen and the system will lose its
+polarizability.</li>
+<li><em>zero yes</em> avoids a drift of the center of mass of
+the system, but is a bit slower.</li>
+<li>Use two different random seeds to avoid unphysical correlations.</li>
+<li>Temperature is controlled by the fix <em>langevin/drude</em>, so the
+time-integration fixes do not thermostate.  Don&#8217;t forget to
+time-integrate both cores and Drude particles.</li>
+<li>Pressure is time-integrated only once by using <em>nve</em> for Drude
+particles and <em>nph</em> for atoms/cores (or vice versa). Do not use <em>nph</em>
+for both.</li>
+<li>The temperatures of cores and Drude particles are calculated by
+<a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a></li>
+<li>Contrary to the alternative thermostating using Nose-Hoover thermostat
+fix <em>npt</em> and <a class="reference internal" href="fix_drude_transform.html"><em>fix drude/transform</em></a>, the
+<em>fix_modify</em> command is not required here, because the fix <em>nph</em>
+computes the global pressure even if its group is <em>ATOMS</em>. This is
+what we want. If we thermostated <em>ATOMS</em> using <em>npt</em>, the pressure
+should be the global one, but the temperature should be only that of
+the cores. That&#8217;s why the command <em>fix_modify</em> should be called in
+that case.</li>
 </ul>
 </div>
 <hr class="docutils" />

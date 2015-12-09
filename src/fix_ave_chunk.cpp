@@ -32,8 +32,8 @@ using namespace FixConst;
 
 enum{V,F,DENSITY_NUMBER,DENSITY_MASS,MASS,TEMPERATURE,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
-enum{ONE,RUNNING,WINDOW};
 enum{NOSCALE,ATOM};
+enum{ONE,RUNNING,WINDOW};
 
 #define INVOKED_PERATOM 8
 
@@ -137,8 +137,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   normflag = ALL;
-  ave = ONE;
   scaleflag = ATOM;
+  ave = ONE;
   fp = NULL;
   nwindow = 0;
   biasflag = 0;
@@ -155,9 +155,16 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
-      else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
-      else error->all(FLERR,"Illegal fix ave/chunk command");
+      if (strcmp(arg[iarg+1],"all") == 0) {
+	normflag = ALL;
+	scaleflag = ATOM;
+      } else if (strcmp(arg[iarg+1],"sample") == 0) {
+	normflag = SAMPLE;
+	scaleflag = ATOM;
+      } else if (strcmp(arg[iarg+1],"none") == 0) {
+	normflag = SAMPLE;
+	scaleflag = NOSCALE;
+      } else error->all(FLERR,"Illegal fix ave/chunk command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
@@ -172,12 +179,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
-    } else if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (strcmp(arg[iarg+1],"none") == 0) scaleflag = NOSCALE;
-      else if (strcmp(arg[iarg+1],"atom") == 0) scaleflag = ATOM;
-      else error->all(FLERR,"Illegal fix ave/chunk command");
-      iarg += 2;
 
     } else if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg)

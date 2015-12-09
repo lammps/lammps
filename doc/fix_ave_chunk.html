@@ -159,7 +159,7 @@ v_name = per-atom vector calculated by an atom-style variable with name
 <em>norm</em> arg = <em>all</em> or <em>sample</em> or <em>none</em> = how output on <em>Nfreq</em> steps is normalized
   all = output is sum of atoms across all <em>Nrepeat</em> samples, divided by atom count
   sample = output is sum of <em>Nrepeat</em> sample averages, divided by <em>Nrepeat</em>
-  none = output is sum of <em>Nrepeat</em> sums, divided by <em>Nrepeat</em>
+  none = output is sum of <em>Nrepeat</em> sample sums, divided by <em>Nrepeat</em>
 <em>ave</em> args = <em>one</em> or <em>running</em> or <em>window M</em>
   one = output new average value every Nfreq steps
   running = output cumulative average of all previous Nfreq steps
@@ -260,8 +260,8 @@ that are a multiples of <em>Nfreq</em>.  The average is over <em>Nrepeat</em>
 quantities, computed in the preceding portion of the simulation every
 <em>Nevery</em> timesteps.  <em>Nfreq</em> must be a multiple of <em>Nevery</em> and
 <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.  Also, the timesteps
-contributing to the average value cannot overlap,
-i.e. Nrepeat*Nevery can not exceed Nfreq.</p>
+contributing to the average value cannot overlap, i.e. Nrepeat*Nevery
+can not exceed Nfreq.</p>
 <p>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
@@ -363,7 +363,7 @@ atoms in the chunk.  The averaged output value for the chunk on the
 average over atoms across the entire <em>Nfreq</em> timescale.</p>
 <p>If the <em>norm</em> setting is <em>sample</em>, the chunk value is summed over atoms
 for each sample, as is the count, and an &#8220;average sample value&#8221; is
-computed for each sample, i.e. Sample-sum / Sample-count.  The outuput
+computed for each sample, i.e. Sample-sum / Sample-count.  The output
 value for the chunk on the <em>Nfreq</em> timesteps is the average of the
 <em>Nrepeat</em> &#8220;average sample values&#8221;, i.e. the sum of <em>Nrepeat</em> &#8220;average
 sample values&#8221; divided by <em>Nrepeat</em>.  In other words it is an average
@@ -372,7 +372,7 @@ of an average.</p>
 <em>sample</em> seting is done, except the individual &#8220;average sample values&#8221;
 are &#8220;summed sample values&#8221;.  A summed sample value is simply the chunk
 value summed over atoms in the sample, without dividing by the number
-of atoms in the sample.  The outuput value for the chunk on the
+of atoms in the sample.  The output value for the chunk on the
 <em>Nfreq</em> timesteps is the average of the <em>Nrepeat</em> &#8220;summed sample
 values&#8221;, i.e. the sum of <em>Nrepeat</em> &#8220;summed sample values&#8221; divided by
 <em>Nrepeat</em>.</p>

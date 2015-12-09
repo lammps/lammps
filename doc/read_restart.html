@@ -313,9 +313,9 @@ timestep.  In the case of granular potentials, it is contact
 information between pairs of touching particles.  This info will also
 be re-enabled in the restart script, assuming you re-use the same
 granular pair style.</p>
-<p>LAMMPS allow bond interactions (angle, etc) to be turned off or deleted
-in various ways, which can affect how their info is stored in a
-restart file.</p>
+<p>LAMMPS allows bond interactions (angle, etc) to be turned off or
+deleted in various ways, which can affect how their info is stored in
+a restart file.</p>
 <p>If bonds (angles, etc) have been turned off by the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> or <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a> command,
 their info will be written to a restart file as if they are turned on.
 This means they will need to be turned off again in a new run after

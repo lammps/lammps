@@ -15,10 +15,10 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "float.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <float.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_peri_pmb.h"
 #include "atom.h"
 #include "domain.h"
@@ -359,7 +359,7 @@ void PairPeriPMB::init_style()
 {
   // error checks
 
-  if (!atom->peri_flag) 
+  if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");

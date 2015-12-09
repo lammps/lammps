@@ -22,7 +22,7 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_smd_tlsph_stress.h"
 #include "atom.h"
 #include "update.h"

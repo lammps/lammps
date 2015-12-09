@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -69,7 +69,7 @@ class FixQBMSST : public Fix {
   double dthalf;                                                  // half step size
   bigint ntotal;                                                  // atom->natoms
   double boltz,nktv2p, mvv2e;                                     // Boltzmann factor and unit conversions
-  class Compute *temperature;                                     // Computes created to evaluate 
+  class Compute *temperature;                                     // Computes created to evaluate
   class Compute *pressure;                                        // thermodynamic quantities.
   class Compute *pe;
   double **old_velocity;                                          // Saved velocities.
@@ -81,7 +81,7 @@ class FixQBMSST : public Fix {
   int nrigid;                                                     // number of rigid fixes
   int *rfix;                                                      // indices of rigid fixes
   double p_current[3];                                            // pressure
-  double velocity_sum;                                            // Sum of the velocities squared.  
+  double velocity_sum;                                            // Sum of the velocities squared.
   double lagrangian_position;                                     // Lagrangian location of computational cell
 
   // qbmsst parameters
@@ -104,7 +104,7 @@ class FixQBMSST : public Fix {
   double **fran;                                                  // random forces
   double old_eavg;                                                // average previous energies
 
-  // functions 
+  // functions
   void couple();
   void remap(int);
   void check_alloc(int n);

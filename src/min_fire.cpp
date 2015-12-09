@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "min_fire.h"
 #include "universe.h"
 #include "atom.h"
@@ -92,6 +92,7 @@ int MinFire::iterate(int maxiter)
   alpha_final = 0.0;
 
   for (int iter = 0; iter < maxiter; iter++) {
+
     ntimestep = ++update->ntimestep;
     niter++;
 

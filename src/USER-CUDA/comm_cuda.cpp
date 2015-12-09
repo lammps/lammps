@@ -19,7 +19,7 @@
 #error LAMMPS_BIGBIG not supported by this file
 #endif
 
-#include "mpi.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdio>

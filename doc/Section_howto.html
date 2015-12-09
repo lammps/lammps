@@ -598,7 +598,7 @@ atoms and the water molecule to run a rigid TIP3P-CHARMM model with a
 cutoff.  The K values can be used if a flexible TIP3P model (without
 fix shake) is desired.  If the LJ epsilon and sigma for HH and OH are
 set to 0.0, it corresponds to the original 1983 TIP3P model
-<a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>.</p>
+<a class="reference internal" href="#jorgensen"><span>(Jorgensen)</span></a>.</p>
 <div class="line-block">
 <div class="line">O mass = 15.9994</div>
 <div class="line">H mass = 1.008</div>
@@ -656,7 +656,7 @@ for a cutoff model:</p>
 using the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command.</p>
 <p>These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
-<a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>.  Note that the OM distance is specified in
+<a class="reference internal" href="#jorgensen"><span>(Jorgensen)</span></a>.  Note that the OM distance is specified in
 the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command, not as part of the pair
 coefficients.</p>
 <div class="line-block">
@@ -2549,7 +2549,9 @@ the electrostatic environment inducing polarizability.</p>
 <p>Technically, shells are attached to the cores by a spring force f =
 k*r where k is a parametrized spring constant and r is the distance
 between the core and the shell. The charges of the core and the shell
-add up to the ion charge, thus q(ion) = q(core) + q(shell). In a
+add up to the ion charge, thus q(ion) = q(core) + q(shell). This
+setup introduces the ion polarizability (alpha) given by
+alpha = q(shell)^2 / k. In a
 similar fashion the mass of the ion is distributed on the core and the
 shell with the core having the larger mass.</p>
 <p>To run this model in LAMMPS, <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> <em>full</em> can
@@ -2615,7 +2617,7 @@ be polarized.  One can mix core/shell pairs and ions without a
 satellite particle if desired.</p>
 <p>Since the core/shell model permits distances of r = 0.0 between the
 core and shell, a pair style with a &#8220;cs&#8221; suffix needs to be used to
-implement a valid long-rangeCoulombic correction.  Several such pair
+implement a valid long-range Coulombic correction.  Several such pair
 styles are provided in the CORESHELL package.  See <a class="reference internal" href="pair_cs.html"><em>this doc page</em></a> for details.  All of the core/shell enabled pair
 styles require the use of a long-range Coulombic solver, as specified
 by the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command.  Either the PPPM or
@@ -2637,8 +2639,9 @@ bond_coeff      2 25.724 0.0
 <p>When running dynamics with the adiabatic core/shell model, the
 following issues should be considered.  Since the relative motion of
 the core and shell particles corresponds to the polarization, typical
-thermostats can alter the polarization behaviour, meaining the shell
-will not react freely to its electrostatic environment.  Therefore
+thermostats can alter the polarization behaviour, meaning the shell
+will not react freely to its electrostatic environment.  This is
+critical during the equilibration of the system. Therefore
 it&#8217;s typically desirable to decouple the relative motion of the
 core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the <a class="reference internal" href="compute_temp_cs.html"><em>compute temp/cs</em></a> command can be used, in conjunction with
@@ -2655,7 +2658,7 @@ into account by the <em>group-ID</em> (2nd argument) of the compute.  The
 groups can be defined using the <a class="reference internal" href="group.html"><em>group *type*</em></a> command.
 Note that to perform thermostatting using this definition of
 temperature, the <a class="reference internal" href="fix_modify.html"><em>fix modify temp</em></a> command should be
-used to assign the comptue to the thermostat fix.  Likewise the
+used to assign the compute to the thermostat fix.  Likewise the
 <a class="reference internal" href="thermo_modify.html"><em>thermo_modify temp</em></a> command can be used to make
 this temperature be output for the overall system.</p>
 <p>For the NaCl example, this can be done as follows:</p>
@@ -2668,6 +2671,12 @@ fix_modify thermoberendsen temp CSequ
 thermo_modify temp CSequ                                # output of center-of-mass derived temperature
 </pre></div>
 </div>
+<p>If <a class="reference internal" href="compute_temp_cs.html"><em>compute temp/cs</em></a> is used, the decoupled
+relative motion of the core and the shell should in theory be
+stable.  However numerical fluctuation can introduce a small
+momentum to the system, which is noticable over long trajectories.
+Therefore it is recomendable to use the <a class="reference internal" href="fix_momentum.html"><em>fix  momentum</em></a> command in combination with <a class="reference internal" href="compute_temp_cs.html"><em>compute  temp/cs</em></a> when equilibrating the system to
+prevent any drift.</p>
 <p>When intializing the velocities of a system with core/shell pairs, it
 is also desirable to not introduce energy into the relative motion of
 the core/shell particles, but only assign a center-of-mass velocity to
@@ -2685,11 +2694,17 @@ of the 2 atoms within the core/shell pair than their center-of-mass
 velocity. This allow the shells to effectively react instantaneously
 to the electrostatic environment.  This fast movement also limits the
 timestep size that can be used.</p>
-<p>Additionally, the mass mismatch of the core and shell particles means
-that only a small amount of energy is transfered to the decoupled
-imaginary degrees of freedom.  However, this transfer will typically
-lead to a a small drift in total energy over time.  This internal
-energy can be monitored using the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> and <a class="reference internal" href="compute_temp_chunk.html"><em>compute temp/chunk</em></a> commands.  The internal kinetic
+<p>The primary literature of the adiabatic core/shell model suggests that
+the fast relative motion of the core/shell pairs only allows negligible
+energy transfer to the environment. Therefore it is not intended to
+decouple the core/shell degree of freedom from the physical system
+during production runs. In other words, the <a class="reference internal" href="compute_temp_cs.html"><em>compute temp/cs</em></a> command should not be used during
+production runs and is only required during equilibration. This way one
+is consistent with literature (based on the code packages DL_POLY or
+GULP for instance).</p>
+<p>The mentioned energy transfer will typically lead to a a small drift
+in total energy over time.  This internal energy can be monitored
+using the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> and <a class="reference internal" href="compute_temp_chunk.html"><em>compute temp/chunk</em></a> commands.  The internal kinetic
 energies of each core/shell pair can then be summed using the sum()
 special function of the <a class="reference internal" href="variable.html"><em>variable</em></a> command.  Or they can
 be time/averaged and output using the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>

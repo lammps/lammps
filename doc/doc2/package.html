@@ -38,7 +38,7 @@
   <I>gpu</I> args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
     zero or more keyword/value pairs may be appended 
-    keywords = <I>neigh</I> or <I>newton</I> or <I>binsize</I> or <I>split</I> or <I>gpuID</I> or <I>tpa</I> or <I>device</I>
+    keywords = <I>neigh</I> or <I>newton</I> or <I>binsize</I> or <I>split</I> or <I>gpuID</I> or <I>tpa</I> or <I>device</I> or <I>blocksize</I>
       <I>neigh</I> value = <I>yes</I> or <I>no</I>
         yes = neighbor list build on GPU (default)
         no = neighbor list build on CPU
@@ -320,13 +320,6 @@ large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
 </P>
-<P>The <I>blocksize</I> keyword allows you to tweak the number of threads used
-per thread block. This number should be a multiple of 32 (for GPUs)
-and its maximum depends on the specific GPU hardware. Typical choices
-are 64, 128, or 256. A larger blocksize increases occupancy of
-individual GPU cores, but reduces the total number of thread blocks,
-thus may lead to load imbalance.
-</P>
 <P>The <I>device</I> keyword can be used to tune parameters optimized for a
 specific accelerator, when using OpenCL.  For CUDA, the <I>device</I>
 keyword is ignored.  Currently, the device type is limited to NVIDIA
@@ -334,6 +327,13 @@ Kepler, NVIDIA Fermi, AMD Cypress, or a generic device.  More devices
 may be added later.  The default device type can be specified when
 building LAMMPS with the GPU library, via settings in the
 lib/gpu/Makefile that is used.
+</P>
+<P>The <I>blocksize</I> keyword allows you to tweak the number of threads used
+per thread block. This number should be a multiple of 32 (for GPUs)
+and its maximum depends on the specific GPU hardware. Typical choices
+are 64, 128, or 256. A larger blocksize increases occupancy of
+individual GPU cores, but reduces the total number of thread blocks,
+thus may lead to load imbalance.
 </P>
 <HR>
 

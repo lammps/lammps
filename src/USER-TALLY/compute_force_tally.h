@@ -25,13 +25,13 @@ ComputeStyle(force/tally,ComputeForceTally)
 namespace LAMMPS_NS {
 
 class ComputeForceTally : public Compute {
-  
+
  public:
   ComputeForceTally(class LAMMPS *, int, char **);
   virtual ~ComputeForceTally();
 
   void init();
-  
+
   double compute_scalar();
   void compute_peratom();
 

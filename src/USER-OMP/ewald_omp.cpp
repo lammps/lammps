@@ -15,7 +15,7 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "ewald_omp.h"
 #include "atom.h"
 #include "comm.h"

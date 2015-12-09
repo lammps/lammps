@@ -1205,6 +1205,7 @@ void * imdsock_create(void) {
   s = (imdsocket *) malloc(sizeof(imdsocket));
   if (s != NULL)
     memset(s, 0, sizeof(imdsocket));
+  else return NULL;
 
   if ((s->sd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
     printf("Failed to open socket.");
@@ -1344,19 +1345,6 @@ int imdsock_selwrite(void *v, int sec) {
 
 /*************************************************************************/
 /* start of imd API code. */
-/* Only works with aligned 4-byte quantities, will cause a bus error */
-/* on some platforms if used on unaligned data.                      */
-void swap4_aligned(void *v, long ndata) {
-  int *data = (int *) v;
-  long i;
-  int *N;
-  for (i=0; i<ndata; i++) {
-    N = data + i;
-    *N=(((*N>>24)&0xff) | ((*N&0xff)<<24) |
-        ((*N>>8)&0xff00) | ((*N&0xff00)<<8));
-  }
-}
-
 
 /** structure used to perform byte swapping operations */
 typedef union {
@@ -1429,12 +1417,6 @@ static int32 imd_writen(void *s, const char *ptr, int32 n) {
     ptr += nwritten;
   }
   return n;
-}
-
-int imd_disconnect(void *s) {
-  IMDheader header;
-  imd_fill_header(&header, IMD_DISCONNECT, 0);
-  return (imd_writen(s, (char *)&header, IMDHEADERSIZE) != IMDHEADERSIZE);
 }
 
 int imd_handshake(void *s) {

@@ -9,8 +9,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.33"
-G_DATE="2015-9-22"
+G_VERSION="1.34"
+G_DATE="2015-11-18"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -27,7 +27,7 @@ else
     echo "Error:  $G_PROGRAM_NAME requires python or python3" >&2
     exit 1
 fi
-  
+
 
 # First, determine the directory in which this shell script is located.
 # (The python script files should also be located here as well.)
@@ -218,7 +218,7 @@ $data_ellipsoids
 $data_lines
 $data_triangles
 $data_boundary
-$data_bonds_by_type
+$data_bonds_by_type*
 ${data_angles_by_type}*
 ${data_dihedrals_by_type}*
 ${data_impropers_by_type}*
@@ -599,6 +599,16 @@ done
 
 
 
+if [ -z "$ATOM_STYLE" ]; then
+  #echo '########################################################\n' >&2
+  #echo '##            WARNING: atom_style unspecified         ##\n' >&2
+  #echo '##              Assuming atom_style = \"full\"          ##\n' >&2
+  #echo '########################################################\n' >&2
+  ATOM_STYLE="full"
+fi
+
+
+
 OUT_FILE_INPUT_SCRIPT="${OUT_FILE_BASE}.in"
 OUT_FILE_INIT="${OUT_FILE_BASE}.in.init"
 OUT_FILE_SETTINGS="${OUT_FILE_BASE}.in.settings"
@@ -736,13 +746,12 @@ if [ -s "${data_bond_list}.template" ]; then
     echo "Looking up bond types according to atom type" >&2
     #-- Generate a file containing bondid bondtype atomid1 atomid2 --
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/bonds_by_type.py" \
+            -atom-style "$ATOM_STYLE" \
             -atoms "${data_atoms}.template" \
             -bond-list "${data_bond_list}.template" \
             -bondsbytype "${data_bonds_by_type}.template" \
             -prefix '$/bond:bytype' > gen_bonds.template.tmp; then
         exit 4
-    #WARNING: DO NOT REPLACE THIS WITH
-    #if ! $NBODY_COMMAND ...<-this sometimes causes a shell quotes-related error
     fi
 
     # ---- cleanup: ----
@@ -836,6 +845,7 @@ for FILE in "$data_angles_by_type"*.template; do
             -subgraph "${SUBGRAPH_SCRIPT}" \
             -section "Angles" \
             -sectionbytype "Angles By Type" \
+            -atom-style "$ATOM_STYLE" \
             -atoms "${data_atoms}.template" \
             -bonds "${data_bonds}.template" \
             -nbodybytype "${FILE}" \
@@ -931,6 +941,7 @@ for FILE in "$data_dihedrals_by_type"*.template; do
             -subgraph "${SUBGRAPH_SCRIPT}" \
             -section "Dihedrals" \
             -sectionbytype "Dihedrals By Type" \
+            -atom-style "$ATOM_STYLE" \
             -atoms "${data_atoms}.template" \
             -bonds "${data_bonds}.template" \
             -nbodybytype "${FILE}" \
@@ -1025,6 +1036,7 @@ for FILE in "$data_impropers_by_type"*.template; do
             -subgraph "${SUBGRAPH_SCRIPT}" \
             -section "Impropers" \
             -sectionbytype "Impropers By Type" \
+            -atom-style "$ATOM_STYLE" \
             -atoms "${data_atoms}.template" \
             -bonds "${data_bonds}.template" \
             -nbodybytype "${FILE}" \

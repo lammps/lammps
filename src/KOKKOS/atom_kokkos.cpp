@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "atom_kokkos.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
@@ -247,7 +247,7 @@ void AtomKokkos::deallocate_topology()
 ------------------------------------------------------------------------- */
 
 void AtomKokkos::sync_modify(ExecutionSpace execution_space,
-                             unsigned int datamask_read, 
+                             unsigned int datamask_read,
                              unsigned int datamask_modify)
 {
   sync(execution_space,datamask_read);

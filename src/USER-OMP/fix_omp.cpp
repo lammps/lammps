@@ -147,13 +147,9 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 
 FixOMP::~FixOMP()
 {
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-    const int tid = get_tid();
-    delete thr[tid];
-  }
+  for (int i=0; i < _nthr; ++i)
+    delete thr[i];
+
   delete[] thr;
 }
 
@@ -189,8 +185,30 @@ void FixOMP::init()
     error->all(FLERR,"USER-OMP package does not (yet) work with "
                "atom_style template");
 
+  // adjust number of data objects when the number of OpenMP
+  // threads has been changed somehow
+  const int nthreads = comm->nthreads;
+  if (_nthr != nthreads) {
+    if (screen) fprintf(screen,"Re-init USER-OMP for %d OpenMP thread(s)\n", nthreads);
+    if (logfile) fprintf(logfile,"Re-init USER-OMP for %d OpenMP thread(s)\n", nthreads);
+
+    for (int i=0; i < _nthr; ++i)
+      delete thr[i];
+
+    thr = new ThrData *[nthreads];
+    _nthr = nthreads;
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+    {
+      const int tid = get_tid();
+      Timer *t = new Timer(lmp);
+      thr[tid] = new ThrData(tid,t);
+    }
+  }
+
   // reset per thread timer
-  for (int i=0; i < comm->nthreads; ++i) {
+  for (int i=0; i < nthreads; ++i) {
     thr[i]->_timer_active=1;
     thr[i]->timer(Timer::RESET);
     thr[i]->_timer_active=-1;
@@ -323,7 +341,7 @@ void FixOMP::set_neighbor_omp()
 void FixOMP::setup(int)
 {
   // we are post the force compute in setup. turn on timers
-  for (int i=0; i < comm->nthreads; ++i)
+  for (int i=0; i < _nthr; ++i)
     thr[i]->_timer_active=0;
 }
 
@@ -356,8 +374,8 @@ void FixOMP::pre_force(int)
 
 double FixOMP::memory_usage()
 {
-  double bytes = comm->nthreads * (sizeof(ThrData *) + sizeof(ThrData));
-  bytes += comm->nthreads * thr[0]->memory_usage();
+  double bytes = _nthr * (sizeof(ThrData *) + sizeof(ThrData));
+  bytes += _nthr * thr[0]->memory_usage();
 
   return bytes;
 }

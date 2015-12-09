@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
 #include "min_cg.h"
 #include "atom.h"
 #include "update.h"
@@ -66,6 +66,7 @@ int MinCG::iterate(int maxiter)
   gg = fnorm_sqr();
 
   for (int iter = 0; iter < maxiter; iter++) {
+
     ntimestep = ++update->ntimestep;
     niter++;
 

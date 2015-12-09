@@ -13,8 +13,8 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef LAL_BASE_ATOMIC_H
-#define LAL_BASE_ATOMIC_H
+#ifndef LAL_BASE_THREE_H
+#define LAL_BASE_THREE_H
 
 #include "lal_device.h"
 #include "lal_balance.h"
@@ -28,7 +28,7 @@
 #include "geryon/nvd_texture.h"
 #endif
 
-#define THREE_CONCURRENT
+//#define THREE_CONCURRENT
 
 namespace LAMMPS_AL {
 

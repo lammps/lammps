@@ -20,11 +20,11 @@
      and Ardi Van Duin's original ReaxFF code
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_reax.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"
@@ -626,7 +626,7 @@ double PairREAX::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairREAX::pack_forward_comm(int n, int *list, double *buf, 
+int PairREAX::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,m;

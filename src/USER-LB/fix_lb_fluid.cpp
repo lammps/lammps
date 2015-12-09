@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -17,11 +17,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_fluid.h"
-#include "math.h"
-#include "mpi.h"
-#include "stdlib.h"
-#include "stdio.h"
-#include "string.h"
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -46,17 +46,17 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   //=====================================================================================================
   //  Sample inputfile call:
   // fix # group lb/fluid nevery typeLB viscosity densityinit_real
-  //  
-  //  where: nevery:            call this fix every nevery timesteps. 
+  //
+  //  where: nevery:            call this fix every nevery timesteps.
   //		                 (keep this set to 1 for now).
-  //         typeLB:            there are two different integrators 
+  //         typeLB:            there are two different integrators
   //                             in the code labelled "1" and "2".
-  //         viscosity:         the viscosity of the fluid. 
+  //         viscosity:         the viscosity of the fluid.
   //         densityinit_real:  the density of the fluid.
   //
   // optional arguments:
   //  "setArea" type node_area:                       set the surface area per node associated with a
-  //                                                   given atom type.  By default the surface area 
+  //                                                   given atom type.  By default the surface area
   //                                                   is set at 1.0*dx_lb^2.
   //  "setGamma" gamma:                               specify a user-defined value for the force
   //                                                   coupling constant, instead of using the default
@@ -67,10 +67,10 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   //  "dx" dx_lb:                                     the lattice-Boltzmann grid spacing.
   //  "dm" dm_lb:                                     the lattice-Boltzmann mass unit.
   //  "a0" a_0_real:                                  the square of the sound speed in the fluid.
-  //  "noise" Temperature seed:                       include noise in the system.  
+  //  "noise" Temperature seed:                       include noise in the system.
   //                                                   Temperature is the temperature for the fluid.
-  //                                                   seed is the seed for the random number generator.  
-  //  "calcforce" N group:                            print the force acting on a given group every 
+  //                                                   seed is the seed for the random number generator.
+  //  "calcforce" N group:                            print the force acting on a given group every
   //                                                   N timesteps.
   //  "trilinear":                                    use the trilinear interpolation stencil.
   //  "read_restart" restart_file:                    restart a fluid run from restart_file.
@@ -98,7 +98,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   typeLB = atoi(arg[4]);
   viscosity = atof(arg[5]);
   densityinit_real = atof(arg[6]);
-  
+
   // Default values for optional arguments:
   force_diagnostic=0;
   noisestress = 0;
@@ -157,7 +157,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
 	error->all(FLERR,"Illegal fix lb/fluid command: scaleGamma");
       Gamma[itype] *= scalefactor;
       iarg += 3;
-    }     
+    }
     else if(strcmp(arg[iarg],"dx")==0){
       dx_lb = atof(arg[iarg+1]);
       iarg += 2;
@@ -188,10 +188,10 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 1;
     }
     else if(strcmp(arg[iarg],"read_restart")==0){
-      readrestart = 1;  
+      readrestart = 1;
       int nlength = strlen(arg[iarg+1]) + 16;
       char *filename = new char[nlength];
-      strcpy(filename,arg[iarg+1]); 
+      strcpy(filename,arg[iarg+1]);
       MPI_File_open(world,filename,MPI_MODE_RDONLY,MPI_INFO_NULL,&pFileRead);
       delete [] filename;
       iarg += 2;
@@ -234,9 +234,9 @@ a z wall velocity without implementing fixed BCs in z");
   }else{
     initializeLB = &FixLbFluid::initializeLB19;
     equilibriumdist = &FixLbFluid::equilibriumdist19;
-    update_full = &FixLbFluid::update_full19; 
-  }  
-  
+    update_full = &FixLbFluid::update_full19;
+  }
+
   //--------------------------------------------------------------------------
   // perform initial allocation of atom-based array register
   // with Atom class
@@ -248,7 +248,7 @@ a z wall velocity without implementing fixed BCs in z");
   for(int i=0; i<atom->nmax; i++)
     for(int j=0; j<3; j++)
     hydroF[i][j] = 0.0;
- 
+
   Ng_lb = NULL;
   w_lb = NULL;
   mg_lb = NULL;
@@ -269,12 +269,12 @@ a z wall velocity without implementing fixed BCs in z");
   Fftempz = NULL;
 
   //--------------------------------------------------------------------------
-  // Set the lattice Boltzmann dt. 
+  // Set the lattice Boltzmann dt.
   //--------------------------------------------------------------------------
   dt_lb=nevery*(update->dt);
 
   //--------------------------------------------------------------------------
-  // Set the lattice Boltzmann dx if it wasn't specified in the 
+  // Set the lattice Boltzmann dx if it wasn't specified in the
   // input.
   //--------------------------------------------------------------------------
   if(setdx == 1){
@@ -286,14 +286,14 @@ a z wall velocity without implementing fixed BCs in z");
       char str[128];
       sprintf(str,"Setting the lattice-Boltzmann dx to %10.6f",dx_lb);
       error->message(FLERR,str);
-    }   
+    }
   }
   //--------------------------------------------------------------------------
-  // If the area per node has not been set by the user, set to the 
+  // If the area per node has not been set by the user, set to the
   // default value of dx_lb*dx_lb.
   //--------------------------------------------------------------------------
   if(setGamma == 0){
-    if(setArea == 0){ 
+    if(setArea == 0){
       if(comm->me==0){
 	error->message(FLERR,"Assuming an area per node of dx*dx for all of the MD particles.  This should only be used if these all correspond to point particles; otherwise, change using the setArea keyword");
       }
@@ -313,7 +313,7 @@ a z wall velocity without implementing fixed BCs in z");
   // Check to make sure that the total number of grid points in each direction
   // divides evenly among the processors in that direction.
   // Shrink-wrapped boundary conditions (which are not permitted by this fix)
-  // might cause a problem, so check for this.  A full check of the boundary 
+  // might cause a problem, so check for this.  A full check of the boundary
   // conditions is performed in the init routine, rather than here, as it is
   // possible to change the BCs between runs.
   //--------------------------------------------------------------------------
@@ -346,7 +346,7 @@ a z wall velocity without implementing fixed BCs in z");
     sprintf(errormessage,"With dx= %f, and the simulation domain divided by %i processors in the z direction, the simulation domain in the z direction must be a multiple of %f",dx_lb,comm->procgrid[2],comm->procgrid[2]*dx_lb);
     error->all(FLERR,errormessage);
   }
-  
+
   //--------------------------------------------------------------------------
   // Set the total number of grid points in each direction.
   //--------------------------------------------------------------------------
@@ -360,7 +360,7 @@ a z wall velocity without implementing fixed BCs in z");
   subNbx= Nbx/comm->procgrid[0] + 2;
   subNby= Nby/comm->procgrid[1] + 2;
   subNbz= Nbz/comm->procgrid[2] + 2;
- 
+
   //--------------------------------------------------------------------------
   // In order to calculate the fluid forces correctly, need to have atleast
   // 5 grid points in each direction per processor.
@@ -382,7 +382,7 @@ a z wall velocity without implementing fixed BCs in z");
     }else{
       sprintf(str,"Using a lattice-Boltzmann grid of %i by %i by %i total grid points.",Nbx,Nby,Nbz);
     }
-    error->message(FLERR,str);   
+    error->message(FLERR,str);
   }
 
   //--------------------------------------------------------------------------
@@ -399,15 +399,15 @@ a z wall velocity without implementing fixed BCs in z");
   //--------------------------------------------------------------------------
   MPI_Aint lb,sizeofdouble;
   MPI_Type_get_extent(MPI_DOUBLE,&lb,&sizeofdouble);
-  
+
   MPI_Type_vector(subNbz-2,numvel,numvel,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
   MPI_Type_create_hvector(subNby-2,1,numvel*subNbz*sizeofdouble,oneslice,&passxf);
   MPI_Type_commit(&passxf);
- 
+
   MPI_Type_create_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passyf);
   MPI_Type_commit(&passyf);
-  
+
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby,numvel,numvel*subNbz,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
@@ -420,10 +420,10 @@ a z wall velocity without implementing fixed BCs in z");
   MPI_Type_commit(&oneslice);
   MPI_Type_create_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxu);
   MPI_Type_commit(&passxu);
-  
+
   MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyu);
   MPI_Type_commit(&passyu);
-  
+
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,3,3*(subNbz+3),MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
@@ -436,10 +436,10 @@ a z wall velocity without implementing fixed BCs in z");
   MPI_Type_commit(&oneslice);
   MPI_Type_create_hvector(subNby+3,1,1*(subNbz+3)*sizeofdouble,oneslice,&passxrho);
   MPI_Type_commit(&passxrho);
-  
+
   MPI_Type_create_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyrho);
   MPI_Type_commit(&passyrho);
-  
+
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,1,1*(subNbz+3),MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
@@ -452,10 +452,10 @@ a z wall velocity without implementing fixed BCs in z");
   MPI_Type_commit(&oneslice);
   MPI_Type_create_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxtemp);
   MPI_Type_commit(&passxtemp);
-  
+
   MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*5*sizeofdouble,oneslice,&passytemp);
   MPI_Type_commit(&passytemp);
-  
+
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,3,3*5,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
@@ -499,7 +499,7 @@ a z wall velocity without implementing fixed BCs in z");
   // Rescale the variables to Lattice Boltzmann dimensionless units.
   //--------------------------------------------------------------------------
   rescale();
-  
+
   //--------------------------------------------------------------------------
   // Initialize the arrays.
   //--------------------------------------------------------------------------
@@ -513,7 +513,7 @@ FixLbFluid::~FixLbFluid()
 
   atom->delete_callback(id,0);
   memory->destroy(hydroF);
- 
+
   memory->destroy(Ng_lb);
   memory->destroy(w_lb);
   memory->destroy(mg_lb);
@@ -537,7 +537,7 @@ FixLbFluid::~FixLbFluid()
   memory->destroy(Fftempx);
   memory->destroy(Fftempy);
   memory->destroy(Fftempz);
-  
+
   if(noisestress==1){
     delete random;
   }
@@ -574,8 +574,8 @@ void FixLbFluid::init(void)
 
   if(fabs(dt_lb_now - dt_lb) > 1.0e-12){
     error->warning(FLERR,"Timestep has changed between runs with the same lb/fluid.  Unphysical results may occur");
-  }   
-  
+  }
+
   //--------------------------------------------------------------------------
   // Make sure the size of the simulation domain has not changed
   // between runs.
@@ -588,11 +588,11 @@ void FixLbFluid::init(void)
   if(domain->periodicity[2]==0){
    Nbz_now += 1;
   }
-  
+
   if(Nbx_now != Nbx || Nby_now != Nby || Nbz_now != Nbz){
     error->all(FLERR,"the simulation domain can not change shape between runs with the same lb/fluid");
   }
-  
+
   //--------------------------------------------------------------------------
   // Check to make sure that the chosen LAMMPS boundary types are compatible
   // with this fix.
@@ -608,7 +608,7 @@ void FixLbFluid::init(void)
   if(domain->boundary[2][0] == 2 || domain->boundary[2][0] == 3){
     error->all(FLERR,"the z-direction can not have shrink-wrap boundary conditions");
   }
-  
+
   //--------------------------------------------------------------------------
   // Check if the lb/viscous fix is also called:
   //--------------------------------------------------------------------------
@@ -630,8 +630,8 @@ void FixLbFluid::init(void)
   if(!(groupbit_viscouslb || groupbit_pc || groupbit_rigid_pc_sphere) && comm->me==0){
     error->message(FLERR,"Not adding the fluid force to any of the MD particles.  To add this force use one of the lb/viscous, lb/pc, or lb/rigid/pc/sphere fixes");
   }
-  
-  // If fix lb/viscous is called for a particular atom, make sure 
+
+  // If fix lb/viscous is called for a particular atom, make sure
   // lb/pc or lb/rigid/pc/sphere are not:
   if(fixviscouslb == 1){
     int *mask = atom->mask;
@@ -643,7 +643,7 @@ void FixLbFluid::init(void)
 	  error->one(FLERR,"should not use the lb/viscous command when integrating with the lb/rigid/pc/sphere fix");
       }
    }
- 
+
 }
 
 void FixLbFluid::setup(int vflag)
@@ -653,7 +653,7 @@ void FixLbFluid::setup(int vflag)
   //--------------------------------------------------------------------------
   if(step > 0)
     calc_fluidforce();
-}  
+}
 
 void FixLbFluid::initial_integrate(int vflag)
 {
@@ -668,7 +668,7 @@ void FixLbFluid::initial_integrate(int vflag)
       printf("     F_x          F_y          F_z          T_x          T_y          T_z\n");
       printf("-------------------------------------------------------------------------------\n");
     }
-    
+
     if(printfluid > 0 && me == 0){
       printf("---------------------------------------------------------------------\n");
       printf("     density            u_x              u_y              u_z \n");
@@ -687,8 +687,8 @@ void FixLbFluid::initial_integrate(int vflag)
   // distribution function.
   //--------------------------------------------------------------------------
   (*this.*update_full)();
-  
-  std::swap(f_lb,fnew); 
+
+  std::swap(f_lb,fnew);
 
   //--------------------------------------------------------------------------
   // Calculate moments of the distribution function.
@@ -709,7 +709,7 @@ void FixLbFluid::initial_integrate(int vflag)
   //--------------------------------------------------------------------------
   if(printfluid > 0 && update->ntimestep > 0 && (update->ntimestep % printfluid == 0))
     streamout();
-  
+
 }
 void FixLbFluid::post_force(int vflag)
 {
@@ -718,10 +718,10 @@ void FixLbFluid::post_force(int vflag)
 }
 
 void FixLbFluid::end_of_step()
-{  
+{
   if(fixviscouslb==0)
     calc_fluidforce();
- 
+
   if(printrestart>0){
     if((update->ntimestep)%printrestart == 0){
       write_restartfile();
@@ -784,7 +784,7 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Request requests[20];
   double forceloc[3],force[3];
   double torqueloc[3],torque[3];
-  
+
   //--------------------------------------------------------------------------
   // Zero out arrays
   //--------------------------------------------------------------------------
@@ -799,8 +799,8 @@ void FixLbFluid::calc_fluidforce(void)
   for(i=0; i<atom->nmax; i++)
     for(j=0; j<3; j++)
       hydroF[i][j] = 0.0;
-  
-  
+
+
   double unwrap[3];
   double dx,dy,dz;
   double massone;
@@ -821,7 +821,7 @@ void FixLbFluid::calc_fluidforce(void)
 
 	if(rmass) massone = rmass[i];
 	else massone = mass[type[i]];
-	
+
 	sum[0] += unwrap[0]*massone;
 	sum[1] += unwrap[1]*massone;
 	sum[2] += unwrap[2]*massone;
@@ -844,23 +844,23 @@ void FixLbFluid::calc_fluidforce(void)
       }else{
 	peskin_interpolation(i);
       }
-      
+
       if(force_diagnostic > 0 && update->ntimestep > 0 && (update->ntimestep % force_diagnostic == 0)){
 	if(mask[i] & group->bitmask[igroupforce]){
-	  
+
 	  domain->unmap(x[i],image[i],unwrap);
 	  dx = unwrap[0] - xcm[0];
 	  dy = unwrap[1] - xcm[1];
 	  dz = unwrap[2] - xcm[2];
-	  
+
 	  forceloc[0] += hydroF[i][0];
 	  forceloc[1] += hydroF[i][1];
 	  forceloc[2] += hydroF[i][2];
 	  torqueloc[0] += dy*hydroF[i][2] - dz*hydroF[i][1];
 	  torqueloc[1] += dz*hydroF[i][0] - dx*hydroF[i][2];
 	  torqueloc[2] += dx*hydroF[i][1] - dy*hydroF[i][0];
-	}	    
-      } 
+	}
+      }
     }
   }
 
@@ -881,7 +881,7 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Irecv(&Fftempx[3][0][0][0],1,passxtemp,comm->procneigh[0][0],40,world,&requests[8]);
   MPI_Irecv(&Fftempx[4][0][0][0],1,passxtemp,comm->procneigh[0][0],50,world,&requests[9]);
   MPI_Waitall(10,requests,MPI_STATUS_IGNORE);
-  
+
   for(j=0; j<subNby+3; j++){
     for(k=0; k<subNbz+3; k++){
       for(m=0; m<3; m++){
@@ -949,17 +949,17 @@ void FixLbFluid::calc_fluidforce(void)
   if(force_diagnostic > 0 && update->ntimestep > 0 && (update->ntimestep % force_diagnostic == 0)){
     force[0] = force[1] = force[2] = 0.0;
     torque[0] = torque[1] = torque[2] =0.0;
-    
-    MPI_Allreduce(&forceloc[0],&force[0],3,MPI_DOUBLE,MPI_SUM,world); 
+
+    MPI_Allreduce(&forceloc[0],&force[0],3,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&torqueloc[0],&torque[0],3,MPI_DOUBLE,MPI_SUM,world);
-    
+
     if(me==0){
       printf("%E %E %E %E %E %E\n",force[0],force[1],force[2],
  	     torque[0],torque[1],torque[2]);
 
     }
   }
-  
+
 }
 //==========================================================================
 // uses the Peskin stencil to perform the velocity, density and
@@ -987,36 +987,36 @@ void FixLbFluid::peskin_interpolation(int i)
   //--------------------------------------------------------------------------
   //Calculate nearest leftmost grid point.
   //Since array indices from 1 to subNb-2 correspond to the
-  // local subprocessor domain (not indices from 0), use the 
+  // local subprocessor domain (not indices from 0), use the
   // ceiling value.
   //--------------------------------------------------------------------------
   ix = (int)ceil((x[i][0]-domain->sublo[0])/dx_lb);
   iy = (int)ceil((x[i][1]-domain->sublo[1])/dx_lb);
   iz = (int)ceil((x[i][2]-domain->sublo[2])/dx_lb);
-	
+
   //--------------------------------------------------------------------------
   //Calculate distances to the nearest points.
   //--------------------------------------------------------------------------
   dx1 = x[i][0] - (domain->sublo[0] + (ix-1)*dx_lb);
   dy1 = x[i][1] - (domain->sublo[1] + (iy-1)*dx_lb);
   dz1 = x[i][2] - (domain->sublo[2] + (iz-1)*dx_lb);
-  
+
   // Need to convert these to lattice units:
   dx1 = dx1/dx_lb;
   dy1 = dy1/dx_lb;
   dz1 = dz1/dx_lb;
-  
+
   unode[0]=0.0; unode[1]=0.0; unode[2]=0.0;
   mnode = 0.0;
   isten=0;
-    
+
   //--------------------------------------------------------------------------
   // Calculate the interpolation weights, and interpolated values of
   // the fluid velocity, and density.
   //--------------------------------------------------------------------------
   for(ii=-1; ii<3; ii++){
     rsq=(-dx1+ii)*(-dx1+ii);
-    
+
     if(rsq>=4)
       weightx=0.0;
     else{
@@ -1056,7 +1056,7 @@ void FixLbFluid::peskin_interpolation(int i)
 	izp = iz+kk;
 
 	//The atom is allowed to be within one lattice grid point outside the
-	//local processor sub-domain.  
+	//local processor sub-domain.
 	if(ixp < -1 || ixp > (subNbx+1) || iyp < -1 || iyp > (subNby+1) || izp < -1 || izp > (subNbz+1))
 	  error->one(FLERR,"Atom outside local processor simulation domain.  Either unstable fluid pararmeters, or \
 require more frequent neighborlist rebuilds");
@@ -1065,11 +1065,11 @@ require more frequent neighborlist rebuilds");
 	  error->warning(FLERR,"Atom too close to lower z wall.  Unphysical results may occur");
 	if(domain->periodicity[2] == 0 && comm->myloc[2] == (comm->procgrid[2]-1) && (izp > (subNbz-2) ))
 	  error->warning(FLERR,"Atom too close to upper z wall.  Unphysical results may occur");
-	
+
 	if(ixp==-1) ixp=subNbx+2;
 	if(iyp==-1) iyp=subNby+2;
 	if(izp==-1) izp=subNbz+2;
-	
+
 	FfP[isten] = weightx*weighty*weightz;
 	// interpolated velocity based on delta function.
 	for(k=0; k<3; k++){
@@ -1077,7 +1077,7 @@ require more frequent neighborlist rebuilds");
 	}
 	if(setGamma==0)
 	  mnode += density_lb[ixp][iyp][izp]*FfP[isten];
-	
+
 	isten++;
       }
     }
@@ -1087,14 +1087,14 @@ require more frequent neighborlist rebuilds");
 
     if(rmass) massone = rmass[i];
     else massone = mass[type[i]];
-    massone = massone/dm_lb; 
+    massone = massone/dm_lb;
 
     gammavalue = 2.0*(mnode*massone)*dtoverdtcollision/(mnode+massone);
-  }    
+  }
   else{
     gammavalue = Gamma[type[i]];
   }
-  
+
   isten=0;
   for(ii=-1; ii<3; ii++)
     for(jj=-1; jj<3; jj++)
@@ -1102,7 +1102,7 @@ require more frequent neighborlist rebuilds");
 	ixp = ix+ii;
 	iyp = iy+jj;
 	izp = iz+kk;
-	
+
 	if(ixp==-1) ixp=subNbx+2;
 	if(iyp==-1) iyp=subNby+2;
 	if(izp==-1) izp=subNbz+2;
@@ -1111,7 +1111,7 @@ require more frequent neighborlist rebuilds");
 	for(k=0; k<3; k++){
 	  Ff[ixp][iyp][izp][k] += gammavalue*((v[i][k]*dt_lb/dx_lb)-unode[k])*FfP[isten];
 	}
-	
+
 	isten++;
       }
   for(k=0; k<3; k++)
@@ -1142,20 +1142,20 @@ void FixLbFluid::trilinear_interpolation(int i)
   //--------------------------------------------------------------------------
   // Calculate nearest leftmost grid point.
   // Since array indices from 1 to subNb-2 correspond to the
-  // local subprocessor domain (not indices from 0), use the 
+  // local subprocessor domain (not indices from 0), use the
   // ceiling value.
   //--------------------------------------------------------------------------
   ix = (int)ceil((x[i][0]-domain->sublo[0])/dx_lb);
   iy = (int)ceil((x[i][1]-domain->sublo[1])/dx_lb);
   iz = (int)ceil((x[i][2]-domain->sublo[2])/dx_lb);
-	
+
   //--------------------------------------------------------------------------
   //Calculate distances to the nearest points.
   //--------------------------------------------------------------------------
   dx1 = x[i][0] - (domain->sublo[0] + (ix-1)*dx_lb);
   dy1 = x[i][1] - (domain->sublo[1] + (iy-1)*dx_lb);
   dz1 = x[i][2] - (domain->sublo[2] + (iz-1)*dx_lb);
- 
+
   //--------------------------------------------------------------------------
   // Need to convert these to lattice units:
   //--------------------------------------------------------------------------
@@ -1174,13 +1174,13 @@ void FixLbFluid::trilinear_interpolation(int i)
   FfP[5] = dx1*(1.-dy1)*dz1;
   FfP[6] = dx1*dy1*(1.-dz1);
   FfP[7] = dx1*dy1*dz1;
-  
+
   ixp = (ix+1);
   iyp = (iy+1);
   izp = (iz+1);
 
   //The atom is allowed to be within one lattice grid point outside the
-  //local processor sub-domain.  
+  //local processor sub-domain.
   if(ix < 0 || ixp > (subNbx+1) || iy < 0 || iyp > (subNby+1) || iz < 0 || izp > (subNbz+1))
     error->one(FLERR,"Atom outside local processor simulation domain.  Either unstable fluid pararmeters, or \
 require more frequent neighborlist rebuilds");
@@ -1188,9 +1188,9 @@ require more frequent neighborlist rebuilds");
   if(domain->periodicity[2] == 0 && comm->myloc[2] == 0 && (iz < 1 || izp < 1))
     error->warning(FLERR,"Atom too close to lower z wall.  Unphysical results may occur");
   if(domain->periodicity[2] == 0 && comm->myloc[2] == (comm->procgrid[2]-1) && (izp > (subNbz-2) || iz > (subNbz-2)))
-    error->warning(FLERR,"Atom too close to upper z wall.  Unphysical results may occur");  
-  
-   
+    error->warning(FLERR,"Atom too close to upper z wall.  Unphysical results may occur");
+
+
   for (k=0; k<3; k++) { 	// tri-linearly interpolated velocity at node
     unode[k] = u_lb[ix][iy][iz][k]*FfP[0]
       + u_lb[ix][iy][izp][k]*FfP[1]
@@ -1216,13 +1216,13 @@ require more frequent neighborlist rebuilds");
 
     if(rmass) massone = rmass[i];
     else massone = mass[type[i]];
-    massone = massone/dm_lb; 
+    massone = massone/dm_lb;
 
     gammavalue = 2.0*(mnode*massone)*dtoverdtcollision/(mnode+massone);
   }else{
     gammavalue = Gamma[type[i]];
   }
-  
+
 
   for(k=0; k<3; k++){
     Ff[ix][iy][iz][k]    += gammavalue*((v[i][k]*dt_lb/dx_lb)-unode[k])*FfP[0];
@@ -1242,7 +1242,7 @@ require more frequent neighborlist rebuilds");
 
 //==========================================================================
 // read in a fluid restart file.  This is only used to restart the
-// fluid portion of a LAMMPS simulation.  
+// fluid portion of a LAMMPS simulation.
 //==========================================================================
 void FixLbFluid::read_restartfile(void)
 {
@@ -1272,7 +1272,7 @@ void FixLbFluid::read_restartfile(void)
   MPI_File_read_all(pFileRead,&f_lb[0][0][0][0],1,realtype,&status);
   if(typeLB == 2){
     MPI_File_read_all(pFileRead,&feqold[0][0][0][0],1,realtype,&status);
-    MPI_File_read_all(pFileRead,&feqoldn[0][0][0][0],1,realtype,&status);  
+    MPI_File_read_all(pFileRead,&feqoldn[0][0][0][0],1,realtype,&status);
   }
 
   MPI_Type_free(&realtype);
@@ -1282,7 +1282,7 @@ void FixLbFluid::read_restartfile(void)
 }
 
 //==========================================================================
-// write a fluid restart file.   
+// write a fluid restart file.
 //==========================================================================
 void FixLbFluid::write_restartfile(void)
 {
@@ -1295,7 +1295,7 @@ void FixLbFluid::write_restartfile(void)
   char *hfile;
   hfile = new char[32];
   sprintf(hfile,"FluidRestart_" BIGINT_FORMAT ".dat",update->ntimestep);
-  
+
   MPI_File_open(world,hfile,MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
 
   int realsizes[4] = {subNbx,subNby,subNbz,numvel};
@@ -1317,7 +1317,7 @@ void FixLbFluid::write_restartfile(void)
   MPI_File_write_all(fh,&f_lb[0][0][0][0],1,realtype,&status);
   if(typeLB == 2){
     MPI_File_write_all(fh,&feqold[0][0][0][0],1,realtype,&status);
-    MPI_File_write_all(fh,&feqoldn[0][0][0][0],1,realtype,&status);  
+    MPI_File_write_all(fh,&feqoldn[0][0][0][0],1,realtype,&status);
   }
 
   MPI_Type_free(&realtype);
@@ -1330,22 +1330,22 @@ void FixLbFluid::write_restartfile(void)
 //==========================================================================
 // rescale the simulation parameters so that dx_lb=dt_lb=dm_lb=1.
 // This assumes that all the simulation parameters have been given in
-// terms of distance, time and mass units. 
+// terms of distance, time and mass units.
 //==========================================================================
 void FixLbFluid::rescale(void)
 {
   vwtp = vwtp*dt_lb/dx_lb;
   vwbt = vwbt*dt_lb/dx_lb;
-  
+
   bodyforcex = bodyforcex*dt_lb*dt_lb/dx_lb;
   bodyforcey = bodyforcey*dt_lb*dt_lb/dx_lb;
   bodyforcez = bodyforcez*dt_lb*dt_lb/dx_lb;
-  
+
   tau=(3.0*viscosity/densityinit_real)*dt_lb*dt_lb/dx_lb/dx_lb;
   tau /= dt_lb;
   if(typeLB==1)
     tau = tau + 0.5;
-   
+
   if(setGamma == 0){
     for(int i=0; i<= atom->ntypes; i++){
       NodeArea[i] = NodeArea[i]/dx_lb/dx_lb;
@@ -1355,7 +1355,7 @@ void FixLbFluid::rescale(void)
       Gamma[i] = Gamma[i]*dt_lb/dm_lb;
     }
   }
-   
+
   densityinit = densityinit_real*dx_lb*dx_lb*dx_lb/dm_lb;
 
   a_0 = a_0_real*dt_lb*dt_lb/(dx_lb*dx_lb);
@@ -1529,13 +1529,13 @@ void FixLbFluid::initializeLB15(void)
   mg_lb[6][10]=2./3.;mg_lb[6][11]=2./3.;mg_lb[6][12]=2./3.;mg_lb[6][13]=2./3.;mg_lb[6][14]=2./3.;
   mg_lb[7][0]=0;mg_lb[7][1]=0;mg_lb[7][2]=0;mg_lb[7][3]=0;mg_lb[7][4]=0;
   mg_lb[7][5]=0;mg_lb[7][6]=0;mg_lb[7][7]=1;mg_lb[7][8]=-1;mg_lb[7][9]=1;
-  mg_lb[7][10]=-1;mg_lb[7][11]=1;mg_lb[7][12]=-1;mg_lb[7][13]=1;mg_lb[7][14]=-1; 
+  mg_lb[7][10]=-1;mg_lb[7][11]=1;mg_lb[7][12]=-1;mg_lb[7][13]=1;mg_lb[7][14]=-1;
   mg_lb[8][0]=0;mg_lb[8][1]=0;mg_lb[8][2]=0;mg_lb[8][3]=0;mg_lb[8][4]=0;
   mg_lb[8][5]=0;mg_lb[8][6]=0;mg_lb[8][7]=1;mg_lb[8][8]=1;mg_lb[8][9]=-1;
-  mg_lb[8][10]=-1;mg_lb[8][11]=-1;mg_lb[8][12]=-1;mg_lb[8][13]=1;mg_lb[8][14]=1; 
+  mg_lb[8][10]=-1;mg_lb[8][11]=-1;mg_lb[8][12]=-1;mg_lb[8][13]=1;mg_lb[8][14]=1;
   mg_lb[9][0]=0;mg_lb[9][1]=0;mg_lb[9][2]=0;mg_lb[9][3]=0;mg_lb[9][4]=0;
   mg_lb[9][5]=0;mg_lb[9][6]=0;mg_lb[9][7]=1;mg_lb[9][8]=-1;mg_lb[9][9]=-1;
-  mg_lb[9][10]=1;mg_lb[9][11]=-1;mg_lb[9][12]=1;mg_lb[9][13]=1;mg_lb[9][14]=-1; 
+  mg_lb[9][10]=1;mg_lb[9][11]=-1;mg_lb[9][12]=1;mg_lb[9][13]=1;mg_lb[9][14]=-1;
   mg_lb[10][0]=0;mg_lb[10][1]=0;mg_lb[10][2]=-1./3.;mg_lb[10][3]=0;mg_lb[10][4]=1./3.;
   mg_lb[10][5]=0;mg_lb[10][6]=0;mg_lb[10][7]=2./3.;mg_lb[10][8]=2./3.;mg_lb[10][9]=-2./3.;
   mg_lb[10][10]=-2./3.;mg_lb[10][11]=2./3.;mg_lb[10][12]=2./3.;mg_lb[10][13]=-2./3.;mg_lb[10][14]=-2./3.;
@@ -1618,7 +1618,7 @@ void FixLbFluid::initializeLB19(void)
 
   e[9][0] = -1;
   e[9][1] = 1;
-  e[9][2] = 0;  
+  e[9][2] = 0;
 
   e[10][0] = -1;
   e[10][1] = -1;
@@ -1710,7 +1710,7 @@ void FixLbFluid::initializeLB19(void)
   mg_lb[2][0] = 0.; mg_lb[2][1] = 0.; mg_lb[2][2] = 1.; mg_lb[2][3] = 0.; mg_lb[2][4] =-1.;
   mg_lb[2][5] = 0.; mg_lb[2][6] = 0.; mg_lb[2][7] = 1.; mg_lb[2][8] =-1.; mg_lb[2][9] = 1.;
   mg_lb[2][10]=-1.; mg_lb[2][11]= 0.; mg_lb[2][12]= 0.; mg_lb[2][13]= 0.; mg_lb[2][14]= 0.;
-  mg_lb[2][15]= 1.; mg_lb[2][16]= 1.; mg_lb[2][17]=-1.; mg_lb[2][18]=-1.;  
+  mg_lb[2][15]= 1.; mg_lb[2][16]= 1.; mg_lb[2][17]=-1.; mg_lb[2][18]=-1.;
 
   mg_lb[3][0] = 0.; mg_lb[3][1] = 0.; mg_lb[3][2] = 0.; mg_lb[3][3] = 0.; mg_lb[3][4] = 0.;
   mg_lb[3][5] = 1.; mg_lb[3][6] =-1.; mg_lb[3][7] = 0.; mg_lb[3][8] = 0.; mg_lb[3][9] = 0.;
@@ -1809,7 +1809,7 @@ void FixLbFluid::initializeLB19(void)
 }
 
 //==========================================================================
-// Initialize the equilibrium distribution functions 
+// Initialize the equilibrium distribution functions
 // (this just uses the initial fluid parameters, and assumes no forces).
 //==========================================================================
 void FixLbFluid::initialize_feq(void)
@@ -1828,13 +1828,13 @@ void FixLbFluid::initialize_feq(void)
   std::fill(&Ff[0][0][0][0],&Ff[0][0][0][0] + (subNbx+3)*(subNby+3)*(subNbz+3)*3,0.0);
   std::fill(&Fftempx[0][0][0][0],&Fftempx[0][0][0][0] + 5*(subNby+3)*(subNbz+3)*3,0.0);
   std::fill(&Fftempy[0][0][0][0],&Fftempy[0][0][0][0] + (subNbx+3)*5*(subNbz+3)*3,0.0);
-  std::fill(&Fftempz[0][0][0][0],&Fftempz[0][0][0][0] + (subNbx+3)*(subNby+3)*5*3,0.0);  
+  std::fill(&Fftempz[0][0][0][0],&Fftempz[0][0][0][0] + (subNbx+3)*(subNby+3)*5*3,0.0);
 
   if(readrestart == 0){
     step=0;
 
     parametercalc_full();
-    (*this.*equilibriumdist)(1,subNbx-1,1,subNby-1,1,subNbz-1);  
+    (*this.*equilibriumdist)(1,subNbx-1,1,subNby-1,1,subNbz-1);
 
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
@@ -1847,23 +1847,23 @@ void FixLbFluid::initialize_feq(void)
       MPI_Irecv(&feqn[0][1][1][0],1,passxf,comm->procneigh[0][0],20,world,&requests[5]);
       MPI_Isend(&feqn[subNbx-2][1][1][0],1,passxf,comm->procneigh[0][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);
-    }  
+    }
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[0][1][1][0],1,passyf,comm->procneigh[1][0],15,world,&requests[0]);
-    MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);   
+    MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);
     MPI_Isend(&feq[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],25,world,&requests[2]);
     MPI_Irecv(&feq[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],15,world,&requests[3]);
     if(typeLB == 2){
       MPI_Isend(&feqn[0][1][1][0],1,passyf,comm->procneigh[1][0],10,world,&requests[4]);
-      MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);   
+      MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);
       MPI_Isend(&feqn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
     }
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&requests[0]);
@@ -1875,9 +1875,9 @@ void FixLbFluid::initialize_feq(void)
       MPI_Irecv(&feqn[0][0][0][0],1,passzf,comm->procneigh[2][0],20,world,&requests[5]);
       MPI_Isend(&feqn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]);
-    } 
+    }
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     //Save feqold.
     if(typeLB == 2){
       for(i=0; i<subNbx; i++)
@@ -1890,9 +1890,9 @@ void FixLbFluid::initialize_feq(void)
     }
   }else{
     step = 1;
-    
+
     read_restartfile();
-    
+
     if(typeLB == 2){
       for(i=0; i<8; i++)
 	requests[i]=MPI_REQUEST_NULL;
@@ -1903,31 +1903,31 @@ void FixLbFluid::initialize_feq(void)
       MPI_Isend(&feqoldn[1][1][1][0],1,passxf,comm->procneigh[0][0],10,world,&requests[4]);
       MPI_Irecv(&feqoldn[0][1][1][0],1,passxf,comm->procneigh[0][0],20,world,&requests[5]);
       MPI_Isend(&feqoldn[subNbx-2][1][1][0],1,passxf,comm->procneigh[0][1],20,world,&requests[6]);
-      MPI_Irecv(&feqoldn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);  
+      MPI_Irecv(&feqoldn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);
       MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
-      
+
       for(i=0; i<8; i++)
 	requests[i]=MPI_REQUEST_NULL;
       MPI_Isend(&feqold[0][1][1][0],1,passyf,comm->procneigh[1][0],15,world,&requests[0]);
-      MPI_Irecv(&feqold[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);   
+      MPI_Irecv(&feqold[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);
       MPI_Isend(&feqold[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],25,world,&requests[2]);
       MPI_Irecv(&feqold[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],15,world,&requests[3]);
       MPI_Isend(&feqoldn[0][1][1][0],1,passyf,comm->procneigh[1][0],10,world,&requests[4]);
-      MPI_Irecv(&feqoldn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);   
+      MPI_Irecv(&feqoldn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);
       MPI_Isend(&feqoldn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
       MPI_Irecv(&feqoldn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
       MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
-      
+
       for(i=0; i<8; i++)
 	requests[i]=MPI_REQUEST_NULL;
       MPI_Isend(&feqold[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&requests[0]);
       MPI_Irecv(&feqold[0][0][0][0],1,passzf,comm->procneigh[2][0],25,world,&requests[1]);
       MPI_Isend(&feqold[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],25,world,&requests[2]);
-      MPI_Irecv(&feqold[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],15,world,&requests[3]);   
+      MPI_Irecv(&feqold[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],15,world,&requests[3]);
       MPI_Isend(&feqoldn[0][0][1][0],1,passzf,comm->procneigh[2][0],10,world,&requests[4]);
       MPI_Irecv(&feqoldn[0][0][0][0],1,passzf,comm->procneigh[2][0],20,world,&requests[5]);
       MPI_Isend(&feqoldn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
-      MPI_Irecv(&feqoldn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]); 
+      MPI_Irecv(&feqoldn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]);
       MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
     }
     parametercalc_full();
@@ -1952,7 +1952,7 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 
   double S[2][3],std;
   int jj;
- 
+
   double etacov[15],ghostnoise;
 
 
@@ -1971,35 +1971,35 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 
 	// Derivatives.
 	drhox = (density_lb[iup][j][k] - density_lb[idwn][j][k])/2.0;
-	drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] + 
+	drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] +
 		  density_lb[idwn][j][k]);
 
 	drhoy = (density_lb[i][jup][k] - density_lb[i][jdwn][k])/2.0;
-	drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] + 
+	drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] +
 		  density_lb[i][jdwn][k]);
 
 	drhoz = (density_lb[i][j][kup] - density_lb[i][j][kdwn])/2.0;
-	drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] + 
+	drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] +
 		  density_lb[i][j][kdwn]);
 
 	// Need one-sided derivatives for the boundary of the domain, if fixed boundary
 	// conditions are used.
 	if(domain->periodicity[2]==0){
 	  if(comm->myloc[2]==0 && k==1){
-	    drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] - 
+	    drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] -
 		     density_lb[i][j][k+2])/2.0;
-	    drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] - 
+	    drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] -
 		      5.0*density_lb[i][j][k+1] + 2.0*rho);
 	  }
 	  if(comm->myloc[2]==comm->procgrid[2]-1 && k==subNbz-2){
-	    drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] - 
+	    drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] -
 		      density_lb[i][j][k-2])/2.0;
-	    drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] - 
+	    drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] -
 		      5.0*density_lb[i][j][k-1] + 2.0*rho);
 	  }
 	}
 
-	grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;	
+	grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;
 
 	p0 = rho*a_0-kappa_lb*rho*(drhoxx + drhoyy + drhozz);
 //                   kappa_lb is the square gradient coeff in the pressure tensor
@@ -2033,7 +2033,7 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 	    (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
 	  Pyz = kappa_lb*drhoy*drhoz+tau*(1.0/3.0-dPdrho)*
 	    (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-	}	  
+	}
 
  	Fx_w = Ff[i][j][k][0];
  	Fy_w = Ff[i][j][k][1];
@@ -2044,29 +2044,29 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 	etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
 	etacov[3] = rho*u_lb[i][j][k][2] + Fz_w*tau + rho*bodyforcez*tau;
 
-	etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. + 
+	etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. +
 	  tau*(2.0*u_lb[i][j][k][0]*(Fx_w+rho*bodyforcex));
-	etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. + 
+	etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. +
 	  tau*(2.0*u_lb[i][j][k][1]*(Fy_w+rho*bodyforcey));
-	etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. + 
+	etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. +
 	  tau*(2.0*u_lb[i][j][k][2]*(Fz_w+rho*bodyforcez));
-	etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] + 
+	etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] +
 	  tau*(u_lb[i][j][k][0]*(Fy_w+rho*bodyforcey) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][1]);
-	etacov[8] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] + 
+	etacov[8] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] +
 	  tau*(u_lb[i][j][k][1]*(Fz_w+rho*bodyforcez) + (Fy_w+rho*bodyforcey)*u_lb[i][j][k][2]);
-	etacov[9] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] + 
+	etacov[9] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] +
 	  tau*(u_lb[i][j][k][0]*(Fz_w+rho*bodyforcez) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][2]);
-	etacov[10] = 0.0; 
-	etacov[11] = 0.0; 
+	etacov[10] = 0.0;
+	etacov[11] = 0.0;
 	etacov[12] = 0.0;
 	etacov[13] = rho*u_lb[i][j][k][0]*u_lb[i][j][k][1]*u_lb[i][j][k][2];
 	const double TrP = Pxx+Pyy+Pzz;
 	etacov[14] = K_0*(rho-TrP);
-       
+
 	for (l=0; l<15; l++) {
 
 	  feq[i][j][k][l] = 0.0;
- 	  for (int ii=0; ii<15; ii++) 
+ 	  for (int ii=0; ii<15; ii++)
  	    feq[i][j][k][l] += w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
 
 	  if(typeLB == 2){
@@ -2080,7 +2080,7 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 	  for(jj=0; jj<3; jj++)
 	    S[0][jj] = std*random->gaussian();
 	  for(jj=0; jj<3; jj++)
-	    S[1][jj] = std*random->gaussian(); 
+	    S[1][jj] = std*random->gaussian();
 
 	  etacov[4] = (S[0][0]*sqrt(3.0-3.0*a_0));
 	  etacov[5] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
@@ -2099,15 +2099,15 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 
 	  for (l=0; l<15; l++) {
 	    ghostnoise = w_lb[l]*
-	      (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] + 
-	       mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] + 
-	       mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] + 
+	      (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] +
+	       mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] +
+	       mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] +
 	       mg_lb[10][l]*etacov[10]*Ng_lb[10] + mg_lb[11][l]*etacov[11]*Ng_lb[11]
 	       + mg_lb[12][l]*etacov[12]*Ng_lb[12] + mg_lb[13][l]*etacov[13]*Ng_lb[13]
 	       + mg_lb[14][l]*etacov[14]*Ng_lb[14]);
 	    feq[i][j][k][l] += ghostnoise*noisefactor;
 	  }
-	}	
+	}
       }
     }
   }
@@ -2131,7 +2131,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 
   double S[2][3],std;
   int jj;
- 
+
   double etacov[19],ghostnoise;
 
   for (i=xstart; i<xend; i++) {
@@ -2149,35 +2149,35 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 
 	// Derivatives.
 	drhox = (density_lb[iup][j][k] - density_lb[idwn][j][k])/2.0;
-	drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] + 
+	drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] +
 		  density_lb[idwn][j][k]);
 
 	drhoy = (density_lb[i][jup][k] - density_lb[i][jdwn][k])/2.0;
-	drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] + 
+	drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] +
 		  density_lb[i][jdwn][k]);
 
 	drhoz = (density_lb[i][j][kup] - density_lb[i][j][kdwn])/2.0;
-	drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] + 
+	drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] +
 		  density_lb[i][j][kdwn]);
 
 	// Need one-sided derivatives for the boundary of the domain, if fixed boundary
 	// conditions are used.
 	if(domain->periodicity[2]==0){
 	  if(comm->myloc[2]==0 && k==1){
-	    drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] - 
+	    drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] -
 		     density_lb[i][j][k+2])/2.0;
-	    drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] - 
+	    drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] -
 		      5.0*density_lb[i][j][k+1] + 2.0*rho);
 	  }
 	  if(comm->myloc[2]==comm->procgrid[2]-1 && k==subNbz-2){
-	    drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] - 
+	    drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] -
 		      density_lb[i][j][k-2])/2.0;
-	    drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] - 
+	    drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] -
 		      5.0*density_lb[i][j][k-1] + 2.0*rho);
 	  }
 	}
 
-	grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;	
+	grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;
 
 	p0 = rho*a_0-kappa_lb*rho*(drhoxx + drhoyy + drhozz);
 //                   kappa_lb is the square gradient coeff in the pressure tensor
@@ -2211,7 +2211,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 	    (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
 	  Pyz = kappa_lb*drhoy*drhoz+tau*(1.0/3.0-dPdrho)*
 	    (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-	}	  
+	}
 
  	Fx_w = Ff[i][j][k][0];
  	Fy_w = Ff[i][j][k][1];
@@ -2222,20 +2222,20 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 	etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
 	etacov[3] = rho*u_lb[i][j][k][2] + Fz_w*tau + rho*bodyforcez*tau;
 
-	etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. + 
+	etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. +
 	  tau*(2.0*u_lb[i][j][k][0]*(Fx_w+rho*bodyforcex));
-	etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. + 
+	etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. +
 	  tau*(2.0*u_lb[i][j][k][1]*(Fy_w+rho*bodyforcey));
-	etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. + 
+	etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. +
 	  tau*(2.0*u_lb[i][j][k][2]*(Fz_w+rho*bodyforcez));
-	etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] + 
+	etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] +
 	  tau*(u_lb[i][j][k][0]*(Fy_w+rho*bodyforcey) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][1]);
-	etacov[8] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] + 
+	etacov[8] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] +
 	  tau*(u_lb[i][j][k][0]*(Fz_w+rho*bodyforcez) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][2]);
-	etacov[9] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] + 
+	etacov[9] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] +
 	  tau*(u_lb[i][j][k][1]*(Fz_w+rho*bodyforcez) + (Fy_w+rho*bodyforcey)*u_lb[i][j][k][2]);
-	etacov[10] = 0.0; 
-	etacov[11] = 0.0; 
+	etacov[10] = 0.0;
+	etacov[11] = 0.0;
 	etacov[12] = 0.0;
 	etacov[13] = 0.0;
 	etacov[14] = 0.0;
@@ -2243,11 +2243,11 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 	etacov[16] = 0.0;
 	etacov[17] = 0.0;
 	etacov[18] = 0.0;
-	
+
 	for (l=0; l<19; l++) {
 
 	  feq[i][j][k][l] = 0.0;
- 	  for (int ii=0; ii<19; ii++) 
+ 	  for (int ii=0; ii<19; ii++)
  	    feq[i][j][k][l] += w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
 
 	  if(typeLB == 2){
@@ -2261,7 +2261,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 	  for(jj=0; jj<3; jj++)
 	    S[0][jj] = std*random->gaussian();
 	  for(jj=0; jj<3; jj++)
-	    S[1][jj] = std*random->gaussian(); 
+	    S[1][jj] = std*random->gaussian();
 
 	  etacov[4] = (S[0][0]*sqrt(3.0-3.0*a_0));
 	  etacov[5] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
@@ -2276,12 +2276,12 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 	  for (l=10; l<19; l++) {
 	    etacov[l] = sqrt(9.0*namp*rho/Ng_lb[l])*random->gaussian();
 	  }
-	  
+
 	  for (l=0; l<19; l++) {
 	    ghostnoise = w_lb[l]*
-	      (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] + 
-	       mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] + 
-	       mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] + 
+	      (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] +
+	       mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] +
+	       mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] +
 	       mg_lb[10][l]*etacov[10]*Ng_lb[10] + mg_lb[11][l]*etacov[11]*Ng_lb[11]
 	       + mg_lb[12][l]*etacov[12]*Ng_lb[12] + mg_lb[13][l]*etacov[13]*Ng_lb[13]
 	       + mg_lb[14][l]*etacov[14]*Ng_lb[14] + mg_lb[15][l]*etacov[15]*Ng_lb[15]
@@ -2290,7 +2290,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 	    feq[i][j][k][l] += ghostnoise*noisefactor;
 	  }
 	}
-	
+
       }
     }
   }
@@ -2309,7 +2309,7 @@ void FixLbFluid::parametercalc_full(void)
 
   //--------------------------------------------------------------------------
   // send the boundaries of f_lb, as they will be needed later by the update
-  // routine, and use these to calculate the density and velocity on the 
+  // routine, and use these to calculate the density and velocity on the
   // boundary.
   //--------------------------------------------------------------------------
   for(i=0; i<4; i++)
@@ -2324,7 +2324,7 @@ void FixLbFluid::parametercalc_full(void)
   for(i=0; i<4; i++)
     requests[i]=MPI_REQUEST_NULL;
   MPI_Isend(&f_lb[0][1][1][0],1,passyf,comm->procneigh[1][0],10,world,&requests[0]);
-  MPI_Irecv(&f_lb[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[1]);   
+  MPI_Irecv(&f_lb[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[1]);
   MPI_Isend(&f_lb[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[2]);
   MPI_Irecv(&f_lb[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[3]);
   parametercalc_part(0,1,1,subNby-1,1,subNbz-1);
@@ -2340,12 +2340,12 @@ void FixLbFluid::parametercalc_full(void)
   parametercalc_part(0,subNbx,0,1,1,subNbz-1);
   parametercalc_part(0,subNbx,subNby-1,subNby,1,subNbz-1);
   MPI_Waitall(4,requests,MPI_STATUS_IGNORE);
-  
+
   parametercalc_part(0,subNbx,0,subNby,0,1);
   parametercalc_part(0,subNbx,0,subNby,subNbz-1,subNbz);
 
   //--------------------------------------------------------------------------
-  // Send the remaining portions of the u array (and density array if Gamma 
+  // Send the remaining portions of the u array (and density array if Gamma
   // is set the default way).
   //--------------------------------------------------------------------------
   if(setGamma == 0) numrequests = 12;
@@ -2413,7 +2413,7 @@ void FixLbFluid::parametercalc_full(void)
       MPI_Irecv(&density_lb[0][0][subNbz+1],1,passzrho,comm->procneigh[2][1],50,world,&requests2[requestcount+2]);
       requestcount=requestcount+3;
     }
-  }    
+  }
   MPI_Waitall(requestcount,requests2,MPI_STATUS_IGNORE);
 
 }
@@ -2435,15 +2435,15 @@ void FixLbFluid::parametercalc_part(int xstart, int xend, int ystart, int yend, 
 	u_lb[i][j][k][1]=0.0;
 	u_lb[i][j][k][2]=0.0;
 	for (m=0; m<numvel; m++) {
-	 
+
 	  density_lb[i][j][k] += f_lb[i][j][k][m];
-	  
+
 	  u_lb[i][j][k][0] += f_lb[i][j][k][m]*e[m][0];
 	  u_lb[i][j][k][1] += f_lb[i][j][k][m]*e[m][1];
 	  u_lb[i][j][k][2] += f_lb[i][j][k][m]*e[m][2];
-	  
+
 	}
-	
+
 	//For the on-lattice wall scheme, need to set this velocity to zero.
 	if(domain->periodicity[2]==0){
 	  if(comm->myloc[2]==0){
@@ -2456,20 +2456,20 @@ void FixLbFluid::parametercalc_part(int xstart, int xend, int ystart, int yend, 
 	      u_lb[i][j][k][2]=0.0;
 	    }
 	  }
-	  
+
 	}
-      
+
 	u_lb[i][j][k][0]=u_lb[i][j][k][0]/density_lb[i][j][k];
 	u_lb[i][j][k][1]=u_lb[i][j][k][1]/density_lb[i][j][k];
 	u_lb[i][j][k][2]=u_lb[i][j][k][2]/density_lb[i][j][k];
       }
     }
   }
-  
+
 }
 
 //==========================================================================
-// Update the distribution function over a simulation volume specified 
+// Update the distribution function over a simulation volume specified
 // by xstart,xend; ystart,yend; zstart,zend.
 //==========================================================================
 void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int zstart, int zend)
@@ -2480,7 +2480,7 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
   for(i=xstart; i<xend; i++)
     for(j=ystart; j<yend; j++)
       for(k=zstart; k<zend; k++){
-	
+
 	if(typeLB==1){
 	  for(m=0; m<numvel; m++){
 	    imod = i-e[m][0];
@@ -2488,16 +2488,16 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 	    kmod = k-e[m][2];
 
 	    fnew[i][j][k][m] = f_lb[imod][jmod][kmod][m] + (feq[imod][jmod][kmod][m]-f_lb[imod][jmod][kmod][m])/tau;
-	  }	    
+	  }
 	}else if(typeLB==2){
 	  for(m=0; m<numvel; m++){
 	    imod = i-e[m][0];
 	    jmod = j-e[m][1];
 	    kmod = k-e[m][2];
-	    
+
 	    fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m] - feq[imod][jmod][kmod][m])*expminusdtovertau;
 	  }
-	  
+
 	  fnew[i][j][k][0]+=Dcoeff*(feq[i][j][k][0]-feqold[i][j][k][0]);
 	  for(m=1; m<numvel; m++){
 	    imod = i-e[m][0];
@@ -2506,13 +2506,13 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 	    imodm = i+e[m][0];
 	    jmodm = j+e[m][1];
 	    kmodm = k+e[m][2];
-	    
+
 	     fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) + (0.5-Dcoeff*(tau+0.5))*
 	       (feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 
 	  }
-	}		   
-      }  
+	}
+      }
 }
 
 //==========================================================================
@@ -2596,8 +2596,8 @@ void FixLbFluid::streamout(void)
 	for(k=0; k<Nbz; k++){
 	  printf("%16.12f %16.12f %16.12f %16.12f\n",altogether[i][j][k][0]*dm_lb/dx_lb/dx_lb/dx_lb,altogether[i][j][k][1]*dx_lb/dt_lb,altogether[i][j][k][2]*dx_lb/dt_lb,altogether[i][j][k][3]*dx_lb/dt_lb);
 	}
-    
-    
+
+
   } else {
     istart=comm->myloc[0]*(subNbx-2);
     jstart=comm->myloc[1]*(subNby-2);
@@ -2631,7 +2631,7 @@ void FixLbFluid::streamout(void)
     buf[0][0][1][2]=kend;
 
     MPI_Isend(&buf[0][0][0][0],size,MPI_DOUBLE,0,0,world,&request_send);
-    MPI_Wait(&request_send,&status); 
+    MPI_Wait(&request_send,&status);
   }
 
 }
@@ -2642,7 +2642,7 @@ void FixLbFluid::streamout(void)
 //==========================================================================
 void FixLbFluid::update_full15(void)
 {
-  
+
    MPI_Request req_send15,req_recv15;
    MPI_Request req_send25,req_recv25;
    MPI_Request requests[8];
@@ -2662,12 +2662,12 @@ void FixLbFluid::update_full15(void)
    }else{
      numrequests = 8;
    }
- 
+
    //--------------------------------------------------------------------------
    // Fixed z boundary conditions.
    //--------------------------------------------------------------------------
-   if(domain->periodicity[2]==0){  
- 
+   if(domain->periodicity[2]==0){
+
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
      MPI_Isend(&feq[1][1][1][0],1,passxf,comm->procneigh[0][0],15,world,&requests[0]);
@@ -2687,19 +2687,19 @@ void FixLbFluid::update_full15(void)
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
      MPI_Isend(&feq[0][1][1][0],1,passyf,comm->procneigh[1][0],15,world,&requests[0]);
-     MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);   
+     MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);
      MPI_Isend(&feq[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],25,world,&requests[2]);
      MPI_Irecv(&feq[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],15,world,&requests[3]);
      if(typeLB == 2){
        MPI_Isend(&feqn[0][1][1][0],1,passyf,comm->procneigh[1][0],10,world,&requests[4]);
-       MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);   
+       MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);
        MPI_Isend(&feqn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
        MPI_Irecv(&feqn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
      }
      update_periodic(1,2,2,subNby-2,2,subNbz-2);
      update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
      MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-     
+
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
      MPI_Isend(&feq[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&requests[0]);
@@ -2711,7 +2711,7 @@ void FixLbFluid::update_full15(void)
        MPI_Irecv(&feqn[0][0][0][0],1,passzf,comm->procneigh[2][0],20,world,&requests[5]);
        MPI_Isend(&feqn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
        MPI_Irecv(&feqn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]);
-     } 
+     }
      update_periodic(1,subNbx-1,1,2,2,subNbz-2);
      update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
      MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
@@ -2728,7 +2728,7 @@ void FixLbFluid::update_full15(void)
      	       imod = i-e[m][0];
      	       jmod = j-e[m][1];
      	       kmod = k-e[m][2];
-	     
+
      	       fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
      	     }
 
@@ -2739,9 +2739,9 @@ void FixLbFluid::update_full15(void)
 	       imodm = i+e[m][0];
 	       jmodm = j+e[m][1];
 	       kmodm = k+e[m][2];
-	       
+
      	       if(m==5)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) + 
+     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) +
      	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][6] - feqn[imod][jmod][kmod][6]);
      	       else if(m==7)
      	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][11] - feqold[imod][jmod][kmod][m]) +
@@ -2760,23 +2760,23 @@ void FixLbFluid::update_full15(void)
 		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][5] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	       else if(m==11)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][7] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][7] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	       else if(m==12)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][8] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	 
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][8] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	       else if(m==13)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][9] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	 
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][9] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	       else if(m==14)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][10] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][10] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
      	       else
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) + 
+     	       	 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
      	       	   (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 
      	     }
      	   }
-     	 }      
+     	 }
        }else{
      	 update_periodic(1,subNbx-1,1,subNby-1,1,2);
        }
@@ -2790,7 +2790,7 @@ void FixLbFluid::update_full15(void)
      	       kmod = k-e[m][2];
 
      	       fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
-     	     }	    
+     	     }
      	     for(m=0; m<15; m++){
      	       imod = i-e[m][0];
      	       jmod = j-e[m][1];
@@ -2798,9 +2798,9 @@ void FixLbFluid::update_full15(void)
 	       imodm = i+e[m][0];
 	       jmodm = j+e[m][1];
 	       kmodm = k+e[m][2];
-	       
+
      	       if(m==6)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) + 
+     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) +
      	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][5] - feqn[imod][jmod][kmod][5]);
      	       else if(m==11)
      	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][7] - feqold[imod][jmod][kmod][m]) +
@@ -2819,20 +2819,20 @@ void FixLbFluid::update_full15(void)
 		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][6] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	       else if(m==7)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][11] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	   
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][11] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	       else if(m==8)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
  	       else if(m==9)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][13] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	   
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][13] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	       else if(m==10)
 		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	
+		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
      	       else
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) + 
+     	       	 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
      	       	   (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       
+
      	     }
      	   }
      	 }
@@ -2841,17 +2841,17 @@ void FixLbFluid::update_full15(void)
      	 update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
        }
      }
-     
+
      req_send15=MPI_REQUEST_NULL;
      req_recv25=MPI_REQUEST_NULL;
      req_send25=MPI_REQUEST_NULL;
      req_recv15=MPI_REQUEST_NULL;
-     
+
      if(comm->myloc[2]==0){
        MPI_Isend(&fnew[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&req_send15);
        MPI_Irecv(&fnew[0][0][0][0],1,passzf,comm->procneigh[2][0],25,world,&req_recv25);
      }
-     
+
      if(comm->myloc[2]==comm->procgrid[2]-1){
        MPI_Isend(&fnew[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],25,world,&req_send25);
        MPI_Irecv(&fnew[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],15,world,&req_recv15);
@@ -2859,18 +2859,18 @@ void FixLbFluid::update_full15(void)
      if(comm->myloc[2]==0){
        MPI_Wait(&req_send15,&status);
        MPI_Wait(&req_recv25,&status);
-       
+
        for(i=1;i<subNbx-1;i++){
 	 for(j=1;j<subNby-1;j++){
 	   k=1;
 	   if(typeLB == 1){
 	     fnew[i][j][k][5]=fnew[i][j][k-1][6];
-	     tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14]; 
+	     tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14];
 	   }
 	   else{
 	     fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
-	     tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14] + 
-	       (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k+1][7] + feqn[i+1][j-1][k+1][8] + 
+	     tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14] +
+	       (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k+1][7] + feqn[i+1][j-1][k+1][8] +
 				       feqn[i+1][j+1][k+1][9] + feqn[i-1][j+1][k+1][10]);
 	   }
 
@@ -2888,7 +2888,7 @@ void FixLbFluid::update_full15(void)
 	   rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
 	     fnew[i][j][k][5]+fnew[i][j][k][6]+tmp1+fnew[i][j][k][11]+fnew[i][j][k][12]+
 	     fnew[i][j][k][13]+fnew[i][j][k][14];
-	   
+
 	   fnew[i][j][k][7] += 0.25*rb*vwbt;
 	   fnew[i][j][k][8] += 0.25*rb*vwbt;
 	   fnew[i][j][k][9] += -0.25*rb*vwbt;
@@ -2900,22 +2900,22 @@ void FixLbFluid::update_full15(void)
      if(comm->myloc[2]==comm->procgrid[2]-1){
        MPI_Wait(&req_send25,&status);
        MPI_Wait(&req_recv15,&status);
-       
+
        for(i=1;i<subNbx-1;i++){
 	 for(j=1;j<subNby-1;j++){
 	   k=subNbz-2;
-	   
+
 	   if(typeLB == 1){
 	     fnew[i][j][k][6]=fnew[i][j][k+1][5];
 	     tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10];
 	   }
 	   else{
 	     fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
-	     tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10] + 
-	       (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k-1][11] + feqn[i+1][j-1][k-1][12] + 
+	     tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10] +
+	       (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k-1][11] + feqn[i+1][j-1][k-1][12] +
 				       feqn[i+1][j+1][k-1][13] + feqn[i-1][j+1][k-1][14]);
 	   }
-  
+
 	   fnew[i][j][k][11]=-0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
 	   			    fnew[i][j][k][4]+2.0*fnew[i][j][k][7]-2.0*fnew[i][j][k][9]-tmp1);
 	   fnew[i][j][k][12]=0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
@@ -2925,19 +2925,19 @@ void FixLbFluid::update_full15(void)
 	   fnew[i][j][k][14]=-0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
 	   			    fnew[i][j][k][4]-2.0*fnew[i][j][k][8]+2.0*fnew[i][j][k][10]-tmp1);
 
-	   
+
 	   rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
 	     fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
 	     fnew[i][j][k][10]+tmp1;
-	   
+
 	   fnew[i][j][k][11] += 0.25*rb*vwtp;
 	   fnew[i][j][k][12] += 0.25*rb*vwtp;
 	   fnew[i][j][k][13] += -0.25*rb*vwtp;
 	   fnew[i][j][k][14] += -0.25*rb*vwtp;
 	 }
-       }	
+       }
      }
-     
+
      //--------------------------------------------------------------------------
      // Periodic z boundary conditions.
      //--------------------------------------------------------------------------
@@ -2961,12 +2961,12 @@ void FixLbFluid::update_full15(void)
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
      MPI_Isend(&feq[0][1][1][0],1,passyf,comm->procneigh[1][0],15,world,&requests[0]);
-     MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);   
+     MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);
      MPI_Isend(&feq[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],25,world,&requests[2]);
      MPI_Irecv(&feq[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],15,world,&requests[3]);
      if(typeLB == 2){
        MPI_Isend(&feqn[0][1][1][0],1,passyf,comm->procneigh[1][0],10,world,&requests[4]);
-       MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);   
+       MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);
        MPI_Isend(&feqn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
        MPI_Irecv(&feqn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
      }
@@ -2985,15 +2985,15 @@ void FixLbFluid::update_full15(void)
        MPI_Irecv(&feqn[0][0][0][0],1,passzf,comm->procneigh[2][0],20,world,&requests[5]);
        MPI_Isend(&feqn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
        MPI_Irecv(&feqn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]);
-     }  
+     }
      update_periodic(1,subNbx-1,1,2,2,subNbz-2);
      update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
      MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-     
+
      update_periodic(1,subNbx-1,1,subNby-1,1,2);
      update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
    }
- 
+
 }
 
 //==========================================================================
@@ -3002,7 +3002,7 @@ void FixLbFluid::update_full15(void)
 //==========================================================================
 void FixLbFluid::update_full19(void)
 {
-  
+
   MPI_Request req_send15,req_recv15;
   MPI_Request req_send25,req_recv25;
   MPI_Request requests[8];
@@ -3013,7 +3013,7 @@ void FixLbFluid::update_full19(void)
   int i,j,k,m;
   int imod,jmod,kmod;
   int imodm,jmodm,kmodm;
-  
+
   //--------------------------------------------------------------------------
   // If using the standard LB integrator, do not need to send info about feqn.
   //--------------------------------------------------------------------------
@@ -3022,12 +3022,12 @@ void FixLbFluid::update_full19(void)
   }else{
     numrequests = 8;
   }
-  
+
   //--------------------------------------------------------------------------
   // Fixed z boundary conditions.
   //--------------------------------------------------------------------------
-  if(domain->periodicity[2]==0){  
-    
+  if(domain->periodicity[2]==0){
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[1][1][1][0],1,passxf,comm->procneigh[0][0],15,world,&requests[0]);
@@ -3042,23 +3042,23 @@ void FixLbFluid::update_full19(void)
     }
     update_periodic(2,subNbx-2,2,subNby-2,2,subNbz-2);
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[0][1][1][0],1,passyf,comm->procneigh[1][0],15,world,&requests[0]);
-    MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);   
+    MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);
     MPI_Isend(&feq[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],25,world,&requests[2]);
     MPI_Irecv(&feq[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],15,world,&requests[3]);
     if(typeLB == 2){
       MPI_Isend(&feqn[0][1][1][0],1,passyf,comm->procneigh[1][0],10,world,&requests[4]);
-      MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);   
+      MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);
       MPI_Isend(&feqn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
     }
     update_periodic(1,2,2,subNby-2,2,subNbz-2);
     update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&requests[0]);
@@ -3070,11 +3070,11 @@ void FixLbFluid::update_full19(void)
       MPI_Irecv(&feqn[0][0][0][0],1,passzf,comm->procneigh[2][0],20,world,&requests[5]);
       MPI_Isend(&feqn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]);
-    } 
+    }
     update_periodic(1,subNbx-1,1,2,2,subNbz-2);
     update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     if(typeLB==1){
       update_periodic(1,subNbx-1,1,subNby-1,1,2);
       update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
@@ -3087,10 +3087,10 @@ void FixLbFluid::update_full19(void)
 	      imod = i-e[m][0];
 	      jmod = j-e[m][1];
 	      kmod = k-e[m][2];
-	      
+
 	      fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
 	    }
-	    
+
 	    for(m=0; m<19; m++){
 	      imod = i-e[m][0];
 	      jmod = j-e[m][1];
@@ -3098,9 +3098,9 @@ void FixLbFluid::update_full19(void)
 	      imodm = i+e[m][0];
 	      jmodm = j+e[m][1];
 	      kmodm = k+e[m][2];
-	      
+
 	      if(m==5)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) + 
+		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][6] - feqn[imod][jmod][kmod][6]);
 	      else if(m==11)
 		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][12] - feqold[imod][jmod][kmod][m]) +
@@ -3130,11 +3130,11 @@ void FixLbFluid::update_full19(void)
 		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][17] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	      else
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) + 
+		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	    }
 	  }
-	}      
+	}
       }else{
 	update_periodic(1,subNbx-1,1,subNby-1,1,2);
       }
@@ -3146,9 +3146,9 @@ void FixLbFluid::update_full19(void)
 	      imod = i-e[m][0];
 	      jmod = j-e[m][1];
 	      kmod = k-e[m][2];
-	      
+
 	      fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
-	    }	    
+	    }
 	    for(m=0; m<19; m++){
 	      imod = i-e[m][0];
 	      jmod = j-e[m][1];
@@ -3156,40 +3156,40 @@ void FixLbFluid::update_full19(void)
 	      imodm = i+e[m][0];
 	      jmodm = j+e[m][1];
 	      kmodm = k+e[m][2];
-	      
+
 	      if(m==6)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) + 
+		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][5] - feqn[imod][jmod][kmod][5]);
 	      else if(m==12)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][11] - feqold[imod][jmod][kmod][m]) + 
+		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][11] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][11] - feqn[imod][jmod][kmod][11]);
 	      else if(m==14)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][13] - feqold[imod][jmod][kmod][m]) + 
+		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][13] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][13] - feqn[imod][jmod][kmod][13]);
 	      else if(m==16)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][15] - feqold[imod][jmod][kmod][m]) + 
+		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][15] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][15] - feqn[imod][jmod][kmod][15]);
 	      else if(m==18)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][17] - feqold[imod][jmod][kmod][m]) + 
+		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][17] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][17] - feqn[imod][jmod][kmod][17]);
 	      else if(m==5)
 		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][6] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	  
+		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][6] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	      else if(m==11)
 		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	  
+		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	      else if(m==13)
 		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	
+		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	      else if(m==15)
 		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
 		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][16] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	      else if(m==17)
 		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][18] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	  	  
+		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][18] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	      else
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) + 
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);	       
+		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+		  (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 	    }
 	  }
 	}
@@ -3198,17 +3198,17 @@ void FixLbFluid::update_full19(void)
 	update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
       }
     }
-    
+
     req_send15=MPI_REQUEST_NULL;
     req_recv25=MPI_REQUEST_NULL;
     req_send25=MPI_REQUEST_NULL;
     req_recv15=MPI_REQUEST_NULL;
-    
+
     if(comm->myloc[2]==0){
       MPI_Isend(&fnew[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&req_send15);
       MPI_Irecv(&fnew[0][0][0][0],1,passzf,comm->procneigh[2][0],25,world,&req_recv25);
     }
-    
+
     if(comm->myloc[2]==comm->procgrid[2]-1){
       MPI_Isend(&fnew[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],25,world,&req_send25);
       MPI_Irecv(&fnew[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],15,world,&req_recv15);
@@ -3216,11 +3216,11 @@ void FixLbFluid::update_full19(void)
     if(comm->myloc[2]==0){
       MPI_Wait(&req_send15,&status);
       MPI_Wait(&req_recv25,&status);
-      
+
       for(i=1;i<subNbx-1;i++){
 	for(j=1;j<subNby-1;j++){
 	  k=1;
-	  
+
 	  if(typeLB == 1){
 	    fnew[i][j][k][5]=fnew[i][j][k-1][6];
 	    tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18];
@@ -3228,36 +3228,36 @@ void FixLbFluid::update_full19(void)
 	  else{
 	    fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
 	    tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18] +
-	      (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k+1][11] + feqn[i+1][j][k+1][13] + 
-				      feqn[i][j-1][k+1][15] + feqn[i][j+1][k+1][17]);	     
+	      (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k+1][11] + feqn[i+1][j][k+1][13] +
+				      feqn[i][j-1][k+1][15] + feqn[i][j+1][k+1][17]);
 	  }
-	  
+
 	  tmp2=fnew[i][j][k][3]+fnew[i][j][k][9]+fnew[i][j][k][10]+fnew[i][j][k][14]-
 	    fnew[i][j][k][1]-fnew[i][j][k][7]-fnew[i][j][k][8]-fnew[i][j][k][12];
-	  
+
 	  rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
 	    fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
 	    fnew[i][j][k][10]+fnew[i][j][k][12]+fnew[i][j][k][14]+fnew[i][j][k][16]+fnew[i][j][k][18]+tmp1;
-	  
+
 	  tmp3=rb*vwbt-fnew[i][j][k][2]+fnew[i][j][k][4]-fnew[i][j][k][7]+fnew[i][j][k][8]-fnew[i][j][k][9]+
 	    fnew[i][j][k][10]-fnew[i][j][k][16]+fnew[i][j][k][18];
-	  
+
 	  fnew[i][j][k][11] = 0.25*(tmp1+2.0*tmp2);
 	  fnew[i][j][k][13] = 0.25*(tmp1-2.0*tmp2);
 	  fnew[i][j][k][15] = 0.25*(tmp1+2.0*tmp3);
 	  fnew[i][j][k][17] = 0.25*(tmp1-2.0*tmp3);
 	}
       }
-      
+
     }
     if(comm->myloc[2]==comm->procgrid[2]-1){
       MPI_Wait(&req_send25,&status);
       MPI_Wait(&req_recv15,&status);
-      
+
       for(i=1;i<subNbx-1;i++){
 	for(j=1;j<subNby-1;j++){
 	  k=subNbz-2;
-	  
+
 	  if(typeLB == 1){
 	    fnew[i][j][k][6]=fnew[i][j][k+1][5];
 	    tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17];
@@ -3265,33 +3265,33 @@ void FixLbFluid::update_full19(void)
 	  else{
 	    fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
 	    tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17] +
-	      (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k-1][12] + feqn[i+1][j][k-1][14] + 
+	      (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k-1][12] + feqn[i+1][j][k-1][14] +
 				      feqn[i][j-1][k-1][16] + feqn[i][j+1][k-1][18]);
 	  }
-	  
+
 	  tmp2=fnew[i][j][k][3]+fnew[i][j][k][9]+fnew[i][j][k][10]+fnew[i][j][k][13]-fnew[i][j][k][1]-
 	    fnew[i][j][k][7]-fnew[i][j][k][8]-fnew[i][j][k][11];
-	  
+
 	  rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
 	    fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
 	    fnew[i][j][k][10]+fnew[i][j][k][11]+fnew[i][j][k][13]+fnew[i][j][k][15]+fnew[i][j][k][17]+tmp1;
-	  
+
 	  tmp3=rb*vwtp-fnew[i][j][k][2]+fnew[i][j][k][4]-fnew[i][j][k][7]+fnew[i][j][k][8]-fnew[i][j][k][9]+
 	    fnew[i][j][k][10]-fnew[i][j][k][15]+fnew[i][j][k][17];
-	  
+
 	  fnew[i][j][k][12] = 0.25*(tmp1+2.0*tmp2);
 	  fnew[i][j][k][14] = 0.25*(tmp1-2.0*tmp2);
 	  fnew[i][j][k][16] = 0.25*(tmp1+2.0*tmp3);
 	  fnew[i][j][k][18] = 0.25*(tmp1-2.0*tmp3);
 	}
-      }	
+      }
     }
-    
+
     //--------------------------------------------------------------------------
     // Periodic z boundary conditions.
     //--------------------------------------------------------------------------
   }else {
-    
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[1][1][1][0],1,passxf,comm->procneigh[0][0],15,world,&requests[0]);
@@ -3306,23 +3306,23 @@ void FixLbFluid::update_full19(void)
     }
     update_periodic(2,subNbx-2,2,subNby-2,2,subNbz-2);
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[0][1][1][0],1,passyf,comm->procneigh[1][0],15,world,&requests[0]);
-    MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);   
+    MPI_Irecv(&feq[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);
     MPI_Isend(&feq[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],25,world,&requests[2]);
     MPI_Irecv(&feq[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],15,world,&requests[3]);
     if(typeLB == 2){
       MPI_Isend(&feqn[0][1][1][0],1,passyf,comm->procneigh[1][0],10,world,&requests[4]);
-      MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);   
+      MPI_Irecv(&feqn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);
       MPI_Isend(&feqn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
     }
     update_periodic(1,2,2,subNby-2,2,subNbz-2);
     update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
     MPI_Isend(&feq[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&requests[0]);
@@ -3334,15 +3334,15 @@ void FixLbFluid::update_full19(void)
       MPI_Irecv(&feqn[0][0][0][0],1,passzf,comm->procneigh[2][0],20,world,&requests[5]);
       MPI_Isend(&feqn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]);
-    }  
+    }
     update_periodic(1,subNbx-1,1,2,2,subNbz-2);
     update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
-    
+
     update_periodic(1,subNbx-1,1,subNby-1,1,2);
     update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
   }
-  
+
 }
 
 

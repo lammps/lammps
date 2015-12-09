@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "delete_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -128,19 +128,19 @@ void DeleteAtoms::command(int narg, char **arg)
               " atoms, new total = " BIGINT_FORMAT "\n",
               ndelete,atom->natoms);
       if (bond_flag || mol_flag) {
-        if (nbonds_previous) 
+        if (nbonds_previous)
           fprintf(screen,"Deleted " BIGINT_FORMAT
                   " bonds, new total = " BIGINT_FORMAT "\n",
                   ndelete_bonds,atom->nbonds);
-        if (nangles_previous) 
+        if (nangles_previous)
           fprintf(screen,"Deleted " BIGINT_FORMAT
                   " angles, new total = " BIGINT_FORMAT "\n",
                   ndelete_angles,atom->nangles);
-        if (ndihedrals_previous) 
+        if (ndihedrals_previous)
           fprintf(screen,"Deleted " BIGINT_FORMAT
                   " dihedrals, new total = " BIGINT_FORMAT "\n",
                   ndelete_dihedrals,atom->ndihedrals);
-        if (nimpropers_previous) 
+        if (nimpropers_previous)
           fprintf(screen,"Deleted " BIGINT_FORMAT
                   " impropers, new total = " BIGINT_FORMAT "\n",
                   ndelete_impropers,atom->nimpropers);
@@ -152,19 +152,19 @@ void DeleteAtoms::command(int narg, char **arg)
               " atoms, new total = " BIGINT_FORMAT "\n",
               ndelete,atom->natoms);
       if (bond_flag || mol_flag) {
-        if (nbonds_previous) 
+        if (nbonds_previous)
           fprintf(logfile,"Deleted " BIGINT_FORMAT
                   " bonds, new total = " BIGINT_FORMAT "\n",
                   ndelete_bonds,atom->nbonds);
-        if (nangles_previous) 
+        if (nangles_previous)
           fprintf(logfile,"Deleted " BIGINT_FORMAT
                   " angles, new total = " BIGINT_FORMAT "\n",
                   ndelete_angles,atom->nangles);
-        if (ndihedrals_previous) 
+        if (ndihedrals_previous)
           fprintf(logfile,"Deleted " BIGINT_FORMAT
                   " dihedrals, new total = " BIGINT_FORMAT "\n",
                   ndelete_dihedrals,atom->ndihedrals);
-        if (nimpropers_previous) 
+        if (nimpropers_previous)
           fprintf(logfile,"Deleted " BIGINT_FORMAT
                   " impropers, new total = " BIGINT_FORMAT "\n",
                   ndelete_impropers,atom->nimpropers);
@@ -712,10 +712,10 @@ void DeleteAtoms::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
-      if (atom->molecular == 0) 
+      if (atom->molecular == 0)
         error->all(FLERR,"Cannot delete_atoms bond yes for "
                    "non-molecular systems");
-      if (atom->molecular == 2) 
+      if (atom->molecular == 2)
         error->all(FLERR,"Cannot use delete_atoms bond yes with "
                    "atom_style template");
       if (strcmp(arg[iarg+1],"yes") == 0) bond_flag = 1;
@@ -724,7 +724,7 @@ void DeleteAtoms::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
-      if (atom->molecule_flag == 0) 
+      if (atom->molecule_flag == 0)
         error->all(FLERR,"Delete_atoms mol yes requires "
                    "atom attribute molecule");
       if (strcmp(arg[iarg+1],"yes") == 0) mol_flag = 1;

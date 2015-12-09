@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,8 +16,8 @@
    [ based on dihedral_helix.cpp Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "dihedral_quadratic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -162,8 +162,8 @@ void DihedralQuadratic::compute(int eflag, int vflag)
       MPI_Comm_rank(world,&me);
       if (screen) {
 	char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " " 
-                TAGINT_FORMAT " " TAGINT_FORMAT " " 
+        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
+                TAGINT_FORMAT " " TAGINT_FORMAT " "
                 TAGINT_FORMAT " " TAGINT_FORMAT,
                 me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
@@ -197,7 +197,7 @@ void DihedralQuadratic::compute(int eflag, int vflag)
     pd = - 2.0 * p * siinv;
     p = p * dphi;
 
-    if (eflag) edihedral = p; 
+    if (eflag) edihedral = p;
 
     a = pd;
     c = c * a;
@@ -293,7 +293,7 @@ void DihedralQuadratic::coeff(int narg, char **arg)
   // require k >= 0
   if (k_one < 0.0)
     error->all(FLERR,"Incorrect coefficient arg for dihedral coefficients");
-                       
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
@@ -306,7 +306,7 @@ void DihedralQuadratic::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void DihedralQuadratic::write_restart(FILE *fp)
@@ -316,7 +316,7 @@ void DihedralQuadratic::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void DihedralQuadratic::read_restart(FILE *fp)
@@ -329,7 +329,7 @@ void DihedralQuadratic::read_restart(FILE *fp)
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&phi0[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
- 
+
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
 

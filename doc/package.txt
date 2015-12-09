@@ -33,7 +33,7 @@ args = arguments specific to the style :l
   {gpu} args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
     zero or more keyword/value pairs may be appended 
-    keywords = {neigh} or {newton} or {binsize} or {split} or {gpuID} or {tpa} or {device}
+    keywords = {neigh} or {newton} or {binsize} or {split} or {gpuID} or {tpa} or {device} or {blocksize}
       {neigh} value = {yes} or {no}
         yes = neighbor list build on GPU (default)
         no = neighbor list build on CPU
@@ -314,13 +314,6 @@ large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
 
-The {blocksize} keyword allows you to tweak the number of threads used
-per thread block. This number should be a multiple of 32 (for GPUs)
-and its maximum depends on the specific GPU hardware. Typical choices
-are 64, 128, or 256. A larger blocksize increases occupancy of
-individual GPU cores, but reduces the total number of thread blocks,
-thus may lead to load imbalance.
-
 The {device} keyword can be used to tune parameters optimized for a
 specific accelerator, when using OpenCL.  For CUDA, the {device}
 keyword is ignored.  Currently, the device type is limited to NVIDIA
@@ -328,6 +321,13 @@ Kepler, NVIDIA Fermi, AMD Cypress, or a generic device.  More devices
 may be added later.  The default device type can be specified when
 building LAMMPS with the GPU library, via settings in the
 lib/gpu/Makefile that is used.
+
+The {blocksize} keyword allows you to tweak the number of threads used
+per thread block. This number should be a multiple of 32 (for GPUs)
+and its maximum depends on the specific GPU hardware. Typical choices
+are 64, 128, or 256. A larger blocksize increases occupancy of
+individual GPU cores, but reduces the total number of thread blocks,
+thus may lead to load imbalance.
 
 :line
 

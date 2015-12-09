@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "set.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -566,13 +566,15 @@ void Set::set(int keyword)
     // overwrite dvalue, ivalue, xyzw value if variables defined
     // else the input script scalar value remains in place
 
-    if (varflag1) {
-      dvalue = xvalue = vec1[i];
-      ivalue = static_cast<int> (dvalue);
+    if (varflag) {
+      if (varflag1) {
+        dvalue = xvalue = vec1[i];
+        ivalue = static_cast<int> (dvalue);
+      }
+      if (varflag2) yvalue = vec2[i];
+      if (varflag3) zvalue = vec3[i];
+      if (varflag4) wvalue = vec4[i];
     }
-    if (varflag2) yvalue = vec2[i];
-    if (varflag3) zvalue = vec3[i];
-    if (varflag4) wvalue = vec4[i];
 
     // set values in per-atom arrays
     // error check here in case atom-style variables generated bogus value
@@ -581,7 +583,7 @@ void Set::set(int keyword)
       if (ivalue <= 0 || ivalue > atom->ntypes)
         error->one(FLERR,"Invalid value in set command");
       atom->type[i] = ivalue;
-    } 
+    }
     else if (keyword == MOLECULE) atom->molecule[i] = ivalue;
     else if (keyword == X) atom->x[i][0] = dvalue;
     else if (keyword == Y) atom->x[i][1] = dvalue;
@@ -590,7 +592,7 @@ void Set::set(int keyword)
     else if (keyword == MASS) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command");
       atom->rmass[i] = dvalue;
-    } 
+    }
     else if (keyword == DIAMETER) {
       if (dvalue < 0.0) error->one(FLERR,"Invalid diameter in set command");
       atom->radius[i] = 0.5 * dvalue;
@@ -728,8 +730,8 @@ void Set::set(int keyword)
       if (ximageflag) xbox = ximage;
       if (yimageflag) ybox = yimage;
       if (zimageflag) zbox = zimage;
-      atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
-        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+      atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
 

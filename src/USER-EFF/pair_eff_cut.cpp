@@ -15,10 +15,10 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_eff_cut.h"
 #include "pair_eff_inline.h"
 #include "atom.h"
@@ -806,11 +806,11 @@ void PairEffCut::settings(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"limit/eradius") == 0) {
-      limit_eradius_flag = 1; 
+      limit_eradius_flag = 1;
       iarg += 1;
     }
     else if (strcmp(arg[iarg],"pressure/evirials") == 0) {
-      pressure_with_evirials_flag = 1; 
+      pressure_with_evirials_flag = 1;
       iarg += 1;
     }
     else if (strcmp(arg[iarg],"ecp") == 0) {
@@ -822,14 +822,14 @@ void PairEffCut::settings(int narg, char **arg)
         else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
         else if (strcmp(arg[iarg+1],"Al") == 0) ecp_type[atype] = 13;
         else if (strcmp(arg[iarg+1],"Si") == 0) ecp_type[atype] = 14;
-        else error->all(FLERR, "Note: there are no default parameters for this atom ECP\n"); 
+        else error->all(FLERR, "Note: there are no default parameters for this atom ECP\n");
         iarg += 2;
         ecp_found = 1;
-      } 
+      }
     }
   }
 
-  if (!ecp_found && atom->ecp_flag) 
+  if (!ecp_found && atom->ecp_flag)
     error->all(FLERR,"Need to specify ECP type on pair_style command");
 
   // Need to introduce 2 new constants w/out changing update.cpp
@@ -921,7 +921,7 @@ void PairEffCut::coeff(int narg, char **arg)
       PAULI_CORE_C[ecp_type[ecp]] = force->numeric(FLERR,arg[4]);
       PAULI_CORE_D[ecp_type[ecp]] = force->numeric(FLERR,arg[5]);
       PAULI_CORE_E[ecp_type[ecp]] = force->numeric(FLERR,arg[6]);
-    } else error->all(FLERR,"Illegal pair_coeff command"); 
+    } else error->all(FLERR,"Illegal pair_coeff command");
   }
 }
 

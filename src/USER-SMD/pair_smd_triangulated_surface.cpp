@@ -26,10 +26,10 @@
  Contributing author: Mike Parks (SNL)
  ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "float.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <float.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_smd_triangulated_surface.h"
 #include "atom.h"
 #include "domain.h"

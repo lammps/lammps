@@ -15,9 +15,9 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "improper_class2.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -156,8 +156,8 @@ void ImproperClass2::compute(int eflag, int vflag)
         MPI_Comm_rank(world,&me);
         if (screen) {
           char str[128];
-          sprintf(str,"Improper problem: %d " BIGINT_FORMAT " " 
-                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+          sprintf(str,"Improper problem: %d " BIGINT_FORMAT " "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " "
                   TAGINT_FORMAT " " TAGINT_FORMAT,
                   me,update->ntimestep,
                   atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
@@ -853,5 +853,5 @@ void ImproperClass2::write_data(FILE *fp)
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp,"%d %g %g %g %g %g %g\n",i,aa_k1[i],aa_k2[i],aa_k3[i],
             aa_theta0_1[i]*180.0/MY_PI,aa_theta0_2[i]*180.0/MY_PI,
-            aa_theta0_3[i]*180.0/MY_PI);  
+            aa_theta0_3[i]*180.0/MY_PI);
 }

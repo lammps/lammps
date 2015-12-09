@@ -387,6 +387,7 @@ void DumpMolfile::write_data(int n, double *mybuf)
 
       if (need_structure) {
         mf->property(MFI::P_NAME,types,typenames);
+        mf->property(MFI::P_TYPE,types,typenames);
 
         if (atom->molecule_flag)
           mf->property(MFI::P_RESI,molids);

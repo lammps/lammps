@@ -137,7 +137,7 @@
 <li>N = invoke this fix every N steps</li>
 <li>X = average number of GCMC exchanges to attempt every N steps</li>
 <li>M = average number of MC moves to attempt every N steps</li>
-<li>type = atom type to assign to inserted atoms (offset for molecule insertion)</li>
+<li>type = atom type for inserted atoms (must be 0 if mol keyword used)</li>
 <li>seed = random # seed (positive integer)</li>
 <li>T = temperature of the ideal gas reservoir (temperature units)</li>
 <li>mu = chemical potential of the ideal gas reservoir (energy units)</li>
@@ -145,7 +145,7 @@
 <li>zero or more keyword/value pairs may be appended to args</li>
 </ul>
 <pre class="literal-block">
-keyword = <em>mol</em>, <em>region</em>, <em>maxangle</em>, <em>pressure</em>, <em>fugacity_coeff</em>, <em>full_energy</em>, <em>charge</em>, <em>group</em>, <em>grouptype</em>, or <em>intra_energy</em>
+keyword = <em>mol</em>, <em>region</em>, <em>maxangle</em>, <em>pressure</em>, <em>fugacity_coeff</em>, <em>full_energy</em>, <em>charge</em>, <em>group</em>, <em>grouptype</em>, <em>intra_energy</em>, or <em>tfac_insert</em>
   <em>mol</em> value = template-ID
     template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
   <em>shake</em> value = fix-ID
@@ -163,6 +163,7 @@ keyword = <em>mol</em>, <em>region</em>, <em>maxangle</em>, <em>pressure</em>, <
     type = atom type (int)
     group-ID = group-ID for inserted atoms (string)
   <em>intra_energy</em> value = intramolecular energy (energy units)
+  <em>tfac_insert</em> value = scale up/down temperature of inserted atoms (unitless)
 </pre>
 </div>
 <div class="section" id="examples">
@@ -205,12 +206,10 @@ attempted with 50% probability.</p>
 be &#8220;all&#8221;). In addition, particles are also added to any groups specified
 by the <em>group</em> and <em>grouptype</em> keywords.
 If inserted particles are individual atoms, they are
-assigned the specified atom type.  If they are molecules, the type of
-each atom in the inserted molecule is specified in the file read by
-the <a class="reference internal" href="molecule.html"><em>molecule</em></a> command, and those values are added to
-the specified atom type.  E.g. if <em>type</em> = 2, and the file specifies
-atom types 1,2,3, then the inserted molecule will have atom types
-3,4,5.</p>
+assigned the atom type given by the type argument.  If they are molecules,
+the type argument has no effect and must be set to zero. Instead,
+the type of each atom in the inserted molecule is specified
+in the file read by the <a class="reference internal" href="molecule.html"><em>molecule</em></a> command.</p>
 <p>This fix cannot be used to perform MC insertions of gas atoms or
 molecules other than the exchanged type, but MC deletions,
 translations, and rotations can be performed on any atom/molecule in
@@ -237,7 +236,15 @@ until the atom or molecule center-of-mass is inside the specified region.</p>
 <p>If used with <code class="xref doc docutils literal"><span class="pre">fix_nvt</span></code>, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
 used in <code class="xref doc docutils literal"><span class="pre">fix_nvt</span></code>. Otherwise, the imaginary reservoir
-will not be in thermal equilibrium with the simulation cell.</p>
+will not be in thermal equilibrium with the simulation cell. Also,
+it is important that the temperature used by fix nvt be dynamic,
+which can be achieved as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute mdtemp mdatoms temp
+compute_modify mdtemp dynamic yes
+fix mdnvt mdatoms nvt temp 300.0 300.0 10.0
+fix_modify mdnvt temp mdtemp
+</pre></div>
+</div>
 <p>Note that neighbor lists are re-built every timestep that this fix is
 invoked, so you should not set N to be too small.  However, periodic
 rebuilds are necessary in order to avoid dangerous rebuilds and missed
@@ -247,7 +254,9 @@ distance. See the <a class="reference internal" href="neighbor.html"><em>neighbo
 <p>When an atom or molecule is to be inserted, its
 coordinates are chosen at a random position within the current
 simulation cell or region, and new atom velocities are randomly chosen from
-the specified temperature distribution given by T.  Relative
+the specified temperature distribution given by T. The effective
+temperature for new atom velocities can be increased or decreased
+using the optional keyword <em>tfac_insert</em> (see below). Relative
 coordinates for atoms in a molecule are taken from the template
 molecule provided by the user. The center of mass of the molecule
 is placed at the insertion point. The orientation of the molecule
@@ -321,6 +330,18 @@ is inserted, and added to the initial energy when a molecule is
 deleted. For molecules that have a non-zero intramolecular energy, this
 will ensure roughly the same behavior whether or not the <em>full_energy</em>
 option is used.</p>
+<p>Inserted atoms and molecules are assigned random velocities based on the
+specified temperature T. Because the relative velocity of
+all atoms in the molecule is zero, this may result in inserted molecules
+that are systematically too cold. In addition, the intramolecular potential
+energy of the inserted molecule may cause the kinetic energy
+of the molecule to quickly increase or decrease after insertion.
+The <em>tfac_insert</em> keyword allows the user to counteract these effects
+by changing the temperature used to assign velocities to
+inserted atoms and molecules by a constant factor. For a
+particular application, some experimentation may be required
+to find a value of <em>tfac_insert</em> that results in inserted molecules that
+equilibrate quickly to the correct temperature.</p>
 <p>Some fixes have an associated potential energy. Examples of such fixes
 include: <a class="reference internal" href="fix_efield.html"><em>efield</em></a>, <a class="reference internal" href="fix_gravity.html"><em>gravity</em></a>,
 <a class="reference internal" href="fix_addforce.html"><em>addforce</em></a>, <a class="reference internal" href="fix_langevin.html"><em>langevin</em></a>,

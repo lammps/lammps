@@ -1,0 +1,37 @@
+# DATE: 2015-10-14 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Broughton, Meli,Vashishta,and Kalia, Phys Rev B, v. 56, p. 611 (1997)
+#
+# Vashishta potential file for SiO2, Broughton, Meli,Vashishta,and Kalia, Phys Rev B, v. 56, p. 611 (1997)
+#
+# These entries are in LAMMPS "metal" units:
+#   H = eV*Angstroms^eta; Zi, Zj = |e| (e = electronic charge); 
+#   lambda1, lambda4, rc, r0, gamma = Angstroms; 
+#   D = eV*Angstroms^4; W = eV*Angstroms^6; B = eV; 
+#   other quantities are unitless
+#
+# element1  element2  element3
+#           H  eta  Zi  Zj  lambda1  D  lambda4
+#           W  rc  B  gamma  r0  C  cos(theta)
+
+Si  Si   Si 0.15500  11  0.7872  0.7872  4.43  0.0  2.5
+            0.0  5.5  0.0  0.0  0.0  0.0  0.0
+
+O   O   O   140.38  7  -0.3936 -0.3936 4.43  5.3504  2.5
+            0.0  5.5  0.0  0.0  0.0  0.0  0.0
+
+O   Si  Si  30.923  9  -0.3936  0.7872  4.43  10.701  2.5
+            0.0  5.5  19.972  1.0  2.60  0.0  -0.80593
+
+Si  O   O   30.923  9  0.7872  -0.3936  4.43  10.701  2.5
+            0.0  5.5  4.993  1.0  2.60  0.0  -0.333333333333
+
+Si  O   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+Si  Si  O   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0            
+
+O   Si  O   0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+O   O   Si  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+            0.0  0.0  0.0  0.0  0.0  0.0  0.0

@@ -22,7 +22,7 @@ OBJ = 		$(SRC:.c=.o)
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-O -fPIC
+CCFLAGS =	-O -fPIC -I. # add -I to insure mpi.h from this dir is included
 ARCHIVE =	ar
 ARCHFLAG =	rs
 

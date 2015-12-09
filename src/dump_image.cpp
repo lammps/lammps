@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "ctype.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dump_image.h"
 #include "image.h"
 #include "atom.h"
@@ -952,7 +952,7 @@ void DumpImage::create_image()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpImage::pack_forward_comm(int n, int *list, double *buf, 
+int DumpImage::pack_forward_comm(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
   int i,j,m;

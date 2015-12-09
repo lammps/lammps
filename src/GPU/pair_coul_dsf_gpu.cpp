@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_coul_dsf_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 #define MY_PIS 1.77245385090551602729
@@ -52,8 +52,8 @@ int cdsf_gpu_init(const int ntypes, const int nlocal, const int nall,
                   const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen,
                   const double host_cut_coulsq,
-                  double *host_special_coul, const double qqrd2e, 
-                  const double e_shift, const double f_shift, 
+                  double *host_special_coul, const double qqrd2e,
+                  const double e_shift, const double f_shift,
                   const double alpha);
 void cdsf_gpu_clear();
 int ** cdsf_gpu_compute_n(const int ago, const int inum,
@@ -75,7 +75,7 @@ double cdsf_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDSFGPU::PairCoulDSFGPU(LAMMPS *lmp) : PairCoulDSF(lmp), 
+PairCoulDSFGPU::PairCoulDSFGPU(LAMMPS *lmp) : PairCoulDSF(lmp),
   gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
@@ -164,10 +164,10 @@ void PairCoulDSFGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   cut_coulsq = cut_coul * cut_coul;
-  double erfcc = erfc(alpha*cut_coul); 
+  double erfcc = erfc(alpha*cut_coul);
   double erfcd = exp(-alpha*alpha*cut_coul*cut_coul);
-  f_shift = -(erfcc/cut_coulsq + 2.0/MY_PIS*alpha*erfcd/cut_coul); 
-  e_shift = erfcc/cut_coul - f_shift*cut_coul; 
+  f_shift = -(erfcc/cut_coulsq + 2.0/MY_PIS*alpha*erfcd/cut_coul);
+  e_shift = erfcc/cut_coul - f_shift*cut_coul;
 
   int maxspecial=0;
   if (atom->molecular)
@@ -248,10 +248,10 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
         erfcd = exp(-alpha*alpha*r*r);
         t = 1.0 / (1.0 + EWALD_P*alpha*r);
         erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-        forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
+        forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
           r*f_shift) * r;
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
- 
+
         fpair = forcecoul * r2inv;
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;

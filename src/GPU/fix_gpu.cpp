@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_gpu.h"
 #include "atom.h"
 #include "force.h"
@@ -40,7 +40,7 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
                            const int first_gpu, const int last_gpu,
                            const int gpu_mode, const double particle_split,
                            const int nthreads, const int t_per_atom,
-                           const double cell_size, char *opencl_flags, 
+                           const double cell_size, char *opencl_flags,
                            const int block_pair);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
@@ -89,7 +89,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (ngpu <= 0) error->all(FLERR,"Illegal package gpu command");
   int first_gpu = 0;
   int last_gpu = ngpu-1;
-  
+
   // options
 
   _gpu_mode = GPU_NEIGH;
@@ -172,7 +172,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (binsize == 0.0) binsize = -1.0;
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
                                  _gpu_mode, _particle_split, nthreads,
-                                 threads_per_atom, binsize, opencl_flags, 
+                                 threads_per_atom, binsize, opencl_flags,
                                  block_pair);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
@@ -200,8 +200,8 @@ int FixGPU::setmask()
 void FixGPU::init()
 {
   // GPU package cannot be used with atom_style template
-  
-  if (atom->molecular == 2) 
+
+  if (atom->molecular == 2)
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
 
@@ -219,7 +219,7 @@ void FixGPU::init()
 
   // neighbor list builds on the GPU with triclinic box is not yet supported
 
-  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) && 
+  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) &&
       domain->triclinic)
     error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
 
@@ -229,7 +229,7 @@ void FixGPU::init()
     error->warning(FLERR,"Using package gpu without any pair style defined");
 
   // make sure fdotr virial is not accumulated multiple times
-  
+
   if (force->pair_match("hybrid",1) != NULL) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)

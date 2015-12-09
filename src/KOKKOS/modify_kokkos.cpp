@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ModifyKokkos::ModifyKokkos(LAMMPS *lmp) : Modify(lmp) 
+ModifyKokkos::ModifyKokkos(LAMMPS *lmp) : Modify(lmp)
 {
   atomKK = (AtomKokkos *) atom;
 }

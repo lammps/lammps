@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "timer.h"
 #include "comm.h"
 #include "error.h"
@@ -88,7 +88,7 @@ void Timer::_stamp(enum ttype which)
   if ((which > TOTAL) && (which < NUM_TIMER)) {
     const double delta_cpu = current_cpu - previous_cpu;
     const double delta_wall = current_wall - previous_wall;
-    
+
     cpu_array[which]  += delta_cpu;
     wall_array[which] += delta_wall;
     cpu_array[ALL]    += delta_cpu;
@@ -200,7 +200,7 @@ void Timer::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],timer_mode[NORMAL])  == 0) {
       _sync  = NORMAL;
     } else error->all(FLERR,"Illegal timers command");
-    ++iarg;  
+    ++iarg;
   }
 
   if (comm->me == 0) {

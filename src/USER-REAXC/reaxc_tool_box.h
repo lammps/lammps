@@ -30,34 +30,10 @@
 #include "reaxc_types.h"
 #include "reaxc_defs.h"
 
-/* from comm_tools.h */
-int SumScan( int, int, int, MPI_Comm );
-void SumScanB( int, int, int, int, MPI_Comm, int* );
-
-/* from box.h */
-void Transform_to_UnitBox( rvec, simulation_box*, char, rvec );
-void Fit_to_Periodic_Box( simulation_box*, rvec* );
-void Box_Touch_Point( simulation_box*, ivec, rvec );
-int  is_Inside_Box( simulation_box*, rvec );
-int  iown_midpoint( simulation_box*, rvec, rvec );
-
-/* from grid.h */
-void GridCell_Closest_Point( grid_cell*, grid_cell*, ivec, ivec, rvec );
-void GridCell_to_Box_Points( grid_cell*, ivec, rvec, rvec );
-double DistSqr_between_Special_Points( rvec, rvec );
-double DistSqr_to_Special_Point( rvec, rvec );
-int Relative_Coord_Encoding( ivec );
-
 /* from system_props.h */
 double Get_Time( );
-double Get_Timing_Info( double );
-void Update_Timing_Info( double*, double* );
 
 /* from io_tools.h */
-int   Get_Atom_Type( reax_interaction*, char*, MPI_Comm );
-char *Get_Element( reax_system*, int );
-char *Get_Atom_Name( reax_system*, int );
-int   Allocate_Tokenizer_Space( char**, char**, char*** );
 int   Tokenize( char*, char*** );
 
 /* from lammps */

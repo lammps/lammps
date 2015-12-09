@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    Implementation of the Multi-Scale Shock Method with quantum nuclear effects
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_qbmsst.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -52,7 +52,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qbmsst command");
-  
+
   if ( strcmp(arg[3],"x") == 0 )
     direction = 0;
   else if ( strcmp(arg[3],"y") == 0 )
@@ -62,10 +62,10 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   else {
     error->all(FLERR,"Illegal fix qbmsst command");
   }
-  velocity = atof(arg[4]);   
+  velocity = atof(arg[4]);
   if ( velocity < 0 )
     error->all(FLERR,"Illegal fix qbmsst command");
- 
+
   // default parameters
   global_freq = 1;
   extscalar = 1;
@@ -86,7 +86,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   p0_set = 0;
   v0_set = 0;
   e0_set = 0;
-  tscale = 0.01; 
+  tscale = 0.01;
   t_period = 1.0;
   fric_coef = 1/t_period;
   seed = 880302;
@@ -160,7 +160,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 
   // check for periodicity in controlled dimensions
   if (domain->nonperiodic) error->all(FLERR,"Fix qbmsst requires a periodic box");
-  
+
   // comments
   if (comm->me == 0) {
     if (screen) {
@@ -168,18 +168,18 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
       if (direction == 0) fprintf(screen,"  Shock in x direction\n");
       else if (direction == 1) fprintf(screen,"  Shock in y direction\n");
       else if (direction == 2) fprintf(screen,"  Shock in z direction\n");
-      
+
       fprintf(screen,"  Cell mass-like parameter qmass (units of mass^2/length^4) = %12.5e\n", qmass);
       fprintf(screen,"  Shock velocity = %12.5e\n", velocity);
       fprintf(screen,"  Artificial viscosity (units of mass/length/time) = %12.5e\n", mu);
-      
+
       if (p0_set)
 	fprintf(screen,"  Initial pressure specified to be %12.5e\n", p0);
       else fprintf(screen,"  Initial pressure calculated on first step\n");
       if (v0_set)
 	fprintf(screen,"  Initial volume specified to be %12.5e\n", v0);
       else fprintf(screen,"  Initial volume calculated on first step\n");
-      if (e0_set) 
+      if (e0_set)
 	fprintf(screen,"  Initial energy specified to be %12.5e\n", e0);
       else fprintf(screen,"  Initial energy calculated on first step\n");
     }
@@ -188,18 +188,18 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
       if (direction == 0) fprintf(logfile,"  Shock in x direction\n");
       else if (direction == 1) fprintf(logfile,"  Shock in y direction\n");
       else if (direction == 2) fprintf(logfile,"  Shock in z direction\n");
-      
+
       fprintf(logfile,"  Cell mass-like parameter qmass (units of mass^2/length^4) = %12.5e\n", qmass);
       fprintf(logfile,"  Shock velocity = %12.5e\n", velocity);
       fprintf(logfile,"  Artificial viscosity (units of mass/length/time) = %12.5e\n", mu);
-      
-      if (p0_set) 
+
+      if (p0_set)
 	fprintf(logfile,"  Initial pressure specified to be %12.5e\n", p0);
       else fprintf(logfile,"  Initial pressure calculated on first step\n");
-      if (v0_set) 
+      if (v0_set)
 	fprintf(logfile,"  Initial volume specified to be %12.5e\n", v0);
       else fprintf(logfile,"  Initial volume calculated on first step\n");
-      if (e0_set) 
+      if (e0_set)
 	fprintf(logfile,"  Initial energy specified to be %12.5e\n", e0);
       else fprintf(logfile,"  Initial energy calculated on first step\n");
     }
@@ -249,7 +249,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(3,newarg);
   delete [] newarg;
   peflag = 1;
-  
+
   // allocate qbmsst
   temperature = NULL;
   pressure = NULL;
@@ -264,7 +264,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   random_array_1 = NULL;
   random_array_2 = NULL;
   fran = NULL;
-  
+
   // initialize Marsagxlia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
 
@@ -358,13 +358,13 @@ void FixQBMSST::init()
   // initiate the counter l and \mu
   counter_l=0;
   counter_mu=0;
-  
+
   // initiate qtb temperature
   if (!qtb_set) {
   	t_current = t_init; qtb_set=1;
   }
   old_eavg = e0;
-  
+
   //set up the h time step for updating the random force \delta{}h=\frac{\pi}{\Omega_{max}}
   if (int(1.0/(2*f_max*dtv)) == 0) {
     if (comm->me == 0) printf ("Warning: Either f_max is too high or the time step is too big, setting f_max to be 1/timestep!\n");
@@ -383,8 +383,8 @@ void FixQBMSST::init()
 
   // generate random number array with zero mean and variance equal 1/12.
   int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) { 
-    for (int m = 0; m < 2*N_f; m++) { 
+  for (int i = 0; i < nlocal; i++) {
+    for (int m = 0; m < 2*N_f; m++) {
       random_array_0[i][m] = random->uniform()-0.5;
       random_array_1[i][m] = random->uniform()-0.5;
       random_array_2[i][m] = random->uniform()-0.5;
@@ -422,7 +422,7 @@ void FixQBMSST::init()
 }
 
 /* ----------------------------------------------------------------------
-   compute T,P before integrator starts 
+   compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 void FixQBMSST::setup(int vflag)
 {
@@ -440,7 +440,7 @@ void FixQBMSST::setup(int vflag)
       if ( screen ) fprintf(screen,"Fix QBMSST v0 = %12.5e\n", v0);
       if ( logfile ) fprintf(logfile,"Fix QBMSST v0 = %12.5e\n", v0);
     }
-  } 
+  }
 
   if ( p0_set == 0 ) {
     p0 = p_current[direction];
@@ -467,10 +467,10 @@ void FixQBMSST::setup(int vflag)
   temperature->compute_vector();
   double *ke_tensor = temperature->vector;
   double ke_temp = ke_tensor[0]+ke_tensor[1]+ke_tensor[2];
-  if (ke_temp > 0.0 && tscale > 0.0 ) { 
+  if (ke_temp > 0.0 && tscale > 0.0 ) {
 
     // transfer energy from atom velocities to cell volume motion
-    // to bias initial compression 
+    // to bias initial compression
     double **v = atom->v;
     int *mask = atom->mask;
     double sqrt_initial_temperature_scaling = sqrt(1.0-tscale);
@@ -497,7 +497,7 @@ void FixQBMSST::setup(int vflag)
 	}
       }
     }
-  } 
+  }
 
   // trigger virial computation on next timestep
   pressure->addstep(update->ntimestep+1);
@@ -505,7 +505,7 @@ void FixQBMSST::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   1st half of Verlet update 
+   1st half of Verlet update
 ------------------------------------------------------------------------- */
 void FixQBMSST::initial_integrate(int vflag)
 {
@@ -513,7 +513,7 @@ void FixQBMSST::initial_integrate(int vflag)
   sd = direction;
   double p_qbmsst;// QBMSST driving pressure.
   int i, k;
-  double vol;                   
+  double vol;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double **v = atom->v;
@@ -537,10 +537,10 @@ void FixQBMSST::initial_integrate(int vflag)
     t_current -= dtv*fric_coef*eta*beta*(old_eavg-e0)/(3*ntotal*boltz);
     old_eavg = 0;//clear old energy average
     if (t_current < 0.0) t_current=0;
-    
+
     // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
     for (int k = 0; k < 2*N_f; k++) {
-      double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1 
+      double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
       if(k == N_f) {
         omega_H[k]=sqrt(force->boltz * t_current);
       } else {
@@ -551,7 +551,7 @@ void FixQBMSST::initial_integrate(int vflag)
     }
 
     // construct the signal filter H, filter has the unit of of sqrt(energy) \sqrt{2N_f}^{-1}H\left(t_n\right)
-    for (int n = 0; n < 2*N_f; n++) { 
+    for (int n = 0; n < 2*N_f; n++) {
       time_H[n] = 0;
       double t_n=(n-N_f);
       for (int k = 0; k < 2*N_f; k++) {
@@ -561,22 +561,22 @@ void FixQBMSST::initial_integrate(int vflag)
       time_H[n]/=(2.0*N_f);
     }
   }
- 
+
   //update the colored random force every alpha MD steps
   if (counter_mu == 0) {
     //propagate h_timestep ahead
     for (int j = 0; j < nlocal; j++) {
-      
+
       //update random array
-      for (int m = 0; m < 2*N_f-1; m++) { 
+      for (int m = 0; m < 2*N_f-1; m++) {
 	    random_array_0[j][m] = random_array_0[j][m+1];
-	    random_array_1[j][m] = random_array_1[j][m+1];  
-	    random_array_2[j][m] = random_array_2[j][m+1];  
+	    random_array_1[j][m] = random_array_1[j][m+1];
+	    random_array_2[j][m] = random_array_2[j][m+1];
       }
-      random_array_0[j][2*N_f-1] = random->uniform()-0.5;	 
+      random_array_0[j][2*N_f-1] = random->uniform()-0.5;
       random_array_1[j][2*N_f-1] = random->uniform()-0.5;
       random_array_2[j][2*N_f-1] = random->uniform()-0.5;
-      
+
       //reset random force
       fran[j][0] = 0.0;
       fran[j][1] = 0.0;
@@ -584,9 +584,9 @@ void FixQBMSST::initial_integrate(int vflag)
       if (mask[j] & groupbit) {
         double gamma3 = gfactor[type[j]];
 
-        for (int m = 0; m < 2*N_f; m++) { 
+        for (int m = 0; m < 2*N_f; m++) {
           fran[j][0] += time_H[m] * random_array_0[j][2*N_f-m-1];
-          fran[j][1] += time_H[m] * random_array_1[j][2*N_f-m-1]; 
+          fran[j][1] += time_H[m] * random_array_1[j][2*N_f-m-1];
           fran[j][2] += time_H[m] * random_array_2[j][2*N_f-m-1];
         }
         fran[j][0] = fran[j][0]*gamma3;
@@ -601,11 +601,11 @@ void FixQBMSST::initial_integrate(int vflag)
   counter_l = (counter_l + 1) % beta;
   counter_mu = (counter_mu + 1) % alpha;
 
-  // propagate the time derivative of 
+  // propagate the time derivative of
   // the volume 1/2 step at fixed vol, r, rdot.
   p_qbmsst = nktv2p * mvv2e * velocity * velocity * total_mass *
     ( v0 - vol)/( v0 * v0);
-  double A = total_mass * ( p_current[sd] - p0 - p_qbmsst ) / 
+  double A = total_mass * ( p_current[sd] - p0 - p_qbmsst ) /
     (qmass * nktv2p * mvv2e);
   double B = total_mass * mu / ( qmass * vol );
 
@@ -616,21 +616,21 @@ void FixQBMSST::initial_integrate(int vflag)
 
   // use taylor expansion to avoid singularity at B == 0.
   if ( B * dthalf > 1.0e-06 ) {
-    omega[sd] = ( omega[sd] + A * ( exp(B * dthalf) - 1.0 ) / B ) 
+    omega[sd] = ( omega[sd] + A * ( exp(B * dthalf) - 1.0 ) / B )
       * exp(-B * dthalf);
   } else {
     omega[sd] = omega[sd] + (A - B * omega[sd]) * dthalf +
       0.5 * (B * B * omega[sd] - A * B ) * dthalf * dthalf;
   }
 
-  // propagate velocity sum 1/2 step by 
+  // propagate velocity sum 1/2 step by
   // temporarily propagating the velocities.
   velocity_sum = compute_vsum();
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
 	double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
-	double D = mu * omega[sd] * omega[sd] / 
+	double D = mu * omega[sd] * omega[sd] /
 	  (velocity_sum * mass[type[i]] * vol ) - fric_coef;
 	old_velocity[i][k] = v[i][k];
 	if ( k == direction ) {
@@ -663,7 +663,7 @@ void FixQBMSST::initial_integrate(int vflag)
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
 	double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
-	double D = mu * omega[sd] * omega[sd] / 
+	double D = mu * omega[sd] * omega[sd] /
 	  (velocity_sum * mass[type[i]] * vol ) - fric_coef;
 
 	if ( k == direction ) {
@@ -695,7 +695,7 @@ void FixQBMSST::initial_integrate(int vflag)
       x[i][2] += dtv * v[i][2];
     }
   }
-  
+
   // propagate the volume 1/2 step.
   double vol2 = vol1 + omega[sd] * dthalf;
 
@@ -707,7 +707,7 @@ void FixQBMSST::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   2nd half of Verlet update 
+   2nd half of Verlet update
 ------------------------------------------------------------------------- */
 void FixQBMSST::final_integrate()
 {
@@ -729,9 +729,9 @@ void FixQBMSST::final_integrate()
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      for ( int k = 0; k < 3; k++ ) { 
+      for ( int k = 0; k < 3; k++ ) {
 	double C = (f[i][k] + fran[i][k]) * force->ftm2v / mass[type[i]];//  this term now has a random force part
-	double D = mu * omega[sd] * omega[sd] / 
+	double D = mu * omega[sd] * omega[sd] /
 	  (velocity_sum * mass[type[i]] * vol ) - fric_coef;
 
 	if ( k == direction ) {
@@ -761,7 +761,7 @@ void FixQBMSST::final_integrate()
 
   p_qbmsst = nktv2p * mvv2e * velocity * velocity * total_mass *
     ( v0 - vol )/( v0 * v0 );
-  double A = total_mass * ( p_current[sd] - p0 - p_qbmsst ) / 
+  double A = total_mass * ( p_current[sd] - p0 - p_qbmsst ) /
     ( qmass * nktv2p * mvv2e );
   double B = total_mass * mu  / ( qmass * vol );
 
@@ -774,12 +774,12 @@ void FixQBMSST::final_integrate()
   // use taylor expansion to avoid singularity at B == 0.
 
   if ( B * dthalf > 1.0e-06 ) {
-    omega[sd] = ( omega[sd] + A * 
+    omega[sd] = ( omega[sd] + A *
 		  ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
   } else {
     omega[sd] = omega[sd] + (A - B * omega[sd]) * dthalf +
       0.5 * (B * B * omega[sd] - A * B ) * dthalf * dthalf;
-  }  
+  }
 
   // calculate Lagrangian position of computational cell
 
@@ -849,13 +849,13 @@ void FixQBMSST::remap(int flag)
       modify->fix[rfix[i]]->deform(1);
 
   for (i = 0; i < n; i++) {
-    v[i][direction] = v[i][direction] * 
+    v[i][direction] = v[i][direction] *
       dilation[direction];
   }
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 void FixQBMSST::write_restart(FILE *fp)
 {
@@ -874,7 +874,7 @@ void FixQBMSST::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 void FixQBMSST::restart(char *buf)
 {
@@ -958,7 +958,7 @@ double FixQBMSST::compute_scalar()
 
   i = direction;
   energy = qmass * omega[i] * omega[i] / (2.0 * total_mass) * mvv2e;
-  energy -= 0.5 * total_mass * velocity * velocity * 
+  energy -= 0.5 * total_mass * velocity * velocity *
     (1.0 - volume/ v0) *
     (1.0 - volume/ v0) * mvv2e;
   energy -= p0 * ( v0 - volume ) / nktv2p;
@@ -967,7 +967,7 @@ double FixQBMSST::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
-   return a single element from the following vector, 
+   return a single element from the following vector,
    [dhug,dray,lgr_vel,lgr_pos,T_qm]
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_vector(int n)
@@ -987,31 +987,31 @@ double FixQBMSST::compute_vector(int n)
 }
 
 /* ----------------------------------------------------------------------
-   Computes the deviation of the current point 
+   Computes the deviation of the current point
    from the Hugoniot in Kelvin for the QBMSST.
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_hugoniot()
 {
   double v, e, p;
   double dhugo;
-  
+
   e = compute_etotal();
-  
+
   temperature->compute_vector();
   pressure->compute_vector();
   p = pressure->vector[direction];
-  
+
   v = compute_vol();
-  
-  dhugo = (0.5 * (p + p0 ) * ( v0 - v)) / 
+
+  dhugo = (0.5 * (p + p0 ) * ( v0 - v)) /
     force->nktv2p + e0 - e;
   dhugo /= temperature->dof * force->boltz;
-  
+
   return dhugo;
 }
 
 /* ----------------------------------------------------------------------
-   Computes the deviation of the current point from the Rayleigh 
+   Computes the deviation of the current point from the Rayleigh
    in pressure units for the QBMSST.
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_rayleigh()
@@ -1033,7 +1033,7 @@ double FixQBMSST::compute_rayleigh()
 }
 
 /* ----------------------------------------------------------------------
-   Computes the speed of the QBMSST computational cell in the 
+   Computes the speed of the QBMSST computational cell in the
    unshocked material rest-frame
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_lagrangian_speed()
@@ -1043,7 +1043,7 @@ double FixQBMSST::compute_lagrangian_speed()
 }
 
  /* ----------------------------------------------------------------------
-    Computes the distance behind the 
+    Computes the distance behind the
     shock front of the QBMSST computational cell.
  ------------------------------------------------------------------------- */
 double FixQBMSST::compute_lagrangian_position()
@@ -1052,14 +1052,14 @@ double FixQBMSST::compute_lagrangian_position()
 }
 
 /* ----------------------------------------------------------------------
-   Computes the atomic kinetic + atomic potential energy.  This excludes the QBMSST 
-   external potential terms in the QBMSST Lagrangian.  
+   Computes the atomic kinetic + atomic potential energy.  This excludes the QBMSST
+   external potential terms in the QBMSST Lagrangian.
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_etotal()
 {
   double epot,ekin,etot;
   epot = pe->compute_scalar();
-  if (thermo_energy) epot -= compute_scalar(); 
+  if (thermo_energy) epot -= compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * temperature->dof * force->boltz;
   etot = epot+ekin;
@@ -1067,13 +1067,13 @@ double FixQBMSST::compute_etotal()
 }
 
 /* ----------------------------------------------------------------------
-   Computes the atomic kinetic + atomic potential energy + QBMSST external potential.  
+   Computes the atomic kinetic + atomic potential energy + QBMSST external potential.
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_egrand()
 {
   double epot,ekin,etot;
   epot = pe->compute_scalar();
-  if (!thermo_energy) epot += compute_scalar(); 
+  if (!thermo_energy) epot += compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * temperature->dof * force->boltz;
   etot = epot+ekin;
@@ -1081,8 +1081,8 @@ double FixQBMSST::compute_egrand()
 }
 
 /* ----------------------------------------------------------------------
-   Computes the atomic kinetic + atomic potential energy.  This excludes the QBMSST 
-   external potential terms in the QBMSST Lagrangian.  
+   Computes the atomic kinetic + atomic potential energy.  This excludes the QBMSST
+   external potential terms in the QBMSST Lagrangian.
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_vol()
 {
@@ -1106,8 +1106,8 @@ void FixQBMSST::check_alloc(int n)
 }
 
 /* ----------------------------------------------------------------------
-   Computes the atomic kinetic + atomic potential energy.  This excludes the QBMSST 
-   external potential terms in the QBMSST Lagrangian.  
+   Computes the atomic kinetic + atomic potential energy.  This excludes the QBMSST
+   external potential terms in the QBMSST Lagrangian.
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_vsum()
 {
@@ -1164,7 +1164,7 @@ void FixQBMSST::copy_arrays(int i, int j, int delflag)
     random_array_1[j][m] = random_array_1[i][m];
     random_array_2[j][m] = random_array_2[i][m];
   }
-  
+
   for (int m = 0; m < 3; m++)
     fran[j][m] = fran[i][m];
 }

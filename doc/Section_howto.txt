@@ -2498,7 +2498,9 @@ the electrostatic environment inducing polarizability.
 Technically, shells are attached to the cores by a spring force f =
 k*r where k is a parametrized spring constant and r is the distance
 between the core and the shell. The charges of the core and the shell
-add up to the ion charge, thus q(ion) = q(core) + q(shell). In a
+add up to the ion charge, thus q(ion) = q(core) + q(shell). This 
+setup introduces the ion polarizability (alpha) given by 
+alpha = q(shell)^2 / k. In a
 similar fashion the mass of the ion is distributed on the core and the
 shell with the core having the larger mass.
 
@@ -2543,7 +2545,7 @@ Bonds   # Bond topology for spring forces :pre
 Non-Coulombic (e.g. Lennard-Jones) pairwise interactions are only
 defined between the shells.  Coulombic interactions are defined
 between all cores and shells.  If desired, additional bonds can be
-specified between cores.
+specified between cores.  
 
 The "special_bonds"_special_bonds.html command should be used to
 turn-off the Coulombic interaction within core/shell pairs, since that
@@ -2560,7 +2562,7 @@ satellite particle if desired.
 
 Since the core/shell model permits distances of r = 0.0 between the
 core and shell, a pair style with a "cs" suffix needs to be used to
-implement a valid long-rangeCoulombic correction.  Several such pair
+implement a valid long-range Coulombic correction.  Several such pair
 styles are provided in the CORESHELL package.  See "this doc
 page"_pair_cs.html for details.  All of the core/shell enabled pair
 styles require the use of a long-range Coulombic solver, as specified
@@ -2583,8 +2585,9 @@ bond_coeff      2 25.724 0.0 :pre
 When running dynamics with the adiabatic core/shell model, the
 following issues should be considered.  Since the relative motion of
 the core and shell particles corresponds to the polarization, typical
-thermostats can alter the polarization behaviour, meaining the shell
-will not react freely to its electrostatic environment.  Therefore
+thermostats can alter the polarization behaviour, meaning the shell
+will not react freely to its electrostatic environment.  This is
+critical during the equilibration of the system. Therefore
 it's typically desirable to decouple the relative motion of the
 core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the "compute
@@ -2603,9 +2606,9 @@ into account by the {group-ID} (2nd argument) of the compute.  The
 groups can be defined using the "group {type}"_group.html command.
 Note that to perform thermostatting using this definition of
 temperature, the "fix modify temp"_fix_modify.html command should be
-used to assign the comptue to the thermostat fix.  Likewise the
+used to assign the compute to the thermostat fix.  Likewise the
 "thermo_modify temp"_thermo_modify.html command can be used to make
-this temperature be output for the overall system.
+this temperature be output for the overall system. 
 
 For the NaCl example, this can be done as follows:
 
@@ -2616,6 +2619,15 @@ fix thermoberendsen all temp/berendsen 1427 1427 0.4    # thermostat for the tru
 fix thermostatequ all nve                               # integrator as needed for the berendsen thermostat
 fix_modify thermoberendsen temp CSequ
 thermo_modify temp CSequ                                # output of center-of-mass derived temperature :pre
+
+If "compute temp/cs"_compute_temp_cs.html is used, the decoupled 
+relative motion of the core and the shell should in theory be 
+stable.  However numerical fluctuation can introduce a small
+momentum to the system, which is noticable over long trajectories.
+Therefore it is recomendable to use the "fix 
+momentum"_fix_momentum.html command in combination with "compute 
+temp/cs"_compute_temp_cs.html when equilibrating the system to 
+prevent any drift.
 
 When intializing the velocities of a system with core/shell pairs, it
 is also desirable to not introduce energy into the relative motion of
@@ -2636,12 +2648,19 @@ velocity. This allow the shells to effectively react instantaneously
 to the electrostatic environment.  This fast movement also limits the
 timestep size that can be used.
 
-Additionally, the mass mismatch of the core and shell particles means
-that only a small amount of energy is transfered to the decoupled
-imaginary degrees of freedom.  However, this transfer will typically
-lead to a a small drift in total energy over time.  This internal
-energy can be monitored using the "compute
-chunk/atom"_compute_chunk_atom.html and "compute
+The primary literature of the adiabatic core/shell model suggests that
+the fast relative motion of the core/shell pairs only allows negligible 
+energy transfer to the environment. Therefore it is not intended to
+decouple the core/shell degree of freedom from the physical system
+during production runs. In other words, the "compute
+temp/cs"_compute_temp_cs.html command should not be used during
+production runs and is only required during equilibration. This way one 
+is consistent with literature (based on the code packages DL_POLY or 
+GULP for instance).
+
+The mentioned energy transfer will typically lead to a a small drift 
+in total energy over time.  This internal energy can be monitored 
+using the "compute chunk/atom"_compute_chunk_atom.html and "compute
 temp/chunk"_compute_temp_chunk.html commands.  The internal kinetic
 energies of each core/shell pair can then be summed using the sum()
 special function of the "variable"_variable.html command.  Or they can

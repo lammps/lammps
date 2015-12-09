@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "body_nparticle.h"
 #include "math_extra.h"
 #include "atom_vec_body.h"
@@ -25,14 +25,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) : 
+BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
   Body(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR,"Invalid body nparticle command");
 
   int nmin = force->inumeric(FLERR,arg[1]);
   int nmax = force->inumeric(FLERR,arg[2]);
-  if (nmin <= 0 || nmin > nmax) 
+  if (nmin <= 0 || nmin > nmax)
     error->all(FLERR,"Invalid body nparticle command");
 
   size_forward = 0;
@@ -90,7 +90,7 @@ int BodyNparticle::unpack_border_body(AtomVecBody::Bonus *bonus, double *buf)
    populate bonus data structure with data file values
 ------------------------------------------------------------------------- */
 
-void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble, 
+void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
                               char **ifile, char **dfile)
 {
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
@@ -98,22 +98,22 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   // error in data file if any values are NULL
 
   for (int i = 0; i < ninteger; i++)
-    if (ifile[i] == NULL) 
+    if (ifile[i] == NULL)
       error->one(FLERR,"Invalid format in Bodies section of data file");
   for (int i = 0; i < ndouble; i++)
     if (dfile[i] == NULL)
       error->one(FLERR,"Invalid format in Bodies section of data file");
 
-  // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles  
+  // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles
 
-  if (ninteger != 1) 
+  if (ninteger != 1)
     error->one(FLERR,"Incorrect # of integer values in "
                "Bodies section of data file");
   int nsub = atoi(ifile[0]);
   if (nsub < 1)
     error->one(FLERR,"Incorrect integer value in "
                "Bodies section of data file");
-  if (ndouble != 6 + 3*nsub) 
+  if (ndouble != 6 + 3*nsub)
     error->one(FLERR,"Incorrect # of floating-point values in "
                "Bodies section of data file");
 
@@ -144,7 +144,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   double max;
   max = MAX(inertia[0],inertia[1]);
   max = MAX(max,inertia[2]);
-  
+
   if (inertia[0] < EPSILON*max) inertia[0] = 0.0;
   if (inertia[1] < EPSILON*max) inertia[1] = 0.0;
   if (inertia[2] < EPSILON*max) inertia[2] = 0.0;
@@ -169,9 +169,9 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   double cross[3];
   MathExtra::cross3(ex_space,ey_space,cross);
   if (MathExtra::dot3(cross,ez_space) < 0.0) MathExtra::negate3(ez_space);
-  
+
   // create initial quaternion
-  
+
   MathExtra::exyz_to_q(ex_space,ey_space,ez_space,bonus->quat);
 
   // bonus->dvalue = sub-particle displacements in body frame

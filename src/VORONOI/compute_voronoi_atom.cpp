@@ -15,10 +15,10 @@
    Contributing author: Daniel Schwen
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_voronoi_atom.h"
 #include "atom.h"
 #include "group.h"
@@ -71,7 +71,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     }
     else if (strcmp(arg[iarg], "radius") == 0) {
-      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] ) 
+      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] )
 	error->all(FLERR,"Illegal compute voronoi/atom command");
       int n = strlen(&arg[iarg+1][2]) + 1;
       radstr = new char[n];

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,9 +16,9 @@
    Updated: 06/17/2015-2
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
 #include "math_const.h"
 #include "compute_xrd.h"
 #include "compute_xrd_consts.h"
@@ -30,8 +30,8 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -62,11 +62,11 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   me = comm->me;
 
   // Checking errors
-  if (dimension == 2) 
+  if (dimension == 2)
      error->all(FLERR,"Compute XRD does not work with 2d structures");
-  if (narg < 4+ntypes) 
+  if (narg < 4+ntypes)
      error->all(FLERR,"Illegal Compute XRD Command");
-  if (triclinic == 1) 
+  if (triclinic == 1)
      error->all(FLERR,"Compute XRD does not work with triclinic structures");
 
   array_flag = 1;
@@ -78,12 +78,12 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
 
   // Define atom types for atomic scattering factor coefficients
-  int iarg = 4;  
+  int iarg = 4;
   ztype = new int[ntypes];
   for (int i = 0; i < ntypes; i++){
     ztype[i] = XRDmaxType + 1;
   }
-  for (int i = 0; i < ntypes; i++) {   
+  for (int i = 0; i < ntypes; i++) {
     for(int j = 0; j < XRDmaxType; j++){
       if (strcasecmp(arg[iarg],XRDtypeList[j]) == 0) {
         ztype[i] = j;
@@ -96,7 +96,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 
   // Set defaults for optional args
   Min2Theta = 1;
-  Max2Theta = 179;  
+  Max2Theta = 179;
   radflag = 1;
   c[0] = 1; c[1] = 1; c[2] = 1;
   LP = 1;
@@ -114,11 +114,11 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         Max2Theta = Max2Theta * MY_PI / 180;
         radflag = 0;
       }
-      if (Min2Theta <= 0) 
+      if (Min2Theta <= 0)
         error->all(FLERR,"Minimum 2theta value must be greater than zero");
-      if (Max2Theta >= MY_PI ) 
+      if (Max2Theta >= MY_PI )
         error->all(FLERR,"Maximum 2theta value must be less than 180 degrees");
-      if (Max2Theta-Min2Theta <= 0) 
+      if (Max2Theta-Min2Theta <= 0)
         error->all(FLERR,"Two-theta range must be greater than zero");
       iarg += 3;
 
@@ -127,16 +127,16 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
       c[0] = atof(arg[iarg+1]);
       c[1] = atof(arg[iarg+2]);
       c[2] = atof(arg[iarg+3]);
-      if (c[0] < 0 || c[1] < 0 || c[2] < 0) 
-        error->all(FLERR,"Compute XRD: c's must be greater than 0");  
+      if (c[0] < 0 || c[1] < 0 || c[2] < 0)
+        error->all(FLERR,"Compute XRD: c's must be greater than 0");
       iarg += 4;
-      
+
     } else if (strcmp(arg[iarg],"LP") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute XRD Command");
       LP = atof(arg[iarg+1]);
 
-      if (!(LP == 1 || LP == 0)) 
-         error->all(FLERR,"Compute XRD: LP must have value of 0 or 1");  
+      if (!(LP == 1 || LP == 0))
+         error->all(FLERR,"Compute XRD: LP must have value of 0 or 1");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"echo") == 0) {
@@ -145,31 +145,31 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"manual") == 0) {
       manual = true;
-      iarg += 1;        
-      
+      iarg += 1;
+
     } else error->all(FLERR,"Illegal Compute XRD Command");
   }
- 
+
   Kmax = 2 * sin(Max2Theta) / lambda;
- 
-  // Calculating spacing between reciprocal lattice points 
+
+  // Calculating spacing between reciprocal lattice points
   // Using distance based on periodic repeating distance
-  if (!manual) {  
+  if (!manual) {
     if (!periodicity[0] && !periodicity[1] && !periodicity[2])
       error->all(FLERR,"Compute SAED must have at least one periodic boundary unless manual spacing specified");
 
     double *prd;
-    double ave_inv = 0.0; 
+    double ave_inv = 0.0;
     prd = domain->prd;
 
     if (periodicity[0]){
-      prd_inv[0] = 1 / prd[0]; 
+      prd_inv[0] = 1 / prd[0];
       ave_inv += prd_inv[0];
-    } 
+    }
     if (periodicity[1]){
       prd_inv[1] = 1 / prd[1];
       ave_inv += prd_inv[1];
-    } 
+    }
     if (periodicity[2]){
       prd_inv[2] = 1 / prd[2];
       ave_inv += prd_inv[2];
@@ -178,35 +178,35 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     // Using the average inverse dimensions for non-periodic direction
     ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
     if (!periodicity[0]){
-      prd_inv[0] = ave_inv; 
-    } 
+      prd_inv[0] = ave_inv;
+    }
     if (!periodicity[1]){
       prd_inv[1] = ave_inv;
-    } 
+    }
     if (!periodicity[2]){
       prd_inv[2] = ave_inv;
     }
   }
 
-  // Use manual mapping of reciprocal lattice 
+  // Use manual mapping of reciprocal lattice
   if (manual) {
     for (int i=0; i<3; i++) {
       prd_inv[i] = 1.0;
     }
-  } 
-  
+  }
+
   // Find reciprocal spacing and integer dimensions
   for (int i=0; i<3; i++) {
     dK[i] = prd_inv[i]*c[i];
     Knmax[i] = ceil(Kmax / dK[i]);
-  } 
-  
+  }
+
   // Finding the intersection of the reciprocal space and Ewald sphere
   int nRows = 0;
   double dinv2= 0.0;
   double ang = 0.0;
   double K[3];
-  
+
   // Procedure to determine how many rows are needed given the constraints on 2theta
   for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
     for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
@@ -221,22 +221,22 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
           nRows++;
 	        }
         }
-      } 
+      }
     }
-  } 
-  
+  }
+
 
   size_array_rows = nRows;
   size_array_cols = 2;
-  
+
   if (me == 0) {
     if (screen && echo) {
       fprintf(screen,"-----\nCompute XRD id:%s, # of atoms:%d, # of relp:%d\n",id,natoms,nRows);
       fprintf(screen,"Reciprocal point spacing in k1,k2,k3 = %g %g %g\n-----\n",
               dK[0], dK[1], dK[2]);
     }
-  }  
-   
+  }
+
   memory->create(array,size_array_rows,size_array_cols,"xrd:array");
   memory->create(store_tmp,3*size_array_rows,"xrd:store_tmp");
 }
@@ -287,7 +287,7 @@ void ComputeXRD::init()
        }
     }
   }
- if (n != size_array_rows)  
+ if (n != size_array_rows)
      error->all(FLERR,"Compute XRD compute_array() rows mismatch");
 
 }
@@ -307,7 +307,7 @@ void ComputeXRD::compute_array()
 
   double *Fvec = new double[2*size_array_rows]; // Strct factor (real & imaginary)
   // -- Note: array rows correspond to different RELP
- 
+
   ntypes = atom->ntypes;
   int nlocal = atom->nlocal;
   int *type  = atom->type;
@@ -333,7 +333,7 @@ void ComputeXRD::compute_array()
      typelocal[nlocalgroup]=type[ii];
      nlocalgroup++;
     }
-  }    
+  }
 
 // Setting up OMP
 #if defined(_OPENMP)
@@ -387,14 +387,14 @@ void ComputeXRD::compute_array()
         K[0] = i * dK[0];
         K[1] = j * dK[1];
         K[2] = k * dK[2];
-        
+
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         dinv = sqrt(dinv2);
         SinTheta_lambda = 0.5*dinv;
-        SinTheta = SinTheta_lambda * lambda; 
+        SinTheta = SinTheta_lambda * lambda;
         ang = asin( SinTheta );
         Cos2Theta = cos( 2 * ang);
-        CosTheta = cos( ang ); 
+        CosTheta = cos( ang );
 
         Fatom1 = 0.0;
         Fatom2 = 0.0;
@@ -433,7 +433,7 @@ void ComputeXRD::compute_array()
             }
             m++;
           }
-        } 
+        }
       } // End of pragma omp for region
 
     } else {
@@ -447,11 +447,11 @@ void ComputeXRD::compute_array()
         K[0] = i * dK[0];
         K[1] = j * dK[1];
         K[2] = k * dK[2];
-       
+
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         dinv = sqrt(dinv2);
         SinTheta_lambda = 0.5*dinv;
-        
+
         Fatom1 = 0.0;
         Fatom2 = 0.0;
 
@@ -489,7 +489,7 @@ void ComputeXRD::compute_array()
           }
         }
       } // End of pragma omp for region
-    } // End of if LP=1 check 
+    } // End of if LP=1 check
     delete [] f;
   } // End of pragma omp parallel region
 
@@ -511,7 +511,7 @@ void ComputeXRD::compute_array()
   bytes += 3.0 * nlocalgroup * sizeof(double); // xlocal
   bytes += nlocalgroup * sizeof(int); // typelocal
   bytes += 3.0 * size_array_rows * sizeof(int); // store_temp
-  
+
   if (me == 0 && echo) {
     if (screen)
       fprintf(screen," 100%% \nTime ellapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
@@ -535,7 +535,7 @@ double ComputeXRD::memory_usage()
   bytes += nlocalgroup * sizeof(int); // typelocal
   bytes += ntypes * sizeof(double); // f
   bytes += 3.0 * size_array_rows * sizeof(int); // store_temp
-  
+
   return bytes;
 }
 

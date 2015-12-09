@@ -98,6 +98,7 @@ srd:      stochastic rotation dynamics (SRD) particles as solvent
 snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+vashishta: models using the Vashishta potential
 voronoi:  test of Voronoi tesselation in compute voronoi/atom
 
 Here is a src/Make.py command which will perform a parallel build of a

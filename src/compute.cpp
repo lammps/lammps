@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
-#include "ctype.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "compute.h"
 #include "atom.h"
 #include "domain.h"
@@ -163,7 +163,7 @@ void Compute::adjust_dof_fix()
 
   fix_dof = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->dof_flag) 
+    if (fix[i]->dof_flag)
       fix_dof += fix[i]->dof(igroup);
 }
 

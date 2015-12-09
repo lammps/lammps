@@ -83,12 +83,12 @@ class PairSWKokkos : public PairSW {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k, 
+  void ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
             const F_FLOAT &evdwl, const F_FLOAT &ecoul,
                        F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ev_tally3_atom(EV_FLOAT &ev, const int &i, 
+  void ev_tally3_atom(EV_FLOAT &ev, const int &i,
             const F_FLOAT &evdwl, const F_FLOAT &ecoul,
                        F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const;
 

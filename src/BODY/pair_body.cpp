@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_body.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -178,7 +178,7 @@ void PairBody::compute(int eflag, int vflag)
             torque[i][0] += ti[0];
             torque[i][1] += ti[1];
             torque[i][2] += ti[2];
-            
+
             if (newton_pair || j < nlocal) {
               fj[0] = -delx*fpair;
               fj[1] = -dely*fpair;
@@ -465,7 +465,7 @@ void PairBody::body2space(int i)
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
   int nsub = bptr->nsub(bonus);
   double *coords = bptr->coords(bonus);
-  
+
   dnum[i] = nsub;
   dfirst[i] = ndiscrete;
 

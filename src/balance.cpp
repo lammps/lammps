@@ -13,10 +13,10 @@
 
 //#define BALANCE_DEBUG 1
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "balance.h"
 #include "atom.h"
 #include "comm.h"
@@ -107,7 +107,7 @@ void Balance::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"x") == 0) {
-      if (style != -1 && style != XYZ) 
+      if (style != -1 && style != XYZ)
         error->all(FLERR,"Illegal balance command");
       style = XYZ;
       if (strcmp(arg[iarg+1],"uniform") == 0) {
@@ -127,7 +127,7 @@ void Balance::command(int narg, char **arg)
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (style != -1 && style != XYZ) 
+      if (style != -1 && style != XYZ)
         error->all(FLERR,"Illegal balance command");
       style = XYZ;
       if (strcmp(arg[iarg+1],"uniform") == 0) {
@@ -147,7 +147,7 @@ void Balance::command(int narg, char **arg)
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (style != -1 && style != XYZ) 
+      if (style != -1 && style != XYZ)
         error->all(FLERR,"Illegal balance command");
       style = XYZ;
       if (strcmp(arg[iarg+1],"uniform") == 0) {
@@ -237,7 +237,7 @@ void Balance::command(int narg, char **arg)
     }
   }
 
-  if (style == BISECTION && comm->style == 0) 
+  if (style == BISECTION && comm->style == 0)
     error->all(FLERR,"Balance rcb cannot be used with comm_style brick");
 
   // insure atoms are in current box & update box via shrink-wrap
@@ -510,14 +510,14 @@ int *Balance::bisection(int sortflag)
   double *shrinkhi = &shrinkall[3];
 
   // invoke RCB
-  // then invert() to create list of proc assignements for my atoms 
+  // then invert() to create list of proc assignements for my atoms
 
   //rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
   rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed
-  
+
   double *lo = rcb->lo;
   double *hi = rcb->hi;
 
@@ -529,7 +529,7 @@ int *Balance::bisection(int sortflag)
   if (hi[2] == shrinkhi[2]) hi[2] = boxhi[2];
 
   // store RCB cut, dim, lo/hi box in CommTiled
-  // cut and lo/hi need to be in fractional form so can 
+  // cut and lo/hi need to be in fractional form so can
   // OK if changes by epsilon from what RCB used since particles
   //   will subsequently migrate to new owning procs by exchange() anyway
   // ditto for particles exactly on lo/hi RCB box boundaries due to ties
@@ -546,11 +546,11 @@ int *Balance::bisection(int sortflag)
   mysplit[0][0] = (lo[0] - boxlo[0]) / prd[0];
   if (hi[0] == boxhi[0]) mysplit[0][1] = 1.0;
   else mysplit[0][1] = (hi[0] - boxlo[0]) / prd[0];
-  
+
   mysplit[1][0] = (lo[1] - boxlo[1]) / prd[1];
   if (hi[1] == boxhi[1]) mysplit[1][1] = 1.0;
   else mysplit[1][1] = (hi[1] - boxlo[1]) / prd[1];
-  
+
   mysplit[2][0] = (lo[2] - boxlo[2]) / prd[2];
   if (hi[2] == boxhi[2]) mysplit[2][1] = 1.0;
   else mysplit[2][1] = (hi[2] - boxlo[2]) / prd[2];
@@ -941,7 +941,7 @@ void Balance::dumpout(bigint tstep, FILE *fp)
   double **boxall;
   memory->create(boxall,nprocs,6,"balance:dumpout");
   MPI_Allgather(box,6,MPI_DOUBLE,&boxall[0][0],6,MPI_DOUBLE,world);
-  
+
   if (me) {
     memory->destroy(boxall);
     return;
@@ -949,7 +949,7 @@ void Balance::dumpout(bigint tstep, FILE *fp)
 
   // proc 0 writes out nodal coords
   // some will be duplicates
-  
+
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
 
@@ -1036,7 +1036,7 @@ void Balance::dumpout(bigint tstep, FILE *fp)
   fprintf(fp,"%d\n",nprocs);
   if (dimension == 2) fprintf(fp,"ITEM: SQUARES\n");
   else fprintf(fp,"ITEM: CUBES\n");
-  
+
   if (dimension == 2) {
     int m = 0;
     for (int i = 0; i < nprocs; i++) {

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "delete_bonds.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -146,7 +146,7 @@ void DeleteBonds::command(int narg, char **arg)
   int i,m,n,consider,flag,itype;
   int atom1,atom2,atom3,atom4;
 
-  if (atom->avec->bonds_allow && 
+  if (atom->avec->bonds_allow &&
       (style == BOND || style == MULTI || style == ATOM)) {
     int *num_bond = atom->num_bond;
     int **bond_type = atom->bond_type;
@@ -299,7 +299,7 @@ void DeleteBonds::command(int narg, char **arg)
   }
 
   delete [] tlist;
-    
+
   // induce turn off of angles, dihedral, impropers due to turned off bonds
   // induce turn off of dihedrals due to turned off angles
   // all atoms or any atom in interaction must be in group, based on any_flag

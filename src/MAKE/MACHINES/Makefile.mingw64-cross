@@ -13,9 +13,9 @@ CCFLAGS =	-O3 -march=core2 -mtune=core2 -mpc64 -msse2 -fopenmp	\
 SHFLAGS =	# -fPIC (not needed on windows, all code is PIC)
 DEPFLAGS =	-M
 
-LINK =		x86_64-w64-mingw32-g++
+LINK =		x86_64-w64-mingw32-g++ -static
 LINKFLAGS =	-O2 -march=core2 -mtune=core2 -mpc64 -msse2 -fopenmp
-LIB =           -lwsock32 -static-libgcc
+LIB =           -lwsock32 -static-libgcc -lquadmath -lpsapi
 SIZE =		x86_64-w64-mingw32-size
 
 ARCHIVE =	x86_64-w64-mingw32-ar
@@ -49,7 +49,7 @@ MPI_PATH =      -L../STUBS
 MPI_LIB =	-lmpi_mingw64
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library

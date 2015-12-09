@@ -14,7 +14,7 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
-#include "math.h"
+#include <math.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -138,10 +138,10 @@ class Domain : protected Pointers {
 
   // minimum image convention check
   // return 1 if any distance > 1/2 of box size
-  // indicates a special neighbor is actually not in a bond, 
+  // indicates a special neighbor is actually not in a bond,
   //   but is a far-away image that should be treated as an unbonded neighbor
   // inline since called from neighbor build inner loop
-  // 
+  //
   inline int minimum_image_check(double dx, double dy, double dz) {
     if (xperiodic && fabs(dx) > xprd_half) return 1;
     if (yperiodic && fabs(dy) > yprd_half) return 1;

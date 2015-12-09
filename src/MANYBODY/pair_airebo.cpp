@@ -17,11 +17,11 @@
      Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
 #include "pair_airebo.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -59,6 +59,7 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   pgsize = oneatom = 0;
 
   nC = nH = NULL;
+  map = NULL;
   manybody_flag = 1;
 }
 
@@ -620,19 +621,19 @@ void PairAIREBO::FLJ(int eflag, int vflag)
               if (wik*wkj > best) {
                 best = wik*wkj;
                 npath = 3;
-                 atomk = k;
-                    delikS[0] = delik[0];
-                    delikS[1] = delik[1];
-                    delikS[2] = delik[2];
-                    rikS = rik;
-                    wikS = wik;
-                    dwikS = dwik;
-                    deljkS[0] = deljk[0];
-                    deljkS[1] = deljk[1];
-                    deljkS[2] = deljk[2];
-                    rkjS = rkj;
-                    wkjS = wkj;
-                    dwkjS = dwkj;
+                atomk = k;
+                delikS[0] = delik[0];
+                delikS[1] = delik[1];
+                delikS[2] = delik[2];
+                rikS = rik;
+                wikS = wik;
+                dwikS = dwik;
+                deljkS[0] = deljk[0];
+                deljkS[1] = deljk[1];
+                deljkS[2] = deljk[2];
+                rkjS = rkj;
+                wkjS = wkj;
+                dwkjS = dwkj;
                 if (best == 1.0) {
                   done = 1;
                   break;
@@ -803,7 +804,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
           if (vflag_atom)
             v_tally3(atomi,atomj,atomk,fi,fj,delikS,deljkS);
 
-        } else {
+        } else if (npath == 4) {
           fpair1 = dC*dwikS*wkmS*wmjS / rikS;
           fi[0] = delikS[0]*fpair1;
           fi[1] = delikS[1]*fpair1;
@@ -4195,7 +4196,7 @@ double PairAIREBO::memory_usage()
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
-  
+
   bytes += 2*maxlocal * sizeof(double);
   return bytes;
 }

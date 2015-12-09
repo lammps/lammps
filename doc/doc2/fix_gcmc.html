@@ -25,7 +25,7 @@
 
 <LI>M = average number of MC moves to attempt every N steps 
 
-<LI>type = atom type to assign to inserted atoms (offset for molecule insertion) 
+<LI>type = atom type for inserted atoms (must be 0 if mol keyword used) 
 
 <LI>seed = random # seed (positive integer) 
 
@@ -37,7 +37,7 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<PRE>keyword = <I>mol</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, <I>fugacity_coeff</I>, <I>full_energy</I>, <I>charge</I>, <I>group</I>, <I>grouptype</I>, or <I>intra_energy</I>
+<PRE>keyword = <I>mol</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, <I>fugacity_coeff</I>, <I>full_energy</I>, <I>charge</I>, <I>group</I>, <I>grouptype</I>, <I>intra_energy</I>, or <I>tfac_insert</I>
   <I>mol</I> value = template-ID
     template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
   <I>shake</I> value = fix-ID
@@ -54,7 +54,8 @@
   <I>grouptype</I> values = type group-ID 
     type = atom type (int)
     group-ID = group-ID for inserted atoms (string)
-  <I>intra_energy</I> value = intramolecular energy (energy units)  
+  <I>intra_energy</I> value = intramolecular energy (energy units)
+  <I>tfac_insert</I> value = scale up/down temperature of inserted atoms (unitless) 
 </PRE>
 
 </UL>
@@ -99,12 +100,10 @@ attempted with 50% probability.
 be "all"). In addition, particles are also added to any groups specified
 by the <I>group</I> and <I>grouptype</I> keywords.
 If inserted particles are individual atoms, they are
-assigned the specified atom type.  If they are molecules, the type of
-each atom in the inserted molecule is specified in the file read by
-the <A HREF = "molecule.html">molecule</A> command, and those values are added to
-the specified atom type.  E.g. if <I>type</I> = 2, and the file specifies
-atom types 1,2,3, then the inserted molecule will have atom types
-3,4,5.
+assigned the atom type given by the type argument.  If they are molecules, 
+the type argument has no effect and must be set to zero. Instead, 
+the type of each atom in the inserted molecule is specified 
+in the file read by the <A HREF = "molecule.html">molecule</A> command.
 </P>
 <P>This fix cannot be used to perform MC insertions of gas atoms or
 molecules other than the exchanged type, but MC deletions,
@@ -134,8 +133,15 @@ until the atom or molecule center-of-mass is inside the specified region.
 <P>If used with <A HREF = "fix_nvt.html">fix_nvt</A>, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
 used in <A HREF = "fix_nvt.html">fix_nvt</A>. Otherwise, the imaginary reservoir
-will not be in thermal equilibrium with the simulation cell.
+will not be in thermal equilibrium with the simulation cell. Also,
+it is important that the temperature used by fix nvt be dynamic,
+which can be achieved as follows:
 </P>
+<PRE>compute mdtemp mdatoms temp 
+compute_modify mdtemp dynamic yes
+fix mdnvt mdatoms nvt temp 300.0 300.0 10.0
+fix_modify mdnvt temp mdtemp 
+</PRE>
 <P>Note that neighbor lists are re-built every timestep that this fix is
 invoked, so you should not set N to be too small.  However, periodic
 rebuilds are necessary in order to avoid dangerous rebuilds and missed
@@ -146,7 +152,9 @@ distance. See the <A HREF = "neighbor.html">neighbor</A> command for details.
 <P>When an atom or molecule is to be inserted, its 
 coordinates are chosen at a random position within the current
 simulation cell or region, and new atom velocities are randomly chosen from
-the specified temperature distribution given by T.  Relative
+the specified temperature distribution given by T. The effective
+temperature for new atom velocities can be increased or decreased
+using the optional keyword <I>tfac_insert</I> (see below). Relative
 coordinates for atoms in a molecule are taken from the template
 molecule provided by the user. The center of mass of the molecule
 is placed at the insertion point. The orientation of the molecule
@@ -231,6 +239,19 @@ is inserted, and added to the initial energy when a molecule is
 deleted. For molecules that have a non-zero intramolecular energy, this
 will ensure roughly the same behavior whether or not the <I>full_energy</I>
 option is used.
+</P>
+<P>Inserted atoms and molecules are assigned random velocities based on the
+specified temperature T. Because the relative velocity of
+all atoms in the molecule is zero, this may result in inserted molecules
+that are systematically too cold. In addition, the intramolecular potential
+energy of the inserted molecule may cause the kinetic energy
+of the molecule to quickly increase or decrease after insertion. 
+The <I>tfac_insert</I> keyword allows the user to counteract these effects
+by changing the temperature used to assign velocities to 
+inserted atoms and molecules by a constant factor. For a
+particular application, some experimentation may be required
+to find a value of <I>tfac_insert</I> that results in inserted molecules that
+equilibrate quickly to the correct temperature.
 </P>
 <P>Some fixes have an associated potential energy. Examples of such fixes
 include: <A HREF = "fix_efield.html">efield</A>, <A HREF = "fix_gravity.html">gravity</A>, 

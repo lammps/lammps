@@ -20,7 +20,7 @@ FixStyle(balance,FixBalance)
 #ifndef LMP_FIX_BALANCE_H
 #define LMP_FIX_BALANCE_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {

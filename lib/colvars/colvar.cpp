@@ -638,6 +638,7 @@ int colvar::enable(colvar::task const &t)
 
   case task_output_system_force:
     enable(task_system_force);
+    tasks[t] = true;
     break;
 
   case task_report_Jacobian_force:
@@ -646,6 +647,7 @@ int colvar::enable(colvar::task const &t)
     if (cvm::debug())
       cvm::log("Adding the Jacobian force to the system force, "
                 "rather than applying its opposite silently.\n");
+    tasks[t] = true;
     break;
 
   case task_Jacobian_force:
@@ -669,6 +671,7 @@ int colvar::enable(colvar::task const &t)
                   "on this colvar.\n");
     }
     fj.type(value());
+    tasks[t] = true;
     break;
 
   case task_system_force:
@@ -683,6 +686,7 @@ int colvar::enable(colvar::task const &t)
     }
     ft.type(value());
     ft_reported.type(value());
+    tasks[t] = true;
     break;
 
   case task_output_applied_force:
@@ -690,16 +694,19 @@ int colvar::enable(colvar::task const &t)
   case task_upper_wall:
     // all of the above require gradients
     enable(task_gradients);
+    tasks[t] = true;
     break;
 
   case task_fdiff_velocity:
     x_old.type(value());
     v_fdiff.type(value());
     v_reported.type(value());
+    tasks[t] = true;
     break;
 
   case task_output_velocity:
     enable(task_fdiff_velocity);
+    tasks[t] = true;
     break;
 
   case task_grid:
@@ -708,11 +715,13 @@ int colvar::enable(colvar::task const &t)
                         this->name+"\", because its value is not a scalar number.\n",
                   INPUT_ERROR);
     }
+    tasks[t] = true;
     break;
 
   case task_extended_lagrangian:
     enable(task_gradients);
     v_reported.type(value());
+    tasks[t] = true;
     break;
 
   case task_lower_boundary:
@@ -722,16 +731,17 @@ int colvar::enable(colvar::task const &t)
                         "and cannot produce a grid.\n",
                 INPUT_ERROR);
     }
+    tasks[t] = true;
     break;
 
   case task_output_value:
   case task_runave:
   case task_corrfunc:
-  case task_ntot:
   case task_langevin:
   case task_output_energy:
   case task_scripted:
   case task_gradients:
+    tasks[t] = true;
     break;
 
   case task_collect_gradients:
@@ -745,10 +755,13 @@ int colvar::enable(colvar::task const &t)
     if (atom_ids.size() == 0) {
       build_atom_list();
     }
+    tasks[t] = true;
+    break;
+
+  default:
     break;
   }
 
-  tasks[t] = true;
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
 
@@ -763,23 +776,28 @@ void colvar::disable(colvar::task const &t)
     disable(task_output_applied_force);
     disable(task_system_force);
     disable(task_Jacobian_force);
+    tasks[t] = false;
     break;
 
   case task_system_force:
     disable(task_output_system_force);
+    tasks[t] = false;
     break;
 
   case task_Jacobian_force:
     disable(task_report_Jacobian_force);
+    tasks[t] = false;
     break;
 
   case task_fdiff_velocity:
     disable(task_output_velocity);
+    tasks[t] = false;
     break;
 
   case task_lower_boundary:
   case task_upper_boundary:
     disable(task_grid);
+    tasks[t] = false;
     break;
 
   case task_extended_lagrangian:
@@ -793,15 +811,17 @@ void colvar::disable(colvar::task const &t)
   case task_grid:
   case task_lower_wall:
   case task_upper_wall:
-  case task_ntot:
   case task_langevin:
   case task_output_energy:
   case task_collect_gradients:
   case task_scripted:
+    tasks[t] = false;
+    break;
+
+  default:
     break;
   }
 
-  tasks[t] = false;
 }
 
 
@@ -1106,44 +1126,6 @@ cvm::real colvar::update()
   f += fb;
 
 
-  if (tasks[task_lower_wall] || tasks[task_upper_wall]) {
-
-    // wall force
-    colvarvalue fw(value());
-    fw.reset();
-
-    if (cvm::debug())
-      cvm::log("Calculating wall forces for colvar \""+this->name+"\".\n");
-
-    // if the two walls are applied concurrently, decide which is the
-    // closer one (on a periodic colvar, both walls may be applicable
-    // at the same time)
-    if ( (!tasks[task_upper_wall]) ||
-         (this->dist2(x_reported, lower_wall) < this->dist2(x_reported, upper_wall)) ) {
-
-      cvm::real const grad = this->dist2_lgrad(x_reported, lower_wall);
-      if (grad < 0.0) {
-        fw = -0.5 * lower_wall_k * grad;
-        if (cvm::debug())
-          cvm::log("Applying a lower wall force("+
-                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
-        f += fw;
-
-      }
-
-    } else {
-
-      cvm::real const grad = this->dist2_lgrad(x_reported, upper_wall);
-      if (grad > 0.0) {
-        fw = -0.5 * upper_wall_k * grad;
-        if (cvm::debug())
-          cvm::log("Applying an upper wall force("+
-                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
-        f += fw;
-      }
-    }
-  }
-
   if (tasks[task_Jacobian_force]) {
     size_t i;
     for (i = 0; i < cvcs.size(); i++) {
@@ -1178,10 +1160,11 @@ cvm::real colvar::update()
 
     // the total force is applied to the fictitious mass, while the
     // atoms only feel the harmonic force
-    // fr: extended coordinate force (without harmonic spring), for output in trajectory
+    // fr: bias force on extended coordinate (without harmonic spring), for output in trajectory
     // f_ext: total force on extended coordinate (including harmonic spring)
     // f: - initially, external biasing force
-    //    -  after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    //      (note: wall potential is added to f after this block)
     fr    = f;
     f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
     f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
@@ -1200,6 +1183,44 @@ cvm::real colvar::update()
     xr  += dt * vr;
     xr.apply_constraints();
     if (this->b_periodic) this->wrap(xr);
+  }
+
+
+  // Adding wall potential to "true" colvar force, whether or not an extended coordinate is in use
+  if (tasks[task_lower_wall] || tasks[task_upper_wall]) {
+
+    // Wall force
+    colvarvalue fw(x);
+    fw.reset();
+
+    if (cvm::debug())
+      cvm::log("Calculating wall forces for colvar \""+this->name+"\".\n");
+
+    // For a periodic colvar, both walls may be applicable at the same time
+    // in which case we pick the closer one
+    if ( (!tasks[task_upper_wall]) ||
+         (this->dist2(x, lower_wall) < this->dist2(x, upper_wall)) ) {
+
+      cvm::real const grad = this->dist2_lgrad(x, lower_wall);
+      if (grad < 0.0) {
+        fw = -0.5 * lower_wall_k * grad;
+        f += fw;
+        if (cvm::debug())
+          cvm::log("Applying a lower wall force("+
+                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
+      }
+
+    } else {
+
+      cvm::real const grad = this->dist2_lgrad(x, upper_wall);
+      if (grad > 0.0) {
+        fw = -0.5 * upper_wall_k * grad;
+        f += fw;
+        if (cvm::debug())
+          cvm::log("Applying an upper wall force("+
+                    cvm::to_str(fw)+") to \""+this->name+"\".\n");
+      }
+    }
   }
 
 

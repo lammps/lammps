@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,11 +35,11 @@
 #include "ATC_CouplingMomentumEnergy.h"
 #include "LammpsInterface.h"
 // other
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 #include <sstream>
 
-using namespace LAMMPS_NS; 
+using namespace LAMMPS_NS;
 using namespace FixConst;
 using std::string;
 
@@ -64,7 +64,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   // Set LAMMPS pointer on LammpsInterface
   ATC::LammpsInterface::instance()->set_lammps(lmp);
 
-  /*! \page man_fix_atc fix atc command 
+  /*! \page man_fix_atc fix atc command
     \section syntax
     fix <fixID> <group> atc <type> <parameter_file>
     - fixID = name of fix
@@ -87,10 +87,10 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     fix do Verlet integration and the /post-processing does not.
     After instantiating this fix, several other fix_modify commands will be
     needed to set up the problem, e.g. define the finite element mesh and
-    prescribe initial and boundary conditions. 
+    prescribe initial and boundary conditions.
 
     The following coupling example is typical, but non-exhaustive:\n
- 
+
 <TT>
      # ... commands to create and initialize the MD system \n
 
@@ -121,7 +121,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
      # initial fix to designate post-processing and the group to apply it to \n
      # no material file is allowed nor required \n
      fix         AtC internal atc hardy \n \n
-     # for hardy fix, specific kernel function (function type and range) to 
+     # for hardy fix, specific kernel function (function type and range) to
      # be used as a localization function \n
      fix         AtC kernel quartic_sphere 10.0 \n \n
      # create a uniform 1 x 1 x 1 mesh that covers region contain the group \n
@@ -149,7 +149,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
      ... \n\n
 </TT>
 
-    Note coupling and post-processing can be combined in the same simulations 
+    Note coupling and post-processing can be combined in the same simulations
     using separate fixes.
     \n
     For detailed exposition of the theory and algorithms please see:\n
@@ -158,7 +158,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351. \n
     - Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ,
       <VAR> Calculation of stress in atomistic simulation. </VAR>
-      Special Issue of Modelling and Simulation in Materials Science and 
+      Special Issue of Modelling and Simulation in Materials Science and
       Engineering (2004), 12:S319. \n
     - Zimmerman, JA; Jones, RE; Templeton, JA,
       <VAR> A material frame approach for evaluating continuum variables in
@@ -179,17 +179,17 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       Journal of Chemical Physics (2013), 139:054115. \n
 
     Please refer to the standard
-    finite element (FE) texts, e.g. T.J.R Hughes <VAR> The finite element 
+    finite element (FE) texts, e.g. T.J.R Hughes <VAR> The finite element
     method </VAR>, Dover 2003, for the basics of FE simulation.
 
     \section restrictions
-    Thermal and two_temperature (coupling) types use a Verlet time-integration 
+    Thermal and two_temperature (coupling) types use a Verlet time-integration
     algorithm.
-    The hardy type does not contain its own time-integrator and must be used 
+    The hardy type does not contain its own time-integrator and must be used
     with a separate fix that does contain one, e.g. nve, nvt, etc.
 
-    Currently, 
-    - the coupling is restricted to thermal physics 
+    Currently,
+    - the coupling is restricted to thermal physics
     - the FE computations are done in serial on each processor.
 
     \section related
@@ -279,7 +279,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     - \ref man_remove_species
     - \ref man_remove_molecule
 
-    Note: a set of example input files with the attendant material files are 
+    Note: a set of example input files with the attendant material files are
     included with this package
     \section default
     none
@@ -297,7 +297,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   try {
     // Postprocessing
-    if (strcmp(arg[3],"field")==0)  
+    if (strcmp(arg[3],"field")==0)
     {
       if (atomCount == 0) {
         if (me==0) printf("ATC: can't construct transfer, no atoms in group \n");
@@ -308,8 +308,8 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
         atc_ = new ATC::ATC_TransferPartitionOfUnity(groupName,
                                                      array_atom,
                                                      this);
-      } 
-      else { 
+      }
+      else {
         if (me==0) printf("ATC: constructing shape function field estimate with parameter file %s\n",arg[4]);
         string matParamFile = arg[4];
         atc_ = new ATC::ATC_TransferPartitionOfUnity(groupName,
@@ -317,7 +317,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                                      matParamFile);
       }
     }
-    else if (strcmp(arg[3],"hardy")==0) 
+    else if (strcmp(arg[3],"hardy")==0)
     {
       if (atomCount == 0) {
         if (me==0) printf("ATC: Can't construct transfer, no atoms in group \n");
@@ -328,8 +328,8 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
         atc_ = new ATC::ATC_TransferKernel(groupName,
                                            array_atom,
                                            this);
-      } 
-      else { 
+      }
+      else {
         if (me==0) printf("ATC: constructing kernel field estimate with parameter file %s\n",arg[4]);
         string matParamFile = arg[4];
         atc_ = new ATC::ATC_TransferKernel(groupName,
@@ -338,7 +338,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       }
     }
     // PhysicsTypes
-    else if (strcmp(arg[3],"thermal")==0) 
+    else if (strcmp(arg[3],"thermal")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing thermal coupling with parameter file %s\n",arg[4]);
@@ -346,7 +346,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile);
     }
-    else if (strcmp(arg[3],"two_temperature")==0) 
+    else if (strcmp(arg[3],"two_temperature")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing two_temperature coupling with parameter file %s\n",arg[4]);
@@ -354,7 +354,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::TWO_TEMPERATURE);
     }
-    else if (strcmp(arg[3],"drift_diffusion")==0) 
+    else if (strcmp(arg[3],"drift_diffusion")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing drift_diffusion coupling with parameter file %s\n",arg[4]);
@@ -362,7 +362,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::DRIFT_DIFFUSION);
     }
-    else if (strcmp(arg[3],"drift_diffusion-equilibrium")==0) 
+    else if (strcmp(arg[3],"drift_diffusion-equilibrium")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing drift_diffusion-equilibrium coupling with parameter file %s\n",arg[4]);
@@ -370,7 +370,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::DRIFT_DIFFUSION_EQUILIBRIUM);
     }
-    else if (strcmp(arg[3],"drift_diffusion-schrodinger")==0) 
+    else if (strcmp(arg[3],"drift_diffusion-schrodinger")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing drift_diffusion-schrodinger coupling with parameter file %s\n",arg[4]);
@@ -378,7 +378,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::DRIFT_DIFFUSION_SCHRODINGER);
     }
-    else if (strcmp(arg[3],"drift_diffusion-schrodinger-slice")==0) 
+    else if (strcmp(arg[3],"drift_diffusion-schrodinger-slice")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("Constructing ATC transfer (drift_diffusion-schrodinger-slice) with parameter file %s\n",arg[4]);
@@ -386,7 +386,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::DRIFT_DIFFUSION_SCHRODINGER_SLICE);
     }
-    else if (strcmp(arg[3],"convective_drift_diffusion")==0) 
+    else if (strcmp(arg[3],"convective_drift_diffusion")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing convective_drift_diffusion coupling with parameter file %s\n",arg[4]);
@@ -394,7 +394,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::CONVECTIVE_DRIFT_DIFFUSION);
     }
-    else if (strcmp(arg[3],"convective_drift_diffusion-equilibrium")==0) 
+    else if (strcmp(arg[3],"convective_drift_diffusion-equilibrium")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing convective_drift_diffusion-equilibrium coupling with parameter file %s\n",arg[4]);
@@ -402,7 +402,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::CONVECTIVE_DRIFT_DIFFUSION_EQUILIBRIUM);
     }
-    else if (strcmp(arg[3],"convective_drift_diffusion-schrodinger")==0) 
+    else if (strcmp(arg[3],"convective_drift_diffusion-schrodinger")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing convective_drift_diffusion-schrodinger coupling with parameter file %s\n",arg[4]);
@@ -410,7 +410,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                          array_atom, this,
                                          matParamFile, ATC::CONVECTIVE_DRIFT_DIFFUSION_SCHRODINGER);
     }
-    else if (strcmp(arg[3],"elastic")==0) 
+    else if (strcmp(arg[3],"elastic")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing elastic coupling with parameter file %s\n",arg[4]);
@@ -419,7 +419,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                            matParamFile,
                                            ATC::ELASTIC);
     }
-    else if (strcmp(arg[3],"electrostatic")==0) 
+    else if (strcmp(arg[3],"electrostatic")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing electrostatic mechanical coupling with parameter file %s\n",arg[4]);
@@ -429,7 +429,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                            ATC::ELASTIC,
                                            ATC::ELECTROSTATIC);
     }
-    else if (strcmp(arg[3],"electrostatic-equilibrium")==0) 
+    else if (strcmp(arg[3],"electrostatic-equilibrium")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing equilibrium electrostatic coupling with parameter file %s\n",arg[4]);
@@ -439,7 +439,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                            ATC::ELASTIC,
                                            ATC::ELECTROSTATIC_EQUILIBRIUM);
     }
-    else if (strcmp(arg[3],"shear")==0)  
+    else if (strcmp(arg[3],"shear")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing viscous/shear coupling with parameter file %s\n",arg[4]);
@@ -464,7 +464,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                        array_atom, this,
                                        matParamFile, ATC::FEM_EFIELD);
     }
-    else if (strcmp(arg[3],"thermo_elastic")==0) 
+    else if (strcmp(arg[3],"thermo_elastic")==0)
     {
       string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing thermo-mechanical coupling with parameter file %s\n",arg[4]);
@@ -472,7 +472,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                                  array_atom, this,
                                                  matParamFile);
     }
-    else 
+    else
     {
       lmp->error->all(FLERR,"Unknown physics type in ATC");
     }
@@ -485,9 +485,9 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   lmp->atom->add_callback(0);
 
   // we write our own restart file
-  restart_global = 0; 
-  
-  
+  restart_global = 0;
+
+
 
   // Set output computation data based on transfer info
   scalar_flag = atc_->scalar_flag();
@@ -503,13 +503,13 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   peratom_flag = atc_->peratom_flag();
   size_peratom_cols = atc_->size_peratom_cols();
   peratom_freq = atc_->peratom_freq();
-  
+
 
   // set comm size needed by this fix
-  comm_forward = atc_->comm_forward(); 
+  comm_forward = atc_->comm_forward();
 
   // call this fix every step
-  nevery = 1; 
+  nevery = 1;
 }
 
 /*----------------------------------------------------------------------- */
@@ -545,7 +545,7 @@ int FixATC::setmask()
 
 int FixATC::modify_param(int narg, char** arg)
 {
-  bool match; 
+  bool match;
 
   // pass on to transfer layer
   try {
@@ -701,15 +701,15 @@ void FixATC::unpack_restart(int nlocal, int nth){
 /* ----------------------------------------------------------------------
    maxsize of any atom's restart data
    ------------------------------------------------------------------------- */
- 
+
 int FixATC::maxsize_restart(){
   return 0;
 }
- 
+
 /* ----------------------------------------------------------------------
    size of atom nlocal's restart data
    ------------------------------------------------------------------------- */
- 
+
 int FixATC::size_restart(int nlocal){
   return 0;
 }
@@ -719,7 +719,7 @@ int FixATC::size_restart(int nlocal){
    ------------------------------------------------------------------------- */
 
 void FixATC::write_restart(FILE *fp){
-  
+
   char ** args = new char*[2];
   args[0] = new char[50];
   args[1] = new char[50];
@@ -741,7 +741,7 @@ void FixATC::write_restart(FILE *fp){
    ------------------------------------------------------------------------- */
 
 void FixATC::restart(char *buf){
-  
+
   char ** args = new char*[2];
   args[0] = new char[50];
   args[1] = new char[50];
@@ -840,7 +840,7 @@ void FixATC::pre_neighbor()
 {
   try {
     atc_->pre_neighbor();
-    comm->forward_comm_fix(this);  
+    comm->forward_comm_fix(this);
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
@@ -850,9 +850,9 @@ void FixATC::pre_neighbor()
 /* ---------------------------------------------------------------------- */
 void FixATC::pre_force(int vflag)
 {
-  
+
   try {
-    atc_->pre_force(); 
+    atc_->pre_force();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
@@ -862,9 +862,9 @@ void FixATC::pre_force(int vflag)
 /* ---------------------------------------------------------------------- */
 void FixATC::post_force(int vflag)
 {
-  
+
   try {
-    atc_->post_force(); 
+    atc_->post_force();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
@@ -912,7 +912,7 @@ void FixATC::min_setup_pre_neighbor()
 void FixATC::min_pre_force(int vflag)
 {
   try {
-    atc_->min_pre_force(); 
+    atc_->min_pre_force();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
@@ -924,7 +924,7 @@ void FixATC::min_pre_force(int vflag)
 void FixATC::min_post_force(int vflag)
 {
   try {
-    atc_->min_post_force(); 
+    atc_->min_post_force();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
@@ -933,17 +933,17 @@ void FixATC::min_post_force(int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-double FixATC::compute_scalar() 
+double FixATC::compute_scalar()
 {
   return atc_->compute_scalar();
 }
 /* ---------------------------------------------------------------------- */
-double FixATC::compute_vector(int n) 
+double FixATC::compute_vector(int n)
 {
   return atc_->compute_vector(n);
 }
 /* ---------------------------------------------------------------------- */
-double FixATC::compute_array(int irow, int icol) 
+double FixATC::compute_array(int irow, int icol)
 {
   return atc_->compute_array(irow,icol);
 }

@@ -262,8 +262,8 @@ that are a multiples of <em>Nfreq</em>.  The average is over <em>Nrepeat</em>
 quantities, computed in the preceding portion of the simulation every
 <em>Nevery</em> timesteps.  <em>Nfreq</em> must be a multiple of <em>Nevery</em> and
 <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.  Also, the timesteps
-contributing to the average value cannot overlap, i.e. Nfreq &gt;
-(Nrepeat-1)*Nevery is required.</p>
+contributing to the average value cannot overlap,
+i.e. Nrepeat*Nevery can not exceed Nfreq.</p>
 <p>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on

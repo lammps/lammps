@@ -22,11 +22,11 @@
                            support for groups
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "limits.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 #include "dump_xtc.h"
 #include "domain.h"
 #include "atom.h"
@@ -86,7 +86,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // in reduced units we do not scale anything
   if (strcmp(update->unit_style,"lj") == 0) {
     sfactor = tfactor = 1.0;
-    if (comm->me == 0) 
+    if (comm->me == 0)
       error->warning(FLERR,"No automatic unit conversion to XTC file "
                      "format conventions possible for units lj");
   }

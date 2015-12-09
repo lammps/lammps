@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_sphere.h"
 #include "atom.h"
 #include "comm.h"
@@ -1060,7 +1060,7 @@ void AtomVecSphere::pack_data(double **buf)
     buf[i][1] = ubuf(type[i]).d;
     buf[i][2] = 2.0*radius[i];
     if (radius[i] == 0.0) buf[i][3] = rmass[i];
-    else 
+    else
       buf[i][3] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
     buf[i][4] = x[i][0];
     buf[i][5] = x[i][1];
@@ -1090,7 +1090,7 @@ int AtomVecSphere::pack_data_hybrid(int i, double *buf)
 void AtomVecSphere::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],
@@ -1146,7 +1146,7 @@ int AtomVecSphere::pack_vel_hybrid(int i, double *buf)
 void AtomVecSphere::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
             (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],
             buf[i][4],buf[i][5],buf[i][6]);
@@ -1181,7 +1181,7 @@ bigint AtomVecSphere::memory_usage()
   if (atom->memcheck("radius")) bytes += memory->usage(radius,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
-  if (atom->memcheck("torque")) 
+  if (atom->memcheck("torque"))
     bytes += memory->usage(torque,nmax*comm->nthreads,3);
 
   return bytes;

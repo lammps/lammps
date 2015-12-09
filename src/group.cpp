@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "group.h"
 #include "domain.h"
 #include "atom.h"
@@ -204,7 +204,7 @@ void Group::assign(int narg, char **arg)
     else if (strcmp(arg[1],"id") == 0) category = ID;
 
     // args = logical condition
-    
+
     if (narg > 3 &&
         (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 ||
          strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
@@ -220,7 +220,7 @@ void Group::assign(int narg, char **arg)
       else if (strcmp(arg[2],"!=") == 0) condition = NEQ;
       else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
       else error->all(FLERR,"Illegal group command");
-      
+
       tagint bound1,bound2;
       bound1 = force->tnumeric(FLERR,arg[3]);
       bound2 = -1;
@@ -240,22 +240,22 @@ void Group::assign(int narg, char **arg)
 
       if (attribute) {
         if (condition == LT) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (attribute[i] < bound1) mask[i] |= bit;
         } else if (condition == LE) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (attribute[i] <= bound1) mask[i] |= bit;
         } else if (condition == GT) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (attribute[i] > bound1) mask[i] |= bit;
         } else if (condition == GE) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (attribute[i] >= bound1) mask[i] |= bit;
         } else if (condition == EQ) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (attribute[i] == bound1) mask[i] |= bit;
         } else if (condition == NEQ) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (attribute[i] != bound1) mask[i] |= bit;
         } else if (condition == BETWEEN) {
           for (i = 0; i < nlocal; i++)
@@ -264,22 +264,22 @@ void Group::assign(int narg, char **arg)
         }
       } else {
         if (condition == LT) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (tattribute[i] < bound1) mask[i] |= bit;
         } else if (condition == LE) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (tattribute[i] <= bound1) mask[i] |= bit;
         } else if (condition == GT) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (tattribute[i] > bound1) mask[i] |= bit;
         } else if (condition == GE) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (tattribute[i] >= bound1) mask[i] |= bit;
         } else if (condition == EQ) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (tattribute[i] == bound1) mask[i] |= bit;
         } else if (condition == NEQ) {
-          for (i = 0; i < nlocal; i++) 
+          for (i = 0; i < nlocal; i++)
             if (tattribute[i] != bound1) mask[i] |= bit;
         } else if (condition == BETWEEN) {
           for (i = 0; i < nlocal; i++)
@@ -289,24 +289,24 @@ void Group::assign(int narg, char **arg)
       }
 
     // args = list of values
-      
+
     } else {
       int *attribute = NULL;
       tagint *tattribute = NULL;
       if (category == TYPE) attribute = atom->type;
       else if (category == MOLECULE) tattribute = atom->molecule;
       else if (category == ID) tattribute = atom->tag;
-                                 
+
       char *ptr;
       tagint start,stop,delta;
 
       for (int iarg = 2; iarg < narg; iarg++) {
         delta = 1;
         if (strchr(arg[iarg],':')) {
-          ptr = strtok(arg[iarg],":"); 
-          start = force->tnumeric(FLERR,ptr); 
-          ptr = strtok(NULL,":"); 
-          stop = force->tnumeric(FLERR,ptr); 
+          ptr = strtok(arg[iarg],":");
+          start = force->tnumeric(FLERR,ptr);
+          ptr = strtok(NULL,":");
+          stop = force->tnumeric(FLERR,ptr);
           ptr = strtok(NULL,":");
           if (ptr) delta = force->tnumeric(FLERR,ptr);
         } else {
@@ -316,7 +316,7 @@ void Group::assign(int narg, char **arg)
           error->all(FLERR,"Illegal range increment value");
 
         // add to group if attribute matches value or sequence
-      
+
         if (attribute) {
           for (i = 0; i < nlocal; i++)
             if (attribute[i] >= start && attribute[i] <= stop &&
@@ -340,7 +340,7 @@ void Group::assign(int narg, char **arg)
       error->all(FLERR,"Variable for group is invalid style");
 
     double *aflag;
-    
+
     // aflag = evaluation of per-atom variable
 
     memory->create(aflag,nlocal,"group:aflag");
@@ -358,7 +358,7 @@ void Group::assign(int narg, char **arg)
   } else if (strcmp(arg[1],"include") == 0) {
 
     if (narg != 3) error->all(FLERR,"Illegal group command");
-    if (strcmp(arg[2],"molecule") != 0) 
+    if (strcmp(arg[2],"molecule") != 0)
       error->all(FLERR,"Illegal group command");
 
     add_molecules(igroup,bit);
@@ -376,7 +376,7 @@ void Group::assign(int narg, char **arg)
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
       if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-      if (dynamic[jgroup]) 
+      if (dynamic[jgroup])
         error->all(FLERR,"Cannot subtract groups using a dynamic group");
       list[iarg-2] = jgroup;
     }
@@ -414,7 +414,7 @@ void Group::assign(int narg, char **arg)
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
       if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-      if (dynamic[jgroup]) 
+      if (dynamic[jgroup])
         error->all(FLERR,"Cannot union groups using a dynamic group");
       list[iarg-2] = jgroup;
     }
@@ -444,7 +444,7 @@ void Group::assign(int narg, char **arg)
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
       if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-      if (dynamic[jgroup]) 
+      if (dynamic[jgroup])
         error->all(FLERR,"Cannot intersect groups using a dynamic group");
       list[iarg-2] = jgroup;
     }
@@ -470,9 +470,9 @@ void Group::assign(int narg, char **arg)
   } else if (strcmp(arg[1],"dynamic") == 0) {
 
     if (narg < 4) error->all(FLERR,"Illegal group command");
-    if (strcmp(arg[0],arg[2]) == 0) 
+    if (strcmp(arg[0],arg[2]) == 0)
       error->all(FLERR,"Group dynamic cannot reference itself");
-    if (find(arg[2]) < 0) 
+    if (find(arg[2]) < 0)
       error->all(FLERR,"Group dynamic parent group does not exist");
     if (igroup == 0) error->all(FLERR,"Group all cannot be made dynamic");
 
@@ -537,7 +537,7 @@ void Group::assign(int narg, char **arg)
       if (screen) fprintf(screen,"dynamic group %s defined\n",names[igroup]);
       if (logfile) fprintf(logfile,"dynamic group %s defined\n",names[igroup]);
     } else {
-      if (screen) 
+      if (screen)
         fprintf(screen,"%.15g atoms in group %s\n",all,names[igroup]);
       if (logfile)
         fprintf(logfile,"%.15g atoms in group %s\n",all,names[igroup]);

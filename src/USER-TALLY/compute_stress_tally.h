@@ -25,7 +25,7 @@ ComputeStyle(stress/tally,ComputeStressTally)
 namespace LAMMPS_NS {
 
 class ComputeStressTally : public Compute {
-  
+
  public:
   ComputeStressTally(class LAMMPS *, int, char **);
   virtual ~ComputeStressTally();

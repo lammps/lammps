@@ -54,7 +54,7 @@ assigned a different temperature.  See the <A HREF = "variable.html">variable</A
 command for more details.  For example:
 </P>
 <PRE>variable t world 300.0 310.0 320.0 330.0
-fix myfix all nvt $t $t 100.0
+fix myfix all nvt temp $t $t 100.0
 temper 100000 100 $t myfix 3847 58382 
 </PRE>
 <P>would define 4 temperatures, and assign one of them to the thermostat

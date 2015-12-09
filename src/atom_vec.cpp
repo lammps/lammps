@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "atom_vec.h"
 #include "atom.h"
 #include "force.h"
@@ -265,7 +265,7 @@ int AtomVec::pack_angle(tagint **buf)
 void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT "\n",
             index,buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
     index++;
@@ -321,7 +321,7 @@ void AtomVec::pack_dihedral(tagint **buf)
 void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
             index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
@@ -377,7 +377,7 @@ void AtomVec::pack_improper(tagint **buf)
 void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
             index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;

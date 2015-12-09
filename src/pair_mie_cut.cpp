@@ -15,10 +15,10 @@
    Contributing author: Cassiano Aimoli (aimoli@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_mie_cut.h"
 #include "atom.h"
 #include "comm.h"
@@ -380,7 +380,7 @@ void PairMIECut::compute_outer(int eflag, int vflag)
           r2inv = 1.0/rsq;
         rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
         rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
-          evdwl = (mie3[itype][jtype]*rgamR - mie4[itype][jtype]*rgamA) - 
+          evdwl = (mie3[itype][jtype]*rgamR - mie4[itype][jtype]*rgamA) -
             offset[itype][jtype];
           evdwl *= factor_mie;
         }
@@ -567,22 +567,22 @@ double PairMIECut::init_one(int i, int j)
     gamA[i][j] = mix_distance(gamA[i][i],gamA[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
-  
+
   gamA[j][i] = gamA[i][j];
   gamR[j][i] = gamR[i][j];
-  Cmie[i][j] = (gamR[i][j]/(gamR[i][j]-gamA[i][j]) * 
+  Cmie[i][j] = (gamR[i][j]/(gamR[i][j]-gamA[i][j]) *
                 pow((gamR[i][j]/gamA[i][j]),
                     (gamA[i][j]/(gamR[i][j]-gamA[i][j]))));
-  mie1[i][j] = Cmie[i][j] * gamR[i][j]* epsilon[i][j] * 
+  mie1[i][j] = Cmie[i][j] * gamR[i][j]* epsilon[i][j] *
     pow(sigma[i][j],gamR[i][j]);
-  mie2[i][j] = Cmie[i][j] * gamA[i][j] * epsilon[i][j] * 
+  mie2[i][j] = Cmie[i][j] * gamA[i][j] * epsilon[i][j] *
     pow(sigma[i][j],gamA[i][j]);
   mie3[i][j] = Cmie[i][j] * epsilon[i][j] * pow(sigma[i][j],gamR[i][j]);
   mie4[i][j] = Cmie[i][j] * epsilon[i][j] * pow(sigma[i][j],gamA[i][j]);
 
   if (offset_flag) {
     double ratio = sigma[i][j] / cut[i][j];
-    offset[i][j] = Cmie[i][j] * epsilon[i][j] * 
+    offset[i][j] = Cmie[i][j] * epsilon[i][j] *
       (pow(ratio,gamR[i][j]) - pow(ratio,gamA[i][j]));
   } else offset[i][j] = 0.0;
 

@@ -15,9 +15,9 @@
    Contributing author: Laurent Joly (U Lyon), ljoly.ulyon@gmail.com
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_sf.h"
 #include "atom.h"
 #include "comm.h"

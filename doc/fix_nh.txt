@@ -96,7 +96,7 @@ Martyna, Tobias and Klein in "(Martyna)"_#Martyna with the strain
 energy proposed by Parrinello and Rahman in
 "(Parrinello)"_#Parrinello.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al. in "(Tuckerman)"_#Tuckerman.
+integrators derived by Tuckerman et al in "(Tuckerman)"_#Tuckerman.
 
 :line
 
@@ -280,8 +280,8 @@ The keyword {tloop} can be used to improve the accuracy of integration
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into {tloop} substeps, each of
 length {dt}/{tloop}. This corresponds to using a first-order
-Suzuki-Yoshida scheme "(Tuckerman2006)"_#Tuckerman2006.  The keyword
-{ploop} does the same thing for the barostat thermostat.
+Suzuki-Yoshida scheme "(Tuckerman)"_#Tuckerman.  The keyword {ploop}
+does the same thing for the barostat thermostat.
 
 The keyword {nreset} controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
@@ -428,16 +428,16 @@ according to the following factorization of the Liouville propagator
 
 :c,image(Eqs/fix_nh1.jpg) 
  
-This factorization differs somewhat from that of Tuckerman et al., in that
-the barostat is only updated at the outermost rRESPA level, whereas
-Tuckerman's factorization requires splitting the pressure into pieces
-corresponding to the forces computed at each rRESPA level. In theory, the
-latter method will exhibit better numerical stability. In practice,
-because Pdamp is normally chosen to be a large multiple of the 
-outermost rRESPA timestep, the barostat dynamics are not the 
-limiting factor for numerical stability. Both 
-factorizations are time-reversible and can be shown to preserve the phase 
-space measure of the underlying non-Hamiltonian equations of motion.
+This factorization differs somewhat from that of Tuckerman et al, in
+that the barostat is only updated at the outermost rRESPA level,
+whereas Tuckerman's factorization requires splitting the pressure into
+pieces corresponding to the forces computed at each rRESPA level. In
+theory, the latter method will exhibit better numerical stability. In
+practice, because Pdamp is normally chosen to be a large multiple of
+the outermost rRESPA timestep, the barostat dynamics are not the
+limiting factor for numerical stability. Both factorizations are
+time-reversible and can be shown to preserve the phase space measure
+of the underlying non-Hamiltonian equations of motion.
 
 :line
 

@@ -15,10 +15,10 @@
    Contributing Author: Julien Devemy (ICCF)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_nm_cut_coul_cut.h"
 #include "atom.h"
 #include "comm.h"
@@ -126,8 +126,8 @@ void PairNMCutCoulCut::compute(int eflag, int vflag)
           r = sqrt(rsq);
           rminv = pow(r2inv,mm[itype][jtype]/2.0);
           rninv = pow(r2inv,nn[itype][jtype]/2.0);
-          forcenm = e0nm[itype][jtype]*nm[itype][jtype] * 
-            (r0n[itype][jtype]/pow(r,nn[itype][jtype]) - 
+          forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
+            (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
              r0m[itype][jtype]/pow(r,mm[itype][jtype]));
         } else forcenm = 0.0;
 
@@ -147,10 +147,10 @@ void PairNMCutCoulCut::compute(int eflag, int vflag)
             ecoul = factor_coul * qqrd2e * qtmp*q[j]*sqrt(r2inv);
           else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = e0nm[itype][jtype]*(mm[itype][jtype] * 
-                                        r0n[itype][jtype]*rninv - 
-                                        nn[itype][jtype] * 
-                                        r0m[itype][jtype]*rminv) - 
+            evdwl = e0nm[itype][jtype]*(mm[itype][jtype] *
+                                        r0n[itype][jtype]*rninv -
+                                        nn[itype][jtype] *
+                                        r0m[itype][jtype]*rminv) -
               offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
@@ -289,11 +289,11 @@ double PairNMCutCoulCut::init_one(int i, int j)
   nm[i][j] = nn[i][j]*mm[i][j];
   e0nm[i][j] = e0[i][j]/(nn[i][j]-mm[i][j]);
   r0n[i][j] = pow(r0[i][j],nn[i][j]);
-  r0m[i][j] = pow(r0[i][j],mm[i][j]); 
+  r0m[i][j] = pow(r0[i][j],mm[i][j]);
 
   if (offset_flag) {
     offset[i][j] = e0nm[i][j] *
-      ((mm[i][j]*r0n[i][j] / pow(cut_lj[i][j],nn[i][j])) - 
+      ((mm[i][j]*r0n[i][j] / pow(cut_lj[i][j],nn[i][j])) -
        (nn[i][j]*r0m[i][j] / pow(cut_lj[i][j],mm[i][j])));
   } else offset[i][j] = 0.0;
 
@@ -332,9 +332,9 @@ double PairNMCutCoulCut::init_one(int i, int j)
     double rrr1 = pow(r0[i][j],nn[i][j])*(1-nn[i][j]);
     double rrr2 = pow(r0[i][j],mm[i][j])*(1-mm[i][j]);
 
-    etail_ij = 2.0*MY_PI*all[0]*all[1]*e0nm[i][j] * 
+    etail_ij = 2.0*MY_PI*all[0]*all[1]*e0nm[i][j] *
       (rr1*pow(cut_lj[i][j],p1)-rr2*pow(cut_lj[i][j],p2));
-    ptail_ij = 2.0*MY_PI*all[0]*all[1]*e0nm[i][j] * 
+    ptail_ij = 2.0*MY_PI*all[0]*all[1]*e0nm[i][j] *
       nn[i][j]*mm[i][j]*(rrr1*pow(cut_lj[i][j],p1)-rrr2*pow(cut_lj[i][j],p2));
 
   }
@@ -469,8 +469,8 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
   else forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
     r = sqrt(rsq);
-    forcenm = e0nm[itype][jtype]*nm[itype][jtype] * 
-      (r0n[itype][jtype]/pow(r,nn[itype][jtype]) - 
+    forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
+      (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
        r0m[itype][jtype]/pow(r,mm[itype][jtype]));
   } else forcenm = 0.0;
   fforce = (factor_coul*forcecoul + factor_lj*forcenm) * r2inv;
@@ -481,8 +481,8 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
     eng += factor_coul*phicoul;
   }
   if (rsq < cut_ljsq[itype][jtype]) {
-    phinm = e0nm[itype][jtype] * 
-      (mm[itype][jtype]*r0n[itype][jtype]/pow(r,nn[itype][jtype]) - 
+    phinm = e0nm[itype][jtype] *
+      (mm[itype][jtype]*r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
        nn[itype][jtype]*r0m[itype][jtype]/pow(r,mm[itype][jtype])) -
       offset[itype][jtype];
     eng += factor_lj*phinm;

@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing authors: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_born_coul_wolf_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,7 +33,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -42,9 +42,9 @@ using namespace MathConst;
 // External functions from cuda library for atom decomposition
 
 int borncw_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                    double **host_born1, double **host_born2, 
-                    double **host_born3, double **host_a, double **host_c, 
-                    double **host_d, double **sigma, double **offset, 
+                    double **host_born1, double **host_born2,
+                    double **host_born3, double **host_a, double **host_c,
+                    double **host_d, double **sigma, double **offset,
                     double *special_lj, const int inum,
                     const int nall, const int max_nbors, const int maxspecial,
                     const double cell_size, int &gpu_mode, FILE *screen,
@@ -54,7 +54,7 @@ int borncw_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
 void borncw_gpu_clear();
 int ** borncw_gpu_compute_n(const int ago, const int inum_full, const int nall,
                             double **host_x, int *host_type, double *sublo,
-                            double *subhi, tagint *tag, int **nspecial, 
+                            double *subhi, tagint *tag, int **nspecial,
                             tagint **special, const bool eflag, const bool vflag,
                             const bool eatom, const bool vatom, int &host_start,
                             int **ilist, int **jnum, const double cpu_time,
@@ -70,13 +70,13 @@ double borncw_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulWolfGPU::PairBornCoulWolfGPU(LAMMPS *lmp) : PairBornCoulWolf(lmp), 
+PairBornCoulWolfGPU::PairBornCoulWolfGPU(LAMMPS *lmp) : PairBornCoulWolf(lmp),
 						      gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -94,10 +94,10 @@ void PairBornCoulWolfGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -106,8 +106,8 @@ void PairBornCoulWolfGPU::compute(int eflag, int vflag)
                                       atom->x, atom->type, domain->sublo,
                                       domain->subhi, atom->tag, atom->nspecial,
                                       atom->special, eflag, vflag, eflag_atom,
-                                      vflag_atom, host_start, 
-                                      &ilist, &numneigh, cpu_time, success, 
+                                      vflag_atom, host_start,
+                                      &ilist, &numneigh, cpu_time, success,
                                       atom->q, domain->boxlo, domain->prd);
   } else {
     inum = list->inum;
@@ -135,7 +135,7 @@ void PairBornCoulWolfGPU::compute(int eflag, int vflag)
 
 void PairBornCoulWolfGPU::init_style()
 {
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,
       "Cannot use newton pair with born/coul/wolf/gpu pair style");
 
@@ -159,18 +159,18 @@ void PairBornCoulWolfGPU::init_style()
   cut_coulsq = cut_coul * cut_coul;
 
   double e_shift = erfc(alf*cut_coul)/cut_coul;
-  double f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
-    cut_coul; 
+  double f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul;
 
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = borncw_gpu_init(atom->ntypes+1, cutsq, rhoinv, 
-                                born1, born2, born3, a, c, d, sigma, offset, 
+  int success = borncw_gpu_init(atom->ntypes+1, cutsq, rhoinv,
+                                born1, born2, born3, a, c, d, sigma, offset,
                                 force->special_lj, atom->nlocal,
                                 atom->nlocal+atom->nghost, 300, maxspecial,
                                 cell_size, gpu_mode, screen, cut_ljsq,
-                                cut_coulsq, force->special_coul, force->qqrd2e, 
+                                cut_coulsq, force->special_coul, force->qqrd2e,
                                 alf, e_shift, f_shift);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -178,7 +178,7 @@ void PairBornCoulWolfGPU::init_style()
     int irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
-  } 
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,7 +203,7 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   int *jlist;
 
   evdwl = ecoul = 0.0;
-  
+
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
@@ -212,10 +212,10 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
-  
+
   double e_shift = erfc(alf*cut_coul)/cut_coul;
-  double f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
-    cut_coul; 
+  double f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul;
 
   // loop over neighbors of my atoms
 
@@ -247,13 +247,13 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-  
+
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           prefactor = qqrd2e*qtmp*q[j]/r;
-          erfcc = erfc(alf*r); 
+          erfcc = erfc(alf*r);
           erfcd = exp(-alf*alf*r*r);
-          v_sh = (erfcc - e_shift*r) * prefactor; 
+          v_sh = (erfcc - e_shift*r) * prefactor;
           dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
           forcecoul = dvdrr*rsq*prefactor;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
@@ -263,12 +263,12 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
           r6inv = r2inv*r2inv*r2inv;
           r = sqrt(rsq);
           rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
-          forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv + 
+          forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv +
             born3[itype][jtype]*r2inv*r6inv;
         } else forceborn = 0.0;
-	
+
         fpair = (factor_coul*forcecoul + factor_lj*forceborn) * r2inv;
-	
+
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
         f[i][2] += delz*fpair;

@@ -16,10 +16,10 @@
                          Aidan Thompson (SNL) GJF formulation
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_langevin.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -300,7 +300,7 @@ void FixLangevin::post_force(int vflag)
   double *rmass = atom->rmass;
 
   // enumerate all 2^6 possibilities for template parameters
-  // this avoids testing them inside inner loop: 
+  // this avoids testing them inside inner loop:
   // TSTYLEATOM, GJF, TALLY, BIAS, RMASS, ZERO
 
 #ifdef TEMPLATED_FIX_LANGEVIN
@@ -431,7 +431,7 @@ void FixLangevin::post_force(int vflag)
 	    if (zeroflag) post_force_templated<0,0,0,0,0,1>();
 	    else          post_force_templated<0,0,0,0,0,0>();
 #else
-  post_force_untemplated(int(tstyle==ATOM), gjfflag, tallyflag, 
+  post_force_untemplated(int(tstyle==ATOM), gjfflag, tallyflag,
 			 int(tbiasflag==BIAS), int(rmass!=NULL), zeroflag);
 #endif
 }
@@ -448,12 +448,12 @@ void FixLangevin::post_force_respa(int vflag, int ilevel, int iloop)
 ------------------------------------------------------------------------- */
 
 #ifdef TEMPLATED_FIX_LANGEVIN
-template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, 
+template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
 	   int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
 void FixLangevin::post_force_templated()
 #else
 void FixLangevin::post_force_untemplated
-  (int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, 
+  (int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
    int Tp_BIAS, int Tp_RMASS, int Tp_ZERO)
 #endif
 {
@@ -681,7 +681,7 @@ void FixLangevin::omega_thermostat()
   double tendivthree = 10.0/3.0;
   double tran[3];
   double inertiaone;
-  
+
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && (radius[i] > 0.0)) {
       inertiaone = SINERTIA*radius[i]*radius[i]*rmass[i];
@@ -880,7 +880,7 @@ double FixLangevin::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   allocate atom-based array for franprev 
+   allocate atom-based array for franprev
 ------------------------------------------------------------------------- */
 
 void FixLangevin::grow_arrays(int nmax)

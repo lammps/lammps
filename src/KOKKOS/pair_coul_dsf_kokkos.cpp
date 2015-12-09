@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_dsf_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -287,7 +287,7 @@ void PairCoulDSFKokkos<DeviceType>::operator()(TagPairCoulDSFKernelA<NEIGHFLAG,N
       const F_FLOAT erfcd = exp(-alpha*alpha*rsq);
       const F_FLOAT t = 1.0 / (1.0 + EWALD_P*alpha*r);
       const F_FLOAT erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-      const F_FLOAT forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
+      const F_FLOAT forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                  r*f_shift) * r;
       const F_FLOAT fpair = forcecoul * r2inv;
 
@@ -424,7 +424,7 @@ void PairCoulDSFKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const i
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION 
+KOKKOS_INLINE_FUNCTION
 int PairCoulDSFKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
 }

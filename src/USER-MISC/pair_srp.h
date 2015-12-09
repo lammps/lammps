@@ -44,9 +44,9 @@ class PairSRP : public Pair {
   inline void onetwoexclude(int* &, int &, int* &, int* &, int** &);
   inline void remapBonds(int &);
   void allocate();
-  void getMinDist(double** &, double &, double &, double &, double &, 
+  void getMinDist(double** &, double &, double &, double &, double &,
                   double &, int &, int &, int &, int &);
-  bool min, midpoint; 
+  bool min, midpoint;
   double **cut;
   double **a0;
   double **srp;
@@ -54,6 +54,7 @@ class PairSRP : public Pair {
   int bptype;
   int btype;
   class Fix *f_srp;
+  char *fix_id;
   int exclude,maxcount;
   int **segment;
 };

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "ctype.h"
+#include <mpi.h>
+#include <string.h>
+#include <ctype.h>
 #include "lammps.h"
 #include "style_angle.h"
 #include "style_atom.h"
@@ -89,6 +89,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   suffix = suffix2 = NULL;
   suffix_enable = 0;
+  packargs = NULL;
+  num_package = 0;
   char *rfile = NULL;
   char *dfile = NULL;
   int wdfirst,wdlast;
@@ -193,6 +195,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
       delete [] suffix2;
+      suffix2 = NULL;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
       if (strcmp(arg[iarg+1],"hybrid") == 0) {
@@ -452,24 +455,24 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
                  "lmptype.h are not compatible");
 
 #ifdef LAMMPS_SMALLBIG
-  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 || 
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 ||
       sizeof(tagint) != 4 || sizeof(bigint) != 8)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_BIGBIG
-  if (sizeof(smallint) != 4 || sizeof(imageint) != 8 || 
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 8 ||
       sizeof(tagint) != 8 || sizeof(bigint) != 8)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_SMALLSMALL
-  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 || 
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 ||
       sizeof(tagint) != 4 || sizeof(bigint) != 4)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 
   // error check on accelerator packages
 
-  if (cudaflag == 1 && kokkosflag == 1) 
+  if (cudaflag == 1 && kokkosflag == 1)
     error->all(FLERR,"Cannot use -cuda on and -kokkos on together");
 
   // create Cuda class if USER-CUDA installed, unless explicitly switched off
@@ -509,12 +512,25 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   input = new Input(this,narg,arg);
 
+  // copy package cmdline arguments
+  if (npack > 0) {
+    num_package = npack;
+    packargs = new char**[npack];
+    for (int i=0; i < npack; ++i) {
+      int n = plast[i] - pfirst[i];
+      packargs[i] = new char*[n+1];
+      for (int j=0; j < n; ++j)
+        packargs[i][j] = strdup(arg[pfirst[i]+j]);
+      packargs[i][n] = NULL;
+    }
+    memory->destroy(pfirst);
+    memory->destroy(plast);
+  }
+
   // allocate top-level classes
 
   create();
-  post_create(npack,pfirst,plast,arg);
-  memory->destroy(pfirst);
-  memory->destroy(plast);
+  post_create();
 
   // if helpflag set, print help and quit with "success" status
 
@@ -555,6 +571,17 @@ LAMMPS::~LAMMPS()
 
   destroy();
   delete citeme;
+
+  if (num_package) {
+    for (int i = 0; i < num_package; i++) {
+      for (char **ptr = packargs[i]; *ptr != NULL; ++ptr)
+        free(*ptr);
+      delete[] packargs[i];
+    }
+    delete[] packargs;
+  }
+  num_package = 0;
+  packargs = NULL;
 
   double totalclock = MPI_Wtime() - initclock;
   if ((me == 0) && (screen || logfile)) {
@@ -650,7 +677,7 @@ void LAMMPS::create()
      so that package-specific core classes have been instantiated
 ------------------------------------------------------------------------- */
 
-void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
+void LAMMPS::post_create()
 {
   // default package commands triggered by "-c on" and "-k on"
 
@@ -669,7 +696,7 @@ void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
     error->all(FLERR,"Using suffix gpu without GPU package installed");
   if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
     error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
-  if (strcmp(suffix,"kk") == 0 && 
+  if (strcmp(suffix,"kk") == 0 &&
       (kokkos == NULL || kokkos->kokkos_exists == 0))
     error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
   if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
@@ -687,15 +714,15 @@ void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
 
   // invoke any command-line package commands
 
-  if (npack) {
-    char str[128];
-    for (int i = 0; i < npack; i++) {
+  if (num_package) {
+    char str[256];
+    for (int i = 0; i < num_package; i++) {
       strcpy(str,"package");
-      for (int j = pfirst[i]; j < plast[i]; j++) {
-        if (strlen(str) + strlen(arg[j]) + 2 > 128)
+      for (char **ptr = packargs[i]; *ptr != NULL; ++ptr) {
+        if (strlen(str) + strlen(*ptr) + 2 > 256)
           error->all(FLERR,"Too many -pk arguments in command line");
         strcat(str," ");
-        strcat(str,arg[j]);
+        strcat(str,*ptr);
       }
       input->one(str);
     }
@@ -783,12 +810,12 @@ void LAMMPS::help()
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"
           "-pscreen basename           : basename for partition screens (-ps)\n"
-          "-restart rfile dfile ...    : convert restart to data file (-r)\n" 
+          "-restart rfile dfile ...    : convert restart to data file (-r)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-suffix cuda/gpu/opt/omp    : style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n");
-  
+
   fprintf(screen,"Style options compiled with this executable\n\n");
 
   int pos = 80;
@@ -914,7 +941,7 @@ void LAMMPS::print_style(const char *str, int &pos)
   if (isupper(str[0])) return;
 
   int len = strlen(str);
-  if (pos+len > 80) { 
+  if (pos+len > 80) {
     fprintf(screen,"\n");
     pos = 0;
   }

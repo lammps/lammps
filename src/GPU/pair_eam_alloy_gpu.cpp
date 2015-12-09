@@ -15,9 +15,9 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_eam_alloy_gpu.h"
 #include "atom.h"
 #include "force.h"
@@ -39,10 +39,10 @@ int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r,
                  int *host_type2frho, double ***host_rhor_spline,
                  double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, double rhomax, 
-                 int nrhor, int nrho, int nz2r, int nfrho, int nr, 
-                 const int nlocal, const int nall, const int max_nbors, 
-                 const int maxspecial, const double cell_size, int &gpu_mode, 
+                 double rdr, double rdrho, double rhomax,
+                 int nrhor, int nrho, int nz2r, int nfrho, int nr,
+                 const int nlocal, const int nall, const int max_nbors,
+                 const int maxspecial, const double cell_size, int &gpu_mode,
                  FILE *screen, int &fp_size);
 void eam_alloy_gpu_clear();
 int** eam_alloy_gpu_compute_n(const int ago, const int inum_full, const int nall,
@@ -233,7 +233,7 @@ double PairEAMAlloyGPU::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAMAlloyGPU::pack_forward_comm(int n, int *list, double *buf, 
+int PairEAMAlloyGPU::pack_forward_comm(int n, int *list, double *buf,
                                   int pbc_flag,int *pbc)
 {
   int i,j,m;

@@ -15,10 +15,10 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_eam.h"
 #include "atom.h"
 #include "force.h"
@@ -42,6 +42,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   rho = NULL;
   fp = NULL;
+  map = NULL;
+  type2frho = NULL;
 
   nfuncfl = 0;
   funcfl = NULL;
@@ -79,6 +81,8 @@ PairEAM::~PairEAM()
     memory->destroy(cutsq);
     delete [] map;
     delete [] type2frho;
+    map = NULL;
+    type2frho = NULL;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
   }
@@ -91,6 +95,7 @@ PairEAM::~PairEAM()
       memory->destroy(funcfl[i].zr);
     }
     memory->sfree(funcfl);
+    funcfl = NULL;
   }
 
   if (setfl) {
@@ -101,6 +106,7 @@ PairEAM::~PairEAM()
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
     delete setfl;
+    setfl = NULL;
   }
 
   if (fs) {
@@ -111,6 +117,7 @@ PairEAM::~PairEAM()
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
     delete fs;
+    fs = NULL;
   }
 
   memory->destroy(frho);
@@ -808,7 +815,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAM::pack_forward_comm(int n, int *list, double *buf, 
+int PairEAM::pack_forward_comm(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
   int i,j,m;

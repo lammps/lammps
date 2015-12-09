@@ -20,7 +20,7 @@ ImproperStyle(class2,ImproperClass2)
 #ifndef LMP_IMPROPER_CLASS2_H
 #define LMP_IMPROPER_CLASS2_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "improper.h"
 
 namespace LAMMPS_NS {

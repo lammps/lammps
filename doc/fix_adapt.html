@@ -213,11 +213,15 @@ style supports it.  Note that the <a class="reference internal" href="pair_style
 to specify these parameters initially; the fix adapt command simply
 overrides the parameters.</p>
 <p>The <em>pstyle</em> argument is the name of the pair style.  If <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid or hybrid/overlay</em></a> is used, <em>pstyle</em> should be
-a sub-style name.  For example, <em>pstyle</em> could be specified as &#8220;soft&#8221;
-or &#8220;lubricate&#8221;.  The <em>pparam</em> argument is the name of the parameter to
-change.  This is the current list of pair styles and parameters that
-can be varied by this fix.  See the doc pages for individual pair
-styles and their energy formulas for the meaning of these parameters:</p>
+a sub-style name.  If there are multiple sub-styles using the same
+pair style, then <em>pstyle</em> should be specified as &#8220;style:N&#8221; where N is
+which instance of the pair style you wish to adapt, e.g. the first,
+second, etc.  For example, <em>pstyle</em> could be specified as &#8220;soft&#8221; or
+&#8220;lubricate&#8221; or &#8220;lj/cut:1&#8221; or &#8220;lj/cut:2&#8221;.  The <em>pparam</em> argument is the
+name of the parameter to change.  This is the current list of pair
+styles and parameters that can be varied by this fix.  See the doc
+pages for individual pair styles and their energy formulas for the
+meaning of these parameters:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="51%" />

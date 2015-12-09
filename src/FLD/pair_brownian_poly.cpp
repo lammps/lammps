@@ -16,10 +16,10 @@
                          Dave Heine (Corning), polydispersity
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_brownian_poly.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -365,7 +365,7 @@ void PairBrownianPoly::init_style()
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
     else if (strstr(modify->fix[i]->style,"wall") != NULL) {
-      if (flagwall) 
+      if (flagwall)
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with pair brownian");
       flagwall = 1; // Walls exist

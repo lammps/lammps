@@ -33,7 +33,6 @@ class DumpH5MD : public Dump {
 
  private:
   int natoms,ntotal;
-  int nevery_save;
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
   h5md_file datafile;
   int datafile_from_dump;

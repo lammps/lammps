@@ -13,9 +13,9 @@ CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp	\
 SHFLAGS =	# -fPIC (not needed on windows, all code is PIC)
 DEPFLAGS =	-M
 
-LINK =		i686-w64-mingw32-g++
-LINKFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp
-LIB =           -lwsock32 -static-libgcc
+LINK =		i686-w64-mingw32-g++ -static
+LINKFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp 
+LIB =           -lwsock32 -static-libgcc -lquadmath -lpsapi
 SIZE =		i686-w64-mingw32-size
 
 ARCHIVE =	i686-w64-mingw32-ar
@@ -44,12 +44,12 @@ LMP_INC =	-DLAMMPS_SMALLSMALL -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_XDR -DLAMMPS_G
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I../../tools/mingw-cross/mpich2-win32/include
+MPI_INC =       -I../../tools/mingw-cross/mpich2-win32/include  -DMPICH_SKIP_MPICXX 
 MPI_PATH =      -L../../tools/mingw-cross/mpich2-win32/lib
 MPI_LIB =	-lmpi
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library

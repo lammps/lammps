@@ -15,8 +15,8 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "respa_omp.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -150,6 +150,7 @@ void RespaOMP::setup()
       fix->did_reduce();
     }
 
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -243,6 +244,7 @@ void RespaOMP::setup_minimal(int flag)
       fix->did_reduce();
     }
 
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -391,6 +393,10 @@ void RespaOMP::recurse(int ilevel)
       fix->did_reduce();
     }
 
+    if (modify->n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
+    }
     if (newton[ilevel]) {
       comm->reverse_comm();
       timer->stamp(Timer::COMM);

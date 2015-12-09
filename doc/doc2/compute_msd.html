@@ -21,16 +21,17 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>com</I> 
+<LI>keyword = <I>com</I> or <I>average</I> 
 
-<PRE>  <I>com</I> value = <I>yes</I> or <I>no</I> 
+<PRE>  <I>com</I> value = <I>yes</I> or <I>no</I>
+  <I>average</I> value = <I>yes</I> or <I>no</I> 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all msd
-compute 1 upper msd com yes 
+compute 1 upper msd com yes average yes 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -49,13 +50,34 @@ averaged over atoms in the group.
 <P>The slope of the mean-squared displacement (MSD) versus time is
 proportional to the diffusion coefficient of the diffusing atoms.
 </P>
-<P>The displacement of an atom is from its original position at the time
-the compute command was issued.  The value of the displacement will be
+<P>The displacement of an atom is from its reference position. This is
+normally the original position at the time
+the compute command was issued, unless the <I>average</I> keyword is set to <I>yes</I>.  
+The value of the displacement will be
 0.0 for atoms not in the specified compute group.
 </P>
 <P>If the <I>com</I> option is set to <I>yes</I> then the effect of any drift in
-the center-of-mass of the group of atoms is subtracted out before xhe
-displacment of each atom is calcluated.
+the center-of-mass of the group of atoms is subtracted out before the
+displacment of each atom is calculated.
+</P>
+<P>If the <I>average</I> option is set to <I>yes</I> then the reference position of 
+an atom is based on the average position of that atom, 
+corrected for center-of-mass motion if requested.
+The average position
+is a running average over all previous calls to the compute, including the
+current call. So on the first call 
+it is current position, on the second call it is the arithmetic average of the 
+current position and the position on the first call, and so on.
+Note that when using this option, the precise value of the mean square
+displacement will depend on the number of times the compute is 
+called. So, for example, changing the frequency of thermo output may
+change the computed displacement. Also, the precise values will be 
+changed if a single simulation is broken up into two parts, using
+either multiple run commands or a restart file. It only makes
+sense to use this option if the atoms are not diffusing, so that
+their average positions relative to the center of mass of the system
+are stationary. The most common case is crystalline solids undergoing
+thermal motion.
 </P>
 <P>IMPORTANT NOTE: Initial coordinates are stored in "unwrapped" form, by
 using the image flags associated with each atom.  See the <A HREF = "dump.html">dump
@@ -70,7 +92,13 @@ to be continuous when running from a <A HREF = "read_restart.html">restart file<
 then you should use the same ID for this compute, as in the original
 run.  This is so that the fix this compute creates to store per-atom
 quantities will also have the same ID, and thus be initialized
-correctly with time=0 atom coordinates from the restart file.
+correctly with atom reference positions from the restart file.
+When <I>average</I> is set to yes, then the atom reference positions 
+are restored correctly, but not the number of samples used
+obtain them. As a result, the reference positions from the restart
+file are combined with subsequent positions as if they were from a 
+single sample, instead of many, which will change the values of msd
+somewhat.
 </P>
 <P><B>Output info:</B>
 </P>
@@ -94,6 +122,6 @@ msd/chunk</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option default is com = no.
+<P>The option default are com = no, average = no.
 </P>
 </HTML>

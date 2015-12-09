@@ -36,6 +36,7 @@ dihedral_style quadratic, Loukas Peristeras, loukas.peristeras at scienomics.com
 dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix ave/spatial/sphere, Niall Jackson (Imperial College), niall.jackson at gmail.com, 18 Nov 14
+fix ave/correlate/long, Jorge Ramirez (UPM Madrid), jorge.ramirez at upm.es, 21 Oct 2015
 fix gle, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014
 fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix ipi, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014

@@ -15,7 +15,7 @@
 #define LMP_FORCE_H
 
 #include "pointers.h"
-#include "stdio.h"
+#include <stdio.h>
 #include <map>
 #include <string>
 
@@ -80,7 +80,7 @@ class Force : protected Pointers {
 
   void create_pair(const char *, int);
   class Pair *new_pair(const char *, int, int &);
-  class Pair *pair_match(const char *, int);
+  class Pair *pair_match(const char *, int, int nsub=0);
 
   void create_bond(const char *, int);
   class Bond *new_bond(const char *, int, int &);

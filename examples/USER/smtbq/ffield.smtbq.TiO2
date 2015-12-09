@@ -1,0 +1,53 @@
+# DATE: 2015-10-22 CONTRIBUTOR: Nicolas Salles, nsalles@laas.fr CITATION: N. Salles, O. Politano, E. Amzallag and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189
+# ========================================================================
+# SMTBQ parameter for Ti-O interaction with a limit length 'rc2sm=dc2**2'. 
+# Edited by N. Salles from Univ Bourgogne and E. Maras from Aalto Univ 
+# september 2014
+# ========================================================================
+' Number.of.atoms.type............:'  2
+' ====== atomic parameters ======= '
+' 1st.element.(Oxygen).Stoechio...:'  'O'   2    
+' Qform.....mass..................:'  -2.0    16.00  
+' Param.QEq.(ne,.Chi0,.JiO).......:'  2  6.57    10.22  
+' coordBB.coordB.coordS.rBB.rB.rS.:'  6. 3.  2.00   0.52  0.54348   0.58
+' Number.of.shared.state.by.ions..:'  3
+' -------------------------------- '
+' 2nd.element.(metal).Stoechio....:'  'Ti'   1   
+' Qform.....mass..................:'  4.0    26.98
+' Param.QEq.(nq,.Chi0,.Ji0,.R_eff):'  3  0.00   10.572  0.734
+' Number.of.shared.state.by.ions..:'  5 
+' ===== potential Parameter  ======'
+' Atom1..atom2..potential..mode....'  'Ti'  'O'  'second_moment' 'oxide'
+' Pot.CatOx.(A,.p,.Ksi(ref=O),.q).:'  0.134  12.609  0.5434  2.0965
+' Pot..Cat-Ox.(rc1,.rc2,.r0)......:'  3.6     6.0    1.95   
+' -------------------------------- '
+' atom1..atom2..potential..........'  'O'  'O'  'buckPlusAttr'
+' Potential.O-O...(C,.Rho)........:'  580.440  0.3540
+' Potential.O-O...(D.B.r1OO.r2OO).:'  -20.86  -0.916  1.4  1.8
+' ======== Tab Parameter ========= ' 
+' Rcoul=a*rc(SMASH)...............:'  12.1744
+' rmin...dr.......................:'  1.0675  0.001
+' ======== IFQM Parameter ======== '
+' Nevery.charge.calculation........'  1
+' loopmax....precision.............'  7000    0.000001
+' ==== Coordination parameters ===='
+' .r1n................r2n..........'  2.0  3.5
+' ========== QInitMode   ========= '
+' QInitMode....QInit(if.needed)....'  'false'  -1.0
+' ======== Mode for QEq   ======== '
+' mode(see.end.of.this.file.)......'  'QEqAll'
+' parameters.for.mode..............'      
+' ========== Verbose  ============ '
+' Verbose(true.or.false)...........'  'false'
+' Print.Energy.components..........'  'false'   300.0
+' Print.electroneg...components....'  'false'   300.0
+# =========================== END's parameters =========================
+
+#Possible  QInit modes    
+#  true (then initialize all the oxygen charges to QOxInit and set the cation charge in order to keep the charge balance (neutrality of the box)
+#any other name would lead to either 0 charges or charge read from the lammps atomic position file      		
+#Possible QEq  modes    |   parameters
+#  QEqAll      		|   no parameters
+#  QEqAllParallel	|   no parameters
+#  Surface		|   zlim   (QEq only for z>zlim)
+#  BulkFromSlab		|   zlim1  zlim2  (QEq only for zlim1<z<zlim2)

@@ -388,6 +388,7 @@ Input and output:\n\
   list                        -- return a list of all variables\n\
   list biases                 -- return a list of all biases\n\
   load <file name>            -- load a state file (requires configuration)\n\
+  save <file name>            -- save a state file (requires configuration)\n\
   update                      -- recalculate colvars and biases based\n\
   printframe                  -- return a summary of the current frame\n\
   printframelabels            -- return labels to annotate printframe's output\n";
@@ -406,6 +407,7 @@ Accessing collective variables:\n\
   colvar <name> delete        -- delete colvar <name>\n\
   colvar <name> addforce <F>  -- apply given force on colvar <name>\n\
   colvar <name> getconfig     -- return config string of colvar <name>\n\
+  colvar <name> cvcflags <fl> -- enable or disable cvcs according to 0/1 flags\n\
 \n\
 Accessing biases:\n\
   bias <name> energy          -- return the current energy of bias <name>\n\

@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class ComputeDilatationAtom : public Compute {
   friend class PairPeriPMB;
   friend class PairPeriLPS;
-  friend class PairPeriVES;   
-  friend class PairPeriEPS;   
+  friend class PairPeriVES;
+  friend class PairPeriEPS;
  public:
   ComputeDilatationAtom(class LAMMPS *, int, char **);
   ~ComputeDilatationAtom();

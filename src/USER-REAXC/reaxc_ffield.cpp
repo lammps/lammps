@@ -60,6 +60,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   if (n < 1) {
     fprintf( stderr, "WARNING: number of globals in ffield file is 0!\n" );
     fclose(fp);
+    free(s);
+    free(tmp);
     return 1;
   }
 
@@ -441,7 +443,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       reax->tbp[i][j].lgcij = reax->tbp[j][i].lgcij =
         sqrt( reax->sbp[i].lgcij * reax->sbp[j].lgcij );
 
-      reax->tbp[i][j].lgre = reax->tbp[j][i].lgre = 2.0 * reax->gp.l[35] * 
+      reax->tbp[i][j].lgre = reax->tbp[j][i].lgre = 2.0 * reax->gp.l[35] *
         sqrt( reax->sbp[i].lgre*reax->sbp[j].lgre );
 
     }

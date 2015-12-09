@@ -15,9 +15,9 @@
    Charges by type and after option: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_adapt_fep.h"
 #include "atom.h"
 #include "update.h"
@@ -123,8 +123,8 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
-        adapt[nadapt].aparam = CHARGE; 
-        chgflag = 1; 
+        adapt[nadapt].aparam = CHARGE;
+        chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt/fep command");
       force->bounds(arg[iarg+2],atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi);
@@ -289,7 +289,7 @@ void FixAdaptFEP::init()
 
   if (group->dynamic[igroup])
     for (int i = 0; i < nadapt; i++)
-      if (adapt[i].which == ATOM) 
+      if (adapt[i].which == ATOM)
         error->all(FLERR,"Cannot use dynamic group with fix adapt/fep atom");
 
   // setup and error checks
@@ -320,7 +320,7 @@ void FixAdaptFEP::init()
       if (pair == NULL)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL) 
+      if (ptr == NULL)
         error->all(FLERR,"Fix adapt/fep pair style param not supported");
 
       ad->pdim = 2;
@@ -368,7 +368,7 @@ void FixAdaptFEP::init()
   }
 
   // fixes that store initial per-atom values
-  
+
   if (id_fix_diam) {
     int ifix = modify->find_fix(id_fix_diam);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
@@ -507,7 +507,7 @@ void FixAdaptFEP::change_settings()
         }
       } else if (ad->aparam == CHARGE) {
         int *atype = atom->type;
-        double *q = atom->q; 
+        double *q = atom->q;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;

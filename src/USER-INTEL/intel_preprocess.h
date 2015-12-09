@@ -298,7 +298,7 @@ inline double MIC_Wtime() {
 
 #define MIC_Wtime MPI_Wtime
 #define IP_PRE_pack_separate_buffers(fix, buffers, ago, offload,        \
-                                     nlocal, nall)			
+                                     nlocal, nall)
 
 #define IP_PRE_get_transfern(ago, newton, evflag, eflag, vflag, 	\
 			     buffers, offload, fix, separate_flag,	\
@@ -323,7 +323,7 @@ inline double MIC_Wtime() {
 }
 
 #define IP_PRE_repack_for_offload(newton, separate_flag, nlocal, nall,	\
-				  f_stride, x, q)			
+				  f_stride, x, q)
 
 
 #endif

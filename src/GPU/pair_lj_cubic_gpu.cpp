@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_cubic_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -40,9 +40,9 @@ using namespace PairLJCubicConstants;
 
 // External functions from cuda library for atom decomposition
 
-int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq, 
-                  double **cut_inner, double **sigma, double **epsilon, 
-                  double **host_lj1, double **host_lj2, double **host_lj3, 
+int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
+                  double **cut_inner, double **sigma, double **epsilon,
+                  double **host_lj1, double **host_lj2, double **host_lj3,
                   double **host_lj4, double *special_lj, const int nlocal,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
@@ -64,7 +64,7 @@ double ljcb_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCubicGPU::PairLJCubicGPU(LAMMPS *lmp) : PairLJCubic(lmp), 
+PairLJCubicGPU::PairLJCubicGPU(LAMMPS *lmp) : PairLJCubic(lmp),
   gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
@@ -91,7 +91,7 @@ void PairLJCubicGPU::compute(int eflag, int vflag)
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -151,7 +151,7 @@ void PairLJCubicGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int success = ljcb_gpu_init(atom->ntypes+1, cutsq, cut_inner_sq,
-                              cut_inner, sigma, epsilon, lj1, lj2, 
+                              cut_inner, sigma, epsilon, lj1, lj2,
                               lj3, lj4, force->special_lj, atom->nlocal,
                               atom->nlocal+atom->nghost, 300, maxspecial,
                               cell_size, gpu_mode, screen);

@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
 #include "improper_harmonic_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -225,7 +225,7 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   const F_FLOAT domega = acos(c) - d_chi[type];
   F_FLOAT a = d_k[type] * domega;
 
-  F_FLOAT eimproper = 0.0; 
+  F_FLOAT eimproper = 0.0;
   if (eflag) eimproper = a*domega;
 
   a = -a * 2.0/s;

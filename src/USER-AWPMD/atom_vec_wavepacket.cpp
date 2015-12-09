@@ -15,9 +15,9 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_wavepacket.h"
 #include "atom.h"
 #include "comm.h"
@@ -908,7 +908,7 @@ void AtomVecWavepacket::create_atom(int itype, double *coord)
    AWPMD: 0-tag 1-type 2-q 3-spin 4-eradius 5-etag 6-cs_re 7-cs_im
 ------------------------------------------------------------------------- */
 
-void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp, 
+void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp,
                                   char **values)
 {
   int nlocal = atom->nlocal;
@@ -1039,7 +1039,7 @@ int AtomVecWavepacket::pack_data_hybrid(int i, double *buf)
 void AtomVecWavepacket::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT
             " %d %-1.16e %d %-1.16e %d %-1.16e %-1.16e %-1.16e "
             "%-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
@@ -1128,7 +1128,7 @@ int AtomVecWavepacket::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecWavepacket::pack_property_atom(int index, double *buf, 
+void AtomVecWavepacket::pack_property_atom(int index, double *buf,
                                            int nvalues, int groupbit)
 {
   int *mask = atom->mask;

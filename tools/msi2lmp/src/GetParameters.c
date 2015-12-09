@@ -77,7 +77,7 @@ void GetParameters()
       printf(" Unable to find vdw data for %s\n",atomtypes[i].potential);
       condexit(11);
     } else {
-      if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
+      if (ljtypeflag == 0) {
         if((ff_vdw.data[k].ff_param[0] != 0.0 ) &&
            (ff_vdw.data[k].ff_param[1] != 0.0)) {
           atomtypes[i].params[0] =
@@ -87,11 +87,12 @@ void GetParameters()
                                         ff_vdw.data[k].ff_param[1]),
                                        (1.0/6.0));
         }
-      }
-
-      if (forcefield & FF_TYPE_CLASS2) {
+      } else if (ljtypeflag == 1) {
         atomtypes[i].params[0] = ff_vdw.data[k].ff_param[1];
         atomtypes[i].params[1] = ff_vdw.data[k].ff_param[0];
+      } else {
+          printf(" Unknown LJ parameter type %d\n",ljtypeflag);
+          exit(111);
       }
     }
   }

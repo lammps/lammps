@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "improper_umbrella_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -171,8 +171,8 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
       }
     }
 
-    if (c > 1.0) s = 1.0;
-    if (c < -1.0) s = -1.0;
+    if (c > 1.0) c = 1.0;
+    if (c < -1.0) c = -1.0;
 
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;

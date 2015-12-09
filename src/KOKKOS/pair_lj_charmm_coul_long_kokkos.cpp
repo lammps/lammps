@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_charmm_coul_long_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -195,8 +195,8 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
     switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
     switch2 = 12.0*rsq * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-    englj = r6inv * 
-	    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv - 
+    englj = r6inv *
+	    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
 	     (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
     forcelj = forcelj*switch1 + englj*switch2;
   }
@@ -215,9 +215,9 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj, switch1; 
+  F_FLOAT englj, switch1;
 
-  englj = r6inv * 
+  englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
 

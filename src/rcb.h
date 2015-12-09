@@ -14,7 +14,7 @@
 #ifndef LAMMPS_RCB_H
 #define LAMMPS_RCB_H
 
-#include "mpi.h"
+#include <mpi.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -50,7 +50,7 @@ class RCB : protected Pointers {
   //void stats(int);
 
   // RCB cut info
-  
+
   struct Median {
     double totallo,totalhi;   // weight in each half of active partition
     double valuelo,valuehi;   // position of dot(s) nearest to cut
@@ -62,7 +62,7 @@ class RCB : protected Pointers {
   struct BBox {
     double lo[3],hi[3];       // corner points of a bounding box
   };
-  
+
  private:
   int me,nprocs;
 
@@ -81,7 +81,7 @@ class RCB : protected Pointers {
     double cut;        	// position of cut
     int dim;	        // dimension = 0/1/2 of cut
   };
-  
+
   // inversion message
 
   struct Invert {
@@ -114,7 +114,7 @@ class RCB : protected Pointers {
   int reuse;        // 1/0 to use/not use previous cuts
   int dottop;       // dots >= this index are new
   double bboxlo[3]; // bounding box of final RCB sub-domain
-  double bboxhi[3]; 
+  double bboxhi[3];
   Tree *tree;       // tree of RCB cuts, used by reuse()
   int counters[7];  // diagnostic counts
 		    // 0 = # of median iterations

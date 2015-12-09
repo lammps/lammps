@@ -15,7 +15,7 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "info.h"
 #include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
@@ -104,10 +104,12 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if ((idx+1 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"screen",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = screen;
       idx += 2;
     } else if ((idx+1 < narg) && (strncmp(arg[idx],"out",3) == 0)
                && (strncmp(arg[idx+1],"log",3) == 0)) {
+      if ((out != screen) && (out != logfile)) fclose(out);
       out = logfile;
       idx += 2;
     } else if ((idx+2 < narg) && (strncmp(arg[idx],"out",3) == 0)
@@ -241,7 +243,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
-            commstyles[comm->style], commlayout[comm->layout]); 
+            commstyles[comm->style], commlayout[comm->layout]);
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",
             comm->ghost_velocity ? "yes" : "no");
 
@@ -547,7 +549,7 @@ bool Info::is_available(const char *category, const char *name)
   int match = 0;
 
   if (strcmp(category,"command") == 0) {
-    if (input->command_map->find(name) != input->command_map->end());
+    if (input->command_map->find(name) != input->command_map->end())
       match = 1;
 
   } else if (strcmp(category,"compute") == 0) {

@@ -12,11 +12,11 @@
    Contributing author: Pierre de Buyl (KU Leuven)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "limits.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 #include "ch5md.h"
 #include "dump_h5md.h"
 #include "domain.h"
@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 /** Scan common options for the dump elements
  */
-int element_args(int narg, char **arg, int *every)
+static int element_args(int narg, char **arg, int *every)
 {
   int iarg=0;
   while (iarg<narg) {

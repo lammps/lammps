@@ -42,7 +42,7 @@ namespace LAMMPS_NS {
       fz += rhs.fz;
       return *this;
     }
-    
+
     KOKKOS_INLINE_FUNCTION
     volatile s_FSUM& operator+=(const volatile s_FSUM &rhs) volatile {
       fx += rhs.fx;
@@ -92,7 +92,7 @@ namespace LAMMPS_NS {
 
   private:
     class CommKokkos *commKK;
-    
+
     double *rmass;
     typename ArrayTypes<DeviceType>::tdual_double_2d k_franprev;
     typename ArrayTypes<DeviceType>::t_double_2d d_franprev;

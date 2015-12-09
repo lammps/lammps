@@ -200,6 +200,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style tip4p/cut"_pair_coul.html - Coulomb for TIP4P water w/out LJ
 "pair_style tip4p/long"_pair_coul.html - long-range Coulombics for TIP4P water w/out LJ
 "pair_style tri/lj"_pair_tri_lj.html - LJ potential between triangles
+"pair_style vashishta"_pair_vahishta.html - Vashishta 2-body and 3-body potential 
 "pair_style yukawa"_pair_yukawa.html - Yukawa potential
 "pair_style yukawa/colloid"_pair_yukawa_colloid.html - screened Yukawa potential for finite-size particles
 "pair_style zbl"_pair_zbl.html - Ziegler-Biersack-Littmark potential :ul

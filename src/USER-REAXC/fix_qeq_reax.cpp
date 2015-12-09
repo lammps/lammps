@@ -18,10 +18,10 @@
      Hybrid and sub-group capabilities: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_reax.h"
 #include "pair_reax_c.h"
 #include "atom.h"
@@ -442,7 +442,7 @@ void FixQEqReax::init_storage()
 {
   int NN;
 
-  if (reaxc) 
+  if (reaxc)
     NN = reaxc->list->inum + reaxc->list->gnum;
   else
     NN = list->inum + list->gnum;
@@ -522,7 +522,7 @@ void FixQEqReax::init_matvec()
   for( ii = 0; ii < nn; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
-    
+
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
       b_s[i]      = -chi[ atom->type[i] ];
@@ -573,7 +573,7 @@ void FixQEqReax::compute_H()
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
   }
-  
+
   // fill in the H matrix
   m_fill = 0;
   r_sqr = 0;
@@ -964,7 +964,7 @@ double FixQEqReax::parallel_dot( double *v1, double *v2, int n)
     if (atom->mask[i] & groupbit)
       my_dot += v1[i] * v2[i];
   }
-  
+
   MPI_Allreduce( &my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world );
 
   return res;

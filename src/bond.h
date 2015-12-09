@@ -14,7 +14,7 @@
 #ifndef LMP_BOND_H
 #define LMP_BOND_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

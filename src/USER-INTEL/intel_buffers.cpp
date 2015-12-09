@@ -101,7 +101,7 @@ void IntelBuffers<flt_t, acc_t>::free_buffers()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal, 
+void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
 				       const int nthreads,
 				       const int offload_end)
 {
@@ -129,7 +129,7 @@ void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
     if (lmp->atom->ellipsoid != NULL)
       lmp->memory->create(_host_quat, _buf_size, "intel_host_quat");
   }
-    
+
   if (offload_end > 0) {
     lmp->memory->create(_off_f, f_stride * _off_threads, "intel_off_f");
     const atom_t * const x = get_x();
@@ -252,7 +252,7 @@ void IntelBuffers<flt_t, acc_t>::free_local()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_local(NeighList *list, 
+void IntelBuffers<flt_t, acc_t>::_grow_local(NeighList *list,
 					     const int offload_end)
 {
   free_local();
@@ -341,7 +341,7 @@ void IntelBuffers<flt_t, acc_t>::free_nbor_list()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list, 
+void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list,
                                                  const int nlocal,
                                                  const int offload_end)
 {
@@ -449,7 +449,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
     int *ccachei = _ccachei;
     int *ccachej = _ccachej;
 
-    if (ccachex != NULL && ccachey !=NULL && ccachez != NULL && 
+    if (ccachex != NULL && ccachey !=NULL && ccachez != NULL &&
 	ccachew != NULL && ccachei != NULL && ccachej !=NULL) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ccachex,ccachey:length(vsize) alloc_if(1) free_if(0)) \

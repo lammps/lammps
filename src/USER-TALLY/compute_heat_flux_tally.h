@@ -25,7 +25,7 @@ ComputeStyle(heat/flux/tally,ComputeHeatFluxTally)
 namespace LAMMPS_NS {
 
 class ComputeHeatFluxTally : public Compute {
-  
+
  public:
   ComputeHeatFluxTally(class LAMMPS *, int, char **);
   virtual ~ComputeHeatFluxTally();

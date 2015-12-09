@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /** Fix Drude Transform ******************************************************/
-#include "math.h"
+#include <math.h>
 #include "fix_drude_transform.h"
 #include "atom.h"
 #include "domain.h"
@@ -38,11 +38,11 @@ FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 template <bool inverse>
-FixDrudeTransform<inverse>::~FixDrudeTransform() 
+FixDrudeTransform<inverse>::~FixDrudeTransform()
 {
   if (mcoeff) delete [] mcoeff;
 }
-    
+
 /* ---------------------------------------------------------------------- */
 template <bool inverse>
 void FixDrudeTransform<inverse>::init()
@@ -50,7 +50,7 @@ void FixDrudeTransform<inverse>::init()
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) error->all(FLERR, "fix drude/transform requires fix drude");  
+  if (ifix == modify->nfix) error->all(FLERR, "fix drude/transform requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 }
 
@@ -73,7 +73,7 @@ void FixDrudeTransform<inverse>::setup(int) {
   double * rmass = atom->rmass, * mass = atom->mass;
   tagint * drudeid = fix_drude->drudeid;
   int * drudetype = fix_drude->drudetype;
-  
+
   if (!rmass) {
     if (!mcoeff) mcoeff = new double[ntypes+1];
     double mcoeff_loc[ntypes+1];
@@ -183,7 +183,7 @@ void FixDrudeTransform<inverse>::real_to_reduced()
         v[icore][k] += coeff * v[idrude][k];
         f[icore][k] += f[idrude][k];
         f[idrude][k] -= coeff * f[icore][k];
-      } 
+      }
     }
   }
   fix_drude->is_reduced = true;
@@ -208,7 +208,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
     if (mask[i] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
       int j = (int) drudeid[i]; // local index of drude partner because drudeid is in reduced form
       if (drudetype[type[i]] == DRUDE_TYPE && j < nlocal) continue;
-      
+
       if (drudetype[type[i]] == DRUDE_TYPE) {
         idrude = i;
         icore = j;
@@ -241,7 +241,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
         v[idrude][k] += v[icore][k];
         f[idrude][k] += coeff * f[icore][k];
         f[icore][k] -= f[idrude][k];
-      } 
+      }
     }
   }
   for (int i=0; i<nlocal; i++) {

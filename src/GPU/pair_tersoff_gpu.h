@@ -63,9 +63,5 @@ E: All pair coeffs are not set
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Pair tersoff/gpu only works with 1 thread per atom for now.
-
-Self-explanatory.
-
 */
 

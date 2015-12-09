@@ -16,10 +16,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_long_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -201,7 +201,7 @@ void PairCoulLongSoft::settings(int narg, char **arg)
 
 void PairCoulLongSoft::coeff(int narg, char **arg)
 {
-  if (narg != 3) 
+  if (narg != 3)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -361,7 +361,7 @@ double PairCoulLongSoft::single(int i, int j, int itype, int jtype,
     expm2 = exp(-grij*grij);
     t = 1.0 / (1.0 + EWALD_P*grij);
     erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-    
+
     denc = sqrt(lam2[itype][jtype] + rsq);
     prefactor = force->qqrd2e * lam1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
@@ -390,6 +390,6 @@ void *PairCoulLongSoft::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;
-  
+
   return NULL;
 }

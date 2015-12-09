@@ -5,14 +5,14 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 #include "sna.h"
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "compute_snad_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -69,14 +69,14 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
-  
+
   // process optional args
 
   int iarg = nargmin;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"diagonal") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
 	error->all(FLERR,"Illegal compute snad/atom command");
       diagonalstyle = atof(arg[iarg+1]);
       if (diagonalstyle < 0 || diagonalstyle > 3)
@@ -88,7 +88,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
       rmin0 = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchflag") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
 	error->all(FLERR,"Illegal compute snad/atom command");
       switchflag = atoi(arg[iarg+1]);
       iarg += 2;
@@ -132,11 +132,11 @@ ComputeSNADAtom::~ComputeSNADAtom()
 
 void ComputeSNADAtom::init()
 {
-  if (force->pair == NULL) 
+  if (force->pair == NULL)
     error->all(FLERR,"Compute snad/atom requires a pair style be defined");
   // TODO: Not sure what to do with this error check since cutoff radius is not
   // a single number
-  //if (sqrt(cutsq) > force->pair->cutforce) 
+  //if (sqrt(cutsq) > force->pair->cutforce)
     //error->all(FLERR,"Compute snad/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
@@ -241,12 +241,12 @@ void ComputeSNADAtom::compute_peratom()
       for (int jj = 0; jj < jnum; jj++) {
 	int j = jlist[jj];
 	j &= NEIGHMASK;
-	
+
 	const double delx = x[j][0] - xtmp;
 	const double dely = x[j][1] - ytmp;
 	const double delz = x[j][2] - ztmp;
 	const double rsq = delx*delx + dely*dely + delz*delz;
-        int jtype = type[j];	
+        int jtype = type[j];
 	if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
 	  snaptr[tid]->rij[ninside][0] = delx;
 	  snaptr[tid]->rij[ninside][1] = dely;
@@ -300,7 +300,7 @@ int ComputeSNADAtom::pack_reverse_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) 
+  for (i = first; i < last; i++)
     for (icoeff = 0; icoeff < size_peratom_cols; icoeff++)
       buf[m++] = snad[i][icoeff];
   return comm_reverse;
@@ -321,7 +321,7 @@ void ComputeSNADAtom::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage 
+   memory usage
 ------------------------------------------------------------------------- */
 
 double ComputeSNADAtom::memory_usage()

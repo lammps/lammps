@@ -15,7 +15,7 @@
    Contributing authors: Yuxing Peng and Chris Knight (U Chicago)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "verlet_split_intel.h"
 #include "universe.h"
 #include "neighbor.h"
@@ -52,7 +52,7 @@ VerletSplitIntel::VerletSplitIntel(LAMMPS *lmp, int narg, char **arg) :
   if (universe->procs_per_world[0] % universe->procs_per_world[1])
     error->universe_all(FLERR,"Verlet/split requires Rspace partition "
                         "size be multiple of Kspace partition size");
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"Verlet/split can only currently be used with "
                         "comm_style brick");
 
@@ -217,7 +217,7 @@ VerletSplitIntel::~VerletSplitIntel()
 
 void VerletSplitIntel::init()
 {
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"Verlet/split can only currently be used with "
                         "comm_style brick");
   if (!force->kspace && comm->me == 0)

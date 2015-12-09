@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "write_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -150,13 +150,13 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
 
   // error checks
 
-  if (multiproc && mpiioflag) 
+  if (multiproc && mpiioflag)
     error->all(FLERR,
                "Restart file MPI-IO output not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);
-    if (!mpiio->mpiio_exists) 
+    if (!mpiio->mpiio_exists)
       error->all(FLERR,"Writing to MPI-IO filename when "
                  "MPIIO package is not installed");
   }
@@ -186,7 +186,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
                    "without % in restart file name");
       int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
-      
+
       multiproc = nprocs/nper;
       if (nprocs % nper) multiproc++;
       fileproc = me/nper * nper;
@@ -211,7 +211,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       fileproc = static_cast<int> ((bigint) icluster * nprocs/nfile);
       int fcluster = static_cast<int> ((bigint) fileproc * nfile/nprocs);
       if (fcluster < icluster) fileproc++;
-      int fileprocnext = 
+      int fileprocnext =
         static_cast<int> ((bigint) (icluster+1) * nprocs/nfile);
       fcluster = static_cast<int> ((bigint) fileprocnext * nfile/nprocs);
       if (fcluster < icluster+1) fileprocnext++;
@@ -418,7 +418,7 @@ void WriteRestart::write(char *file)
           MPI_Wait(&request,&status);
           MPI_Get_count(&status,MPI_DOUBLE,&recv_size);
         } else recv_size = send_size;
-        
+
         write_double_vec(PERPROC,recv_size,buf);
       }
       fclose(fp);
@@ -515,7 +515,7 @@ void WriteRestart::header()
   write_int(ATOM_SORTFREQ,atom->sortfreq);
   write_double(ATOM_SORTBIN,atom->userbinsize);
 
-  write_int(COMM_MODE,comm->mode);  
+  write_int(COMM_MODE,comm->mode);
   write_double(COMM_CUTOFF,comm->cutghostuser);
   write_int(COMM_VEL,comm->ghost_velocity);
 

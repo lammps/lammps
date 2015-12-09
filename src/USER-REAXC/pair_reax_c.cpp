@@ -15,7 +15,7 @@
    Contributing author: Hasan Metin Aktulga, Purdue University
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
    Per-atom energy/virial added by Ray Shan (Sandia)
-   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by 
+   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by
    	Ray Shan (Sandia)
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
@@ -245,14 +245,14 @@ void PairReaxC::settings(int narg, char **arg)
     } else if (strcmp(arg[iarg],"safezone") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->safezone = force->numeric(FLERR,arg[iarg+1]);
-      if (system->safezone < 0.0) 
+      if (system->safezone < 0.0)
 	error->all(FLERR,"Illegal pair_style reax/c safezone command");
       system->saferzone = system->safezone + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->mincap = force->inumeric(FLERR,arg[iarg+1]);
-      if (system->mincap < 0) 
+      if (system->mincap < 0)
 	error->all(FLERR,"Illegal pair_style reax/c mincap command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
@@ -282,7 +282,7 @@ void PairReaxC::coeff( int nargs, char **args )
   char *file = args[2];
   FILE *fp;
   fp = force->open_potential(file);
-  if (fp != NULL) 
+  if (fp != NULL)
     Read_Force_Field(fp, &(system->reax_param), control);
   else if (comm->me == 0) {
       char str[128];
@@ -314,7 +314,7 @@ void PairReaxC::coeff( int nargs, char **args )
       }
 
   // error check
-  if (itmp != n) 
+  if (itmp != n)
     error->all(FLERR,"Non-existent ReaxFF type");
 
   for (int i = 1; i <= n; i++)
@@ -573,7 +573,7 @@ void PairReaxC::compute(int eflag, int vflag)
       memory->create(tmpid,nmax,MAXSPECBOND,"pair:tmpid");
       memory->create(tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
     }
-   
+
     for (i = 0; i < system->N; i ++)
       for (j = 0; j < MAXSPECBOND; j ++) {
         tmpbo[i][j] = 0.0;
@@ -770,7 +770,7 @@ void *PairReaxC::extract(const char *str, int &dim)
 double PairReaxC::memory_usage()
 {
   double bytes = 0.0;
-  
+
   // From pair_reax_c
   bytes += 1.0 * system->N * sizeof(int);
   bytes += 1.0 * system->N * sizeof(double);

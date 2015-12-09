@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -17,7 +17,7 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_rigid_npt_omp.h"
 #include "domain.h"
 #include "modify.h"
@@ -29,21 +29,21 @@ using namespace LAMMPS_NS;
 
 FixRigidNPTOMP::FixRigidNPTOMP(LAMMPS *lmp, int narg, char **arg) :
   FixRigidNHOMP(lmp, narg, arg)
-{ 
+{
   // other setting are made by parent
 
   scalar_flag = 1;
   restart_global = 1;
   box_change_size = 1;
   extscalar = 1;
-  
+
   // error checks
 
   if (tstat_flag == 0 || pstat_flag == 0)
     error->all(FLERR,"Did not set temp or press for fix rigid/npt/omp");
   if (t_start <= 0.0 || t_stop <= 0.0)
     error->all(FLERR,"Target temperature for fix rigid/npt/omp cannot be 0.0");
-  if (p_start[0] < 0.0 || p_start[1] < 0.0 || p_start[2] < 0.0 || 
+  if (p_start[0] < 0.0 || p_start[1] < 0.0 || p_start[2] < 0.0 ||
       p_stop[0] < 0.0 || p_stop[1] < 0.0 || p_stop[2] < 0.0)
     error->all(FLERR,"Target pressure for fix rigid/npt/omp cannot be 0.0");
 
@@ -53,7 +53,7 @@ FixRigidNPTOMP::FixRigidNPTOMP(LAMMPS *lmp, int narg, char **arg) :
 
   if (t_chain < 1) error->all(FLERR,"Illegal fix_modify command");
   if (t_iter < 1) error->all(FLERR,"Illegal fix_modify command");
-  if (t_order != 3 && t_order != 5) 
+  if (t_order != 3 && t_order != 5)
     error->all(FLERR,"Fix_modify order must be 3 or 5");
 
   // convert input periods to frequency
@@ -79,15 +79,15 @@ FixRigidNPTOMP::FixRigidNPTOMP(LAMMPS *lmp, int narg, char **arg) :
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";  
+  newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tcomputeflag = 1;
-  
+
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
-  
+
   n = strlen(id) + 7;
   id_press = new char[n];
   strcpy(id_press,id);

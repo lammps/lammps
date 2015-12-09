@@ -65,7 +65,7 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
 
   if (universe->me == 0) {
 
-    if(shared_data.compile_settings.prec_glob != sizeof(CUDA_CFLOAT) / 4) 
+    if(shared_data.compile_settings.prec_glob != sizeof(CUDA_CFLOAT) / 4)
       printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
                  " # CUDA WARNING: Global Precision: cuda %i cpp %i\n\n",
              shared_data.compile_settings.prec_glob, (int) sizeof(CUDA_CFLOAT) / 4);
@@ -239,7 +239,7 @@ Cuda::~Cuda()
 
 void Cuda::accelerator(int narg, char **arg)
 {
-  // this error should not happen 
+  // this error should not happen
 
   if (device_set) error->all(FLERR,"USER-CUDA device is already activated");
 
@@ -277,11 +277,11 @@ void Cuda::accelerator(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"thread") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
-      if (strcmp(arg[iarg+1],"auto") == 0) 
+      if (strcmp(arg[iarg+1],"auto") == 0)
         shared_data.pair.override_block_per_atom = -1;
-      else if (strcmp(arg[iarg+1],"tpa") == 0) 
+      else if (strcmp(arg[iarg+1],"tpa") == 0)
         shared_data.pair.override_block_per_atom = 0;
-      else if (strcmp(arg[iarg+1],"bpa") == 0) 
+      else if (strcmp(arg[iarg+1],"bpa") == 0)
         shared_data.pair.override_block_per_atom = 1;
       else error->all(FLERR,"Illegal package cuda command");
       iarg += 2;
@@ -299,7 +299,7 @@ void Cuda::accelerator(int narg, char **arg)
     } else if (strcmp(arg[iarg],"pinned") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
       pinned = force->inumeric(FLERR,arg[iarg+1]) == 0 ? false : true;
-      if ((pinned == false) && (universe->me == 0)) 
+      if ((pinned == false) && (universe->me == 0))
         printf(" #CUDA: Pinned memory is not used for communication\n");
       iarg += 2;
     } else error->all(FLERR,"Illegal package cuda command");

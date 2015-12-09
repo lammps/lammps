@@ -213,10 +213,10 @@ class Atom : protected Pointers {
   void data_atoms(int, char *, tagint, int, int, double *);
   void data_vels(int, char *, tagint);
 
-  void data_bonds(int, char *, int *, tagint);
-  void data_angles(int, char *, int *, tagint);
-  void data_dihedrals(int, char *, int *, tagint);
-  void data_impropers(int, char *, int *, tagint);
+  void data_bonds(int, char *, int *, tagint, int);
+  void data_angles(int, char *, int *, tagint, int);
+  void data_dihedrals(int, char *, int *, tagint, int);
+  void data_impropers(int, char *, int *, tagint, int);
 
   void data_bonus(int, char *, class AtomVec *, tagint);
   void data_bodies(int, char *, class AtomVecBody *, tagint);
@@ -245,7 +245,7 @@ class Atom : protected Pointers {
   int find_custom(char *, int &);
   int add_custom(char *, int);
   void remove_custom(int, int);
-  
+
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
   void *extract(char *);

@@ -1504,6 +1504,46 @@ void Domain::add_region(int narg, char **arg)
 
   if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
 
+  if (lmp->suffix_enable) {
+    if (lmp->suffix) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[1],lmp->suffix);
+
+      if (0) return;
+
+#define REGION_CLASS
+#define RegionStyle(key,Class) \
+      else if (strcmp(estyle,#key) == 0) { \
+            regions[nregion] = new Class(lmp,narg,arg); \
+            regions[nregion]->init(); \
+            nregion++; \
+            return; \
+      }
+#include "style_region.h"
+#undef RegionStyle
+#undef REGION_CLASS
+    }
+
+    if (lmp->suffix2) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[1],lmp->suffix2);
+
+      if (0) return;
+
+#define REGION_CLASS
+#define RegionStyle(key,Class) \
+      else if (strcmp(estyle,#key) == 0) { \
+            regions[nregion] = new Class(lmp,narg,arg); \
+            regions[nregion]->init(); \
+            nregion++; \
+            return; \
+      }
+#include "style_region.h"
+#undef RegionStyle
+#undef REGION_CLASS
+    }
+  }
+
 #define REGION_CLASS
 #define RegionStyle(key,Class) \
   else if (strcmp(arg[1],#key) == 0) \

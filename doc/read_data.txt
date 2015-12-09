@@ -535,6 +535,7 @@ line: atom-ID molecule-ID atom-type lineflag density x y z
 meso: atom-ID atom-type rho e cv x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
+smd: atom-ID atom-type molecule volume mass kernel_radius contact_radius x y z
 sphere: atom-ID atom-type diameter density x y z
 template: atom-ID molecule-ID template-index template-atom atom-type x y z
 tri: atom-ID molecule-ID atom-type triangleflag density x y z
@@ -565,7 +566,9 @@ cv = heat capacity (need units) for SPH particles
 spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 eradius = electron radius (or fixed-core radius)
 etag = integer ID of electron that each wavepacket belongs to
-cs_re,cs_im = real/imaginary parts of wavepacket coefficients :ul
+cs_re,cs_im = real/imaginary parts of wavepacket coefficients 
+kernel_radius = ??? (distance units)
+contact_radius = ??? (distance units) :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.

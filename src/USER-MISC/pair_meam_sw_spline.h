@@ -245,13 +245,13 @@ protected:
 #endif
 
 /* ----------------------------------------------------------------------
- * Spline-based Modified Embedded Atom Method plus 
+ * Spline-based Modified Embedded Atom Method plus
  * Stillinger-Weber (MEAM+SW) potential routine.
  *
  * Copyright (2012) Lawrence Livermore National Security, LLC.
  * Produced at the Lawrence Livermore National Laboratory.
  * Written by Robert E. Rudd (<robert.rudd@llnl.gov>).
- * Based on the spline MEAM routine written by Alexander Stukowski 
+ * Based on the spline MEAM routine written by Alexander Stukowski
  * (<alex@stukowski.com>).
  * LLNL-CODE-588032 All rights reserved.
  *
@@ -310,7 +310,7 @@ protected:
  * the Program is not restricted, and the output from the Program is covered
  * only if its contents constitute a work based on the Program (independent of
  * having been made by running the Program).  Whether that is true depends on
- * what the Program does.  
+ * what the Program does.
  *
  * 1.  You may copy and distribute verbatim copies of the Program's source
  * code as you receive it, in any medium, provided that you conspicuously and
@@ -426,10 +426,10 @@ protected:
  * for enforcing compliance by third parties to this License.
  *
  * 7.  If, as a consequence of a court judgment or allegation of patent
- * infringement or for any other reason (not limited to patent 
- * issues), conditions are imposed on you (whether by court 
- * order, agreement or otherwise) that contradict the conditions 
- * of this License, they do not excuse you from the conditions 
+ * infringement or for any other reason (not limited to patent
+ * issues), conditions are imposed on you (whether by court
+ * order, agreement or otherwise) that contradict the conditions
+ * of this License, they do not excuse you from the conditions
  * of this License.  If you cannot distribute so as to satisfy
  * simultaneously your obligations under this License and any other pertinent
  * obligations, then as a consequence you may not distribute the Program at
@@ -506,5 +506,5 @@ protected:
  * PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGES.
  *
- * END OF TERMS AND CONDITIONS 
+ * END OF TERMS AND CONDITIONS
 ------------------------------------------------------------------------- */

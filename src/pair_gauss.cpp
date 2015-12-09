@@ -15,10 +15,10 @@
    Contributing author: Sai Jayaraman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_gauss.h"
 #include "atom.h"
 #include "comm.h"
@@ -183,7 +183,7 @@ void PairGauss::settings(int narg, char **arg)
 
 void PairGauss::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -217,7 +217,7 @@ void PairGauss::coeff(int narg, char **arg)
 
 double PairGauss::init_one(int i, int j)
 {
- 
+
   // This error is triggered when ti is performed on lj/cut tail
   // in presence of extra atom type for tether sites
   // "i = 2 j = 1 ERROR: All pair coeffs are not set (pair_gauss.cpp:223)"
@@ -315,7 +315,7 @@ double PairGauss::single(int i, int j, int itype, int jtype, double rsq,
                          double factor_coul, double factor_lj,
                          double &fforce)
 {
-  double philj = 
+  double philj =
     -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) - offset[itype][jtype]);
   fforce = -2.0*a[itype][jtype]*b[itype][jtype] * exp(-b[itype][jtype]*rsq);
   return philj;

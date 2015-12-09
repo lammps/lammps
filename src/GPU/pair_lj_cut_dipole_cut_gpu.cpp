@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_cut_dipole_cut_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -40,40 +40,40 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                 double **host_lj2, double **host_lj3, double **host_lj4, 
-                 double **offset, double *special_lj, const int nlocal, 
+                 double **host_lj2, double **host_lj3, double **host_lj4,
+                 double **offset, double *special_lj, const int nlocal,
                  const int nall, const int max_nbors, const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen,
                  double **host_cut_ljsq, double **host_cut_coulsq,
                  double *host_special_coul, const double qqrd2e);
 void dpl_gpu_clear();
 int ** dpl_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type, 
-                         double *sublo, double *subhi, tagint *tag, 
-                         int **nspecial, tagint **special, const bool eflag, 
-                         const bool vflag, const bool eatom, const bool vatom, 
-                         int &host_start, int **ilist, int **jnum, 
-                         const double cpu_time, bool &success, 
-                         double *host_q, double **host_mu, 
+                         const int nall, double **host_x, int *host_type,
+                         double *sublo, double *subhi, tagint *tag,
+                         int **nspecial, tagint **special, const bool eflag,
+                         const bool vflag, const bool eatom, const bool vatom,
+                         int &host_start, int **ilist, int **jnum,
+                         const double cpu_time, bool &success,
+                         double *host_q, double **host_mu,
                          double *boxlo, double *prd);
 void dpl_gpu_compute(const int ago, const int inum,
                      const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh,
                      const bool eflag, const bool vflag, const bool eatom,
                      const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, double **host_mu, 
+                     bool &success, double *host_q, double **host_mu,
                      const int nlocal, double *boxlo, double *prd);
 double dpl_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutDipoleCutGPU::PairLJCutDipoleCutGPU(LAMMPS *lmp) : PairLJCutDipoleCut(lmp), 
+PairLJCutDipoleCutGPU::PairLJCutDipoleCutGPU(LAMMPS *lmp) : PairLJCutDipoleCut(lmp),
   gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -91,12 +91,12 @@ void PairLJCutDipoleCutGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;  
+  int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = dpl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
@@ -104,7 +104,7 @@ void PairLJCutDipoleCutGPU::compute(int eflag, int vflag)
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
                                    host_start, &ilist, &numneigh, cpu_time,
-                                   success, atom->q, atom->mu, domain->boxlo, 
+                                   success, atom->q, atom->mu, domain->boxlo,
                                    domain->prd);
   } else {
     inum = list->inum;
@@ -134,8 +134,8 @@ void PairLJCutDipoleCutGPU::init_style()
 {
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/cut/gpu requires atom attributes q, mu, torque");
-  
-  if (force->newton_pair) 
+
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with dipole/cut/gpu pair style");
 
   if (strcmp(update->unit_style,"electron") == 0)
@@ -186,7 +186,7 @@ double PairLJCutDipoleCutGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                   int *ilist, int *numneigh, 
+                                   int *ilist, int *numneigh,
                                    int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
@@ -247,7 +247,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
         forcecoulx = forcecouly = forcecoulz = 0.0;
         tixcoul = tiycoul = tizcoul = 0.0;
         tjxcoul = tjycoul = tjzcoul = 0.0;
-	
+
         if (rsq < cut_coulsq[itype][jtype]) {
 
           if (qtmp != 0.0 && q[j] != 0.0) {
@@ -259,7 +259,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
             forcecoulz += pre1*delz;
           }
 
-          if (mu[i][3] > 0.0 && mu[j][3] > 0.0) { 
+          if (mu[i][3] > 0.0 && mu[j][3] > 0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             r7inv = r5inv*r2inv;
@@ -276,7 +276,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
             forcecoulx += pre1*delx + pre2*mu[i][0] + pre3*mu[j][0];
             forcecouly += pre1*dely + pre2*mu[i][1] + pre3*mu[j][1];
             forcecoulz += pre1*delz + pre2*mu[i][2] + pre3*mu[j][2];
-    
+
             crossx = pre4 * (mu[i][1]*mu[j][2] - mu[i][2]*mu[j][1]);
             crossy = pre4 * (mu[i][2]*mu[j][0] - mu[i][0]*mu[j][2]);
             crossz = pre4 * (mu[i][0]*mu[j][1] - mu[i][1]*mu[j][0]);
@@ -289,7 +289,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
             tjzcoul += -crossz + pre3 * (mu[j][0]*dely - mu[j][1]*delx);
           }
 
-          if (mu[i][3] > 0.0 && q[j] != 0.0) { 
+          if (mu[i][3] > 0.0 && q[j] != 0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
@@ -304,7 +304,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
             tizcoul += pre2 * (mu[i][0]*dely - mu[i][1]*delx);
           }
 
-          if (mu[j][3] > 0.0 && qtmp != 0.0) { 
+          if (mu[j][3] > 0.0 && qtmp != 0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
@@ -327,7 +327,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           forcelj *= factor_lj * r2inv;
         } else forcelj = 0.0;
-	  
+
         // total force
 
         fq = factor_coul*qqrd2e;
@@ -349,7 +349,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
             ecoul = qtmp*q[j]*rinv;
             if (mu[i][3] > 0.0 && mu[j][3] > 0.0)
               ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
-            if (mu[i][3] > 0.0 && q[j] != 0.0) 
+            if (mu[i][3] > 0.0 && q[j] != 0.0)
               ecoul += -q[j]*r3inv*pidotr;
             if (mu[j][3] > 0.0 && qtmp != 0.0)
               ecoul += qtmp*r3inv*pjdotr;

@@ -166,8 +166,11 @@ interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
-those pairs will not be included in the RDF.  One way to get around
-this, is to write a dump file, and use the <a class="reference internal" href="rerun.html"><em>rerun</em></a> command
+those pairs will not be included in the RDF. This does not apply when
+using long-range coulomb (<em>coul/long</em>, <em>coul/msm</em>, <em>coul/wolf</em> or similar.
+One way to get around this would be to set special_bond scaling factors
+to very tiny numbers that are not exactly zero (e.g. 1.0e-50). Another
+workaround is to write a dump file, and use the <a class="reference internal" href="rerun.html"><em>rerun</em></a> command
 to compute the RDF for snapshots in the dump file.  The rerun script
 can use a <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command that includes all
 pairs in the neighbor list.</p>
@@ -248,13 +251,16 @@ also numbers &gt;= 0.0.</p>
 since processors (in parallel) don&#8217;t know about atom coordinates for
 atoms further away than that distance.  If you want an RDF for larger
 distances, you can use the <a class="reference internal" href="rerun.html"><em>rerun</em></a> command to post-process
-a dump file. The definition of g(r) used by LAMMPS is only appropriate
+a dump file and set the cutoff for the potential to be longer in the
+rerun script.  Note that in the rerun context, the force cutoff is
+arbitrary, since you aren&#8217;t running dynamics and thus are not changing
+your model.  The definition of g(r) used by LAMMPS is only appropriate
 for characterizing atoms that are uniformly distributed throughout the
 simulation cell. In such cases, the coordination number is still
 correct and meaningful.  As an example, if a large simulation cell
 contains only one atom of type <em>itypeN</em> and one of <em>jtypeN</em>, then g(r)
 will register an arbitrarily large spike at whatever distance they
-happen to be at, and zero everywhere else.  coord(r) will show a step
+happen to be at, and zero everywhere else.  Coord(r) will show a step
 change from zero to one at the location of the spike in g(r).</p>
 </div>
 <div class="section" id="related-commands">

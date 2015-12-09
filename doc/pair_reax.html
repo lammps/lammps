@@ -155,10 +155,12 @@ represent the contributions of chemical bonding to the potential
 energy. There is more than one version of ReaxFF. The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper:
-<a class="reference internal" href="pair_reax_c.html#chenoweth-2008"><span>(Chenoweth)</span></a>.  The version integrated into LAMMPS matches
+<a class="reference internal" href="#chenoweth-2008"><span>(Chenoweth)</span></a>.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.</p>
-<p>The <em>reax</em> style differs from the <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>
-command in the lo-level implementation details.  The <em>reax</em> style is a
+<p>WARNING: pair style reax is now deprecated and will soon be retired. Users
+should switch to <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>. The <em>reax</em> style
+differs from the <em>reax/c</em> style in the lo-level implementation details.
+The <em>reax</em> style is a
 Fortran library, linked to LAMMPS.  The <em>reax/c</em> style was initially
 implemented as stand-alone C code and is now integrated into LAMMPS as
 a package.</p>

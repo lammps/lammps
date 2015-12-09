@@ -9,7 +9,7 @@
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
 // prints file and line number for error messages
-#define ERROR(x) __FILE__":"STRING(__LINE__)" "x
+#define ERROR(x) __FILE__ ":" STRING(__LINE__) " " x
 //#define FILELINE __FILE__+to_string(__LINE__)
 #define FILELINE __FILE__
 

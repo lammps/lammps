@@ -18,10 +18,10 @@
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_ttm_mod.h"
 #include "atom.h"
 #include "force.h"
@@ -69,7 +69,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ttm_mod);
-  
+
   if (narg < 9) error->all(FLERR,"Illegal fix ttm/mod command");
   vector_flag = 1;
   size_vector = 2;
@@ -225,6 +225,10 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   t_surface_l = surface_l;
   mult_factor = intensity;
   duration = 0.0;
+  v_0_sq = v_0*v_0;
+  // error checks
+  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
+    error->all(FLERR,"Fix ttm number of nodes must be > 0");
   surface_double = double(t_surface_l)*(domain->xprd/nxnodes);
   if ((C_limit+esheat_0) < 0.0)
     error->all(FLERR,"Fix ttm electronic_specific_heat must be >= 0.0");
@@ -234,10 +238,6 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (gamma_s < 0.0) error->all(FLERR,"Fix ttm gamma_s must be >= 0.0");
   if (v_0 < 0.0) error->all(FLERR,"Fix ttm v_0 must be >= 0.0");
   if (ionic_density <= 0.0) error->all(FLERR,"Fix ttm ionic_density must be > 0.0");
-  v_0_sq = v_0*v_0;
-  // error check
-  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
-    error->all(FLERR,"Fix ttm number of nodes must be > 0");
   if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
   if (surface_l < 0) error->all(FLERR,"Surface coordinates must be >= 0");
   if (surface_l >= surface_r) error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");
@@ -611,7 +611,7 @@ void FixTTMMod::end_of_step()
   int num_inner_timesteps = 1;
   double inner_dt = update->dt;
   double stability_criterion = 0.0;
-  
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
 	for (int iynode = 0; iynode < nynodes; iynode++)
 	  for (int iznode = 0; iznode < nznodes; iznode++)
@@ -623,7 +623,7 @@ void FixTTMMod::end_of_step()
         for (int iznode = 0; iznode < nznodes; iznode++)
           T_electron[ixnode][iynode][iznode] =
             T_electron_first[ixnode][iynode][iznode];
-	  
+
 	  stability_criterion = 1.0 -
 	    2.0*inner_dt/el_specific_heat *
 	    (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
@@ -705,7 +705,7 @@ void FixTTMMod::end_of_step()
 	                 T_electron_old[ixnode][iynode][iznode];
 	          if ((T_electron[ixnode][iynode][iznode] > 0.0) && (T_electron[ixnode][iynode][iznode] < electron_temperature_min))
 	            T_electron[ixnode][iynode][iznode] = T_electron[ixnode][iynode][iznode] + 0.5*(electron_temperature_min - T_electron[ixnode][iynode][iznode]);
-	          
+
 	          if (el_properties(T_electron[ixnode][iynode][iznode]).el_thermal_conductivity > el_thermal_conductivity)
 	            el_thermal_conductivity = el_properties(T_electron[ixnode][iynode][iznode]).el_thermal_conductivity;
 	          if ((T_electron[ixnode][iynode][iznode] > 0.0) && (el_properties(T_electron[ixnode][iynode][iznode]).el_heat_capacity < el_specific_heat))
@@ -715,7 +715,7 @@ void FixTTMMod::end_of_step()
 	  stability_criterion = 1.0 -
 	    2.0*inner_dt/el_specific_heat *
 	    (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
-	    	  
+
 	} while (stability_criterion < 0.0);
   // output nodal temperatures for current timestep
   if ((nfileevery) && !(update->ntimestep % nfileevery)) {

@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ndtrung@umich.edu)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_coul_debye_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -46,15 +46,15 @@ int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
                     const double qqrd2e, const double kappa);
 void cdebye_gpu_reinit(const int ntypes, double **host_scale);
 void cdebye_gpu_clear();
-int ** cdebye_gpu_compute_n(const int ago, const int inum, const int nall, 
-                          double **host_x, int *host_type, 
+int ** cdebye_gpu_compute_n(const int ago, const int inum, const int nall,
+                          double **host_x, int *host_type,
                           double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum, const double cpu_time,
                           bool &success, double *host_q, double *boxlo,
                           double *prd);
-void cdebye_gpu_compute(const int ago, const int inum, const int nall, 
+void cdebye_gpu_compute(const int ago, const int inum, const int nall,
                       double **host_x, int *host_type,
                       int *ilist, int *numj, int **firstneigh,
                       const bool eflag, const bool vflag, const bool eatom,
@@ -65,12 +65,12 @@ double cdebye_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDebyeGPU::PairCoulDebyeGPU(LAMMPS *lmp) : 
+PairCoulDebyeGPU::PairCoulDebyeGPU(LAMMPS *lmp) :
   PairCoulDebye(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -88,12 +88,12 @@ void PairCoulDebyeGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;  
+  int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = cdebye_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
@@ -101,7 +101,7 @@ void PairCoulDebyeGPU::compute(int eflag, int vflag)
                                     atom->tag, atom->nspecial, atom->special,
                                     eflag, vflag, eflag_atom, vflag_atom,
                                     host_start, &ilist, &numneigh, cpu_time,
-                                    success, atom->q, domain->boxlo, 
+                                    success, atom->q, domain->boxlo,
                                     domain->prd);
   } else {
     inum = list->inum;
@@ -132,7 +132,7 @@ void PairCoulDebyeGPU::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/debye/gpu requires atom attribute q");
 
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with coul/debye/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -174,7 +174,7 @@ void PairCoulDebyeGPU::init_style()
 void PairCoulDebyeGPU::reinit()
 {
   Pair::reinit();
-  
+
   cdebye_gpu_reinit(atom->ntypes+1, scale);
 }
 
@@ -188,7 +188,7 @@ double PairCoulDebyeGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulDebyeGPU::cpu_compute(int start, int inum, int eflag, 
+void PairCoulDebyeGPU::cpu_compute(int start, int inum, int eflag,
                                         int vflag, int *ilist,
                                         int *numneigh, int **firstneigh)
 {

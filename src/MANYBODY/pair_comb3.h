@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,7 +54,7 @@ class PairComb3 : public Pair {
     double chi,dj,dk,dl,dm,esm,cmn1,cmn2,pcmn1,pcmn2;
     double coulcut, lcut, lcutsq;
     double veps, vsig, pcna, pcnb, pcnc, pcnd, polz, curl, pcross;
-    double paaa, pbbb; 
+    double paaa, pbbb;
     double curlcut1, curlcut2, curl0;
   };
 
@@ -76,7 +76,7 @@ class PairComb3 : public Pair {
   // Short range neighbor list
   void Short_neigh();
   int pgsize, oneatom;
-  int *sht_num, **sht_first;	
+  int *sht_num, **sht_first;
   MyPage<int> *ipage;
 
   // loop up tables and flags
@@ -93,7 +93,7 @@ class PairComb3 : public Pair {
   int cflag;
   int nsplpcn,nsplrad,nspltor;
   int maxx,maxy,maxz,maxxc,maxyc,maxconj;
-  int maxxcn[4];            
+  int maxxcn[4];
   double vmaxxcn[4],dvmaxxcn[4];
   int ntab;
   double iin2[16][2],iin3[64][3];
@@ -111,11 +111,11 @@ class PairComb3 : public Pair {
   double ddpang[20001];
 
   //coordination spline arrays
-  double pcn_grid[4][5][5][5]; 
+  double pcn_grid[4][5][5][5];
   double pcn_gridx[4][5][5][5];
   double pcn_gridy[4][5][5][5];
   double pcn_gridz[4][5][5][5];
-  double pcn_cubs[4][4][4][4][64]; 
+  double pcn_cubs[4][4][4][4][64];
 
   //coordination spline arrays
   double rad_grid[3][5][5][11];
@@ -125,7 +125,7 @@ class PairComb3 : public Pair {
   double rad_spl[3][4][4][10][64];
 
   //torsion spline arrays
-  double tor_grid[1][5][5][11]; 
+  double tor_grid[1][5][5][11];
   double tor_gridx[1][5][5][11];
   double tor_gridy[1][5][5][11];
   double tor_gridz[1][5][5][11];
@@ -152,11 +152,11 @@ class PairComb3 : public Pair {
 
   // short range terms
   void attractive(Param *, Param *, Param *, double, double, double, double,
-	double, double, double, double *, double *, double *, 
+	double, double, double, double *, double *, double *,
 	double *, double *, int, double);
-  virtual void comb_fa(double, Param *, Param *, double, double, 
+  virtual void comb_fa(double, Param *, Param *, double, double,
 	  double &, double &);
-  virtual void repulsive(Param *, Param *,double, double &, int, 
+  virtual void repulsive(Param *, Param *,double, double &, int,
 	 double &, double, double);
 
   // bond order terms
@@ -166,17 +166,17 @@ class PairComb3 : public Pair {
   double zeta(Param *, Param *, double, double, double *, double *, int, double);
   void comb_bij_d(double, Param *, double, int, double &,
 	  double &, double &, double &, double &, double &, double);
-  void coord(Param *, double, int, double &, double &, 
+  void coord(Param *, double, int, double &, double &,
 	  double &, double &, double &, double);
-  void comb_zetaterm_d(double, double, double, double, double, 
-	double *, double, double *, double, double *, double *, 
+  void comb_zetaterm_d(double, double, double, double, double,
+	double *, double, double *, double, double *, double *,
 	double *, Param *, Param *, Param *, double);
   void costheta_d(double *, double, double *, double,
 	  double *, double *, double *);
-  void force_zeta(Param *, Param *, double, double, double, double &, 
-	double &, double &, double &, double &, double &, double &, 
-	double &, double &, double &, double &, double &, double &, 
-	int, double &, double,double, int, int, int, 
+  void force_zeta(Param *, Param *, double, double, double, double &,
+	double &, double &, double &, double &, double &, double &,
+	double &, double &, double &, double &, double &, double &,
+	int, double &, double,double, int, int, int,
 	double , double , double);
   void cntri_int(int, double, double, double, int, int, int,
         double &, double &, double &, double &, Param *);
@@ -184,14 +184,14 @@ class PairComb3 : public Pair {
   // Legendre polynomials
   void selfp6p(Param *, Param *, double, double &, double &);
   double ep6p(Param *, Param *, double, double, double *, double * ,double &);
-  void fp6p(Param *, Param *, double, double, double *, double *, double *, 
+  void fp6p(Param *, Param *, double, double, double *, double *, double *,
 	  double *, double *);
 
   // long range q-dependent terms
   double self(Param *, double);
   void tables();
   void potal_calc(double &, double &, double &);
-  void tri_point(double, int &, int &, int &, double &, double &, 
+  void tri_point(double, int &, int &, int &, double &, double &,
 	 double &);
   void vdwaals(int,int,int,int,double,double,double,double,
 	  double &, double &);
@@ -206,7 +206,7 @@ class PairComb3 : public Pair {
 
   // radical terms
   double rad_init(double, Param *, int, double &, double);
-  void rad_calc(double, Param *, Param *, double, double, int, 
+  void rad_calc(double, Param *, Param *, double, double, int,
 		  int, double, double);
   void rad_int(int , double, double, double, int, int, int,
 	double &, double &, double &, double &);
@@ -214,27 +214,27 @@ class PairComb3 : public Pair {
   void rad_force(Param *,  double, double *,  double);
 
   // torsion terms
-  double bbtor1(int, Param *, Param *, double, double, double, 
+  double bbtor1(int, Param *, Param *, double, double, double,
         double *, double *, double *, double);                     //modified by TAO
-  void tor_calc(double, Param *, Param *, double, double, int, 
+  void tor_calc(double, Param *, Param *, double, double, int,
 		  int, double, double);
   void tor_int(int , double, double, double, int, int, int,
         double &, double &, double &, double &);
-  void tor_force(int, Param *, Param *, double, double, double, 
+  void tor_force(int, Param *, Param *, double, double, double,
         double, double *, double *, double *);                //modified by TAO
 
   // charge force terms
   double qfo_self(Param *, double);
-  void qfo_short(Param *, Param *, double, double, double, 
+  void qfo_short(Param *, Param *, double, double, double,
 	double &, double &, int, int, int);
-  void qfo_direct(Param *, Param *, int, int, int, double, 
-	double, double, double, double, double &, double &, 
+  void qfo_direct(Param *, Param *, int, int, int, double,
+	double, double, double, double, double &, double &,
 	double, double, int, int);
   void qfo_field(Param *, Param *,double,double ,double ,double &, double &);
-  void qfo_dipole(double, int, int, int, int, double, double *, double, 
+  void qfo_dipole(double, int, int, int, int, double, double *, double,
 	double, double, double &, double &, int, int);
   void qsolve(double *);
-  
+
   // dipole - polarization terms
   double dipole_self(Param *, int);
   void dipole_init(Param *, Param *, double, double *, double,

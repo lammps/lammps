@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_pair_local.h"
 #include "atom.h"
 #include "update.h"
@@ -221,6 +221,7 @@ int ComputePairLocal::compute_pairs(int flag)
       if (flag) {
         if (singleflag)
           eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
+        else eng = fpair = 0.0;
 
         if (nvalues == 1) ptr = &vector[m];
         else ptr = array[m];

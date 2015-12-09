@@ -22,11 +22,38 @@ static int blank_line(char *line)
   return 1;
 }
 
-static unsigned char string_match(char *,char *);
+static unsigned char string_match(const char *,const char *);
 
 void ClearFrcItem(struct FrcFieldItem *item)
 {
     free(item->data);
+}
+
+const char *SearchAndCheck(const char *keyword)
+{
+  char *status;
+  int got_it = 0;
+  char line[MAX_LINE_LENGTH] = "empty";
+
+  rewind(FrcF);
+  while (got_it == 0) {
+    status = fgets( line, MAX_LINE_LENGTH, FrcF );
+    if (status == NULL) {
+      fprintf(stderr," Unable to find keyword '%s'\n",keyword);
+      fprintf(stderr," Check consistency of forcefield name and class \n");
+      fprintf(stderr," Exiting....\n");
+      exit(1);
+    }
+    if (line[0] == '@') {
+      if (string_match(strtok(line+1," '\t\n'("),keyword)) {
+        got_it = 1;
+        status = strtok(NULL," '\t\n(");
+        if (status != NULL)
+          return strdup(status);
+      }
+    }
+  }
+  return strdup("(unknown)");
 }
 
 void SearchAndFill(struct FrcFieldItem *item)
@@ -111,7 +138,12 @@ void SearchAndFill(struct FrcFieldItem *item)
     /* equivalences */
 
     for(i = 0; i < item->number_of_members; i++ ) {
-      sscanf(strtok(NULL, " "), "%s", atom_types[i]);
+      charptr = strtok(NULL, " ");
+      if (strlen(charptr) > 4) {
+        fprintf(stderr,"Warning: type name overflow for '%s'. "
+                "Truncating to 4 characters.\n",charptr);
+      }
+      sscanf(charptr,"%4s",atom_types[i]);
     }
 
     /* parameters -- Because of symmetrical terms, bonang, angtor, and
@@ -211,7 +243,7 @@ void SearchAndFill(struct FrcFieldItem *item)
   */
 }
 
-unsigned char string_match(char *string1,char *string2)
+unsigned char string_match(const char *string1,const char *string2)
 {
   int len1,len2;
 

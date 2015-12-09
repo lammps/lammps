@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_pair.h"
 #include "update.h"
 #include "force.h"

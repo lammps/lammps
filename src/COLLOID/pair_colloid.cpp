@@ -15,10 +15,10 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_colloid.h"
 #include "atom.h"
 #include "comm.h"
@@ -144,7 +144,7 @@ void PairColloid::compute(int eflag, int vflag)
           evdwl = 2.0/9.0*fR *
             (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
              sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
-        if (rsq <= K[1]) 
+        if (rsq <= K[1])
           error->one(FLERR,"Overlapping small/large in pair colloid");
         break;
 
@@ -183,7 +183,7 @@ void PairColloid::compute(int eflag, int vflag)
         if (eflag)
           evdwl += a12[itype][jtype]/6.0 *
             (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
-        if (r <= K[1]) 
+        if (r <= K[1])
           error->one(FLERR,"Overlapping large/large in pair colloid");
         break;
       }

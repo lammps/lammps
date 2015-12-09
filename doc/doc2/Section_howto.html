@@ -1865,10 +1865,11 @@ internal LAMMPS operations.  Note that LAMMPS classes are defined
 within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
 application.
 </P>
-<P>Library.cpp contains these 4 functions:
+<P>Library.cpp contains these 5 basic functions:
 </P>
 <PRE>void lammps_open(int, char **, MPI_Comm, void **)
 void lammps_close(void *)
+int lammps_version(void *)
 void lammps_file(void *, char *)
 char *lammps_command(void *, char *) 
 </PRE>
@@ -1892,6 +1893,14 @@ instances of LAMMPS to perform different calculations.
 </P>
 <P>The lammps_close() function is used to shut down an instance of LAMMPS
 and free all its memory.
+</P>
+<P>The lammps_version() function can be used to determined the specific
+version of the underlying LAMMPS code. This is particularly useful
+when loading LAMMPS as a shared library via dlopen(). The code using
+the library interface can than use this information to adapt to
+changes to the LAMMPS command syntax between versions. The returned
+LAMMPS version code is an integer (e.g. 2 Sep 2015 results in
+20150902) that grows with every new LAMMPS version.
 </P>
 <P>The lammps_file() and lammps_command() functions are used to pass a
 file or string to LAMMPS as if it were an input script or single
@@ -2506,7 +2515,9 @@ the electrostatic environment inducing polarizability.
 <P>Technically, shells are attached to the cores by a spring force f =
 k*r where k is a parametrized spring constant and r is the distance
 between the core and the shell. The charges of the core and the shell
-add up to the ion charge, thus q(ion) = q(core) + q(shell). In a
+add up to the ion charge, thus q(ion) = q(core) + q(shell). This 
+setup introduces the ion polarizability (alpha) given by 
+alpha = q(shell)^2 / k. In a
 similar fashion the mass of the ion is distributed on the core and the
 shell with the core having the larger mass.
 </P>
@@ -2551,13 +2562,20 @@ for NaCl, as found in examples/coreshell, has this format:
 <P>Non-Coulombic (e.g. Lennard-Jones) pairwise interactions are only
 defined between the shells.  Coulombic interactions are defined
 between all cores and shells.  If desired, additional bonds can be
-specified between cores.
+specified between cores.  
 </P>
 <P>The <A HREF = "special_bonds.html">special_bonds</A> command should be used to
 turn-off the Coulombic interaction within core/shell pairs, since that
 interaction is set by the bond spring.  This is done using the
 <A HREF = "special_bonds.html">special_bonds</A> command with a 1-2 weight = 0.0,
-which is the default value.
+which is the default value.  It needs to be considered whether one has
+to adjust the <A HREF = "special_bonds.html">special_bonds</A> weighting according
+to the molecular topology since the interactions of the shells are
+bypassed over an extra bond.
+</P>
+<P>Note that this core/shell implementation does not require all ions to
+be polarized.  One can mix core/shell pairs and ions without a
+satellite particle if desired.
 </P>
 <P>Since the core/shell model permits distances of r = 0.0 between the
 core and shell, a pair style with a "cs" suffix needs to be used to
@@ -2584,8 +2602,9 @@ bond_coeff      2 25.724 0.0
 <P>When running dynamics with the adiabatic core/shell model, the
 following issues should be considered.  Since the relative motion of
 the core and shell particles corresponds to the polarization, typical
-thermostats can alter the polarization behaviour, meaining the shell
-will not react freely to its electrostatic environment.  Therefore
+thermostats can alter the polarization behaviour, meaning the shell
+will not react freely to its electrostatic environment.  This is
+critical during the equilibration of the system. Therefore
 it's typically desirable to decouple the relative motion of the
 core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the <A HREF = "compute_temp_cs.html">compute
@@ -2593,15 +2612,20 @@ temp/cs</A> command can be used, in conjunction with
 any of the thermostat fixes, such as <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin">fix
 langevin</A>.  This compute uses the center-of-mass velocity
 of the core/shell pairs to calculate a temperature, and insures that
-velocity is what is rescaled for thermostatting purposes.  The
+velocity is what is rescaled for thermostatting purposes.  This
+compute also works for a system with both core/shell pairs and
+non-polarized ions (ions without an attached satellite particle).  The
 <A HREF = "compute_temp_cs.html">compute temp/cs</A> command requires input of two
-groups, one for the core atoms, another for the shell atoms.  These
-can be defined using the <A HREF = "group.html">group <I>type</I></A> command.  Note that
-to perform thermostatting using this definition of temperature, the
-<A HREF = "fix_modify.html">fix modify temp</A> command should be used to assign the
-comptue to the thermostat fix.  Likewise the <A HREF = "thermo_modify.html">thermo_modify
-temp</A> command can be used to make this temperature
-be output for the overall system.
+groups, one for the core atoms, another for the shell atoms.
+Non-polarized ions which might also be included in the treated system
+should not be included into either of these groups, they are taken
+into account by the <I>group-ID</I> (2nd argument) of the compute.  The
+groups can be defined using the <A HREF = "group.html">group <I>type</I></A> command.
+Note that to perform thermostatting using this definition of
+temperature, the <A HREF = "fix_modify.html">fix modify temp</A> command should be
+used to assign the compute to the thermostat fix.  Likewise the
+<A HREF = "thermo_modify.html">thermo_modify temp</A> command can be used to make
+this temperature be output for the overall system. 
 </P>
 <P>For the NaCl example, this can be done as follows:
 </P>
@@ -2613,6 +2637,15 @@ fix thermostatequ all nve                               # integrator as needed f
 fix_modify thermoberendsen temp CSequ
 thermo_modify temp CSequ                                # output of center-of-mass derived temperature 
 </PRE>
+<P>If <A HREF = "compute_temp_cs.html">compute temp/cs</A> is used, the decoupled 
+relative motion of the core and the shell should in theory be 
+stable.  However numerical fluctuation can introduce a small
+momentum to the system, which is noticable over long trajectories.
+Therefore it is recomendable to use the <A HREF = "fix_momentum.html">fix 
+momentum</A> command in combination with <A HREF = "compute_temp_cs.html">compute 
+temp/cs</A> when equilibrating the system to 
+prevent any drift.
+</P>
 <P>When intializing the velocities of a system with core/shell pairs, it
 is also desirable to not introduce energy into the relative motion of
 the core/shell particles, but only assign a center-of-mass velocity to
@@ -2632,27 +2665,34 @@ velocity. This allow the shells to effectively react instantaneously
 to the electrostatic environment.  This fast movement also limits the
 timestep size that can be used.
 </P>
-<P>Additionally, the mass mismatch of the core and shell particles means
-that only a small amount of energy is transfered to the decoupled
-imaginary degrees of freedom.  However, this transfer will typically
-lead to a a small drift in total energy over time.  This internal
-energy can be monitored using the <A HREF = "compute_chunk_atom.html">compute
-chunk/atom</A> and <A HREF = "compute_temp_chunk.html">compute
+<P>The primary literature of the adiabatic core/shell model suggests that
+the fast relative motion of the core/shell pairs only allows negligible 
+energy transfer to the environment. Therefore it is not intended to
+decouple the core/shell degree of freedom from the physical system
+during production runs. In other words, the <A HREF = "compute_temp_cs.html">compute
+temp/cs</A> command should not be used during
+production runs and is only required during equilibration. This way one 
+is consistent with literature (based on the code packages DL_POLY or 
+GULP for instance).
+</P>
+<P>The mentioned energy transfer will typically lead to a a small drift 
+in total energy over time.  This internal energy can be monitored 
+using the <A HREF = "compute_chunk_atom.html">compute chunk/atom</A> and <A HREF = "compute_temp_chunk.html">compute
 temp/chunk</A> commands.  The internal kinetic
 energies of each core/shell pair can then be summed using the sum()
-special functino of the <A HREF = "variable.html">variable</A> command.  Or they can
+special function of the <A HREF = "variable.html">variable</A> command.  Or they can
 be time/averaged and output using the <A HREF = "fix_ave_time.html">fix ave/time</A>
 command.  To use these commands, each core/shell pair must be defined
 as a "chunk".  If each core/shell pair is defined as its own molecule,
 the molecule ID can be used to define the chunks.  If cores are bonded
-to each other to form larger molecules, then another way to define the
-chunks is to use the <A HREF = "fix_property_atom.html">fix property/atom</A> to
-assign a core/shell ID to each atom via a special field in the data
-file read by the <A HREF = "read_data.html">read_data</A> command.  This field can
-then be accessed by the <A HREF = "compute_property_atom.html">compute
-property/atom</A> command, to use as input to
-the <A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command to define the
-core/shell pairs as chunks.
+to each other to form larger molecules, the chunks can be identified
+by the <A HREF = "fix_property_atom.html">fix property/atom</A> via assigning a
+core/shell ID to each atom using a special field in the data file read
+by the <A HREF = "read_data.html">read_data</A> command.  This field can then be
+accessed by the <A HREF = "compute_property_atom.html">compute property/atom</A>
+command, to use as input to the <A HREF = "compute_chunk_atom.html">compute
+chunk/atom</A> command to define the core/shell
+pairs as chunks.
 </P>
 <P>For example,
 </P>

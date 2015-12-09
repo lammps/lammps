@@ -15,8 +15,8 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "dihedral_charmm_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -180,7 +180,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
- 
+
     k_eatom_pair.template modify<DeviceType>();
     k_eatom_pair.template sync<LMPHostType>();
     for (int i = 0; i < n; i++)
@@ -431,8 +431,8 @@ void DihedralCharmmKokkos<DeviceType>::allocate()
   k_lj14_4 = DAT::tdual_ffloat_2d("DihedralCharmm:lj14_4",n+1,n+1);
 
   d_lj14_1 = k_lj14_1.d_view;
-  d_lj14_2 = k_lj14_2.d_view;  
-  d_lj14_3 = k_lj14_3.d_view;  
+  d_lj14_2 = k_lj14_2.d_view;
+  d_lj14_3 = k_lj14_3.d_view;
   d_lj14_4 = k_lj14_4.d_view;
 
   int nd = atom->ndihedraltypes;

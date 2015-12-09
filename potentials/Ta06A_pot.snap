@@ -12,7 +12,6 @@ variable zblz equal 73
 pair_style hybrid/overlay &
 zbl ${zblcutinner} ${zblcutouter} &
 snap
-pair_coeff * * zbl 0.0 # Needed to activate hybrid cross-types
-pair_coeff 1 1 zbl ${zblz}
+pair_coeff 1 1 zbl ${zblz} ${zblz}
 pair_coeff * * snap Ta06A.snapcoeff Ta Ta06A.snapparam Ta
 

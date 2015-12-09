@@ -153,8 +153,8 @@
 <em>vel</em> values = loop dist
   loop = <em>all</em> or <em>local</em> or <em>geom</em>, used in dephasing
   dist = <em>uniform</em> or <em>gaussian</em>, used in dephasing
-<em>time</em> value = <em>step</em> or <em>clock</em>
-  <em>step</em> = simulation runs for N timesteps on each replica (default)
+<em>time</em> value = <em>steps</em> or <em>clock</em>
+  <em>steps</em> = simulation runs for N timesteps on each replica (default)
   <em>clock</em> = simulation runs for N timesteps across all replicas
 </pre>
 </div>
@@ -171,11 +171,11 @@ prd 5000 100 10 10 100 1 54982 min 0.1 0.1 100 200
 replicas of a system.  One or more replicas can be used.  The total
 number of steps <em>N</em> to run can be interpreted in one of two ways; see
 discussion of the <em>time</em> keyword below.</p>
-<p>PRD is described in <a class="reference internal" href="tad.html#voter"><span>this paper</span></a> by Art Voter.  It is a method
+<p>PRD is described in <a class="reference internal" href="#voter"><span>this paper</span></a> by Art Voter.  It is a method
 for performing accelerated dynamics that is suitable for
 infrequent-event systems that obey first-order kinetics.  A good
 overview of accelerated dynamics methods for such systems in given in
-<a class="reference internal" href="tad.html#voter2"><span>this review paper</span></a> from the same group.  To quote from the
+<a class="reference internal" href="#voter2"><span>this review paper</span></a> from the same group.  To quote from the
 paper: &#8220;The dynamical evolution is characterized by vibrational
 excursions within a potential basin, punctuated by occasional
 transitions between basins.&#8221;  The transition probability is
@@ -268,7 +268,7 @@ dynamics have been performed.  Note that <em>N</em> only includes the
 dynamics of stages 2 and 3, not the steps taken during dephasing or
 the minimization iterations of quenching.  The specified <em>N</em> is
 interpreted in one of two ways, depending on the <em>time</em> keyword.  If
-the <em>time</em> value is <em>step</em>, which is the default, then each replica
+the <em>time</em> value is <em>steps</em>, which is the default, then each replica
 runs for <em>N</em> timesteps.  If the <em>time</em> value is <em>clock</em>, then the
 simulation runs until <em>N</em> aggregate timesteps across all replicas have
 elapsed.  This aggregate time is the &#8220;clock&#8221; time defined below, which
@@ -392,7 +392,7 @@ include the &#8220;ave&#8221; fixes such as <a class="reference internal" href="
 <div class="section" id="default">
 <h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
 <p>The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
-geom gaussian, and time = step.</p>
+geom gaussian, and time = steps.</p>
 <hr class="docutils" />
 <p id="voter"><strong>(Voter)</strong> Voter, Phys Rev B, 57, 13985 (1998).</p>
 <p id="voter2"><strong>(Voter2)</strong> Voter, Montalenti, Germann, Annual Review of Materials

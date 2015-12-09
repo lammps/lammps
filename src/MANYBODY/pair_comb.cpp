@@ -18,10 +18,10 @@
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
@@ -56,6 +56,8 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   NCo = NULL;
   bbij = NULL;
+  map = NULL;
+  esm = NULL;
 
   nelements = 0;
   elements = NULL;
@@ -71,7 +73,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   phin = NULL;
   dphin = NULL;
   erpaw = NULL;
-  
+
   sht_num = NULL;
   sht_first = NULL;
 
@@ -1243,7 +1245,9 @@ double PairComb::comb_bij_d(double zeta, Param *param)
   if (tmp > param->c1) return param->beta * -0.5*pow(tmp,-1.5);
   if (tmp > param->c2)
     return param->beta * (-0.5*pow(tmp,-1.5) *
-                          (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
+			  // error in negligible 2nd term fixed 9/30/2015
+			  // (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
+                          (1.0 - (1.0 +  1.0/(2.0*param->powern)) *
                            pow(tmp,-param->powern)));
   if (tmp < param->c4) return 0.0;
   if (tmp < param->c3)
@@ -1998,7 +2002,7 @@ void PairComb::Over_cor(Param *param, double rsq1, int NCoi,
 
 /* ---------------------------------------------------------------------- */
 
-int PairComb::pack_forward_comm(int n, int *list, double *buf, 
+int PairComb::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,m;

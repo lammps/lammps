@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_dynamic.h"
 #include "atom.h"
 #include "comm.h"
@@ -39,8 +39,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) : 
-  FixQEq(lmp, narg, arg) 
+FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
+  FixQEq(lmp, narg, arg)
 {
   qdamp = 0.10;
   qstep = 0.02;
@@ -76,7 +76,7 @@ void FixQEqDynamic::init()
   neighbor->requests[irequest]->half = 1;
   neighbor->requests[irequest]->full = 0;
 
-  if (tolerance < 1e-4) 
+  if (tolerance < 1e-4)
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
 		    " for damped dynamics");

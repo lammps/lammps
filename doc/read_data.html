@@ -610,8 +610,8 @@ box the atom is in.  These may be important to include for some kinds
 of analysis.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="15%" />
-<col width="85%" />
+<col width="14%" />
+<col width="86%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>angle</td>
@@ -653,19 +653,22 @@ of analysis.</p>
 <tr class="row-odd"><td>peri</td>
 <td>atom-ID atom-type volume density x y z</td>
 </tr>
-<tr class="row-even"><td>sphere</td>
+<tr class="row-even"><td>smd</td>
+<td>atom-ID atom-type molecule volume mass kernel_radius contact_radius x y z</td>
+</tr>
+<tr class="row-odd"><td>sphere</td>
 <td>atom-ID atom-type diameter density x y z</td>
 </tr>
-<tr class="row-odd"><td>template</td>
+<tr class="row-even"><td>template</td>
 <td>atom-ID molecule-ID template-index template-atom atom-type x y z</td>
 </tr>
-<tr class="row-even"><td>tri</td>
+<tr class="row-odd"><td>tri</td>
 <td>atom-ID molecule-ID atom-type triangleflag density x y z</td>
 </tr>
-<tr class="row-odd"><td>wavepacket</td>
+<tr class="row-even"><td>wavepacket</td>
 <td>atom-ID atom-type charge spin eradius etag cs_re cs_im x y z</td>
 </tr>
-<tr class="row-even"><td>hybrid</td>
+<tr class="row-odd"><td>hybrid</td>
 <td>atom-ID atom-type x y z sub-style1 sub-style2 ...</td>
 </tr>
 </tbody>
@@ -695,6 +698,8 @@ of analysis.</p>
 <li>eradius = electron radius (or fixed-core radius)</li>
 <li>etag = integer ID of electron that each wavepacket belongs to</li>
 <li>cs_re,cs_im = real/imaginary parts of wavepacket coefficients</li>
+<li>kernel_radius = ??? (distance units)</li>
+<li>contact_radius = ??? (distance units)</li>
 </ul>
 <p>The units for these quantities depend on the unit style; see the
 <a class="reference internal" href="units.html"><em>units</em></a> command for details.</p>

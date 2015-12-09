@@ -38,7 +38,7 @@
    Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>

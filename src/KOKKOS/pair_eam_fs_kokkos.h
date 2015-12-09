@@ -23,7 +23,7 @@ PairStyle(eam/fs/kk/host,PairEAMFSKokkos<LMPHostType>)
 #ifndef LMP_PAIR_EAM_FS_KOKKOS_H
 #define LMP_PAIR_EAM_FS_KOKKOS_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pair_kokkos.h"
 #include "pair_eam.h"
 #include "neigh_list_kokkos.h"
@@ -71,7 +71,7 @@ class PairEAMFSKokkos : public PairEAM {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMFSInitialize, const int&) const;
-  
+
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMFSKernelA<NEIGHFLAG,NEWTON_PAIR>, const int&) const;
@@ -106,7 +106,7 @@ class PairEAMFSKokkos : public PairEAM {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
-  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&, 
+  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
                                int, int *);
   virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
   virtual int pack_forward_comm(int, int *, double *, int, int *);

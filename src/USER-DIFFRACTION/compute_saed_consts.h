@@ -16,20 +16,20 @@
 
 /*
 The paramaters for analytical approximation of the atomic scattering factors
-used for electron diffraction are gathered from the resources: 
+used for electron diffraction are gathered from the resources:
 
-Colliex C et al 2004 Electron diffraction International Tables for 
-Crystallography Volume C: Mathematical, Physical, and Chemical Tables 
+Colliex C et al 2004 Electron diffraction International Tables for
+Crystallography Volume C: Mathematical, Physical, and Chemical Tables
 ed E Prince (Norwell, MA: Kluwer) pp 259429
 
-Peng L-M, Ren G, Dudarev S L and Whelan MJ 1996 Robust parameterization of 
-elastic and absorptive electron atomic scattering factors 
+Peng L-M, Ren G, Dudarev S L and Whelan MJ 1996 Robust parameterization of
+elastic and absorptive electron atomic scattering factors
 Acta Crystallogr.A 52 25776
 */
 
 #define SAEDmaxType 98
 
-// list of element types associated with atomic scattering factor constants 
+// list of element types associated with atomic scattering factor constants
 static const char *SAEDtypeList[SAEDmaxType] = {
                 "H",      "He",      "Li",      "Be",       "B",
                 "C",       "N",       "O",       "F",      "Ne",

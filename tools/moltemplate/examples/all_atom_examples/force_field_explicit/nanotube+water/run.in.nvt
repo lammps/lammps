@@ -24,12 +24,10 @@ include system.in.settings
 
 
 
-# Optional: Improve efficiency by omitting the calcuation of interactions 
-# between immobile atoms. (Note: This is not optional under NPT conditions.)
-neigh_modify exclude group Cgraphene Cgraphene
-
 # Only the Cgraphene atoms are immobile.
 group mobile subtract all Cgraphene
+
+# (Note: The "Cgraphene" group was defined in system.in.settings.)
 
 
 

@@ -15,7 +15,7 @@
    Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "fix_peri_neigh.h"
 #include "pair_peri_pmb.h"
 #include "pair_peri_lps.h"
@@ -47,7 +47,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   if (force->pair_match("peri/lps",1)) isLPS = 1;
   if (force->pair_match("peri/ves",1)) isVES = 1;
   if (force->pair_match("peri/eps",1)) isEPS = 1;
-  
+
   restart_global = 1;
   restart_peratom = 1;
   first = 1;
@@ -225,7 +225,7 @@ void FixPeriNeigh::setup(int vflag)
   memory->destroy(deviatorextention);
   memory->destroy(deviatorBackextention);
   memory->destroy(deviatorPlasticextension);
-  memory->destroy(lambdaValue);  
+  memory->destroy(lambdaValue);
   memory->destroy(r0);
   memory->destroy(npartner);
 
@@ -235,7 +235,7 @@ void FixPeriNeigh::setup(int vflag)
   deviatorBackextention = NULL;
   deviatorPlasticextension = NULL;
   lambdaValue = NULL;
-  r0 = NULL;   
+  r0 = NULL;
   grow_arrays(atom->nmax);
 
   // create partner list and r0 values from neighbor list
@@ -270,11 +270,11 @@ void FixPeriNeigh::setup(int vflag)
       if (rsq <= cutsq[itype][jtype]) {
         partner[i][npartner[i]] = tag[j];
         if (isVES)
-          deviatorextention[i][npartner[i]] = 
+          deviatorextention[i][npartner[i]] =
             deviatorBackextention[i][npartner[i]] = 0.0;
         if (isEPS)
            deviatorPlasticextension[i][npartner[i]] = 0.0;
-        r0[i][npartner[i]] = sqrt(rsq);   
+        r0[i][npartner[i]] = sqrt(rsq);
         npartner[i]++;
         vinter[i] += vfrac[j];
       }
@@ -332,7 +332,7 @@ void FixPeriNeigh::setup(int vflag)
       double delx0 = xtmp0 - x0[j][0];
       double dely0 = ytmp0 - x0[j][1];
       double delz0 = ztmp0 - x0[j][2];
-            
+
       double rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
 
       jtype = type[j];
@@ -347,8 +347,8 @@ void FixPeriNeigh::setup(int vflag)
 
       // for PMB, influence = 1.0, otherwise invoke influence function
 
-      if (isPMB) 
-        wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale; 
+      if (isPMB)
+        wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale;
       else if (isLPS)
         wvolume[i] += pairlps->influence_function(delx0,dely0,delz0) *
           rsq0 * vfrac[j] * vfrac_scale;
@@ -357,7 +357,7 @@ void FixPeriNeigh::setup(int vflag)
           rsq0 * vfrac[j] * vfrac_scale;
       else if (isEPS)
         wvolume[i] += paireps->influence_function(delx0,dely0,delz0) *
-          rsq0 * vfrac[j] * vfrac_scale;    
+          rsq0 * vfrac[j] * vfrac_scale;
     }
   }
 
@@ -391,7 +391,7 @@ void FixPeriNeigh::setup(int vflag)
 ------------------------------------------------------------------------- */
 
 double FixPeriNeigh::memory_usage()
-{ 
+{
   int nmax = atom->nmax;
   int bytes = nmax * sizeof(int);
   bytes += nmax*maxpartner * sizeof(tagint);
@@ -399,14 +399,14 @@ double FixPeriNeigh::memory_usage()
   if (isVES) {
     bytes += nmax*maxpartner * sizeof(double);
     bytes += nmax*maxpartner * sizeof(double);
-  }  
+  }
   if (isEPS) {
     bytes += nmax*maxpartner * sizeof(double);
     bytes += nmax * sizeof(double);
-  }  
+  }
   bytes += nmax * sizeof(double);
   bytes += nmax * sizeof(double);
-  return bytes; 
+  return bytes;
 }
 
 /* ----------------------------------------------------------------------
@@ -426,7 +426,7 @@ void FixPeriNeigh::grow_arrays(int nmax)
    if (isEPS) memory->grow(deviatorPlasticextension,nmax,maxpartner,
                            "peri_neigh:deviatorPlasticextension");
    memory->grow(r0,nmax,maxpartner,"peri_neigh:r0");
-   if (isEPS) memory->grow(lambdaValue,nmax,"peri_neigh:lambdaValue");   
+   if (isEPS) memory->grow(lambdaValue,nmax,"peri_neigh:lambdaValue");
    memory->grow(vinter,nmax,"peri_neigh:vinter");
    memory->grow(wvolume,nmax,"peri_neigh:wvolume");
 }
@@ -443,7 +443,7 @@ void FixPeriNeigh::copy_arrays(int i, int j, int delflag)
     if (isVES) {
       deviatorextention[j][m] = deviatorextention[i][m];
       deviatorBackextention[j][m] = deviatorBackextention[i][m];
-    }  
+    }
     if (isEPS)
       deviatorPlasticextension[j][m] = deviatorPlasticextension[i][m];
     r0[j][m] = r0[i][m];
@@ -469,14 +469,14 @@ int FixPeriNeigh::pack_exchange(int i, double *buf)
     if (isVES) {
       buf[m++] = deviatorextention[i][n];
       buf[m++] = deviatorBackextention[i][n];
-    } 
+    }
     if (isEPS) buf[m++] = deviatorPlasticextension[i][n];
     buf[m++] = r0[i][n];
   }
   if (isVES) buf[0] = m/4;
   else if (isEPS) buf[0] = m/3;
   else buf[0] = m/2;
-  if (isEPS) buf[m++] = lambdaValue[i]; 
+  if (isEPS) buf[m++] = lambdaValue[i];
   buf[m++] = vinter[i];
   buf[m++] = wvolume[i];
   return m;
@@ -492,12 +492,12 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
   npartner[nlocal] = static_cast<int> (buf[m++]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<tagint> (buf[m++]);
-    if (isVES) {   
+    if (isVES) {
       deviatorextention[nlocal][n] = buf[m++];
       deviatorBackextention[nlocal][n] = buf[m++];
     }
     if (isEPS) deviatorPlasticextension[nlocal][n] = buf[m++];
-    r0[nlocal][n] = buf[m++];     
+    r0[nlocal][n] = buf[m++];
   }
   if (isEPS) lambdaValue[nlocal] = buf[m++];
   vinter[nlocal] = buf[m++];
@@ -580,17 +580,17 @@ int FixPeriNeigh::pack_restart(int i, double *buf)
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
-    if (isVES) { 
+    if (isVES) {
       buf[m++] = deviatorextention[i][n];
       buf[m++] = deviatorBackextention[i][n];
-    }  
+    }
     if (isEPS) buf[m++] = deviatorPlasticextension[i][n];
     buf[m++] = r0[i][n];
   }
   if (isEPS) buf[m++] = lambdaValue[i];
   buf[m++] = vinter[i];
   buf[m++] = wvolume[i];
-  return m;  
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -611,16 +611,16 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
   npartner[nlocal] = static_cast<int> (extra[nlocal][m++]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<tagint> (extra[nlocal][m++]);
-    if (isVES) { 
+    if (isVES) {
       deviatorextention[nlocal][n] = extra[nlocal][m++];
       deviatorBackextention[nlocal][n] = extra[nlocal][m++];
-    }  
+    }
     if (isEPS) deviatorPlasticextension[nlocal][n] = extra[nlocal][m++];
     r0[nlocal][n] = extra[nlocal][m++];
   }
   if (isEPS) lambdaValue[nlocal] = extra[nlocal][m++];
   vinter[nlocal] = extra[nlocal][m++];
-  wvolume[nlocal] = extra[nlocal][m++];  
+  wvolume[nlocal] = extra[nlocal][m++];
 }
 
 /* ----------------------------------------------------------------------
@@ -631,7 +631,7 @@ int FixPeriNeigh::maxsize_restart()
 {
   if (isVES) return 4*maxpartner + 4;
   if (isEPS) return 3*maxpartner + 5;
-  return 2*maxpartner + 4;  
+  return 2*maxpartner + 4;
 }
 
 /* ----------------------------------------------------------------------
@@ -642,5 +642,5 @@ int FixPeriNeigh::size_restart(int nlocal)
 {
   if (isVES) return 4*npartner[nlocal] + 4;
   if (isEPS) return 3*npartner[nlocal] + 5;
-  return 2*npartner[nlocal] + 4; 
+  return 2*npartner[nlocal] + 4;
 }

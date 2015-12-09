@@ -19,8 +19,8 @@
 #error LAMMPS_BIGBIG is not supported by the REAX package
 #endif
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_reax_bonds.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"

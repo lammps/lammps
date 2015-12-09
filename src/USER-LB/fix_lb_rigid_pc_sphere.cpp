@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    Based on fix_rigid (version from 2008).
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_lb_rigid_pc_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -54,7 +54,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
-  
+
   body = NULL;
   up = NULL;
   grow_arrays(atom->nmax);
@@ -62,12 +62,12 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // by default assume all of the particles interact with the fluid.
   inner_nodes = 0;
-  
+
   // parse command-line args
   // set nbody and body[i] for each atom
 
   if (narg < 4) error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
-  
+
   // single rigid body
   // nbody = 1
   // all atoms in fix group are part of body
@@ -108,7 +108,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
     tagint itmp;
     MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    if (itmp+1 > MAXSMALLINT) 
+    if (itmp+1 > MAXSMALLINT)
       error->all(FLERR,"Too many molecules for fix lb/rigid/pc/sphere");
     int maxmol = (int) itmp;
 
@@ -145,14 +145,14 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
     if (narg < 5) error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
     nbody = atoi(arg[4]);
     if (nbody <= 0) error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
-    if (narg < 5+nbody) 
+    if (narg < 5+nbody)
       error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
     iarg = 5 + nbody;
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
       igroups[ibody] = group->find(arg[5+ibody]);
-      if (igroups[ibody] == -1) 
+      if (igroups[ibody] == -1)
 	error->all(FLERR,"Could not find fix lb/rigid/pc/sphere group ID");
     }
 
@@ -172,13 +172,13 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall) 
+    if (flagall)
       error->all(FLERR,"One or more atoms belong to multiple rigid bodies");
 
     delete [] igroups;
 
   }else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
- 
+
   // error check on nbody
 
   if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
@@ -286,7 +286,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
       iarg += 5;
     // specify if certain particles are inside the rigid spherical body,
-    // and therefore should not 
+    // and therefore should not
     } else if(strcmp(arg[iarg],"innerNodes")==0){
       inner_nodes = 1;
       igroupinner = group->find(arg[iarg+1]);
@@ -315,7 +315,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // nrigid[n] = # of atoms in Nth rigid body
   // error if one or zero atoms
-  
+
   int *ncount = new int[nbody];
   for (ibody = 0; ibody < nbody; ibody++) ncount[ibody] = 0;
 
@@ -323,9 +323,9 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
   for (i = 0; i < nlocal; i++)
     if (body[i] >= 0) ncount[body[i]]++;
-  
+
   MPI_Allreduce(ncount,nrigid,nbody,MPI_INT,MPI_SUM,world);
-  
+
   //count the number of atoms in the shell.
   if(inner_nodes == 1){
     int *mask = atom->mask;
@@ -335,7 +335,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 	if(body[i] >= 0) ncount[body[i]]++;
       }
     }
-    
+
     MPI_Allreduce(ncount,nrigid_shell,nbody,MPI_INT,MPI_SUM,world);
   }else {
     for(ibody=0; ibody < nbody; ibody++) nrigid_shell[ibody]=nrigid[ibody];
@@ -351,14 +351,14 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   // set here, so image value will persist from run to run
 
   for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
+    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) |
       ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   // print statistics
 
   int nsum = 0;
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
-  
+
   if (comm->me == 0) {
     if (screen) fprintf(screen,"%d rigid bodies with %d atoms\n",nbody,nsum);
     if (logfile) fprintf(logfile,"%d rigid bodies with %d atoms\n",nbody,nsum);
@@ -374,7 +374,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
    if(groupbit_lb_fluid == 0)
     error->all(FLERR,"the lb/fluid fix must also be used if using the lb/rigid/pc/sphere fix");
-   
+
    int *mask = atom->mask;
    if(inner_nodes == 1){
      for(int j=0; j<nlocal; j++){
@@ -384,15 +384,15 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   // If inner nodes are present, which should not interact with the fluid, make
   // sure these are not used by the lb/fluid fix to apply a force to the fluid.
        if((mask[j] & groupbit) && (mask[j] & groupbit_lb_fluid) && (mask[j] & group->bitmask[igroupinner]))
-	 error->one(FLERR,"the inner nodes specified in lb/rigid/pc/sphere should not be included in the lb/fluid fix");   
+	 error->one(FLERR,"the inner nodes specified in lb/rigid/pc/sphere should not be included in the lb/fluid fix");
      }
    }else{
      for(int j=0; j<nlocal; j++){
        if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
 	 error->one(FLERR,"use the innerNodes keyword in the lb/rigid/pc/sphere fix for atoms which do not interact with the lb/fluid");
      }
-   }    
-  
+   }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -402,12 +402,12 @@ FixLbRigidPCSphere::~FixLbRigidPCSphere()
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,0);
-  
+
   // delete locally stored arrays
-  
+
   memory->destroy(body);
   memory->destroy(up);
-  
+
   // delete nbody-length arrays
 
   memory->destroy(nrigid);
@@ -474,7 +474,7 @@ void FixLbRigidPCSphere::init()
   double **x = atom->x;
   imageint *image = atom->image;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;  
+  double *mass = atom->mass;
   int *periodicity = domain->periodicity;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -500,14 +500,14 @@ void FixLbRigidPCSphere::init()
   }
   if(extended)
     error->warning(FLERR,"Fix lb/rigid/pc/sphere assumes point particles");
-  
+
   // compute masstotal & center-of-mass of each rigid body
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
   int xbox,ybox,zbox;
   double massone,xunwrap,yunwrap,zunwrap;
-  
+
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -539,9 +539,9 @@ void FixLbRigidPCSphere::init()
       sum[ibody][4] += massone;
     }
   }
-  
+
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-  
+
   for (ibody = 0; ibody < nbody; ibody++) {
     masstotal[ibody] = all[ibody][3];
     masstotal_shell[ibody] = all[ibody][4];
@@ -564,25 +564,25 @@ void FixLbRigidPCSphere::init()
     if(inner_nodes == 1){
       if(!(mask[i] & group->bitmask[igroupinner])){
 	ibody = body[i];
-	
+
 	xbox = (image[i] & IMGMASK) - IMGMAX;
 	ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
 	zbox = (image[i] >> IMG2BITS) - IMGMAX;
-	
+
 	xunwrap = x[i][0] + xbox*xprd;
 	yunwrap = x[i][1] + ybox*yprd;
 	zunwrap = x[i][2] + zbox*zprd;
-	
+
 	dx = xunwrap - xcm[ibody][0];
 	dy = yunwrap - xcm[ibody][1];
 	dz = zunwrap - xcm[ibody][2];
-	
+
 	sum[ibody][0] += dx*dx + dy*dy + dz*dz;
 	sum[ibody][1] += Gamma[type[i]];
       }
     }else{
       ibody = body[i];
-      
+
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
@@ -606,7 +606,7 @@ void FixLbRigidPCSphere::init()
     sphereradius[ibody] = sqrt(all[ibody][0]/nrigid_shell[ibody]);
     Gamma_MD[ibody] = all[ibody][1]*dm_lb/dt_lb/nrigid_shell[ibody];
   }
-  
+
   // Check that all atoms in the rigid body have the same value of gamma.
   double eps = 1.0e-7;
   for (i=0; i<nlocal; i++){
@@ -622,11 +622,11 @@ void FixLbRigidPCSphere::init()
       ibody = body[i];
 
 	if(Gamma_MD[ibody]*dt_lb/dm_lb - Gamma[type[i]] > eps)
-	  error->one(FLERR,"All atoms in a rigid body must have the same gamma value"); 
+	  error->one(FLERR,"All atoms in a rigid body must have the same gamma value");
     }
   }
 
-    
+
   // remap the xcm of each body back into simulation box if needed
   // only really necessary the 1st time a run is performed
 
@@ -642,7 +642,7 @@ void FixLbRigidPCSphere::init()
   }
   if (ndof > 0.0) tfactor = force->mvv2e / (ndof * force->boltz);
   else tfactor = 0.0;
- 
+
 }
 /* ---------------------------------------------------------------------- */
 
@@ -650,7 +650,7 @@ void FixLbRigidPCSphere::setup(int vflag)
 {
   int i,n,ibody;
   double massone;
-  
+
   // vcm = velocity of center-of-mass of each rigid body
   // fcm = force on center-of-mass of each rigid body
 
@@ -671,7 +671,7 @@ void FixLbRigidPCSphere::setup(int vflag)
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-  
+
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -685,7 +685,7 @@ void FixLbRigidPCSphere::setup(int vflag)
     sum[ibody][4] += f[i][1];
     sum[ibody][5] += f[i][2];
   }
-  
+
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
   for (ibody = 0; ibody < nbody; ibody++) {
@@ -707,13 +707,13 @@ void FixLbRigidPCSphere::setup(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
-    
+
     domain->unmap(x[i],image[i],unwrap);
-    
+
     dx = unwrap[0] - xcm[ibody][0];
     dy = unwrap[1] - xcm[ibody][1];
     dz = unwrap[2] - xcm[ibody][2];
-    
+
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
 
@@ -783,13 +783,13 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
   // Store the fluid velocity at the center of mass
-  
+
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
-    
+
     if(inner_nodes == 1){
       if(!(mask[i] & group->bitmask[igroupinner])){
 	sum[ibody][0] += up[i][0]*massone;
@@ -800,7 +800,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
       sum[ibody][0] += up[i][0]*massone;
       sum[ibody][1] += up[i][1]*massone;
       sum[ibody][2] += up[i][2]*massone;
-    } 
+    }
   }
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
@@ -819,7 +819,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
     ibody = body[i];
 
     domain->unmap(x[i],image[i],unwrap);
-    
+
     dx = unwrap[0] - xcm[ibody][0];
     dy = unwrap[1] - xcm[ibody][1];
     dz = unwrap[2] - xcm[ibody][2];
@@ -872,7 +872,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
     torque_old[ibody][2] = torque[ibody][2];
     torque_fluid_old[ibody][0] = torque_fluid[ibody][0];
     torque_fluid_old[ibody][1] = torque_fluid[ibody][1];
-    torque_fluid_old[ibody][2] = torque_fluid[ibody][2];  
+    torque_fluid_old[ibody][2] = torque_fluid[ibody][2];
     ucm_old[ibody][0] = ucm[ibody][0];
     ucm_old[ibody][1] = ucm[ibody][1];
     ucm_old[ibody][2] = ucm[ibody][2];
@@ -899,7 +899,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
     force_factor = force->ftm2v/Gamma_MD[ibody]/nrigid_shell[ibody];
 
     if(fflag[ibody][0]==1){
-      vcm[ibody][0] = expminusdttimesgamma*(vcm[ibody][0] - ucm[ibody][0] - fcm[ibody][0]*force_factor) 
+      vcm[ibody][0] = expminusdttimesgamma*(vcm[ibody][0] - ucm[ibody][0] - fcm[ibody][0]*force_factor)
 	+ ucm[ibody][0] + fcm[ibody][0]*force_factor;
     }
     if(fflag[ibody][1]==1){
@@ -918,19 +918,19 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
 
     if(tflag[ibody][0]==1){
       omega[ibody][0] = expminusdttimesgamma*(omega[ibody][0] - (3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
-					      (force->ftm2v*torque[ibody][0] + torque_fluid[ibody][0])) + 
+					      (force->ftm2v*torque[ibody][0] + torque_fluid[ibody][0])) +
 					      (3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
 					      (force->ftm2v*torque[ibody][0] + torque_fluid[ibody][0]);
     }
     if(tflag[ibody][1]==1){
       omega[ibody][1] = expminusdttimesgamma*(omega[ibody][1] - (3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
-					      (force->ftm2v*torque[ibody][1] + torque_fluid[ibody][1])) + 
+					      (force->ftm2v*torque[ibody][1] + torque_fluid[ibody][1])) +
 					      (3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
 					      (force->ftm2v*torque[ibody][1] + torque_fluid[ibody][1]);
     }
     if(tflag[ibody][2]==1){
       omega[ibody][2] = expminusdttimesgamma*(omega[ibody][2] - (3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
-					      (force->ftm2v*torque[ibody][2] + torque_fluid[ibody][2])) + 
+					      (force->ftm2v*torque[ibody][2] + torque_fluid[ibody][2])) +
 					      (3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
 					      (force->ftm2v*torque[ibody][2] + torque_fluid[ibody][2]);
     }
@@ -941,7 +941,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
   if (vflag) v_setup(vflag);
   else evflag = 0;
 
-  set_xv(); 
+  set_xv();
 
 }
 
@@ -961,7 +961,7 @@ void FixLbRigidPCSphere::final_integrate()
   double *mass = atom->mass;
   int *type = atom->type;
   int nlocal = atom->nlocal;
- 
+
   double unwrap[3];
   double dx,dy,dz;
 
@@ -969,7 +969,7 @@ void FixLbRigidPCSphere::final_integrate()
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-  
+
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -977,13 +977,13 @@ void FixLbRigidPCSphere::final_integrate()
     sum[ibody][0] += f[i][0];
     sum[ibody][1] += f[i][1];
     sum[ibody][2] += f[i][2];
-      
+
     domain->unmap(x[i],image[i],unwrap);
-     
+
     dx = unwrap[0] - xcm[ibody][0];
     dy = unwrap[1] - xcm[ibody][1];
     dz = unwrap[2] - xcm[ibody][2];
-    
+
     sum[ibody][3] += dy*f[i][2] - dz*f[i][1];
     sum[ibody][4] += dz*f[i][0] - dx*f[i][2];
     sum[ibody][5] += dx*f[i][1] - dy*f[i][0];
@@ -991,7 +991,7 @@ void FixLbRigidPCSphere::final_integrate()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
-  //Compute the correction to the velocity and angular momentum due to the non-fluid forces:  
+  //Compute the correction to the velocity and angular momentum due to the non-fluid forces:
   for (ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0];
     fcm[ibody][1] = all[ibody][1];
@@ -1002,11 +1002,11 @@ void FixLbRigidPCSphere::final_integrate()
 
     expminusdttimesgamma = exp(-dtv*Gamma_MD[ibody]*nrigid_shell[ibody]/masstotal[ibody]);
     DMDcoeff= (dtv - (masstotal[ibody]/nrigid_shell[ibody])*(1.0-expminusdttimesgamma)/Gamma_MD[ibody]);
-    
+
     vcm[ibody][0] += fflag[ibody][0]*DMDcoeff*force->ftm2v*(fcm[ibody][0]-fcm_old[ibody][0])/Gamma_MD[ibody]/dtv/nrigid_shell[ibody];
     vcm[ibody][1] += fflag[ibody][1]*DMDcoeff*force->ftm2v*(fcm[ibody][1]-fcm_old[ibody][1])/Gamma_MD[ibody]/dtv/nrigid_shell[ibody];
     vcm[ibody][2] += fflag[ibody][2]*DMDcoeff*force->ftm2v*(fcm[ibody][2]-fcm_old[ibody][2])/Gamma_MD[ibody]/dtv/nrigid_shell[ibody];
-    
+
     torque_factor = 5.0*Gamma_MD[ibody]*nrigid_shell[ibody]/(3.0*masstotal[ibody]);
     expminusdttimesgamma = exp(-dtv*torque_factor);
     DMDcoeff = (dtv - (1.0-expminusdttimesgamma)/torque_factor);
@@ -1035,34 +1035,34 @@ void FixLbRigidPCSphere::final_integrate()
     else massone = mass[type[i]];
 
     domain->unmap(x[i],image[i],unwrap);
-    
+
     dx = unwrap[0] - xcm[ibody][0];
     dy = unwrap[1] - xcm[ibody][1];
-    dz = unwrap[2] - xcm[ibody][2]; 
+    dz = unwrap[2] - xcm[ibody][2];
 
     if(inner_nodes == 1){
       if(!(mask[i] & group->bitmask[igroupinner])){
 	sum[ibody][0] += up[i][0]*massone;
 	sum[ibody][1] += up[i][1]*massone;
-	sum[ibody][2] += up[i][2]*massone; 
-	sum[ibody][3] += Gamma_MD[ibody]*(dy * ((up[i][2]-vcm[ibody][2])) - 
+	sum[ibody][2] += up[i][2]*massone;
+	sum[ibody][3] += Gamma_MD[ibody]*(dy * ((up[i][2]-vcm[ibody][2])) -
 					  dz * ((up[i][1]-vcm[ibody][1])));
-	sum[ibody][4] += Gamma_MD[ibody]*(dz * ((up[i][0]-vcm[ibody][0])) - 
+	sum[ibody][4] += Gamma_MD[ibody]*(dz * ((up[i][0]-vcm[ibody][0])) -
 					  dx * ((up[i][2]-vcm[ibody][2])));
-	sum[ibody][5] += Gamma_MD[ibody]*(dx * ((up[i][1]-vcm[ibody][1])) - 
-					  dy * ((up[i][0]-vcm[ibody][0])));    
+	sum[ibody][5] += Gamma_MD[ibody]*(dx * ((up[i][1]-vcm[ibody][1])) -
+					  dy * ((up[i][0]-vcm[ibody][0])));
       }
     }else{
       sum[ibody][0] += up[i][0]*massone;
       sum[ibody][1] += up[i][1]*massone;
       sum[ibody][2] += up[i][2]*massone;
-      sum[ibody][3] += Gamma_MD[ibody]*(dy * ((up[i][2]-vcm[ibody][2])) - 
+      sum[ibody][3] += Gamma_MD[ibody]*(dy * ((up[i][2]-vcm[ibody][2])) -
 					dz * ((up[i][1]-vcm[ibody][1])));
-      sum[ibody][4] += Gamma_MD[ibody]*(dz * ((up[i][0]-vcm[ibody][0])) - 
+      sum[ibody][4] += Gamma_MD[ibody]*(dz * ((up[i][0]-vcm[ibody][0])) -
 					dx * ((up[i][2]-vcm[ibody][2])));
-      sum[ibody][5] += Gamma_MD[ibody]*(dx * ((up[i][1]-vcm[ibody][1])) - 
+      sum[ibody][5] += Gamma_MD[ibody]*(dx * ((up[i][1]-vcm[ibody][1])) -
 					dy * ((up[i][0]-vcm[ibody][0])));
-    } 
+    }
   }
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
@@ -1080,7 +1080,7 @@ void FixLbRigidPCSphere::final_integrate()
 
     expminusdttimesgamma = exp(-dtv*Gamma_MD[ibody]*nrigid_shell[ibody]/masstotal[ibody]);
     DMDcoeff= (dtv - (masstotal[ibody]/nrigid_shell[ibody])*(1.0-expminusdttimesgamma)/Gamma_MD[ibody]);
-    
+
     vcm[ibody][0] += DMDcoeff*fflag[ibody][0]*(ucm[ibody][0]-ucm_old[ibody][0])/dtv;
     vcm[ibody][1] += DMDcoeff*fflag[ibody][1]*(ucm[ibody][1]-ucm_old[ibody][1])/dtv;
     vcm[ibody][2] += DMDcoeff*fflag[ibody][2]*(ucm[ibody][2]-ucm_old[ibody][2])/dtv;
@@ -1094,7 +1094,7 @@ void FixLbRigidPCSphere::final_integrate()
     omega[ibody][1] += tflag[ibody][1]*(3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
       DMDcoeff*(torque_fluid[ibody][1] - torque_fluid_old[ibody][1])/dtv;
     omega[ibody][2] += tflag[ibody][2]*(3.0/(2.0*nrigid_shell[ibody]*sphereradius[ibody]*sphereradius[ibody]*Gamma_MD[ibody]))*
-      DMDcoeff*(torque_fluid[ibody][2] - torque_fluid_old[ibody][2])/dtv;    
+      DMDcoeff*(torque_fluid[ibody][2] - torque_fluid_old[ibody][2])/dtv;
   }
 
   set_v();
@@ -1119,7 +1119,7 @@ void FixLbRigidPCSphere::set_v()
   double **v = atom->v;
   double **f = atom->f;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;  
+  double *mass = atom->mass;
   int *type = atom->type;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
@@ -1142,7 +1142,7 @@ void FixLbRigidPCSphere::set_v()
     xunwrap = x[i][0] + xbox*xprd;
     yunwrap = x[i][1] + ybox*yprd;
     zunwrap = x[i][2] + zbox*zprd;
-      
+
     dx = xunwrap - xcm[ibody][0];
     dy = yunwrap - xcm[ibody][1];
     dz = zunwrap - xcm[ibody][2];
@@ -1169,7 +1169,7 @@ void FixLbRigidPCSphere::set_v()
       else massone = mass[type[i]];
       fc0 = massone*(v[i][0] - v0)/dtf - f[i][0] + Gamma_MD[ibody]*(v0-up[i][0]);
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1] + Gamma_MD[ibody]*(v1-up[i][1]);
-      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2] + Gamma_MD[ibody]*(v2-up[i][2]); 
+      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2] + Gamma_MD[ibody]*(v2-up[i][2]);
 
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
@@ -1211,7 +1211,7 @@ void FixLbRigidPCSphere::set_xv()
   double **v = atom->v;
   double **f = atom->f;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;  
+  double *mass = atom->mass;
   int *type = atom->type;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
@@ -1222,9 +1222,9 @@ void FixLbRigidPCSphere::set_xv()
   double xunwrap,yunwrap,zunwrap;
   double dx,dy,dz;
 
-  
+
   // set x and v of each atom
-  
+
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -1236,7 +1236,7 @@ void FixLbRigidPCSphere::set_xv()
     xunwrap = x[i][0] + xbox*xprd;
     yunwrap = x[i][1] + ybox*yprd;
     zunwrap = x[i][2] + zbox*zprd;
-      
+
     dx = xunwrap - xcm_old[ibody][0];
     dy = yunwrap - xcm_old[ibody][1];
     dz = zunwrap - xcm_old[ibody][2];
@@ -1299,7 +1299,7 @@ void FixLbRigidPCSphere::set_xv()
       else massone = mass[type[i]];
       fc0 = massone*(v[i][0] - v0)/dtf - f[i][0] + Gamma_MD[ibody]*(v0-up[i][0]);
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1] + Gamma_MD[ibody]*(v1-up[i][1]);
-      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2] + Gamma_MD[ibody]*(v2-up[i][2]); 
+      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2] + Gamma_MD[ibody]*(v2-up[i][2]);
 
       vr[0] = 0.5*x0*fc0;
       vr[1] = 0.5*x1*fc1;
@@ -1323,7 +1323,7 @@ void FixLbRigidPCSphere::set_xv()
      due to 1st definition of rigid body or due to box flip
    if don't do this, then atoms of a body which drifts far away
      from a triclinic box will be remapped back into box
-     with huge displacements when the box tilt changes via set_x() 
+     with huge displacements when the box tilt changes via set_x()
 ------------------------------------------------------------------------- */
 
 void FixLbRigidPCSphere::pre_neighbor()
@@ -1333,7 +1333,7 @@ void FixLbRigidPCSphere::pre_neighbor()
   for (int ibody = 0; ibody < nbody; ibody++) {
     original = imagebody[ibody];
     domain->remap(xcm[ibody],imagebody[ibody]);
-    
+
     if (original == imagebody[ibody]) remapflag[ibody][3] = 0;
     else {
       oldimage = original & IMGMASK;
@@ -1386,7 +1386,7 @@ void FixLbRigidPCSphere::pre_neighbor()
   }
 }
 /* ----------------------------------------------------------------------
-   count # of degrees-of-freedom removed by fix_rigid for atoms in igroup 
+   count # of degrees-of-freedom removed by fix_rigid for atoms in igroup
 ------------------------------------------------------------------------- */
 
 int FixLbRigidPCSphere::dof(int igroup)
@@ -1423,7 +1423,7 @@ int FixLbRigidPCSphere::dof(int igroup)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double FixLbRigidPCSphere::memory_usage()
@@ -1434,10 +1434,10 @@ double FixLbRigidPCSphere::memory_usage()
   bytes += maxvatom*6 * sizeof(double);
 
   return bytes;
-} 
+}
 
 /* ----------------------------------------------------------------------
-   allocate local atom-based arrays 
+   allocate local atom-based arrays
 ------------------------------------------------------------------------- */
 
 void FixLbRigidPCSphere::grow_arrays(int nmax)
@@ -1449,7 +1449,7 @@ void FixLbRigidPCSphere::grow_arrays(int nmax)
 }
 
 /* ----------------------------------------------------------------------
-   copy values within local atom-based arrays 
+   copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
 void FixLbRigidPCSphere::copy_arrays(int i, int j, int delflag)
@@ -1474,7 +1474,7 @@ void FixLbRigidPCSphere::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
-   pack values in local atom-based arrays for exchange with another proc 
+   pack values in local atom-based arrays for exchange with another proc
 ------------------------------------------------------------------------- */
 
 int FixLbRigidPCSphere::pack_exchange(int i, double *buf)
@@ -1488,7 +1488,7 @@ int FixLbRigidPCSphere::pack_exchange(int i, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   unpack values in local atom-based arrays from exchange with another proc 
+   unpack values in local atom-based arrays from exchange with another proc
 ------------------------------------------------------------------------- */
 
 int FixLbRigidPCSphere::unpack_exchange(int nlocal, double *buf)
@@ -1520,16 +1520,16 @@ double FixLbRigidPCSphere::compute_scalar()
   double t = 0.0;
 
   for (int i = 0; i < nbody; i++) {
-    t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] + 
+    t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
     			 fflag[i][1]*vcm[i][1]*vcm[i][1] +	\
     			 fflag[i][2]*vcm[i][2]*vcm[i][2]);
-    
+
     // wbody = angular velocity in body frame
-      
+
     inertia = 2.0*masstotal[i]*sphereradius[i]*sphereradius[i]/5.0;
-    
+
     t += tflag[i][0]*inertia*omega[i][0]*omega[i][0] +
-      tflag[i][1]*inertia*omega[i][1]*omega[i][1] + 
+      tflag[i][1]*inertia*omega[i][1]*omega[i][1] +
       tflag[i][2]*inertia*omega[i][2]*omega[i][2];
   }
 
@@ -1582,22 +1582,22 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 
       //Calculate nearest leftmost grid point.
       //Since array indices from 1 to subNb-2 correspond to the
-      // local subprocessor domain (not indices from 0), use the 
+      // local subprocessor domain (not indices from 0), use the
       // ceiling value.
       ix = (int)ceil((x[i][0]-domain->sublo[0])/dx_lb);
       iy = (int)ceil((x[i][1]-domain->sublo[1])/dx_lb);
       iz = (int)ceil((x[i][2]-domain->sublo[2])/dx_lb);
-      
+
       //Calculate distances to the nearest points.
       dx1 = x[i][0] - (domain->sublo[0] + (ix-1)*dx_lb);
       dy1 = x[i][1] - (domain->sublo[1] + (iy-1)*dx_lb);
       dz1 = x[i][2] - (domain->sublo[2] + (iz-1)*dx_lb);
- 
+
       // Need to convert these to lattice units:
       dx1 = dx1/dx_lb;
       dy1 = dy1/dx_lb;
       dz1 = dz1/dx_lb;
-         
+
 
       up[i][0]=0.0; up[i][1]=0.0; up[i][2]=0.0;
 
@@ -1605,7 +1605,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 	isten=0;
 	for(ii=-1; ii<3; ii++){
 	  rsq=(-dx1+ii)*(-dx1+ii);
-	  
+
 	  if(rsq>=4)
 	    weightx=0.0;
 	  else{
@@ -1648,7 +1648,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 	      if(ixp==-1) ixp=subNbx+2;
 	      if(iyp==-1) iyp=subNby+2;
 	      if(izp==-1) izp=subNbz+2;
-	      
+
 	      FfP[isten] = weightx*weighty*weightz;
 	      // interpolated velocity based on delta function.
 	      for(k=0; k<3; k++){
@@ -1666,11 +1666,11 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 	FfP[5] = dx1*(1.-dy1)*dz1;
 	FfP[6] = dx1*dy1*(1.-dz1);
 	FfP[7] = dx1*dy1*dz1;
-	
+
 	ixp = (ix+1);
 	iyp = (iy+1);
 	izp = (iz+1);
-	
+
 	for (k=0; k<3; k++) { 	// tri-linearly interpolated velocity at node
 	  up[i][k] = u_lb[ix][iy][iz][k]*FfP[0]
 	    + u_lb[ix][iy][izp][k]*FfP[1]
@@ -1679,13 +1679,13 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 	    + u_lb[ixp][iy][iz][k]*FfP[4]
 	    + u_lb[ixp][iy][izp][k]*FfP[5]
 	    + u_lb[ixp][iyp][iz][k]*FfP[6]
-	    + u_lb[ixp][iyp][izp][k]*FfP[7];	
+	    + u_lb[ixp][iyp][izp][k]*FfP[7];
 	}
-      }       
+      }
       for(k=0; k<3; k++)
 	up[i][k] = up[i][k]*dx_lb/dt_lb;
 
     }
   }
-  
+
  }

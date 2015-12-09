@@ -54,8 +54,6 @@
 #include <impl/Kokkos_ViewTileLeft.hpp>
 #include <TestTile.hpp>
 
-#endif
-
 //----------------------------------------------------------------------------
 
 #include <TestSharedAlloc.hpp>
@@ -438,8 +436,6 @@ TEST_F( cuda, tile_layout)
   TestTile::test< Kokkos::Cuda , 8 , 8 >( 9 , 9 );
   TestTile::test< Kokkos::Cuda , 8 , 8 >( 9 , 11 );
 }
-
-#endif
 
 TEST_F( cuda , view_aggregate )
 {

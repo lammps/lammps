@@ -66,6 +66,7 @@ void MSMOMP::compute(int eflag, int vflag)
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -74,12 +75,12 @@ void MSMOMP::compute(int eflag, int vflag)
    MSM direct part procedure for intermediate grid levels
 ------------------------------------------------------------------------- */
 
-void MSMOMP::direct(int n) 
+void MSMOMP::direct(int n)
 {
   // zero out electric potential
 
   memset(&(egrid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-  
+
   // zero out virial
 
   if (vflag_atom) {
@@ -169,6 +170,8 @@ void MSMOMP::direct_eval(const int nn)
     int i,ifrom,ito,tid,icx,icy,icz,ix,iy,iz,k;
 
     loop_setup_thr(ifrom, ito, tid, inum, comm->nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
 
     for (i = ifrom; i < ito; ++i) {
 
@@ -298,6 +301,7 @@ void MSMOMP::direct_eval(const int nn)
         }
       }
     }
+    thr->timer(Timer::KSPACE);
   } // end of omp parallel region
 
   if (EFLAG_GLOBAL || VFLAG_GLOBAL) {

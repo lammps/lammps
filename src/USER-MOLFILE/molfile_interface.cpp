@@ -756,10 +756,13 @@ int MolfileInterface::timestep(float *coords, float *vels,
         *simtime = t->physical_time;
     }
 
-    if (rv == MOLFILE_EOF)
+    if (rv == MOLFILE_EOF) {
+      delete t;
       return 1;
+    }
   }
 
+  delete t;
   return 0;
 }
 

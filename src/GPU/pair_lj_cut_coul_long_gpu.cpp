@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_cut_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "kspace.h"
 #include "gpu_extra.h"
 
@@ -200,7 +200,7 @@ void PairLJCutCoulLongGPU::init_style()
 void PairLJCutCoulLongGPU::reinit()
 {
   Pair::reinit();
-  
+
   ljcl_gpu_reinit(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4, offset, cut_ljsq);
 }
 

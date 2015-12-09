@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,8 +16,8 @@
    [ based on dihedral_multi_harmonic.cpp Mathias Puetz (SNL) and friends ]
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "dihedral_nharmonic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -155,8 +155,8 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
       MPI_Comm_rank(world,&me);
       if (screen) {
         char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " " 
-                TAGINT_FORMAT " " TAGINT_FORMAT " " 
+        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
+                TAGINT_FORMAT " " TAGINT_FORMAT " "
                 TAGINT_FORMAT " " TAGINT_FORMAT,
                 me,update->ntimestep,
                 atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
@@ -296,7 +296,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void DihedralNHarmonic::write_restart(FILE *fp)
@@ -307,22 +307,22 @@ void DihedralNHarmonic::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void DihedralNHarmonic::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0) 
+  if (comm->me == 0)
     fread(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
-  // allocate 
+  // allocate
   for(int i = 1; i <= atom->ndihedraltypes; i++)
     a[i] = new double [nterms[i]];
-  
+
   if (comm->me == 0) {
     for(int i = 1; i <= atom->ndihedraltypes; i++)
       fread(a[i],sizeof(double),nterms[i],fp);

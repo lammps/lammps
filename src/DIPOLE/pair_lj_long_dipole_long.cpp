@@ -15,10 +15,10 @@
    Contributing author: Pieter J. in 't Veld and Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "math_const.h"
 #include "math_vector.h"
 #include "pair_lj_long_dipole_long.h"
@@ -173,7 +173,7 @@ void *PairLJLongDipoleLong::extract(const char *id, int &dim)
     "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",
     "cut_coul", "cut_vdwl", NULL};
   void *ptrs[] = {
-    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, &cut_coul, 
+    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, &cut_coul,
     &cut_lj_global, NULL};
   int i;
 
@@ -189,7 +189,7 @@ void *PairLJLongDipoleLong::extract(const char *id, int &dim)
 
 void PairLJLongDipoleLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -247,14 +247,14 @@ void PairLJLongDipoleLong::init_style()
   // ensure use of KSpace long-range solver, set g_ewald
 
   if (ewald_order&(1<<3)) {				// r^-1 kspace
-    if (force->kspace == NULL) 
+    if (force->kspace == NULL)
       error->all(FLERR,"Pair style requires a KSpace style");
     for (i=0; style3[i]&&strcmp(force->kspace_style, style3[i]); ++i);
     if (!style3[i])
       error->all(FLERR,"Pair style requires use of kspace_style ewald/disp");
   }
   if (ewald_order&(1<<6)) {				// r^-6 kspace
-    if (force->kspace == NULL) 
+    if (force->kspace == NULL)
       error->all(FLERR,"Pair style requires a KSpace style");
     for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
     if (!style6[i])
@@ -313,7 +313,7 @@ double PairLJLongDipoleLong::init_one(int i, int j)
 
   //if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
     //error->all(FLERR,"Pair cutoff < Respa interior cutoff");
- 
+
   if (offset_flag) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
@@ -423,7 +423,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   double **x = atom->x, *x0 = x[0];
   double **mu = atom->mu, *mu0 = mu[0], *imu, *jmu;
   double **tq = atom->torque, *tq0 = tq[0], *tqi;
@@ -445,7 +445,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double B0, B1, B2, B3, G0, G1, G2, mudi, mudj, muij;
   vector force_d = VECTOR_NULL, ti = VECTOR_NULL, tj = VECTOR_NULL;
   vector mui, muj, xi, d;
-  
+
   double C1 = 2.0 * g_ewald / MY_PIS;
   double C2 = 2.0 * g2 * C1;
   double C3 = 2.0 * g2 * C2;
@@ -460,14 +460,14 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     memcpy(mui, imu = mu0+(i<<2), sizeof(vector));
-    
+
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
       j = *jneigh;
       ni = sbmask(j);					// special index
       j &= NEIGHMASK;
-      
+
       { register double *xj = x0+(j+(j<<1));
 	d[0] = xi[0] - xj[0];				// pair vector
 	d[1] = xi[1] - xj[1];
@@ -496,7 +496,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 	  G1 = qi*mudj-qj*mudi+muij;
 	  G2 = -mudi*mudj;
 	  force_coul = G0*B1+G1*B2+G2*B3;
-	  
+
 	  mudi *= B2; mudj *= B2;			// torque contribs
 	  ti[0] = mudj*d[0]+(qj*d[0]-muj[0])*B1;
 	  ti[1] = mudj*d[1]+(qj*d[1]-muj[1])*B1;
@@ -552,7 +552,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 	    register double f = special_lj[ni], t = rn*(1.0-f);
 	    force_lj = f*(rn *= rn)*lj1i[typej]-
 	      g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
-	    if (eflag) evdwl = 
+	    if (eflag) evdwl =
 		f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
 	  }
 	}
@@ -641,8 +641,8 @@ double PairLJLongDipoleLong::single(int i, int j, int itype, int jtype,
       G1 = qi*mudj-qj*mudi+muij;
       G2 = -mudi*mudj;
       force_coul = G0*B1+G1*B2+G2*B3;
-	  
-      eng += G0*B0+G1*B1+G2*B2;	
+
+      eng += G0*B0+G1*B1+G2*B2;
       if (factor_coul < 1.0) {			      	// adj part, eqn 2.13
 	force_coul -= (f = force->qqrd2e*(1.0-factor_coul)/r)*(
 	    (3.0*G1+6.0*muij+15.0*G2*r2inv)*r2inv+G0);
@@ -672,7 +672,7 @@ double PairLJLongDipoleLong::single(int i, int j, int itype, int jtype,
       eng += factor_lj*(r6inv*(r6inv*lj3[itype][jtype]-
 	    lj4[itype][jtype])-offset[itype][jtype]);
     }
-  } 
+  }
   else force_lj = 0.0;
 
   fforce = (force_coul+force_lj)*r2inv;

@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_table.h"
 #include "atom.h"
 #include "force.h"

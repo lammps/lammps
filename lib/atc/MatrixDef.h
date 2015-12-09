@@ -78,7 +78,7 @@ struct TRIPLET { TRIPLET<T>(int _i=0, int _j=0, T _v=T(0)) : i(_i), j(_j), v(_v)
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
 // prints file and line number for error messages
-#define ERROR(x) __FILE__":"STRING(__LINE__)" "x
+#define ERROR(x) __FILE__ ":" STRING(__LINE__) " " x
 
 /******************************************************************************
 * BLAS and LAPACK definitions
@@ -106,7 +106,7 @@ extern double dlange_(char*,int*,int*,const double*,int*,double*);
 extern double dsygvd_(int*,char*,char*,int*,double*,int*,double*,int*,double*,double*,int*,int*,int*,int*);
 extern double dgesvd_(char*,char*,int*,int*,double*,int*,double*,double*,int*,double*,int*,double*,int*,int*);
 extern double dgesdd_(char*,char*,int*,int*,double*,int*,double*,double*,int*,double*,int*,double*,int*,int*);
-};
+}
 #endif
 
 // forward declarations of matrix and vector classes

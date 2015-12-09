@@ -25,6 +25,8 @@ include system.in.settings
 # Only the Cgraphene atoms are immobile.
 group mobile subtract all Cgraphene
 
+# (Note: The "Cgraphene" group was defined in system.in.settings.)
+
 
 # Unfortunately you can not use the LAMMPS "minimize" command on this system
 # because there is no way to immobilize the carbon graphene & nanotube atoms

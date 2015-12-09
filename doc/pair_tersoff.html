@@ -133,6 +133,9 @@
 <div class="section" id="pair-style-tersoff-cuda">
 <h1>pair_style tersoff/cuda<a class="headerlink" href="#pair-style-tersoff-cuda" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="pair-style-tersoff-gpu">
+<h1>pair_style tersoff/gpu<a class="headerlink" href="#pair-style-tersoff-gpu" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="pair-style-tersoff-kk">
 <h1>pair_style tersoff/kk<a class="headerlink" href="#pair-style-tersoff-kk" title="Permalink to this headline">¶</a></h1>
 </div>
@@ -146,7 +149,7 @@
 <div class="highlight-python"><div class="highlight"><pre>pair_style style
 </pre></div>
 </div>
-<p>style = <em>tersoff</em> or <em>tersoff/table</em> or <em>tersoff/cuda</em> or <em>tersoff/omp</em> or <em>tersoff/table/omp</em></p>
+<p>style = <em>tersoff</em> or <em>tersoff/table</em> or <em>tersoff/cuda</em> or <em>tersoff/gpu</em> or <em>tersoff/omp</em> or <em>tersoff/table/omp</em></p>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
@@ -163,7 +166,7 @@ pair_coeff * * SiCGe.tersoff Si(D)
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>The <em>tersoff</em> style computes a 3-body Tersoff potential
-<a class="reference internal" href="pair_tersoff_zbl.html#tersoff-1"><span>(Tersoff_1)</span></a> for the energy E of a system of atoms as</p>
+<a class="reference internal" href="#tersoff-1"><span>(Tersoff_1)</span></a> for the energy E of a system of atoms as</p>
 <img alt="_images/pair_tersoff_1.jpg" class="align-center" src="_images/pair_tersoff_1.jpg" />
 <p>where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
@@ -256,15 +259,15 @@ be set to 0.0 if desired.</p>
 <p>Note that the twobody parameters in entries such as SiCC and CSiSi
 are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
-Tersoff_2 <a class="reference internal" href="pair_tersoff_zbl.html#tersoff-2"><span>(Tersoff_2)</span></a> are not symmetric.</p>
+Tersoff_2 <a class="reference internal" href="#tersoff-2"><span>(Tersoff_2)</span></a> are not symmetric.</p>
 <p>We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff potential.  In particular, our form
 reduces to the original Tersoff form when m = 3 and gamma = 1, while
-it reduces to the form of <a class="reference internal" href="pair_tersoff_zbl.html#albe"><span>Albe et al.</span></a> when beta = 1 and m = 1.
+it reduces to the form of <a class="reference internal" href="#albe"><span>Albe et al.</span></a> when beta = 1 and m = 1.
 Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff_2
-potential <a class="reference internal" href="pair_tersoff_zbl.html#tersoff-2"><span>(Tersoff_2)</span></a>. The <em>tersoff/table</em> style implements
+potential <a class="reference internal" href="#tersoff-2"><span>(Tersoff_2)</span></a>. The <em>tersoff/table</em> style implements
 Tersoff_2 parameterization only.</p>
 <p>LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 gamma_ijk = omega_ik, lambda3 = 0 and the value of

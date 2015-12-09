@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_dpd_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -35,6 +35,7 @@ PairDPDOMP::PairDPDOMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   random_thr = NULL;
+  nthreads = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -42,7 +43,7 @@ PairDPDOMP::PairDPDOMP(LAMMPS *lmp) :
 PairDPDOMP::~PairDPDOMP()
 {
   if (random_thr) {
-    for (int i=1; i < comm->nthreads; ++i)
+    for (int i=1; i < nthreads; ++i)
       delete random_thr[i];
 
     delete[] random_thr;
@@ -59,15 +60,26 @@ void PairDPDOMP::compute(int eflag, int vflag)
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
-  const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
-  if (!random_thr)
-    random_thr = new RanMars*[nthreads];
+  // number of threads has changed. reallocate pool of pRNGs
+  if (nthreads != comm->nthreads) {
+    if (random_thr) {
+      for (int i=1; i < nthreads; ++i)
+        delete random_thr[i];
 
-  // to ensure full compatibility with the serial DPD style
-  // we use is random number generator instance for thread 0
-  random_thr[0] = random;
+      delete[] random_thr;
+    }
+
+    nthreads = comm->nthreads;
+    random_thr = new RanMars*[nthreads];
+    for (int i=1; i < nthreads; ++i)
+      random_thr[i] = NULL;
+
+    // to ensure full compatibility with the serial DPD style
+    // we use the serial random number generator instance for thread 0
+    random_thr[0] = random;
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -77,11 +89,12 @@ void PairDPDOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
-    if (random_thr && tid > 0)
+    if ((tid > 0) && (random_thr[tid] == NULL))
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
                                     + comm->nprocs*tid);
 
@@ -98,6 +111,7 @@ void PairDPDOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }

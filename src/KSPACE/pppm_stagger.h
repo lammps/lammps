@@ -43,7 +43,7 @@ class PPPMStagger : public PPPM {
   virtual void compute_gf_denom();
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();
-  
+
   virtual void particle_map();
   virtual void make_rho();
   virtual void fieldforce_ik();

@@ -288,10 +288,11 @@ section of the <a class="reference external" href="http://lammps.sandia.gov">LAM
 </tr>
 </tbody>
 </table>
+<p>vashishta: models using the Vashishta potential</p>
 <p>Here is how you might run and visualize one of the sample problems:</p>
 <div class="highlight-python"><div class="highlight"><pre>cd indent
 cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
-lmp_linux &lt; in.indent              # run the problem
+lmp_linux -in in.indent            # run the problem
 </pre></div>
 </div>
 <p>Running the simulation produces the files <em>dump.indent</em> and
@@ -314,8 +315,11 @@ browser.</p>
 a library, either by itself or in tandem with another code or library.
 See the COUPLE/README file to get started.</p>
 <p>There is also an ELASTIC directory with an example script for
-computing elastic constants, using a zero temperature Si example.  See
-the in.elastic file for more info.</p>
+computing elastic constants at zero temperature, using an Si example.  See
+the ELASTIC/in.elastic file for more info.</p>
+<p>There is also an ELASTIC_T directory with an example script for
+computing elastic constants at finite temperature, using an Si example.  See
+the ELASTIC_T/in.elastic file for more info.</p>
 <p>There is also a USER directory which contains subdirectories of
 user-provided examples for user packages.  See the README files in
 those directories for more info.  See the

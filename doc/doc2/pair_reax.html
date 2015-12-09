@@ -38,11 +38,13 @@ supplemental information of the following paper:
 <A HREF = "#Chenoweth_2008">(Chenoweth)</A>.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.
 </P>
-<P>The <I>reax</I> style differs from the <A HREF = "pair_reax_c.html">pair_style reax/c</A>
-command in the lo-level implementation details.  The <I>reax</I> style is a
+<P>WARNING: pair style reax is now deprecated and will soon be retired. Users
+should switch to <A HREF = "pair_reax_c.html">pair_style reax/c</A>. The <I>reax</I> style 
+differs from the <I>reax/c</I> style in the lo-level implementation details.  
+The <I>reax</I> style is a
 Fortran library, linked to LAMMPS.  The <I>reax/c</I> style was initially
 implemented as stand-alone C code and is now integrated into LAMMPS as
-a package.
+a package. 
 </P>
 <P>LAMMPS requires that a file called ffield.reax be provided, containing
 the ReaxFF parameters for each atom type, bond type, etc. The format

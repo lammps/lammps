@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_long_tip4p_long_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -104,6 +104,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (order6) {
@@ -342,8 +343,9 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
           }
         }
       }
-    } 
+    }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -385,8 +387,10 @@ void PairLJLongTIP4PLongOMP::compute_inner()
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(0, 0, nall, 0, 0, thr);
     eval_inner(ifrom, ito, thr);
+    thr->timer(Timer::PAIR);
 
   }  // end of omp parallel region
 }
@@ -408,8 +412,10 @@ void PairLJLongTIP4PLongOMP::compute_middle()
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(0, 0, nall, 0, 0, thr);
     eval_middle(ifrom, ito, thr);
+    thr->timer(Timer::PAIR);
 
   }  // end of omp parallel region
 }
@@ -460,6 +466,7 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (order6) {
@@ -698,8 +705,9 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
           }
         }
       }
-    } 
+    }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -1150,7 +1158,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
       jtype = type[j];
 
       if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
-        r2inv = 1.0/rsq;				
+        r2inv = 1.0/rsq;
 	register double rn = r2inv*r2inv*r2inv;
 	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
 	else {					// special case
@@ -1389,7 +1397,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
       jtype = type[j];
 
       if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
-        r2inv = 1.0/rsq;				
+        r2inv = 1.0/rsq;
 	register double rn = r2inv*r2inv*r2inv;
 	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
 	else {					// special case

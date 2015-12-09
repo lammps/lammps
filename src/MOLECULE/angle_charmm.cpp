@@ -15,8 +15,8 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "angle_charmm.h"
 #include "atom.h"
 #include "neighbor.h"

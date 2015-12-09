@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "rerun.h"
 #include "read_dump.h"
 #include "domain.h"
@@ -142,7 +142,7 @@ void Rerun::command(int narg, char **arg)
   lmp->init();
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
 
   bigint ntimestep = rd->seek(first,0);
   if (ntimestep < 0)
@@ -172,7 +172,7 @@ void Rerun::command(int narg, char **arg)
   output->next_thermo = update->ntimestep;
   output->write(update->ntimestep);
 
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop();
 
   update->integrate->cleanup();
 

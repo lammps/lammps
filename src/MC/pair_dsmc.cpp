@@ -15,10 +15,10 @@
    Contributing authors: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_dsmc.h"
 #include "atom.h"
 #include "comm.h"
@@ -28,7 +28,7 @@
 #include "domain.h"
 #include "update.h"
 #include "random_mars.h"
-#include "limits.h"
+#include <limits.h>
 
 using namespace LAMMPS_NS;
 

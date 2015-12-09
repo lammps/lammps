@@ -198,11 +198,15 @@ model, then you should just list the sub-style once and use the
 pair_coeff command to assign parameters for the different type pairs.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">An exception to this option to list an individual pair
-style multiple times are the pair styles implemented as Fortran
-libraries: <a class="reference internal" href="pair_meam.html"><em>pair_style meam</em></a> and <a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> (<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a> is OK).
-This is because unlike a C++ class, they can not be instantiated
-multiple times, due to the manner in which they were coded in Fortran.</p>
+<p class="last">There are two exceptions to this option to list an
+individual pair style multiple times.  The first is for pair styles
+implemented as Fortran libraries: <a class="reference internal" href="pair_meam.html"><em>pair_style meam</em></a> and
+<a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> (<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>
+is OK).  This is because unlike a C++ class, they can not be
+instantiated multiple times, due to the manner in which they were
+coded in Fortran.  The second is for GPU-enabled pair styles in the
+GPU package.  This is b/c the GPU package also currently assumes that
+only one instance of a pair style is being used.</p>
 </div>
 <p>In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients

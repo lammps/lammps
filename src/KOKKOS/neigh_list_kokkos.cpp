@@ -31,7 +31,7 @@ void NeighListKokkos<Device>::clean_copy()
   dnum = 0;
   iskip = NULL;
   ijskip = NULL;
-  
+
   ipage = NULL;
   dpage = NULL;
   maxstencil = 0;
@@ -49,11 +49,11 @@ void NeighListKokkos<Device>::grow(int nmax)
   if (nmax <= maxatoms) return;
   maxatoms = nmax;
 
-  d_ilist = 
+  d_ilist =
     typename ArrayTypes<Device>::t_int_1d("neighlist:ilist",maxatoms);
-  d_numneigh = 
+  d_numneigh =
     typename ArrayTypes<Device>::t_int_1d("neighlist:numneigh",maxatoms);
-  d_neighbors = 
+  d_neighbors =
     typename ArrayTypes<Device>::t_neighbors_2d("neighlist:neighbors",
                                                 maxatoms,maxneighs);
 
@@ -77,7 +77,7 @@ void NeighListKokkos<Device>::stencil_allocate(int smax, int style)
   if (style == BIN) {
     if (smax > maxstencil) {
       maxstencil = smax;
-      d_stencil = 
+      d_stencil =
         memory->create_kokkos(d_stencil,h_stencil,stencil,maxstencil,
                               "neighlist:stencil");
       if (ghostflag) {

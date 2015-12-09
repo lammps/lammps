@@ -34,7 +34,7 @@ class Python : protected Pointers {
   char **istr;
   char *ostr,*format;
   void *pyMain;
-  
+
   struct PyFunc {
     char *name;
     int ninput,noutput;

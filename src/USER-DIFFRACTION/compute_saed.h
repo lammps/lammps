@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -31,7 +31,7 @@ class ComputeSAED : public Compute {
   void    init();
   void    compute_vector();
   double  memory_usage();
-//testing  
+//testing
   double  saed_var[10];
 
  private:
@@ -42,7 +42,6 @@ class ComputeSAED : public Compute {
   double  prd_inv[3];        // Inverse spacing of unit cell
   bool    echo;              // echo compute_array progress
   bool    manual;            // Turn on manual recpiprocal map
-  double  *f;
   int     nRows;             // Number of relp explored
 
   double  Zone[3];           // Zone axis to view SAED

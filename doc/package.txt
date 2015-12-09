@@ -33,7 +33,7 @@ args = arguments specific to the style :l
   {gpu} args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
     zero or more keyword/value pairs may be appended 
-    keywords = {neigh} or {newton} or {binsize} or {split} or {gpuID} or {tpa} or {device}
+    keywords = {neigh} or {newton} or {binsize} or {split} or {gpuID} or {tpa} or {device} or {blocksize}
       {neigh} value = {yes} or {no}
         yes = neighbor list build on GPU (default)
         no = neighbor list build on CPU
@@ -51,6 +51,8 @@ args = arguments specific to the style :l
         Nthreads = # of GPU threads used per atom
       {device} value = device_type
         device_type = {kepler} or {fermi} or {cypress} or {generic}
+      {blocksize} value = size
+        size = thread block size for pair force computation
   {intel} args = NPhi keyword value ...
     Nphi = # of coprocessors per node
     zero or more keyword/value pairs may be appended 
@@ -320,6 +322,13 @@ may be added later.  The default device type can be specified when
 building LAMMPS with the GPU library, via settings in the
 lib/gpu/Makefile that is used.
 
+The {blocksize} keyword allows you to tweak the number of threads used
+per thread block. This number should be a multiple of 32 (for GPUs)
+and its maximum depends on the specific GPU hardware. Typical choices
+are 64, 128, or 256. A larger blocksize increases occupancy of
+individual GPU cores, but reduces the total number of thread blocks,
+thus may lead to load imbalance.
+
 :line
 
 The {intel} style invokes settings associated with the use of the
@@ -367,7 +376,7 @@ USER-OMP packages, be aware that both packages allow setting of the
 single global {Nthreads} value used by OpenMP.  Thus if both package
 commands are invoked, you should insure the two values are consistent.
 If they are not, the last one invoked will take precedence, for both
-packages.  Also note that if the "-sf intel" "command-line
+packages.  Also note that if the "-sf hybrid intel omp" "command-line
 switch"_"_Section_start.html#start_7 is used, it invokes a "package
 intel" command, followed by a "package omp" command, both with a
 setting of {Nthreads} = 0.

@@ -38,7 +38,7 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -96,7 +96,7 @@ void printArray(double*** data,int nx, int ny, int nz)
 }
 /* ---------------------------------------------------------------------- */
 
-PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) : 
+PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) :
   PPPMOld(lmp, (narg==2?1:narg), arg)
 {
   cuda = lmp->cuda;
@@ -209,7 +209,7 @@ void PPPMCuda::init()
   // error check
 
   if (domain->dimension == 2) error->all(FLERR,"Cannot use PPPMCuda with 2d simulation");
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"PPPMCuda can only currently be used with "
                         "comm_style brick");
 
@@ -695,7 +695,7 @@ void PPPMCuda::compute(int eflag, int vflag)
     delete cu_part2grid;
     delete [] adev_data_array;
     adev_data_array=new dev_array[1];
-    cu_part2grid = new cCudaData<int  , int   , yx > 
+    cu_part2grid = new cCudaData<int  , int   , yx >
       ((int*)part2grid,adev_data_array, nmax,3);
 
     pppm_device_update(&cuda->shared_data,cu_part2grid->dev_data(),

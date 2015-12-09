@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    For more info, see the README file in the top-level LAMMPS directory.
@@ -15,7 +15,7 @@
 
 FixStyle(lb/fluid,FixLbFluid)
 
-#else 
+#else
 
 #ifndef LMP_FIX_LB_FLUID_H
 #define LMP_FIX_LB_FLUID_H
@@ -57,7 +57,7 @@ public:
     double dm_lb,dx_lb,dt_lb;                        // Lattice units for mass, distance, time.
 
     int Nbx,Nby,Nbz;                                 // Total # of x,y,z grid points.
-    int subNbx,subNby,subNbz;                        // # of x,y,z, grid points (including buffer) 
+    int subNbx,subNby,subNbz;                        // # of x,y,z, grid points (including buffer)
                                                      //   on local processor.
     int me, nprocs;                                  // MPI variables: processor ID, # of processors
     MPI_Datatype oneslice;                           // MPI datatypes to pass arrays.
@@ -66,9 +66,9 @@ public:
     MPI_Datatype passxrho,passyrho,passzrho;
     MPI_Datatype passxtemp,passytemp,passztemp;
 
-    double kB,densityinit,a_0;                       // Boltzmann constant, initial density, 
+    double kB,densityinit,a_0;                       // Boltzmann constant, initial density,
                                                      //   and a_0 all in lattice units.
-    double *Gamma;      
+    double *Gamma;
     double *NodeArea;
     int setGamma,setArea;
     double **hydroF;
@@ -78,21 +78,21 @@ public:
     double ***density_lb;                            // fluid density
     double ****u_lb;                                 // fluid velocity
     double ****f_lb;                                 // distributions
-    double ****fnew;                                 // used in the calculation of the new 
+    double ****fnew;                                 // used in the calculation of the new
                                                      //   distributions.
     double ****feq;                                  // equilibrium distributions
-    double ****feqold;                               // equilibrium distributions from previous 
+    double ****feqold;                               // equilibrium distributions from previous
                                                      //   timestep
 
     double ****feqn;                                 // equilibrium distributions without noise.
-    double ****feqoldn;                              // equilibrium distributions from previous 
+    double ****feqoldn;                              // equilibrium distributions from previous
                                                      //   timestep without noise.
     double ****Ff;                                   // Force from the MD particles on the fluid.
     double ****Fftempx;
     double ****Fftempy;
     double ****Fftempz;
 
-    double *Ng_lb;                                   // Lattice Boltzmann variables.  
+    double *Ng_lb;                                   // Lattice Boltzmann variables.
     double *w_lb;
     double **mg_lb;
     int **e;
@@ -110,28 +110,28 @@ public:
     double ****altogether2;
 
     double bodyforcex,bodyforcey,bodyforcez;         // Body Forces acting on the fluid (default=0)
-    double vwtp,vwbt;                                // Velocities of the z walls in the y 
-                                                     //   direction. (must have fixed boundary 
+    double vwtp,vwbt;                                // Velocities of the z walls in the y
+                                                     //   direction. (must have fixed boundary
                                                      //   conditions in z)
 
-    int noisestress;                                 // 1 to include noise in the system, 
+    int noisestress;                                 // 1 to include noise in the system,
                                                      //   0 otherwise.
     double namp,noisefactor;
     int seed;
     class RanMars *random;
 
-    int force_diagnostic;                            // 1 to print out the force action on a group 
+    int force_diagnostic;                            // 1 to print out the force action on a group
                                                      //   of particles, 0 otherwise.
-    int igroupforce;                                 // the group for which the force is to be 
+    int igroupforce;                                 // the group for which the force is to be
                                                      //   printed.
 
-    int typeLB;                                      
- 
-    int trilinear_stencil;                           // 1 to use the trilinear stencil, 0 to use the 
+    int typeLB;
+
+    int trilinear_stencil;                           // 1 to use the trilinear stencil, 0 to use the
                                                      //   peskin stencil.
 
     int readrestart;                                 // 1 to read in data from a restart file.
-    MPI_File pFileRead;                                
+    MPI_File pFileRead;
 
     int printrestart;                                // 1 to write data to a restart file.
     MPI_File pFileWrite;
@@ -164,4 +164,4 @@ public:
 }
 #endif
 #endif
-    
+

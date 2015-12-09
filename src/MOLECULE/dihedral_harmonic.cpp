@@ -15,9 +15,9 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
 #include "dihedral_harmonic.h"
 #include "atom.h"
 #include "comm.h"
@@ -136,8 +136,8 @@ void DihedralHarmonic::compute(int eflag, int vflag)
       MPI_Comm_rank(world,&me);
       if (screen) {
         char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " " 
-                TAGINT_FORMAT " " TAGINT_FORMAT " " 
+        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
+                TAGINT_FORMAT " " TAGINT_FORMAT " "
                 TAGINT_FORMAT " " TAGINT_FORMAT,
                 me,update->ntimestep,
                 atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);

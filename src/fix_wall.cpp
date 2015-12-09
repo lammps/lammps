@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_wall.h"
 #include "atom.h"
 #include "input.h"
@@ -319,7 +319,7 @@ void FixWall::post_force(int vflag)
       }
       if (sstyle[m] == VARIABLE) {
         sigma[m] = input->variable->compute_equal(sindex[m]);
-        if (sigma[m] < 0.0) 
+        if (sigma[m] < 0.0)
           error->all(FLERR,"Variable evaluation in fix wall gave bad value");
       }
       precompute(m);

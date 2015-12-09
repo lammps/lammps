@@ -80,6 +80,15 @@ template< long sN0 = -1
         >
 struct ViewDimension {
 
+  enum { arg_N0 = sN0 };
+  enum { arg_N1 = sN1 };
+  enum { arg_N2 = sN2 };
+  enum { arg_N3 = sN3 };
+  enum { arg_N4 = sN4 };
+  enum { arg_N5 = sN5 };
+  enum { arg_N6 = sN6 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN0 < 0 ? 0 :
                 ( sN1 < 0 ? 1 :
                 ( sN2 < 0 ? 2 :
@@ -118,6 +127,15 @@ template< long sN1
         >
 struct ViewDimension< 0, sN1, sN2, sN3, sN4, sN5, sN6, sN7 > {
 
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = sN1 };
+  enum { arg_N2 = sN2 };
+  enum { arg_N3 = sN3 };
+  enum { arg_N4 = sN4 };
+  enum { arg_N5 = sN5 };
+  enum { arg_N6 = sN6 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN1 < 0 ? 1 :
                 ( sN2 < 0 ? 2 :
                 ( sN3 < 0 ? 3 :
@@ -155,6 +173,15 @@ template< long sN2
         >
 struct ViewDimension< 0, 0, sN2, sN3, sN4, sN5, sN6, sN7 > {
 
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = 0 };
+  enum { arg_N2 = sN2 };
+  enum { arg_N3 = sN3 };
+  enum { arg_N4 = sN4 };
+  enum { arg_N5 = sN5 };
+  enum { arg_N6 = sN6 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN2 < 0 ? 2 :
                 ( sN3 < 0 ? 3 :
                 ( sN4 < 0 ? 4 :
@@ -190,6 +217,15 @@ template< long sN3
         >
 struct ViewDimension< 0, 0, 0, sN3, sN4, sN5, sN6, sN7 > {
 
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = 0 };
+  enum { arg_N2 = 0 };
+  enum { arg_N3 = sN3 };
+  enum { arg_N4 = sN4 };
+  enum { arg_N5 = sN5 };
+  enum { arg_N6 = sN6 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN3 < 0 ? 3 :
                 ( sN4 < 0 ? 4 :
                 ( sN5 < 0 ? 5 :
@@ -223,6 +259,15 @@ template< long sN4
         >
 struct ViewDimension< 0, 0, 0, 0, sN4, sN5, sN6, sN7 > {
 
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = 0 };
+  enum { arg_N2 = 0 };
+  enum { arg_N3 = 0 };
+  enum { arg_N4 = sN4 };
+  enum { arg_N5 = sN5 };
+  enum { arg_N6 = sN6 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN4 < 0 ? 4 :
                 ( sN5 < 0 ? 5 :
                 ( sN6 < 0 ? 6 :
@@ -254,6 +299,15 @@ template< long sN5
         >
 struct ViewDimension< 0, 0, 0, 0, 0, sN5, sN6, sN7 > {
 
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = 0 };
+  enum { arg_N2 = 0 };
+  enum { arg_N3 = 0 };
+  enum { arg_N4 = 0 };
+  enum { arg_N5 = sN5 };
+  enum { arg_N6 = sN6 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN5 < 0 ? 5 :
                 ( sN6 < 0 ? 6 :
                 ( sN7 < 0 ? 7 : 8 ))) };
@@ -283,6 +337,15 @@ template< long sN6
         >
 struct ViewDimension< 0, 0, 0, 0, 0, 0, sN6, sN7 > {
 
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = 0 };
+  enum { arg_N2 = 0 };
+  enum { arg_N3 = 0 };
+  enum { arg_N4 = 0 };
+  enum { arg_N5 = 0 };
+  enum { arg_N6 = sN6 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN6 < 0 ? 6 :
                 ( sN7 < 0 ? 7 : 8 )) };
   enum { rank_dynamic = 6 };
@@ -309,6 +372,15 @@ struct ViewDimension< 0, 0, 0, 0, 0, 0, sN6, sN7 > {
 template< long sN7 >
 struct ViewDimension< 0, 0, 0, 0, 0, 0, 0, sN7 > {
 
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = 0 };
+  enum { arg_N2 = 0 };
+  enum { arg_N3 = 0 };
+  enum { arg_N4 = 0 };
+  enum { arg_N5 = 0 };
+  enum { arg_N6 = 0 };
+  enum { arg_N7 = sN7 };
+
   enum { rank = ( sN7 < 0 ? 7 : 8 ) };
   enum { rank_dynamic = 7 };
 
@@ -333,6 +405,15 @@ struct ViewDimension< 0, 0, 0, 0, 0, 0, 0, sN7 > {
 
 template<>
 struct ViewDimension< 0, 0, 0, 0, 0, 0, 0, 0 > {
+
+  enum { arg_N0 = 0 };
+  enum { arg_N1 = 0 };
+  enum { arg_N2 = 0 };
+  enum { arg_N3 = 0 };
+  enum { arg_N4 = 0 };
+  enum { arg_N5 = 0 };
+  enum { arg_N6 = 0 };
+  enum { arg_N7 = 0 };
 
   enum { rank = 8 };
   enum { rank_dynamic = 8 };
@@ -381,94 +462,6 @@ struct ViewDimensionAssignable< ViewDimension<dN0,dN1,dN2,dN3,dN4,dN5,dN6,dN7>
                  ( 7 < dst::rank_dynamic || dN7 == sN7 ) };
 };
 
-//----------------------------------------------------------------------------
-
-template< class Dim , unsigned N , unsigned R = Dim::rank_dynamic >
-struct ViewDimensionInsert ;
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 0 >
-{
-  typedef ViewDimension< N
-                       , 0 < Dim::rank ? Dim::N0 : -1 
-                       , 1 < Dim::rank ? Dim::N1 : -1 
-                       , 2 < Dim::rank ? Dim::N2 : -1 
-                       , 3 < Dim::rank ? Dim::N3 : -1 
-                       , 4 < Dim::rank ? Dim::N4 : -1 
-                       , 5 < Dim::rank ? Dim::N5 : -1 
-                       , 6 < Dim::rank ? Dim::N6 : -1
-                       >  type ;
-};
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 1 >
-{
-  typedef ViewDimension< 0 , N
-                       , 1 < Dim::rank ? Dim::N1 : -1 
-                       , 2 < Dim::rank ? Dim::N2 : -1 
-                       , 3 < Dim::rank ? Dim::N3 : -1 
-                       , 4 < Dim::rank ? Dim::N4 : -1 
-                       , 5 < Dim::rank ? Dim::N5 : -1 
-                       , 6 < Dim::rank ? Dim::N6 : -1
-                       >  type ;
-};
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 2 >
-{
-  typedef ViewDimension< 0 , 0 , N
-                       , 2 < Dim::rank ? Dim::N2 : -1 
-                       , 3 < Dim::rank ? Dim::N3 : -1 
-                       , 4 < Dim::rank ? Dim::N4 : -1 
-                       , 5 < Dim::rank ? Dim::N5 : -1 
-                       , 6 < Dim::rank ? Dim::N6 : -1
-                       >  type ;
-};
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 3 >
-{
-  typedef ViewDimension< 0 , 0 , 0 , N
-                       , 3 < Dim::rank ? Dim::N3 : -1 
-                       , 4 < Dim::rank ? Dim::N4 : -1 
-                       , 5 < Dim::rank ? Dim::N5 : -1 
-                       , 6 < Dim::rank ? Dim::N6 : -1
-                       >  type ;
-};
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 4 >
-{
-  typedef ViewDimension< 0 , 0 , 0 , 0 , N
-                       , 4 < Dim::rank ? Dim::N4 : -1 
-                       , 5 < Dim::rank ? Dim::N5 : -1 
-                       , 6 < Dim::rank ? Dim::N6 : -1
-                       >  type ;
-};
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 5 >
-{
-  typedef ViewDimension< 0 , 0 , 0 , 0 , 0 , N
-                       , 5 < Dim::rank ? Dim::N5 : -1 
-                       , 6 < Dim::rank ? Dim::N6 : -1
-                       >  type ;
-};
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 6 >
-{
-  typedef ViewDimension< 0 , 0 , 0 , 0 , 0 , 0 , N
-                       , 6 < Dim::rank ? Dim::N6 : -1
-                       >  type ;
-};
-
-template< class Dim , unsigned N >
-struct ViewDimensionInsert< Dim , N , 7 >
-{
-  typedef ViewDimension< 0 , 0 , 0 , 0 , 0 , 0 , 0 , N >  type ;
-};
-
 }}} // namespace Kokkos::Experimental::Impl
 
 //----------------------------------------------------------------------------
@@ -478,114 +471,230 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-/** \brief  Analyze the array dimensions defined by a Kokkos::View data type.
+/** \brief  Given a value type and dimension generate the View data type */
+template< class T , class Dim /* ViewDimension */ >
+struct ViewDataType {
+  enum { R  = Dim::rank };
+  enum { RD = Dim::rank_dynamic };
+
+  // Unused static dimensions are set to 1 (instead of 0 or -1L) to avoid compile errors
+  // in the 'false' clauses of the std::conditional.
+
+  enum { N0 = 0 < Dim::arg_N0 ? Dim::arg_N0 : 1 };
+  enum { N1 = 0 < Dim::arg_N1 ? Dim::arg_N1 : 1 };
+  enum { N2 = 0 < Dim::arg_N2 ? Dim::arg_N2 : 1 };
+  enum { N3 = 0 < Dim::arg_N3 ? Dim::arg_N3 : 1 };
+  enum { N4 = 0 < Dim::arg_N4 ? Dim::arg_N4 : 1 };
+  enum { N5 = 0 < Dim::arg_N5 ? Dim::arg_N5 : 1 };
+  enum { N6 = 0 < Dim::arg_N6 ? Dim::arg_N6 : 1 };
+  enum { N7 = 0 < Dim::arg_N7 ? Dim::arg_N7 : 1 };
+
+  typedef typename std::conditional< R == 0 , T ,
+          typename std::conditional< R == 1 ,
+            typename std::conditional< RD == 0 , T[N0] , T * >::type ,
+
+          typename std::conditional< R == 2 ,
+            typename std::conditional< RD == 0 , T[N0][N1] ,
+            typename std::conditional< RD == 1 , T*   [N1] ,
+                                                 T**
+            >::type >::type ,
+
+          typename std::conditional< R == 3 ,
+            typename std::conditional< RD == 0 , T[N0][N1][N2] ,
+            typename std::conditional< RD == 1 , T*   [N1][N2] ,
+            typename std::conditional< RD == 2 , T**      [N2] ,
+                                                 T***
+            >::type >::type >::type ,
+
+          typename std::conditional< R == 4 ,
+            typename std::conditional< RD == 0 , T[N0][N1][N2][N3] ,
+            typename std::conditional< RD == 1 , T*   [N1][N2][N3] ,
+            typename std::conditional< RD == 2 , T**      [N2][N3] ,
+            typename std::conditional< RD == 3 , T***         [N3] ,
+                                                 T****
+            >::type >::type >::type >::type ,
+
+          typename std::conditional< R == 5 ,
+            typename std::conditional< RD == 0 , T[N0][N1][N2][N3][N4] ,
+            typename std::conditional< RD == 1 , T*   [N1][N2][N3][N4] ,
+            typename std::conditional< RD == 2 , T**      [N2][N3][N4] ,
+            typename std::conditional< RD == 3 , T***         [N3][N4] ,
+            typename std::conditional< RD == 4 , T****            [N4] ,
+                                                 T*****
+            >::type >::type >::type >::type >::type ,
+
+          typename std::conditional< R == 6 ,
+            typename std::conditional< RD == 0 , T[N0][N1][N2][N3][N4][N5] ,
+            typename std::conditional< RD == 1 , T*   [N1][N2][N3][N4][N5] ,
+            typename std::conditional< RD == 2 , T**      [N2][N3][N4][N5] ,
+            typename std::conditional< RD == 3 , T***         [N3][N4][N5] ,
+            typename std::conditional< RD == 4 , T****            [N4][N5] ,
+            typename std::conditional< RD == 5 , T*****               [N5] ,
+                                                 T******
+            >::type >::type >::type >::type >::type >::type ,
+
+          typename std::conditional< R == 7 ,
+            typename std::conditional< RD == 0 , T[N0][N1][N2][N3][N4][N5][N6] ,
+            typename std::conditional< RD == 1 , T*   [N1][N2][N3][N4][N5][N6] ,
+            typename std::conditional< RD == 2 , T**      [N2][N3][N4][N5][N6] ,
+            typename std::conditional< RD == 3 , T***         [N3][N4][N5][N6] ,
+            typename std::conditional< RD == 4 , T****            [N4][N5][N6] ,
+            typename std::conditional< RD == 5 , T*****               [N5][N6] ,
+            typename std::conditional< RD == 6 , T******                  [N6] ,
+                                                 T*******
+            >::type >::type >::type >::type >::type >::type >::type ,
+
+          typename std::conditional< R == 8 ,
+            typename std::conditional< RD == 0 , T[N0][N1][N2][N3][N4][N5][N6][N7] ,
+            typename std::conditional< RD == 1 , T*   [N1][N2][N3][N4][N5][N6][N7] ,
+            typename std::conditional< RD == 2 , T**      [N2][N3][N4][N5][N6][N7] ,
+            typename std::conditional< RD == 3 , T***         [N3][N4][N5][N6][N7] ,
+            typename std::conditional< RD == 4 , T****            [N4][N5][N6][N7] ,
+            typename std::conditional< RD == 5 , T*****               [N5][N6][N7] ,
+            typename std::conditional< RD == 6 , T******                  [N6][N7] ,
+            typename std::conditional< RD == 7 , T*******                     [N7] ,
+                                                 T******** 
+            >::type >::type >::type >::type >::type >::type >::type >::type ,
+
+          void >::type >::type >::type >::type >::type >::type >::type >::type >::type
+    type ;
+};
+
+/**\brief  Analysis of View data type.
  *
- *  It is presumed that the data type can be mapped down to a multidimensional
- *  array of an intrinsic scalar numerical type (double, float, int, ... ).
- *  The 'value_type' of an array may be an embedded aggregate type such
- *  as a fixed length array 'Array<T,N>'.
- *  In this case the 'array_intrinsic_type' represents the
- *  underlying array of intrinsic scalar numerical type.
+ *  Data type conforms to one of the following patterns :
+ *    {const} value_type [][#][#][#]
+ *    {const} value_type ***[#][#][#]
+ *  Where the sum of counts of '*' and '[#]' is at most ten.
  *
- *  The embedded aggregate type must have an AnalyzeShape specialization
- *  to map it down to a shape and intrinsic scalar numerical type.
+ *  Provide typedef for the ViewDimension<...> and value_type.
  */
 template< class T >
+struct ViewArrayAnalysis
+{
+private:
+  // std::rank<T>, std::extent<T,i>, and std::remove_all_extents<T>
+  // consider "const value_type***" to be the type.
+
+  // Strip away pointers and count them
+  typedef typename std::remove_all_extents< T >::type  t_0 ; // brackets removed
+  typedef typename std::remove_pointer< t_0   >::type  t_1 ;
+  typedef typename std::remove_pointer< t_1   >::type  t_2 ;
+  typedef typename std::remove_pointer< t_2   >::type  t_3 ;
+  typedef typename std::remove_pointer< t_3   >::type  t_4 ;
+  typedef typename std::remove_pointer< t_4   >::type  t_5 ;
+  typedef typename std::remove_pointer< t_5   >::type  t_6 ;
+  typedef typename std::remove_pointer< t_6   >::type  t_7 ;
+  typedef typename std::remove_pointer< t_7   >::type  t_8 ;
+  typedef typename std::remove_pointer< t_8   >::type  t_9 ;
+  typedef typename std::remove_pointer< t_9   >::type  t_10 ;
+
+  enum { rank_pointer =
+    ( ! std::is_pointer< t_0 >::value ? 0 :
+    ( ! std::is_pointer< t_1 >::value ? 1 :
+    ( ! std::is_pointer< t_2 >::value ? 2 :
+    ( ! std::is_pointer< t_3 >::value ? 3 :
+    ( ! std::is_pointer< t_4 >::value ? 4 :
+    ( ! std::is_pointer< t_5 >::value ? 5 :
+    ( ! std::is_pointer< t_6 >::value ? 6 :
+    ( ! std::is_pointer< t_7 >::value ? 7 :
+    ( ! std::is_pointer< t_8 >::value ? 8 :
+    ( ! std::is_pointer< t_9 >::value ? 9 :
+    ( ! std::is_pointer< t_10 >::value ? 10 : 0x7fffffff ))))))))))) };
+
+  // The pointer-stripped type t_10 may have been an array typedef of the form 'type[#][#]...'
+  // Append those dimensions.
+
+  enum { rank_bracket        = std::rank< T >::value };
+  enum { rank_bracket_nested = std::rank< t_10 >::value };
+  enum { rank_base           = rank_pointer + rank_bracket };
+  enum { rank                = rank_pointer + rank_bracket + rank_bracket_nested };
+
+  static_assert( rank <= 10 , "Maximum ten dimensional array" );
+
+  enum { extent_0 = 0 < rank_base ? std::extent< T , rank_pointer <= 0 ? 0 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 0 ? 0 - rank_base : 10 >::value };
+
+  enum { extent_1 = 1 < rank_base ? std::extent< T , rank_pointer <= 1 ? 1 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 1 ? 1 - rank_base : 10 >::value };
+
+  enum { extent_2 = 2 < rank_base ? std::extent< T , rank_pointer <= 2 ? 2 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 2 ? 2 - rank_base : 10 >::value };
+
+  enum { extent_3 = 3 < rank_base ? std::extent< T , rank_pointer <= 3 ? 3 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 3 ? 3 - rank_base : 10 >::value };
+
+  enum { extent_4 = 4 < rank_base ? std::extent< T , rank_pointer <= 4 ? 4 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 4 ? 4 - rank_base : 10 >::value };
+
+  enum { extent_5 = 5 < rank_base ? std::extent< T , rank_pointer <= 5 ? 5 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 5 ? 5 - rank_base : 10 >::value };
+
+  enum { extent_6 = 6 < rank_base ? std::extent< T , rank_pointer <= 6 ? 6 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 6 ? 6 - rank_base : 10 >::value };
+
+  enum { extent_7 = 7 < rank_base ? std::extent< T , rank_pointer <= 7 ? 7 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 7 ? 7 - rank_base : 10 >::value };
+
+  enum { extent_8 = 8 < rank_base ? std::extent< T , rank_pointer <= 8 ? 8 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 8 ? 8 - rank_base : 10 >::value };
+
+  enum { extent_9 = 9 < rank_base ? std::extent< T , rank_pointer <= 9 ? 9 - rank_pointer : 10 >::value
+                                  : std::extent< t_10 , rank_base <= 9 ? 9 - rank_base : 10 >::value };
+
+  typedef typename std::remove_all_extents< t_10 >::type base_type ;
+
+  enum { rank_dynamic = rank_pointer ? rank_pointer : ( ( rank_bracket && extent_0 == 0 ) ? 1 : 0 ) };
+
+public:
+
+  typedef ViewDimension< ( rank <= 0 ? -1L : extent_0 )
+                       , ( rank <= 1 ? -1L : extent_1 )
+                       , ( rank <= 2 ? -1L : extent_2 )
+                       , ( rank <= 3 ? -1L : extent_3 )
+                       , ( rank <= 4 ? -1L : extent_4 )
+                       , ( rank <= 5 ? -1L : extent_5 )
+                       , ( rank <= 6 ? -1L : extent_6 )
+                       , ( rank <= 7 ? -1L : extent_7 )
+                       > dimension ;
+
+  typedef base_type                                     value_type ;
+  typedef typename std::add_const<    base_type >::type const_value_type ;
+  typedef typename std::remove_const< base_type >::type non_const_value_type ;
+
+  static_assert( unsigned(dimension::rank) == unsigned(rank) , "" );
+  static_assert( unsigned(dimension::rank_dynamic) == unsigned(rank_dynamic) , "" );
+};
+
+template< class DataType , class ValueType , class ArrayLayout >
 struct ViewDataAnalysis
 {
-  typedef void  specialize ; // No specialization
-
-  typedef ViewDimension<>  dimension ;
-
-  typedef T  type ;
-  typedef T  value_type ;
-  typedef T  array_scalar_type ;
-
-  typedef typename std::add_const< T >::type  const_type ;
-  typedef typename std::add_const< T >::type  const_value_type ;
-  typedef typename std::add_const< T >::type  const_array_scalar_type ;
-
-  typedef typename std::remove_const< T >::type  non_const_type ;
-  typedef typename std::remove_const< T >::type  non_const_value_type ;
-  typedef typename std::remove_const< T >::type  non_const_array_scalar_type ;
-};
-
-template< class T >
-struct ViewDataAnalysis< T * >
-{
 private:
 
-  typedef ViewDataAnalysis< T >  nested ;
+  typedef ViewArrayAnalysis< DataType > array_analysis ;
+
+  // ValueType is opportunity for partial specialization.
+  // Must match array analysis when this default template is used.
+  static_assert( std::is_same< ValueType , typename array_analysis::non_const_value_type >::value , "" );
 
 public:
 
-  typedef typename nested::specialize  specialize ;
+  typedef void specialize ; // No specialization
 
-  typedef typename ViewDimensionInsert< typename nested::dimension , 0 >::type  dimension ;
+  typedef typename array_analysis::dimension             dimension ;
+  typedef typename array_analysis::value_type            value_type ;
+  typedef typename array_analysis::const_value_type      const_value_type ;
+  typedef typename array_analysis::non_const_value_type  non_const_value_type ;
 
-  typedef typename nested::type *               type ;
-  typedef typename nested::value_type           value_type ;
-  typedef typename nested::array_scalar_type *  array_scalar_type ;
+  // Generate analogous multidimensional array specification type.
+  typedef typename ViewDataType<           value_type , dimension >::type  type ;
+  typedef typename ViewDataType<     const_value_type , dimension >::type  const_type ;
+  typedef typename ViewDataType< non_const_value_type , dimension >::type  non_const_type ;
 
-  typedef typename nested::const_type *               const_type ;
-  typedef typename nested::const_value_type           const_value_type ;
-  typedef typename nested::const_array_scalar_type *  const_array_scalar_type ;
-
-  typedef typename nested::non_const_type *               non_const_type ;
-  typedef typename nested::non_const_value_type           non_const_value_type ;
-  typedef typename nested::non_const_array_scalar_type *  non_const_array_scalar_type ;
-};
-
-template< class T >
-struct ViewDataAnalysis< T [] >
-{
-private:
-
-  typedef ViewDataAnalysis< T >  nested ;
-
-public:
-
-  typedef typename nested::specialize  specialize ;
-
-  typedef typename ViewDimensionInsert< typename nested::dimension , 0 >::type  dimension ;
-
-  typedef typename nested::type               type [] ;
-  typedef typename nested::value_type         value_type ;
-  typedef typename nested::array_scalar_type  array_scalar_type [] ;
-
-  typedef typename nested::const_type               const_type [] ;
-  typedef typename nested::const_value_type         const_value_type ;
-  typedef typename nested::const_array_scalar_type  const_array_scalar_type [] ;
-
-  typedef typename nested::non_const_type               non_const_type [] ;
-  typedef typename nested::non_const_value_type         non_const_value_type ;
-  typedef typename nested::non_const_array_scalar_type  non_const_array_scalar_type [] ;
-};
-
-template< class T , unsigned N >
-struct ViewDataAnalysis< T[N] >
-{
-private:
-
-  typedef ViewDataAnalysis< T >  nested ;
-
-public:
-
-  typedef typename nested::specialize  specialize ;
-
-  typedef typename ViewDimensionInsert< typename nested::dimension , N >::type  dimension ;
-
-  typedef typename nested::type               type [N] ;
-  typedef typename nested::value_type         value_type ;
-  typedef typename nested::array_scalar_type  array_scalar_type [N] ;
-
-  typedef typename nested::const_type               const_type [N] ;
-  typedef typename nested::const_value_type         const_value_type ;
-  typedef typename nested::const_array_scalar_type  const_array_scalar_type [N] ;
-
-  typedef typename nested::non_const_type               non_const_type [N] ;
-  typedef typename nested::non_const_value_type         non_const_value_type ;
-  typedef typename nested::non_const_array_scalar_type  non_const_array_scalar_type [N] ;
+  // Generate "flattened" multidimensional array specification type.
+  typedef type            array_scalar_type ;
+  typedef const_type      const_array_scalar_type ;
+  typedef non_const_type  non_const_array_scalar_type ;
 };
 
 }}} // namespace Kokkos::Experimental::Impl
@@ -598,7 +707,9 @@ namespace Experimental {
 namespace Impl {
 
 template < class Dimension , class Layout , typename Enable = void >
-struct ViewOffset ;
+struct ViewOffset {
+  using is_mapping_plugin = std::false_type ;
+};
 
 //----------------------------------------------------------------------------
 // LayoutLeft AND ( 1 >= rank OR 0 == rank_dynamic ) : no padding / striding
@@ -609,6 +720,9 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
                                              0 == Dimension::rank_dynamic
                                            )>::type >
 {
+  using is_mapping_plugin = std::true_type ;
+  using is_regular        = std::true_type ;
+
   typedef size_t             size_type ;
   typedef Dimension          dimension_type ;
   typedef Kokkos::LayoutLeft array_layout ;
@@ -830,6 +944,9 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
                                              0 < Dimension::rank_dynamic
                                            )>::type >
 {
+  using is_mapping_plugin = std::true_type ;
+  using is_regular        = std::true_type ;
+
   typedef size_t             size_type ;
   typedef Dimension          dimension_type ;
   typedef Kokkos::LayoutLeft array_layout ;
@@ -1076,6 +1193,9 @@ struct ViewOffset< Dimension , Kokkos::LayoutRight
                                              0 == Dimension::rank_dynamic
                                            )>::type >
 {
+  using is_mapping_plugin = std::true_type ;
+  using is_regular        = std::true_type ;
+
   typedef size_t              size_type ;
   typedef Dimension           dimension_type ;
   typedef Kokkos::LayoutRight array_layout ;
@@ -1298,6 +1418,9 @@ struct ViewOffset< Dimension , Kokkos::LayoutRight
                                              0 < Dimension::rank_dynamic
                                            )>::type >
 {
+  using is_mapping_plugin = std::true_type ;
+  using is_regular        = std::true_type ;
+
   typedef size_t               size_type ;
   typedef Dimension            dimension_type ;
   typedef Kokkos::LayoutRight  array_layout ;
@@ -1694,6 +1817,9 @@ struct ViewOffset< Dimension , Kokkos::LayoutStride
 private:
   typedef ViewStride< Dimension::rank >  stride_type ;
 public:
+
+  using is_mapping_plugin = std::true_type ;
+  using is_regular        = std::true_type ;
 
   typedef size_t                size_type ;
   typedef Dimension             dimension_type ;
@@ -2137,6 +2263,8 @@ struct ViewDataHandle< Traits ,
   typename std::enable_if<( std::is_same< typename Traits::non_const_value_type
                                         , typename Traits::value_type >::value
                             &&
+                            std::is_same< typename Traits::specialize , void >::value
+                            &&
                             Traits::memory_traits::Atomic
                           )>::type >
 {
@@ -2180,11 +2308,9 @@ class ViewMapping< Traits , void ,
   typename std::enable_if<(
     std::is_same< typename Traits::specialize , void >::value
     &&
-    (
-      std::is_same< typename Traits::array_layout , Kokkos::LayoutLeft >::value ||
-      std::is_same< typename Traits::array_layout , Kokkos::LayoutRight >::value ||
-      std::is_same< typename Traits::array_layout , Kokkos::LayoutStride >::value
-    )
+    ViewOffset< typename Traits::dimension
+              , typename Traits::array_layout
+              , void >::is_mapping_plugin::value
   )>::type >
 {
 private:
@@ -2203,6 +2329,12 @@ private:
   handle_type  m_handle ;
   offset_type  m_offset ;
 
+  KOKKOS_INLINE_FUNCTION
+  ViewMapping( const handle_type & arg_handle , const offset_type & arg_offset )
+    : m_handle( arg_handle )
+    , m_offset( arg_offset )
+    {}
+
 public:
 
   //----------------------------------------
@@ -2219,6 +2351,9 @@ public:
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_6() const { return m_offset.dimension_6(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_7() const { return m_offset.dimension_7(); }
 
+  // Is a regular layout with uniform striding for each index.
+  using is_regular = typename offset_type::is_regular ;
+
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_0() const { return m_offset.stride_0(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_1() const { return m_offset.stride_1(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_2() const { return m_offset.stride_2(); }
@@ -2227,12 +2362,6 @@ public:
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_5() const { return m_offset.stride_5(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_6() const { return m_offset.stride_6(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_7() const { return m_offset.stride_7(); }
-
-  /*
-  KOKKOS_INLINE_FUNCTION
-  Kokkos::Array<size_t,Rank> dimension() const
-    { return Kokkos::Experimental::Impl::dimension( m_offset.m_dim ); }
-  */
 
   //----------------------------------------
   // Range span
@@ -2423,6 +2552,7 @@ public:
       typedef Kokkos::RangePolicy< ExecSpace , FunctorTagConstructScalar , size_t > Policy ;
 
       (void) Kokkos::Impl::ParallelFor< ViewMapping , Policy >( *this , Policy( 0 , m_offset.span() ) );
+      ExecSpace::fence();
     }
 
   template< class ExecSpace >
@@ -2433,6 +2563,7 @@ public:
       typedef Kokkos::RangePolicy< ExecSpace , FunctorTagConstructNonScalar , size_t > Policy ;
 
       (void) Kokkos::Impl::ParallelFor< ViewMapping , Policy >( *this , Policy( 0 , m_offset.span() ) );
+      ExecSpace::fence();
     }
 
   template< class ExecSpace >
@@ -2448,6 +2579,7 @@ public:
       typedef Kokkos::RangePolicy< ExecSpace , FunctorTagDestructNonScalar , size_t > Policy ;
 
       (void) Kokkos::Impl::ParallelFor< ViewMapping , Policy >( *this , Policy( 0 , m_offset.span() ) );
+      ExecSpace::fence();
     }
 };
 

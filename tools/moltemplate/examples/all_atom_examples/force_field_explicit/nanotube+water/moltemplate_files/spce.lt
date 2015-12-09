@@ -27,10 +27,10 @@ SPCE {
   }
 
   write_once("In Settings") {
-    bond_coeff   @bond:OH         harmonic           1000.0  1.0 
-    angle_coeff  @angle:HOH       harmonic           1000.0  109.47
-    pair_coeff   @atom:O @atom:O  lj/cut/coul/long   0.1553  3.166 
-    pair_coeff   @atom:H @atom:H  lj/cut/coul/long   0.0     2.058
+    bond_coeff   @bond:OH     harmonic                 600.0   1.0 
+    angle_coeff  @angle:HOH   harmonic                 75.0    109.47
+    pair_coeff   @atom:O @atom:O  lj/cut/coul/long     0.1553  3.166 
+    pair_coeff   @atom:H @atom:H  lj/cut/coul/long     0.0     2.058
     group spce type  @atom:O  @atom:H
     fix fShakeSPCE spce shake 0.0001 10 100 b @bond:OH a @angle:HOH
     # (Remember to "unfix" fShakeSPCE during minimization.)
@@ -41,12 +41,11 @@ SPCE {
     units        real
     atom_style   full
     # (Hybrid force fields were not necessary but are used for portability.)
-    pair_style   hybrid lj/cut/coul/long 10.0
+    pair_style   hybrid lj/cut/coul/long 9.0
     bond_style   hybrid harmonic
     angle_style  hybrid harmonic
     kspace_style pppm 0.0001
-    pair_modify  mix arithmetic
-    pair_modify  shift yes
+    #pair_modify  mix arithmetic  # LEAVE THIS UNSPECIFIED!
   }
 
 } # end of definition of "SPCE" water molecule type

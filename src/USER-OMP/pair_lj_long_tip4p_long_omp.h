@@ -62,7 +62,7 @@ class PairLJLongTIP4PLongOMP : public PairLJLongTIP4PLong, public ThrOMP {
   void compute_newsite_thr(const dbl3_t &, const dbl3_t &,
                            const dbl3_t &, dbl3_t &) const;
 
-  
+
 
 };
 

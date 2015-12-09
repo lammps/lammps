@@ -22,7 +22,8 @@ PairStyle(eam/kk/host,PairEAMKokkos<LMPHostType>)
 
 #ifndef LMP_PAIR_EAM_KOKKOS_H
 #define LMP_PAIR_EAM_KOKKOS_H
-#include "stdio.h"
+
+#include <stdio.h>
 #include "pair_kokkos.h"
 #include "pair_eam.h"
 #include "neigh_list_kokkos.h"
@@ -67,7 +68,7 @@ class PairEAMKokkos : public PairEAM {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMInitialize, const int&) const;
-  
+
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PAIR>, const int&) const;
@@ -102,7 +103,7 @@ class PairEAMKokkos : public PairEAM {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
-  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&, 
+  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
                                int, int *);
   virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
@@ -135,7 +136,6 @@ class PairEAMKokkos : public PairEAM {
   DAT::t_int_2d_randomread d_type2rhor;
   DAT::t_int_2d_randomread d_type2z2r;
 
-
   typedef Kokkos::DualView<F_FLOAT4**,Kokkos::LayoutLeft,DeviceType> tdual_ffloat4;
   typedef typename tdual_ffloat4::t_dev_const_randomread t_ffloat4_randomread;
   typedef typename tdual_ffloat4::t_host t_host_ffloat4;
@@ -158,7 +158,7 @@ class PairEAMKokkos : public PairEAM {
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
-  
+
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 

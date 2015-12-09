@@ -15,10 +15,10 @@
    Contributing author: Mike Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_sw_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -37,14 +37,14 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors, 
+int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
                 const double cell_size, int &gpu_mode, FILE *screen,
                 int* host_map, const int nelements, int*** host_elem2param, const int nparams,
                 const double* sw_epsilon, const double* sw_sigma,
                 const double* sw_lambda, const double* sw_gamma,
                 const double* sw_costheta, const double* sw_biga,
                 const double* sw_bigb, const double* sw_powerp,
-                const double* sw_powerq, const double* sw_cut, 
+                const double* sw_powerq, const double* sw_cut,
                 const double* sw_cutsq);
 void sw_gpu_clear();
 int ** sw_gpu_compute_n(const int ago, const int inum,
@@ -116,8 +116,8 @@ void PairSWGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
 
     sw_gpu_compute(neighbor->ago, atom->nlocal, nall, inum+list->gnum,
-                   atom->x, atom->type, ilist, numneigh, firstneigh, eflag, 
-                   vflag, eflag_atom, vflag_atom, host_start, cpu_time, 
+                   atom->x, atom->type, ilist, numneigh, firstneigh, eflag,
+                   vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                    success);
   }
   if (!success)
@@ -180,10 +180,10 @@ void PairSWGPU::init_style()
     costheta[i] = params[i].costheta;
   }
 
-  int success = sw_gpu_init(atom->ntypes+1, atom->nlocal, atom->nlocal+atom->nghost, 300, 
-                            cell_size, gpu_mode, screen, map, nelements, 
-                            elem2param, nparams, epsilon, 
-                            sigma, lambda, gamma, costheta, biga, bigb, 
+  int success = sw_gpu_init(atom->ntypes+1, atom->nlocal, atom->nlocal+atom->nghost, 300,
+                            cell_size, gpu_mode, screen, map, nelements,
+                            elem2param, nparams, epsilon,
+                            sigma, lambda, gamma, costheta, biga, bigb,
                             powerp, powerq, _cut, _cutsq);
 
   memory->destroy(epsilon);

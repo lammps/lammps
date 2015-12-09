@@ -24,31 +24,6 @@ colvar_grid_count::colvar_grid_count(std::vector<colvar *>  &colvars,
   : colvar_grid<size_t>(colvars, def_count, 1)
 {}
 
-std::istream & colvar_grid_count::read_restart(std::istream &is)
-{
-  size_t const start_pos = is.tellg();
-  std::string key, conf;
-  if ((is >> key) && (key == std::string("grid_parameters"))) {
-    is.seekg(start_pos, std::ios::beg);
-    is >> colvarparse::read_block("grid_parameters", conf);
-    parse_params(conf);
-  } else {
-    cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
-    is.seekg(start_pos, std::ios::beg);
-  }
-  read_raw(is);
-  return is;
-}
-
-std::ostream & colvar_grid_count::write_restart(std::ostream &os)
-{
-  write_params(os);
-  write_raw(os);
-  return os;
-}
-
-
-
 colvar_grid_scalar::colvar_grid_scalar()
   : colvar_grid<cvm::real>(), samples(NULL), grad(NULL)
 {}
@@ -78,30 +53,6 @@ colvar_grid_scalar::~colvar_grid_scalar()
     grad = NULL;
   }
 }
-
-std::istream & colvar_grid_scalar::read_restart(std::istream &is)
-{
-  size_t const start_pos = is.tellg();
-  std::string key, conf;
-  if ((is >> key) && (key == std::string("grid_parameters"))) {
-    is.seekg(start_pos, std::ios::beg);
-    is >> colvarparse::read_block("grid_parameters", conf);
-    parse_params(conf);
-  } else {
-    cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
-    is.seekg(start_pos, std::ios::beg);
-  }
-  read_raw(is);
-  return is;
-}
-
-std::ostream & colvar_grid_scalar::write_restart(std::ostream &os)
-{
-  write_params(os);
-  write_raw(os);
-  return os;
-}
-
 
 cvm::real colvar_grid_scalar::maximum_value() const
 {
@@ -162,29 +113,6 @@ colvar_grid_gradient::colvar_grid_gradient(std::vector<int> const &nx_i)
 colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars)
   : colvar_grid<cvm::real>(colvars, 0.0, colvars.size()), samples(NULL)
 {}
-
-std::istream & colvar_grid_gradient::read_restart(std::istream &is)
-{
-  size_t const start_pos = is.tellg();
-  std::string key, conf;
-  if ((is >> key) && (key == std::string("grid_parameters"))) {
-    is.seekg(start_pos, std::ios::beg);
-    is >> colvarparse::read_block("grid_parameters", conf);
-    parse_params(conf);
-  } else {
-    cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
-    is.seekg(start_pos, std::ios::beg);
-  }
-  read_raw(is);
-  return is;
-}
-
-std::ostream & colvar_grid_gradient::write_restart(std::ostream &os)
-{
-  write_params(os);
-  write_raw(os);
-  return os;
-}
 
 void colvar_grid_gradient::write_1D_integral(std::ostream &os)
 {

@@ -48,6 +48,8 @@ keyword = {norm} or {ave} or {bias} or {adof} or {cdof} or {file} or {overwrite}
   {file} arg = filename
     filename = file to write results to
   {overwrite} arg = none = overwrite output file with only latest output
+  {format} arg = string
+    string = C-style format string
   {title1} arg = string
     string = text to print as 1st line of output file
   {title2} arg = string
@@ -145,8 +147,8 @@ that are a multiples of {Nfreq}.  The average is over {Nrepeat}
 quantities, computed in the preceding portion of the simulation every
 {Nevery} timesteps.  {Nfreq} must be a multiple of {Nevery} and
 {Nevery} must be non-zero even if {Nrepeat} is 1.  Also, the timesteps
-contributing to the average value cannot overlap, i.e. Nfreq >
-(Nrepeat-1)*Nevery is required.
+contributing to the average value cannot overlap, 
+i.e. Nrepeat*Nevery can not exceed Nfreq. 
 
 For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
@@ -356,6 +358,11 @@ quantities, as explained above.
 The {overwrite} keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the {ave running} setting.
+
+The {format} keyword sets the numeric format of each value when it is
+printed to a file via the {file} keyword.  Note that all values are
+floating point quantities.  The default format is %g.  You can specify
+a higher precision if desired, e.g. %20.16g.
 
 The {title1} and {title2} and {title3} keywords allow specification of
 the strings that will be printed as the first 3 lines of the output

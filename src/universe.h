@@ -14,14 +14,16 @@
 #ifndef LMP_UNIVERSE_H
 #define LMP_UNIVERSE_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
 class Universe : protected Pointers {
  public:
-  char *version;          // LAMMPS version string = date
+  const char *version;    // LAMMPS version string = date
+  const char *num_ver;    // numeric version id derived from version that
+                          // can be used for string or numeric comparisons
 
   MPI_Comm uworld;        // communicator for entire universe
   int me,nprocs;          // my place in universe

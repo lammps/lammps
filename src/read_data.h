@@ -20,7 +20,7 @@ CommandStyle(read_data,ReadData)
 #ifndef LMP_READ_DATA_H
 #define LMP_READ_DATA_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -41,6 +41,7 @@ class ReadData : protected Pointers {
 
   bigint id_offset;
 
+  int nlocal_previous;
   bigint natoms;
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes;
@@ -71,7 +72,7 @@ class ReadData : protected Pointers {
   int extra_dihedral_types,extra_improper_types;
   int groupbit;
 
-  int nfix;         
+  int nfix;
   int *fix_index;
   char **fix_header;
   char **fix_section;
@@ -81,7 +82,7 @@ class ReadData : protected Pointers {
   void open(char *);
   void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
-  void header();
+  void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
   void parse_coeffs(char *, const char *, int, int, int);

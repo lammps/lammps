@@ -66,7 +66,7 @@ The box size has apparently blown up.
 
 E: Out of range atoms - cannot compute MSM
 
-One or more atoms are attempting to map their charge to a MSM grid point 
+One or more atoms are attempting to map their charge to a MSM grid point
 that is not owned by a processor.  This is likely for one of two
 reasons, both of them bad.  First, it may mean that an atom near the
 boundary of a processor's sub-domain has moved more than 1/2 the

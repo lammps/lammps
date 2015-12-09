@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "region_cylinder.h"
 #include "update.h"
 #include "domain.h"
@@ -61,7 +61,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     shape_update();
   } else {
     radius = force->numeric(FLERR,arg[5]);
-    if (axis == 'x') radius *= xscale;
+    if (axis == 'x') radius *= yscale;
     else radius *= xscale;
     rstyle = CONSTANT;
   }
@@ -439,7 +439,7 @@ void RegCylinder::shape_update()
   radius = input->variable->compute_equal(rvar);
   if (radius < 0.0)
     error->one(FLERR,"Variable evaluation in region gave bad value");
-  if (axis == 'x') radius *= xscale;
+  if (axis == 'x') radius *= yscale;
   else radius *= xscale;
 }
 

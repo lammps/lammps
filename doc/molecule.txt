@@ -10,26 +10,41 @@ molecule command :h3
 
 [Syntax:]
 
-molecule ID file1 file2 ... keyword values ... :pre
+molecule ID file1 keyword values ... file2 keyword values ... fileN ... :pre
 
 ID = user-assigned name for the molecule template :ulb,l
 file1,file2,... = names of files containing molecule descriptions :l
-zero or more keyword/value pairs may be appended :l
-keyword = {offset} :l
-  {offset} values = toff boff aoff doff ioff
-    toff = offset to add to atom types
-    boff = offset to add to bond types
-    aoff = offset to add to angle types
-    doff = offset to add to dihedral types
-    ioff = offset to add to improper types :pre
+zero or more keyword/value pairs may be appended after each file :l
+keyword = {offset} or {toff} or {boff} or {aoff} or {doff} or {ioff} or {scale} :l
+  {offset} values = Toff Boff Aoff Doff Ioff
+    Toff = offset to add to atom types
+    Boff = offset to add to bond types
+    Aoff = offset to add to angle types
+    Doff = offset to add to dihedral types
+    Ioff = offset to add to improper types
+  {toff} value = Toff
+    Toff = offset to add to atom types
+  {boff} value = Boff
+    Boff = offset to add to bond types
+  {aoff} value = Aoff
+    Aoff = offset to add to angle types
+  {doff} value = Doff
+    Doff = offset to add to dihedral types
+  {ioff} value = Ioff
+    Ioff = offset to add to improper types
+  {scale} value = sfactor
+    sfactor = scale factor to apply to the size and mass of the molecule :pre
 :ule
 
 [Examples:]
 
-molecule 1 mymol
+molecule 1 mymol.txt
 molecule 1 co2.txt h2o.txt
-molecule CO2 co2.txt
-molecule 1 mymol offset 6 9 18 23 14 :pre
+molecule CO2 co2.txt boff 3 aoff 2
+molecule 1 mymol.txt offset 6 9 18 23 14 
+molecule objects file.1 scale 1.5 file.1 scale 2.0 file.2 scale 1.3 :pre
+
+:pre
 
 [Description:]
 
@@ -50,25 +65,39 @@ The ID of a molecule template can only contain alphanumeric characters
 and underscores.
 
 A single template can contain multiple molecules, listed one per file.
-Many of the commands listed above currently use only the first
+Some of the commands listed above currently use only the first
 molecule in the template, and will issue a warning if the template
 contains multiple molecules.  The "atom_style
 template"_atom_style.html command allows multiple-molecule templates
 to define a system with more than one templated molecule.
 
-The optional {offset} keyword adds the specified offset values to the
-atom types, bond types, angle types, dihedral types, and improper
-types as they are read from the molecule file.  E.g. if {toff} = 2,
-and the file uses atom types 1,2,3, then each created molecule will
-have atom types 3,4,5.  This is to make it easy to use the same
-molecule template file in different simulations.  Note that the same
-offsets are applied to the molecules in all specified files.  All five
-offset values must be speicified, but individual values will be
-ignored if the molecule template does not use that attribute (e.g. no
-bonds).
+Each filename can be followed by optional keywords which are applied
+only to the molecule in the file as used in this template.  This is to
+make it easy to use the same molecule file in different molecule
+templates or in different simulations.  You can specify the same file
+multiple times with different optional keywords.
 
-IMPORTANT NOTE: This command can be used to define molecules with
-bonds, angles, dihedrals, imporopers, or special bond lists of
+The {offset}, {toff}, {aoff}, {doff}, {ioff} keywords add the
+specified offset values to the atom types, bond types, angle types,
+dihedral types, and/or improper types as they are read from the
+molecule file.  E.g. if {toff} = 2, and the file uses atom types
+1,2,3, then each created molecule will have atom types 3,4,5.  For the
+{offset} keyword, all five offset values must be specified, but
+individual values will be ignored if the molecule template does not
+use that attribute (e.g. no bonds).
+
+The {scale} keyword scales the size of the molecule.  This can be
+useful for modeling polydisperse granular rigid bodies.  The scale
+factor is applied to each of these properties in the molecule file, if
+they are defined: the individual particle coordinates (Coords
+section), the individual mass of each particle (Masses section), the
+individual diameters of each particle (Diameters section), the total
+mass of the molecule (header keyword = mass), the center-of-mass of
+the molecule (header keyword = com), and the moments of inertia of the
+molecule (header keyword = inertia).
+
+IMPORTANT NOTE: The molecule command can be used to define molecules
+with bonds, angles, dihedrals, imporopers, or special bond lists of
 neighbors within a molecular topology, so that you can later add the
 molecules to your simulation, via one or more of the commands listed
 above.  If such molecules do not already exist when LAMMPS creates the
@@ -431,4 +460,4 @@ of SHAKE clusters.
 
 [Default:]
 
-The default keyword value is offset 0 0 0 0 0.
+The default keywords values are offset 0 0 0 0 0 and scale = 1.0.

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "verlet.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -139,6 +139,7 @@ void Verlet::setup()
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
@@ -199,6 +200,7 @@ void Verlet::setup_minimal(int flag)
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
@@ -218,6 +220,7 @@ void Verlet::run(int n)
   int n_pre_exchange = modify->n_pre_exchange;
   int n_pre_neighbor = modify->n_pre_neighbor;
   int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
 
@@ -231,8 +234,10 @@ void Verlet::run(int n)
 
     // initial time integration
 
+    timer->stamp();
     modify->initial_integrate(vflag);
     if (n_post_integrate) modify->post_integrate();
+    timer->stamp(Timer::MODIFY);
 
     // regular communication vs neighbor list rebuild
 
@@ -241,9 +246,13 @@ void Verlet::run(int n)
     if (nflag == 0) {
       timer->stamp();
       comm->forward_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     } else {
-      if (n_pre_exchange) modify->pre_exchange();
+      if (n_pre_exchange) {
+        timer->stamp();
+        modify->pre_exchange();
+        timer->stamp(Timer::MODIFY);
+      }
       if (triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();
       if (domain->box_change) {
@@ -256,10 +265,13 @@ void Verlet::run(int n)
       if (sortflag && ntimestep >= atom->nextsort) atom->sort();
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-      timer->stamp(TIME_COMM);
-      if (n_pre_neighbor) modify->pre_neighbor();
+      timer->stamp(Timer::COMM);
+      if (n_pre_neighbor) {
+        modify->pre_neighbor();
+        timer->stamp(Timer::MODIFY);
+      }
       neighbor->build();
-      timer->stamp(TIME_NEIGHBOR);
+      timer->stamp(Timer::NEIGH);
     }
 
     // force computations
@@ -268,13 +280,17 @@ void Verlet::run(int n)
     // and Pair:ev_tally() needs to be called before any tallying
 
     force_clear();
-    if (n_pre_force) modify->pre_force(vflag);
 
     timer->stamp();
 
+    if (n_pre_force) {
+      modify->pre_force(vflag);
+      timer->stamp(Timer::MODIFY);
+    }
+
     if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
 
     if (atom->molecular) {
@@ -282,19 +298,24 @@ void Verlet::run(int n)
       if (force->angle) force->angle->compute(eflag,vflag);
       if (force->dihedral) force->dihedral->compute(eflag,vflag);
       if (force->improper) force->improper->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
 
     if (kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
+    }
+
+    if (n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
     }
 
     // reverse communication of forces
 
     if (force->newton) {
       comm->reverse_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
 
     // force modifications, final time integration, diagnostics
@@ -302,13 +323,14 @@ void Verlet::run(int n)
     if (n_post_force) modify->post_force(vflag);
     modify->final_integrate();
     if (n_end_of_step) modify->end_of_step();
+    timer->stamp(Timer::MODIFY);
 
     // all output
 
     if (ntimestep == output->next) {
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 }
@@ -329,7 +351,6 @@ void Verlet::cleanup()
 
 void Verlet::force_clear()
 {
-  int i;
   size_t nbytes;
 
   if (external_force_clear) return;

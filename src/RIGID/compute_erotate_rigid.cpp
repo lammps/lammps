@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_erotate_rigid.h"
 #include "update.h"
 #include "force.h"
@@ -52,7 +52,7 @@ ComputeERotateRigid::~ComputeERotateRigid()
 void ComputeERotateRigid::init()
 {
   irfix = modify->find_fix(rfix);
-  if (irfix < 0) 
+  if (irfix < 0)
     error->all(FLERR,"Fix ID for compute erotate/rigid does not exist");
 
   int flag = 1;

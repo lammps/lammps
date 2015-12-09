@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "limits.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 #include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
@@ -94,6 +94,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = e = de = cv = NULL;
   vest = NULL;
 
+  // USER-SMD
+
+  contact_radius = NULL;
+  smd_data_9 = NULL;
+  smd_stress = NULL;
+  eff_plastic_strain = NULL;
+  eff_plastic_strain_rate = NULL;
+  damage = NULL;
+
+  // molecular info
+
   bond_per_atom =  extra_bond_per_atom = 0;
   num_bond = NULL;
   bond_type = NULL;
@@ -147,6 +158,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
   rho_flag = e_flag = cv_flag = vest_flag = 0;
+
+  // USER-SMD
+
+  smd_flag = 0;
+  contact_radius_flag = 0;
+  smd_data_9_flag = 0;
+  smd_stress_flag = 0;
+  x0_flag = 0;
+  eff_plastic_strain_flag = 0;
+  eff_plastic_strain_rate_flag = 0;
+  damage_flag = 0;
 
   // Peridynamic scale factor
 
@@ -244,6 +266,13 @@ Atom::~Atom()
   memory->destroy(de);
   memory->destroy(cv);
   memory->destroy(vest);
+
+  memory->destroy(contact_radius);
+  memory->destroy(smd_data_9);
+  memory->destroy(smd_stress);
+  memory->destroy(eff_plastic_strain);
+  memory->destroy(eff_plastic_strain_rate);
+  memory->destroy(damage);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -582,11 +611,11 @@ void Atom::tag_check()
 
   if (minall < 0) error->all(FLERR,"One or more Atom IDs is negative");
   if (maxall >= MAXTAGINT) error->all(FLERR,"One or more atom IDs is too big");
-  if (maxall > 0 && minall == 0) 
+  if (maxall > 0 && minall == 0)
     error->all(FLERR,"One or more atom IDs is zero");
   if (maxall > 0 && tag_enable == 0)
     error->all(FLERR,"Non-zero atom IDs with atom_modify id = no");
-  if (maxall == 0 && natoms && tag_enable) 
+  if (maxall == 0 && natoms && tag_enable)
     error->all(FLERR,"All atom IDs = 0 but atom_modify id = yes");
   if (tag_enable && maxall < natoms)
     error->all(FLERR,"Duplicate atom IDs exist");
@@ -706,23 +735,23 @@ void Atom::deallocate_topology()
   memory->destroy(atom->angle_atom3);
   atom->angle_type = NULL;
   atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = NULL;
-  
+
   memory->destroy(atom->dihedral_type);
   memory->destroy(atom->dihedral_atom1);
   memory->destroy(atom->dihedral_atom2);
   memory->destroy(atom->dihedral_atom3);
   memory->destroy(atom->dihedral_atom4);
   atom->dihedral_type = NULL;
-  atom->dihedral_atom1 = atom->dihedral_atom2 = 
+  atom->dihedral_atom1 = atom->dihedral_atom2 =
     atom->dihedral_atom3 = atom->dihedral_atom4 = NULL;
-  
+
   memory->destroy(atom->improper_type);
   memory->destroy(atom->improper_atom1);
   memory->destroy(atom->improper_atom2);
   memory->destroy(atom->improper_atom3);
   memory->destroy(atom->improper_atom4);
   atom->improper_type = NULL;
-  atom->improper_atom1 = atom->improper_atom2 = 
+  atom->improper_atom1 = atom->improper_atom2 =
     atom->improper_atom3 = atom->improper_atom4 = NULL;
 }
 
@@ -731,7 +760,7 @@ void Atom::deallocate_topology()
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset, 
+void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
                       int shiftflag, double *shift)
 {
   int m,xptr,iptr;
@@ -836,7 +865,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
         (((imageint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
     else imagedata = ((imageint) IMGMAX << IMG2BITS) |
            ((imageint) IMGMAX << IMGBITS) | IMGMAX;
-    
+
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);
     xdata[2] = atof(values[xptr+2]);
@@ -921,7 +950,8 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
+                      int type_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2;
@@ -937,6 +967,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
       atom1 += id_offset;
       atom2 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max)
@@ -972,7 +1003,8 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
+                       int type_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3;
@@ -989,6 +1021,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
       atom2 += id_offset;
       atom3 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
@@ -1039,7 +1072,8 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
+                          int type_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1049,7 +1083,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " 
+    sscanf(buf,"%d %d "
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
     if (id_offset) {
@@ -1058,6 +1092,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
@@ -1124,7 +1159,8 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset)
+void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
+                          int type_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1134,7 +1170,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " 
+    sscanf(buf,"%d %d "
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
     if (id_offset) {
@@ -1143,6 +1179,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset)
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    itype += type_offset;
 
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
@@ -1255,7 +1292,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body, 
+void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
                        tagint id_offset)
 {
   int j,m,tagdata,ninteger,ndouble;
@@ -1464,20 +1501,20 @@ void Atom::add_molecule(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal molecule command");
 
-  if (find_molecule(arg[0]) >= 0) 
+  if (find_molecule(arg[0]) >= 0)
     error->all(FLERR,"Reuse of molecule template ID");
 
-  // may over-allocate if not all args are mol files, but OK for srealloc
-
-  molecules = (Molecule **)
-    memory->srealloc(molecules,(nmolecule+narg-1)*sizeof(Molecule *),
-                     "atom::molecules");
-
   // 1st molecule in set stores nset = # of mols, others store nset = 0
+  // ifile = count of molecules in set
+  // index = argument index where next molecule starts, updated by constructor
 
   int ifile = 1;
+  int index = 1;
   while (1) {
-    molecules[nmolecule] = new Molecule(lmp,narg,arg,ifile);
+    molecules = (Molecule **)
+      memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *),
+                       "atom::molecules");
+    molecules[nmolecule] = new Molecule(lmp,narg,arg,index);
     molecules[nmolecule]->nset = 0;
     molecules[nmolecule-ifile+1]->nset++;
     nmolecule++;
@@ -1511,7 +1548,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
   if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
-  else if (rmass_flag) 
+  else if (rmass_flag)
     rmass[ilocal] = 4.0*MY_PI/3.0 *
       radius[ilocal]*radius[ilocal]*radius[ilocal];
 
@@ -2009,6 +2046,15 @@ void *Atom::extract(char *name)
   if (strcmp(name,"de") == 0) return (void *) de;
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
+
+  if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
+  if (strcmp(name, "smd_data_9") == 0) return (void *) smd_data_9;
+  if (strcmp(name, "smd_stress") == 0) return (void *) smd_stress;
+  if (strcmp(name, "eff_plastic_strain") == 0)
+    return (void *) eff_plastic_strain;
+  if (strcmp(name, "eff_plastic_strain_rate") == 0)
+    return (void *) eff_plastic_strain_rate;
+  if (strcmp(name, "damage") == 0) return (void *) damage;
 
   return NULL;
 }

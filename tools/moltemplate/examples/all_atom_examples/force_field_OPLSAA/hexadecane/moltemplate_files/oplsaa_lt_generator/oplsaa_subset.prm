@@ -9,9 +9,14 @@
 #
 #   When building your own molecules, you should download this file, and delete
 # only the lines from the "atoms" section which you don't need. (But leave the
-# rest of that file alone.)  Rename the resulting file "oplsaa_subset.prm"
+# rest of that file alone.  I deleted other sections of this file here in order
+# to reduce the file size, but this is not necessary.)
+#
+# Rename the resulting file "oplsaa_subset.prm"
+#
 # Then you can create an oplsaa.lt file (which moltemplate.sh needs) this way:
-#   python oplsaa_moltemplate.py oplsaa_subset.prm
+#   oplsaa_moltemplate.py oplsaa_subset.prm
+#
 # Then copy the newly created "oplsa.lt" file to the directory where you
 # plan to run moltemplate, and run moltemplate:
 #   moltemplate system.lt

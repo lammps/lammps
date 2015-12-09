@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
+#include <math.h>
+#include <mpi.h>
 #include "min_sd.h"
 #include "atom.h"
 #include "update.h"
@@ -57,6 +57,7 @@ int MinSD::iterate(int maxiter)
     for (i = 0; i < nextra_global; i++) hextra[i] = fextra[i];
 
   for (int iter = 0; iter < maxiter; iter++) {
+
     ntimestep = ++update->ntimestep;
     niter++;
 
@@ -100,7 +101,7 @@ int MinSD::iterate(int maxiter)
     if (output->next == ntimestep) {
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 

@@ -46,8 +46,8 @@
 <PRE>compute 1 all xrd 1.541838 Al O 2Theta 0.087 0.87 c 1 1 1 LP 1 echo 
 compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual 
 </PRE>
-<PRE>fix 1 all ave/histo/weights 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
-fix 2 all ave/histo/weights 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd 
+<PRE>fix 1 all ave/histo/weight 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
+fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd 
 </PRE>
 <PRE>
 </PRE>

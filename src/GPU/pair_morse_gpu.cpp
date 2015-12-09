@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_morse_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;

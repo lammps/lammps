@@ -208,9 +208,10 @@ order.  The species analysis is performed using the average bond-order
 on timesteps that are a multiple of <em>Nfreq</em>.  The average is over
 <em>Nrepeat</em> bond-order samples, computed in the preceding portion of the
 simulation every <em>Nevery</em> timesteps.  <em>Nfreq</em> must be a multiple of
-<em>Nevery</em> and <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.  Also,
-the timesteps contributing to the average bond-order cannot overlap,
-i.e. Nfreq &gt; (Nrepeat-1)*Nevery is required.</p>
+<em>Nevery</em> and <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.
+Also, the timesteps
+contributing to the average bond-order cannot overlap,
+i.e. Nrepeat*Nevery can not exceed Nfreq.</p>
 <p>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then bond-order
 values on timesteps 90,92,94,96,98,100 will be used to compute the
 average bond-order for the species analysis output on timestep 100.</p>

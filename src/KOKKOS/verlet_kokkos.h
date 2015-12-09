@@ -33,7 +33,7 @@ class VerletKokkos : public Verlet {
   void run(int);
 
  protected:
-  
+
 
   void force_clear();
 };

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_vector.h"
 #include "update.h"
 #include "force.h"
@@ -68,7 +68,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       argindex[nvalues] = atoi(ptr+1);
       *ptr = '\0';
     } else argindex[nvalues] = 0;
-    
+
     n = strlen(suffix) + 1;
     ids[nvalues] = new char[n];
     strcpy(ids[nvalues],suffix);
@@ -223,7 +223,7 @@ void FixVector::init()
 
   // reallocate vector or array for accumulated size at end of run
   // use endstep to allow for subsequent runs with "pre no"
-  // nsize = # of entries from initialstep to finalstep 
+  // nsize = # of entries from initialstep to finalstep
 
   bigint finalstep = update->endstep/nevery * nevery;
   if (finalstep > update->endstep) finalstep -= nevery;
@@ -248,7 +248,7 @@ void FixVector::end_of_step()
   // skip if not step which requires doing something
 
   if (update->ntimestep != nextstep) return;
-  if (ncount == ncountmax) 
+  if (ncount == ncountmax)
     error->all(FLERR,"Overflow of allocated fix vector storage");
 
   // accumulate results of computes,fixes,variables to local copy
@@ -259,7 +259,7 @@ void FixVector::end_of_step()
   else result = array[ncount];
 
   modify->clearstep_compute();
-  
+
   for (int i = 0; i < nvalues; i++) {
     int m = value2index[i];
 

@@ -49,8 +49,8 @@ class PairTableKokkos : public Pair {
   virtual ~PairTableKokkos();
 
   virtual void compute(int, int);
-  
-  template<int TABSTYLE> 
+
+  template<int TABSTYLE>
   void compute_style(int, int);
 
   /*template<int EVFLAG, int NEIGHFLAG, int NEWTON_PAIR, int TABSTYLE>
@@ -82,7 +82,7 @@ class PairTableKokkos : public Pair {
     typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
     typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
   };*/
- //Its faster not to use texture fetch if the number of tables is less than 32! 
+ //Its faster not to use texture fetch if the number of tables is less than 32!
   struct TableDeviceConst {
     typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
     typename ArrayTypes<DeviceType>::t_int_2d tabindex;
@@ -147,7 +147,7 @@ class PairTableKokkos : public Pair {
 
  protected:
   int nlocal,nall,eflag,vflag,neighflag,newton_pair;
-  
+
   int update_table;
   void create_kokkos_tables();
   void cleanup_copy();

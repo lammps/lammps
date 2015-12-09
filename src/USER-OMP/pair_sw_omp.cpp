@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_sw_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -52,6 +52,7 @@ void PairSWOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -62,6 +63,7 @@ void PairSWOMP::compute(int eflag, int vflag)
       }
     } else eval<0,0>(ifrom, ito, thr);
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -131,7 +133,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
 
       ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
+      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
 
@@ -157,7 +159,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-      if (rsq1 > params[ijparam].cutsq) continue;
+      if (rsq1 >= params[ijparam].cutsq) continue;
 
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
@@ -173,7 +175,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[1] = x[k].y - ytmp;
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-        if (rsq2 > params[ikparam].cutsq) continue;
+        if (rsq2 >= params[ikparam].cutsq) continue;
 
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);

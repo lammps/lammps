@@ -15,9 +15,9 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "bond_table.h"
 #include "atom.h"
 #include "neighbor.h"

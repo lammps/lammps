@@ -76,6 +76,17 @@ class Atom : protected Pointers {
   double *rho,*drho,*e,*de,*cv;
   double **vest;
 
+  // USER-SMD package
+
+  double *contact_radius;
+  double **smd_data_9;
+  double **smd_stress;
+  double *eff_plastic_strain;
+  double *eff_plastic_strain_rate;
+  double *damage;
+
+  // molecular info
+
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
   int maxspecial;               // special[nlocal][maxspecial]
@@ -122,6 +133,17 @@ class Atom : protected Pointers {
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
+
+  // USER-SMD package
+
+  int smd_flag;
+  int contact_radius_flag;
+  int smd_data_9_flag;
+  int smd_stress_flag;
+  int x0_flag;
+  int eff_plastic_strain_flag;
+  int eff_plastic_strain_rate_flag;
+  int damage_flag;
 
   // Peridynamics scale factor, used by dump cfg
 
@@ -191,10 +213,10 @@ class Atom : protected Pointers {
   void data_atoms(int, char *, tagint, int, int, double *);
   void data_vels(int, char *, tagint);
 
-  void data_bonds(int, char *, int *, tagint);
-  void data_angles(int, char *, int *, tagint);
-  void data_dihedrals(int, char *, int *, tagint);
-  void data_impropers(int, char *, int *, tagint);
+  void data_bonds(int, char *, int *, tagint, int);
+  void data_angles(int, char *, int *, tagint, int);
+  void data_dihedrals(int, char *, int *, tagint, int);
+  void data_impropers(int, char *, int *, tagint, int);
 
   void data_bonus(int, char *, class AtomVec *, tagint);
   void data_bodies(int, char *, class AtomVecBody *, tagint);
@@ -223,7 +245,7 @@ class Atom : protected Pointers {
   int find_custom(char *, int &);
   int add_custom(char *, int);
   void remove_custom(int, int);
-  
+
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
   void *extract(char *);

@@ -20,7 +20,7 @@ FixStyle(balance,FixBalance)
 #ifndef LMP_FIX_BALANCE_H
 #define LMP_FIX_BALANCE_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -42,7 +42,7 @@ class FixBalance : public Fix {
  private:
   int nevery,lbstyle,nitermax,outflag;
   double thresh,stopthresh;
-  char bstr[3];
+  char bstr[4];
   FILE *fp;
 
   double imbnow;                // current imbalance factor

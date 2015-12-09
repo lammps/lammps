@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
+#include <mpi.h>
+#include <math.h>
 #include "min_quickmin.h"
 #include "universe.h"
 #include "atom.h"
@@ -87,6 +87,7 @@ int MinQuickMin::iterate(int maxiter)
   alpha_final = 0.0;
 
   for (int iter = 0; iter < maxiter; iter++) {
+
     ntimestep = ++update->ntimestep;
     niter++;
 
@@ -232,7 +233,7 @@ int MinQuickMin::iterate(int maxiter)
     if (output->next == ntimestep) {
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 

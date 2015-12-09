@@ -15,14 +15,14 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "ctype.h"
-#include "float.h"
-#include "limits.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <ctype.h>
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -32,6 +32,8 @@
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
+#include "modify.h"
+#include "compute.h"
 #include "accelerator_cuda.h"
 #include "suffix.h"
 #include "atom_masks.h"
@@ -96,6 +98,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   eatom = NULL;
   vatom = NULL;
 
+  num_tally_compute = 0;
+  list_tally_compute = NULL;
+
   // CUDA and KOKKOS per-fix data masks
 
   datamask = ALL_MASK;
@@ -112,6 +117,10 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
 Pair::~Pair()
 {
+  num_tally_compute = 0;
+  memory->sfree((void *)list_tally_compute);
+  list_tally_compute = NULL;
+
   if (copymode) return;
 
   memory->destroy(eatom);
@@ -201,11 +210,11 @@ void Pair::init()
 
   if (manybody_flag && atom->molecular) {
     int flag = 0;
-    if (atom->nbonds > 0 && force->special_lj[1] == 0.0 && 
+    if (atom->nbonds > 0 && force->special_lj[1] == 0.0 &&
         force->special_coul[1] == 0.0) flag = 1;
-    if (atom->nangles > 0 && force->special_lj[2] == 0.0 && 
+    if (atom->nangles > 0 && force->special_lj[2] == 0.0 &&
         force->special_coul[2] == 0.0) flag = 1;
-    if (atom->ndihedrals > 0 && force->special_lj[3] == 0.0 && 
+    if (atom->ndihedrals > 0 && force->special_lj[3] == 0.0 &&
         force->special_coul[3] == 0.0) flag = 1;
     if (flag && comm->me == 0)
       error->warning(FLERR,"Using a manybody potential with "
@@ -312,9 +321,9 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   if (force->kspace == NULL)
     error->all(FLERR,"Pair style requires a KSpace style");
   double g_ewald = force->kspace->g_ewald;
-  
+
   double cut_coulsq = cut_coul * cut_coul;
-  
+
   tabinnersq = tabinner*tabinner;
   init_bitmap(tabinner,cut_coul,ncoultablebits,
               masklo,maskhi,ncoulmask,ncoulshiftbits);
@@ -521,33 +530,33 @@ void Pair::init_tables_disp(double cut_lj_global)
   double rsq;
   double g_ewald_6 = force->kspace->g_ewald_6;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
-  
+
   tabinnerdispsq = tabinner_disp*tabinner_disp;
   init_bitmap(tabinner_disp,cut_lj_global,ndisptablebits,
               masklo,maskhi,ndispmask,ndispshiftbits);
-  
+
   int ntable = 1;
   for (int i = 0; i < ndisptablebits; i++) ntable *= 2;
-  
+
   // linear lookup tables of length N = 2^ndisptablebits
   // stored value = value at lower edge of bin
   // d values = delta from lower edge to upper edge of bin
-  
+
   if (fdisptable) free_disp_tables();
-  
+
   memory->create(rdisptable,ntable,"pair:rdisptable");
   memory->create(fdisptable,ntable,"pair:fdisptable");
   memory->create(edisptable,ntable,"pair:edisptable");
   memory->create(drdisptable,ntable,"pair:drdisptable");
   memory->create(dfdisptable,ntable,"pair:dfdisptable");
   memory->create(dedisptable,ntable,"pair:dedisptable");
-  
+
   union_int_float_t rsq_lookup;
   union_int_float_t minrsq_lookup;
   int itablemin;
   minrsq_lookup.i = 0 << ndispshiftbits;
   minrsq_lookup.i |= maskhi;
-  
+
   for (int i = 0; i < ntable; i++) {
     rsq_lookup.i = i << ndispshiftbits;
     rsq_lookup.i |= masklo;
@@ -558,38 +567,38 @@ void Pair::init_tables_disp(double cut_lj_global)
     rsq = rsq_lookup.f;
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);
-    
+
     rdisptable[i] = rsq_lookup.f;
     fdisptable[i] = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
     edisptable[i] = g6*((a2+1.0)*a2+0.5)*x2;
-    
+
     minrsq_lookup.f = MIN(minrsq_lookup.f,rsq_lookup.f);
   }
-  
+
   tabinnerdispsq = minrsq_lookup.f;
-  
+
   int ntablem1 = ntable - 1;
-  
+
   for (int i = 0; i < ntablem1; i++) {
     drdisptable[i] = 1.0/(rdisptable[i+1] - rdisptable[i]);
     dfdisptable[i] = fdisptable[i+1] - fdisptable[i];
     dedisptable[i] = edisptable[i+1] - edisptable[i];
   }
-  
+
   // get the delta values for the last table entries
   // tables are connected periodically between 0 and ntablem1
-  
+
   drdisptable[ntablem1] = 1.0/(rdisptable[0] - rdisptable[ntablem1]);
   dfdisptable[ntablem1] = fdisptable[0] - fdisptable[ntablem1];
   dedisptable[ntablem1] = edisptable[0] - edisptable[ntablem1];
-  
+
   // get the correct delta values at itablemax
   // smallest r is in bin itablemin
   // largest r is in bin itablemax, which is itablemin-1,
   //   or ntablem1 if itablemin=0
   // deltas at itablemax only needed if corresponding rsq < cut*cut
   // if so, compute deltas between rsq and cut*cut
-  
+
   double f_tmp,e_tmp;
   double cut_lj_globalsq;
   itablemin = minrsq_lookup.i & ndispmask;
@@ -598,15 +607,15 @@ void Pair::init_tables_disp(double cut_lj_global)
   if (itablemin == 0) itablemax = ntablem1;
   rsq_lookup.i = itablemax << ndispshiftbits;
   rsq_lookup.i |= maskhi;
-  
+
   if (rsq_lookup.f < (cut_lj_globalsq = cut_lj_global * cut_lj_global)) {
     rsq_lookup.f = cut_lj_globalsq;
-    
+
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);
     f_tmp = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
     e_tmp = g6*((a2+1.0)*a2+0.5)*x2;
-    
+
     drdisptable[itablemax] = 1.0/(rsq_lookup.f - rdisptable[itablemax]);
     dfdisptable[itablemax] = f_tmp - fdisptable[itablemax];
     dedisptable[itablemax] = e_tmp - edisptable[itablemax];
@@ -683,6 +692,53 @@ void Pair::compute_dummy(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
+}
+
+/* -------------------------------------------------------------------
+   register a callback to a compute, so it can compute and accumulate
+   additional properties during the pair computation from within
+   Pair::ev_tally(). ensure each compute instance is registered only once
+---------------------------------------------------------------------- */
+void Pair::add_tally_callback(Compute *ptr)
+{
+  int i,found=-1;
+
+  for (i=0; i < num_tally_compute; ++i) {
+    if (list_tally_compute[i] == ptr)
+      found = i;
+  }
+
+  if (found < 0) {
+    found = num_tally_compute;
+    ++num_tally_compute;
+    void *p = memory->srealloc((void *)list_tally_compute,
+                               sizeof(Compute *) * num_tally_compute,
+                               "pair:list_tally_compute");
+    list_tally_compute = (Compute **) p;
+    list_tally_compute[num_tally_compute-1] = ptr;
+  }
+}
+
+/* -------------------------------------------------------------------
+   unregister a callback to a fix for additional pairwise tallying
+---------------------------------------------------------------------- */
+void Pair::del_tally_callback(Compute *ptr)
+{
+  int i,found=-1;
+
+  for (i=0; i < num_tally_compute; ++i) {
+    if (list_tally_compute[i] == ptr)
+      found = i;
+  }
+
+  if (found < 0)
+    return;
+
+  // compact the list of active computes
+  --num_tally_compute;
+  for (i=found; i < num_tally_compute; ++i) {
+    list_tally_compute[i] = list_tally_compute[i+1];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -866,8 +922,16 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
       }
     }
   }
+
+  if (num_tally_compute > 0) {
+    for (int k=0; k < num_tally_compute; ++k) {
+      Compute *c = list_tally_compute[k];
+      c->pair_tally_callback(i, j, nlocal, newton_pair,
+                             evdwl, ecoul, fpair, delx, dely, delz);
+    }
+  }
 }
- 
+
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    can use this version with full neighbor lists
@@ -1455,7 +1519,7 @@ void Pair::virial_fdotr_compute()
       virial[5] += f[i][2]*x[i][1];
     }
   }
-  
+
   // prevent multiple calls to update the virial
   // when a hybrid pair style uses both a gpu and non-gpu pair style
   // or when respa is used with gpu pair styles

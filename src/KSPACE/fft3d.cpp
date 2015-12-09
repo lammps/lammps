@@ -19,10 +19,10 @@
                          Paul Coffman (IBM) added MPI collectives remap
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fft3d.h"
 #include "remap.h"
 

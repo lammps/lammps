@@ -19,14 +19,41 @@
 
 namespace LAMMPS_NS {
 
+struct TagDomain_remap_all{};
+struct TagDomain_image_flip{};
+struct TagDomain_lamda2x{};
+struct TagDomain_x2lamda{};
+
 class DomainKokkos : public Domain {
  public:
-  
-
   DomainKokkos(class LAMMPS *);
   ~DomainKokkos() {}
   void init();
   void pbc();
+  void remap_all();
+  void image_flip(int, int, int);
+  void x2lamda(int);
+  void lamda2x(int);
+
+  int closest_image(const int, int) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagDomain_remap_all, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagDomain_image_flip, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagDomain_lamda2x, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagDomain_x2lamda, const int&) const;
+
+ private:
+  double lo[3],hi[3],period[3];
+  int n_flip, m_flip, p_flip;
+  ArrayTypes<LMPDeviceType>::t_x_array x;
+  ArrayTypes<LMPDeviceType>::t_imageint_1d image;
 };
 
 }

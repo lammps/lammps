@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_gran_hooke_history_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -23,7 +23,7 @@
 #include "neigh_list.h"
 #include "update.h"
 
-#include "string.h"
+#include <string.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -79,6 +79,7 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag)
@@ -88,6 +89,7 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
       if (shearupdate) eval<0,1>(ifrom, ito, thr);
       else eval<0,0>(ifrom, ito, thr);
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -95,7 +97,7 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int SHEARUPDATE>
 void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double myshear[3];
   double radi,radj,radsum,rsq,r,rinv,rsqinv;

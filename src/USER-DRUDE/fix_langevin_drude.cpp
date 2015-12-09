@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_langevin_drude.h"
 #include "atom.h"
 #include "force.h"
@@ -50,7 +50,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 6;
   comm_reverse = 3;
   //extscalar = 1;
-  
+
   // core temperature
   tstr_core = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -64,7 +64,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
     tstyle_core = CONSTANT;
   }
   t_period_core = force->numeric(FLERR,arg[4]);
-  int seed_core = force->inumeric(FLERR,arg[5]);  
+  int seed_core = force->inumeric(FLERR,arg[5]);
 
   // drude temperature
   tstr_drude = NULL;
@@ -80,21 +80,21 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   }
   t_period_drude = force->numeric(FLERR,arg[7]);
   int seed_drude = force->inumeric(FLERR,arg[8]);
-  
+
   // error checks
   if (t_period_core <= 0.0)
     error->all(FLERR,"Fix langevin/drude period must be > 0.0");
   if (seed_core  <= 0) error->all(FLERR,"Illegal langevin/drude seed");
   if (t_period_drude <= 0.0)
     error->all(FLERR,"Fix langevin/drude period must be > 0.0");
-  if (seed_drude <= 0) error->all(FLERR,"Illegal langevin/drude seed"); 
+  if (seed_drude <= 0) error->all(FLERR,"Illegal langevin/drude seed");
 
   random_core  = new RanMars(lmp,seed_core);
   random_drude = new RanMars(lmp,seed_drude);
-  
+
   int iarg = 9;
   zero = 0;
-  while (iarg < narg) { 
+  while (iarg < narg) {
     if (strcmp(arg[iarg],"zero") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin/drude command");
       if (strcmp(arg[iarg+1],"no") == 0) zero = 0;
@@ -155,7 +155,7 @@ void FixLangevinDrude::init()
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) error->all(FLERR, "fix langevin/drude requires fix drude");  
+  if (ifix == modify->nfix) error->all(FLERR, "fix langevin/drude requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 }
 
@@ -171,7 +171,7 @@ void FixLangevinDrude::setup(int vflag)
   if (zero) {
       int *mask = atom->mask;
       int nlocal = atom->nlocal;
-      int *drudetype = fix_drude->drudetype; 
+      int *drudetype = fix_drude->drudetype;
       int *type = atom->type;
       bigint ncore_loc = 0;
       for (int i=0; i<nlocal; i++)
@@ -222,7 +222,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
   double *rmass = atom->rmass;
   double ftm2v = force->ftm2v, mvv2e = force->mvv2e;
   double kb = force->boltz, dt = update->dt;
-  
+
   int *drudetype = fix_drude->drudetype;
   tagint *drudeid = fix_drude->drudeid;
   double vdrude[3], vcore[3]; // velocities in reduced representation
@@ -230,7 +230,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
   double Ccore, Cdrude, Gcore, Gdrude;
   double fcoresum[3], fcoreloc[3];
   int dim = domain->dimension;
-  
+
   // Compute target core temperature
   if (tstyle_core == CONSTANT)
      t_target_core = t_start_core; // + delta * (t_stop-t_start_core);
@@ -254,7 +254,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
                           "negative drude temperature");
       modify->addstep_compute(update->ntimestep + nevery);
   }
- 
+
   // Clear ghost forces
   // They have already been communicated if needed
   for (int i = nlocal; i < nall; i++) {
@@ -271,7 +271,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
         if (rmass)
           mi = rmass[i];
         else
-          mi = mass[type[i]]; 
+          mi = mass[type[i]];
         Gcore  = mi / t_period_core  / ftm2v;
         Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
         if (temperature) temperature->remove_bias(i, v[i]);
@@ -283,21 +283,21 @@ void FixLangevinDrude::post_force(int /*vflag*/)
         if (temperature) temperature->restore_bias(i, v[i]);
       } else {
         if (drudetype[type[i]] == DRUDE_TYPE) continue; // do with the core
-        
+
         int j = atom->map(drudeid[i]);
         double mi, mj, mtot, mu; // i is core, j is drude
         if (rmass) {
           mi = rmass[i];
           mj = rmass[j];
         } else {
-          mi = mass[type[i]]; 
+          mi = mass[type[i]];
           mj = mass[type[j]];
-        } 
+        }
         mtot = mi + mj;
         mu = mi * mj / mtot;
         mi /= mtot;
         mj /= mtot;
-          
+
         Gcore  = mtot / t_period_core  / ftm2v;
         Gdrude = mu   / t_period_drude / ftm2v;
         Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
@@ -309,14 +309,14 @@ void FixLangevinDrude::post_force(int /*vflag*/)
         }
         for (int k=0; k<dim; k++) {
           // TODO check whether a fix_modify temp can subtract a bias velocity
-          vcore[k] = mi * v[i][k] + mj * v[j][k]; 
+          vcore[k] = mi * v[i][k] + mj * v[j][k];
           vdrude[k] = v[j][k] - v[i][k];
-        
+
           fcore[k]  = Ccore  * random_core->gaussian()  - Gcore  * vcore[k];
           fdrude[k] = Cdrude * random_drude->gaussian() - Gdrude * vdrude[k];
-           
+
           if (zero) fcoreloc[k]  += fcore[k];
-            
+
           f[i][k] += mi * fcore[k] - fdrude[k];
           f[j][k] += mj * fcore[k] + fdrude[k];
 
@@ -329,7 +329,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
       }
     }
   }
-  
+
   if(zero) { // Remove the drift
     MPI_Allreduce(fcoreloc, fcoresum, dim, MPI_DOUBLE, MPI_SUM, world);
     for (int k=0; k<dim; k++) fcoresum[k] /= ncore;
@@ -345,9 +345,9 @@ void FixLangevinDrude::post_force(int /*vflag*/)
             mi = rmass[i];
             mj = rmass[j];
           } else {
-            mi = mass[type[i]]; 
+            mi = mass[type[i]];
             mj = mass[type[j]];
-          } 
+          }
           mtot = mi + mj;
           mi /= mtot;
           mj /= mtot;

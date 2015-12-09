@@ -16,11 +16,11 @@
    Original MSM class by: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "atom.h"
 #include "gridcomm.h"
@@ -312,6 +312,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }

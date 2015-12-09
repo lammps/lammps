@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_torque_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute torque/chunk command");

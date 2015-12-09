@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_streitz.h"
 #include "atom.h"
 #include "comm.h"
@@ -340,8 +340,8 @@ void PairCoulStreitz::read_file(char *file)
     params[nparams].zcore = atof(words[5]);
 
     // parameter sanity check
-    
-    if (params[nparams].eta < 0.0 || params[nparams].zeta < 0.0 || 
+
+    if (params[nparams].eta < 0.0 || params[nparams].zeta < 0.0 ||
         params[nparams].zcore < 0.0 || params[nparams].gamma != 0.0 )
       error->all(FLERR,"Illegal coul/streitz parameter");
 
@@ -357,7 +357,7 @@ void PairCoulStreitz::setup()
 {
   int i,m,n;
 
-  // set elem2param 
+  // set elem2param
 
   memory->destroy(elem2param);
   memory->create(elem2param,nelements,"pair:elem2param");
@@ -400,7 +400,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
 
   double xtmp, ytmp, ztmp, ecoul, fpair;
   double qi, qj, selfion, r, rsq, delr[3];
-  double zei, zej, zj, ci_jfi, dci_jfi, ci_fifj, dci_fifj; 
+  double zei, zej, zj, ci_jfi, dci_jfi, ci_fifj, dci_fifj;
   double forcecoul, factor_coul;
 
   double **x = atom->x;
@@ -422,7 +422,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // Wolf sum
-  
+
   if (kspacetype == 1) {
 
   for (ii = 0; ii < inum; ii++) {
@@ -472,9 +472,9 @@ void PairCoulStreitz::compute(int eflag, int vflag)
 
       // Wolf Sum
 
-      wolf_sum(qi, qj, zj, r, ci_jfi, dci_jfi, ci_fifj, dci_fifj, 
+      wolf_sum(qi, qj, zj, r, ci_jfi, dci_jfi, ci_fifj, dci_fifj,
                ecoul, forcecoul);
-      
+
       // Forces
 
       fpair = -forcecoul / r;
@@ -495,7 +495,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
   }
 
   // Ewald Sum
-  
+
   } else if (kspacetype == 2) {
 
   for (ii = 0; ii < inum; ii++) {
@@ -543,8 +543,8 @@ void PairCoulStreitz::compute(int eflag, int vflag)
       coulomb_integral_ewald(zei, zej, r, ci_jfi, dci_jfi, ci_fifj, dci_fifj);
 
       // Ewald: real-space
-      
-      ewald_sum(qi, qj, zj, r, ci_jfi, dci_jfi, ci_fifj, dci_fifj, 
+
+      ewald_sum(qi, qj, zj, r, ci_jfi, dci_jfi, ci_fifj, dci_fifj,
 		      ecoul, forcecoul, factor_coul);
 
       // Forces
@@ -577,7 +577,7 @@ double PairCoulStreitz::self(Param *param, double qi)
  double qqrd2e = force->qqrd2e;
 
  if (kspacetype == 1) return 1.0*qi*(s1+qi*(0.50*s2 - qqrd2e*woself));
- 
+
  if (kspacetype == 2) return 1.0*qi*(s1+qi*(0.50*s2));
 
  return 0.0;
@@ -586,7 +586,7 @@ double PairCoulStreitz::self(Param *param, double qi)
 /* ---------------------------------------------------------------------- */
 
 void PairCoulStreitz::coulomb_integral_wolf(double zei, double zej, double r,
-		  double &ci_jfi, double &dci_jfi, double &ci_fifj, 
+		  double &ci_jfi, double &dci_jfi, double &ci_fifj,
 		  double &dci_fifj)
 {
   double rinv = 1.0/r;
@@ -646,17 +646,17 @@ void PairCoulStreitz::coulomb_integral_wolf(double zei, double zej, double r,
     fshift = (exp2zirsh*(2.0*zei*(e1+e3/rc) + e3*rcinv2)
             + exp2zjrsh*(2.0*zej*(e2+e4/rc) + e4*rcinv2));
 
-    ci_fifj = -exp2zir*(e1+e3/r) - exp2zjr*(e2+e4/r) 
+    ci_fifj = -exp2zir*(e1+e3/r) - exp2zjr*(e2+e4/r)
 	      - eshift - (r-rc)*fshift;
-    dci_fifj = (exp2zir*(2.0*zei*(e1+e3/r) + e3*rinv2) + 
+    dci_fifj = (exp2zir*(2.0*zei*(e1+e3/r) + e3*rinv2) +
                 exp2zjr*(2.0*zej*(e2+e4/r) + e4*rinv2)) - fshift;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulStreitz::wolf_sum(double qi, double qj, double zj, double r, 
-		double ci_jfi, double dci_jfi, double ci_fifj, 
+void PairCoulStreitz::wolf_sum(double qi, double qj, double zj, double r,
+		double ci_jfi, double dci_jfi, double ci_fifj,
 		double dci_fifj, double &etmp, double &ftmp)
 {
   double a = g_wolf;
@@ -676,7 +676,7 @@ void PairCoulStreitz::wolf_sum(double qi, double qj, double zj, double r,
   etmp1 = erfcr/r - erfcrc/rc;
   etmp2 = qi * zj * (ci_jfi - ci_fifj);
   etmp3 = qi * qj * 0.50 * (etmp1 + ci_fifj);
-  
+
   ftmp1 = -erfcr/r/r - 2.0*a/MY_PIS*derfcr/r - dwoself;
   ftmp2 = qi * zj * (dci_jfi - dci_fifj);
   ftmp3 = qi * qj * 0.50 * (ftmp1 + dci_fifj);
@@ -689,7 +689,7 @@ void PairCoulStreitz::wolf_sum(double qi, double qj, double zj, double r,
 /* ---------------------------------------------------------------------- */
 
 void PairCoulStreitz::coulomb_integral_ewald(double zei, double zej, double r,
-		  double &ci_jfi, double &dci_jfi, double &ci_fifj, 
+		  double &ci_jfi, double &dci_jfi, double &ci_fifj,
 		  double &dci_fifj)
 {
   double rinv = 1.0/r;
@@ -718,7 +718,7 @@ void PairCoulStreitz::coulomb_integral_ewald(double zei, double zej, double r,
   if (zei == zej) {
 
     ci_fifj = -exp2zir*(rinv + zei*(sm1 + sm2*zei*r + sm3*zei2*r*r));
-    dci_fifj = exp2zir*(rinv2 + 2.0*zei*rinv + 
+    dci_fifj = exp2zir*(rinv2 + 2.0*zei*rinv +
 	   	zei2*(2.0 + 7.0/6.0*zei*r + 1.0/3.0*zei2*r*r));
 
   } else {
@@ -739,8 +739,8 @@ void PairCoulStreitz::coulomb_integral_ewald(double zei, double zej, double r,
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulStreitz::ewald_sum(double qi, double qj, double zj, double r, 
-		double ci_jfi, double dci_jfi, double ci_fifj, 
+void PairCoulStreitz::ewald_sum(double qi, double qj, double zj, double r,
+		double ci_jfi, double dci_jfi, double ci_fifj,
 		double dci_fifj, double &etmp, double &ftmp, double fac)
 {
   double etmp1, etmp2, etmp3, etmp4;
@@ -760,7 +760,7 @@ void PairCoulStreitz::ewald_sum(double qi, double qj, double zj, double r,
   etmp2 = qi * qj * 0.50 * ci_fifj;
   etmp3 = qqrd2e * (etmp1 + etmp2);
   etmp4 = qqrd2e * 0.50*qi*qj/r;
-  
+
   ftmp1 = qi * zj * (dci_jfi - dci_fifj);
   ftmp2 = qi * qj * 0.50 * dci_fifj;
   ftmp3 = qqrd2e * (ftmp1 + ftmp2);

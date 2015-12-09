@@ -15,10 +15,10 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj96_cut.h"
 #include "atom.h"
 #include "comm.h"

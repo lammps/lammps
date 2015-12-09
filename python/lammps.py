@@ -29,11 +29,11 @@ class lammps:
 
     try:
       if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
-      else: self.lib = CDLL(join(modpath,"/liblammps_%s.so" % name),RTLD_GLOBAL)
+      else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
     except:
       type,value,tb = sys.exc_info()
       traceback.print_exception(type,value,tb)
-      raise OSError,"Could not load LAMMPS dynamic library"
+      raise OSError,"Could not load LAMMPS dynamic library from %s" % modpath
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -69,6 +69,9 @@ class lammps:
   def close(self):
     if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
+
+  def version(self):
+    return self.lib.lammps_version(self.lmp)
 
   def file(self,file):
     self.lib.lammps_file(self.lmp,file)
@@ -118,22 +121,23 @@ class lammps:
   # double was allocated by library interface function
   
   def extract_fix(self,id,style,type,i=0,j=0):
-    if type == 0:
-      if style > 0: return None
+    if style == 0:
       self.lib.lammps_extract_fix.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
-    if type == 1:
-      self.lib.lammps_extract_fix.restype = POINTER(c_double)
+    elif (style == 1) or (style == 2):
+      if type == 1:
+        self.lib.lammps_extract_fix.restype = POINTER(c_double)
+      elif type == 2:
+        self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
+      else:
+        return None
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       return ptr
-    if type == 2:
-      self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
-      return ptr
-    return None
+    else:
+      return None
 
   # free memory for 1 double or 1 vector of doubles via lammps_free()
   # for vector, must copy nlocal returned values to local c_double vector

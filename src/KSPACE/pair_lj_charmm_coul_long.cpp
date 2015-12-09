@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_charmm_coul_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -597,6 +597,7 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
               forcelj = forcelj*switch1 + philj*switch2;
             }
           } else if (rsq <= cut_in_on_sq) {
+            r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *

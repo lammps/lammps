@@ -347,6 +347,41 @@ non-orthogonal or rotated lattices.</p>
 <p>Note that whenever the lattice command is used, the values of the
 lattice spacings LAMMPS calculates are printed out.  Thus their effect
 in commands that use the spacings should be decipherable.</p>
+<hr class="docutils" />
+<p>Example commands for generating a Wurtzite crystal (courtesy
+of Aidan Thompson), with its 8 atom unit cell.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable a equal  4.340330
+variable b equal  $a*sqrt(3.0)
+variable c equal  $a*sqrt(8.0/3.0)
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>variable 1_3 equal 1.0/3.0
+variable 2_3 equal 2.0/3.0
+variable 1_6 equal 1.0/6.0
+variable 5_6 equal 5.0/6.0
+variable 1_12 equal 1.0/12.0
+variable 5_12 equal 5.0/12/0
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>lattice custom    1.0     &amp;
+        a1      $a      0.0     0.0     &amp;
+        a2      0.0     $b      0.0     &amp;
+        a3      0.0     0.0     $c      &amp;
+        basis   0.0     0.0     0.0     &amp;
+        basis   0.5     0.5     0.0     &amp;
+        basis   ${1_3}  0.0     0.5     &amp;
+        basis   ${5_6}  0.5     0.5     &amp;
+        basis   0.0     0.0     0.625   &amp;
+        basis   0.5     0.5     0.625   &amp;
+        basis   ${1_3}  0.0     0.125   &amp;
+        basis   ${5_6}  0.5     0.125
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>region myreg block 0 1 0 1 0 1
+create_box      2 myreg
+create_atoms    1 box
+</pre></div>
+</div>
 </div>
 <hr class="docutils" />
 <div class="section" id="restrictions">

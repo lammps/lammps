@@ -130,6 +130,9 @@
 <div class="section" id="fix-nvt-cuda-command">
 <h1>fix nvt/cuda command<a class="headerlink" href="#fix-nvt-cuda-command" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="fix-nvt-kk-command">
+<h1>fix nvt/kk command<a class="headerlink" href="#fix-nvt-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="fix-nvt-omp-command">
 <h1>fix nvt/omp command<a class="headerlink" href="#fix-nvt-omp-command" title="Permalink to this headline">¶</a></h1>
 </div>
@@ -139,11 +142,17 @@
 <div class="section" id="fix-npt-cuda-command">
 <h1>fix npt/cuda command<a class="headerlink" href="#fix-npt-cuda-command" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="fix-npt-kk-command">
+<h1>fix npt/kk command<a class="headerlink" href="#fix-npt-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="fix-npt-omp-command">
 <h1>fix npt/omp command<a class="headerlink" href="#fix-npt-omp-command" title="Permalink to this headline">¶</a></h1>
 </div>
 <div class="section" id="fix-nph-command">
 <h1>fix nph command<a class="headerlink" href="#fix-nph-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-nph-kk-command">
+<h1>fix nph/kk command<a class="headerlink" href="#fix-nph-kk-command" title="Permalink to this headline">¶</a></h1>
 </div>
 <div class="section" id="fix-nph-omp-command">
 <h1>fix nph/omp command<a class="headerlink" href="#fix-nph-omp-command" title="Permalink to this headline">¶</a></h1>
@@ -223,12 +232,12 @@ correctly, the time-averaged temperature and stress tensor of the
 particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.</p>
 <p>The equations of motion used are those of Shinoda et al in
-<a class="reference internal" href="pair_sdk.html#shinoda"><span>(Shinoda)</span></a>, which combine the hydrostatic equations of
-Martyna, Tobias and Klein in <a class="reference internal" href="fix_rigid.html#martyna"><span>(Martyna)</span></a> with the strain
+<a class="reference internal" href="#shinoda"><span>(Shinoda)</span></a>, which combine the hydrostatic equations of
+Martyna, Tobias and Klein in <a class="reference internal" href="#martyna"><span>(Martyna)</span></a> with the strain
 energy proposed by Parrinello and Rahman in
-<a class="reference internal" href="fix_nh_eff.html#parrinello"><span>(Parrinello)</span></a>.  The time integration schemes closely
+<a class="reference internal" href="#parrinello"><span>(Parrinello)</span></a>.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al. in <a class="reference internal" href="run_style.html#tuckerman"><span>(Tuckerman)</span></a>.</p>
+integrators derived by Tuckerman et al in <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.</p>
 <hr class="docutils" />
 <p>The thermostat parameters for fix styles <em>nvt</em> and <em>npt</em> is specified
 using the <em>temp</em> keyword.  Other thermostat-related keywords are
@@ -385,7 +394,7 @@ freedom. A value of 0 corresponds to no thermostatting of the
 barostat variables.</p>
 <p>The <em>mtk</em> keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-<a class="reference internal" href="fix_rigid.html#martyna"><span>(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
+<a class="reference internal" href="#martyna"><span>(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using <em>yes</em> is more correct, but in many cases the difference is
@@ -394,8 +403,8 @@ negligible.</p>
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into <em>tloop</em> substeps, each of
 length <em>dt</em>/<em>tloop</em>. This corresponds to using a first-order
-Suzuki-Yoshida scheme <span class="xref std std-ref">(Tuckerman2006)</span>.  The keyword
-<em>ploop</em> does the same thing for the barostat thermostat.</p>
+Suzuki-Yoshida scheme <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.  The keyword <em>ploop</em>
+does the same thing for the barostat thermostat.</p>
 <p>The keyword <em>nreset</em> controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
 or is given a value of zero, then the reference dimensions are set to
@@ -526,16 +535,16 @@ with <em>respa</em>, LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):</p>
 <img alt="_images/fix_nh1.jpg" class="align-center" src="_images/fix_nh1.jpg" />
-<p>This factorization differs somewhat from that of Tuckerman et al., in that
-the barostat is only updated at the outermost rRESPA level, whereas
-Tuckerman&#8217;s factorization requires splitting the pressure into pieces
-corresponding to the forces computed at each rRESPA level. In theory, the
-latter method will exhibit better numerical stability. In practice,
-because Pdamp is normally chosen to be a large multiple of the
-outermost rRESPA timestep, the barostat dynamics are not the
-limiting factor for numerical stability. Both
-factorizations are time-reversible and can be shown to preserve the phase
-space measure of the underlying non-Hamiltonian equations of motion.</p>
+<p>This factorization differs somewhat from that of Tuckerman et al, in
+that the barostat is only updated at the outermost rRESPA level,
+whereas Tuckerman&#8217;s factorization requires splitting the pressure into
+pieces corresponding to the forces computed at each rRESPA level. In
+theory, the latter method will exhibit better numerical stability. In
+practice, because Pdamp is normally chosen to be a large multiple of
+the outermost rRESPA timestep, the barostat dynamics are not the
+limiting factor for numerical stability. Both factorizations are
+time-reversible and can be shown to preserve the phase space measure
+of the underlying non-Hamiltonian equations of motion.</p>
 <hr class="docutils" />
 <p>The fix npt and fix nph commands can be used with rigid bodies or
 mixtures of rigid bodies and non-rigid particles (e.g. solvent).  But

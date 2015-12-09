@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_move.h"
 #include "atom.h"
 #include "group.h"
@@ -195,13 +195,9 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   if ((mstyle == LINEAR || mstyle == WIGGLE || mstyle == ROTATE) &&
       scaleflag) {
-    double xscale,yscale,zscale;
-    if (scaleflag) {
-      xscale = domain->lattice->xlattice;
-      yscale = domain->lattice->ylattice;
-      zscale = domain->lattice->zlattice;
-    }
-    else xscale = yscale = zscale = 1.0;
+    double xscale = domain->lattice->xlattice;
+    double yscale = domain->lattice->ylattice;
+    double zscale = domain->lattice->zlattice;
 
     if (mstyle == LINEAR) {
       if (vxflag) vx *= xscale;

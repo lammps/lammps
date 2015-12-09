@@ -15,9 +15,9 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_box_relax.h"
 #include "atom.h"
 #include "domain.h"

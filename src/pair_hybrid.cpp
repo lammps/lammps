@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
-#include "ctype.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "pair_hybrid.h"
 #include "atom.h"
 #include "force.h"
@@ -114,6 +114,7 @@ void PairHybrid::compute(int eflag, int vflag)
   // check if we are running with r-RESPA using the hybrid keyword
 
   Respa *respa = NULL;
+  respaflag = 0;
   if (strstr(update->integrate_style,"respa")) {
     respa = (Respa *) update->integrate;
     if (respa->nhybrid_styles > 0) respaflag = 1;
@@ -129,7 +130,7 @@ void PairHybrid::compute(int eflag, int vflag)
       // outerflag is set and sub-style has a compute_outer() method
 
       if (styles[m]->compute_flag == 0) continue;
-      if (outerflag && styles[m]->respa_enable) 
+      if (outerflag && styles[m]->respa_enable)
         styles[m]->compute_outer(eflag,vflag_substyle);
       else styles[m]->compute(eflag,vflag_substyle);
     }
@@ -317,7 +318,7 @@ void PairHybrid::flags()
   // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
-  // ewaldflag, pppmflag, msmflag, dispersionflag, tip4pflag = 1
+  // ewaldflag, pppmflag, msmflag, dipoleflag, dispersionflag, tip4pflag = 1
   //   if any sub-style is set
   // compute_flag = 1 if any sub-style is set
 
@@ -332,6 +333,7 @@ void PairHybrid::flags()
     if (styles[m]->ewaldflag) ewaldflag = 1;
     if (styles[m]->pppmflag) pppmflag = 1;
     if (styles[m]->msmflag) msmflag = 1;
+    if (styles[m]->dipoleflag) dipoleflag = 1;
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
@@ -811,7 +813,7 @@ void PairHybrid::modify_params(int narg, char **arg)
       int multiflag = force->inumeric(FLERR,arg[2]);
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
-      if (m == nstyles) 
+      if (m == nstyles)
         error->all(FLERR,"Unknown pair_modify hybrid sub-style");
       iarg = 3;
     }

@@ -18,11 +18,11 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "stdio.h"
-#include "string.h"
-#include "math.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 #include "ewald.h"
 #include "atom.h"
 #include "comm.h"
@@ -86,7 +86,7 @@ void Ewald::init()
   }
 
   // error check
-  
+
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use Ewald with 2d simulation");
@@ -252,19 +252,19 @@ void Ewald::setup()
     kmax = MAX(kxmax,kymax);
     kmax = MAX(kmax,kzmax);
     kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
-    
+
     double gsqxmx = unitk[0]*unitk[0]*kxmax*kxmax;
     double gsqymx = unitk[1]*unitk[1]*kymax*kymax;
     double gsqzmx = unitk[2]*unitk[2]*kzmax*kzmax;
     gsqmx = MAX(gsqxmx,gsqymx);
     gsqmx = MAX(gsqmx,gsqzmx);
-    
+
     kxmax_orig = kxmax;
     kymax_orig = kymax;
     kzmax_orig = kzmax;
 
     // scale lattice vectors for triclinic skew
-    
+
     if (triclinic) {
       double tmp[3];
       tmp[0] = kxmax/xprd;
@@ -274,7 +274,7 @@ void Ewald::setup()
       kxmax = MAX(1,static_cast<int>(tmp[0]));
       kymax = MAX(1,static_cast<int>(tmp[1]));
       kzmax = MAX(1,static_cast<int>(tmp[2]));
-      
+
       kmax = MAX(kxmax,kymax);
       kmax = MAX(kmax,kzmax);
       kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
@@ -285,7 +285,7 @@ void Ewald::setup()
     kxmax = kx_ewald;
     kymax = ky_ewald;
     kzmax = kz_ewald;
-    
+
     kxmax_orig = kxmax;
     kymax_orig = kymax;
     kzmax_orig = kzmax;
@@ -354,18 +354,18 @@ void Ewald::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
-   
-  // if atom count has changed, update qsum and qsqsum 
+
+  // if atom count has changed, update qsum and qsqsum
 
   if (atom->natoms != natoms_original) {
     qsum_qsq();
     natoms_original = atom->natoms;
   }
-  
+
   // return if there are no charges
-  
+
   if (qsqsum == 0.0) return;
-  
+
   // extend size of per-atom arrays if necessary
 
   if (atom->nlocal > nmax) {
@@ -1012,7 +1012,7 @@ void Ewald::coeffs()
 }
 
 /* ----------------------------------------------------------------------
-   pre-compute coefficients for each Ewald K-vector for a triclinic 
+   pre-compute coefficients for each Ewald K-vector for a triclinic
    system
 ------------------------------------------------------------------------- */
 
@@ -1395,7 +1395,7 @@ void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
     if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
       if (AA_flag) continue;
 
-    if (mask[i] & groupbit_A) { 
+    if (mask[i] & groupbit_A) {
       qsum_A += q[i];
       dipole_A += q[i]*x[i][2];
       dipole_r2_A += q[i]*x[i][2]*x[i][2];

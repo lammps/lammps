@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include "dump.h"
 #include "atom.h"
 #include "irregular.h"
@@ -25,6 +25,8 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "modify.h"
+#include "fix.h"
 
 using namespace LAMMPS_NS;
 
@@ -160,6 +162,7 @@ Dump::~Dump()
     } else {
       if (filewriter) fclose(fp);
     }
+    fp = NULL;
   }
 }
 
@@ -185,7 +188,7 @@ void Dump::init()
   }
 
   if (sort_flag) {
-    if (multiproc > 1) 
+    if (multiproc > 1)
       error->all(FLERR,
                  "Cannot dump sort when multiple dump files are written");
     if (sortcol == 0 && atom->tag_enable == 0)
@@ -205,7 +208,13 @@ void Dump::init()
     // compute ntotal_reorder, nme_reorder, idlo/idhi to test against later
 
     reorderflag = 0;
-    if (sortcol == 0 && atom->tag_consecutive()) {
+
+    int gcmcflag = 0;
+    for (int i = 0; i < modify->nfix; i++)
+      if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
+	gcmcflag = 1;
+
+    if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
       tagint *tag = atom->tag;
       int *mask = atom->mask;
       int nlocal = atom->nlocal;
@@ -338,7 +347,7 @@ void Dump::write()
   if (sort_flag && sortcol == 0) pack(ids);
   else pack(NULL);
   if (sort_flag) sort();
- 
+
   // if buffering, convert doubles into strings
   // insure sbuf is sized for communicating
   // cannot buffer if output is to binary file
@@ -348,7 +357,7 @@ void Dump::write()
     int nsmin,nsmax;
     MPI_Allreduce(&nsme,&nsmin,1,MPI_INT,MPI_MIN,world);
     if (nsmin < 0) error->all(FLERR,"Too much buffered per-proc info for dump");
-    if (multiproc != nprocs) 
+    if (multiproc != nprocs)
       MPI_Allreduce(&nsme,&nsmax,1,MPI_INT,MPI_MAX,world);
     else nsmax = nsme;
     if (nsmax > maxsbuf) {
@@ -377,11 +386,11 @@ void Dump::write()
           MPI_Get_count(&status,MPI_DOUBLE,&nlines);
           nlines /= size_one;
         } else nlines = nme;
-        
+
         write_data(nlines,buf);
       }
-      if (flush_flag) fflush(fp);
-    
+      if (flush_flag && fp) fflush(fp);
+
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,fileproc,0,world);
@@ -398,11 +407,11 @@ void Dump::write()
           MPI_Wait(&request,&status);
           MPI_Get_count(&status,MPI_CHAR,&nchars);
         } else nchars = nsme;
-        
+
         write_data(nchars,(double *) sbuf);
       }
-      if (flush_flag) fflush(fp);
-      
+      if (flush_flag && fp) fflush(fp);
+
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(sbuf,nsme,MPI_CHAR,fileproc,0,world);
@@ -413,10 +422,11 @@ void Dump::write()
 
   if (multifile) {
     if (compressed) {
-      if (filewriter) pclose(fp);
+      if (filewriter && fp != NULL) pclose(fp);
     } else {
-      if (filewriter) fclose(fp);
+      if (filewriter && fp != NULL) fclose(fp);
     }
+    fp = NULL;
   }
 }
 
@@ -758,7 +768,7 @@ void Dump::modify_params(int narg, char **arg)
                    "without % in dump file name");
       int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
-      
+
       multiproc = nprocs/nper;
       if (nprocs % nper) multiproc++;
       fileproc = me/nper * nper;
@@ -818,7 +828,7 @@ void Dump::modify_params(int narg, char **arg)
       fileproc = static_cast<int> ((bigint) icluster * nprocs/nfile);
       int fcluster = static_cast<int> ((bigint) fileproc * nfile/nprocs);
       if (fcluster < icluster) fileproc++;
-      int fileprocnext = 
+      int fileprocnext =
         static_cast<int> ((bigint) (icluster+1) * nprocs/nfile);
       fcluster = static_cast<int> ((bigint) fileprocnext * nfile/nprocs);
       if (fcluster < icluster+1) fileprocnext++;

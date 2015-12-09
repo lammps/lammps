@@ -10,7 +10,7 @@ may need, or that are specific to a machine you are running on.
 
 If none of the existing files work, you can edit a file in either
 directory to create your own customized Makefile.machine.  Put it in
-the USER directory if you want to avoid conflicts with the Makefiles
+the MINE directory if you want to avoid conflicts with the Makefiles
 distributed with LAMMPS.
 
 -----------------------------------

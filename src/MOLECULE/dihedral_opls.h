@@ -20,7 +20,7 @@ DihedralStyle(opls,DihedralOPLS)
 #ifndef LMP_DIHEDRAL_OPLS_H
 #define LMP_DIHEDRAL_OPLS_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

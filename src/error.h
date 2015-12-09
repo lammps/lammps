@@ -30,7 +30,7 @@ class Error : protected Pointers {
   void one(const char *, int, const char *);
   void warning(const char *, int, const char *, int = 1);
   void message(const char *, int, const char *, int = 1);
-  void done();
+  void done(int = 0); // 1 would be fully backwards compatible
 };
 
 }

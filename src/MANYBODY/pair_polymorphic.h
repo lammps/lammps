@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 //===========================================
 class C1function {
- public: 
+ public:
   C1function(){};
   virtual ~C1function() {};
   virtual double value(double x)=0;
@@ -34,7 +34,7 @@ class C1function {
 };
 //===========================================
 class C1constant : public C1function {
- public: 
+ public:
   C1constant(double C): C_(C) {};
   C1constant(): C_(0) {};
   virtual double value(double x) { return C_; }
@@ -44,7 +44,7 @@ class C1constant : public C1function {
 };
 //===========================================
 class C1exponential : public C1function {
- public: 
+ public:
   C1exponential(double C, double lambda): C_(C),lambda_(lambda) {};
   C1exponential(): C_(0),lambda_(0) {};
   virtual double value(double x) { return C_*exp(lambda_*x); }
@@ -54,7 +54,7 @@ class C1exponential : public C1function {
 };
 //===========================================
 class C1sine : public C1function {
- public: 
+ public:
   C1sine(double C, double lambda): C_(C),lambda_(lambda) {};
   C1sine(): C_(0),lambda_(0) {};
   virtual double value(double x) { return C_*sin(lambda_*x); }
@@ -64,7 +64,7 @@ class C1sine : public C1function {
 };
 //===========================================
 class C1cosine : public C1function {
- public: 
+ public:
   C1cosine(double C, double lambda): C_(C),lambda_(lambda) {};
   C1cosine(): C_(0),lambda_(0) {};
   virtual double value(double x) { return C_*cos(lambda_*x); }
@@ -115,7 +115,7 @@ class C1tabularFunction : public C1function {
   {
     resize(n);
     xmin = x1;
-    xmax = x2; 
+    xmax = x2;
     memcpy(ys,values,n*sizeof(double));
     initialize();
   }
@@ -256,11 +256,11 @@ class PairPolymorphic : public Pair {
   bool eta; // global indicator
   int nx,nr,ng; // table sizes
   double maxX;
-  
+
   // parameter sets
   PairParameters    * pairParameters;    // for I-J interaction
   TripletParameters * tripletParameters; // for I-J-K interaction
-  
+
   char **elements;              // names of unique elements
   int **elem2param;             // map: element pairs to parameters
   int ***elem3param;            // map: element triplets to parameters
@@ -291,7 +291,7 @@ class PairPolymorphic : public Pair {
     return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
   }
 
-  inline void vec3_add(const double x[3], const double y[3], 
+  inline void vec3_add(const double x[3], const double y[3],
 		       double * const z) const {
     z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
   }
@@ -301,7 +301,7 @@ class PairPolymorphic : public Pair {
     y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
   }
 
-  inline void vec3_scaleadd(const double k, const double x[3], 
+  inline void vec3_scaleadd(const double k, const double x[3],
 			    const double y[3], double * const z) const {
     z[0] = k*x[0]+y[0];
     z[1] = k*x[1]+y[1];

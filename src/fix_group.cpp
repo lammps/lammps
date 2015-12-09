@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_group.h"
 #include "group.h"
 #include "update.h"
@@ -50,7 +50,7 @@ FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   varflag = 0;
   idvar = NULL;
   nevery = 1;
-  
+
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
@@ -145,7 +145,7 @@ void FixGroup::init()
     }
   }
 
-  if (warn && comm->me == 0) 
+  if (warn && comm->me == 0)
     error->warning(FLERR,"One or more dynamic groups may not be "
                    "updated at correct point in timestep");
 }
@@ -184,7 +184,7 @@ void FixGroup::set_group()
     input->variable->compute_atom(ivar,igroup,var,1,0);
     modify->addstep_compute(update->ntimestep + nevery);
   }
-  
+
   // update region in case it has a variable dependence or is dynamic
 
   if (regionflag) region->prematch();

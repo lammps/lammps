@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,7 +16,7 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pppm_disp_tip4p.h"
 #include "pppm_disp.h"
 #include "atom.h"
@@ -63,7 +63,7 @@ void PPPMDispTIP4P::init()
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles
    check that full stencil for the particle will fit in my 3d brick
-   store central grid pt indices in part2grid array 
+   store central grid pt indices in part2grid array
 ------------------------------------------------------------------------- */
 
 void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
@@ -84,7 +84,7 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -107,7 +107,7 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
 	nz+nlow < nzlo || nz+nup > nzhi)
       flag = 1;
   }
- 
+
   if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 }
 
@@ -115,7 +115,7 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
    create discretized "density" on section of global grid due to my particles
    density(x,y,z) = charge "density" at grid points of my 3d brick
    (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid 
+   in global grid
 ------------------------------------------------------------------------- */
 
 void PPPMDispTIP4P::make_rho_c()
@@ -134,14 +134,14 @@ void PPPMDispTIP4P::make_rho_c()
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
-  int *type = atom->type; 
+  int *type = atom->type;
   double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -171,7 +171,7 @@ void PPPMDispTIP4P::make_rho_c()
 }
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
+   interpolate from grid to get electric field & force on my particles
    for ik differentiation
 ------------------------------------------------------------------------- */
 
@@ -199,7 +199,7 @@ void PPPMDispTIP4P::fieldforce_c_ik()
 
   for (i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -260,7 +260,7 @@ void PPPMDispTIP4P::fieldforce_c_ik()
 
 /* ----------------------------------------------------------------------
    interpolate from grid to get electric field & force on my particles
-   for ad scheme 
+   for ad scheme
 ------------------------------------------------------------------------- */
 
 void PPPMDispTIP4P::fieldforce_c_ad()
@@ -287,7 +287,7 @@ void PPPMDispTIP4P::fieldforce_c_ad()
   double hx_inv = nx_pppm/xprd;
   double hy_inv = ny_pppm/yprd;
   double hz_inv = nz_pppm/zprd_slab;
-  
+
 
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -305,7 +305,7 @@ void PPPMDispTIP4P::fieldforce_c_ad()
 
   for (i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -315,7 +315,7 @@ void PPPMDispTIP4P::fieldforce_c_ad()
     dx = nx+shiftone - (xi[0]-boxlo[0])*delxinv;
     dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
-    
+
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
     compute_drho1d(dx,dy,dz, order, drho_coeff, drho1d);
 
@@ -336,7 +336,7 @@ void PPPMDispTIP4P::fieldforce_c_ad()
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;
-    
+
     // convert E-field to force and substract self forces
     const double qfactor = force->qqrd2e * scale;
 
@@ -383,7 +383,7 @@ void PPPMDispTIP4P::fieldforce_c_ad()
 
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
+   interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
 
 void PPPMDispTIP4P::fieldforce_c_peratom()
@@ -408,7 +408,7 @@ void PPPMDispTIP4P::fieldforce_c_peratom()
 
   for (i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -431,7 +431,7 @@ void PPPMDispTIP4P::fieldforce_c_peratom()
 	for (l = nlower; l <= nupper; l++) {
 	  mx = l+nx;
 	  x0 = y0*rho1d[0][l];
-	  if (eflag_atom) u_pa += x0*u_brick[mz][my][mx];	
+	  if (eflag_atom) u_pa += x0*u_brick[mz][my][mx];
 	  if (vflag_atom) {
             v0 += x0*v0_brick[mz][my][mx];
             v1 += x0*v1_brick[mz][my][mx];
@@ -502,7 +502,7 @@ void PPPMDispTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
-  double **x = atom->x; 
+  double **x = atom->x;
 
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];

@@ -16,9 +16,9 @@
    	Memory efficiency improved by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dump_cfg.h"
 #include "atom.h"
 #include "domain.h"
@@ -188,16 +188,16 @@ int DumpCFG::convert_string(int n, double *mybuf)
         } else if (j == 1) {
 	  offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
-          if (vtype[j] == INT) 
-            offset += 
+          if (vtype[j] == INT)
+            offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE) 
+          else if (vtype[j] == DOUBLE)
             offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING) 
-            offset += 
+          else if (vtype[j] == STRING)
+            offset +=
               sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT) 
-            offset += 
+          else if (vtype[j] == BIGINT)
+            offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
@@ -223,16 +223,16 @@ int DumpCFG::convert_string(int n, double *mybuf)
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
         } else if (j >= 5 ) {
-          if (vtype[j] == INT) 
-            offset += 
+          if (vtype[j] == INT)
+            offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE) 
+          else if (vtype[j] == DOUBLE)
             offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING) 
-            offset += 
+          else if (vtype[j] == STRING)
+            offset +=
               sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT) 
-            offset += 
+          else if (vtype[j] == BIGINT)
+            offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
@@ -273,13 +273,13 @@ void DumpCFG::write_lines(int n, double *mybuf)
         } else if (j == 1) {
           fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
-          if (vtype[j] == INT) 
+          if (vtype[j] == INT)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE) 
+          else if (vtype[j] == DOUBLE)
             fprintf(fp,vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING) 
+          else if (vtype[j] == STRING)
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT) 
+          else if (vtype[j] == BIGINT)
             fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
@@ -299,13 +299,13 @@ void DumpCFG::write_lines(int n, double *mybuf)
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);
         } else if (j >= 5 ) {
-          if (vtype[j] == INT) 
+          if (vtype[j] == INT)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE) 
+          else if (vtype[j] == DOUBLE)
             fprintf(fp,vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING) 
+          else if (vtype[j] == STRING)
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT) 
+          else if (vtype[j] == BIGINT)
             fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;

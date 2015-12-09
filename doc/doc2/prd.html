@@ -43,8 +43,8 @@
   <I>vel</I> values = loop dist
     loop = <I>all</I> or <I>local</I> or <I>geom</I>, used in dephasing
     dist = <I>uniform</I> or <I>gaussian</I>, used in dephasing
-  <I>time</I> value = <I>step</I> or <I>clock</I>
-    <I>step</I> = simulation runs for N timesteps on each replica (default)
+  <I>time</I> value = <I>steps</I> or <I>clock</I>
+    <I>steps</I> = simulation runs for N timesteps on each replica (default)
     <I>clock</I> = simulation runs for N timesteps across all replicas 
 </PRE>
 
@@ -171,7 +171,7 @@ dynamics have been performed.  Note that <I>N</I> only includes the
 dynamics of stages 2 and 3, not the steps taken during dephasing or
 the minimization iterations of quenching.  The specified <I>N</I> is
 interpreted in one of two ways, depending on the <I>time</I> keyword.  If
-the <I>time</I> value is <I>step</I>, which is the default, then each replica
+the <I>time</I> value is <I>steps</I>, which is the default, then each replica
 runs for <I>N</I> timesteps.  If the <I>time</I> value is <I>clock</I>, then the
 simulation runs until <I>N</I> aggregate timesteps across all replicas have
 elapsed.  This aggregate time is the "clock" time defined below, which
@@ -323,7 +323,7 @@ dt/reset</A> and <A HREF = "fix_deposit.html">fix deposit</A>.
 <P><B>Default:</B> 
 </P>
 <P>The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
-geom gaussian, and time = step.
+geom gaussian, and time = steps.
 </P>
 <HR>
 

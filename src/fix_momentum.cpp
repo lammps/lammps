@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_momentum.h"
 #include "atom.h"
 #include "domain.h"
@@ -61,7 +61,7 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
 
   if (linear)
     if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 ||
-        zflag < 0 || zflag > 1) 
+        zflag < 0 || zflag > 1)
       error->all(FLERR,"Illegal fix momentum command");
 
   // cannot have 0 atoms in group

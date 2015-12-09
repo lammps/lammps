@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "ctype.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dump_image.h"
 #include "image.h"
 #include "atom.h"
@@ -681,7 +681,7 @@ void DumpImage::create_image()
         color = colorelement[itype];
       } else if (acolor == ATTRIBUTE) {
         color = image->map_value2color(0,buf[m]);
-      }
+      } else color = image->color2rgb("white");
 
       if (adiam == NUMERIC) {
         diameter = adiamvalue;
@@ -784,6 +784,9 @@ void DumpImage::create_image()
           } else if (acolor == ATTRIBUTE) {
             color1 = image->map_value2color(0,bufcopy[atom1][0]);
             color2 = image->map_value2color(0,bufcopy[atom2][0]);
+          } else {
+            color1 = image->color2rgb("white");
+            color2 = image->color2rgb("white");
           }
         } else if (bcolor == TYPE) {
           itype = btype;
@@ -949,7 +952,7 @@ void DumpImage::create_image()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpImage::pack_forward_comm(int n, int *list, double *buf, 
+int DumpImage::pack_forward_comm(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
   int i,j,m;

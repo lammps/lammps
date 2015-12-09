@@ -15,8 +15,8 @@
    Contributing author: Michel Perez (U Lyon) for non-fcc lattices
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "compute_centro_atom.h"
 #include "atom.h"
 #include "update.h"

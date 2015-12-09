@@ -155,7 +155,7 @@
 <em>gpu</em> args = Ngpu keyword value ...
   Ngpu = # of GPUs per node
   zero or more keyword/value pairs may be appended
-  keywords = <em>neigh</em> or <em>newton</em> or <em>binsize</em> or <em>split</em> or <em>gpuID</em> or <em>tpa</em> or <em>device</em>
+  keywords = <em>neigh</em> or <em>newton</em> or <em>binsize</em> or <em>split</em> or <em>gpuID</em> or <em>tpa</em> or <em>device</em> or <em>blocksize</em>
     <em>neigh</em> value = <em>yes</em> or <em>no</em>
       yes = neighbor list build on GPU (default)
       no = neighbor list build on CPU
@@ -173,6 +173,8 @@
       Nthreads = # of GPU threads used per atom
     <em>device</em> value = device_type
       device_type = <em>kepler</em> or <em>fermi</em> or <em>cypress</em> or <em>generic</em>
+    <em>blocksize</em> value = size
+      size = thread block size for pair force computation
 <em>intel</em> args = NPhi keyword value ...
   Nphi = # of coprocessors per node
   zero or more keyword/value pairs may be appended
@@ -415,6 +417,12 @@ Kepler, NVIDIA Fermi, AMD Cypress, or a generic device.  More devices
 may be added later.  The default device type can be specified when
 building LAMMPS with the GPU library, via settings in the
 lib/gpu/Makefile that is used.</p>
+<p>The <em>blocksize</em> keyword allows you to tweak the number of threads used
+per thread block. This number should be a multiple of 32 (for GPUs)
+and its maximum depends on the specific GPU hardware. Typical choices
+are 64, 128, or 256. A larger blocksize increases occupancy of
+individual GPU cores, but reduces the total number of thread blocks,
+thus may lead to load imbalance.</p>
 <hr class="docutils" />
 <p>The <em>intel</em> style invokes settings associated with the use of the
 USER-INTEL package.  All of its settings, except the <em>omp</em> and <em>mode</em>
@@ -459,7 +467,7 @@ USER-OMP packages, be aware that both packages allow setting of the
 single global <em>Nthreads</em> value used by OpenMP.  Thus if both package
 commands are invoked, you should insure the two values are consistent.
 If they are not, the last one invoked will take precedence, for both
-packages.  Also note that if the &#8220;-sf intel&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a> is used, it invokes a &#8220;package
+packages.  Also note that if the &#8220;-sf hybrid intel omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a> is used, it invokes a &#8220;package
 intel&#8221; command, followed by a &#8220;package omp&#8221; command, both with a
 setting of <em>Nthreads</em> = 0.</p>
 </div>

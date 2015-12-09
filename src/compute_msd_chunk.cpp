@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_msd_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -119,7 +119,8 @@ void ComputeMSDChunk::compute_array()
   if (firstflag) {
     nchunk = n;
     allocate();
-  } else if (n != nchunk) 
+    size_array_rows = nchunk;
+  } else if (n != nchunk)
     error->all(FLERR,"Compute msd/chunk nchunk is not static");
 
   // zero local per-chunk values

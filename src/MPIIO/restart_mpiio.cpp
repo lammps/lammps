@@ -15,10 +15,10 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "restart_mpiio.h"
 #include "error.h"
-#include "limits.h"
+#include <limits.h>
 
 using namespace LAMMPS_NS;
 

@@ -21,10 +21,14 @@ awpmd         antisymmetrized wave packet molecular dynamics, AWPMD package
                 from Ilya Valuev (JIHT RAS)
 colvars	      collective variable module (Metadynamics, ABF and more)
                 from Giacomo Fiorin and Jerome Henin (ICMS, Temple U)
+compress      hook to system lib for performing I/O compression, COMPRESS pkg
+	        from Axel Kohlmeyer (Temple U)
 cuda	      NVIDIA GPU routines, USER-CUDA package
                 from Christian Trott (U Tech Ilmenau)
 gpu	      general GPU routines, GPU package
 	        from Mike Brown (ORNL)
+h5md          ch5md library for output of MD data in HDF5 format
+                from Pierre de Buyl (KU Leuven)
 kim           hooks to the KIM library, used by KIM package
                 from Ryan Elliott and Ellad Tadmor (U Minn)
 kokkos        Kokkos package for GPU and many-core acceleration
@@ -45,7 +49,7 @@ quip          interface to QUIP/libAtoms framework, USER-QUIP package
                 from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
 reax          ReaxFF potential, REAX package
 	        from Adri van Duin (Penn State) and Aidan Thompson (Sandia)
-quip          interface to QUIP/libAtoms framework, USER-QUIP package
-                from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
+smd           hooks to Eigen library, used by USER-SMD package
+                from Georg Ganzenmueller (Ernst Mach Institute, Germany)
 voronoi       hooks to the Voro++ library, used by compute voronoi/atom command
 	        from Daniel Schwen (LANL)

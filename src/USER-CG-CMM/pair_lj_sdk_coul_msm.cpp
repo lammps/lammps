@@ -16,10 +16,10 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_sdk_coul_msm.h"
 #include "atom.h"
 #include "comm.h"
@@ -158,7 +158,7 @@ void PairLJSDKCoulMSM::eval_msm()
             fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
-            if (EFLAG) ecoul = qtmp*q[j] * 
+            if (EFLAG) ecoul = qtmp*q[j] *
               (etable[itable] + fraction*detable[itable]);
             if (factor_coul < 1.0) {
               table = ctable[itable] + fraction*dctable[itable];

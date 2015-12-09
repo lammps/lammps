@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_adapt.h"
 #include "atom.h"
 #include "update.h"
@@ -118,8 +118,8 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
-        adapt[nadapt].aparam = CHARGE; 
-        chgflag = 1; 
+        adapt[nadapt].aparam = CHARGE;
+        chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt command");
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
         int n = strlen(&arg[iarg+2][2]) + 1;
@@ -275,9 +275,9 @@ void FixAdapt::init()
 
   if (group->dynamic[igroup])
     for (int i = 0; i < nadapt; i++)
-      if (adapt[i].which == ATOM) 
+      if (adapt[i].which == ATOM)
         error->all(FLERR,"Cannot use dynamic group with fix adapt atom");
-  
+
   // setup and error checks
 
   anypair = 0;
@@ -295,17 +295,34 @@ void FixAdapt::init()
       anypair = 1;
       Pair *pair = NULL;
 
+      // if ad->pstyle has trailing sub-style annotation ":N",
+      //   strip it for pstyle arg to pair_match() and set nsub = N
+      // this should work for appended suffixes as well
+
+      int n = strlen(ad->pstyle) + 1;
+      char *pstyle = new char[n];
+      strcpy(pstyle,ad->pstyle);
+
+      char *cptr;
+      int nsub = 0;
+      if (cptr = strchr(pstyle,':')) {
+        *cptr = '\0';
+        nsub = force->inumeric(FLERR,cptr+1);
+      }
+
       if (lmp->suffix_enable) {
-        char psuffix[128];
-        strcpy(psuffix,ad->pstyle);
+        int len = 2 + strlen(pstyle) + strlen(lmp->suffix);
+        char *psuffix = new char[len];
+        strcpy(psuffix,pstyle);
         strcat(psuffix,"/");
         strcat(psuffix,lmp->suffix);
-        pair = force->pair_match(psuffix,1);
+        pair = force->pair_match(psuffix,1,nsub);
+        delete[] psuffix;
       }
-      if (pair == NULL) pair = force->pair_match(ad->pstyle,1);
+      if (pair == NULL) pair = force->pair_match(pstyle,1,nsub);
       if (pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL) 
+      if (ptr == NULL)
         error->all(FLERR,"Fix adapt pair style param not supported");
 
       ad->pdim = 2;
@@ -319,10 +336,12 @@ void FixAdapt::init()
         PairHybrid *pair = (PairHybrid *) force->pair;
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-            if (!pair->check_ijtype(i,j,ad->pstyle))
+            if (!pair->check_ijtype(i,j,pstyle))
               error->all(FLERR,"Fix adapt type pair range is not valid for "
                          "pair hybrid sub-style");
       }
+
+      delete [] pstyle;
 
     } else if (ad->which == KSPACE) {
       if (force->kspace == NULL)
@@ -353,7 +372,7 @@ void FixAdapt::init()
   }
 
   // fixes that store initial per-atom values
-  
+
   if (id_fix_diam) {
     int ifix = modify->find_fix(id_fix_diam);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
@@ -479,13 +498,13 @@ void FixAdapt::change_settings()
             }
         }
       } else if (ad->aparam == CHARGE) {
-        double *q = atom->q; 
+        double *q = atom->q;
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
 	for (i = 0; i < nall; i++)
-	  if (mask[i] & groupbit) q[i] = value; 
+	  if (mask[i] & groupbit) q[i] = value;
       }
     }
   }

@@ -1,5 +1,9 @@
 # Default settings common options
 
+#LAMMPS specific changes:
+KOKKOS_PATH=../../lib/kokkos
+CXXFLAGS = ${CCFLAGS}
+
 #Options: OpenMP,Serial,Pthreads,Cuda
 #KOKKOS_DEVICES ?= "OpenMP"
 KOKKOS_DEVICES ?= "Pthreads"

@@ -564,7 +564,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "rigid/small/npt"_fix_rigid.html,
 "rigid/small/nve"_fix_rigid.html,
 "rigid/small/nvt"_fix_rigid.html,
-"setforce (c)"_fix_setforce.html,
+"setforce (ck)"_fix_setforce.html,
 "shake (c)"_fix_shake.html,
 "spring"_fix_spring.html,
 "spring/rg"_fix_spring_rg.html,

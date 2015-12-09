@@ -8,6 +8,7 @@
 
 fix setforce command :h3
 fix setforce/cuda command :h3
+fix setforce/kk command :h3
 
 [Syntax:]
 
@@ -65,14 +66,18 @@ to it.
 
 :line
 
-Styles with a {cuda} suffix are functionally the same as the
+Styles with a {cuda} or {kk} suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
 "Section_accelerate"_Section_accelerate.html of the manual.  The
 accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 
-These accelerated styles are part of the USER-CUDA package.  They are
+The region keyword is also supported by Kokkos, but a Kokkos-enabled
+region must be used. See the region "region"_region.html command for more
+information.
+
+These accelerated styles are part of the USER-CUDA or Kokkos package.  They are
 only enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 

@@ -1,0 +1,40 @@
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../src )
+
+SET(SOURCES
+  UnitTestMain.cpp 
+  TestCuda.cpp
+  )
+
+SET(LIBRARIES kokkoscore)
+
+IF(Kokkos_ENABLE_Pthread)
+  LIST( APPEND SOURCES
+    TestThreads.cpp
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_Serial)
+  LIST( APPEND SOURCES
+    TestSerial.cpp
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_OpenMP)
+  LIST( APPEND SOURCES
+    TestOpenMP.cpp
+  )
+ENDIF()
+
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest
+  SOURCES ${SOURCES}
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "  FAILED  "
+  TESTONLYLIBS kokkos_gtest
+  )
+  

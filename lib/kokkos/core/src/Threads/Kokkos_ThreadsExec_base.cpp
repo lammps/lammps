@@ -155,6 +155,7 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value )
 #elif defined( KOKKOS_HAVE_WINTHREAD )
 
 /* Windows libraries */
+#include <winsock2.h>
 #include <windows.h>
 #include <process.h>
 

@@ -89,7 +89,11 @@ private:
 
   ThreadsExec * const * m_pool_base ; ///< Base for pool fan-in
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
   Impl::AllocationTracker m_scratch ;
+#else
+  void *        m_scratch ;
+#endif
   int           m_scratch_reduce_end ;
   int           m_scratch_thread_end ;
   int           m_numa_rank ;
@@ -122,8 +126,18 @@ public:
   static int get_thread_count();
   static ThreadsExec * get_thread( const int init_thread_rank );
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
   inline void * reduce_memory() const { return reinterpret_cast<unsigned char *>(m_scratch.alloc_ptr()); }
   KOKKOS_INLINE_FUNCTION  void * scratch_memory() const { return reinterpret_cast<unsigned char *>(m_scratch.alloc_ptr()) + m_scratch_reduce_end ; }
+
+#else
+
+  inline void * reduce_memory() const { return m_scratch ; }
+  KOKKOS_INLINE_FUNCTION  void * scratch_memory() const
+    { return reinterpret_cast<unsigned char *>(m_scratch) + m_scratch_reduce_end ; }
+
+#endif
 
   KOKKOS_INLINE_FUNCTION  int volatile & state() { return m_pool_state ; }
   KOKKOS_INLINE_FUNCTION  ThreadsExec * const * pool_base() const { return m_pool_base ; }

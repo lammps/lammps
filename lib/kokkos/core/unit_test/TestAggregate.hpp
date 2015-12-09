@@ -711,16 +711,27 @@ int TestViewAggregate()
 
 #else /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
+#include <impl/KokkosExp_ViewArray.hpp>
+
 namespace Test {
 
 template< class DeviceType >
-int TestViewAggregate()
+void TestViewAggregate()
 {
-/*
-  typedef Kokkos::ViewTraits< Kokkos::Array<double,32> ** , DeviceType > a32_traits ;
+  typedef Kokkos::Array<double,32>  value_type ;
+
+  typedef Kokkos::Experimental::Impl::
+    ViewDataAnalysis< value_type * , Kokkos::LayoutLeft , value_type >
+      analysis_1d ;
+
+  static_assert( std::is_same< typename analysis_1d::specialize , Kokkos::Array<> >::value , "" );
+
+
+  typedef Kokkos::ViewTraits< value_type ** , DeviceType > a32_traits ;
   typedef Kokkos::ViewTraits< typename a32_traits::array_scalar_type , DeviceType > flat_traits ;
 
   static_assert( std::is_same< typename a32_traits::specialize , Kokkos::Array<> >::value , "" );
+  static_assert( std::is_same< typename a32_traits::value_type , value_type >::value , "" );
   static_assert( a32_traits::rank == 2 , "" );
   static_assert( a32_traits::rank_dynamic == 2 , "" );
 
@@ -730,17 +741,23 @@ int TestViewAggregate()
   static_assert( flat_traits::dimension::N2 == 32 , "" );
 
 
-
-
   typedef Kokkos::View< Kokkos::Array<double,32> ** , DeviceType > a32_type ;
+
   typedef typename a32_type::array_type  a32_flat_type ;
 
-
+  static_assert( std::is_same< typename a32_type::value_type , value_type >::value , "" );
+  static_assert( std::is_same< typename a32_type::pointer_type , double * >::value , "" );
   static_assert( a32_type::Rank == 2 , "" );
   static_assert( a32_flat_type::Rank == 3 , "" );
-*/
 
-  return 0 ;
+  a32_type x("test",4,5);
+  a32_flat_type y( x );
+
+  ASSERT_EQ( x.extent(0) , 4 );
+  ASSERT_EQ( x.extent(1) , 5 );
+  ASSERT_EQ( y.extent(0) , 4 );
+  ASSERT_EQ( y.extent(1) , 5 );
+  ASSERT_EQ( y.extent(2) , 32 );
 }
 
 }

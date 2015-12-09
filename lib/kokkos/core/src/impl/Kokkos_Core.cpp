@@ -67,6 +67,13 @@ bool is_unsigned_int(const char* str)
 
 void initialize_internal(const InitArguments& args)
 {
+// This is an experimental setting
+// For KNL in Flat mode this variable should be set, so that
+// memkind allocates high bandwidth memory correctly.
+#ifdef KOKKOS_HAVE_HBWSPACE
+setenv("MEMKIND_HBW_NODES", "1", 0);
+#endif
+
   // Protect declarations, to prevent "unused variable" warnings.
 #if defined( KOKKOS_HAVE_OPENMP ) || defined( KOKKOS_HAVE_PTHREAD )
   const int num_threads = args.num_threads;

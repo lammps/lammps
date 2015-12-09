@@ -1,17 +1,17 @@
 KOKKOS_PATH = ../..
 
-GTEST_PATH = ../../TPL/gtest
+GTEST_PATH = ../../tpls/gtest
 
 vpath %.cpp ${KOKKOS_PATH}/core/perf_test
 
 default: build_all
 	echo "End Build"
-	
+
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	CXX = nvcc_wrapper
+	CXX = $(NVCC_WRAPPER)
 	CXXFLAGS ?= -O3
 	LINK = $(CXX)
 	LDFLAGS ?= -lpthread
@@ -47,12 +47,12 @@ test-performance: KokkosCore_PerformanceTest
 
 test-atomic: KokkosCore_PerformanceTest_Atomics
 	./KokkosCore_PerformanceTest_Atomics
-	
+
 
 build_all: $(TARGETS)
 
 test: $(TEST_TARGETS)
-	
+
 clean: kokkos-clean 
 	rm -f *.o $(TARGETS)
 

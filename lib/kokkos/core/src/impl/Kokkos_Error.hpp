@@ -46,6 +46,7 @@
 
 #include <string>
 #include <iosfwd>
+#include <Cuda/Kokkos_Cuda_abort.hpp>
 
 namespace Kokkos {
 namespace Impl {

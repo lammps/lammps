@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-
+#include <algorithm>
 #include <Kokkos_Macros.hpp>
 
 /*--------------------------------------------------------------------------*/
@@ -56,10 +56,7 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if ( defined( _POSIX_C_SOURCE ) && _POSIX_C_SOURCE >= 200112L ) || \
-    ( defined( _XOPEN_SOURCE )   && _XOPEN_SOURCE   >= 600 )
-
-#define KOKKOS_POSIX_MEMALIGN_AVAILABLE
+#if defined(KOKKOS_POSIX_MEMALIGN_AVAILABLE)
 
 #include <unistd.h>
 #include <sys/mman.h>
@@ -73,8 +70,9 @@
 #endif
 
 // mmap flags for huge page tables
+// the Cuda driver does not interoperate with MAP_HUGETLB
 #if defined( KOKKOS_POSIX_MMAP_FLAGS )
-  #if defined( MAP_HUGETLB )
+  #if defined( MAP_HUGETLB ) && ! defined( KOKKOS_HAVE_CUDA )
     #define KOKKOS_POSIX_MMAP_FLAGS_HUGE (KOKKOS_POSIX_MMAP_FLAGS | MAP_HUGETLB )
   #else
     #define KOKKOS_POSIX_MMAP_FLAGS_HUGE KOKKOS_POSIX_MMAP_FLAGS
@@ -158,6 +156,8 @@ int HostSpace::in_parallel()
 
 /*--------------------------------------------------------------------------*/
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
 namespace Kokkos {
 
 Impl::AllocationTracker HostSpace::allocate_and_track( const std::string & label, const size_t size )
@@ -166,6 +166,8 @@ Impl::AllocationTracker HostSpace::allocate_and_track( const std::string & label
 }
 
 } // namespace Kokkos
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
 /*--------------------------------------------------------------------------*/
 
@@ -225,13 +227,13 @@ void * HostSpace::allocate( const size_t arg_alloc_size ) const
   static_assert( sizeof(void*) == sizeof(uintptr_t)
                , "Error sizeof(void*) != sizeof(uintptr_t)" );
 
-  static_assert( Kokkos::Impl::power_of_two< Kokkos::Impl::MEMORY_ALIGNMENT >::value
+  static_assert( Kokkos::Impl::is_integral_power_of_two( Kokkos::Impl::MEMORY_ALIGNMENT )
                , "Memory alignment must be power of two" );
 
-  constexpr size_t alignment = Kokkos::Impl::MEMORY_ALIGNMENT ;
-  constexpr size_t alignment_mask = alignment - 1 ;
+  constexpr uintptr_t alignment = Kokkos::Impl::MEMORY_ALIGNMENT ;
+  constexpr uintptr_t alignment_mask = alignment - 1 ;
 
-  void * ptr = NULL;
+  void * ptr = 0 ;
 
   if ( arg_alloc_size ) {
 
@@ -272,9 +274,9 @@ void * HostSpace::allocate( const size_t arg_alloc_size ) const
     else if ( m_alloc_mech == POSIX_MMAP ) {
       constexpr size_t use_huge_pages = (1u << 27);
       constexpr int    prot  = PROT_READ | PROT_WRITE ;
-      const     int    flags = arg_alloc_size < use_huge_pages
-                             ? KOKKOS_POSIX_MMAP_FLAGS
-                             : KOKKOS_POSIX_MMAP_FLAGS_HUGE ;
+      const int flags = arg_alloc_size < use_huge_pages
+                      ? KOKKOS_POSIX_MMAP_FLAGS
+                      : KOKKOS_POSIX_MMAP_FLAGS_HUGE ;
 
       // read write access to private memory
 
@@ -282,8 +284,8 @@ void * HostSpace::allocate( const size_t arg_alloc_size ) const
                 , arg_alloc_size /* size in bytes */
                 , prot           /* memory protection */
                 , flags          /* visibility of updates */
-                , -1 /* file descriptor */
-                ,  0 /* offset */
+                , -1             /* file descriptor */
+                ,  0             /* offset */
                 );
 
 /* Associated reallocation:
@@ -293,8 +295,24 @@ void * HostSpace::allocate( const size_t arg_alloc_size ) const
 #endif
   }
 
-  if ( reinterpret_cast<uintptr_t>(ptr) & alignment_mask ) {
-    Kokkos::Impl::throw_runtime_exception( "Kokkos::HostSpace aligned allocation failed" );
+  if ( ( ptr == 0 ) || ( reinterpret_cast<uintptr_t>(ptr) == ~uintptr_t(0) )
+       || ( reinterpret_cast<uintptr_t>(ptr) & alignment_mask ) ) {
+    std::ostringstream msg ;
+    msg << "Kokkos::HostSpace::allocate[ " ;
+    switch( m_alloc_mech ) {
+    case STD_MALLOC: msg << "STD_MALLOC" ; break ;
+    case POSIX_MEMALIGN: msg << "POSIX_MEMALIGN" ; break ;
+    case POSIX_MMAP: msg << "POSIX_MMAP" ; break ;
+    case INTEL_MM_ALLOC: msg << "INTEL_MM_ALLOC" ; break ;
+    }
+    msg << " ]( " << arg_alloc_size << " ) FAILED" ;
+    if ( ptr == NULL ) { msg << " NULL" ; } 
+    else { msg << " NOT ALIGNED " << ptr ; }
+
+    std::cerr << msg.str() << std::endl ;
+    std::cerr.flush();
+
+    Kokkos::Impl::throw_runtime_exception( msg.str() );
   }
 
   return ptr;
@@ -332,6 +350,9 @@ void HostSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_
 }
 
 } // namespace Kokkos
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 namespace Kokkos {
 namespace Experimental {
@@ -380,16 +401,59 @@ SharedAllocationRecord( const Kokkos::HostSpace & arg_space
           );
 }
 
+//----------------------------------------------------------------------------
+
+void * SharedAllocationRecord< Kokkos::HostSpace , void >::
+allocate_tracked( const Kokkos::HostSpace & arg_space
+                , const std::string & arg_alloc_label 
+                , const size_t arg_alloc_size )
+{
+  if ( ! arg_alloc_size ) return (void *) 0 ;
+
+  SharedAllocationRecord * const r =
+    allocate( arg_space , arg_alloc_label , arg_alloc_size );
+
+  RecordBase::increment( r );
+
+  return r->data();
+}
+
+void SharedAllocationRecord< Kokkos::HostSpace , void >::
+deallocate_tracked( void * const arg_alloc_ptr )
+{
+  if ( arg_alloc_ptr != 0 ) {
+    SharedAllocationRecord * const r = get_record( arg_alloc_ptr );
+
+    RecordBase::decrement( r );
+  }
+}
+
+void * SharedAllocationRecord< Kokkos::HostSpace , void >::
+reallocate_tracked( void * const arg_alloc_ptr
+                  , const size_t arg_alloc_size )
+{
+  SharedAllocationRecord * const r_old = get_record( arg_alloc_ptr );
+  SharedAllocationRecord * const r_new = allocate( r_old->m_space , r_old->get_label() , arg_alloc_size );
+
+  Kokkos::Impl::DeepCopy<HostSpace,HostSpace>( r_new->data() , r_old->data()
+                                             , std::min( r_old->size() , r_new->size() ) );
+
+  RecordBase::increment( r_new );
+  RecordBase::decrement( r_old );
+
+  return r_new->data();
+}
+
 SharedAllocationRecord< Kokkos::HostSpace , void > *
 SharedAllocationRecord< Kokkos::HostSpace , void >::get_record( void * alloc_ptr )
 {
   typedef SharedAllocationHeader  Header ;
   typedef SharedAllocationRecord< Kokkos::HostSpace , void >  RecordHost ;
 
-  SharedAllocationHeader const * const head   = Header::get_header( alloc_ptr );
-  RecordHost                   * const record = static_cast< RecordHost * >( head->m_record );
+  SharedAllocationHeader const * const head   = alloc_ptr ? Header::get_header( alloc_ptr ) : (SharedAllocationHeader *)0 ;
+  RecordHost                   * const record = head ? static_cast< RecordHost * >( head->m_record ) : (RecordHost *) 0 ;
 
-  if ( record->m_alloc_ptr != head ) {
+  if ( ! alloc_ptr || record->m_alloc_ptr != head ) {
     Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void >::get_record ERROR" ) );
   }
 
@@ -401,6 +465,54 @@ void SharedAllocationRecord< Kokkos::HostSpace , void >::
 print_records( std::ostream & s , const Kokkos::HostSpace & space , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "HostSpace" , & s_root_record , detail );
+}
+
+} // namespace Impl
+} // namespace Experimental
+} // namespace Kokkos
+
+/*--------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+namespace Kokkos {
+namespace Experimental {
+namespace Impl {
+
+template< class >
+struct ViewOperatorBoundsErrorAbort ;
+
+template<>
+struct ViewOperatorBoundsErrorAbort< Kokkos::HostSpace > {
+ static void apply( const size_t rank
+                  , const size_t n0 , const size_t n1
+                  , const size_t n2 , const size_t n3
+                  , const size_t n4 , const size_t n5
+                  , const size_t n6 , const size_t n7
+                  , const size_t i0 , const size_t i1
+                  , const size_t i2 , const size_t i3
+                  , const size_t i4 , const size_t i5
+                  , const size_t i6 , const size_t i7 );
+};
+
+void ViewOperatorBoundsErrorAbort< Kokkos::HostSpace >::
+apply( const size_t rank
+     , const size_t n0 , const size_t n1
+     , const size_t n2 , const size_t n3
+     , const size_t n4 , const size_t n5
+     , const size_t n6 , const size_t n7
+     , const size_t i0 , const size_t i1
+     , const size_t i2 , const size_t i3
+     , const size_t i4 , const size_t i5
+     , const size_t i6 , const size_t i7 )
+{
+  char buffer[512];
+
+  snprintf( buffer , sizeof(buffer)
+          , "View operator bounds error : rank(%lu) dim(%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu) index(%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu)"
+          , rank , n0 , n1 , n2 , n3 , n4 , n5 , n6 , n7
+                 , i0 , i1 , i2 , i3 , i4 , i5 , i6 , i7 );
+
+  Kokkos::Impl::throw_runtime_exception( buffer );
 }
 
 } // namespace Impl

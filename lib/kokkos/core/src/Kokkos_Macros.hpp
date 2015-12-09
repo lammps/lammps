@@ -416,5 +416,11 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#if ( defined( _POSIX_C_SOURCE ) && _POSIX_C_SOURCE >= 200112L ) || \
+    ( defined( _XOPEN_SOURCE )   && _XOPEN_SOURCE   >= 600 )
+#if defined(KOKKOS_ENABLE_PERFORMANCE_POSIX_MEMALIGN)
+#define KOKKOS_POSIX_MEMALIGN_AVAILABLE 1
+#endif
+#endif
 #endif /* #ifndef KOKKOS_MACROS_HPP */
 

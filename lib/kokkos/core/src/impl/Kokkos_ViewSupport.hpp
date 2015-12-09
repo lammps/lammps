@@ -44,6 +44,7 @@
 #ifndef KOKKOS_VIEWSUPPORT_HPP
 #define KOKKOS_VIEWSUPPORT_HPP
 
+#include <algorithm>
 #include <Kokkos_ExecPolicy.hpp>
 #include <impl/Kokkos_Shape.hpp>
 
@@ -114,6 +115,7 @@ template< class ExecSpace , class Type , bool Initialize >
 struct ViewDefaultConstruct
 { ViewDefaultConstruct( Type * , size_t ) {} };
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
 
 /** \brief  ViewDataHandle provides the type of the 'data handle' which the view
  *          uses to access data with the [] operator. It also provides
@@ -239,6 +241,8 @@ public:
       return ViewDataHandle< StaticViewTraits >::create_handle(ptr, tracker);
     }
 };
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
 } // namespace Impl
 } // namespace Kokkos

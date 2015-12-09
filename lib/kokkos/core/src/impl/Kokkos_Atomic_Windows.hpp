@@ -45,6 +45,7 @@
 #ifdef _WIN32
 
 #define NOMINMAX
+#include <winsock2.h>
 #include <Windows.h>
 
 namespace Kokkos {
@@ -61,7 +62,6 @@ namespace Kokkos {
     };
   }
 
-#ifdef KOKKOS_HAVE_CXX11
   template < typename T >
   KOKKOS_INLINE_FUNCTION
     T atomic_compare_exchange(volatile T * const dest, const T & compare,
@@ -103,8 +103,16 @@ namespace Kokkos {
       KOKKOS_INLINE_FUNCTION U() {};
     } tmp, newval;
     newval.t = val;
-    tmp.i = _InterlockedCompareExchange128((LONGLONG*)dest, newval.i.upper, newval.i.lower, *((LONGLONG*)&compare));
+    _InterlockedCompareExchange128((LONGLONG*)dest, newval.i.upper, newval.i.lower, ((LONGLONG*)&compare));
+    tmp.t = dest;
     return tmp.t;
+  }
+
+  template < typename T >
+  KOKKOS_INLINE_FUNCTION
+    T atomic_compare_exchange_strong(volatile T * const dest, const T & compare, const T & val)
+  {
+    return atomic_compare_exchange(dest,compare,val);
   }
 
   template< typename T >
@@ -147,7 +155,20 @@ namespace Kokkos {
   }
 
   template< typename T >
-  T atomic_fetch_exchange(volatile T * const dest, const T val) {
+  T atomic_fetch_sub(volatile T * const dest, const T val) {
+    T oldval = *dest;
+    T assume;
+    do {
+      assume = oldval;
+      T newval = val - oldval;
+      oldval = atomic_compare_exchange(dest, assume, newval);
+    } while (assume != oldval);
+
+    return oldval;
+  }
+
+  template< typename T >
+  T atomic_exchange(volatile T * const dest, const T val) {
     T oldval = *dest;
     T assume;
     do {
@@ -174,8 +195,8 @@ namespace Kokkos {
   }
 
   template< typename T >
-  void atomic_exchange(volatile T * const dest, const T val) {
-    atomic_fetch_exchange(dest, val);
+  void atomic_sub(volatile T * const dest, const T val) {
+    atomic_fetch_sub(dest, val);
   }
 
   template< typename T >
@@ -208,4 +229,4 @@ namespace Kokkos {
 }
 #endif
 #endif
-#endif
+

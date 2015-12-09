@@ -240,7 +240,7 @@ TEST_F( defaultdevicetype , malloc )
 
   int* data2 = (int*) Kokkos::kokkos_malloc(0);
   ASSERT_TRUE(data2==NULL);
-  Kokkos::kokkos_free(data);
+  Kokkos::kokkos_free(data2);
 }
 
 } // namespace test

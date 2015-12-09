@@ -106,9 +106,9 @@ public:
 
   //! The type of a Kokkos::View on the device.
   typedef View< typename traits::data_type ,
-                typename traits::array_layout ,
-                typename traits::device_type ,
-                typename traits::memory_traits > t_dev ;
+                Arg1Type ,
+                Arg2Type ,
+                Arg3Type > t_dev ;
 
   /// \typedef t_host
   /// \brief The type of a Kokkos::View host mirror of \c t_dev.
@@ -117,9 +117,9 @@ public:
   //! The type of a const View on the device.
   //! The type of a Kokkos::View on the device.
   typedef View< typename traits::const_data_type ,
-                typename traits::array_layout ,
-                typename traits::device_type ,
-                typename traits::memory_traits > t_dev_const ;
+                Arg1Type ,
+                Arg2Type ,
+                Arg3Type > t_dev_const ;
 
   /// \typedef t_host_const
   /// \brief The type of a const View host mirror of \c t_dev_const.
@@ -221,6 +221,19 @@ public:
     modified_host (src.modified_host)
   {}
 
+  //! Subview constructor
+  template< class SD, class S1 , class S2 , class S3
+          , class Arg0 , class ... Args >
+  DualView( const DualView<SD,S1,S2,S3> & src
+          , const Arg0 & arg0
+          , Args ... args
+          )
+    : d_view( Kokkos::subview( src.d_view , arg0 , args ... ) )
+    , h_view( Kokkos::subview( src.h_view , arg0 , args ... ) )
+    , modified_device (src.modified_device)
+    , modified_host (src.modified_host)
+    {}
+
   /// \brief Create DualView from existing device and host View objects.
   ///
   /// This constructor assumes that the device and host View objects
@@ -237,7 +250,30 @@ public:
     modified_device (View<unsigned int,LayoutLeft,typename t_host::execution_space> ("DualView::modified_device")),
     modified_host (View<unsigned int,LayoutLeft,typename t_host::execution_space> ("DualView::modified_host"))
   {
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
     Impl::assert_shapes_are_equal (d_view.shape (), h_view.shape ());
+#else
+    if ( d_view.rank          != h_view.rank ||
+         d_view.dimension_0() != h_view.dimension_0() ||
+         d_view.dimension_1() != h_view.dimension_1() ||
+         d_view.dimension_2() != h_view.dimension_2() ||
+         d_view.dimension_3() != h_view.dimension_3() ||
+         d_view.dimension_4() != h_view.dimension_4() ||
+         d_view.dimension_5() != h_view.dimension_5() ||
+         d_view.dimension_6() != h_view.dimension_6() ||
+         d_view.dimension_7() != h_view.dimension_7() ||
+         d_view.stride_0()    != h_view.stride_0() ||
+         d_view.stride_1()    != h_view.stride_1() ||
+         d_view.stride_2()    != h_view.stride_2() ||
+         d_view.stride_3()    != h_view.stride_3() ||
+         d_view.stride_4()    != h_view.stride_4() ||
+         d_view.stride_5()    != h_view.stride_5() ||
+         d_view.stride_6()    != h_view.stride_6() ||
+         d_view.stride_7()    != h_view.stride_7() ||
+         d_view.span()        != h_view.span() ) {
+      Kokkos::Impl::throw_runtime_exception("DualView constructed with incompatible views");
+    }
+#endif
   }
 
   //@}
@@ -501,6 +537,52 @@ public:
 };
 
 } // namespace Kokkos
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+//
+// Partial specializations of Kokkos::subview() for DualView objects.
+//
+
+#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
+namespace Kokkos {
+namespace Impl {
+
+template< class D, class A1, class A2, class A3, class ... Args >
+struct DualViewSubview {
+
+  typedef typename Kokkos::Experimental::Impl::ViewMapping
+    < void
+    , Kokkos::ViewTraits< D, A1, A2, A3 >
+    , Args ...
+    >::traits_type dst_traits ;
+
+  typedef Kokkos::DualView
+    < typename dst_traits::data_type 
+    , typename dst_traits::array_layout
+    , typename dst_traits::device_type
+    , typename dst_traits::memory_traits
+    > type ;
+};
+
+} /* namespace Impl */
+
+
+template< class D , class A1 , class A2 , class A3 , class ... Args >
+typename Impl::DualViewSubview<D,A1,A2,A3,Args...>::type
+subview( const DualView<D,A1,A2,A3> & src , Args ... args )
+{
+  return typename
+    Impl::DualViewSubview<D,A1,A2,A3,Args...>::type( src , args ... );
+}
+
+} /* namespace Kokkos */
+
+#else
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 //
 // Partial specializations of Kokkos::subview() for DualView objects.
 //
@@ -838,6 +920,15 @@ subview( const DualView<D,A1,A2,A3> & src ,
   sub_view.modified_host = src.modified_host;
   return sub_view;
 }
+
+} // namespace Kokkos
+
+#endif /* defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
 
 //
 // Partial specialization of Kokkos::deep_copy() for DualView objects.

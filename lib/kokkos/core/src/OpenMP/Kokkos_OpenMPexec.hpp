@@ -61,6 +61,8 @@ public:
 
   enum { MAX_THREAD_COUNT = 4096 };
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
   struct Pool
   {
     Pool() : m_trackers() {}
@@ -78,11 +80,21 @@ public:
     }
   };
 
+
 private:
+
+  static Pool         m_pool; // Indexed by: m_pool_rank_rev
+
+#else
+
+private:
+
+  static OpenMPexec * m_pool[ MAX_THREAD_COUNT ]; // Indexed by: m_pool_rank_rev
+
+#endif
 
   static int          m_pool_topo[ 4 ];
   static int          m_map_rank[ MAX_THREAD_COUNT ];
-  static Pool         m_pool; // Indexed by: m_pool_rank_rev
 
   friend class Kokkos::OpenMP ;
 
@@ -484,6 +496,8 @@ private:
   int m_team_alloc ;
   int m_team_iter ;
 
+  size_t m_scratch_size;
+
   inline void init( const int league_size_request
                   , const int team_size_request )
     {
@@ -511,13 +525,49 @@ public:
 
   inline int team_size()   const { return m_team_size ; }
   inline int league_size() const { return m_league_size ; }
+  inline size_t scratch_size() const { return m_scratch_size ; }
 
   /** \brief  Specify league size, request team size */
-  TeamPolicy( execution_space & , int league_size_request , int team_size_request , int vector_length_request = 1)
-    { init( league_size_request , team_size_request ); (void) vector_length_request; }
+  TeamPolicy( execution_space &
+            , int league_size_request
+            , int team_size_request
+            , int /* vector_length_request */ = 1 )
+            : m_scratch_size ( 0 )
+    { init( league_size_request , team_size_request ); }
 
-  TeamPolicy( int league_size_request , int team_size_request , int vector_length_request = 1 )
-    { init( league_size_request , team_size_request ); (void) vector_length_request; }
+  TeamPolicy( execution_space &
+            , int league_size_request
+            , const Kokkos::AUTO_t & /* team_size_request */
+            , int /* vector_length_request */ = 1)
+            : m_scratch_size ( 0 )
+    { init( league_size_request , execution_space::thread_pool_size(2) ); }
+
+  TeamPolicy( int league_size_request
+            , int team_size_request
+            , int /* vector_length_request */ = 1 )
+            : m_scratch_size ( 0 )
+    { init( league_size_request , team_size_request ); }
+
+  TeamPolicy( int league_size_request
+            , const Kokkos::AUTO_t & /* team_size_request */
+            , int /* vector_length_request */ = 1 )
+            : m_scratch_size ( 0 )
+    { init( league_size_request , execution_space::thread_pool_size(2) ); }
+
+  template<class MemorySpace>
+  TeamPolicy( int league_size_request
+            , int team_size_request
+            , const Experimental::TeamScratchRequest<MemorySpace> & scratch_request )
+            : m_scratch_size(scratch_request.total(team_size_request))
+    { init(league_size_request,team_size_request); }
+
+
+  template<class MemorySpace>
+  TeamPolicy( int league_size_request
+            , const Kokkos::AUTO_t & /* team_size_request */
+            , const Experimental::TeamScratchRequest<MemorySpace> & scratch_request )
+            : m_scratch_size(scratch_request.total(execution_space::thread_pool_size(2)))
+    { init(league_size_request,execution_space::thread_pool_size(2)); }
 
   inline int team_alloc() const { return m_team_alloc ; }
   inline int team_iter()  const { return m_team_iter ; }

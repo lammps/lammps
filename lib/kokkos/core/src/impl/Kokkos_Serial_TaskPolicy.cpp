@@ -230,7 +230,7 @@ void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
 namespace {
 
 Task * s_ready = 0 ;
-Task * s_denied = reinterpret_cast<Task*>( ~((unsigned long)0) );
+Task * s_denied = reinterpret_cast<Task*>( ~((uintptr_t)0) );
 
 }
 

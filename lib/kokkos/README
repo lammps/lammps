@@ -20,6 +20,13 @@ GTC 2015:
 A programming guide can be found under doc/Kokkos_PG.pdf. This is an initial version
 and feedback is greatly appreciated.
 
+A separate repository with extensive tutorial material can be found under 
+https://github.com/kokkos/kokkos-tutorials.
+
+If you have a patch to contribute please feel free to issue a pull request against
+the develop branch. For major contributions it is better to contact us first
+for guidance.
+
 For questions please send an email to
 kokkos-users@software.sandia.gov
 

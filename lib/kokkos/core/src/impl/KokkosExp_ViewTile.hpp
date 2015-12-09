@@ -69,8 +69,8 @@ struct ViewOffset< Dimension , Layout ,
 {
 public:
 
-  enum { SHIFT_0 = Kokkos::Impl::power_of_two<Layout::N0>::value };
-  enum { SHIFT_1 = Kokkos::Impl::power_of_two<Layout::N1>::value };
+  enum { SHIFT_0 = Kokkos::Impl::integral_power_of_two(Layout::N0) };
+  enum { SHIFT_1 = Kokkos::Impl::integral_power_of_two(Layout::N1) };
   enum { SHIFT_T = SHIFT_0 + SHIFT_1 };
   enum { MASK_0  = Layout::N0 - 1 };
   enum { MASK_1  = Layout::N1 - 1 };
@@ -155,6 +155,42 @@ public:
     {}
 };
 
+template< typename T , unsigned N0 , unsigned N1 , class ... P
+        , typename iType0 , typename iType1
+        >
+struct ViewMapping
+  < void
+  , Kokkos::Experimental::ViewTraits<T**,Kokkos::LayoutTileLeft<N0,N1,true>,P...>
+  , Kokkos::LayoutTileLeft<N0,N1,true>
+  , iType0
+  , iType1 >
+{
+  typedef Kokkos::LayoutTileLeft<N0,N1,true>  src_layout ;
+  typedef Kokkos::Experimental::ViewTraits< T** , src_layout , P... > src_traits ;
+  typedef Kokkos::Experimental::ViewTraits< T[N0][N1] , LayoutLeft , P ... > traits ;
+  typedef Kokkos::Experimental::View< T[N0][N1] , LayoutLeft , P ... > type ;
+
+  KOKKOS_INLINE_FUNCTION static
+  void assign( ViewMapping< traits , void > & dst
+             , const ViewMapping< src_traits , void > & src
+             , const src_layout &
+             , const size_t i_tile0
+             , const size_t i_tile1
+             )
+    {
+      typedef ViewMapping< traits , void >        dst_map_type ;
+      typedef ViewMapping< src_traits , void >    src_map_type ;
+      typedef typename dst_map_type::handle_type  dst_handle_type ;
+      typedef typename dst_map_type::offset_type  dst_offset_type ;
+      typedef typename src_map_type::offset_type  src_offset_type ;
+
+      dst = dst_map_type(
+         dst_handle_type( src.m_handle +
+                        ( ( i_tile0 + src.m_offset.m_tile_N0 * i_tile1 ) << src_offset_type::SHIFT_T ) ) ,
+         dst_offset_type() );
+    }
+};
+
 } /* namespace Impl */
 } /* namespace Experimental */
 } /* namespace Kokkos */
@@ -162,51 +198,20 @@ public:
 namespace Kokkos {
 namespace Experimental {
 
-// Using View with an invalid data type to construct the tiling subview.
-// View is a friend of View so we use this invalid data type partial specialization
-// to access implementation of both source and destination view for constructing
-// the tile subview.
-
-template< unsigned N0 , unsigned N1 >
-struct View< void , Kokkos::LayoutTileLeft<N0,N1,true> , void , void >
-{
-  typedef Kokkos::LayoutTileLeft<N0,N1,true>  Layout ;
-
-  template< typename T , class A2 , class A3 >
-  KOKKOS_INLINE_FUNCTION static
-  Kokkos::Experimental::View< T[N0][N1] , LayoutLeft , A2 , A3 >
-  tile_subview( const Kokkos::Experimental::View<T**,Layout,A2,A3> & src
-              , const size_t i_tile0
-              , const size_t i_tile1
-              )
-    {
-      typedef Kokkos::Experimental::View<T**,Layout,A2,A3>                   SrcView ;
-      typedef Kokkos::Experimental::View< T[N0][N1] , LayoutLeft , A2 , A3 > DstView ;
-
-      typedef typename SrcView::map_type::offset_type  src_offset_type ;
-      typedef typename DstView::map_type               dst_map_type ;
-      typedef typename DstView::map_type::handle_type  dst_handle_type ;
-      typedef typename DstView::map_type::offset_type  dst_offset_type ;
-
-      return DstView( src.m_track ,
-                      dst_map_type(
-                        dst_handle_type( src.m_map.m_handle +
-                                         ( ( i_tile0 + src.m_map.m_offset.m_tile_N0 * i_tile1 ) << src_offset_type::SHIFT_T ) ) ,
-                        dst_offset_type() )
-                    );
-    }
-};
-
-template< typename T , unsigned N0 , unsigned N1 , class A2 , class A3 >
+template< typename T , unsigned N0 , unsigned N1 , class ... P >
 KOKKOS_INLINE_FUNCTION
-Kokkos::Experimental::View< T[N0][N1] , LayoutLeft , A2 , A3 >
-tile_subview( const Kokkos::Experimental::View<T**,Kokkos::LayoutTileLeft<N0,N1,true>,A2,A3> & src
+Kokkos::Experimental::View< T[N0][N1] , LayoutLeft , P... >
+tile_subview( const Kokkos::Experimental::View<T**,Kokkos::LayoutTileLeft<N0,N1,true>,P...> & src
             , const size_t i_tile0
             , const size_t i_tile1
             )
 {
-  return View< void , Kokkos::LayoutTileLeft<N0,N1,true> , void , void >::
-    tile_subview( src , i_tile0 , i_tile1 );
+  // Force the specialized ViewMapping for extracting a tile
+  // by using the first subview argument as the layout.
+  typedef Kokkos::LayoutTileLeft<N0,N1,true> SrcLayout ;
+
+  return Kokkos::Experimental::View< T[N0][N1] , LayoutLeft , P... >
+    ( src , SrcLayout() , i_tile0 , i_tile1 );
 }
 
 } /* namespace Experimental */

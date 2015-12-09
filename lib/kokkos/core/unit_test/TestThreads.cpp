@@ -60,6 +60,7 @@
 
 #include <TestViewAPI.hpp>
 #include <TestViewSubview.hpp>
+#include <TestViewOfClass.hpp>
 #include <TestAtomic.hpp>
 
 #include <TestReduce.hpp>
@@ -151,6 +152,11 @@ TEST_F( threads, view_impl) {
 
 TEST_F( threads, view_api) {
   TestViewAPI< double , Kokkos::Threads >();
+}
+
+TEST_F( threads , view_nested_view )
+{
+  ::Test::view_nested_view< Kokkos::Threads >();
 }
 
 TEST_F( threads, view_subview_auto_1d_left ) {
@@ -247,6 +253,12 @@ TEST_F( threads, long_reduce_dynamic_view ) {
 TEST_F( threads, team_shared_request) {
   TestSharedTeam< Kokkos::Threads >();
 }
+
+#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA) && !defined(KOKKOS_HAVE_CUDA)
+TEST_F( threads, team_lambda_shared_request) {
+  TestLambdaSharedTeam< Kokkos::Threads >();
+}
+#endif
 
 TEST_F( threads , view_remap )
 {

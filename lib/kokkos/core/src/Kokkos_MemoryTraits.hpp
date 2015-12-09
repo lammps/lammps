@@ -101,9 +101,9 @@ namespace Impl {
  */
 enum { MEMORY_ALIGNMENT =
 #if defined( KOKKOS_MEMORY_ALIGNMENT )
-    ( 1 << Kokkos::Impl::power_of_two< KOKKOS_MEMORY_ALIGNMENT >::value )
+    ( 1 << Kokkos::Impl::integral_power_of_two( KOKKOS_MEMORY_ALIGNMENT ) )
 #else
-    ( 1 << Kokkos::Impl::power_of_two< 128 >::value )
+    ( 1 << Kokkos::Impl::integral_power_of_two( 128 ) )
 #endif
   , MEMORY_ALIGNMENT_THRESHOLD = 4 
   };

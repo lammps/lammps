@@ -304,13 +304,12 @@ if some of the packages are still being actively developed and
 supported.
 
 The packages Pypar and mpi4py have both been successfully tested with
-LAMMPS.  Both are widely used.  Pypar is simpler and easy to set up
-and use, but supports only a subset of MPI.  Mpi4py is more
-MPI-feature complete, but also a bit more complex to use.  As of
-version 2.0.0, mpi4py is the only python MPI wrapper that allows
-passing a custom MPI communicator to the LAMMPS constructor, which
-means one can easily run one or more LAMMPS instances on subsets of
-the total MPI ranks.
+LAMMPS.  Pypar is simpler and easy to set up and use, but supports
+only a subset of MPI.  Mpi4py is more MPI-feature complete, but also a
+bit more complex to use.  As of version 2.0.0, mpi4py is the only
+python MPI wrapper that allows passing a custom MPI communicator to
+the LAMMPS constructor, which means one can easily run one or more
+LAMMPS instances on subsets of the total MPI ranks.
 
 :line
 
@@ -380,7 +379,7 @@ Again, the "sudo" is only needed if required to copy mpi4py files into
 your Python distribution's site-packages directory. To install with
 user privilege into the user local directory type
 
-python setup.py install --user
+python setup.py install --user :pre
 
 If you have successully installed mpi4py, you should be able to run
 Python and type
@@ -467,8 +466,8 @@ lmp_g++ -in in.lj :pre
 [Test LAMMPS and Python in parallel:] :h5
 
 To run LAMMPS in parallel, assuming you have installed the
-"Pypar"_http://datamining.anu.edu.au/~ole/pypar package as discussed
-above, create a test.py file containing these lines:
+"Pypar"_Pypar package as discussed above, create a test.py file
+containing these lines:
 
 import pypar
 from lammps import lammps
@@ -477,7 +476,20 @@ lmp.file("in.lj")
 print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()),lmp
 pypar.finalize() :pre
 
-You can then run it in parallel as:
+To run LAMMPS in parallel, assuming you have installed the
+"mpi4py"_mpi4py package as discussed above, create a test.py file
+containing these lines:
+
+from mpi4py import MPI
+from lammps import lammps
+lmp = lammps()
+lmp.file("in.lj")
+me = MPI.COMM_WORLD.Get_rank()
+nprocs = MPI.COMM_WORLD.Get_size()
+print "Proc %d out of %d procs has" % (me,nprocs),lmp
+MPI.Finalize() :pre
+
+You can either script in parallel as:
 
 % mpirun -np 4 python test.py :pre
 
@@ -547,7 +559,7 @@ from a C++ or C or Fortran program.
 lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
                          4 optional args are allowed: name, cmdargs, ptr, comm
 lmp = lammps(ptr=lmpptr) # use lmpptr as previously created LAMMPS object
-lmp = lammps(comm=split) # create a LAMMPS object with a custom communicator. Requires mpi4py 2.0.0 or later
+lmp = lammps(comm=split) # create a LAMMPS object with a custom communicator, requires mpi4py 2.0.0 or later
 lmp = lammps(name="g++")   # create a LAMMPS object using the liblammps_g++.so library
 lmp = lammps(name="g++",cmdargs=list)    # add LAMMPS command-line args, e.g. list = \["-echo","screen"\] :pre
 
@@ -772,7 +784,8 @@ distribution.
 
 trivial.py, read/run a LAMMPS input script thru Python,
 demo.py, invoke various LAMMPS library interface routines,
-simple.py, mimic operation of couple/simple/simple.cpp in Python,
+simple.py, run in parallel, similar to examples/COUPLE/simple/simple.cpp,
+split.py, same as simple.py but running in parallel on a subset of procs,
 gui.py, GUI go/stop/temperature-slider to control LAMMPS,
 plot.py, real-time temeperature plot with GnuPlot via Pizza.py,
 viz_tool.py, real-time viz via some viz package,

@@ -61,6 +61,8 @@ public:
 
   enum { MAX_THREAD_COUNT = 4096 };
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
   struct Pool
   {
     Pool() : m_trackers() {}
@@ -78,11 +80,21 @@ public:
     }
   };
 
+
 private:
+
+  static Pool         m_pool; // Indexed by: m_pool_rank_rev
+
+#else
+
+private:
+
+  static OpenMPexec * m_pool[ MAX_THREAD_COUNT ]; // Indexed by: m_pool_rank_rev
+
+#endif
 
   static int          m_pool_topo[ 4 ];
   static int          m_map_rank[ MAX_THREAD_COUNT ];
-  static Pool         m_pool; // Indexed by: m_pool_rank_rev
 
   friend class Kokkos::OpenMP ;
 
@@ -193,12 +205,14 @@ private:
   inline
   bool team_fan_in() const
     {
+      memory_fence();
       for ( int n = 1 , j ; ( ( j = m_team_rank_rev + n ) < m_team_size ) && ! ( m_team_rank_rev & n ) ; n <<= 1 ) {
         m_exec.pool_rev( m_team_base_rev + j )->state_wait( Active );
       }
 
       if ( m_team_rank_rev ) {
         m_exec.state_set( Rendezvous );
+        memory_fence();
         m_exec.state_wait( Rendezvous );
       }
 
@@ -208,8 +222,10 @@ private:
   inline
   void team_fan_out() const
     {
+      memory_fence();
       for ( int n = 1 , j ; ( ( j = m_team_rank_rev + n ) < m_team_size ) && ! ( m_team_rank_rev & n ) ; n <<= 1 ) {
         m_exec.pool_rev( m_team_base_rev + j )->state_set( Active );
+        memory_fence();
       }
     }
 
@@ -265,6 +281,7 @@ public:
     { return ValueType(); }
   #else
     {
+      memory_fence();
       typedef ValueType value_type;
       const JoinLambdaAdapter<value_type,JoinOp> op(op_in);
   #endif
@@ -301,6 +318,7 @@ public:
         for ( int i = 1 ; i < m_team_size ; ++i ) {
           op.join( *team_value , *((type*) m_exec.pool_rev( m_team_base_rev + i )->scratch_thread()) );
         }
+        memory_fence();
 
         // The base team member may "lap" the other team members,
         // copy to their local value before proceeding.
@@ -484,6 +502,8 @@ private:
   int m_team_alloc ;
   int m_team_iter ;
 
+  size_t m_scratch_size;
+
   inline void init( const int league_size_request
                   , const int team_size_request )
     {
@@ -511,13 +531,49 @@ public:
 
   inline int team_size()   const { return m_team_size ; }
   inline int league_size() const { return m_league_size ; }
+  inline size_t scratch_size() const { return m_scratch_size ; }
 
   /** \brief  Specify league size, request team size */
-  TeamPolicy( execution_space & , int league_size_request , int team_size_request , int vector_length_request = 1)
-    { init( league_size_request , team_size_request ); (void) vector_length_request; }
+  TeamPolicy( execution_space &
+            , int league_size_request
+            , int team_size_request
+            , int /* vector_length_request */ = 1 )
+            : m_scratch_size ( 0 )
+    { init( league_size_request , team_size_request ); }
 
-  TeamPolicy( int league_size_request , int team_size_request , int vector_length_request = 1 )
-    { init( league_size_request , team_size_request ); (void) vector_length_request; }
+  TeamPolicy( execution_space &
+            , int league_size_request
+            , const Kokkos::AUTO_t & /* team_size_request */
+            , int /* vector_length_request */ = 1)
+            : m_scratch_size ( 0 )
+    { init( league_size_request , execution_space::thread_pool_size(2) ); }
+
+  TeamPolicy( int league_size_request
+            , int team_size_request
+            , int /* vector_length_request */ = 1 )
+            : m_scratch_size ( 0 )
+    { init( league_size_request , team_size_request ); }
+
+  TeamPolicy( int league_size_request
+            , const Kokkos::AUTO_t & /* team_size_request */
+            , int /* vector_length_request */ = 1 )
+            : m_scratch_size ( 0 )
+    { init( league_size_request , execution_space::thread_pool_size(2) ); }
+
+  template<class MemorySpace>
+  TeamPolicy( int league_size_request
+            , int team_size_request
+            , const Experimental::TeamScratchRequest<MemorySpace> & scratch_request )
+            : m_scratch_size(scratch_request.total(team_size_request))
+    { init(league_size_request,team_size_request); }
+
+
+  template<class MemorySpace>
+  TeamPolicy( int league_size_request
+            , const Kokkos::AUTO_t & /* team_size_request */
+            , const Experimental::TeamScratchRequest<MemorySpace> & scratch_request )
+            : m_scratch_size(scratch_request.total(execution_space::thread_pool_size(2)))
+    { init(league_size_request,execution_space::thread_pool_size(2)); }
 
   inline int team_alloc() const { return m_team_alloc ; }
   inline int team_iter()  const { return m_team_iter ; }

@@ -1,12 +1,12 @@
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,7 +35,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
@@ -43,7 +43,7 @@
 #ifndef KOKKOS_TEST_COMPLEX_HPP
 #define KOKKOS_TEST_COMPLEX_HPP
 
-//#include <Kokkos_Complex.hpp>
+#include <Kokkos_Complex.hpp>
 #include <gtest/gtest.h>
 #include <iostream>
 
@@ -124,14 +124,13 @@ namespace Impl {
 
     complex_type z1 (1.0, -1.0);
     complex_type z2 (-1.0, 1.0);
-    complex_type z3 = z1 - z2;
-    ASSERT_TRUE( z3 == complex_type (2.0, -2.0) );
+    complex_type z3 = z1 * z2;
+    ASSERT_TRUE( z3 == complex_type (0.0, 2.0) );
 
-    // Test unary minus.
-    complex_type z4 (3.0, -4.0);
-    ASSERT_TRUE( z4 == complex_type (3.0, -4.0) );
-    ASSERT_TRUE( -z4 == complex_type (-3.0, 4.0) );
-    ASSERT_TRUE( z4 == -complex_type (-3.0, 4.0) );
+    // Make sure that std::complex * Kokkos::complex works too.
+    std::complex<RealType> z4 (-1.0, 1.0);
+    complex_type z5 = z4 * z1;
+    ASSERT_TRUE( z5 == complex_type (0.0, 2.0) );
   }
 
   template <typename RealType>
@@ -208,7 +207,7 @@ namespace Impl {
 
     typedef Kokkos::View<const Kokkos::complex<RealType>*, Device> view_type;
     typedef typename view_type::size_type size_type;
-    typedef Kokkos::complex<RealType> value_type;    
+    typedef Kokkos::complex<RealType> value_type;
 
     KOKKOS_INLINE_FUNCTION
     void operator () (const size_type i, Kokkos::complex<RealType>& sum) const {

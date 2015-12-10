@@ -54,6 +54,7 @@
 #include <TestAtomic.hpp>
 
 #include <TestViewAPI.hpp>
+#include <TestViewOfClass.hpp>
 
 #include <TestTeam.hpp>
 #include <TestRange.hpp>
@@ -97,6 +98,11 @@ TEST_F( qthread, view_impl) {
 
 TEST_F( qthread, view_api) {
   TestViewAPI< double , Kokkos::Qthread >();
+}
+
+TEST_F( qthread , view_nested_view )
+{
+  ::Test::view_nested_view< Kokkos::Qthread >();
 }
 
 TEST_F( qthread , range_tag )

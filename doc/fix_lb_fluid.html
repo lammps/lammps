@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix lb/fluid command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix lb/fluid command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -245,37 +245,36 @@ fix, through the use of the <em>setGamma</em> keyword.  This may be useful
 when modelling porous particles.  See <a class="reference internal" href="fix_lb_viscous.html#mackay"><span>Mackay et al.</span></a> for a
 detailed description of the method by which the user can choose an
 appropriate gamma value.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">while this fix applies the force of the particles on
-the fluid, it does not apply the force of the fluid to the particles.
-When the force coupling constant is set using the default method,
-there is only one option to include this hydrodynamic force on the
-particles, and that is through the use of the
-<a class="reference internal" href="fix_lb_viscous.html"><em>lb/viscous</em></a> fix.  This fix adds the hydrodynamic
-force to the total force acting on the particles, after which any of
-the built-in LAMMPS integrators can be used to integrate the particle
-motion.  However, if the user specifies their own value for the force
-coupling constant, as mentioned in <a class="reference internal" href="fix_lb_viscous.html#mackay"><span>Mackay et al.</span></a>, the
-built-in LAMMPS integrators may prove to be unstable.  Therefore, we
-have included our own integrators <a class="reference internal" href="fix_lb_rigid_pc_sphere.html"><em>fix lb/rigid/pc/sphere</em></a>, and <a class="reference internal" href="fix_lb_pc.html"><em>fix lb/pc</em></a>, to solve for the particle motion in these
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">while this fix applies the force of the particles on the fluid,
+it does not apply the force of the fluid to the particles.  When the
+force coupling constant is set using the default method, there is only
+one option to include this hydrodynamic force on the particles, and
+that is through the use of the <a class="reference internal" href="fix_lb_viscous.html"><em>lb/viscous</em></a> fix.
+This fix adds the hydrodynamic force to the total force acting on the
+particles, after which any of the built-in LAMMPS integrators can be
+used to integrate the particle motion.  However, if the user specifies
+their own value for the force coupling constant, as mentioned in
+<a class="reference internal" href="fix_lb_viscous.html#mackay"><span>Mackay et al.</span></a>, the built-in LAMMPS integrators may prove to
+be unstable.  Therefore, we have included our own integrators <a class="reference internal" href="fix_lb_rigid_pc_sphere.html"><em>fix lb/rigid/pc/sphere</em></a>, and <a class="reference internal" href="fix_lb_pc.html"><em>fix lb/pc</em></a>, to solve for the particle motion in these
 cases.  These integrators should not be used with the
 <a class="reference internal" href="fix_lb_viscous.html"><em>lb/viscous</em></a> fix, as they add hydrodynamic forces
 to the particles directly.  In addition, they can not be used if the
 force coupling constant has been set the default way.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">if the force coupling constant is set using the
-default method, and the <a class="reference internal" href="fix_lb_viscous.html"><em>lb/viscous</em></a> fix is NOT
-used to add the hydrodynamic force to the total force acting on the
-particles, this physically corresponds to a situation in which an
-infinitely massive particle is moving through the fluid (since
-collisions between the particle and the fluid do not act to change the
-particle&#8217;s velocity).  Therefore, the user should set the mass of the
-particle to be significantly larger than the mass of the fluid at the
-particle location, in order to approximate an infinitely massive
-particle (see the dragforce test run for an example).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">if the force coupling constant is set using the default method,
+and the <a class="reference internal" href="fix_lb_viscous.html"><em>lb/viscous</em></a> fix is NOT used to add the
+hydrodynamic force to the total force acting on the particles, this
+physically corresponds to a situation in which an infinitely massive
+particle is moving through the fluid (since collisions between the
+particle and the fluid do not act to change the particle&#8217;s velocity).
+Therefore, the user should set the mass of the particle to be
+significantly larger than the mass of the fluid at the particle
+location, in order to approximate an infinitely massive particle (see
+the dragforce test run for an example).</p>
 </div>
 <hr class="docutils" />
 <p>Inside the fix, parameters are scaled by the lattice-Boltzmann
@@ -285,11 +284,11 @@ equal to 1.0, and dx is chosen so that tau/(dt) =
 (3*eta*dt)/(rho*dx^2) is approximately equal to 1.  However, the user
 has the option of specifying their own values for dm, and dx, by using
 the optional keywords <em>dm</em>, and <em>dx</em> respectively.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Care must be taken when choosing both a value for dx,
-and a simulation domain size.  This fix uses the same subdivision of
-the simulation domain among processors as the main LAMMPS program.  In
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Care must be taken when choosing both a value for dx, and a
+simulation domain size.  This fix uses the same subdivision of the
+simulation domain among processors as the main LAMMPS program.  In
 order to uniformly cover the simulation domain with lattice sites, the
 lengths of the individual LAMMPS subdomains must all be evenly
 divisible by dx.  If the simulation domain size is cubic, with equal
@@ -351,10 +350,10 @@ integer, N, a binary restart file is printed every N LB timesteps.
 This restart file only contains information about the fluid.
 Therefore, a LAMMPS restart file should also be written in order to
 print out full details of the simulation.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When a large number of lattice grid points are used,
-the restart files may become quite large.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When a large number of lattice grid points are used, the restart
+files may become quite large.</p>
 </div>
 <p>In order to restart the fluid portion of the simulation, the keyword
 <em>read_restart</em> is specified, followed by the name of the binary
@@ -443,7 +442,7 @@ If walls are present, they are assumed to be stationary.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -464,7 +463,7 @@ If walls are present, they are assumed to be stationary.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

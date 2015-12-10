@@ -32,9 +32,8 @@ to chain from file to file or back to the original file.
 If the word "SELF" is used for the filename, then the current input
 script is re-opened and read again.
 
-IMPORTANT NOTE: The SELF option is not guaranteed to work when the
-current input script is being read through stdin (standard input),
-e.g.
+NOTE: The SELF option is not guaranteed to work when the current input
+script is being read through stdin (standard input), e.g.
 
 lmp_g++ < in.script :pre
 

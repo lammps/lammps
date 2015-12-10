@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dump molfile command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>dump molfile command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -164,12 +164,11 @@ files.</p>
 to one single file with the specified format. Otherwise there will be
 one file per snapshot and the * will be replaced by the time step number
 when the snapshot is written.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because periodic boundary conditions are enforced only
-on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom written to a dump file may be slightly outside the simulation
-box.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.</p>
 </div>
 <p>The molfile plugin API has a few restrictions that have to be honored
 by this dump style: the number of atoms must not change, the atoms
@@ -250,7 +249,7 @@ with a set of header files that are compatible with VMD 1.9 and 1.9.1
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -271,7 +270,7 @@ with a set of header files that are compatible with VMD 1.9 and 1.9.1
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -131,9 +131,9 @@ into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
 flag. See "this section"_Section_start.html#start_2_4 of the manual
 for instructions on how to do this.
 
-IMPORTANT NOTE: Because periodic boundary conditions are enforced only
-on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom in the image may be slightly outside the simulation box.
+NOTE: Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+in the image may be slightly outside the simulation box.
 
 :line
 
@@ -355,7 +355,7 @@ value between 0.0 and 1.0 will introduce more perspective.  A {pfactor}
 value > 1 will create a highly skewed image with a large amount of
 perspective.
 
-IMPORTANT NOTE: The {persp} keyword is not yet supported as an option.
+NOTE: The {persp} keyword is not yet supported as an option.
 
 :line
 

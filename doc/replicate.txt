@@ -51,16 +51,16 @@ If a simulation is non-periodic in a dimension, care should be used
 when replicating it in that dimension, as it may put atoms nearly on
 top of each other.
 
-IMPORTANT NOTE: You cannot use the replicate command on a system which
-has a molecule that spans the box and is bonded to itself across a
-periodic boundary, so that the molecule is efffectively a loop.  A
-simple example would be a linear polymer chain that spans the
-simulation box and bonds back to itself across the periodic boundary.
-More realistic examples would be a CNT (meant to be an infinitely long
-CNT) or a graphene sheet or a bulk periodic crystal where there are
-explicit bonds specified between near neighbors.  (Note that this only
-applies to systems that have permanent bonds as specified in the data
-file.  A CNT that is just atoms modeled with the "AIREBO
+NOTE: You cannot use the replicate command on a system which has a
+molecule that spans the box and is bonded to itself across a periodic
+boundary, so that the molecule is efffectively a loop.  A simple
+example would be a linear polymer chain that spans the simulation box
+and bonds back to itself across the periodic boundary.  More realistic
+examples would be a CNT (meant to be an infinitely long CNT) or a
+graphene sheet or a bulk periodic crystal where there are explicit
+bonds specified between near neighbors.  (Note that this only applies
+to systems that have permanent bonds as specified in the data file.  A
+CNT that is just atoms modeled with the "AIREBO
 potential"_pair_airebo.html has no such permanent bonds, so it can be
 replicated.)  The reason replication does not work with those systems
 is that the image flag settings described above cannot be made

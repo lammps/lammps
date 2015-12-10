@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix box/relax command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix box/relax command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -216,33 +216,32 @@ to <em>fixedpoint</em>, then the lower periodic boundaries will remain at
 far. In all cases, the particle positions at each iteration are
 unaffected by the chosen value, except that all particles are
 displaced by the same amount, different on each iteration.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Appling an external pressure to tilt dimensions <em>xy</em>,
-<em>xz</em>, <em>yz</em> can sometimes result in arbitrarily large values of the
-tilt factors, i.e. a dramatically deformed simulation box.  This
-typically indicates that there is something badly wrong with how the
-simulation was constructed.  The two most common sources of this error
-are applying a shear stress to a liquid system or specifying an
-external shear stress tensor that exceeds the yield stress of the
-solid.  In either case the minimization may converge to a bogus
-conformation or not converge at all.  Also note that if the box shape
-tilts to an extreme shape, LAMMPS will run less efficiently, due to
-the large volume of communication needed to acquire ghost atoms around
-a processor&#8217;s irregular-shaped sub-domain.  For extreme values of
-tilt, LAMMPS may also lose atoms and generate an error.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Appling an external pressure to tilt dimensions <em>xy</em>, <em>xz</em>, <em>yz</em>
+can sometimes result in arbitrarily large values of the tilt factors,
+i.e. a dramatically deformed simulation box.  This typically indicates
+that there is something badly wrong with how the simulation was
+constructed.  The two most common sources of this error are applying a
+shear stress to a liquid system or specifying an external shear stress
+tensor that exceeds the yield stress of the solid.  In either case the
+minimization may converge to a bogus conformation or not converge at
+all.  Also note that if the box shape tilts to an extreme shape,
+LAMMPS will run less efficiently, due to the large volume of
+communication needed to acquire ghost atoms around a processor&#8217;s
+irregular-shaped sub-domain.  For extreme values of tilt, LAMMPS may
+also lose atoms and generate an error.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Performing a minimization with this fix is not a
-mathematically well-defined minimization problem.  This is because the
-objective function being minimized changes if the box size/shape
-changes.  In practice this means the minimizer can get &#8220;stuck&#8221; before
-you have reached the desired tolerance.  The solution to this is to
-restart the minmizer from the new adjusted box size/shape, since that
-creates a new objective function valid for the new box size/shape.
-Repeat as necessary until the box size/shape has reached its new
-equilibrium.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Performing a minimization with this fix is not a mathematically
+well-defined minimization problem.  This is because the objective
+function being minimized changes if the box size/shape changes.  In
+practice this means the minimizer can get &#8220;stuck&#8221; before you have
+reached the desired tolerance.  The solution to this is to restart the
+minmizer from the new adjusted box size/shape, since that creates a
+new objective function valid for the new box size/shape.  Repeat as
+necessary until the box size/shape has reached its new equilibrium.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>couple</em> keyword allows two or three of the diagonal components of
@@ -337,10 +336,10 @@ dimensions changes the objective function and gradients, which
 sometimes causes the minimization to fail. This can be resolved by
 changing the value of <em>nreset</em>, or simply continuing the minimization
 from a restart file.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">As normally computed, pressure includes a kinetic-
-energy or temperature-dependent component; see the <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> command.  However, atom velocities are
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As normally computed, pressure includes a kinetic- energy or
+temperature-dependent component; see the <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> command.  However, atom velocities are
 ignored during a minimization, and the applied pressure(s) specified
 with this command are assumed to only be the virial component of the
 pressure (the non-kinetic portion).  Thus if atoms have a non-zero
@@ -352,19 +351,18 @@ monitoring the pressure without its kinetic component.  The latter can
 be done by outputting the pressure from the fix this command creates
 (see below) or a pressure fix you define yourself.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because pressure is often a very sensitive function of
-volume, it can be difficult for the minimizer to equilibrate the
-system the desired pressure with high precision, particularly for
-solids.  Some techniques that seem to help are (a) use the
-&#8220;min_modify line quadratic&#8221; option when minimizing with box
-relaxations, (b) minimize several times in succession if need be,
-to drive the pressure closer to the target pressure, (c) relax
-the atom positions before relaxing the box, and (d) relax the box
-to the target hydrostatic pressure before relaxing to a target
-shear stress state. Also note that
-some systems (e.g. liquids) will not sustain a non-hydrostatic applied
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because pressure is often a very sensitive function of volume,
+it can be difficult for the minimizer to equilibrate the system the
+desired pressure with high precision, particularly for solids.  Some
+techniques that seem to help are (a) use the &#8220;min_modify line
+quadratic&#8221; option when minimizing with box relaxations, (b) minimize
+several times in succession if need be, to drive the pressure closer
+to the target pressure, (c) relax the atom positions before relaxing
+the box, and (d) relax the box to the target hydrostatic pressure
+before relaxing to a target shear stress state. Also note that some
+systems (e.g. liquids) will not sustain a non-hydrostatic applied
 pressure, which means the minimizer will not converge.</p>
 </div>
 <hr class="docutils" />
@@ -402,18 +400,17 @@ in its temperature and pressure calculation, as described above.  Note
 that as described above, if you assign a pressure compute to this fix
 that includes a kinetic energy component it will affect the
 minimization, most likely in an undesirable way.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If both the <em>temp</em> and <em>press</em> keywords are used in a
-single thermo_modify command (or in two separate commands), then the
-order in which the keywords are specified is important.  Note that a
-<a class="reference internal" href="compute_pressure.html"><em>pressure compute</em></a> defines its own temperature
-compute as an argument when it is specified.  The <em>temp</em> keyword will
-override this (for the pressure compute being used by fix npt), but
-only if the <em>temp</em> keyword comes after the <em>press</em> keyword.  If the
-<em>temp</em> keyword comes before the <em>press</em> keyword, then the new pressure
-compute specified by the <em>press</em> keyword will be unaffected by the
-<em>temp</em> setting.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If both the <em>temp</em> and <em>press</em> keywords are used in a single
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a <a class="reference internal" href="compute_pressure.html"><em>pressure compute</em></a> defines its own temperature compute as
+an argument when it is specified.  The <em>temp</em> keyword will override
+this (for the pressure compute being used by fix npt), but only if the
+<em>temp</em> keyword comes after the <em>press</em> keyword.  If the <em>temp</em> keyword
+comes before the <em>press</em> keyword, then the new pressure compute
+specified by the <em>press</em> keyword will be unaffected by the <em>temp</em>
+setting.</p>
 </div>
 <p>This fix computes a global scalar which can be accessed by various
 <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the
@@ -463,7 +460,7 @@ and if the tilt factor is not coupled to the barostat via keywords
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -484,7 +481,7 @@ and if the tilt factor is not coupled to the barostat via keywords
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

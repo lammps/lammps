@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix deposit command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix deposit command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -228,16 +228,16 @@ command with the <em>lost ignore</em> option and a fixed
 insertion volume.  The specified region must have been previously
 defined with a <a class="reference internal" href="region.html"><em>region</em></a> command.  It must be defined with
 side = <em>in</em>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">LAMMPS checks that the specified region is wholly
-inside the simulation box.  It can do this correctly for orthonormal
-simulation boxes.  However for <a class="reference internal" href="Section_howto.html#howto-12"><span>triclinic boxes</span></a>, it only tests against the larger
-orthonormal box that bounds the tilted simulation box.  If the
-specified region includes volume outside the tilted box, then an
-insertion will likely fail, leading to a &#8220;lost atoms&#8221; error.  Thus for
-triclinic boxes you should insure the specified region is wholly
-inside the simulation box.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">LAMMPS checks that the specified region is wholly inside the
+simulation box.  It can do this correctly for orthonormal simulation
+boxes.  However for <a class="reference internal" href="Section_howto.html#howto-12"><span>triclinic boxes</span></a>, it
+only tests against the larger orthonormal box that bounds the tilted
+simulation box.  If the specified region includes volume outside the
+tilted box, then an insertion will likely fail, leading to a &#8220;lost
+atoms&#8221; error.  Thus for triclinic boxes you should insure the
+specified region is wholly inside the simulation box.</p>
 </div>
 <p>Individual atoms are inserted, unless the <em>mol</em> keyword is used.  It
 specifies a <em>template-ID</em> previously defined using the
@@ -292,11 +292,11 @@ of the molecule.  If this test fails, a new random position within the
 insertion volume is chosen and another trial is made.  Up to Q
 attempts are made.  If the particle is not successfully inserted,
 LAMMPS prints a warning message.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you are inserting finite size particles or a
-molecule or rigid body consisting of finite-size particles, then you
-should typically set R larger than the distance at which any inserted
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are inserting finite size particles or a molecule or
+rigid body consisting of finite-size particles, then you should
+typically set R larger than the distance at which any inserted
 particle may overlap with either a previouly inserted particle or an
 existing particle.  LAMMPS will issue a warning if R is smaller than
 this value, based on the radii of existing and inserted particles.</p>
@@ -340,12 +340,12 @@ distance units are in lattice spacings.  The <a class="reference internal" href=
 command must have been previously used to define the lattice spacing.
 Note that the units choice affects all the keyword values that have
 units of distance or velocity.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you are monitoring the temperature of a system
-where the atom count is changing due to adding particles, you
-typically should use the <a class="reference internal" href="compute_modify.html"><em>compute_modify dynamic yes</em></a> command for the temperature compute you are
-using.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are monitoring the temperature of a system where the atom
+count is changing due to adding particles, you typically should use
+the <a class="reference internal" href="compute_modify.html"><em>compute_modify dynamic yes</em></a> command for the
+temperature compute you are using.</p>
 </div>
 </div>
 <div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
@@ -394,7 +394,7 @@ and units = lattice.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -415,7 +415,7 @@ and units = lattice.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

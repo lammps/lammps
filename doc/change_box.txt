@@ -93,7 +93,7 @@ conditions are invoked (see the "boundary"_boundary.html command)
 which may change simulation box boundaries, and atoms are migrated to
 new owning processors.
 
-IMPORTANT_NOTE: This means that you cannot use the change_box command
+NOTE: This means that you cannot use the change_box command
 to enlarge a shrink-wrapped box, e.g. to make room to insert more
 atoms via the "create_atoms"_create_atoms.html command, because the
 simulation box will be re-shrink-wrapped before the change_box command
@@ -108,37 +108,37 @@ change_box all x final -10 20 boundary f s s
 create_atoms 1 single -5 5 5
 change_box boundary s s s      # this will work :pre
 
-IMPORTANT NOTE: Unlike the earlier "displace_box" version of this
-command, atom remapping is NOT performed by default.  This command
-allows remapping to be done in a more general way, exactly when you
-specify it (zero or more times) in the sequence of transformations.
-Thus if you do not use the {remap} keyword, atom coordinates will not
-be changed even if the box size/shape changes.  If a uniformly
-strained state is desired, the {remap} keyword should be specified.
+NOTE: Unlike the earlier "displace_box" version of this command, atom
+remapping is NOT performed by default.  This command allows remapping
+to be done in a more general way, exactly when you specify it (zero or
+more times) in the sequence of transformations.  Thus if you do not
+use the {remap} keyword, atom coordinates will not be changed even if
+the box size/shape changes.  If a uniformly strained state is desired,
+the {remap} keyword should be specified.
 
-IMPORTANT NOTE: It is possible to lose atoms with this command.
-E.g. by changing the box without remapping the atoms, and having atoms
-end up outside of non-periodic boundaries.  It is also possible to
-alter bonds between atoms straddling a boundary in bad ways.  E.g. by
+NOTE: It is possible to lose atoms with this command.  E.g. by
+changing the box without remapping the atoms, and having atoms end up
+outside of non-periodic boundaries.  It is also possible to alter
+bonds between atoms straddling a boundary in bad ways.  E.g. by
 converting a boundary from periodic to non-periodic.  It is also
 possible when remapping atoms to put them (nearly) on top of each
 other.  E.g. by converting a boundary from non-periodic to periodic.
 All of these will typically lead to bad dynamics and/or generate error
 messages.
 
-IMPORTANT NOTE: The simulation box size/shape can be changed by
-arbitrarily large amounts by this command.  This is not a problem,
-except that the mapping of processors to the simulation box is not
-changed from its initial 3d configuration; see the
-"processors"_processors.html command.  Thus, if the box size/shape
-changes dramatically, the mapping of processors to the simulation box
-may not end up as optimal as the initial mapping attempted to be.
+NOTE: The simulation box size/shape can be changed by arbitrarily
+large amounts by this command.  This is not a problem, except that the
+mapping of processors to the simulation box is not changed from its
+initial 3d configuration; see the "processors"_processors.html
+command.  Thus, if the box size/shape changes dramatically, the
+mapping of processors to the simulation box may not end up as optimal
+as the initial mapping attempted to be.
 
-IMPORTANT NOTE: Because the keywords used in this command are applied
-one at a time to the simulation box and the atoms in it, care must be
-taken with triclinic cells to avoid exceeding the limits on skew after
-each transformation in the sequence.  If skew is exceeded before the
-final transformation this can be avoided by changing the order of the
+NOTE: Because the keywords used in this command are applied one at a
+time to the simulation box and the atoms in it, care must be taken
+with triclinic cells to avoid exceeding the limits on skew after each
+transformation in the sequence.  If skew is exceeded before the final
+transformation this can be avoided by changing the order of the
 sequence, or breaking the transformation into two or more smaller
 transformations.  For more information on the allowed limits for box
 skew see the discussion on triclinic boxes on "this
@@ -194,8 +194,8 @@ keep the volume constant:
 
 change_box all x scale 1.1 z volume y scale 1.1 z volume :pre
 
-IMPORTANT NOTE: For solids or liquids, when one dimension of the box
-is expanded, it may be physically undesirable to hold the other 2 box
+NOTE: For solids or liquids, when one dimension of the box is
+expanded, it may be physically undesirable to hold the other 2 box
 lengths constant since that implies a density change.  For solids,
 adjusting the other dimensions via the {volume} style may make
 physical sense (just as for a liquid), but may not be correct for

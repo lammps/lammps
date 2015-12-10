@@ -67,10 +67,10 @@ The "minimization styles"_min_style.html {quickmin} and {fire} perform
 damped dynamics using an Euler integration step.  Thus they require a
 "timestep"_timestep.html be defined.
 
-IMPORTANT NOTE: The damped dynamic minimizers use whatever timestep
-you have defined via the "timestep"_timestep.html command.  Often they
-will converge more quickly if you use a timestep about 10x larger than
-you would normally use for dynamics simulations.
+NOTE: The damped dynamic minimizers use whatever timestep you have
+defined via the "timestep"_timestep.html command.  Often they will
+converge more quickly if you use a timestep about 10x larger than you
+would normally use for dynamics simulations.
 
 :line
 
@@ -176,7 +176,7 @@ The iterations and force evaluation values are what is checked by the
 
 :line
 
-IMPORTANT NOTE: There are several force fields in LAMMPS which have
+NOTE: There are several force fields in LAMMPS which have
 discontinuities or other approximations which may prevent you from
 performing an energy minimization to high tolerances.  For example,
 you should use a "pair style"_pair_style.html that goes to 0.0 at the
@@ -230,8 +230,8 @@ examples of fixes that can be used include:
 "fix wall"_fix_wall.html
 "fix wall/region"_fix_wall_region.html :ul
 
-IMPORTANT NOTE: Some fixes which are invoked during minimization have
-an associated potential energy.  For that energy to be included in the
+NOTE: Some fixes which are invoked during minimization have an
+associated potential energy.  For that energy to be included in the
 total potential energy of the system (the quantity being minimized),
 you MUST enable the "fix_modify"_fix_modify.html {energy} option for
 that fix.  The doc pages for individual "fix"_fix.html commands

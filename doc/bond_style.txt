@@ -51,7 +51,7 @@ details on how to do this.  The one exception is that bond_style
 {hybrid} only stores the list of sub-styles in the restart file; bond
 coefficients need to be re-specified.
 
-IMPORTANT NOTE: When both a bond and pair style is defined, the
+NOTE: When both a bond and pair style is defined, the
 "special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between 2 bonded atoms.

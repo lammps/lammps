@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix store/force command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix store/force command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -157,17 +157,16 @@ forces have been calculated.  It is the point in the timestep when
 various fixes that compute constraint forces are calculated and
 potentially modify the force on each atom.  Examples of such fixes are
 <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a>, <a class="reference internal" href="fix_wall.html"><em>fix wall</em></a>, and <a class="reference internal" href="fix_indent.html"><em>fix indent</em></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The order in which various fixes are applied which
-operate at the same point during the timestep, is the same as the
-order they are specified in the input script.  Thus normally, if you
-want to store per-atom forces due to force field interactions, before
-constraints are applied, you should list this fix first within that
-set of fixes, i.e. before other fixes that apply constraints.
-However, if you wish to include certain constraints (e.g. fix shake)
-in the stored force, then it could be specified after some fixes and
-before others.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The order in which various fixes are applied which operate at
+the same point during the timestep, is the same as the order they are
+specified in the input script.  Thus normally, if you want to store
+per-atom forces due to force field interactions, before constraints
+are applied, you should list this fix first within that set of fixes,
+i.e. before other fixes that apply constraints.  However, if you wish
+to include certain constraints (e.g. fix shake) in the stored force,
+then it could be specified after some fixes and before others.</p>
 </div>
 </div>
 <div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
@@ -203,7 +202,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -224,7 +223,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

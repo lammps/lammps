@@ -71,26 +71,25 @@ their average positions relative to the center of mass of the system
 are stationary. The most common case is crystalline solids undergoing
 thermal motion.
 
-IMPORTANT NOTE: Initial coordinates are stored in "unwrapped" form, by
-using the image flags associated with each atom.  See the "dump
+NOTE: Initial coordinates are stored in "unwrapped" form, by using the
+image flags associated with each atom.  See the "dump
 custom"_dump.html command for a discussion of "unwrapped" coordinates.
 See the Atoms section of the "read_data"_read_data.html command for a
 discussion of image flags and how they are set for each atom.  You can
 reset the image flags (e.g. to 0) before invoking this compute by
 using the "set image"_set.html command.
 
-IMPORTANT NOTE: If you want the quantities calculated by this compute
-to be continuous when running from a "restart file"_read_restart.html,
-then you should use the same ID for this compute, as in the original
-run.  This is so that the fix this compute creates to store per-atom
+NOTE: If you want the quantities calculated by this compute to be
+continuous when running from a "restart file"_read_restart.html, then
+you should use the same ID for this compute, as in the original run.
+This is so that the fix this compute creates to store per-atom
 quantities will also have the same ID, and thus be initialized
-correctly with atom reference positions from the restart file.
-When {average} is set to yes, then the atom reference positions 
-are restored correctly, but not the number of samples used
-obtain them. As a result, the reference positions from the restart
-file are combined with subsequent positions as if they were from a 
-single sample, instead of many, which will change the values of msd
-somewhat.
+correctly with atom reference positions from the restart file.  When
+{average} is set to yes, then the atom reference positions are
+restored correctly, but not the number of samples used obtain them. As
+a result, the reference positions from the restart file are combined
+with subsequent positions as if they were from a single sample,
+instead of many, which will change the values of msd somewhat.
 
 [Output info:]
 

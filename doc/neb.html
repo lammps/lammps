@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>neb command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>neb command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -178,16 +178,16 @@ one or two processors.  You will simply not get the performance
 speed-up you would see with one or more physical processors per
 replica.  See <a class="reference internal" href="Section_howto.html#howto-5"><span>this section</span></a> of the manual
 for further discussion.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The current NEB implementation in LAMMPS only allows
-there to be one processor per replica.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The current NEB implementation in LAMMPS only allows there to be
+one processor per replica.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">As explained below, a NEB calculation perfoms a damped
-dynamics minimization across all the replicas.  The mimimizer uses
-whatever timestep you have defined in your input script, via the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As explained below, a NEB calculation perfoms a damped dynamics
+minimization across all the replicas.  The mimimizer uses whatever
+timestep you have defined in your input script, via the
 <a class="reference internal" href="timestep.html"><em>timestep</em></a> command.  Often NEB will converge more
 quickly if you use a timestep about 10x larger than you would normally
 use for dynamics simulations.</p>
@@ -296,8 +296,8 @@ commands.  The replica-specific names of these files can be specified
 as in the discussion above for the <em>each</em> file-style.  Also see the
 section below for how a NEB calculation can produce restart files, so
 that a long calculation can be restarted if needed.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">None of the <em>file-style</em> settings change the initial
 configuration of any atom in the first replica.  The first replica
 must thus be in the correct initial configuration at the time the neb
@@ -356,8 +356,8 @@ MEP, and the configurations of the replicas should be a sequence of
 configurations along the MEP.</p>
 <hr class="docutils" />
 <p>A few other settings in your input script are required or advised to
-perform a NEB calculation.  See the IMPORTANT NOTE about the choice of
-timestep at the beginning of this doc page.</p>
+perform a NEB calculation.  See the NOTE about the choice of timestep
+at the beginning of this doc page.</p>
 <p>An atom map must be defined which it is not by default for <a class="reference internal" href="atom_style.html"><em>atom_style atomic</em></a> problems.  The <a class="reference internal" href="atom_modify.html"><em>atom_modify map</em></a> command can be used to do this.</p>
 <p>The &#8220;atom_modify sort 0 0.0&#8221; command should be used to turn off atom
 sorting.</p>
@@ -529,7 +529,7 @@ for more info on packages.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -550,7 +550,7 @@ for more info on packages.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>change_box command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>change_box command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -214,13 +214,16 @@ current one.</p>
 conditions are invoked (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command)
 which may change simulation box boundaries, and atoms are migrated to
 new owning processors.</p>
-<p>IMPORTANT_NOTE: This means that you cannot use the change_box command
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This means that you cannot use the change_box command
 to enlarge a shrink-wrapped box, e.g. to make room to insert more
 atoms via the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command, because the
 simulation box will be re-shrink-wrapped before the change_box command
 completes.  Instead you could do something like this, assuming the
 simulation box is non-periodic and atoms extend from 0 to 20 in all
 dimensions:</p>
+</div>
 <div class="highlight-python"><div class="highlight"><pre>change_box all x final -10 20
 create_atoms 1 single -5 5 5   # this will fail to insert an atom
 </pre></div>
@@ -230,45 +233,45 @@ create_atoms 1 single -5 5 5
 change_box boundary s s s      # this will work
 </pre></div>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the earlier &#8220;displace_box&#8221; version of this
-command, atom remapping is NOT performed by default.  This command
-allows remapping to be done in a more general way, exactly when you
-specify it (zero or more times) in the sequence of transformations.
-Thus if you do not use the <em>remap</em> keyword, atom coordinates will not
-be changed even if the box size/shape changes.  If a uniformly
-strained state is desired, the <em>remap</em> keyword should be specified.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the earlier &#8220;displace_box&#8221; version of this command, atom
+remapping is NOT performed by default.  This command allows remapping
+to be done in a more general way, exactly when you specify it (zero or
+more times) in the sequence of transformations.  Thus if you do not
+use the <em>remap</em> keyword, atom coordinates will not be changed even if
+the box size/shape changes.  If a uniformly strained state is desired,
+the <em>remap</em> keyword should be specified.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is possible to lose atoms with this command.
-E.g. by changing the box without remapping the atoms, and having atoms
-end up outside of non-periodic boundaries.  It is also possible to
-alter bonds between atoms straddling a boundary in bad ways.  E.g. by
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is possible to lose atoms with this command.  E.g. by
+changing the box without remapping the atoms, and having atoms end up
+outside of non-periodic boundaries.  It is also possible to alter
+bonds between atoms straddling a boundary in bad ways.  E.g. by
 converting a boundary from periodic to non-periodic.  It is also
 possible when remapping atoms to put them (nearly) on top of each
 other.  E.g. by converting a boundary from non-periodic to periodic.
 All of these will typically lead to bad dynamics and/or generate error
 messages.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The simulation box size/shape can be changed by
-arbitrarily large amounts by this command.  This is not a problem,
-except that the mapping of processors to the simulation box is not
-changed from its initial 3d configuration; see the
-<a class="reference internal" href="processors.html"><em>processors</em></a> command.  Thus, if the box size/shape
-changes dramatically, the mapping of processors to the simulation box
-may not end up as optimal as the initial mapping attempted to be.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The simulation box size/shape can be changed by arbitrarily
+large amounts by this command.  This is not a problem, except that the
+mapping of processors to the simulation box is not changed from its
+initial 3d configuration; see the <a class="reference internal" href="processors.html"><em>processors</em></a>
+command.  Thus, if the box size/shape changes dramatically, the
+mapping of processors to the simulation box may not end up as optimal
+as the initial mapping attempted to be.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because the keywords used in this command are applied
-one at a time to the simulation box and the atoms in it, care must be
-taken with triclinic cells to avoid exceeding the limits on skew after
-each transformation in the sequence.  If skew is exceeded before the
-final transformation this can be avoided by changing the order of the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because the keywords used in this command are applied one at a
+time to the simulation box and the atoms in it, care must be taken
+with triclinic cells to avoid exceeding the limits on skew after each
+transformation in the sequence.  If skew is exceeded before the final
+transformation this can be avoided by changing the order of the
 sequence, or breaking the transformation into two or more smaller
 transformations.  For more information on the allowed limits for box
 skew see the discussion on triclinic boxes on <a class="reference internal" href="Section_howto.html#howto-12"><span>this page</span></a>.</p>
@@ -317,10 +320,10 @@ keep the volume constant:</p>
 <div class="highlight-python"><div class="highlight"><pre>change_box all x scale 1.1 z volume y scale 1.1 z volume
 </pre></div>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For solids or liquids, when one dimension of the box
-is expanded, it may be physically undesirable to hold the other 2 box
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For solids or liquids, when one dimension of the box is
+expanded, it may be physically undesirable to hold the other 2 box
 lengths constant since that implies a density change.  For solids,
 adjusting the other dimensions via the <em>volume</em> style may make
 physical sense (just as for a liquid), but may not be correct for
@@ -443,7 +446,7 @@ change_box command is issued, so long as an <a class="reference internal" href="
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -464,7 +467,7 @@ change_box command is issued, so long as an <a class="reference internal" href="
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -96,8 +96,8 @@ also change an orthogonal box to a triclinic box or vice versa by
 using the "change box"_change_box.html command with its {ortho} and
 {triclinic} options.
 
-IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
-you should not make the lo/hi box dimensions (as defined in your
+NOTE: If the system is non-periodic (in a dimension), then you should
+not make the lo/hi box dimensions (as defined in your
 "region"_region.html command) radically smaller/larger than the extent
 of the atoms you eventually plan to create, e.g. via the
 "create_atoms"_create_atoms.html command.  For example, if your atoms

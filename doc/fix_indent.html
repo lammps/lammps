@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix indent command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix indent command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -293,12 +293,12 @@ formula, LAMMPS uses the iteration count in the minimizer as the
 timestep.  But it is almost certainly a bad idea to have the indenter
 change its position or size during a minimization.  LAMMPS does not
 check if you have done this.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the atom/indenter interaction energy to be
-included in the total potential energy of the system (the quantity
-being minimized), you must enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a>
-<em>energy</em> option for this fix.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the atom/indenter interaction energy to be included
+in the total potential energy of the system (the quantity being
+minimized), you must enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em>
+option for this fix.</p>
 </div>
 </div>
 <div class="section" id="restrictions">
@@ -323,7 +323,7 @@ being minimized), you must enable the <a class="reference internal" href="fix_mo
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -344,7 +344,7 @@ being minimized), you must enable the <a class="reference internal" href="fix_mo
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

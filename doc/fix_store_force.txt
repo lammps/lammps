@@ -38,15 +38,14 @@ potentially modify the force on each atom.  Examples of such fixes are
 "fix shake"_fix_shake.html, "fix wall"_fix_wall.html, and "fix
 indent"_fix_indent.html.
 
-IMPORTANT NOTE: The order in which various fixes are applied which
-operate at the same point during the timestep, is the same as the
-order they are specified in the input script.  Thus normally, if you
-want to store per-atom forces due to force field interactions, before
-constraints are applied, you should list this fix first within that
-set of fixes, i.e. before other fixes that apply constraints.
-However, if you wish to include certain constraints (e.g. fix shake)
-in the stored force, then it could be specified after some fixes and
-before others.
+NOTE: The order in which various fixes are applied which operate at
+the same point during the timestep, is the same as the order they are
+specified in the input script.  Thus normally, if you want to store
+per-atom forces due to force field interactions, before constraints
+are applied, you should list this fix first within that set of fixes,
+i.e. before other fixes that apply constraints.  However, if you wish
+to include certain constraints (e.g. fix shake) in the stored force,
+then it could be specified after some fixes and before others.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

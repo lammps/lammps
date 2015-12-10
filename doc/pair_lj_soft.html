@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style lj/cut/soft command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style lj/cut/soft command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -337,18 +337,18 @@ overlapping each other. In this case, if lambda = 1, a singularity may
 occur.  These substyles are suitable to represent charges embedded in
 the Lennard-Jones radius of another site (for example hydrogen atoms
 in several water models).</p>
-<p>IMPORTANT NOTES: When using the core-softed Coulomb potentials with
-long-range solvers (<em>coul/long/soft</em>, <em>lj/cut/coul/long/soft</em>, etc.)
-in a free energy calculation in which sites holding electrostatic
-charges are being created or anihilated (using
-<a class="reference internal" href="fix_adapt_fep.html"><em>fix_adapt/fep</em></a> and <a class="reference internal" href="compute_fep.html"><em>compute_fep</em></a>)
-it is important to adapt both the lambda activation parameter (from 0
-to 1, or the reverse) and the value of the charge (from 0 to its final
-value, or the reverse). This ensures that long-range electrostatic
-terms (kspace) are correct. It is not necessary to use core-softed
-Coulomb potentials if the van der Waals site is present during the
-free-energy route, thus avoiding overlap of the charges. Examples are
-provided in the LAMMPS source directory tree, under examples/USER/fep.</p>
+<p>NOTES: When using the core-softed Coulomb potentials with long-range
+solvers (<em>coul/long/soft</em>, <em>lj/cut/coul/long/soft</em>, etc.)  in a free
+energy calculation in which sites holding electrostatic charges are
+being created or anihilated (using <a class="reference internal" href="fix_adapt_fep.html"><em>fix_adapt/fep</em></a>
+and <a class="reference internal" href="compute_fep.html"><em>compute_fep</em></a>) it is important to adapt both the
+lambda activation parameter (from 0 to 1, or the reverse) and the
+value of the charge (from 0 to its final value, or the reverse). This
+ensures that long-range electrostatic terms (kspace) are correct. It
+is not necessary to use core-softed Coulomb potentials if the van der
+Waals site is present during the free-energy route, thus avoiding
+overlap of the charges. Examples are provided in the LAMMPS source
+directory tree, under examples/USER/fep.</p>
 <hr class="docutils" />
 <p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
@@ -416,7 +416,7 @@ Phys Lett, 222, 529 (1994).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -437,7 +437,7 @@ Phys Lett, 222, 529 (1994).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

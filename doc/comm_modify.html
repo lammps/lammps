@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>comm_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>comm_modify command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -162,14 +162,14 @@ comm_modify cutoff/multi * 0.0
 communication of atom information that occurs each timestep as
 coordinates and other properties are exchanged between neighboring
 processors and stored as properties of ghost atoms.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">These options apply to the currently defined comm
-style.  When you specify a <a class="reference internal" href="comm_style.html"><em>comm_style</em></a> command, all
-communication settings are restored to their default values, including
-those previously reset by a comm_modify command.  Thus if your input
-script specifies a comm_style command, you should use the comm_modify
-command after it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These options apply to the currently defined comm style.  When
+you specify a <a class="reference internal" href="comm_style.html"><em>comm_style</em></a> command, all communication
+settings are restored to their default values, including those
+previously reset by a comm_modify command.  Thus if your input script
+specifies a comm_style command, you should use the comm_modify command
+after it.</p>
 </div>
 <p>The <em>mode</em> keyword determines whether a single or multiple cutoff
 distances are used to determine which atoms to communicate.</p>
@@ -228,14 +228,14 @@ atoms beyond the normal pairwise cutoff for some computation it
 performs (e.g. locate neighbors of ghost atoms in a multibody pair
 potential).  Setting the ghost cutoff appropriately can insure it will
 find the needed atoms.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">In these scenarios, if you do not set the ghost cutoff
-long enough, and if there is only one processor in a periodic
-dimension (e.g. you are running in serial), then LAMMPS may &#8220;find&#8221; the
-atom it is looking for (e.g. the partner atom in a bond), that is on
-the far side of the simulation box, across a periodic boundary.  This
-will typically lead to bad dynamics (i.e. the bond length is now the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In these scenarios, if you do not set the ghost cutoff long
+enough, and if there is only one processor in a periodic dimension
+(e.g. you are running in serial), then LAMMPS may &#8220;find&#8221; the atom it
+is looking for (e.g. the partner atom in a bond), that is on the far
+side of the simulation box, across a periodic boundary.  This will
+typically lead to bad dynamics (i.e. the bond length is now the
 simulation box length).  To detect if this is happening, see the
 <a class="reference internal" href="neigh_modify.html"><em>neigh_modify cluster</em></a> command.</p>
 </div>
@@ -286,7 +286,7 @@ cutoff = pairwise force cutoff + neighbor skin.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -307,7 +307,7 @@ cutoff = pairwise force cutoff + neighbor skin.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

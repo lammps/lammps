@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style reax command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style reax command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -155,7 +155,7 @@ represent the contributions of chemical bonding to the potential
 energy. There is more than one version of ReaxFF. The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper:
-<a class="reference internal" href="#chenoweth-2008"><span>(Chenoweth)</span></a>.  The version integrated into LAMMPS matches
+<a class="reference internal" href="pair_reax_c.html#chenoweth-2008"><span>(Chenoweth)</span></a>.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.</p>
 <p>WARNING: pair style reax is now deprecated and will soon be retired. Users
 should switch to <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>. The <em>reax</em> style
@@ -173,13 +173,13 @@ value other than &#8220;ffield.reax&#8221; will be rejected (see below).</p>
 potentials dir, each called potentials/ffield.reax.label.  These are
 documented in potentials/README.reax.  The default ffield.reax
 contains parameterizations for the following elements: C, H, O, N, S.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">We do not distribute a wide variety of ReaxFF force
-field files with LAMMPS.  Adri van Duin&#8217;s group at PSU is the central
-repository for this kind of data as they are continuously deriving and
-updating parameterizations for different classes of materials.  You
-can visit their WWW site at
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">We do not distribute a wide variety of ReaxFF force field files
+with LAMMPS.  Adri van Duin&#8217;s group at PSU is the central repository
+for this kind of data as they are continuously deriving and updating
+parameterizations for different classes of materials.  You can visit
+their WWW site at
 <a class="reference external" href="http://www.engr.psu.edu/adri">http://www.engr.psu.edu/adri</a>, register
 as a &#8220;new user&#8221;, and then submit a request to their group describing
 material(s) you are interested in modeling with ReaxFF.  They can tell
@@ -272,11 +272,11 @@ etc.  If a mapping value is specified as NULL, the mapping is not
 performed.  This can be used when a ReaxFF potential is used as part
 of the <em>hybrid</em> pair style.  The NULL values are placeholders for atom
 types that will be used with other potentials.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Currently the reax pair style cannot be used as part
-of the <em>hybrid</em> pair style.  Some additional changes still need to be
-made to enable this.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently the reax pair style cannot be used as part of the
+<em>hybrid</em> pair style.  Some additional changes still need to be made to
+enable this.</p>
 </div>
 <p>As an example, say your LAMMPS simulation has 4 atom types and the
 elements are ordered as C, H, O, N in the <em>ffield</em> file.  If you want
@@ -329,7 +329,7 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -350,7 +350,7 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

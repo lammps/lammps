@@ -121,17 +121,17 @@ factor in any pair of dimensions cannot be used if both the lo/hi
 values in either of those dimensions are INF.  E.g. if the xy tilt is
 non-zero, then xlo and xhi cannot both be INF, nor can ylo and yhi.
 
-IMPORTANT NOTE: Regions in LAMMPS do not get wrapped across periodic
-boundaries, as specified by the "boundary"_boundary.html command.  For
-example, a spherical region that is defined so that it overlaps a
-periodic boundary is not treated as 2 half-spheres, one on either side
-of the simulation box.
+NOTE: Regions in LAMMPS do not get wrapped across periodic boundaries,
+as specified by the "boundary"_boundary.html command.  For example, a
+spherical region that is defined so that it overlaps a periodic
+boundary is not treated as 2 half-spheres, one on either side of the
+simulation box.
 
-IMPORTANT NOTE: Regions in LAMMPS are always 3d geometric objects,
-regardless of whether the "dimension"_dimension.html of a simulation
-is 2d or 3d.  Thus when using regions in a 2d simulation, you should
-be careful to define the region so that its intersection with the 2d
-x-y plane of the simulation has the 2d geometric extent you want.
+NOTE: Regions in LAMMPS are always 3d geometric objects, regardless of
+whether the "dimension"_dimension.html of a simulation is 2d or 3d.
+Thus when using regions in a 2d simulation, you should be careful to
+define the region so that its intersection with the 2d x-y plane of
+the simulation has the 2d geometric extent you want.
 
 For style {cone}, an axis-aligned cone is defined which is like a
 {cylinder} except that two different radii (one at each end) can be
@@ -190,10 +190,9 @@ The {union} style creates a region consisting of the volume of all the
 listed regions combined.  The {intersect} style creates a region
 consisting of the volume that is common to all the listed regions.
 
-IMPORTANT NOTE: The {union} and {intersect} regions operate by
-invoking methods from their list of sub-regions.  Thus you cannot
-delete the sub-regions after defining the {union} or {intersection}
-region.
+NOTE: The {union} and {intersect} regions operate by invoking methods
+from their list of sub-regions.  Thus you cannot delete the
+sub-regions after defining the {union} or {intersection} region.
 
 :line
 

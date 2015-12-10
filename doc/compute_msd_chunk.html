@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute msd/chunk command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute msd/chunk command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -171,18 +171,17 @@ proportional to the diffusion coefficient of the diffusing chunks.</p>
 <p>The displacement of the center-of-mass of the chunk is from its
 original center-of-mass position, calculated on the timestep this
 compute command was first invoked.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The number of chunks <em>Nchunk</em> calculated by the
-<a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command must remain
-constant each time this compute is invoked, so that the displacement
-for each chunk from its original position can be computed
-consistently.  If <em>Nchunk</em> does not remain constant, an error will be
-generated.  If needed, you can enforce a constant <em>Nchunk</em> by using
-the <em>nchunk once</em> or <em>ids once</em> options when specifying the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The number of chunks <em>Nchunk</em> calculated by the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command must remain constant each
+time this compute is invoked, so that the displacement for each chunk
+from its original position can be computed consistently.  If <em>Nchunk</em>
+does not remain constant, an error will be generated.  If needed, you
+can enforce a constant <em>Nchunk</em> by using the <em>nchunk once</em> or <em>ids
+once</em> options when specifying the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">This compute stores the original position (of the
 center-of-mass) of each chunk.  When a displacement is calculated on a
 later timestep, it is assumed that the same atoms are assigned to the
@@ -192,22 +191,22 @@ case, though you can use the <em>ids once</em> option when specifying the
 this is not the case, the MSD calculation does not have a sensible
 meaning.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The initial coordinates of the atoms in each chunk are
-stored in &#8220;unwrapped&#8221; form, by using the image flags associated with
-each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion
-of &#8220;unwrapped&#8221; coordinates.  See the Atoms section of the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The initial coordinates of the atoms in each chunk are stored in
+&#8220;unwrapped&#8221; form, by using the image flags associated with each atom.
+See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion of
+&#8220;unwrapped&#8221; coordinates.  See the Atoms section of the
 <a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a discussion of image flags and
 how they are set for each atom.  You can reset the image flags
 (e.g. to 0) before invoking this compute by using the <a class="reference internal" href="set.html"><em>set image</em></a> command.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the <a class="reference internal" href="compute_msd.html"><em>compute msd</em></a> command,
-this compute does not store the initial center-of-mass coorindates of
-its molecules in a restart file.  Thus you cannot continue the MSD per
-chunk calculation of this compute when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="compute_msd.html"><em>compute msd</em></a> command, this compute
+does not store the initial center-of-mass coorindates of its molecules
+in a restart file.  Thus you cannot continue the MSD per chunk
+calculation of this compute when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>.</p>
 </div>
 <p>The simplest way to output the results of the compute com/msd
 calculation to a file is to use the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>
@@ -249,7 +248,7 @@ distance^2 <a class="reference internal" href="units.html"><em>units</em></a>.</
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -270,7 +269,7 @@ distance^2 <a class="reference internal" href="units.html"><em>units</em></a>.</
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

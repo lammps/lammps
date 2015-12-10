@@ -174,12 +174,11 @@ or die. :ulb,l
 It is usually most efficient to restrict threading to a single
 socket, i.e. use one or more MPI task per socket. :l
 
-IMPORTANT NOTE: By default, several current MPI implementations use a
-processor affinity setting that restricts each MPI task to a single
-CPU core.  Using multi-threading in this mode will force all threads
-to share the one core and thus is likely to be counterproductive.
-Instead, binding MPI tasks to a (multi-core) socket, should solve this
-issue. :l,ule
+NOTE: By default, several current MPI implementations use a processor
+affinity setting that restricts each MPI task to a single CPU core.
+Using multi-threading in this mode will force all threads to share the
+one core and thus is likely to be counterproductive.  Instead, binding
+MPI tasks to a (multi-core) socket, should solve this issue. :l,ule
 
 [Restrictions:]
 

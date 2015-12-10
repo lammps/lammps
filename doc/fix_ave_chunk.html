@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix ave/chunk command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix ave/chunk command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -191,7 +191,7 @@ fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
 fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
 </pre></div>
 </div>
-<p><strong>IMPORTANT NOTE:</strong></p>
+<p><strong>NOTE:</strong></p>
 <p>If you are trying to replace an older fix ave/spatial command with the
 newer, more flexible fix ave/chunk and <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> commands, you simply need to split
 the fix ave/spatial arguments across the two new commands.  For
@@ -240,17 +240,17 @@ ones that can be used with this fix since all other styles of variable
 produce global quantities.</p>
 <p>The per-atom values of each input vector are summed and averaged
 independently of the per-atom values in other input vectors.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This fix works by creating an array of size <em>Nchunk</em>
-by Nvalues on each processor.  <em>Nchunk</em> is the number of chunks which
-is defined by the <code class="xref doc docutils literal"><span class="pre">compute</span> <span class="pre">chunk/atom</span></code>
-command.  Nvalues is the number of input values specified.  Each
-processor loops over its atoms, tallying its values to the appropriate
-chunk.  Then the entire array is summed across all processors.  This
-means that using a large number of chunks will incur an overhead in
-memory and computational cost (summing across processors), so be
-careful to define a reasonable number of chunks.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This fix works by creating an array of size <em>Nchunk</em> by Nvalues
+on each processor.  <em>Nchunk</em> is the number of chunks which is defined
+by the <code class="xref doc docutils literal"><span class="pre">compute</span> <span class="pre">chunk/atom</span></code> command.
+Nvalues is the number of input values specified.  Each processor loops
+over its atoms, tallying its values to the appropriate chunk.  Then
+the entire array is summed across all processors.  This means that
+using a large number of chunks will incur an overhead in memory and
+computational cost (summing across processors), so be careful to
+define a reasonable number of chunks.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> arguments specify on what
@@ -273,10 +273,10 @@ The way the averaging is done across the <em>Nrepeat</em> timesteps to
 produce output on the <em>Nfreq</em> timesteps, and across multiple <em>Nfreq</em>
 outputs, is determined by the <em>norm</em> and <em>ave</em> keyword settings, as
 discussed below.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">To perform per-chunk averaging within a <em>Nfreq</em> time
-window, the number of chunks <em>Nchunk</em> defined by the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command must remain constant.  If
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To perform per-chunk averaging within a <em>Nfreq</em> time window, the
+number of chunks <em>Nchunk</em> defined by the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command must remain constant.  If
 the <em>ave</em> keyword is set to <em>running</em> or <em>window</em> then <em>Nchunk</em> must
 remain constant for the duration of the simulation.  This fix forces
 the chunk/atom compute specified by chunkID to hold <em>Nchunk</em> constant
@@ -527,7 +527,7 @@ title 1,2,3 = strings as described above.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -548,7 +548,7 @@ title 1,2,3 = strings as described above.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

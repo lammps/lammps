@@ -100,11 +100,11 @@ to allow charges on core and shell particles to be separated by r =
 Note that these potentials are related to the "Born-Mayer-Huggins
 potential"_pair_born.html.
 
-IMPORTANT NOTE: For all these pair styles, the terms with A and C are
-always cutoff.  The additional Coulombic term can be cutoff or
-long-range (no cutoff) depending on whether the style name includes
-coul/cut or coul/long or coul/msm.  If you wish the C/r^6 term to be
-long-range (no cutoff), then see the "pair_style
+NOTE: For all these pair styles, the terms with A and C are always
+cutoff.  The additional Coulombic term can be cutoff or long-range (no
+cutoff) depending on whether the style name includes coul/cut or
+coul/long or coul/msm.  If you wish the C/r^6 term to be long-range
+(no cutoff), then see the "pair_style
 buck/long/coul/long"_pair_buck_long.html command.
 
 The following coefficients must be defined for each pair of atoms

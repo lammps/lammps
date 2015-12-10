@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style reax/c command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style reax/c command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -179,13 +179,13 @@ against the original ReaxFF code for the systems mentioned above.  You
 can use other ffield files for specific chemical systems that may be
 available elsewhere (but note that their accuracy may not have been
 tested).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">We do not distribute a wide variety of ReaxFF force
-field files with LAMMPS.  Adri van Duin&#8217;s group at PSU is the central
-repository for this kind of data as they are continuously deriving and
-updating parameterizations for different classes of materials.  You
-can visit their WWW site at
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">We do not distribute a wide variety of ReaxFF force field files
+with LAMMPS.  Adri van Duin&#8217;s group at PSU is the central repository
+for this kind of data as they are continuously deriving and updating
+parameterizations for different classes of materials.  You can visit
+their WWW site at
 <a class="reference external" href="http://www.engr.psu.edu/adri">http://www.engr.psu.edu/adri</a>, register
 as a &#8220;new user&#8221;, and then submit a request to their group describing
 material(s) you are interested in modeling with ReaxFF.  They can tell
@@ -200,13 +200,12 @@ performance and output settings.
 Each line in the control file specifies the value for
 a control variable.  The format of the control file is described
 below.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">The LAMMPS default values for the ReaxFF global parameters
-correspond to those used by
-Adri van Duin&#8217;s stand-alone serial code. If these are changed by
-setting control variables in the control file, the results from
-LAMMPS and the serial code will not agree.</p>
+correspond to those used by Adri van Duin&#8217;s stand-alone serial
+code. If these are changed by setting control variables in the control
+file, the results from LAMMPS and the serial code will not agree.</p>
 </div>
 <p>Two examples using <em>pair_style reax/c</em> are provided in the examples/reax
 sub-directory, along with corresponding examples for
@@ -401,7 +400,7 @@ of Physical Chemistry A, 115, 11016-11022 (2011).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -422,7 +421,7 @@ of Physical Chemistry A, 115, 11016-11022 (2011).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

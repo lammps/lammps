@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute inertia/chunk command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute inertia/chunk command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -164,14 +164,14 @@ in that group, signifying they are not assigned to a chunk, and will
 thus also not contribute to this calculation.  You can specify the
 &#8220;all&#8221; group for this command if you simply want to include atoms with
 non-zero chunk IDs.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The coordinates of an atom contribute to the chunk&#8217;s
-inertia tensor in &#8220;unwrapped&#8221; form, by using the image flags
-associated with each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command
-for a discussion of &#8220;unwrapped&#8221; coordinates.  See the Atoms section of
-the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a discussion of image flags
-and how they are set for each atom.  You can reset the image flags
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The coordinates of an atom contribute to the chunk&#8217;s inertia
+tensor in &#8220;unwrapped&#8221; form, by using the image flags associated with
+each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion
+of &#8220;unwrapped&#8221; coordinates.  See the Atoms section of the
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a discussion of image flags and
+how they are set for each atom.  You can reset the image flags
 (e.g. to 0) before invoking this compute by using the <a class="reference internal" href="set.html"><em>set image</em></a> command.</p>
 </div>
 <p>The simplest way to output the results of the compute inertia/chunk
@@ -214,7 +214,7 @@ mass*distance^2 <a class="reference internal" href="units.html"><em>units</em></
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -235,7 +235,7 @@ mass*distance^2 <a class="reference internal" href="units.html"><em>units</em></
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

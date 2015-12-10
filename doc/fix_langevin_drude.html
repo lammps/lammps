@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix langevin/drude command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix langevin/drude command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -169,33 +169,30 @@ of freedom by these equations.  In these equations upper case denotes
 atomic or center of mass values and lower case denotes Drude particle
 or dipole values. Primes denote the transformed (reduced) values,
 while bare letters denote the original values.</p>
-<p>Velocities:
-begin{equation} V&#8217; = frac {M, V + m, v} {M&#8217;} end{equation}
-begin{equation} v&#8217; = v - V end{equation}
-Masses:
-begin{equation} M&#8217; = M + m end{equation}
-begin{equation} m&#8217; = frac {M, m } {M&#8217;} end{equation}
-The Langevin forces are computed as
-begin{equation} F&#8217; = - frac {M&#8217;} {mathtt{damp_com}}, V&#8217; + F_r&#8217; end{equation}
-begin{equation} f&#8217; = - frac {m&#8217;} {mathtt{damp_drude}}, v&#8217; + f_r&#8217; end{equation}
-(F_r&#8217;) is a random force proportional to
-(sqrt { frac {2, k_B mathtt{Tcom}, m&#8217;}</p>
-<blockquote>
-<div><blockquote>
-<div>{mathrm dt, mathtt{damp_com} }</div></blockquote>
-<p>} ).</p>
-</div></blockquote>
-<p>(f_r&#8217;) is a random force proportional to
-(sqrt { frac {2, k_B mathtt{Tdrude}, m&#8217;}</p>
-<blockquote>
-<div><blockquote>
-<div>{mathrm dt, mathtt{damp_drude} }</div></blockquote>
-<p>} ).</p>
-</div></blockquote>
-<p>Then the real forces acting on the particles are computed from the inverse
-transform:
-begin{equation} F = frac M {M&#8217;}, F&#8217; - f&#8217; end{equation}
-begin{equation} f = frac m {M&#8217;}, F&#8217; + f&#8217; end{equation}</p>
+<p>Velocities:</p>
+<div class="math">
+\[\begin{equation} V' = \frac {M\, V + m\, v} {M'} \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} v' = v - V \end{equation}\]</div>
+<p>Masses:</p>
+<div class="math">
+\[\begin{equation} M' = M + m \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} m' = \frac {M\, m } {M'} \end{equation}\]</div>
+<p>The Langevin forces are computed as</p>
+<div class="math">
+\[\begin{equation} F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' \end{equation}\]</div>
+<p><span class="math">\(F_r'\)</span> is a random force proportional to
+<span class="math">\(\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'}                   {\mathrm dt\, \mathtt{damp\_com} }          }\)</span>. <a href="#id1"><span class="problematic" id="id2">:b:math:`f_r&#8217;`</span></a> is a random force proportional to
+<span class="math">\(\sqrt { \frac {2\, k_B \mathtt{Tdrude}\, m'}                   {\mathrm dt\, \mathtt{damp\_drude} }          }\)</span>.
+Then the real forces acting on the particles are computed from the inverse
+transform:</p>
+<div class="math">
+\[\begin{equation} F = \frac M {M'}\, F' - f' \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} f = \frac m {M'}\, F' + f' \end{equation}\]</div>
 <p>This fix also thermostates non-polarizable atoms in the group at
 temperature <em>Tcom</em>, as if they had a massless Drude partner.  The
 Drude particles themselves need not be in the group. The center of
@@ -207,15 +204,15 @@ important consideration if finite-size particles, which have
 rotational degrees of freedom, are being thermostated. The
 translational degrees of freedom can also have a bias velocity removed
 from them before thermostating takes place; see the description below.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Like the <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> command,
-this fix does NOT perform time integration. It only modifies forces to
-effect thermostating. Thus you must use a separate time integration
-fix, like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> to actually
-update the velocities and positions of atoms using the modified
-forces.  Likewise, this fix should not normally be used on atoms that
-also have their temperature controlled by another fix - e.g. by <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a> commands.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Like the <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> command, this fix does
+NOT perform time integration. It only modifies forces to effect
+thermostating. Thus you must use a separate time integration fix, like
+<a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> to actually update the
+velocities and positions of atoms using the modified forces.
+Likewise, this fix should not normally be used on atoms that also have
+their temperature controlled by another fix - e.g. by <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a> commands.</p>
 </div>
 <p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
 a discussion of different ways to compute temperature and perform
@@ -224,20 +221,20 @@ thermostating.</p>
 <p>This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the <a class="reference internal" href="fix_drude.html"><em>fix drude</em></a> command to
 specify the Drude status of each atom type.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">only the Drude core atoms need to be in the group
-specified for this fix. A Drude electron will be transformed together
-with its cores even if it is not itself in the group.  It is safe to
-include Drude electrons or non-polarizable atoms in the group. The
-non-polarizable atoms will simply be thermostatted as if they had
-a massless Drude partner (electron).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">only the Drude core atoms need to be in the group specified for
+this fix. A Drude electron will be transformed together with its cores
+even if it is not itself in the group.  It is safe to include Drude
+electrons or non-polarizable atoms in the group. The non-polarizable
+atoms will simply be thermostatted as if they had a massless Drude
+partner (electron).</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Ghost atoms need to know their velocity for this fix
-to act correctly.  You must use the <a class="reference internal" href="comm_modify.html"><em>comm_modify</em></a>
-command to enable this, e.g.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Ghost atoms need to know their velocity for this fix to act
+correctly.  You must use the <a class="reference internal" href="comm_modify.html"><em>comm_modify</em></a> command to
+enable this, e.g.</p>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>comm_modify vel yes
 </pre></div>
@@ -383,7 +380,7 @@ Phys Chem Lett, 2, 87-92 (2011).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -404,7 +401,7 @@ Phys Chem Lett, 2, 87-92 (2011).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute chunk/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute chunk/atom command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -438,13 +438,14 @@ the first step of the time window will persist until the end of the
 time window.</p>
 <p>If the setting is <em>every</em>, which is the default, then chunk IDs are
 re-calculated on any timestep this compute is invoked.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the persistent chunk-IDs calculated by
-this compute to be continuous when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>, then you should use the same ID for this
-compute, as in the original run.  This is so that the fix this compute
-creates to store per-atom quantities will also have the same ID, and
-thus be initialized correctly with chunk IDs from the restart file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the persistent chunk-IDs calculated by this compute
+to be continuous when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>,
+then you should use the same ID for this compute, as in the original
+run.  This is so that the fix this compute creates to store per-atom
+quantities will also have the same ID, and thus be initialized
+correctly with chunk IDs from the restart file.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>compress</em> keyword applies to all chunk styles and affects how
@@ -480,19 +481,19 @@ renumbered to (1,2,3,4,5).  The original values (27,...,1000000) can
 be output to a file by the <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command,
 or by using the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command in
 conjunction with the <a class="reference internal" href="compute_property_chunk.html"><em>compute property/chunk</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The compression operation requires global
-communication across all processors to share their chunk ID values.
-It can require large memory on every processor to store them, even
-after they are compressed, if there are are a large number of unique
-chunk IDs with atoms assigned to them.  It uses a STL map to find
-unique chunk IDs and store them in sorted order.  Each time an atom is
-assigned a compressed chunk ID, it must access the STL map.  All of
-this means that compression can be expensive, both in memory and CPU
-time.  The use of the <em>limit</em> keyword in conjunction with the
-<em>compress</em> keyword can affect these costs, depending on which keyword
-is used first.  So use this option with care.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The compression operation requires global communication across
+all processors to share their chunk ID values.  It can require large
+memory on every processor to store them, even after they are
+compressed, if there are are a large number of unique chunk IDs with
+atoms assigned to them.  It uses a STL map to find unique chunk IDs
+and store them in sorted order.  Each time an atom is assigned a
+compressed chunk ID, it must access the STL map.  All of this means
+that compression can be expensive, both in memory and CPU time.  The
+use of the <em>limit</em> keyword in conjunction with the <em>compress</em> keyword
+can affect these costs, depending on which keyword is used first.  So
+use this option with care.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>discard</em> keyword applies to all chunk styles.  It affects what
@@ -613,7 +614,7 @@ the restarted simulation begins.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -634,7 +635,7 @@ the restarted simulation begins.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

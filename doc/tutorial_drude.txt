@@ -219,8 +219,8 @@ invoked after the fix {langevin/drude} for more accuracy.
 
 fix SHAKE ATOMS shake 0.0001 20 0 t 4 5 :pre
 
-IMPORTANT NOTE: The group of the fix {shake} must not include the DPs.
-If the group {ATOMS} is defined by non-DPs atom types, you could use
+NOTE: The group of the fix {shake} must not include the DPs.  If the
+group {ATOMS} is defined by non-DPs atom types, you could use
 
 Since the fix {langevin/drude} does not perform time integration (just
 modification of forces but no position/velocity updates), the fix

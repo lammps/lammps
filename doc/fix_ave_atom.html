@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix ave/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix ave/atom command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -197,14 +197,14 @@ timestep 200, etc.</p>
 self-explanatory.  Note that other atom attributes can be used as
 inputs to this fix by using the <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a> command and then specifying
 an input value from that compute.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The x,y,z attributes are values that are re-wrapped
-inside the periodic box whenever an atom crosses a periodic boundary.
-Thus if you time average an atom that spends half its time on either
-side of the periodic box, you will get a value in the middle of the
-box.  If this is not what you want, consider averaging unwrapped
-coordinates, which can be provided by the <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a> command via its xu,yu,zu
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The x,y,z attributes are values that are re-wrapped inside the
+periodic box whenever an atom crosses a periodic boundary.  Thus if
+you time average an atom that spends half its time on either side of
+the periodic box, you will get a value in the middle of the box.  If
+this is not what you want, consider averaging unwrapped coordinates,
+which can be provided by the <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a> command via its xu,yu,zu
 attributes.</p>
 </div>
 <p>If a value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
@@ -265,7 +265,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -286,7 +286,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

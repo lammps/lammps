@@ -65,10 +65,10 @@ def loop(lmpptr,N,cut0):
 
 [Description:]
 
-IMPORTANT NOTE: It is not currently possible to use the
-"python"_python.html command described in this section with Python 3,
-only with Python 2.  The C API changed from Python 2 to 3 and the
-LAMMPS code is not compatible with both.
+NOTE: It is not currently possible to use the "python"_python.html
+command described in this section with Python 3, only with Python 2.
+The C API changed from Python 2 to 3 and the LAMMPS code is not
+compatible with both.
 
 Define a Python function or execute a previously defined function.
 Arguments, including LAMMPS variables, can be passed to the function
@@ -362,13 +362,13 @@ next.  Alternatively, the "LAMMPS command option" line could be used
 in place of the 2 preceeding lines, to have Python insert the value
 into the LAMMPS command string.
 
-IMPORTANT NOTE: When using the callback mechanism just described,
-recognize that there are some operations you should not attempt
-because LAMMPS cannot execute them correctly.  If the Python function
-is invoked between runs in the LAMMPS input script, then it should be
-OK to invoke any LAMMPS input script command via the library interface
-command() or file() functions, so long as the command would work if it
-were executed in the LAMMPS input script directly at the same point.
+NOTE: When using the callback mechanism just described, recognize that
+there are some operations you should not attempt because LAMMPS cannot
+execute them correctly.  If the Python function is invoked between
+runs in the LAMMPS input script, then it should be OK to invoke any
+LAMMPS input script command via the library interface command() or
+file() functions, so long as the command would work if it were
+executed in the LAMMPS input script directly at the same point.
 
 However, a Python function can also be invoked during a run, whenever
 an associated LAMMPS variable it is assigned to is evaluted.  If the

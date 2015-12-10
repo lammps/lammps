@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>read_restart command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>read_restart command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -159,8 +159,8 @@ regular 3d grid of rectangular bricks, one per processor, based on the
 number of processors in the current simulation and the settings of the
 <a class="reference internal" href="processors.html"><em>processors</em></a> command.  The partitioning can later be
 changed by the <a class="reference internal" href="balance.html"><em>balance</em></a> or <a class="reference internal" href="fix_balance.html"><em>fix balance</em></a> commands.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">Normally, restart files are written by the
 <a class="reference internal" href="restart.html"><em>restart</em></a> or <a class="reference internal" href="write_restart.html"><em>write_restart</em></a> commands
 so that all atoms in the restart file are inside the simulation box.
@@ -169,8 +169,9 @@ that atoms were &#8220;lost&#8221; when the file is read.  This error should be
 reported to the LAMMPS developers so the invalid writing of the
 restart file can be fixed.  If you still wish to use the restart file,
 the optional <em>remap</em> flag can be appended to the read_restart command.
-This should avoid the error, by explicitly remapping each atom back into
-the simulation box, updating image flags for the atom appropriately.</p>
+This should avoid the error, by explicitly remapping each atom back
+into the simulation box, updating image flags for the atom
+appropriately.</p>
 </div>
 <p>Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
@@ -351,7 +352,7 @@ package must be installed.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -372,7 +373,7 @@ package must be installed.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

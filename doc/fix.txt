@@ -43,9 +43,9 @@ underscores.
 
 Fixes can be deleted with the "unfix"_unfix.html command.
 
-IMPORTANT NOTE: The "unfix"_unfix.html command is the only way to turn
-off a fix; simply specifying a new fix with a similar style will not
-turn off the first one.  This is especially important to realize for
+NOTE: The "unfix"_unfix.html command is the only way to turn off a
+fix; simply specifying a new fix with a similar style will not turn
+off the first one.  This is especially important to realize for
 integration fixes.  For example, using a "fix nve"_fix_nve.html
 command for a second run after using a "fix nvt"_fix_nh.html command
 for the first run, will not cancel out the NVT time integration

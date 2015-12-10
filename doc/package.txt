@@ -151,13 +151,13 @@ is used to auto-append accelerator suffixes to various styles in the
 input script, then those switches also invoke a "package gpu",
 "package intel", or "package omp" command with default settings.
 
-IMPORTANT NOTE: A package command for a particular style can be
-invoked multiple times when a simulation is setup, e.g. by the "-c
-on", "-k on", "-sf", and "-pk" "command-line
-switches"_Section_start.html#start_7, and by using this command in an
-input script.  Each time it is used all of the style options are set,
-either to default values or to specified settings.  I.e. settings from
-previous invocations do not persist across multiple invocations.
+NOTE: A package command for a particular style can be invoked multiple
+times when a simulation is setup, e.g. by the "-c on", "-k on", "-sf",
+and "-pk" "command-line switches"_Section_start.html#start_7, and by
+using this command in an input script.  Each time it is used all of
+the style options are set, either to default values or to specified
+settings.  I.e. settings from previous invocations do not persist
+across multiple invocations.
 
 See the "Section Accelerate"_Section_accelerate.html section of the
 manual for more details about using the various accelerator packages
@@ -353,9 +353,9 @@ keyword discussion below.  If you are running with less MPI tasks/node
 than there are CPUs, it can be advantageous to use OpenMP threading on
 the CPUs.
 
-IMPORTANT NOTE: The {omp} keyword has nothing to do with coprocessor
-threads on the Xeon Phi; see the {tpc} and {tptask} keywords below for
-a discussion of coprocessor threads.
+NOTE: The {omp} keyword has nothing to do with coprocessor threads on
+the Xeon Phi; see the {tpc} and {tptask} keywords below for a
+discussion of coprocessor threads.
 
 The {Nthread} value for the {omp} keyword sets the number of OpenMP
 threads allocated for each MPI task.  Setting {Nthread} = 0 (the
@@ -370,13 +370,13 @@ this doc page for the "package omp" command.  Nthreads is a required
 argument for the USER-OMP package.  Its meaning is exactly the same
 for the USER-INTEL pacakge.
 
-IMPORTANT NOTE: If you build LAMMPS with both the USER-INTEL and
-USER-OMP packages, be aware that both packages allow setting of the
-{Nthreads} value via their package commands, but there is only a
-single global {Nthreads} value used by OpenMP.  Thus if both package
-commands are invoked, you should insure the two values are consistent.
-If they are not, the last one invoked will take precedence, for both
-packages.  Also note that if the "-sf hybrid intel omp" "command-line
+NOTE: If you build LAMMPS with both the USER-INTEL and USER-OMP
+packages, be aware that both packages allow setting of the {Nthreads}
+value via their package commands, but there is only a single global
+{Nthreads} value used by OpenMP.  Thus if both package commands are
+invoked, you should insure the two values are consistent.  If they are
+not, the last one invoked will take precedence, for both packages.
+Also note that if the "-sf hybrid intel omp" "command-line
 switch"_"_Section_start.html#start_7 is used, it invokes a "package
 intel" command, followed by a "package omp" command, both with a
 setting of {Nthreads} = 0.

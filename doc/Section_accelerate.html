@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5. Accelerating LAMMPS performance &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>5. Accelerating LAMMPS performance &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/>
         <link rel="next" title="6. How-to discussions" href="Section_howto.html"/>
         <link rel="prev" title="4. Packages" href="Section_packages.html"/> 
 
@@ -257,12 +257,12 @@ different methods are shown in the figure below.  For this system,
 staggered PPPM (using ik differentiation) becomes useful when using a
 relative accuracy of slightly greater than 1e-5 and above.</p>
 <img alt="_images/rhodo_staggered.jpg" class="align-center" src="_images/rhodo_staggered.jpg" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Using staggered PPPM may not give the same increase in
-accuracy of energy and pressure as it does in forces, so some caution
-must be used if energy and/or pressure are quantities of interest,
-such as when using a barostat.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Using staggered PPPM may not give the same increase in accuracy
+of energy and pressure as it does in forces, so some caution must be
+used if energy and/or pressure are quantities of interest, such as
+when using a barostat.</p>
 </div>
 <hr class="docutils" />
 </div>
@@ -410,14 +410,14 @@ launched, without changing your input script, as illustrated in the
 individual accelerator sections.  Or you can add
 <a class="reference internal" href="package.html"><em>package</em></a> and <a class="reference internal" href="suffix.html"><em>suffix</em></a> commands to your input
 script.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">With a few exceptions, you can build a single LAMMPS
-executable with all its accelerator packages installed.  Note however
-that the USER-INTEL and KOKKOS packages require you to choose one of
-their hardware options when building for a specific platform.
-I.e. CPU or Phi option for the USER-INTEL package.  Or the OpenMP,
-Cuda, or Phi option for the KOKKOS package.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With a few exceptions, you can build a single LAMMPS executable
+with all its accelerator packages installed.  Note however that the
+USER-INTEL and KOKKOS packages require you to choose one of their
+hardware options when building for a specific platform.  I.e. CPU or
+Phi option for the USER-INTEL package.  Or the OpenMP, Cuda, or Phi
+option for the KOKKOS package.</p>
 </div>
 <p>These are the exceptions.  You cannot build a single executable with:</p>
 <ul class="simple">
@@ -587,7 +587,7 @@ to benchmark the performance of both packages on your system.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -608,7 +608,7 @@ to benchmark the performance of both packages on your system.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -93,13 +93,13 @@ independently of the per-atom values in other input vectors.
 {Nbins} specifies the number of spherical shells which will be created
 between r_min and r_max centered at (origin_x, origin_y, origin_z).
 
-IMPORTANT NOTE: This fix works by creating an array of size Nbins by
-Nvalues on each processor.  Nbins is the total number of bins; Nvalues
-is the number of input values specified.  Each processor loops over
-its atoms, tallying its values to the appropriate bin.  Then the
-entire array is summed across all processors.  This means that using a
-large number of bins will incur an overhead in memory and computational 
-cost (summing across processors), so be careful to use reasonable numbers 
+NOTE: This fix works by creating an array of size Nbins by Nvalues on
+each processor.  Nbins is the total number of bins; Nvalues is the
+number of input values specified.  Each processor loops over its
+atoms, tallying its values to the appropriate bin.  Then the entire
+array is summed across all processors.  This means that using a large
+number of bins will incur an overhead in memory and computational cost
+(summing across processors), so be careful to use reasonable numbers
 of bins.
 
 :line
@@ -229,8 +229,8 @@ A {lattice} value means the distance units are in lattice spacings.
 The "lattice"_lattice.html command must have been previously used to
 define the lattice spacing.
 
-IMPORTANT NOTE: The {lattice} style may only be used if the lattice
-spacing is the same in each direction.
+NOTE: The {lattice} style may only be used if the lattice spacing is
+the same in each direction.
 
 A {reduced} value means normalized unitless values between 0 and 1,
 which represent the lower and upper faces of the simulation box

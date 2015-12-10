@@ -243,8 +243,8 @@ the {ik} method. Currently, only the {ik} method (default) can be
 used for a triclinic simulation cell with PPPM. The {ad} method is 
 always used for MSM.
 
-IMPORTANT NOTE: Currently, not all PPPM styles support the {ad}
-option.  Support for those PPPM variants will be added later.
+NOTE: Currently, not all PPPM styles support the {ad} option.  Support
+for those PPPM variants will be added later.
 
 The {kmax/ewald} keyword sets the number of kspace vectors in each
 dimension for kspace style {ewald}.  The three values must be positive

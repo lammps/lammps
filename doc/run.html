@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>run command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>run command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -211,16 +211,16 @@ the initial setup is skipped, except for printing thermodynamic info.
 Note that if <em>pre</em> is set to &#8220;no&#8221; for the very 1st run LAMMPS
 performs, then it is overridden, since the initial setup computations
 must be done.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If your input script changes the system between 2
-runs, then the initial setup must be performed to insure the change is
-recognized by all parts of the code that are affected.  Examples are
-adding a <a class="reference internal" href="fix.html"><em>fix</em></a> or <a class="reference internal" href="dump.html"><em>dump</em></a> or <a class="reference internal" href="compute.html"><em>compute</em></a>,
-changing a <a class="reference internal" href="neigh_modify.html"><em>neighbor</em></a> list parameter, or writing
-restart file which can migrate atoms between processors.  LAMMPS has
-no easy way to check if this has happened, but it is an error to use
-the <em>pre no</em> option in this case.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If your input script changes the system between 2 runs, then the
+initial setup must be performed to insure the change is recognized by
+all parts of the code that are affected.  Examples are adding a
+<a class="reference internal" href="fix.html"><em>fix</em></a> or <a class="reference internal" href="dump.html"><em>dump</em></a> or <a class="reference internal" href="compute.html"><em>compute</em></a>, changing
+a <a class="reference internal" href="neigh_modify.html"><em>neighbor</em></a> list parameter, or writing restart file
+which can migrate atoms between processors.  LAMMPS has no easy way to
+check if this has happened, but it is an error to use the <em>pre no</em>
+option in this case.</p>
 </div>
 <p>If <em>post</em> is specified as &#8220;no&#8221;, the full timing summary is skipped;
 only a one-line summary timing is printed.</p>
@@ -280,10 +280,10 @@ command:</p>
 <em>every</em> keyword, then the 1st run will do the full setup and the last
 run will print the full timing summary, but these operations will be
 skipped for intermediate runs.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">You might hope to specify a command that exits the run
-by jumping out of the loop, e.g.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You might hope to specify a command that exits the run by
+jumping out of the loop, e.g.</p>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>variable t equal temp
 run 10000 every 100 &quot;if &#39;$t &lt; 300.0&#39; then &#39;jump SELF afterrun&#39;&quot;
@@ -330,7 +330,7 @@ timestep + N, pre = yes, and post = yes.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -351,7 +351,7 @@ timestep + N, pre = yes, and post = yes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -116,8 +116,8 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 {extra} option of the "compute_modify"_compute_modify.html command.
 
-IMPORTANT NOTE: When using the {out} keyword with a value of {bin},
-the calculated temperature for each bin does not include the
+NOTE: When using the {out} keyword with a value of {bin}, the
+calculated temperature for each bin does not include the
 degrees-of-freedom adjustment described in the preceeding paragraph,
 for fixes that constrain molecular motion.  It does include the
 adjustment due to the {extra} option, which is applied to each bin.

@@ -72,7 +72,7 @@ wall/particle coefficients than for particle/particle interactions, if
 you wish your wall to interact differently with the particles, e.g. if
 the wall is a different material.
 
-IMPORTANT NOTE: As discussed on the doc page for "pair_style
+NOTE: As discussed on the doc page for "pair_style
 granular"_pair_gran.html, versions of LAMMPS before 9Jan09 used a
 different equation for Hertzian interactions.  This means Hertizian
 wall/particle interactions have also changed.  They now include a

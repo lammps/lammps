@@ -177,11 +177,10 @@ used in place of atom-style variables, and thus as arguments to the
 set command.  Atomfile-style variables read their per-atoms values
 from a file.
 
-IMPORTANT NOTE: Atom-style and atomfile-style variables return
-floating point per-atom values.  If the values are assigned to an
-integer variable, such as the molecule ID, then the floating point
-value is truncated to its integer portion, e.g. a value of 2.6 would
-become 2.
+NOTE: Atom-style and atomfile-style variables return floating point
+per-atom values.  If the values are assigned to an integer variable,
+such as the molecule ID, then the floating point value is truncated to
+its integer portion, e.g. a value of 2.6 would become 2.
 
 Keyword {type} sets the atom type for all selected atoms.  The
 specified value must be from 1 to ntypes, where ntypes was set by the

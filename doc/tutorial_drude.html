@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>&lt;no title&gt; &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -133,15 +133,15 @@ particle (DP) bound by a harmonic potential. The Drude particle can be
 thought of as the electron cloud whose center can be displaced from
 the position of the the corresponding nucleus.</p>
 <p>The sum of the masses of a core-Drude pair should be the mass of the
-initial (unsplit) atom, (m_C + m_D = m).  The sum of their charges
-should be the charge of the initial (unsplit) atom, (q_C + q_D = q).
+initial (unsplit) atom, <span class="math">\(m_C + m_D = m\)</span>.  The sum of their charges
+should be the charge of the initial (unsplit) atom, <span class="math">\(q_C + q_D = q\)</span>.
 A harmonic potential between the core and Drude partners should be
-present, with force constant (k_D) and an equilibrium distance of
+present, with force constant <span class="math">\(k_D\)</span> and an equilibrium distance of
 zero. The (half-)stiffness of the <a class="reference internal" href="bond_harmonic.html"><em>harmonic bond</em></a>
-(K_D = k_D/2) and the Drude charge (q_D) are related to the atom
-polarizability (alpha) by</p>
-<p>begin{equation} K_D = frac 1 2, frac {q_D^2} alpha
-end{equation}</p>
+<span class="math">\(K_D = k_D/2\)</span> and the Drude charge <span class="math">\(q_D\)</span> are related to the atom
+polarizability <span class="math">\(\alpha\)</span> by</p>
+<div class="math">
+\[\begin{equation} K_D = \frac 1 2\, \frac {q_D^2} \alpha\end{equation}\]</div>
 <p>Ideally, the mass of the Drude particle should be small, and the
 stiffness of the harmonic bond should be large, so that the Drude
 particle remains close ot the core. The values of Drude mass, Drude
@@ -150,15 +150,15 @@ strategies, as in the following examples of polarizable force
 fields.</p>
 <ul class="simple">
 <li><a class="reference internal" href="#lamoureux"><span>Lamoureux and Roux</span></a> suggest adopting a global
-half-stiffness, (K_D) = 500 kcal/(mol &amp;Aring;&lt;sup&gt;2&lt;/sup&gt;) &amp;mdash;
-which corresponds to a force constant (k_D) = 4184 kJ/(mol
+half-stiffness, <span class="math">\(K_D\)</span> = 500 kcal/(mol &amp;Aring;&lt;sup&gt;2&lt;/sup&gt;) &amp;mdash;
+which corresponds to a force constant <span class="math">\(k_D\)</span> = 4184 kJ/(mol
 &amp;Aring;&lt;sup&gt;2&lt;/sup&gt;) &amp;mdash; for all types of core-Drude bond, a
-global mass (m_D) = 0.4 g/mol (or u) for all types of Drude
+global mass <span class="math">\(m_D\)</span> = 0.4 g/mol (or u) for all types of Drude
 particle, and to calculate the Drude charges for individual atom types
 from the atom polarizabilities using equation (1). This choice is
 followed in the polarizable CHARMM force field.</li>
 <li><a class="reference internal" href="#schroeder"><span>Schroeder and Steinhauser</span></a> suggest adopting a global
-charge (q_D) = -1.0e and a global mass (m_D) = 0.1 g/mol (or u)
+charge <span class="math">\(q_D\)</span> = -1.0e and a global mass <span class="math">\(m_D\)</span> = 0.1 g/mol (or u)
 for all Drude particles, and to calculate the force constant for each
 type of core-Drude bond from equation (1). The timesteps used by these
 authors are between 0.5 and 2 fs, with the degrees of freedom of the
@@ -311,10 +311,10 @@ invoked after the fix <em>langevin/drude</em> for more accuracy.</p>
 <div class="highlight-python"><div class="highlight"><pre>fix SHAKE ATOMS shake 0.0001 20 0 t 4 5
 </pre></div>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The group of the fix <em>shake</em> must not include the DPs.
-If the group <em>ATOMS</em> is defined by non-DPs atom types, you could use</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The group of the fix <em>shake</em> must not include the DPs.  If the
+group <em>ATOMS</em> is defined by non-DPs atom types, you could use</p>
 </div>
 <p>Since the fix <em>langevin/drude</em> does not perform time integration (just
 modification of forces but no position/velocity updates), the fix
@@ -540,7 +540,7 @@ Let, 418, 245-249 (2006)</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -561,7 +561,7 @@ Let, 418, 245-249 (2006)</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

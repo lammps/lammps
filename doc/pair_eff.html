@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style eff/cut command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style eff/cut command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -275,25 +275,25 @@ particular atom type.  The ECP captures the orbital overlap between a
 core pseudo particle and valence electrons within the Pauli repulsion.
 A list of type:element-symbol pairs may be provided for all ECP
 representations, after the &#8220;ecp&#8221; keyword.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Default ECP parameters are provided for C, N, O, Al,
-and Si.  Users can modify these using the pair_coeff command as
-exemplified above.  For this, the User must distinguish between two
-different functional forms supported, one that captures the orbital
-overlap assuming the s-type core interacts with an s-like valence
-electron (s-s) and another that assumes the interaction is s-p.  For
-systems that exhibit significant p-character (e.g. C, N, O) the s-p
-form is recommended. The &#8220;s&#8221; ECP form requires 3 parameters and the
-&#8220;p&#8221; 5 parameters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Default ECP parameters are provided for C, N, O, Al, and Si.
+Users can modify these using the pair_coeff command as exemplified
+above.  For this, the User must distinguish between two different
+functional forms supported, one that captures the orbital overlap
+assuming the s-type core interacts with an s-like valence electron
+(s-s) and another that assumes the interaction is s-p.  For systems
+that exhibit significant p-character (e.g. C, N, O) the s-p form is
+recommended. The &#8220;s&#8221; ECP form requires 3 parameters and the &#8220;p&#8221; 5
+parameters.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">there are two different pressures that can be reported
-for eFF when defining this pair_style, one (default) that considers
-electrons do not contribute radial virial components (i.e. electrons
-treated as incompressible &#8216;rigid&#8217; spheres) and one that does.  The
-radial electronic contributions to the virials are only tallied if the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">there are two different pressures that can be reported for eFF
+when defining this pair_style, one (default) that considers electrons
+do not contribute radial virial components (i.e. electrons treated as
+incompressible &#8216;rigid&#8217; spheres) and one that does.  The radial
+electronic contributions to the virials are only tallied if the
 flexible pressure option is set, and this will affect both global and
 per-atom quantities.  In principle, the true pressure of a system is
 somewhere in between the rigid and the flexible eFF pressures, but,
@@ -302,17 +302,16 @@ significant over long-term averaged runs (i.e. even though the energy
 partitioning changes, the total energy remains similar).</p>
 </div>
 <hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This implemention of eFF gives a reasonably accurate
-description for systems containing nuclei from Z = 1-6 in &#8220;all
-electron&#8221; representations.  For systems with increasingly
-non-spherical electrons, Users should use the ECP representations.
-ECPs are now supported and validated for most of the 2nd and 3rd row
-elements of the p-block.  Predefined parameters are provided for C, N,
-O, Al, and Si.  The ECP captures the orbital overlap between the core
-and valence electrons (i.e. Pauli repulsion) with one of the
-functional forms:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This implemention of eFF gives a reasonably accurate description
+for systems containing nuclei from Z = 1-6 in &#8220;all electron&#8221;
+representations.  For systems with increasingly non-spherical
+electrons, Users should use the ECP representations.  ECPs are now
+supported and validated for most of the 2nd and 3rd row elements of
+the p-block.  Predefined parameters are provided for C, N, O, Al, and
+Si.  The ECP captures the orbital overlap between the core and valence
+electrons (i.e. Pauli repulsion) with one of the functional forms:</p>
 </div>
 <img alt="_images/eff_ECP1.jpg" class="align-center" src="_images/eff_ECP1.jpg" />
 <img alt="_images/eff_ECP2.jpg" class="align-center" src="_images/eff_ECP2.jpg" />
@@ -411,7 +410,7 @@ Chem, 32, 497-512 (2011).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -432,7 +431,7 @@ Chem, 32, 497-512 (2011).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

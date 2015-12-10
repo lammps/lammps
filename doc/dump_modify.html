@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dump_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>dump_modify command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -327,18 +327,18 @@ dump         1 all atom 100 tmp.dump
 dump_modify  1 every v_s
 </pre></div>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When using a file-style variable with the <em>every</em>
-keyword, the file of timesteps must list a first timestep that is
-beyond the current timestep (e.g. it cannot be 0).  And it must list
-one or more timesteps beyond the length of the run you perform.  This
-is because the dump command will generate an error if the next
-timestep it reads from the file is not a value greater than the
-current timestep.  Thus if you wanted output on steps 0,15,100 of a
-100-timestep run, the file should contain the values 15,100,101 and
-you should also use the dump_modify first command.  Any final value &gt;
-100 could be used in place of 101.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using a file-style variable with the <em>every</em> keyword, the
+file of timesteps must list a first timestep that is beyond the
+current timestep (e.g. it cannot be 0).  And it must list one or more
+timesteps beyond the length of the run you perform.  This is because
+the dump command will generate an error if the next timestep it reads
+from the file is not a value greater than the current timestep.  Thus
+if you wanted output on steps 0,15,100 of a 100-timestep run, the file
+should contain the values 15,100,101 and you should also use the
+dump_modify first command.  Any final value &gt; 100 could be used in
+place of 101.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>first</em> keyword determines whether a dump snapshot is written on
@@ -364,14 +364,14 @@ character in the format string.  This option has no effect on the
 for the <em>cfg</em> style, the first two fields (atom id and type) are not
 actually written into the CFG file, though you must include formats
 for them in the format string.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Any value written to a text-based dump file that is a
-per-atom quantity calculated by a <a class="reference internal" href="compute.html"><em>compute</em></a> or
-<a class="reference internal" href="fix.html"><em>fix</em></a> is stored internally as a floating-point value.  If the
-value is actually an integer and you wish it to appear in the text
-dump file as a (large) integer, then you need to use an appropriate
-format.  For example, these commands:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Any value written to a text-based dump file that is a per-atom
+quantity calculated by a <a class="reference internal" href="compute.html"><em>compute</em></a> or <a class="reference internal" href="fix.html"><em>fix</em></a> is
+stored internally as a floating-point value.  If the value is actually
+an integer and you wish it to appear in the text dump file as a
+(large) integer, then you need to use an appropriate format.  For
+example, these commands:</p>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>compute     1 all property/local batom1 batom2
 dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
@@ -484,11 +484,11 @@ as <em>dcd</em> and <em>xtc</em>, require sorting by atom ID to format the outpu
 file correctly.  If multiple processors are writing the dump file, via
 the &#8220;%&#8221; wildcard in the dump filename, then sorting cannot be
 performed.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unless it is required by the dump style, sorting dump
-file output requires extra overhead in terms of CPU and communication
-cost, as well as memory, versus unsorted output.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unless it is required by the dump style, sorting dump file
+output requires extra overhead in terms of CPU and communication cost,
+as well as memory, versus unsorted output.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>thresh</em> keyword only applies to the dump <em>custom</em>, <em>cfg</em>,
@@ -697,10 +697,10 @@ compression and will result in higher quality movies.  The quality is
 also determined by the compression format and encoder.  The default
 setting is 2000 kbit/s, which will result in average quality with
 older compression formats.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Not all movie file formats supported by dump movie
-allow the bitrate to be set.  If not, the setting is silently ignored.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Not all movie file formats supported by dump movie allow the
+bitrate to be set.  If not, the setting is silently ignored.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>boxcolor</em> keyword sets the color of the simulation box drawn
@@ -990,7 +990,7 @@ Divide each value by 255 to get the equivalent 0.0 to 1.0 value.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -1011,7 +1011,7 @@ Divide each value by 255 to get the equivalent 0.0 to 1.0 value.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

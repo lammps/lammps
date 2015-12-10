@@ -96,12 +96,12 @@ mass of the molecule (header keyword = mass), the center-of-mass of
 the molecule (header keyword = com), and the moments of inertia of the
 molecule (header keyword = inertia).
 
-IMPORTANT NOTE: The molecule command can be used to define molecules
-with bonds, angles, dihedrals, imporopers, or special bond lists of
-neighbors within a molecular topology, so that you can later add the
-molecules to your simulation, via one or more of the commands listed
-above.  If such molecules do not already exist when LAMMPS creates the
-simulation box, via the "create_box"_create_box.html or
+NOTE: The molecule command can be used to define molecules with bonds,
+angles, dihedrals, imporopers, or special bond lists of neighbors
+within a molecular topology, so that you can later add the molecules
+to your simulation, via one or more of the commands listed above.  If
+such molecules do not already exist when LAMMPS creates the simulation
+box, via the "create_box"_create_box.html or
 "read_data"_read_data.html command, when you later add them you may
 overflow the pre-allocated data structures which store molecular
 topology information with each atom, and an error will be generated.
@@ -180,13 +180,13 @@ reason to list the special bond info explicitly is for the
 the bonds between nuclear cores and Drude electrons in a different
 manner.
 
-IMPORTANT NOTE: Whether a section is required depends on how the
-molecule template is used by other LAMMPS commands.  For example, to
-add a molecule via the "fix deposit"_fix_deposit.html command, the
-Coords and Types sections are required.  To add a rigid body via the
-"fix pour"_fix_pout.html command, the Bonds (Angles, etc) sections are
-not required, since the molecule will be treated as a rigid body.
-Some sections are optional.  For example, the "fix pour"_fix_pour.html
+NOTE: Whether a section is required depends on how the molecule
+template is used by other LAMMPS commands.  For example, to add a
+molecule via the "fix deposit"_fix_deposit.html command, the Coords
+and Types sections are required.  To add a rigid body via the "fix
+pour"_fix_pout.html command, the Bonds (Angles, etc) sections are not
+required, since the molecule will be treated as a rigid body.  Some
+sections are optional.  For example, the "fix pour"_fix_pour.html
 command can be used to add "molecules" which are clusters of
 finite-size granular particles.  If the Diameters section is not
 specified, each particle in the molecule will have a default diameter

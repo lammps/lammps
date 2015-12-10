@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute msd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute msd command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -188,29 +188,28 @@ sense to use this option if the atoms are not diffusing, so that
 their average positions relative to the center of mass of the system
 are stationary. The most common case is crystalline solids undergoing
 thermal motion.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Initial coordinates are stored in &#8220;unwrapped&#8221; form, by
-using the image flags associated with each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion of &#8220;unwrapped&#8221; coordinates.
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Initial coordinates are stored in &#8220;unwrapped&#8221; form, by using the
+image flags associated with each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion of &#8220;unwrapped&#8221; coordinates.
 See the Atoms section of the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a
 discussion of image flags and how they are set for each atom.  You can
 reset the image flags (e.g. to 0) before invoking this compute by
 using the <a class="reference internal" href="set.html"><em>set image</em></a> command.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the quantities calculated by this compute
-to be continuous when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>,
-then you should use the same ID for this compute, as in the original
-run.  This is so that the fix this compute creates to store per-atom
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the quantities calculated by this compute to be
+continuous when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>, then
+you should use the same ID for this compute, as in the original run.
+This is so that the fix this compute creates to store per-atom
 quantities will also have the same ID, and thus be initialized
-correctly with atom reference positions from the restart file.
-When <em>average</em> is set to yes, then the atom reference positions
-are restored correctly, but not the number of samples used
-obtain them. As a result, the reference positions from the restart
-file are combined with subsequent positions as if they were from a
-single sample, instead of many, which will change the values of msd
-somewhat.</p>
+correctly with atom reference positions from the restart file.  When
+<em>average</em> is set to yes, then the atom reference positions are
+restored correctly, but not the number of samples used obtain them. As
+a result, the reference positions from the restart file are combined
+with subsequent positions as if they were from a single sample,
+instead of many, which will change the values of msd somewhat.</p>
 </div>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a global vector of length 4, which can be
@@ -245,7 +244,7 @@ distance^2 <a class="reference internal" href="units.html"><em>units</em></a>.</
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -266,7 +265,7 @@ distance^2 <a class="reference internal" href="units.html"><em>units</em></a>.</
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

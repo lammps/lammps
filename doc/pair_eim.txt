@@ -51,12 +51,12 @@ r_(c,psi), A_(eta), r_(s,eta), r_(c,eta), chi, and pair function type
 p are parameters, with subscripts ij indicating the two species of
 atoms in the atomic pair.
 
-IMPORTANT NOTE: Even though the EIM potential is treating atoms as
-charged ions, you should not use a LAMMPS "atom_style"_atom_style.html
-that stores a charge on each atom and thus requires you to assign a
-charge to each atom, e.g. the {charge} or {full} atom styles.  This is
-because the EIM potential infers the charge on an atom from the
-equation above for q_i; you do not assign charges explicitly.
+NOTE: Even though the EIM potential is treating atoms as charged ions,
+you should not use a LAMMPS "atom_style"_atom_style.html that stores a
+charge on each atom and thus requires you to assign a charge to each
+atom, e.g. the {charge} or {full} atom styles.  This is because the
+EIM potential infers the charge on an atom from the equation above for
+q_i; you do not assign charges explicitly.
 
 :line
 

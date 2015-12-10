@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style hbond/dreiding/lj command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style hbond/dreiding/lj command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -189,57 +189,53 @@ that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.</p>
 <p>See this <a class="reference internal" href="Section_howto.html#howto-4"><span>howto section</span></a> of the manual for
 more information on the DREIDING forcefield.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because the Dreiding hydrogen bond potential is only
-one portion of an overall force field which typically includes other
-pairwise interactions, it is common to use it as a sub-style in a
-<a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a> command, where another
-pair style provides the repulsive core interaction between pairs of
-atoms, e.g. a 1/r^12 Lennard-Jones repulsion.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because the Dreiding hydrogen bond potential is only one portion
+of an overall force field which typically includes other pairwise
+interactions, it is common to use it as a sub-style in a <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a> command, where another pair style
+provides the repulsive core interaction between pairs of atoms, e.g. a
+1/r^12 Lennard-Jones repulsion.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When using the hbond/dreiding pair styles with
-<a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a>, you should explicitly
-define pair interactions between the donor atom and acceptor atoms,
-(as well as between these atoms and ALL other atoms in your system).
-Whenever <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a> is used,
-ordinary mixing rules are not applied to atoms like the donor and
-acceptor atoms because they are typically referenced in multiple pair
-styles.  Neglecting to do this can cause difficult-to-detect physics
-problems.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using the hbond/dreiding pair styles with <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a>, you should explicitly define pair
+interactions between the donor atom and acceptor atoms, (as well as
+between these atoms and ALL other atoms in your system).  Whenever
+<a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a> is used, ordinary mixing
+rules are not applied to atoms like the donor and acceptor atoms
+because they are typically referenced in multiple pair styles.
+Neglecting to do this can cause difficult-to-detect physics problems.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">In the original Dreiding force field paper 1-4
-non-bonded interactions ARE allowed.  If this is desired for your
-model, use the special_bonds command (e.g. &#8220;special_bonds lj 0.0 0.0
-1.0&#8221;) to turn these interactions on.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the original Dreiding force field paper 1-4 non-bonded
+interactions ARE allowed.  If this is desired for your model, use the
+special_bonds command (e.g. &#8220;special_bonds lj 0.0 0.0 1.0&#8221;) to turn
+these interactions on.</p>
 </div>
 <hr class="docutils" />
 <p>The following coefficients must be defined for pairs of eligible
 donor/acceptor types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as
 in the examples above.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">Unlike other pair styles and their associated
 <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> commands, you do not need to specify
 pair_coeff settings for all possible I,J type pairs.  Only I,J type
 pairs for atoms which act as joint donors/acceptors need to be
 specified; all other type pairs are assumed to be inactive.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">A <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command can be
-speficied multiple times for the same donor/acceptor type pair.  This
-enables multiple hydrogen types to be assigned to the same
-donor/acceptor type pair.  For other pair_styles, if the pair_coeff
-command is re-used for the same I.J type pair, the settings for that
-type pair are overwritten.  For the hydrogen bond potentials this is
-not the case; the settings are cummulative.  This means the only way
-to turn off a previous setting, is to re-use the pair_style command
-and start over.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command can be speficied multiple
+times for the same donor/acceptor type pair.  This enables multiple
+hydrogen types to be assigned to the same donor/acceptor type pair.
+For other pair_styles, if the pair_coeff command is re-used for the
+same I.J type pair, the settings for that type pair are overwritten.
+For the hydrogen bond potentials this is not the case; the settings
+are cummulative.  This means the only way to turn off a previous
+setting, is to re-use the pair_style command and start over.</p>
 </div>
 <p>For the <em>hbond/dreiding/lj</em> style the list of coefficients is as
 follows:</p>
@@ -360,7 +356,7 @@ thermo_style custom step temp epair v_E_hbond
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -381,7 +377,7 @@ thermo_style custom step temp epair v_E_hbond
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

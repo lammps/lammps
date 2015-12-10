@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_modify command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -226,7 +226,7 @@ see the doc page for individual styles to see which potentials support
 these options.  If N is non-zero, a table of length 2^N is
 pre-computed for forces and energies, which can shrink their
 computational cost by up to a factor of 2.  The table is indexed via a
-bit-mapping technique <a class="reference internal" href="#wolff"><span>(Wolff)</span></a> and a linear interpolation is
+bit-mapping technique <a class="reference internal" href="pair_table.html#wolff"><span>(Wolff)</span></a> and a linear interpolation is
 performed between adjacent table values.  In our experiments with
 different table styles (lookup, linear, spline), this method typically
 gave the best performance in terms of speed and accuracy.</p>
@@ -262,15 +262,14 @@ simulations where the pressure influences the simulation box
 dimensions (e.g. the <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> and <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>
 commands).  The formulas used for the long-range corrections come from
 equation 5 of <a class="reference internal" href="#sun"><span>(Sun)</span></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The tail correction terms are computed at the
-beginning of each run, using the current atom counts of each atom
-type.  If atoms are deleted (or lost) or created during a simulation,
-e.g. via the <a class="reference internal" href="fix_gcmc.html"><em>fix gcmc</em></a> command, the correction factors
-are not re-computed.  If you expect the counts to change dramatically,
-you can break a run into a series of shorter runs so that the
-correction factors are re-computed more frequently.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The tail correction terms are computed at the beginning of each
+run, using the current atom counts of each atom type.  If atoms are
+deleted (or lost) or created during a simulation, e.g. via the <a class="reference internal" href="fix_gcmc.html"><em>fix gcmc</em></a> command, the correction factors are not
+re-computed.  If you expect the counts to change dramatically, you can
+break a run into a series of shorter runs so that the correction
+factors are re-computed more frequently.</p>
 </div>
 <p>Several additional assumptions are inherent in using tail corrections,
 including the following:</p>
@@ -328,18 +327,18 @@ values are numeric weights from 0.0 to 1.0 inclusive, for the 1-2,
 1-3, and 1-4 bond topology neighbors, respectively. The <em>special</em>
 keyword can only be used in conjunction with the <em>pair</em> keyword
 and has to directly follow it.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">The global settings specified by the
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command affect the construction of
 neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
 exclude those pairs from the neighbor list entirely.  Weights of 1.0
 store the neighbor with no weighting applied. Thus only global values
-different from exactly 0.0 or 1.0 can be overridden and an error
-is generated if the requested setting is not compatible with the
-global setting. Substituting 1.0e-10 for 0.0 and 0.9999999999 for
-1.0 is usually a sufficient workaround in this case without causing
-a significant error.</p>
+different from exactly 0.0 or 1.0 can be overridden and an error is
+generated if the requested setting is not compatible with the global
+setting. Substituting 1.0e-10 for 0.0 and 0.9999999999 for 1.0 is
+usually a sufficient workaround in this case without causing a
+significant error.</p>
 </div>
 </div>
 </div>
@@ -378,7 +377,7 @@ mixing.  See the doc pages for individual pair styles for details.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -399,7 +398,7 @@ mixing.  See the doc pages for individual pair styles for details.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

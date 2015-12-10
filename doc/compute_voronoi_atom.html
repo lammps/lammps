@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute voronoi/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute voronoi/atom command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -236,10 +236,10 @@ data can be used to identify interstitial atoms.</p>
 which must be installed on your system when building LAMMPS for use
 with this compute.  See instructions on obtaining and installing the
 Voro++ software in the src/VORONOI/README file.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The calculation of Voronoi volumes is performed by
-each processor for the atoms it owns, and includes the effect of ghost
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The calculation of Voronoi volumes is performed by each
+processor for the atoms it owns, and includes the effect of ghost
 atoms stored by the processor.  This assumes that the Voronoi cells of
 owned atoms are not affected by atoms beyond the ghost atom cut-off
 distance.  This is usually a good assumption for liquid and solid
@@ -249,16 +249,16 @@ processor is determined by the cutoff used for
 <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> interactions.  The cutoff can be set
 explicitly via the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The Voro++ package performs its calculation in 3d.
-This should still work for a 2d LAMMPS simulation, to effectively
-compute Voronoi &#8220;areas&#8221;, so long as the z-dimension of the box is
-roughly the same (or smaller) compared to the separation of the atoms.
-Typical values for the z box dimensions in a 2d LAMMPS model are -0.5
-to 0.5, which satisfies the criterion for most <a class="reference internal" href="units.html"><em>units</em></a>
-systems.  Note that you define the z extent of the simulation box for
-2d simulations when using the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The Voro++ package performs its calculation in 3d.  This should
+still work for a 2d LAMMPS simulation, to effectively compute Voronoi
+&#8220;areas&#8221;, so long as the z-dimension of the box is roughly the same (or
+smaller) compared to the separation of the atoms.  Typical values for
+the z box dimensions in a 2d LAMMPS model are -0.5 to 0.5, which
+satisfies the criterion for most <a class="reference internal" href="units.html"><em>units</em></a> systems.  Note
+that you define the z extent of the simulation box for 2d simulations
+when using the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
 <a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.</p>
 </div>
 <p><strong>Output info:</strong></p>
@@ -293,7 +293,7 @@ LAMMPS was built with that package.  See the <a class="reference internal" href=
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -314,7 +314,7 @@ LAMMPS was built with that package.  See the <a class="reference internal" href=
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

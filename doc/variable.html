@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>variable command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>variable command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -237,15 +237,15 @@ input script that atom-style variables are used; they get their
 per-atom values from a file rather than from a formula.  Variables can
 be hooked to Python functions using code you provide, so that the
 variable gets its value from the evaluation of the Python code.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">As discussed in <a class="reference internal" href="Section_commands.html#cmd-2"><span>Section 3.2</span></a>
-of the manual, an input script can use &#8220;immediate&#8221; variables, specified
-as $(formula) with parenthesis, where the formula has the same syntax
-as equal-style variables described on this page.  This is a convenient
-way to evaluate a formula immediately without using the variable command
-to define a named variable and then evaluate that variable. See below
-for a more detailed discussion of this feature.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As discussed in <a class="reference internal" href="Section_commands.html#cmd-2"><span>Section 3.2</span></a> of the
+manual, an input script can use &#8220;immediate&#8221; variables, specified as
+$(formula) with parenthesis, where the formula has the same syntax as
+equal-style variables described on this page.  This is a convenient
+way to evaluate a formula immediately without using the variable
+command to define a named variable and then evaluate that
+variable. See below for a more detailed discussion of this feature.</p>
 </div>
 <p>In the discussion that follows, the &#8220;name&#8221; of the variable is the
 arbitrary string that is the 1st argument in the variable command.
@@ -257,41 +257,41 @@ example.  The &#8220;value&#8221; is the numeric quantity resulting from
 evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
 simulation.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When the input script line is encountered that defines
-a variable of style <em>equal</em> or <em>atom</em> or <em>python</em> that contains a
-formula or Python code, the formula is NOT immediately evaluated.
-It will be evaluated every time when the variable is <strong>used</strong> instead.
-If you simply want to evaluate a formula in place you can use as
-so-called. See the section below about &#8220;Immediate Evaluation
-of Variables&#8221; for more details on the topic.  This is also true of
-a <em>format</em> style variable since it evaluates another variable when
-it is invoked.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When the input script line is encountered that defines a
+variable of style <em>equal</em> or <em>atom</em> or <em>python</em> that contains a
+formula or Python code, the formula is NOT immediately evaluated.  It
+will be evaluated every time when the variable is <strong>used</strong> instead.  If
+you simply want to evaluate a formula in place you can use as
+so-called. See the section below about &#8220;Immediate Evaluation of
+Variables&#8221; for more details on the topic.  This is also true of a
+<em>format</em> style variable since it evaluates another variable when it is
+invoked.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Variables of style <em>equal</em> and <em>atom</em> can be used as
-inputs to various other LAMMPS commands which evaluate their formulas
-as needed, e.g. at different timesteps during a <a class="reference internal" href="run.html"><em>run</em></a>.
-Variables of style <em>python</em> can be used in place of an equal-style
-variable so long as the associated Python function, as defined by the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Variables of style <em>equal</em> and <em>atom</em> can be used as inputs to
+various other LAMMPS commands which evaluate their formulas as needed,
+e.g. at different timesteps during a <a class="reference internal" href="run.html"><em>run</em></a>.  Variables of
+style <em>python</em> can be used in place of an equal-style variable so long
+as the associated Python function, as defined by the
 <a class="reference internal" href="python.html"><em>python</em></a> command, returns a numeric value.  Thus any
 command that states it can use an equal-style variable as an argument,
 can also use such a python-style variable.  This means that when the
 LAMMPS command evaluates the variable, the Python function will be
 executed.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When a variable command is encountered in the input
-script and the variable name has already been specified, the command
-is ignored.  This means variables can NOT be re-defined in an input
-script (with two exceptions, read further).  This is to allow an input
-script to be processed multiple times without resetting the variables;
-see the <a class="reference internal" href="jump.html"><em>jump</em></a> or <a class="reference internal" href="include.html"><em>include</em></a> commands.  It also
-means that using the <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a>
--var will override a corresponding index variable setting in the input
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When a variable command is encountered in the input script and
+the variable name has already been specified, the command is ignored.
+This means variables can NOT be re-defined in an input script (with
+two exceptions, read further).  This is to allow an input script to be
+processed multiple times without resetting the variables; see the
+<a class="reference internal" href="jump.html"><em>jump</em></a> or <a class="reference internal" href="include.html"><em>include</em></a> commands.  It also means
+that using the <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a> -var
+will override a corresponding index variable setting in the input
 script.</p>
 </div>
 <p>There are two exceptions to this rule.  First, variables of style
@@ -451,11 +451,11 @@ lines have the following format</p>
 </div>
 <p>where ID is an atom ID and value is the per-atom numeric value that
 will be assigned to that atom.  IDs can be listed in any order.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Every time a set of per-atom lines is read, the value
-for all atoms is first set to 0.0.  Thus values for atoms whose ID
-does not appear in the set, will remain 0.0.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Every time a set of per-atom lines is read, the value for all
+atoms is first set to 0.0.  Thus values for atoms whose ID does not
+appear in the set, will remain 0.0.</p>
 </div>
 <p>For the <em>python</em> style a Python function name is provided.  This needs
 to match a function name specified in a <a class="reference internal" href="python.html"><em>python</em></a> command
@@ -571,13 +571,13 @@ are next; then the logical AND operator &#8220;&amp;&amp;&#8221;; and finally th
 OR operator &#8220;||&#8221; has the lowest precedence.  Parenthesis can be used
 to group one or more portions of a formula and/or enforce a different
 order of evaluation than what would occur with the default precedence.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because a unary minus is higher precedence than
-exponentiation, the formula &#8220;-2^2&#8221; will evaluate to 4, not -4.  This
-convention is compatible with some programming languages, but not
-others.  As mentioned, this behavior can be easily overridden with
-parenthesis; the formula &#8220;-(2^2)&#8221; will evaluate to -4.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because a unary minus is higher precedence than exponentiation,
+the formula &#8220;-2^2&#8221; will evaluate to 4, not -4.  This convention is
+compatible with some programming languages, but not others.  As
+mentioned, this behavior can be easily overridden with parenthesis;
+the formula &#8220;-(2^2)&#8221; will evaluate to -4.</p>
 </div>
 <p>The 6 relational operators return either a 1.0 or 0.0 depending on
 whether the relationship between x and y is TRUE or FALSE.  For
@@ -618,15 +618,14 @@ each generate the same sequence of random numbers.  For atom-style
 variables, a unique seed is created for each processor, based on the
 specified seed.  This effectively generates a different random number
 for each atom being looped over in the atom-style variable.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Internally, there is just one random number generator
-for all equal-style variables and one for all atom-style variables.
-If you define multiple variables (of each style) which use the
-random() or normal() math functions, then the internal random number
-generators will only be initialized once, which means only one of the
-specified seeds will determine the sequence of generated random
-numbers.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Internally, there is just one random number generator for all
+equal-style variables and one for all atom-style variables.  If you
+define multiple variables (of each style) which use the random() or
+normal() math functions, then the internal random number generators
+will only be initialized once, which means only one of the specified
+seeds will determine the sequence of generated random numbers.</p>
 </div>
 <p>The ceil(), floor(), and round() functions are those in the C math
 library.  Ceil() is the smallest integer not less than its argument.
@@ -1246,7 +1245,7 @@ must have the same number of values.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -1267,7 +1266,7 @@ must have the same number of values.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style hybrid command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style hybrid command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -196,17 +196,16 @@ could be listed twice.  But if you just want to use a Lennard-Jones or
 other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
 pair_coeff command to assign parameters for the different type pairs.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">There are two exceptions to this option to list an
-individual pair style multiple times.  The first is for pair styles
-implemented as Fortran libraries: <a class="reference internal" href="pair_meam.html"><em>pair_style meam</em></a> and
-<a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> (<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>
-is OK).  This is because unlike a C++ class, they can not be
-instantiated multiple times, due to the manner in which they were
-coded in Fortran.  The second is for GPU-enabled pair styles in the
-GPU package.  This is b/c the GPU package also currently assumes that
-only one instance of a pair style is being used.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There are two exceptions to this option to list an individual
+pair style multiple times.  The first is for pair styles implemented
+as Fortran libraries: <a class="reference internal" href="pair_meam.html"><em>pair_style meam</em></a> and <a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> (<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a> is OK).
+This is because unlike a C++ class, they can not be instantiated
+multiple times, due to the manner in which they were coded in Fortran.
+The second is for GPU-enabled pair styles in the GPU package.  This is
+b/c the GPU package also currently assumes that only one instance of a
+pair style is being used.</p>
 </div>
 <p>In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
@@ -351,10 +350,13 @@ the specific syntax, requirements and restrictions.</p>
 <p>The potential energy contribution to the overall system due to an
 individual sub-style can be accessed and output via the <a class="reference internal" href="compute_pair.html"><em>compute pair</em></a> command.</p>
 <hr class="docutils" />
-<p>IMPORTANT: Several of the potentials defined via the pair_style
-command in LAMMPS are really many-body potentials, such as Tersoff,
-AIREBO, MEAM, ReaxFF, etc.  The way to think about using these
-potentials in a hybrid setting is as follows.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Several of the potentials defined via the pair_style command in
+LAMMPS are really many-body potentials, such as Tersoff, AIREBO, MEAM,
+ReaxFF, etc.  The way to think about using these potentials in a
+hybrid setting is as follows.</p>
+</div>
 <p>A subset of atom types is assigned to the many-body potential with a
 single <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command, using &#8220;* <a href="#id1"><span class="problematic" id="id2">*</span></a>&#8221; to include
 all types and the NULL keywords described above to exclude specific
@@ -488,7 +490,7 @@ the same or else LAMMPS will generate an error.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -509,7 +511,7 @@ the same or else LAMMPS will generate an error.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

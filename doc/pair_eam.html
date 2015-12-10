@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style eam command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style eam command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -232,20 +232,20 @@ original serial EAM MD code, written by the EAM originators.  Several
 DYNAMO potential files for different metals are included in the
 &#8220;potentials&#8221; directory of the LAMMPS distribution.  All of these files
 are parameterized in terms of LAMMPS <a class="reference internal" href="units.html"><em>metal units</em></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <em>eam</em> style reads single-element EAM potentials in
-the DYNAMO <em>funcfl</em> format.  Either single element or alloy systems
-can be modeled using multiple <em>funcfl</em> files and style <em>eam</em>.  For the
-alloy case LAMMPS mixes the single-element potentials to produce alloy
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>eam</em> style reads single-element EAM potentials in the
+DYNAMO <em>funcfl</em> format.  Either single element or alloy systems can be
+modeled using multiple <em>funcfl</em> files and style <em>eam</em>.  For the alloy
+case LAMMPS mixes the single-element potentials to produce alloy
 potentials, the same way that DYNAMO does.  Alternatively, a single
 DYNAMO <em>setfl</em> file or Finnis/Sinclair EAM file can be used by LAMMPS
 to model alloy systems by invoking the <em>eam/alloy</em> or <em>eam/cd</em> or
 <em>eam/fs</em> styles as described below.  These files require no mixing
 since they specify alloy interactions explicitly.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">Note that unlike for other potentials, cutoffs for EAM
 potentials are not set in the pair_style or pair_coeff command; they
 are specified in the EAM potential files themselves.  Likewise, the
@@ -566,7 +566,7 @@ Materials Science &amp; Engineering, 7, 075005 (2009).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -587,7 +587,7 @@ Materials Science &amp; Engineering, 7, 075005 (2009).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

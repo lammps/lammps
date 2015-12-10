@@ -164,10 +164,10 @@ so that any forces induced by other fixes will be zeroed out.
 Many of the example input scripts included in the LAMMPS distribution
 are for 2d models.
 
-IMPORTANT NOTE: Some models in LAMMPS treat particles as finite-size
-spheres, as opposed to point particles.  In 2d, the particles will
-still be spheres, not disks, meaning their moment of inertia will be
-the same as in 3d.
+NOTE: Some models in LAMMPS treat particles as finite-size spheres, as
+opposed to point particles.  In 2d, the particles will still be
+spheres, not disks, meaning their moment of inertia will be the same
+as in 3d.
 
 :line
 
@@ -1658,12 +1658,11 @@ the thermal temperature of a streaming flow of particles without
 affecting the streaming velocity, by using "compute
 temp/profile"_compute_temp_profile.html.
 
-IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
-they update the velocities and positions of particles due to forces
-and velocities respectively.  The other thermostat fixes only adjust
-velocities; they do NOT perform time integration updates.  Thus they
-should be used in conjunction with a constant NVE integration fix such
-as these:
+NOTE: Only the nvt fixes perform time integration, meaning they update
+the velocities and positions of particles due to forces and velocities
+respectively.  The other thermostat fixes only adjust velocities; they
+do NOT perform time integration updates.  Thus they should be used in
+conjunction with a constant NVE integration fix such as these:
 
 "fix nve"_fix_nve.html
 "fix nve/sphere"_fix_nve_sphere.html
@@ -1705,11 +1704,11 @@ pressure.  See the doc pages for the individual fixes and for the
 "fix_modify"_fix_modify.html command for instructions on how to assign
 a temperature or pressure compute to a barostatting fix.
 
-IMPORTANT NOTE: As with the thermostats, the Nose/Hoover methods ("fix
-npt"_fix_nh.html and "fix nph"_fix_nh.html) perform time
-integration.  "Fix press/berendsen"_fix_press_berendsen.html does NOT,
-so it should be used with one of the constant NVE fixes or with one of
-the NVT fixes.
+NOTE: As with the thermostats, the Nose/Hoover methods ("fix
+npt"_fix_nh.html and "fix nph"_fix_nh.html) perform time integration.
+"Fix press/berendsen"_fix_press_berendsen.html does NOT, so it should
+be used with one of the constant NVE fixes or with one of the NVT
+fixes.
 
 Finally, thermodynamic output, which can be setup via the
 "thermo_style"_thermo_style.html command, often includes temperature

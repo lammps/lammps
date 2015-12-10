@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix restrain command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix restrain command &mdash; LAMMPS 10 Dec 2015 version documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 10 Dec 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -180,14 +180,14 @@ angle formed by atoms 1, 2, 3, and 4 near 120 degrees using a constant
 restraint coefficient.  The fourth example applies similar restraints
 to multiple dihedral angles using a restraint coefficient that
 increases from 0.0 to 2000.0 over the course of the run.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Adding a force to atoms implies a change in their
-potential energy as they move due to the applied force field.  For
-dynamics via the <a class="reference internal" href="run.html"><em>run</em></a> command, this energy can be added to
-the system&#8217;s potential energy for thermodynamic output (see below).
-For energy minimization via the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command, this
-energy must be added to the system&#8217;s potential energy to formulate a
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Adding a force to atoms implies a change in their potential
+energy as they move due to the applied force field.  For dynamics via
+the <a class="reference internal" href="run.html"><em>run</em></a> command, this energy can be added to the system&#8217;s
+potential energy for thermodynamic output (see below).  For energy
+minimization via the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command, this energy
+must be added to the system&#8217;s potential energy to formulate a
 self-consistent minimization problem (see below).</p>
 </div>
 <p>In order for a restraint to be effective, the restraint force must
@@ -267,11 +267,11 @@ current dihedral angle phi is equal to phi0.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
 fix to add the potential energy associated with this fix to the
 system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the fictitious potential energy associated
-with the added forces to be included in the total potential energy of
-the system (the quantity being minimized), you MUST enable the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the fictitious potential energy associated with the
+added forces to be included in the total potential energy of the
+system (the quantity being minimized), you MUST enable the
 <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option for this fix.</p>
 </div>
 <p>This fix computes a global scalar, which can be accessed by various
@@ -300,7 +300,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -321,7 +321,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'10 Dec 2015 version',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

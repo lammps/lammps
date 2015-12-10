@@ -38,10 +38,10 @@ At the inner cutoff the force and its 1st derivative
 will match the unsmoothed LJ formula.  At the outer cutoff the force
 and its 1st derivative will be 0.0.  The inner cutoff cannot be 0.0.
 
-IMPORTANT NOTE: this force smoothing causes the energy to be
-discontinuous both in its values and 1st derivative.  This can lead to
-poor energy conservation and may require the use of a thermostat.
-Plot the energy and force resulting from this formula via the
+NOTE: this force smoothing causes the energy to be discontinuous both
+in its values and 1st derivative.  This can lead to poor energy
+conservation and may require the use of a thermostat.  Plot the energy
+and force resulting from this formula via the
 "pair_write"_pair_write.html command to see the effect.
 
 The following coefficients must be defined for each pair of atoms

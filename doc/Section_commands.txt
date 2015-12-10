@@ -563,7 +563,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "rigid/small/npt"_fix_rigid.html,
 "rigid/small/nve"_fix_rigid.html,
 "rigid/small/nvt"_fix_rigid.html,
-"setforce (c)"_fix_setforce.html,
+"setforce (ck)"_fix_setforce.html,
 "shake (c)"_fix_shake.html,
 "spring"_fix_spring.html,
 "spring/rg"_fix_spring_rg.html,
@@ -898,6 +898,7 @@ if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
 "awpmd/cut"_pair_awpmd.html,
+"buck/mdf"_pair_mdf.html,
 "coul/cut/soft (o)"_pair_lj_soft.html,
 "coul/diel (o)"_pair_coul_diel.html,
 "coul/long/soft (o)"_pair_lj_soft.html,
@@ -905,6 +906,7 @@ package"_Section_start.html#start_3.
 "edip (o)"_pair_edip.html,
 "eff/cut"_pair_eff.html,
 "gauss/cut"_pair_gauss.html,
+"lennard/mdf"_pair_mdf.html,
 "list"_pair_list.html,
 "lj/charmm/coul/long/soft (o)"_pair_charmm.html,
 "lj/cut/coul/cut/soft (o)"_pair_lj_soft.html,
@@ -912,6 +914,7 @@ package"_Section_start.html#start_3.
 "lj/cut/dipole/sf (go)"_pair_dipole.html,
 "lj/cut/soft (o)"_pair_lj_soft.html,
 "lj/cut/tip4p/long/soft (o)"_pair_lj_soft.html,
+"lj/mdf"_pair_mdf.html,
 "lj/sdk (gko)"_pair_sdk.html,
 "lj/sdk/coul/long (go)"_pair_sdk.html,
 "lj/sdk/coul/msm (o)"_pair_sdk.html,
@@ -1057,6 +1060,7 @@ used if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
 "cossq (o)"_improper_cossq.html,
+"distance"_improper_distance.html,
 "fourier (o)"_improper_fourier.html,
 "ring (o)"_improper_ring.html :tb(c=4,ea=c)
 

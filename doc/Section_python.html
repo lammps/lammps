@@ -411,9 +411,16 @@ downloaded and looked at a few of them, their documentation was
 incomplete and I had trouble with their installation.  It&#8217;s not clear
 if some of the packages are still being actively developed and
 supported.</p>
-<p>The one I recommend, since I have successfully used it with LAMMPS, is
-Pypar.  Pypar requires the ubiquitous <a class="reference external" href="http://numpy.scipy.org">Numpy package</a> be installed in your Python.  After
-launching python, type</p>
+<p>The packages Pypar and mpi4py have both been successfully tested with
+LAMMPS.  Pypar is simpler and easy to set up and use, but supports
+only a subset of MPI.  Mpi4py is more MPI-feature complete, but also a
+bit more complex to use.  As of version 2.0.0, mpi4py is the only
+python MPI wrapper that allows passing a custom MPI communicator to
+the LAMMPS constructor, which means one can easily run one or more
+LAMMPS instances on subsets of the total MPI ranks.</p>
+<hr class="docutils" />
+<p>Pypar requires the ubiquitous <a class="reference external" href="http://numpy.scipy.org">Numpy package</a>
+be installed in your Python.  After launching Python, type</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span>
 </pre></div>
 </div>
@@ -463,6 +470,51 @@ load &#8220;libmpi.so&#8221; from the LD_LIBRARY_PATH.  This may or may not find
 the MPI library that LAMMPS is using.  If you have problems running
 both Pypar and LAMMPS together, this is an issue you may need to
 address, e.g. by moving other MPI installations so that Pypar finds
+the right one.</p>
+</div>
+<hr class="docutils" />
+<p>To install mpi4py (version mpi4py-2.0.0 as of Oct 2015), unpack it
+and from its main directory, type</p>
+<div class="highlight-python"><div class="highlight"><pre>python setup.py build
+sudo python setup.py install
+</pre></div>
+</div>
+<p>Again, the &#8220;sudo&#8221; is only needed if required to copy mpi4py files into
+your Python distribution&#8217;s site-packages directory. To install with
+user privilege into the user local directory type</p>
+<div class="highlight-python"><div class="highlight"><pre>python setup.py install --user
+</pre></div>
+</div>
+<p>If you have successully installed mpi4py, you should be able to run
+Python and type</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+</pre></div>
+</div>
+<p>without error.  You should also be able to run python in parallel
+on a simple test script</p>
+<div class="highlight-python"><div class="highlight"><pre>% mpirun -np 4 python test.py
+</pre></div>
+</div>
+<p>where test.py contains the lines</p>
+<div class="highlight-python"><div class="highlight"><pre>from mpi4py import MPI
+comm = MPI.COMM_WORLD
+print &quot;Proc %d out of %d procs&quot; % (comm.Get_rank(),comm.Get_size())
+</pre></div>
+</div>
+<p>and see one line of output for each processor you run on.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">To use mpi4py and LAMMPS in parallel from Python, you
+must insure both are using the same version of MPI.  If you only have
+one MPI installed on your system, this is not an issue, but it can be
+if you have multiple MPIs.  Your LAMMPS build is explicit about which
+MPI it is using, since you specify the details in your lo-level
+src/MAKE/Makefile.foo file.  Mpi4py uses the &#8220;mpicc&#8221; command to find
+information about the MPI it uses to build against.  And it tries to
+load &#8220;libmpi.so&#8221; from the LD_LIBRARY_PATH.  This may or may not find
+the MPI library that LAMMPS is using.  If you have problems running
+both mpi4py and LAMMPS together, this is an issue you may need to
+address, e.g. by moving other MPI installations so that mpi4py finds
 the right one.</p>
 </div>
 <hr class="docutils" />
@@ -517,8 +569,8 @@ typed something like:</p>
 <div class="section" id="test-lammps-and-python-in-parallel">
 <h3>11.6.2. <strong>Test LAMMPS and Python in parallel:</strong><a class="headerlink" href="#test-lammps-and-python-in-parallel" title="Permalink to this headline">¶</a></h3>
 <p>To run LAMMPS in parallel, assuming you have installed the
-<a class="reference external" href="http://datamining.anu.edu.au/~ole/pypar">Pypar</a> package as discussed
-above, create a test.py file containing these lines:</p>
+<a class="reference external" href="Pypar">Pypar</a> package as discussed above, create a test.py file
+containing these lines:</p>
 <div class="highlight-python"><div class="highlight"><pre>import pypar
 from lammps import lammps
 lmp = lammps()
@@ -527,7 +579,20 @@ print &quot;Proc %d out of %d procs has&quot; % (pypar.rank(),pypar.size()),lmp
 pypar.finalize()
 </pre></div>
 </div>
-<p>You can then run it in parallel as:</p>
+<p>To run LAMMPS in parallel, assuming you have installed the
+<a class="reference external" href="mpi4py">mpi4py</a> package as discussed above, create a test.py file
+containing these lines:</p>
+<div class="highlight-python"><div class="highlight"><pre>from mpi4py import MPI
+from lammps import lammps
+lmp = lammps()
+lmp.file(&quot;in.lj&quot;)
+me = MPI.COMM_WORLD.Get_rank()
+nprocs = MPI.COMM_WORLD.Get_size()
+print &quot;Proc %d out of %d procs has&quot; % (me,nprocs),lmp
+MPI.Finalize()
+</pre></div>
+</div>
+<p>You can either script in parallel as:</p>
 <div class="highlight-python"><div class="highlight"><pre>% mpirun -np 4 python test.py
 </pre></div>
 </div>
@@ -590,11 +655,12 @@ Python script, as follows:</p>
 the files src/library.cpp and src/library.h you will see that they
 correspond one-to-one with calls you can make to the LAMMPS library
 from a C++ or C or Fortran program.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>           <span class="c"># create a LAMMPS object using the default liblammps.so library</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">ptr</span><span class="o">=</span><span class="n">lmpptr</span><span class="p">)</span> <span class="c"># ditto, but use lmpptr as previously created LAMMPS object</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="s">&quot;g++&quot;</span><span class="p">)</span>      <span class="c"># create a LAMMPS object using the liblammps_g++.so library</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span>    <span class="c"># ditto, with command-line args, e.g. list = [&quot;-echo&quot;,&quot;screen&quot;]</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="s">&quot;g++&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre>lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
+                         4 optional args are allowed: name, cmdargs, ptr, comm
+lmp = lammps(ptr=lmpptr) # use lmpptr as previously created LAMMPS object
+lmp = lammps(comm=split) # create a LAMMPS object with a custom communicator, requires mpi4py 2.0.0 or later
+lmp = lammps(name=&quot;g++&quot;)   # create a LAMMPS object using the liblammps_g++.so library
+lmp = lammps(name=&quot;g++&quot;,cmdargs=list)    # add LAMMPS command-line args, e.g. list = [&quot;-echo&quot;,&quot;screen&quot;]
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">lmp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>              <span class="c"># destroy a LAMMPS object</span>
@@ -706,8 +772,8 @@ argument.</p>
 returned, which you can use via normal Python subscripting.  See the
 extract() method in the src/atom.cpp file for a list of valid names.
 Again, new names could easily be added.  A pointer to a vector of
-doubles or integers, or a pointer to an array of doubles (double <a href="#id2"><span class="problematic" id="id3">**</span></a>)
-or integers (int <a href="#id4"><span class="problematic" id="id5">**</span></a>) is returned.  You need to specify the appropriate
+doubles or integers, or a pointer to an array of doubles (double <a href="#id3"><span class="problematic" id="id4">**</span></a>)
+or integers (int <a href="#id5"><span class="problematic" id="id6">**</span></a>) is returned.  You need to specify the appropriate
 data type via the type argument.</p>
 <p>For extract_compute() and extract_fix(), the global, per-atom, or
 local data calulated by the compute or fix can be accessed.  What is
@@ -802,8 +868,8 @@ own scripts, send them to us and we can include them in the LAMMPS
 distribution.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="27%" />
-<col width="73%" />
+<col width="56%" />
+<col width="44%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>trivial.py</td>
@@ -813,19 +879,25 @@ distribution.</p>
 <td>invoke various LAMMPS library interface routines</td>
 </tr>
 <tr class="row-odd"><td>simple.py</td>
-<td>mimic operation of couple/simple/simple.cpp in Python</td>
+<td>run in parallel</td>
 </tr>
-<tr class="row-even"><td>gui.py</td>
-<td>GUI go/stop/temperature-slider to control LAMMPS</td>
+<tr class="row-even"><td>similar to examples/COUPLE/simple/simple.cpp</td>
+<td>split.py</td>
 </tr>
-<tr class="row-odd"><td>plot.py</td>
-<td>real-time temeperature plot with GnuPlot via Pizza.py</td>
+<tr class="row-odd"><td>same as simple.py but running in parallel on a subset of procs</td>
+<td>gui.py</td>
 </tr>
-<tr class="row-even"><td>viz_tool.py</td>
-<td>real-time viz via some viz package</td>
+<tr class="row-even"><td>GUI go/stop/temperature-slider to control LAMMPS</td>
+<td>plot.py</td>
 </tr>
-<tr class="row-odd"><td>vizplotgui_tool.py</td>
-<td>combination of viz_tool.py and plot.py and gui.py</td>
+<tr class="row-odd"><td>real-time temeperature plot with GnuPlot via Pizza.py</td>
+<td>viz_tool.py</td>
+</tr>
+<tr class="row-even"><td>real-time viz via some viz package</td>
+<td>vizplotgui_tool.py</td>
+</tr>
+<tr class="row-odd"><td>combination of viz_tool.py and plot.py and gui.py</td>
+<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>

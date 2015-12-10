@@ -77,6 +77,8 @@ action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
+action fix_setforce_kokkos.cpp
+action fix_setforce_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
@@ -157,6 +159,8 @@ action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
 action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
 action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
+action region_block_kokkos.cpp
+action region_block_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

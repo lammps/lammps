@@ -107,6 +107,8 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
 
 FixSetForce::~FixSetForce()
 {
+  if (copymode) return;
+
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;

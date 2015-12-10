@@ -18,9 +18,10 @@ from ctypes import *
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
 
-
 class lammps:
-  # detect, if we use a version of mpi4py that can pass a communicator
+  
+  # detect if Python is using version of mpi4py that can pass a communicator
+  
   has_mpi4py_v2 = False
   try:
     from mpi4py import MPI
@@ -30,9 +31,12 @@ class lammps:
   except:
     pass
 
+  # create instance of LAMMPS
+  
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
 
     # determine module location
+    
     modpath = dirname(abspath(getsourcefile(lambda:0)))
 
     # load liblammps.so by default
@@ -56,9 +60,10 @@ class lammps:
     #   just convert it to ctypes ptr and store in self.lmp
     
     if not ptr:
-      # with mpi4py we can pass communicators into the LAMMPS object but
-      # we need to adjust type for the MPI communicator object depending
-      # on whether it is an int (like MPICH) or a void* (like OpenMPI)
+      # with mpi4py v2, can pass MPI communicator to LAMMPS
+      # need to adjust for type of MPI communicator object
+      # allow for int (like MPICH) or void* (like OpenMPI)
+      
       if lammps.has_mpi4py_v2 and comm != None:
         if lammps.MPI._sizeof(lammps.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
@@ -97,6 +102,7 @@ class lammps:
           self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
           # could use just this if LAMMPS lib interface supported it
           # self.lmp = self.lib.lammps_open_no_mpi(0,None)
+          
     else:
       self.opened = 0
       # magic to convert ptr to ctypes ptr

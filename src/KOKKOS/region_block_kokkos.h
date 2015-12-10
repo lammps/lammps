@@ -13,29 +13,53 @@
 
 #ifdef REGION_CLASS
 
-RegionStyle(block,RegBlock)
+RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>)
+RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>)
+RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>)
 
 #else
 
-#ifndef LMP_REGION_BLOCK_H
-#define LMP_REGION_BLOCK_H
+#ifndef LMP_REGION_BLOCK_KOKKOS_H
+#define LMP_REGION_BLOCK_KOKKOS_H
 
-#include "region.h"
+#include "region_block.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class RegBlock : public Region {
+struct TagRegBlockMatchAll{};
+
+template<class DeviceType>
+class RegBlockKokkos : public RegBlock {
   friend class FixPour;
 
- public:
-  RegBlock(class LAMMPS *, int, char **);
-  ~RegBlock();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
- protected:
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+ public:
+  RegBlockKokkos(class LAMMPS *, int, char **);
+  ~RegBlockKokkos();
+  void match_all_kokkos(int, DAT::t_int_1d);
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRegBlockMatchAll, const int&) const;
+
+ private:
+  int groupbit;
+  DAT::t_int_1d d_match;
+
+  typename AT::t_x_array_randomread x;
+  typename AT::t_int_1d_randomread mask;
+
+  KOKKOS_INLINE_FUNCTION
+  int inside(double, double, double) const;
+  KOKKOS_INLINE_FUNCTION
+  int match(double, double, double) const;
+  KOKKOS_INLINE_FUNCTION
+  void inverse_transform(double &, double &, double &) const;
+  KOKKOS_INLINE_FUNCTION
+  void rotate(double &, double &, double &, double) const;
+
 };
 
 }

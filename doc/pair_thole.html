@@ -162,8 +162,8 @@ short distances by a function</p>
 frac{s_{ij} r_{ij} }{2} right)
 exp left( - s_{ij} r_{ij} right) end{equation}</p>
 <p>This function results from an adaptation to point charges
-<a class="reference internal" href="tutorial_drude.html#noskov"><span>(Noskov)</span></a> of the dipole screening scheme originally proposed
-by <a class="reference internal" href="tutorial_drude.html#thole"><span>Thole</span></a>. The scaling coefficient (s_{ij} ) is determined
+<a class="reference internal" href="#noskov"><span>(Noskov)</span></a> of the dipole screening scheme originally proposed
+by <a class="reference internal" href="#thole"><span>Thole</span></a>. The scaling coefficient (s_{ij} ) is determined
 by the polarizability of the atoms, ( alpha_i ), and by a Thole
 damping parameter ( a ).  This Thole damping parameter usually takes
 a value of 2.6, but in certain force fields the value can depend upon
@@ -206,7 +206,7 @@ for all I,J pairs must be specified explicitly.</p>
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>These pair styles are part of the USER-DRUDE package. They are only
 enabled if LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>This pair_style should currently not be used with the <a class="reference internal" href="dihedral_charmm.html"><em>charmm dihedral style</em></a> if the latter non-zero 1-4 weighting
+<p>This pair_style should currently not be used with the <a class="reference internal" href="dihedral_charmm.html"><em>charmm dihedral style</em></a> if the latter has non-zero 1-4 weighting
 factors. This is because the <em>thole</em> pair style does not know which
 pairs are 1-4 partners of which dihedrals.</p>
 </div>

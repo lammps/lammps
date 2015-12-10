@@ -14,19 +14,18 @@ pair_style lennard/mdf command :h3
 
 pair_style style args :pre
 
-style = {lj/mdf} or {buck/mdf} or {lennard/mdf}
-args = list of arguments for a particular style :ul
+style = {lj/mdf} or {buck/mdf} or {lennard/mdf} :ulb,l
+args = list of arguments for a particular style :l
   {lj/mdf} args = cutoff1 cutoff2
     cutoff1 = inner cutoff for the start of the tapering function
     cutoff1 = out cutoff for the end of the tapering function
-  
   {buck/mdf} args = cutoff1 cutoff2
     cutoff1 = inner cutoff for the start of the tapering function
     cutoff1 = out cutoff for the end of the tapering function
-  
   {lennard/mdf} args = cutoff1 cutoff2
     cutoff1 = inner cutoff for the start of the tapering function
-    cutoff1 = out cutoff for the end of the tapering function
+    cutoff1 = out cutoff for the end of the tapering function :pre
+:ule
 
 [Examples:]
 
@@ -51,8 +50,8 @@ inner and outer cutoff.
 
 :c,image(Eqs/pair_mdf-1.jpg)
 
-The tapering, {f(r)}, is done by using the
-"(Mei, Davenport and Fernando)"_#Mei function:
+The tapering, {f(r)}, is done by using the Mei, Davenport, Fernando
+function "(Mei)"_#Mei.
 
 :c,image(Eqs/pair_mdf-2.jpg)
 
@@ -60,19 +59,21 @@ where
 
 :c,image(Eqs/pair_mdf-3.jpg)
 
-Here {r_m} is the inner cutoff radius and {r_cut} is the outer cutoff radius.
+Here {r_m} is the inner cutoff radius and {r_cut} is the outer cutoff
+radius.
 
 :line
 
-For the {lj/mdf} pair_style, the potential energy, {E(r)},
-is the standard 12-6 Lennard-Jones written in the epsilon/sigma form:
+For the {lj/mdf} pair_style, the potential energy, {E(r)}, is the
+standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 :c,image(Eqs/pair_mdf-4.jpg)
 
 The following coefficients must be defined for each pair of atoms
 types via the pair_coeff command as in the examples above, or in the
-data file or restart files read by the read_data or read_restart
-commands, or by mixing as described below:
+data file or restart files read by the "read_data"_read_data.html or
+"read_restart commands"_read_restart.html, or by mixing as described
+below:
 
 epsilon (energy units)
 sigma (distance units)
@@ -109,12 +110,46 @@ B (energy-distance^6 units)
 r_m (distance units)
 r_{cut} (distance units) :ul
 
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the lj/cut pair styles can be mixed.
+The default mix value is {geometric}.  See the "pair_modify" command
+for details.
+
+All of the {lj/cut} pair styles support the
+"pair_modify"_pair_modify.html shift option for the energy of the
+Lennard-Jones portion of the pair interaction.
+
+The {lj/cut/coul/long} and {lj/cut/tip4p/long} pair styles support the
+"pair_modify"_pair_modify.html table option since they can tabulate
+the short-range portion of the long-range Coulombic interaction.
+
+All of the {lj/cut} pair styles support the
+"pair_modify"_pair_modify.html tail option for adding a long-range
+tail correction to the energy and pressure for the Lennard-Jones
+portion of the pair interaction.
+
+All of the {lj/cut} pair styles write their information to "binary
+restart files"_restart.html, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+
+The {lj/cut} and {lj/cut/coul/long} pair styles support the use of the
+{inner}, {middle}, and {outer} keywords of the "run_style
+respa"_run_style.html command, meaning the pairwise forces can be
+partitioned by distance at different levels of the rRESPA hierarchy.
+The other styles only support the {pair} keyword of run_style respa.
+See the "run_style"_run_style.html command for details.
+
+:line
+
 [Restrictions:]
 
 These pair styles can only be used if LAMMPS was built with the
-USER-MISC package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for
-more info on packages.
+USER-MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info on packages.
 
 [Related commands:]
 
@@ -125,4 +160,4 @@ more info on packages.
 :line
 
 :link(Mei)
-[(Mei)] Mei, Davenport, Fernando, Rev. B 43 4653 (1991)
+[(Mei)] Mei, Davenport, Fernando, Phys Rev B, 43 4653 (1991)

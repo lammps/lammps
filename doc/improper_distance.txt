@@ -15,18 +15,19 @@ improper_style distance
 [Examples:]
 
 improper_style distance
-improper_coeff 1 80.0 100. 
+improper_coeff 1 80.0 100.0 :pre
 
 [Description:]
 
-The distance improper style uses the potential
+The {distance} improper style uses the potential
 
 :c,image(Eqs/improper_dist-1.jpg)
 
 where d is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
-(listed in the data file read by the read_data command) are ordered
-I,J,K,L then the I-atom is assumed to be the central atom.
+(listed in the data file read by the "read_data"_read_data.html
+command) are ordered I,J,K,L then the I-atom is assumed to be the
+central atom.
 
 :c,image(JPG/improper_distance.jpg)
 
@@ -47,9 +48,8 @@ K_4 (energy/distance^4) :ul
 [Restrictions:]
 
 This improper style can only be used if LAMMPS was built with the
-USER-MISC package.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info
-on packages.
+USER-MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info on packages.
 
 [Related commands:]
 

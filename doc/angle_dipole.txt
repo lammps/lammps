@@ -50,9 +50,13 @@ the potential will tend to align the dipole along the reference
 direction defined by the (bond) vector r_ij (in other words, mu_j is
 restrained to point towards atom 'i').
 
-Note that the angle dipole potential does not give rise to any force, 
-because it does not depend on the distance between i and j (it only 
-depends on the angle between mu_j and r_ij).
+The dipolar torque T_j must be counterbalanced in order to conserve 
+the local angular momentum. This is achieved via an additional force 
+couple generating a torque equivalent to the opposite of T_j:
+
+:c,image(Eqs/angle_dipole_couple.jpg)
+
+where F_i and F_j are applied on atoms i and j, respectively.
 
 The following coefficients must be defined for each angle type via the
 "angle_coeff"_angle_coeff.html command as in the example above, or in

@@ -15,21 +15,14 @@ if len(argv) != 1:
   print "Syntax: demo.py"
   sys.exit()
 
-me = 0
-# uncomment if running in parallel via Pypar
-#import pypar
-#me = pypar.rank()
-#nprocs = pypar.size()
-
 from lammps import lammps
-
 lmp = lammps()
 
 # test out various library functions after running in.demo
 
 lmp.file("in.demo")
 
-if me == 0: print "\nPython output:"
+print "\nPython output:"
 
 natoms = lmp.extract_global("natoms",0)
 mass = lmp.extract_atom("mass",2)
@@ -55,7 +48,3 @@ xc[0] = xc[0] + 1.0
 lmp.scatter_atoms("x",1,3,xc)
 
 print "Changed x[0][0] via scatter_atoms =",x[0][0]
-
-# uncomment if running in parallel via Pypar
-#print "Proc %d out of %d procs has" % (me,nprocs), lmp
-#pypar.finalize()

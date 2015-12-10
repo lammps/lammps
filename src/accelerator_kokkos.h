@@ -86,6 +86,7 @@ class ModifyKokkos : public Modify {
 class DAT {
  public:
   typedef double tdual_xfloat_1d;
+  typedef int t_int_1d;
   typedef int tdual_int_2d;
 };
 

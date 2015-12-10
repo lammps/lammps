@@ -40,12 +40,16 @@ Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   varshape = 0;
   xstr = ystr = zstr = tstr = NULL;
   dx = dy = dz = 0.0;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Region::~Region()
 {
+  if (copymode) return;
+
   delete [] id;
   delete [] style;
 
@@ -126,6 +130,15 @@ int Region::match(double x, double y, double z)
 {
   if (dynamic) inverse_transform(x,y,z);
   return !(inside(x,y,z) ^ interior);
+}
+
+/* ----------------------------------------------------------------------
+   generate error if Kokkos function defaults to base class
+------------------------------------------------------------------------- */
+
+void Region::match_all_kokkos(int, DAT::t_int_1d)
+{
+  error->all(FLERR,"Can only use Kokkos supported regions with Kokkos package");
 }
 
 /* ----------------------------------------------------------------------

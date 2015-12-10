@@ -136,7 +136,7 @@
 <li>chunk/atom = style name of this compute command</li>
 </ul>
 <pre class="literal-block">
-style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>type</em> or <em>molecule</em> or <em>compute/fix/variable</em>
+style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>bin/sphere</em> or <em>type</em> or <em>molecule</em> or <em>compute/fix/variable</em>
   <em>bin/1d</em> args = dim origin delta
     dim = <em>x</em> or <em>y</em> or <em>z</em>
     origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
@@ -149,6 +149,10 @@ style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>type</em> o
     dim = <em>x</em> or <em>y</em> or <em>z</em>
     origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
+  <em>bin/sphere</em> args = xorig yorig zorig rmin rmax nrbin
+    xorig,yorig,zorig = center point of sphere
+    rmin,rmax = bin from radius rmin to rmax
+    nrbin = # of bins between rmin and rmax
   <em>type</em> args = none
   <em>molecule</em> args = none
   <em>compute/fix/variable</em> = c_ID, c_ID[I], f_ID, f_ID[I], v_name with no args

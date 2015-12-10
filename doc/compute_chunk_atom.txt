@@ -14,7 +14,7 @@ compute ID group-ID chunk/atom style args keyword values ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 chunk/atom = style name of this compute command :l
-style = {bin/1d} or {bin/2d} or {bin/3d} or {type} or {molecule} or {compute/fix/variable}
+style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule} or {compute/fix/variable}
   {bin/1d} args = dim origin delta
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
@@ -27,6 +27,10 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {type} or {molecule} or {compute/fix
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
+  {bin/sphere} args = xorig yorig zorig rmin rmax nrbin
+    xorig,yorig,zorig = center point of sphere
+    rmin,rmax = bin from radius rmin to rmax
+    nrbin = # of bins between rmin and rmax
   {type} args = none
   {molecule} args = none
   {compute/fix/variable} = c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name with no args

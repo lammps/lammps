@@ -216,13 +216,12 @@ which may change simulation box boundaries, and atoms are migrated to
 new owning processors.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This means that you cannot use the change_box command
-to enlarge a shrink-wrapped box, e.g. to make room to insert more
-atoms via the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command, because the
-simulation box will be re-shrink-wrapped before the change_box command
-completes.  Instead you could do something like this, assuming the
-simulation box is non-periodic and atoms extend from 0 to 20 in all
-dimensions:</p>
+<p class="last">This means that you cannot use the change_box command to enlarge
+a shrink-wrapped box, e.g. to make room to insert more atoms via the
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command, because the simulation box
+will be re-shrink-wrapped before the change_box command completes.
+Instead you could do something like this, assuming the simulation box
+is non-periodic and atoms extend from 0 to 20 in all dimensions:</p>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>change_box all x final -10 20
 create_atoms 1 single -5 5 5   # this will fail to insert an atom

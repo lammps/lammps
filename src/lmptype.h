@@ -197,6 +197,8 @@ typedef int bigint;
 #define _noalias
 #endif
 
+#define ISFINITE(x) isfinite(x)
+
 // settings to enable LAMMPS to build under Windows
 
 #ifdef _WIN32

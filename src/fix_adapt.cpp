@@ -305,7 +305,7 @@ void FixAdapt::init()
 
       char *cptr;
       int nsub = 0;
-      if (cptr = strchr(pstyle,':')) {
+      if ((cptr = strchr(pstyle,':'))) {
         *cptr = '\0';
         nsub = force->inumeric(FLERR,cptr+1);
       }

@@ -121,6 +121,7 @@ private:
     }
 
   void schedule();
+  void closeout();
 
 protected :
 
@@ -490,7 +491,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   TaskPolicy( const TaskPolicy & rhs )
     : m_default_dependence_capacity( rhs.m_default_dependence_capacity )
-    , m_team_size( m_team_size )
+    , m_team_size( rhs.m_team_size )
     , m_active_count_root(0)
     , m_active_count( rhs.m_active_count )
     {}
@@ -499,7 +500,7 @@ public:
   TaskPolicy( const TaskPolicy & rhs
             , const unsigned arg_default_dependence_capacity )
     : m_default_dependence_capacity( arg_default_dependence_capacity )
-    , m_team_size( m_team_size )
+    , m_team_size( rhs.m_team_size )
     , m_active_count_root(0)
     , m_active_count( rhs.m_active_count )
     {}

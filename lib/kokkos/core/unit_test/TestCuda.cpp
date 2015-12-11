@@ -62,6 +62,7 @@
 
 #include <TestViewAPI.hpp>
 #include <TestViewSubview.hpp>
+#include <TestViewOfClass.hpp>
 
 #include <TestReduce.hpp>
 #include <TestScan.hpp>
@@ -121,13 +122,11 @@ TEST_F( cuda , memory_space )
   TestMemorySpace< Kokkos::Cuda >();
 }
 
-TEST_F( cuda, spaces )
+TEST_F( cuda, uvm )
 {
   if ( Kokkos::CudaUVMSpace::available() ) {
 
-    Kokkos::Impl::AllocationTracker tracker = Kokkos::CudaUVMSpace::allocate_and_track("uvm_ptr",sizeof(int));
-
-    int * uvm_ptr = (int*) tracker.alloc_ptr();
+    int * uvm_ptr = (int*) Kokkos::kokkos_malloc< Kokkos::CudaUVMSpace >("uvm_ptr",sizeof(int));
 
     *uvm_ptr = 42 ;
 
@@ -137,6 +136,7 @@ TEST_F( cuda, spaces )
 
     EXPECT_EQ( *uvm_ptr, int(2*42) );
 
+    Kokkos::kokkos_free< Kokkos::CudaUVMSpace >(uvm_ptr );
   }
 }
 
@@ -155,6 +155,11 @@ TEST_F( cuda , impl_view_mapping )
   test_view_mapping_subview< Kokkos::Cuda >();
   test_view_mapping_operator< Kokkos::Cuda >();
   TestViewMappingAtomic< Kokkos::Cuda >::run();
+}
+
+TEST_F( cuda , view_of_class )
+{
+  TestViewMappingClassValue< Kokkos::Cuda >::run();
 }
 
 template< class MemSpace >
@@ -284,6 +289,12 @@ TEST_F( cuda, view_api )
 #endif
 }
 
+
+TEST_F( cuda , view_nested_view )
+{
+  ::Test::view_nested_view< Kokkos::Cuda >();
+}
+
 TEST_F( cuda, view_subview_auto_1d_left ) {
   TestViewSubview::test_auto_1d< Kokkos::LayoutLeft,Kokkos::Cuda >();
 }
@@ -360,6 +371,13 @@ TEST_F( cuda, shared_team )
 {
   TestSharedTeam< Kokkos::Cuda >();
 }
+
+#if defined (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
+TEST_F( cuda, lambda_shared_team )
+{
+  TestLambdaSharedTeam< Kokkos::Cuda >();
+}
+#endif
 
 TEST_F( cuda, reduce_dynamic )
 {

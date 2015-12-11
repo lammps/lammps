@@ -6,12 +6,12 @@ vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests
 
 default: build_all
 	echo "End Build"
-	
+
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	CXX = nvcc_wrapper
+	CXX = $(NVCC_WRAPPER)
 	CXXFLAGS ?= -O3
 	LINK = $(CXX)
 	LDFLAGS ?= -lpthread
@@ -56,7 +56,7 @@ KokkosContainers_UnitTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 
 KokkosContainers_UnitTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_THREADS) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_UnitTest_Threads
-	
+
 KokkosContainers_UnitTest_OpenMP: $(OBJ_OPENMP) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_OPENMP) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_UnitTest_OpenMP
 
@@ -74,11 +74,11 @@ test-openmp: KokkosContainers_UnitTest_OpenMP
 
 test-serial: KokkosContainers_UnitTest_Serial
 	./KokkosContainers_UnitTest_Serial
-	
+
 build_all: $(TARGETS)
 
 test: $(TEST_TARGETS)
-	
+
 clean: kokkos-clean 
 	rm -f *.o $(TARGETS)
 

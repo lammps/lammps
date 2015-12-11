@@ -272,14 +272,14 @@ void assert_shape_bounds( const ShapeType & shape ,
   // Must supply at least as many indices as ranks.
   // Every index must be within bounds.
   const bool ok = ShapeType::rank <= arg_rank &&
-                  i0 < shape.N0 && 
-                  i1 < shape.N1 &&
-                  i2 < shape.N2 &&
-                  i3 < shape.N3 &&
-                  i4 < shape.N4 &&
-                  i5 < shape.N5 &&
-                  i6 < shape.N6 &&
-                  i7 < shape.N7 ;
+                  i0 < size_t(shape.N0) && 
+                  i1 < size_t(shape.N1) &&
+                  i2 < size_t(shape.N2) &&
+                  i3 < size_t(shape.N3) &&
+                  i4 < size_t(shape.N4) &&
+                  i5 < size_t(shape.N5) &&
+                  i6 < size_t(shape.N6) &&
+                  i7 < size_t(shape.N7) ;
 
   if ( ! ok ) {
     AssertShapeBoundsAbort< Kokkos::Impl::ActiveExecutionMemorySpace >

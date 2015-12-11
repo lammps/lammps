@@ -78,8 +78,9 @@ template< class Arg0 = void , class Arg1 = void , class Arg2 = void
         , class ExecSpace =
           // The first argument is the execution space,
           // otherwise use the default execution space.
-          typename Impl::if_c< Impl::is_execution_space< Arg0 >::value , Arg0
-                             , Kokkos::DefaultExecutionSpace >::type
+          typename std::conditional
+            < Impl::is_execution_space< Arg0 >::value , Arg0
+            , Kokkos::DefaultExecutionSpace >::type
         >
 class RangePolicy {
 private:
@@ -117,8 +118,8 @@ private:
     ) >::value };
 
   // The work argument tag is the first or second argument
-  typedef typename Impl::if_c< Arg0_WorkTag , Arg0 ,
-          typename Impl::if_c< Arg1_WorkTag , Arg1 , void
+  typedef typename std::conditional< Arg0_WorkTag , Arg0 ,
+          typename std::conditional< Arg1_WorkTag , Arg1 , void
           >::type >::type
     WorkTag ;
 
@@ -128,17 +129,18 @@ private:
                                        unsigned(DefaultIntValue) ))) };
 
   // Only accept the integral type if the blocking is a power of two
-  typedef typename Impl::enable_if< Impl::is_power_of_two< Granularity >::value ,
-            typename Impl::if_c< Arg0_IntType , Arg0 ,
-            typename Impl::if_c< Arg1_IntType , Arg1 ,
-            typename Impl::if_c< Arg2_IntType , Arg2 ,
-            typename Impl::if_c< Arg0_IntConst , typename Impl::is_integral_constant<Arg0>::integral_type ,
-            typename Impl::if_c< Arg1_IntConst , typename Impl::is_integral_constant<Arg1>::integral_type ,
-            typename Impl::if_c< Arg2_IntConst , typename Impl::is_integral_constant<Arg2>::integral_type ,
-                                                 DefaultIntType
-            >::type >::type >::type
-            >::type >::type >::type
-          >::type
+  static_assert( Impl::is_integral_power_of_two( Granularity )
+               , "RangePolicy blocking granularity must be power of two" );
+
+  typedef typename std::conditional< Arg0_IntType , Arg0 ,
+          typename std::conditional< Arg1_IntType , Arg1 ,
+          typename std::conditional< Arg2_IntType , Arg2 ,
+          typename std::conditional< Arg0_IntConst , typename Impl::is_integral_constant<Arg0>::integral_type ,
+          typename std::conditional< Arg1_IntConst , typename Impl::is_integral_constant<Arg1>::integral_type ,
+          typename std::conditional< Arg2_IntConst , typename Impl::is_integral_constant<Arg2>::integral_type ,
+                                                     DefaultIntType
+          >::type >::type >::type
+          >::type >::type >::type
     IntType ;
 
   enum { GranularityMask = IntType(Granularity) - 1 };
@@ -187,8 +189,8 @@ public:
    *  Typically used to partition a range over a group of threads.
    */
   struct WorkRange {
-    typedef RangePolicy::work_tag     work_tag ;
-    typedef RangePolicy::member_type  member_type ;
+    typedef typename RangePolicy::work_tag     work_tag ;
+    typedef typename RangePolicy::member_type  member_type ;
 
     KOKKOS_INLINE_FUNCTION member_type begin() const { return m_begin ; }
     KOKKOS_INLINE_FUNCTION member_type end()   const { return m_end ; }
@@ -233,6 +235,38 @@ public:
 
 namespace Kokkos {
 
+namespace Experimental {
+
+/** \brief Scratch memory request accepting per team and per thread value
+ *
+ * An instance of this class can be given as the last argument to a 
+ * TeamPolicy constructor. It sets the amount of user requested shared
+ * memory for the team.
+ */
+
+template< class MemorySpace >
+class TeamScratchRequest {
+  size_t m_per_team;
+  size_t m_per_thread;
+  
+public:
+  TeamScratchRequest(size_t per_team_, size_t per_thread_ = 0):
+   m_per_team(per_team_), m_per_thread(per_thread_) {
+  } 
+
+  size_t per_team() const {
+    return m_per_team;
+  }
+  size_t per_thread() const {
+    return m_per_thread;
+  }
+  size_t total(const size_t team_size) const {
+    return m_per_team + m_per_thread * team_size;
+  }
+}; 
+
+}
+
 /** \brief  Execution policy for parallel work over a league of teams of threads.
  *
  *  The work functor is called for each thread of each team such that
@@ -258,8 +292,9 @@ template< class Arg0 = void
         , class ExecSpace =
           // If the first argument is not an execution
           // then use the default execution space.
-          typename Impl::if_c< Impl::is_execution_space< Arg0 >::value , Arg0
-                             , Kokkos::DefaultExecutionSpace >::type
+          typename std::conditional
+            < Impl::is_execution_space< Arg0 >::value , Arg0
+            , Kokkos::DefaultExecutionSpace >::type
         >
 class TeamPolicy {
 private:
@@ -268,7 +303,7 @@ private:
   enum { Arg1_Void      = Impl::is_same< Arg1 , void >::value };
   enum { ArgOption_OK   = Impl::StaticAssert< ( Arg0_ExecSpace || Arg1_Void ) >::value };
 
-  typedef typename Impl::if_c< Arg0_ExecSpace , Arg1 , Arg0 >::type WorkTag ;
+  typedef typename std::conditional< Arg0_ExecSpace , Arg1 , Arg0 >::type WorkTag ;
 
 public:
 
@@ -300,10 +335,20 @@ public:
   static int team_size_recommended( const FunctorType & , const int&);
   //----------------------------------------
   /** \brief  Construct policy with the given instance of the execution space */
-  TeamPolicy( const execution_space & , int league_size_request , int team_size_request );
+  TeamPolicy( const execution_space & , int league_size_request , int team_size_request , int vector_length_request = 1 );
+
+  TeamPolicy( const execution_space & , int league_size_request , const Kokkos::AUTO_t & , int vector_length_request = 1 );
 
   /** \brief  Construct policy with the default instance of the execution space */
-  TeamPolicy( int league_size_request , int team_size_request );
+  TeamPolicy( int league_size_request , int team_size_request , int vector_length_request = 1 );
+
+  TeamPolicy( int league_size_request , const Kokkos::AUTO_t & , int vector_length_request = 1 );
+
+  template<class MemorySpace>
+  TeamPolicy( int league_size_request , int team_size_request , const Experimental::TeamScratchRequest<MemorySpace>& team_scratch_memory_request );
+
+  template<class MemorySpace>
+  TeamPolicy( int league_size_request , const Kokkos::AUTO_t & , const Experimental::TeamScratchRequest<MemorySpace>& team_scratch_memory_request );
 
   /** \brief  The actual league size (number of teams) of the policy.
    *

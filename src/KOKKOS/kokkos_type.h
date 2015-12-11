@@ -744,5 +744,9 @@ void memset_kokkos (ViewType &view) {
   ViewType::execution_space::fence();
 }
 
+#if defined(KOKKOS_HAVE_CXX11)
+#undef ISFINITE
+#define ISFINITE(x) std::isfinite(x)
+#endif
 
 #endif

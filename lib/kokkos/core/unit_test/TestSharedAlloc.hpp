@@ -167,27 +167,37 @@ void test_shared_alloc()
       // Copy destruction function object into the allocation record
       rec->m_destroy = SharedAllocDestroy( & destroy_count );
 
+      ASSERT_EQ( rec->use_count() , 0 );
+
       // Start tracking, increments the use count from 0 to 1
-      Tracker track( rec );
+      Tracker track ;
+
+      track.assign_allocated_record_to_uninitialized( rec );
 
       ASSERT_EQ( rec->use_count() , 1 );
+      ASSERT_EQ( track.use_count() , 1 );
 
       // Verify construction / destruction increment
       for ( size_t i = 0 ; i < N ; ++i ) {
         ASSERT_EQ( rec->use_count() , 1 );
         {
-          Tracker local_tracker( rec );
+          Tracker local_tracker ;
+          local_tracker.assign_allocated_record_to_uninitialized( rec );
           ASSERT_EQ( rec->use_count() , 2 );
+          ASSERT_EQ( local_tracker.use_count() , 2 );
         }
         ASSERT_EQ( rec->use_count() , 1 );
+        ASSERT_EQ( track.use_count() , 1 );
       }
 
       Kokkos::parallel_for( range , [=]( size_t i ){
-        Tracker local_tracker( rec );
+        Tracker local_tracker ;
+        local_tracker.assign_allocated_record_to_uninitialized( rec );
         ASSERT_GT( rec->use_count() , 1 );
       });
 
       ASSERT_EQ( rec->use_count() , 1 );
+      ASSERT_EQ( track.use_count() , 1 );
 
       // Destruction of 'track' object deallocates the 'rec' and invokes the destroy function object.
     }

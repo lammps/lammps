@@ -174,7 +174,7 @@ struct TextureFetch
 TEST_F( cuda, texture_double )
 {
   printf("Random reduce of double through texture fetch\n");
-  for (int i=1; i<=27; ++i) {
+  for (int i=1; i<=26; ++i) {
     int size = 1<<i;
     double time = 0;
     double reduce = 0;

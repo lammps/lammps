@@ -157,10 +157,15 @@ struct LayoutStride {
 /// both tile dimensions are powers of two, Kokkos can optimize
 /// further.
 template < unsigned ArgN0 , unsigned ArgN1 ,
-           bool IsPowerOfTwo = ( Impl::is_power_of_two<ArgN0>::value &&
-                                 Impl::is_power_of_two<ArgN1>::value )
+           bool IsPowerOfTwo = ( Impl::is_integral_power_of_two(ArgN0) &&
+                                 Impl::is_integral_power_of_two(ArgN1) )
          >
 struct LayoutTileLeft {
+
+  static_assert( Impl::is_integral_power_of_two(ArgN0) &&
+                 Impl::is_integral_power_of_two(ArgN1)
+               , "LayoutTileLeft must be given power-of-two tile dimensions" );
+
   //! Tag this class as a kokkos array layout
   typedef LayoutTileLeft<ArgN0,ArgN1,IsPowerOfTwo> array_layout ;
 

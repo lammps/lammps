@@ -50,17 +50,6 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-namespace Kokkos {
-//----------------------------------------------------------------------------
-
-template<class ExecutionSpace, class MemorySpace>
-struct Device {
-  typedef ExecutionSpace execution_space;
-  typedef MemorySpace memory_space;
-  typedef Device<execution_space,memory_space> device_type;
-};
-}
-
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
@@ -103,7 +92,26 @@ template< class C >
 struct is_memory_traits< C , typename Impl::enable_if_type< typename C::memory_traits >::type >
   : public bool_< Impl::is_same< C , typename C::memory_traits >::value > {};
 
+}
+}
 
+namespace Kokkos {
+//----------------------------------------------------------------------------
+
+template< class ExecutionSpace , class MemorySpace >
+struct Device {
+  static_assert( Impl::is_execution_space<ExecutionSpace>::value
+               , "Execution space is not valid" );
+  static_assert( Impl::is_memory_space<MemorySpace>::value
+               , "Memory space is not valid" );
+  typedef ExecutionSpace execution_space;
+  typedef MemorySpace memory_space;
+  typedef Device<execution_space,memory_space> device_type;
+};
+}
+
+namespace Kokkos {
+namespace Impl {
 //----------------------------------------------------------------------------
 
 template< class C , class Enable = void >

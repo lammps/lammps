@@ -133,6 +133,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     corigin_user[cdim2] = force->numeric(FLERR,arg[iarg+1]);
     cradmin_user = force->numeric(FLERR,arg[iarg+2]);
     cradmax_user = force->numeric(FLERR,arg[iarg+3]);
+
     ncbin = force->inumeric(FLERR,arg[iarg+4]);
     iarg += 5;
 
@@ -423,8 +424,8 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       } else {
         corigin_user[cdim1] *= xscale;
         corigin_user[cdim2] *= yscale;
-        cradmin_user *= zscale;
-        cradmax_user *= zscale;
+        cradmin_user *= xscale;
+        cradmax_user *= xscale;
       }
     }
   }
@@ -1320,10 +1321,9 @@ int ComputeChunkAtom::setup_cylinder_bins()
   // lamda2x works for either orthogonal or triclinic
 
   if (scaleflag == REDUCED) {
-    corigin_user[dim[0]] = 0.5;       // unused 3rd coord for axis dim
     domain->lamda2x(corigin_user,corigin);
-    cradmin = sradmin_user * (domain->boxhi[cdim1]-domain->boxlo[cdim1]);
-    cradmax = sradmax_user * (domain->boxhi[cdim1]-domain->boxlo[cdim1]);
+    cradmin = cradmin_user * (domain->boxhi[cdim1]-domain->boxlo[cdim1]);
+    cradmax = cradmax_user * (domain->boxhi[cdim1]-domain->boxlo[cdim1]);
   } else {
     corigin[cdim1] = corigin_user[cdim1];
     corigin[cdim2] = corigin_user[cdim2];
@@ -1408,7 +1408,7 @@ void ComputeChunkAtom::bin_volumes()
     if (scaleflag == REDUCED) prd = domain->prd_lamda;
     else prd = domain->prd;
     double slabthick = domain->prd[dim[0]] * delta[0]/prd[dim[0]];
-      
+
     // area lo/hi of concentric circles in radial direction
 
     int iradbin;

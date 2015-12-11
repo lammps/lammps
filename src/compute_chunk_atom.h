@@ -67,9 +67,20 @@ class ComputeChunkAtom : public Compute {
 
   // spherical spatial bins
 
+  double sorigin_user[3];
   double sorigin[3];
-  double sradmin,sradmax,sinvdelta;
-  int nsphere;
+  double sradmin_user,sradmax_user;
+  double sradmin,sradmax,sinvrad;
+  int nsbin;
+
+  // cylindrical spatial bins
+
+  double corigin_user[2];
+  double corigin[2];
+  double cradmin_user,cradmax_user;
+  double cradmin,cradmax,cinvrad;
+  int cdim1,cdim2;
+  int ncbin,ncplane;
 
   char *idregion;
   class Region *region;
@@ -107,11 +118,13 @@ class ComputeChunkAtom : public Compute {
   void check_molecules();
   int setup_xyz_bins();
   int setup_sphere_bins();
+  int setup_cylinder_bins();
   void bin_volumes();
   void atom2bin1d();
   void atom2bin2d();
   void atom2bin3d();
   void atom2binsphere();
+  void atom2bincylinder();
   void readdim(int, char **, int, int);
 };
 

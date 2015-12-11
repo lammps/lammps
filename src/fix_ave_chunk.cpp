@@ -830,13 +830,20 @@ void FixAveChunk::end_of_step()
   }
 
   // DENSITYs are additionally normalized by chunk volume
-  // only relevant if chunks are spatial bins
+  // use scalar or vector values for volume(s)
+  // if chunks are not spatial bins, chunk_volume_scalar = 1.0
 
   for (j = 0; j < nvalues; j++)
     if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS) {
-      double chunk_volume = cchunk->chunk_volume_scalar;
-      for (m = 0; m < nchunk; m++)
-        values_sum[m][j] /= chunk_volume;
+      if (cchunk->chunk_volume_vec) {
+        double *chunk_volume_vec = cchunk->chunk_volume_vec;
+        for (m = 0; m < nchunk; m++)
+          values_sum[m][j] /= chunk_volume_vec[m];
+      } else {
+        double chunk_volume_scalar = cchunk->chunk_volume_scalar;
+        for (m = 0; m < nchunk; m++)
+          values_sum[m][j] /= chunk_volume_scalar;
+      }
     }
 
   // if ave = ONE, only single Nfreq timestep value is needed

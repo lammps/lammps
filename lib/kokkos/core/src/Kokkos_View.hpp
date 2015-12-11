@@ -47,10 +47,11 @@
 #include <type_traits>
 #include <string>
 #include <Kokkos_Core_fwd.hpp>
-#include <Kokkos_HostSpace.hpp>
-#include <Kokkos_MemoryTraits.hpp>
 
 #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
+#include <Kokkos_HostSpace.hpp>
+#include <Kokkos_MemoryTraits.hpp>
 
 #include <impl/Kokkos_StaticAssert.hpp>
 #include <impl/Kokkos_Traits.hpp>
@@ -444,14 +445,14 @@ template< class DataType ,
             typename ViewTraits<DataType,Arg1Type,Arg2Type,Arg3Type>::specialize >
 class View ;
 
-namespace Impl {
-
 template< class C >
-struct is_view : public bool_< false > {};
+struct is_view : public Impl::bool_< false > {};
 
 template< class D , class A1 , class A2 , class A3 , class S >
-struct is_view< View< D , A1 , A2 , A3 , S > > : public bool_< true > {};
+struct is_view< View< D , A1 , A2 , A3 , S > > : public Impl::bool_< true > {};
 
+namespace Impl {
+using Kokkos::is_view ;
 }
 
 //----------------------------------------------------------------------------
@@ -952,33 +953,37 @@ public:
                       Impl::ViewError::scalar_operator_called_from_non_scalar_view >
     if_scalar_operator ;
 
+  typedef Impl::if_c< traits::rank == 0 ,
+                      reference_type ,
+                      Impl::ViewError::scalar_operator_called_from_non_scalar_view >
+    if_scalar_operator_return ;
   KOKKOS_INLINE_FUNCTION
   const View & operator = ( const typename if_scalar_operator::type & rhs ) const
     {
       KOKKOS_RESTRICT_EXECUTION_TO_DATA( typename traits::memory_space , ptr_on_device() );
-      *m_ptr_on_device = if_scalar_operator::select( rhs );
+      m_ptr_on_device[ 0 ] = if_scalar_operator::select( rhs );
       return *this ;
     }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  operator typename if_scalar_operator::type & () const
+  operator typename if_scalar_operator_return::type () const
     {
       KOKKOS_RESTRICT_EXECUTION_TO_DATA( typename traits::memory_space , ptr_on_device() );
-      return if_scalar_operator::select( *m_ptr_on_device );
+      return if_scalar_operator_return::select( m_ptr_on_device[ 0 ] );
     }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  typename if_scalar_operator::type & operator()() const
+  typename if_scalar_operator_return::type operator()() const
     {
       KOKKOS_RESTRICT_EXECUTION_TO_DATA( typename traits::memory_space , ptr_on_device() );
-      return if_scalar_operator::select( *m_ptr_on_device );
+      return if_scalar_operator_return::select( m_ptr_on_device[ 0 ] );
     }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  typename if_scalar_operator::type & operator*() const
+  typename if_scalar_operator_return::type operator*() const
     {
       KOKKOS_RESTRICT_EXECUTION_TO_DATA( typename traits::memory_space , ptr_on_device() );
-      return if_scalar_operator::select( *m_ptr_on_device );
+      return if_scalar_operator_return::select( m_ptr_on_device[ 0 ] );
     }
 
   //------------------------------------
@@ -1849,6 +1854,8 @@ void resize( View<T,L,D,M,S> & v ,
 
   Impl::ViewRemap< view_type , view_type >( v_resized , v );
 
+  view_type::execution_space::fence();
+
   v = v_resized ;
 }
 
@@ -2092,26 +2099,9 @@ struct ALL { KOKKOS_INLINE_FUNCTION ALL(){} };
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#include <KokkosExp_View.hpp>
-
-#else
-
-// Must define before includng <impl/Kokkos_ViewOffset.hpp>
-namespace Kokkos {
-namespace Experimental {
-namespace Impl {
-struct ALL_t ;
-}
-}
-using ALL = Experimental::Impl::ALL_t ;
-}
-
-#include <impl/Kokkos_ViewOffset.hpp>
-#include <impl/Kokkos_ViewSupport.hpp>
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
 #include <KokkosExp_View.hpp>
-
-#endif /* #if defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

@@ -488,6 +488,7 @@ void test_right_0()
   Kokkos::View<int*,Kokkos::LayoutRight,Space> x1 =
     Kokkos::subview( x_static_8, 0, 1, 2, 3, 0, 1, 2, Kokkos::pair<int,int>(1,3) );
 
+  ASSERT_TRUE( x1.dimension_0() == 2 );
   ASSERT_TRUE( & x1(0) == & x_static_8(0,1,2,3,0,1,2,1) );
   ASSERT_TRUE( & x1(1) == & x_static_8(0,1,2,3,0,1,2,2) );
 
@@ -495,6 +496,8 @@ void test_right_0()
     Kokkos::subview( x_static_8, 0, 1, 2, Kokkos::pair<int,int>(1,3)
                                , 0, 1, 2, Kokkos::pair<int,int>(1,3) );
 
+  ASSERT_TRUE( x2.dimension_0() == 2 );
+  ASSERT_TRUE( x2.dimension_1() == 2 );
   ASSERT_TRUE( & x2(0,0) == & x_static_8(0,1,2,1,0,1,2,1) );
   ASSERT_TRUE( & x2(1,0) == & x_static_8(0,1,2,2,0,1,2,1) );
   ASSERT_TRUE( & x2(0,1) == & x_static_8(0,1,2,1,0,1,2,2) );
@@ -505,6 +508,8 @@ void test_right_0()
     Kokkos::subview( x_static_8, 1, Kokkos::pair<int,int>(0,2), 2, 3
                                , Kokkos::pair<int,int>(0,2), 1, 2, 3 );
 
+  ASSERT_TRUE( sx2.dimension_0() == 2 );
+  ASSERT_TRUE( sx2.dimension_1() == 2 );
   ASSERT_TRUE( & sx2(0,0) == & x_static_8(1,0,2,3,0,1,2,3) );
   ASSERT_TRUE( & sx2(1,0) == & x_static_8(1,1,2,3,0,1,2,3) );
   ASSERT_TRUE( & sx2(0,1) == & x_static_8(1,0,2,3,1,1,2,3) );
@@ -517,6 +522,10 @@ void test_right_0()
                                , 2, Kokkos::pair<int,int>(2,4) /* of [5] */
                    );
 
+  ASSERT_TRUE( sx4.dimension_0() == 2 );
+  ASSERT_TRUE( sx4.dimension_1() == 2 );
+  ASSERT_TRUE( sx4.dimension_2() == 2 );
+  ASSERT_TRUE( sx4.dimension_3() == 2 );
   for ( int i0 = 0 ; i0 < (int) sx4.dimension_0() ; ++i0 )
   for ( int i1 = 0 ; i1 < (int) sx4.dimension_1() ; ++i1 )
   for ( int i2 = 0 ; i2 < (int) sx4.dimension_2() ; ++i2 )

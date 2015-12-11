@@ -61,7 +61,7 @@ void host_abort( const char * const message )
 {
   fwrite(message,1,strlen(message),stderr);
   fflush(stderr);
-  abort();
+  ::abort();
 }
 
 void throw_runtime_exception( const std::string & msg )

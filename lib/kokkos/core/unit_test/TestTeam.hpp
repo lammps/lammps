@@ -461,6 +461,71 @@ struct TestSharedTeam {
   }
 };
 
+#if defined (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
+
+template< class ExecSpace >
+struct TestLambdaSharedTeam {
+
+  TestLambdaSharedTeam()
+  { run(); }
+
+  void run()
+  {
+    typedef Test::SharedTeamFunctor<ExecSpace> Functor ;
+    typedef Kokkos::View< typename Functor::value_type , Kokkos::HostSpace , Kokkos::MemoryUnmanaged >  result_type ;
+    typedef typename ExecSpace::scratch_memory_space shmem_space ;
+
+    // tbd: MemoryUnmanaged should be the default for shared memory space
+    typedef Kokkos::View<int*,shmem_space,Kokkos::MemoryUnmanaged> shared_int_array_type ;
+
+    const int SHARED_COUNT = 1000;
+    int team_size = 1;
+#ifdef KOKKOS_HAVE_CUDA
+    if(std::is_same<ExecSpace,Kokkos::Cuda>::value)
+      team_size = 128;
+#endif
+    Kokkos::TeamPolicy< ExecSpace > team_exec( 8192 / team_size , team_size ,
+        Kokkos::Experimental::TeamScratchRequest<shmem_space>(SHARED_COUNT*2*sizeof(int)));
+
+    typename Functor::value_type error_count = 0 ;
+
+    Kokkos::parallel_reduce( team_exec , KOKKOS_LAMBDA
+        ( const typename Kokkos::TeamPolicy< ExecSpace >::member_type & ind , int & update ) {
+
+      const shared_int_array_type shared_A( ind.team_shmem() , SHARED_COUNT );
+      const shared_int_array_type shared_B( ind.team_shmem() , SHARED_COUNT );
+
+      if ((shared_A.ptr_on_device () == NULL && SHARED_COUNT > 0) ||
+          (shared_B.ptr_on_device () == NULL && SHARED_COUNT > 0)) {
+        printf ("Failed to allocate shared memory of size %lu\n",
+                static_cast<unsigned long> (SHARED_COUNT));
+        ++update; // failure to allocate is an error
+      } else {
+        for ( int i = ind.team_rank() ; i < SHARED_COUNT ; i += ind.team_size() ) {
+          shared_A[i] = i + ind.league_rank();
+          shared_B[i] = 2 * i + ind.league_rank();
+        }
+
+        ind.team_barrier();
+
+        if ( ind.team_rank() + 1 == ind.team_size() ) {
+          for ( int i = 0 ; i < SHARED_COUNT ; ++i ) {
+            if ( shared_A[i] != i + ind.league_rank() ) {
+              ++update ;
+            }
+            if ( shared_B[i] != 2 * i + ind.league_rank() ) {
+              ++update ;
+            }
+          }
+        }
+      }
+    }, result_type( & error_count ) );
+
+    ASSERT_EQ( error_count , 0 );
+  }
+};
+
+#endif
 }
 
 /*--------------------------------------------------------------------------*/

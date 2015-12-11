@@ -68,6 +68,9 @@ protected:
 
 TEST_F( alocation_tracker, simple)
 {
+
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
   using namespace Kokkos::Impl;
 
   {
@@ -111,6 +114,9 @@ TEST_F( alocation_tracker, simple)
       EXPECT_EQ( 1u, trackers[i].ref_count() );
     }
   }
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+
 }
 
 TEST_F( alocation_tracker, force_leaks)
@@ -125,6 +131,9 @@ TEST_F( alocation_tracker, force_leaks)
 
 TEST_F( alocation_tracker, disable_reference_counting)
 {
+
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
   using namespace Kokkos::Impl;
   // test ref count and label
   {
@@ -134,12 +143,17 @@ TEST_F( alocation_tracker, disable_reference_counting)
     trackers[0] = AllocationTracker( MallocAllocator(), 128,"Test");
 
     for (int i=1; i<size; ++i) {
-      trackers[i] = CopyWithoutTracking::apply(trackers[0]);
+      Kokkos::Impl::AllocationTracker::disable_tracking();
+      trackers[i] = trackers[0] ;
+      Kokkos::Impl::AllocationTracker::enable_tracking();
     }
 
     EXPECT_EQ(1u, trackers[0].ref_count());
     EXPECT_EQ(std::string("Test"), std::string(trackers[0].label()));
   }
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+
 }
 
 } // namespace Test

@@ -464,7 +464,7 @@ void VerletKokkos::force_clear()
     size_t nbytes = sizeof(double) * nall;
 
     if (nbytes) {
-      if (atomKK->k_f.modified_host > atomKK->k_f.modified_device) {
+      if (atomKK->k_f.modified_host() > atomKK->k_f.modified_device()) {
     	memset_kokkos(atomKK->k_f.view<LMPHostType>());
     	atomKK->modified(Host,F_MASK);
       } else {
@@ -481,7 +481,7 @@ void VerletKokkos::force_clear()
 
   } else {
     int nall = atomKK->nfirst;
-    if (atomKK->k_f.modified_host > atomKK->k_f.modified_device) {
+    if (atomKK->k_f.modified_host() > atomKK->k_f.modified_device()) {
       memset_kokkos(atomKK->k_f.view<LMPHostType>());
       atomKK->modified(Host,F_MASK);
     } else {

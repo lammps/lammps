@@ -60,6 +60,9 @@ case $key in
     --compiler*)
     COMPILER="${key#*=}"
     ;;
+    --with-options*)
+    KOKKOS_OPT="${key#*=}"
+    ;;
     --help)
     echo "Kokkos configure options:"
     echo "--kokkos-path=/Path/To/Kokkos: Path to the Kokkos root directory"
@@ -91,6 +94,8 @@ case $key in
     echo "                               KOKKOS_LDFLAGS (such as -fopenmp, -lpthread, etc.)"
     echo "--with-gtest=/Path/To/Gtest: set path to gtest (used in unit and performance tests"
     echo "--with-hwloc=/Path/To/Hwloc: set path to hwloc"
+    echo "--with-options=[OPTIONS]:    additional options to Kokkos:"
+    echo "                               aggressive_vectorization = add ivdep on loops"
     exit 0
     ;;
     *)
@@ -146,6 +151,9 @@ KOKKOS_OPTIONS="${KOKKOS_OPTIONS} HWLOC_PATH=${HWLOC_PATH} KOKKOS_USE_TPLS=hwloc
 fi
 if [ ${#QTHREAD_PATH} -gt 0 ]; then
 KOKKOS_OPTIONS="${KOKKOS_OPTIONS} QTHREAD_PATH=${QTHREAD_PATH}"
+fi
+if [ ${#KOKKOS_OPT} -gt 0 ]; then
+KOKKOS_OPTIONS="${KOKKOS_OPTIONS} KOKKOS_OPTIONS=${KOKKOS_OPT}"
 fi
 mkdir core
 mkdir core/unit_test

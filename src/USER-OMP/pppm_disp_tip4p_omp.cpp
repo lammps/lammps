@@ -359,7 +359,7 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
   const int nyhi_out = nyhi_o;
   const int nzhi_out = nzhi_o;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int i, flag = 0;

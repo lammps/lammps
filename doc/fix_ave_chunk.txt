@@ -395,12 +395,18 @@ The CoordN columns only appear if a {binning} style was used in the
 {bin/2d}, and {bin/3d} styles the column values are the center point
 of the bin in the corresponding dimension.  Just Coord1 is used for
 {bin/1d}, Coord2 is added for {bin/2d}, Coord3 is added for {bin/3d}.
+For {bin/sphere}, just Coord1 is used, and it is the radial
+coordinate.  For {bin/cylinder}, Coord1 and Coord2 is used.  Coord1 is
+the radial coordinate (away from the cylinder axis), and coord2 is the
+coordinate along the cylinder axis.
 
 Note that if the value of the {units} keyword used in the "compute
 chunk/atom command"_compute_chunk_atom.html is {box} or {lattice}, the
 coordinate values will be in distance "units"_units.html.  If the
 value of the {units} keyword is {reduced}, the coordinate values will
-be in unitless reduced units (0-1).
+be in unitless reduced units (0-1).  This is not true for the Coord1 value
+of style {bin/sphere} or {bin/cylinder} which both represent radial
+dimensions.  Those values are always in distance "units"_units.html.
 
 :line
 

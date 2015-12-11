@@ -57,9 +57,9 @@ to more than one sub-style, the mixing rule is not used and
 each pair of types interacting with the ZBL sub-style must
 be included in a pair_coeff command.
 
-IMPORTANT NOTE: The numerical values of the exponential decay
-constants in the screening function depend on the unit of distance. In
-the above equation they are given for units of angstroms. LAMMPS will
+NOTE: The numerical values of the exponential decay constants in the
+screening function depend on the unit of distance. In the above
+equation they are given for units of angstroms. LAMMPS will
 automatically convert these values to the distance unit of the
 specified LAMMPS "units"_units.html setting.  The values of Z should
 always be given as multiples of a proton's charge, e.g. 29.0 for

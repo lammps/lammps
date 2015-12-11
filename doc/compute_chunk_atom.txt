@@ -14,7 +14,7 @@ compute ID group-ID chunk/atom style args keyword values ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 chunk/atom = style name of this compute command :l
-style = {bin/1d} or {bin/2d} or {bin/3d} or {type} or {molecule} or {compute/fix/variable}
+style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule} or {compute/fix/variable}
   {bin/1d} args = dim origin delta
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
@@ -27,6 +27,10 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {type} or {molecule} or {compute/fix
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
+  {bin/sphere} args = xorig yorig zorig rmin rmax nrbin
+    xorig,yorig,zorig = center point of sphere
+    rmin,rmax = bin from radius rmin to rmax
+    nrbin = # of bins between rmin and rmax
   {type} args = none
   {molecule} args = none
   {compute/fix/variable} = c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name with no args
@@ -373,12 +377,12 @@ time window.
 If the setting is {every}, which is the default, then chunk IDs are
 re-calculated on any timestep this compute is invoked.
 
-IMPORTANT NOTE: If you want the persistent chunk-IDs calculated by
-this compute to be continuous when running from a "restart
-file"_read_restart.html, then you should use the same ID for this
-compute, as in the original run.  This is so that the fix this compute
-creates to store per-atom quantities will also have the same ID, and
-thus be initialized correctly with chunk IDs from the restart file.
+NOTE: If you want the persistent chunk-IDs calculated by this compute
+to be continuous when running from a "restart file"_read_restart.html,
+then you should use the same ID for this compute, as in the original
+run.  This is so that the fix this compute creates to store per-atom
+quantities will also have the same ID, and thus be initialized
+correctly with chunk IDs from the restart file.
 
 :line
 
@@ -420,17 +424,17 @@ or by using the "fix ave/time"_fix_ave_time.html command in
 conjunction with the "compute
 property/chunk"_compute_property_chunk.html command.
 
-IMPORTANT NOTE: The compression operation requires global
-communication across all processors to share their chunk ID values.
-It can require large memory on every processor to store them, even
-after they are compressed, if there are are a large number of unique
-chunk IDs with atoms assigned to them.  It uses a STL map to find
-unique chunk IDs and store them in sorted order.  Each time an atom is
-assigned a compressed chunk ID, it must access the STL map.  All of
-this means that compression can be expensive, both in memory and CPU
-time.  The use of the {limit} keyword in conjunction with the
-{compress} keyword can affect these costs, depending on which keyword
-is used first.  So use this option with care.
+NOTE: The compression operation requires global communication across
+all processors to share their chunk ID values.  It can require large
+memory on every processor to store them, even after they are
+compressed, if there are are a large number of unique chunk IDs with
+atoms assigned to them.  It uses a STL map to find unique chunk IDs
+and store them in sorted order.  Each time an atom is assigned a
+compressed chunk ID, it must access the STL map.  All of this means
+that compression can be expensive, both in memory and CPU time.  The
+use of the {limit} keyword in conjunction with the {compress} keyword
+can affect these costs, depending on which keyword is used first.  So
+use this option with care.
 
 :line
 

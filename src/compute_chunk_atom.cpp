@@ -11,6 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+// NOTE: allow for bin center to be variables
+// is chunk_volume_vec used by other commands, e.g. fix ave/chunk
+// can't really use reduced since sphere -> ellipsoid
+// what about triclinic?
+// bound keyword should not apply, limit is also ignored
+// discard rules for spherical bins
+// fix ave/chunk needs to use vector of volumes
+// setup_sphere_bins() needs work
+// atombinsphere() needs work
+
 #include <mpi.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,14 +37,16 @@
 #include "group.h"
 #include "input.h"
 #include "variable.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 #include <map>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
-enum{BIN1D,BIN2D,BIN3D,TYPE,MOLECULE,COMPUTE,FIX,VARIABLE};
+enum{BIN1D,BIN2D,BIN3D,BINSPHERE,TYPE,MOLECULE,COMPUTE,FIX,VARIABLE};
 enum{LOWER,CENTER,UPPER,COORD};
 enum{BOX,LATTICE,REDUCED};
 enum{NODISCARD,MIXED,YESDISCARD};
@@ -91,6 +103,19 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     readdim(narg,arg,iarg+3,1);
     readdim(narg,arg,iarg+6,2);
     iarg += 9;
+  } else if (strcmp(arg[3],"bin/sphere") == 0) {
+    binflag = 1;
+    which = BINSPHERE;
+    ncoord = 1;
+    iarg = 4;
+    if (iarg+6 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
+    sorigin[0] = force->numeric(FLERR,arg[iarg]);
+    sorigin[1] = force->numeric(FLERR,arg[iarg+1]);
+    sorigin[2] = force->numeric(FLERR,arg[iarg+2]);
+    sradmin = force->numeric(FLERR,arg[iarg+3]);
+    sradmax = force->numeric(FLERR,arg[iarg+4]);
+    nsphere = force->inumeric(FLERR,arg[iarg+5]);
+    iarg += 6;
 
   } else if (strcmp(arg[3],"type") == 0) {
     which = TYPE;
@@ -264,6 +289,13 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   if (which == BIN3D &&
       (delta[0] <= 0.0 || delta[1] <= 0.0 || delta[2] <= 0.0))
       error->all(FLERR,"Illegal compute chunk/atom command");
+  if (which == BINSPHERE) {
+    if (domain->dimension == 2 && sorigin[2] != 0.0) 
+      error->all(FLERR,"Sphere z origin must be 0.0 for 2d in "
+                 "compute chunk/atom command");
+    if (sradmin <= 0.0 || sradmin >= sradmax || nsphere < 1)
+      error->all(FLERR,"Illegal compute chunk/atom command");
+  }
 
   if (which == COMPUTE) {
     int icompute = modify->find_compute(cfvid);
@@ -330,18 +362,26 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (binflag) {
     double scale;
-    if (which == BIN1D) ndim = 1;
-    if (which == BIN2D) ndim = 2;
-    if (which == BIN3D) ndim = 3;
-    for (int idim = 0; idim < ndim; idim++) {
-      if (dim[idim] == 0) scale = xscale;
-      else if (dim[idim] == 1) scale = yscale;
-      else if (dim[idim] == 2) scale = zscale;
-      delta[idim] *= scale;
-      invdelta[idim] = 1.0/delta[idim];
-      if (originflag[idim] == COORD) origin[idim] *= scale;
-      if (minflag[idim] == COORD) minvalue[idim] *= scale;
-      if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
+    if (which == BIN1D || which == BIN2D || which == BIN3D) {
+      if (which == BIN1D) ndim = 1;
+      if (which == BIN2D) ndim = 2;
+      if (which == BIN3D) ndim = 3;
+      for (int idim = 0; idim < ndim; idim++) {
+	if (dim[idim] == 0) scale = xscale;
+	else if (dim[idim] == 1) scale = yscale;
+	else if (dim[idim] == 2) scale = zscale;
+	delta[idim] *= scale;
+	invdelta[idim] = 1.0/delta[idim];
+	if (originflag[idim] == COORD) origin[idim] *= scale;
+	if (minflag[idim] == COORD) minvalue[idim] *= scale;
+	if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
+      }
+    } else if (which == BINSPHERE) {
+      sorigin[0] *= xscale;
+      sorigin[1] *= yscale;
+      sorigin[2] *= zscale;
+      sradmin *= xscale;     // radii are scaled by xscale
+      sradmax *= xscale;
     }
   }
 
@@ -722,11 +762,14 @@ int ComputeChunkAtom::setup_chunks()
   // assign chunk IDs to atoms
   // will exclude atoms not in group or in optional region
   // for binning styles, need to setup bins and their volume first
-  //   else chunk_volume_scalar = box volume
+  //   else chunk_volume_scalar = entire box volume
   // IDs are needed to scan for max ID and for compress()
 
   if (binflag) {
-    nchunk = setup_bins();
+    if (which == BIN1D || which == BIN2D || which == BIN3D)
+      nchunk = setup_xyz_bins();
+    else if (which == BINSPHERE)
+      nchunk = setup_sphere_bins();
     bin_volumes();
   } else {
     chunk_volume_scalar = domain->xprd * domain->yprd;
@@ -828,6 +871,7 @@ void ComputeChunkAtom::assign_chunk_ids()
     if (which == BIN1D) atom2bin1d();
     else if (which == BIN2D) atom2bin2d();
     else if (which == BIN3D) atom2bin3d();
+    else if (which == BINSPHERE) atom2binsphere();
 
   } else if (which == TYPE) {
     int *type = atom->type;
@@ -1058,12 +1102,12 @@ void ComputeChunkAtom::check_molecules()
 }
 
 /* ----------------------------------------------------------------------
-   setup spatial bins and their extent and coordinates
+   setup xyz spatial bins and their extent and coordinates
    return nbins = # of bins, will become # of chunks
    called from setup_chunks()
 ------------------------------------------------------------------------- */
 
-int ComputeChunkAtom::setup_bins()
+int ComputeChunkAtom::setup_xyz_bins()
 {
   int i,j,k,m,n,idim;
   double lo,hi,coord1,coord2;
@@ -1171,6 +1215,55 @@ int ComputeChunkAtom::setup_bins()
 }
 
 /* ----------------------------------------------------------------------
+   setup spherical spatial bins and their extent and coordinates
+   return nbins = # of bins, will become # of chunks
+   called from setup_chunks()
+------------------------------------------------------------------------- */
+
+int ComputeChunkAtom::setup_sphere_bins()
+{
+  // allocate and set bin coordinates
+
+  memory->destroy(coord);
+  memory->create(coord,nsphere,1,"chunk/atom:coord");
+
+  /*
+  if (ndim == 1) {
+    for (i = 0; i < nlayers[0]; i++)
+      coord[i][0] = offset[0] + (i+0.5)*delta[0];
+  } else if (ndim == 2) {
+    m = 0;
+    for (i = 0; i < nlayers[0]; i++) {
+      coord1 = offset[0] + (i+0.5)*delta[0];
+      for (j = 0; j < nlayers[1]; j++) {
+        coord[m][0] = coord1;
+        coord[m][1] = offset[1] + (j+0.5)*delta[1];
+        m++;
+      }
+    }
+  } else if (ndim == 3) {
+    m = 0;
+    for (i = 0; i < nlayers[0]; i++) {
+      coord1 = offset[0] + (i+0.5)*delta[0];
+      for (j = 0; j < nlayers[1]; j++) {
+        coord2 = offset[1] + (j+0.5)*delta[1];
+        for (k = 0; k < nlayers[2]; k++) {
+          coord[m][0] = coord1;
+          coord[m][1] = coord2;
+          coord[m][2] = offset[2] + (k+0.5)*delta[2];
+          m++;
+        }
+      }
+    }
+  }
+  */
+
+  // have to set sinvdelta
+
+  return nsphere;
+}
+
+/* ----------------------------------------------------------------------
    calculate chunk volumes = bin volumes
    scalar if all bins have same volume
    vector if per-bin volumes are different
@@ -1188,10 +1281,18 @@ void ComputeChunkAtom::bin_volumes()
     for (int m = 0; m < ndim; m++)
       chunk_volume_scalar *= delta[m]/prd[dim[m]];
 
-  } else {
+  } else if (which == BINSPHERE) {
     memory->destroy(chunk_volume_vec);
     memory->create(chunk_volume_vec,nchunk,"chunk/atom:chunk_volume_vec");
-    // fill in the vector values
+    double rlo,rhi,vollo,volhi;
+    for (int i = 0; i < nchunk; i++) {
+      rlo = sradmin + i * (sradmax-sradmin) / nsphere;
+      rhi = sradmin + (i+1) * (sradmax-sradmin) / nsphere;
+      if (i == nchunk-1) rhi = sradmax;
+      vollo = 4.0/3.0 * MY_PI * rlo*rlo*rlo;
+      volhi = 4.0/3.0 * MY_PI * rhi*rhi*rhi;
+      chunk_volume_vec[i] = volhi - vollo;
+    }
   }
 }
 
@@ -1501,6 +1602,66 @@ void ComputeChunkAtom::atom2bin3d()
   }
 
   if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+}
+
+/* ----------------------------------------------------------------------
+   assign each atom to a spherical bin
+------------------------------------------------------------------------- */
+
+void ComputeChunkAtom::atom2binsphere()
+{
+  int i,ibin;
+  double dx,dy,dz,rdist;
+  double xremap,yremap,zremap;
+
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+  double *prd = domain->prd;
+  int *periodicity = domain->periodicity;
+
+  // remap each atom's relevant coord back into box via PBC if necessary
+  // apply discard rule based on rmin and rmax
+
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    if (exclude[i]) continue;
+
+    xremap = x[i][0];
+    if (periodicity[0]) {
+      if (xremap < boxlo[0]) xremap += prd[0];
+      if (xremap >= boxhi[0]) xremap -= prd[0];
+    }
+    yremap = x[i][1];
+    if (periodicity[1]) {
+      if (xremap < boxlo[1]) yremap += prd[1];
+      if (xremap >= boxhi[1]) yremap -= prd[1];
+    }
+    zremap = x[i][2];
+    if (periodicity[2]) {
+      if (xremap < boxlo[2]) zremap += prd[2];
+      if (xremap >= boxhi[2]) zremap -= prd[2];
+    }
+
+    dx = xremap - sorigin[0];
+    dy = yremap - sorigin[1];
+    dz = zremap - sorigin[2];
+    rdist = sqrt(dx*dx + dy*dy + dz*dz);
+
+    ibin = static_cast<int> ((rdist - sradmin) * sinvdelta);
+    if (rdist < sradmin) ibin--;
+
+    if (discard == MIXED || discard == NODISCARD) {
+      ibin = MAX(ibin,0);
+      ibin = MIN(ibin,nchunk-1);
+    } else if (ibin < 0 || ibin >= nchunk) {
+      exclude[i] = 1;
+      continue;
+    }
+
+    ichunk[i] = ibin+1;
+  }
 }
 
 /* ----------------------------------------------------------------------

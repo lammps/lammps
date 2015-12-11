@@ -1502,8 +1502,6 @@ void Domain::add_region(int narg, char **arg)
 
   // create the Region
 
-  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
-
   if (lmp->suffix_enable) {
     if (lmp->suffix) {
       char estyle[256];
@@ -1543,6 +1541,8 @@ void Domain::add_region(int narg, char **arg)
 #undef REGION_CLASS
     }
   }
+
+  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
 
 #define REGION_CLASS
 #define RegionStyle(key,Class) \

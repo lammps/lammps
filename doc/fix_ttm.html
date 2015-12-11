@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix ttm command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix ttm command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -277,13 +277,13 @@ scales their velocities.  Thus a time integration fix (e.g. <a class="reference 
 atoms.  The fixes should not normally be used on atoms that have their
 temperature controlled by another fix - e.g. <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or
 <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The current implementations of these fixes create a
-copy of the electron grid that overlays the entire simulation domain,
-for each processor.  Values on the grid are summed across all
-processors.  Thus you should insure that this grid is not too large,
-else your simulation could incur high memory and communication costs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The current implementations of these fixes create a copy of the
+electron grid that overlays the entire simulation domain, for each
+processor.  Values on the grid are summed across all processors.  Thus
+you should insure that this grid is not too large, else your
+simulation could incur high memory and communication costs.</p>
 </div>
 <hr class="docutils" />
 <p><strong>Additional details for fix ttm/mod</strong></p>
@@ -426,7 +426,7 @@ Plasma Phys., 53, 129-139 (2013).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -447,7 +447,7 @@ Plasma Phys., 53, 129-139 (2013).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

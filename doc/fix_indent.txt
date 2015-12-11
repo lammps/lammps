@@ -187,10 +187,10 @@ timestep.  But it is almost certainly a bad idea to have the indenter
 change its position or size during a minimization.  LAMMPS does not
 check if you have done this.
 
-IMPORTANT NOTE: If you want the atom/indenter interaction energy to be
-included in the total potential energy of the system (the quantity
-being minimized), you must enable the "fix_modify"_fix_modify.html
-{energy} option for this fix.
+NOTE: If you want the atom/indenter interaction energy to be included
+in the total potential energy of the system (the quantity being
+minimized), you must enable the "fix_modify"_fix_modify.html {energy}
+option for this fix.
 
 [Restrictions:] none
 

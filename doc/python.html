@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>python command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>python command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -193,12 +193,12 @@ def loop(lmpptr,N,cut0):
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is not currently possible to use the
-<a class="reference internal" href=""><em>python</em></a> command described in this section with Python 3,
-only with Python 2.  The C API changed from Python 2 to 3 and the
-LAMMPS code is not compatible with both.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is not currently possible to use the <a class="reference internal" href=""><em>python</em></a>
+command described in this section with Python 3, only with Python 2.
+The C API changed from Python 2 to 3 and the LAMMPS code is not
+compatible with both.</p>
 </div>
 <p>Define a Python function or execute a previously defined function.
 Arguments, including LAMMPS variables, can be passed to the function
@@ -465,15 +465,15 @@ substituted (by LAMMPS) in the pair_style command that is executed
 next.  Alternatively, the &#8220;LAMMPS command option&#8221; line could be used
 in place of the 2 preceeding lines, to have Python insert the value
 into the LAMMPS command string.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When using the callback mechanism just described,
-recognize that there are some operations you should not attempt
-because LAMMPS cannot execute them correctly.  If the Python function
-is invoked between runs in the LAMMPS input script, then it should be
-OK to invoke any LAMMPS input script command via the library interface
-command() or file() functions, so long as the command would work if it
-were executed in the LAMMPS input script directly at the same point.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using the callback mechanism just described, recognize that
+there are some operations you should not attempt because LAMMPS cannot
+execute them correctly.  If the Python function is invoked between
+runs in the LAMMPS input script, then it should be OK to invoke any
+LAMMPS input script command via the library interface command() or
+file() functions, so long as the command would work if it were
+executed in the LAMMPS input script directly at the same point.</p>
 </div>
 <p>However, a Python function can also be invoked during a run, whenever
 an associated LAMMPS variable it is assigned to is evaluted.  If the
@@ -585,7 +585,7 @@ successfully.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -606,7 +606,7 @@ successfully.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

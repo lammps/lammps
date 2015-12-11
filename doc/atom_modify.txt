@@ -135,8 +135,8 @@ bins are too small, there will be few atoms/bin.  Likewise if bins are
 too large, there will be many atoms/bin.  In both cases, the goal of
 cache locality will be undermined.
 
-IMPORTANT NOTE: Running a simulation with sorting on versus off should
-not change the simulation results in a statistical sense.  However, a
+NOTE: Running a simulation with sorting on versus off should not
+change the simulation results in a statistical sense.  However, a
 different ordering will induce round-off differences, which will lead
 to diverging trajectories over time when comparing two simluations.
 Various commands, particularly those which use random numbers

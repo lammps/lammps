@@ -125,8 +125,8 @@ Voro++ software in the src/VORONOI/README file.
 
 :link(voronoi,http://math.lbl.gov/voro++)
 
-IMPORTANT NOTE: The calculation of Voronoi volumes is performed by
-each processor for the atoms it owns, and includes the effect of ghost
+NOTE: The calculation of Voronoi volumes is performed by each
+processor for the atoms it owns, and includes the effect of ghost
 atoms stored by the processor.  This assumes that the Voronoi cells of
 owned atoms are not affected by atoms beyond the ghost atom cut-off
 distance.  This is usually a good assumption for liquid and solid
@@ -136,14 +136,14 @@ processor is determined by the cutoff used for
 "pair_style"_pair_style.html interactions.  The cutoff can be set
 explicitly via the "comm_modify cutoff"_comm_modify.html command.
 
-IMPORTANT NOTE: The Voro++ package performs its calculation in 3d.
-This should still work for a 2d LAMMPS simulation, to effectively
-compute Voronoi "areas", so long as the z-dimension of the box is
-roughly the same (or smaller) compared to the separation of the atoms.
-Typical values for the z box dimensions in a 2d LAMMPS model are -0.5
-to 0.5, which satisfies the criterion for most "units"_units.html
-systems.  Note that you define the z extent of the simulation box for
-2d simulations when using the "create_box"_create_box.html or
+NOTE: The Voro++ package performs its calculation in 3d.  This should
+still work for a 2d LAMMPS simulation, to effectively compute Voronoi
+"areas", so long as the z-dimension of the box is roughly the same (or
+smaller) compared to the separation of the atoms.  Typical values for
+the z box dimensions in a 2d LAMMPS model are -0.5 to 0.5, which
+satisfies the criterion for most "units"_units.html systems.  Note
+that you define the z extent of the simulation box for 2d simulations
+when using the "create_box"_create_box.html or
 "read_data"_read_data.html commands.
 
 [Output info:]

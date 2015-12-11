@@ -97,15 +97,14 @@ the simulation. These can be overridden using the fix_modify keywords {e0},
 
 :line
 
-IMPORTANT NOTE: Unlike the "fix
-temp/berendsen"_fix_temp_berendsen.html command which performs
-thermostatting but NO time integration, this fix performs
-thermostatting/barostatting AND time integration.  Thus you should not
-use any other time integration fix, such as "fix nve"_fix_nve.html on
-atoms to which this fix is applied.  Likewise, this fix should not be 
-used on atoms that have their temperature controlled by another fix 
-- e.g. by "fix langevin"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html
-commands.
+NOTE: Unlike the "fix temp/berendsen"_fix_temp_berendsen.html command
+which performs thermostatting but NO time integration, this fix
+performs thermostatting/barostatting AND time integration.  Thus you
+should not use any other time integration fix, such as "fix
+nve"_fix_nve.html on atoms to which this fix is applied.  Likewise,
+this fix should not be used on atoms that have their temperature
+controlled by another fix - e.g. by "fix langevin"_fix_nh.html or "fix
+temp/rescale"_fix_temp_rescale.html commands.
 
 :line
 

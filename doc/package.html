@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>package command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>package command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -268,14 +268,15 @@ intel&#8221; or &#8220;-sf omp&#8221; <a class="reference internal" href="Sectio
 is used to auto-append accelerator suffixes to various styles in the
 input script, then those switches also invoke a &#8220;package gpu&#8221;,
 &#8220;package intel&#8221;, or &#8220;package omp&#8221; command with default settings.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">A package command for a particular style can be
-invoked multiple times when a simulation is setup, e.g. by the &#8220;-c
-on&#8221;, &#8220;-k on&#8221;, &#8220;-sf&#8221;, and &#8220;-pk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switches</span></a>, and by using this command in an
-input script.  Each time it is used all of the style options are set,
-either to default values or to specified settings.  I.e. settings from
-previous invocations do not persist across multiple invocations.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A package command for a particular style can be invoked multiple
+times when a simulation is setup, e.g. by the &#8220;-c on&#8221;, &#8220;-k on&#8221;, &#8220;-sf&#8221;,
+and &#8220;-pk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switches</span></a>, and by
+using this command in an input script.  Each time it is used all of
+the style options are set, either to default values or to specified
+settings.  I.e. settings from previous invocations do not persist
+across multiple invocations.</p>
 </div>
 <p>See the <a class="reference internal" href="Section_accelerate.html"><em>Section Accelerate</em></a> section of the
 manual for more details about using the various accelerator packages
@@ -442,11 +443,11 @@ if LAMMPS was built with coprocessor support; see the <em>balance</em>
 keyword discussion below.  If you are running with less MPI tasks/node
 than there are CPUs, it can be advantageous to use OpenMP threading on
 the CPUs.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <em>omp</em> keyword has nothing to do with coprocessor
-threads on the Xeon Phi; see the <em>tpc</em> and <em>tptask</em> keywords below for
-a discussion of coprocessor threads.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>omp</em> keyword has nothing to do with coprocessor threads on
+the Xeon Phi; see the <em>tpc</em> and <em>tptask</em> keywords below for a
+discussion of coprocessor threads.</p>
 </div>
 <p>The <em>Nthread</em> value for the <em>omp</em> keyword sets the number of OpenMP
 threads allocated for each MPI task.  Setting <em>Nthread</em> = 0 (the
@@ -459,15 +460,15 @@ environment variable, see the discussion of the <em>Nthreads</em> setting on
 this doc page for the &#8220;package omp&#8221; command.  Nthreads is a required
 argument for the USER-OMP package.  Its meaning is exactly the same
 for the USER-INTEL pacakge.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you build LAMMPS with both the USER-INTEL and
-USER-OMP packages, be aware that both packages allow setting of the
-<em>Nthreads</em> value via their package commands, but there is only a
-single global <em>Nthreads</em> value used by OpenMP.  Thus if both package
-commands are invoked, you should insure the two values are consistent.
-If they are not, the last one invoked will take precedence, for both
-packages.  Also note that if the &#8220;-sf hybrid intel omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a> is used, it invokes a &#8220;package
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you build LAMMPS with both the USER-INTEL and USER-OMP
+packages, be aware that both packages allow setting of the <em>Nthreads</em>
+value via their package commands, but there is only a single global
+<em>Nthreads</em> value used by OpenMP.  Thus if both package commands are
+invoked, you should insure the two values are consistent.  If they are
+not, the last one invoked will take precedence, for both packages.
+Also note that if the &#8220;-sf hybrid intel omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a> is used, it invokes a &#8220;package
 intel&#8221; command, followed by a &#8220;package omp&#8221; command, both with a
 setting of <em>Nthreads</em> = 0.</p>
 </div>
@@ -716,7 +717,7 @@ your input script or via the &#8220;-pk omp&#8221; <a class="reference internal"
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -737,7 +738,7 @@ your input script or via the &#8220;-pk omp&#8221; <a class="reference internal"
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

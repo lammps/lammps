@@ -93,20 +93,18 @@ there will be 2 possible swap partners on another chain.  In this
 scenario, swaps can also occur within a single chain, i.e. the two
 ends of a chain swap with each other.
 
-IMPORTANT NOTE: If your simulation uses molecule IDs in the usual way,
-where all monomers on a single chain are assigned the same ID
-(different for each chain), then swaps will only occur within the same
-chain.  If you assign the same molecule ID to all monomers in all
-chains then inter-chain swaps will occur, but they will not conserve
-chain length.  Neither of these scenarios is probably what you want
-for this fix.
+NOTE: If your simulation uses molecule IDs in the usual way, where all
+monomers on a single chain are assigned the same ID (different for
+each chain), then swaps will only occur within the same chain.  If you
+assign the same molecule ID to all monomers in all chains then
+inter-chain swaps will occur, but they will not conserve chain length.
+Neither of these scenarios is probably what you want for this fix.
 
-IMPORTANT NOTE: When a bond swap occurs the image flags of monomers in
-the new polymer chains can become inconsistent.  See the
-"dump"_dump.html command for a discussion of image flags.  This is not
-an issue for running dynamics, but can affect calculation of some
-diagnostic quantities or the printing of unwrapped coordinates to a
-dump file.
+NOTE: When a bond swap occurs the image flags of monomers in the new
+polymer chains can become inconsistent.  See the "dump"_dump.html
+command for a discussion of image flags.  This is not an issue for
+running dynamics, but can affect calculation of some diagnostic
+quantities or the printing of unwrapped coordinates to a dump file.
 
 :line
 

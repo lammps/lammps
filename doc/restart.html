@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>restart command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>restart command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -238,18 +238,17 @@ command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
 another machine.  In this case, you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-r command-line switch</span></a> to convert a restart file to a data
 file.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Although the purpose of restart files is to enable
-restarting a simulation from where it left off, not all information
-about a simulation is stored in the file.  For example, the list of
-fixes that were specified during the initial run is not stored, which
-means the new input script must specify any fixes you want to use.
-Even when restart information is stored in the file, as it is for some
-fixes, commands may need to be re-specified in the new input script,
-in order to re-use that information.  See the
-<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for information about what is
-stored in a restart file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the purpose of restart files is to enable restarting a
+simulation from where it left off, not all information about a
+simulation is stored in the file.  For example, the list of fixes that
+were specified during the initial run is not stored, which means the
+new input script must specify any fixes you want to use.  Even when
+restart information is stored in the file, as it is for some fixes,
+commands may need to be re-specified in the new input script, in order
+to re-use that information.  See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+command for information about what is stored in a restart file.</p>
 </div>
 <hr class="docutils" />
 <p>The optional <em>nfile</em> or <em>fileper</em> keywords can be used in conjunction
@@ -296,7 +295,7 @@ package must be installed.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -317,7 +316,7 @@ package must be installed.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

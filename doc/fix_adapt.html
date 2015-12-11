@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix adapt command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix adapt command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -275,11 +275,11 @@ meaning of these parameters:</p>
 </tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is easy to add new potentials and their parameters
-to this list.  All it typically takes is adding an extract() method to
-the pair_*.cpp file associated with the potential.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is easy to add new potentials and their parameters to this
+list.  All it typically takes is adding an extract() method to the
+pair_*.cpp file associated with the potential.</p>
 </div>
 <p>Some parameters are global settings for the pair style, e.g. the
 viscosity setting &#8220;mu&#8221; for <a class="reference internal" href="pair_lubricate.html"><em>pair_style lubricate</em></a>.
@@ -357,11 +357,11 @@ specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <em>atom</em> keyword works this way whether the <em>scale</em>
-keyword is set to <em>no</em> or <em>yes</em>.  I.e. the use of scale yes is not yet
-supported by the <em>atom</em> keyword.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>atom</em> keyword works this way whether the <em>scale</em> keyword is
+set to <em>no</em> or <em>yes</em>.  I.e. the use of scale yes is not yet supported
+by the <em>atom</em> keyword.</p>
 </div>
 <p>If the atom parameter is <em>diameter</em> and per-atom density and per-atom
 mass are defined for particles (e.g. <a class="reference internal" href="atom_style.html"><em>atom_style granular</em></a>), then the mass of each particle is also
@@ -411,7 +411,7 @@ parameters on the outermost rRESPA level.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -432,7 +432,7 @@ parameters on the outermost rRESPA level.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

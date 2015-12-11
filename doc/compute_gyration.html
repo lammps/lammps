@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute gyration command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute gyration command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -160,15 +160,14 @@ components of the vector are ordered xx, yy, zz, xy, xz, yz.  Note
 that unlike the scalar Rg, each of the 6 values of the tensor is
 effectively a &#8220;squared&#8221; value, since the cross-terms may be negative
 and taking a sqrt() would be invalid.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The coordinates of an atom contribute to Rg in
-&#8220;unwrapped&#8221; form, by using the image flags associated with each atom.
-See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion of
-&#8220;unwrapped&#8221; coordinates.  See the Atoms section of the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a discussion of image flags and
-how they are set for each atom.  You can reset the image flags
-(e.g. to 0) before invoking this compute by using the <a class="reference internal" href="set.html"><em>set image</em></a> command.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The coordinates of an atom contribute to Rg in &#8220;unwrapped&#8221; form,
+by using the image flags associated with each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion of &#8220;unwrapped&#8221; coordinates.
+See the Atoms section of the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a
+discussion of image flags and how they are set for each atom.  You can
+reset the image flags (e.g. to 0) before invoking this compute by
+using the <a class="reference internal" href="set.html"><em>set image</em></a> command.</p>
 </div>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a global scalar (Rg) and a global vector of
@@ -202,7 +201,7 @@ distance^2 <a class="reference internal" href="units.html"><em>units</em></a> re
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -223,7 +222,7 @@ distance^2 <a class="reference internal" href="units.html"><em>units</em></a> re
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

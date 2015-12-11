@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix temp/csvr command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix temp/csvr command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -193,11 +193,11 @@ its value used to determine the target temperature.</p>
 functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which
-performs Nose/Hoover thermostatting AND time integration, these fixes
-do NOT perform time integration. They only modify velocities to effect
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which performs
+Nose/Hoover thermostatting AND time integration, these fixes do NOT
+perform time integration. They only modify velocities to effect
 thermostatting.  Thus you must use a separate time integration fix,
 like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> to actually update the positions of atoms
 using the modified velocities.  Likewise, these fixes should not
@@ -289,7 +289,7 @@ over time or the atom count becomes very small.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -310,7 +310,7 @@ over time or the atom count becomes very small.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

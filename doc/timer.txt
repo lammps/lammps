@@ -75,8 +75,8 @@ Multiple keywords can be specified with the {timer} command.  For
 keywords that are mutually exclusive, the last one specified takes
 effect.
 
-IMPORTANT NOTE: Using the {full} and {sync} options provides the most
-detailed and accurate timing information, but can also have a negative
+NOTE: Using the {full} and {sync} options provides the most detailed
+and accurate timing information, but can also have a negative
 performance impact due to the overhead of the many required system
 calls. It is thus recommended to use these settings only when testing
 tests to identify performance bottlenecks. For calculations with few

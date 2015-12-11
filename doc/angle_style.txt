@@ -43,7 +43,7 @@ command for details on how to do this.  The one exception is that
 angle_style {hybrid} only stores the list of sub-styles in the restart
 file; angle coefficients need to be re-specified.
 
-IMPORTANT NOTE: When both an angle and pair style is defined, the
+NOTE: When both an angle and pair style is defined, the
 "special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between 3 bonded atoms.

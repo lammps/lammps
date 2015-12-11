@@ -74,11 +74,11 @@ This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the "fix drude"_fix_drude.html command to
 specify the Drude status of each atom type.
 
-IMPORTANT NOTE: only the Drude core atoms need to be in the group
-specified for this fix. A Drude electron will be transformed together
-with its core even if it is not itself in the group.  It is safe to
-include Drude electrons or non-polarizable atoms in the group. The
-non-polarizable atoms will simply not be transformed.
+NOTE: only the Drude core atoms need to be in the group specified for
+this fix. A Drude electron will be transformed together with its core
+even if it is not itself in the group.  It is safe to include Drude
+electrons or non-polarizable atoms in the group. The non-polarizable
+atoms will simply not be transformed.
 
 :line
 
@@ -90,10 +90,9 @@ atoms.  In order to thermalize the reduced degrees of freedom at
 different temperatures, two Nose-Hoover thermostats must be defined,
 acting on two distinct groups.
 
-IMPORTANT NOTE: The {fix drude/transform/direct} command must appear
-before any Nose-Hoover thermostating fixes.  The {fix
-drude/transform/inverse} command must appear after any Nose-Hoover
-thermostating fixes.
+NOTE: The {fix drude/transform/direct} command must appear before any
+Nose-Hoover thermostating fixes.  The {fix drude/transform/inverse}
+command must appear after any Nose-Hoover thermostating fixes.
 
 Example:
 

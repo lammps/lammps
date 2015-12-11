@@ -115,9 +115,9 @@ meaning of these parameters:
 "morse"_pair_morse.html: d0,r0,alpha: type pairs:
 "soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
 
-IMPORTANT NOTE: It is easy to add new potentials and their parameters
-to this list.  All it typically takes is adding an extract() method to
-the pair_*.cpp file associated with the potential.
+NOTE: It is easy to add new potentials and their parameters to this
+list.  All it typically takes is adding an extract() method to the
+pair_*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.
@@ -208,9 +208,9 @@ discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
 
-IMPORTANT NOTE: The {atom} keyword works this way whether the {scale}
-keyword is set to {no} or {yes}.  I.e. the use of scale yes is not yet
-supported by the {atom} keyword.
+NOTE: The {atom} keyword works this way whether the {scale} keyword is
+set to {no} or {yes}.  I.e. the use of scale yes is not yet supported
+by the {atom} keyword.
 
 If the atom parameter is {diameter} and per-atom density and per-atom
 mass are defined for particles (e.g. "atom_style

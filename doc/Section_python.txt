@@ -110,10 +110,10 @@ check which version of Python you have installed, by simply typing
 
 11.2 Overview of using Python from a LAMMPS script :link(py_2),h4
 
-IMPORTANT NOTE: It is not currently possible to use the
-"python"_python.html command described in this section with Python 3,
-only with Python 2.  The C API changed from Python 2 to 3 and the
-LAMMPS code is not compatible with both.
+NOTE: It is not currently possible to use the "python"_python.html
+command described in this section with Python 3, only with Python 2.
+The C API changed from Python 2 to 3 and the LAMMPS code is not
+compatible with both.
 
 LAMMPS has a "python"_python.html command which can be used in an
 input script to define and execute a Python function that you write
@@ -354,11 +354,11 @@ print "Proc %d out of %d procs" % (pypar.rank(),pypar.size()) :pre
 
 and see one line of output for each processor you run on.
 
-IMPORTANT NOTE: To use Pypar and LAMMPS in parallel from Python, you
-must insure both are using the same version of MPI.  If you only have
-one MPI installed on your system, this is not an issue, but it can be
-if you have multiple MPIs.  Your LAMMPS build is explicit about which
-MPI it is using, since you specify the details in your lo-level
+NOTE: To use Pypar and LAMMPS in parallel from Python, you must insure
+both are using the same version of MPI.  If you only have one MPI
+installed on your system, this is not an issue, but it can be if you
+have multiple MPIs.  Your LAMMPS build is explicit about which MPI it
+is using, since you specify the details in your lo-level
 src/MAKE/Makefile.foo file.  Pypar uses the "mpicc" command to find
 information about the MPI it uses to build against.  And it tries to
 load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
@@ -399,11 +399,11 @@ print "Proc %d out of %d procs" % (comm.Get_rank(),comm.Get_size()) :pre
 
 and see one line of output for each processor you run on.
 
-IMPORTANT NOTE: To use mpi4py and LAMMPS in parallel from Python, you
-must insure both are using the same version of MPI.  If you only have
-one MPI installed on your system, this is not an issue, but it can be
-if you have multiple MPIs.  Your LAMMPS build is explicit about which
-MPI it is using, since you specify the details in your lo-level
+NOTE: To use mpi4py and LAMMPS in parallel from Python, you must
+insure both are using the same version of MPI.  If you only have one
+MPI installed on your system, this is not an issue, but it can be if
+you have multiple MPIs.  Your LAMMPS build is explicit about which MPI
+it is using, since you specify the details in your lo-level
 src/MAKE/Makefile.foo file.  Mpi4py uses the "mpicc" command to find
 information about the MPI it uses to build against.  And it tries to
 load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
@@ -610,14 +610,14 @@ lmp.scatter_atoms(name,type,count,data)   # scatter atom attribute of all atoms 
 
 :line
 
-IMPORTANT NOTE: Currently, the creation of a LAMMPS object from within
-lammps.py does not take an MPI communicator as an argument.  There
-should be a way to do this, so that the LAMMPS instance runs on a
-subset of processors if desired, but I don't know how to do it from
-Pypar.  So for now, it runs with MPI_COMM_WORLD, which is all the
-processors.  If someone figures out how to do this with one or more of
-the Python wrappers for MPI, like Pypar, please let us know and we
-will amend these doc pages.
+NOTE: Currently, the creation of a LAMMPS object from within lammps.py
+does not take an MPI communicator as an argument.  There should be a
+way to do this, so that the LAMMPS instance runs on a subset of
+processors if desired, but I don't know how to do it from Pypar.  So
+for now, it runs with MPI_COMM_WORLD, which is all the processors.  If
+someone figures out how to do this with one or more of the Python
+wrappers for MPI, like Pypar, please let us know and we will amend
+these doc pages.
 
 The lines
 

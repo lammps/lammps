@@ -3508,7 +3508,7 @@ input[type="radio"][disabled], input[type="checkbox"][disabled] {
   font-size: 90%;
   margin: 0;
   overflow: visible;
-  padding: 8px 16px;
+  padding: 4px;
 }
 .wy-table td:first-child, .rst-content table.docutils td:first-child, .rst-content table.field-list td:first-child, .wy-table th:first-child, .rst-content table.docutils th:first-child, .rst-content table.field-list th:first-child {
   border-left-width: 0;
@@ -3563,11 +3563,11 @@ input[type="radio"][disabled], input[type="checkbox"][disabled] {
 
 /* BORDERED TABLES */
 .wy-table-bordered-all, .rst-content table.docutils {
-  border: 1px solid #e1e4e5;
+  border: 1px solid #black;
 }
 .wy-table-bordered-all td, .rst-content table.docutils td {
-  border-bottom: 1px solid #e1e4e5;
-  border-left: 1px solid #e1e4e5;
+  border-bottom: 1px solid black;
+  border-left: 1px solid black;
 }
 .wy-table-bordered-all tbody > tr:last-child td, .rst-content table.docutils tbody > tr:last-child td {
   border-bottom-width: 0;
@@ -3741,9 +3741,8 @@ h6 {
 
 hr {
   display: block;
-  height: 1px;
-  border: 0;
-  border-top: 2px solid #e1e4e5;
+  border-top: 2px solid #8c8b8b;
+  border-bottom: 2px solid #fff;
   margin: 24px 0;
   padding: 0;
 }

@@ -153,7 +153,7 @@ ordered in which they are listed
 The keyword {switchflag} can be used to turn off the switching
 function.
 
-IMPORTANT NOTE: If you have a bonded system, then the settings of
+NOTE: If you have a bonded system, then the settings of
 "special_bonds"_special_bonds.html command can remove pairwise
 interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the "special_bonds"_special_bonds.html

@@ -83,8 +83,8 @@ quantities.
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
-IMPORTANT NOTE: It is possible to add some attributes, such as a
-molecule ID, to atom styles that do not have them via the "fix
+NOTE: It is possible to add some attributes, such as a molecule ID, to
+atom styles that do not have them via the "fix
 property/atom"_fix_property_atom.html command.  This command also
 allows new custom attributes consisting of extra integer or
 floating-point values to be added to atoms.  See the "fix
@@ -158,7 +158,7 @@ molecules, all of a single type (or small number of types).  See the
 paper by Grime and Voth, in "(Grime)"_#Grime, for examples of how this
 can be advantageous for large-scale coarse-grained systems.
 
-IMPORTANT NOTE: When using the {template} style with a "molecule
+NOTE: When using the {template} style with a "molecule
 template"_molecule.html that contains multiple molecules, you should
 insure the atom types, bond types, angle_types, etc in all the
 molecules are consistent.  E.g. if one molecule represents H2O and

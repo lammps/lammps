@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix rigid command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix rigid command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -250,11 +250,11 @@ ensemble, as described below.</p>
 <p>There are two main variants of this fix, fix rigid and fix
 rigid/small.  The NVE/NVT/NPT/NHT versions belong to one of the two
 variants, as their style names indicate.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Not all of the <em>bodystyle</em> options and keyword/value
-options are available for both the <em>rigid</em> and <em>rigid/small</em> variants.
-See details below.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Not all of the <em>bodystyle</em> options and keyword/value options are
+available for both the <em>rigid</em> and <em>rigid/small</em> variants.  See
+details below.</p>
 </div>
 <p>The <em>rigid</em> variant is typically the best choice for a system with a
 small number of large rigid bodies, each of which can extend across
@@ -270,56 +270,56 @@ closest to the geometrical center of the body.  The fix operates using
 local lists of rigid bodies owned by each processor and information is
 exchanged and summed via local communication between neighboring
 processors when ghost atom info is accumlated.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">To use <em>rigid/small</em> the ghost atom cutoff must be
-large enough to span the distance between the atom that owns the body
-and every other atom in the body.  This distance value is printed out
-when the rigid bodies are defined.  If the
-<a class="reference internal" href="pair_style.html"><em>pair_style</em></a> cutoff plus neighbor skin does not span
-this distance, then you should use the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command with a setting epsilon larger than
-the distance.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To use <em>rigid/small</em> the ghost atom cutoff must be large enough
+to span the distance between the atom that owns the body and every
+other atom in the body.  This distance value is printed out when the
+rigid bodies are defined.  If the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> cutoff
+plus neighbor skin does not span this distance, then you should use
+the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command with a setting
+epsilon larger than the distance.</p>
 </div>
 <p>Which of the two variants is faster for a particular problem is hard
 to predict.  The best way to decide is to perform a short test run.
 Both variants should give identical numerical answers for short runs.
 Long runs should give statistically similar results, but round-off
 differences may accumulate to produce divergent trajectories.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">You should not update the atoms in rigid bodies via
-other time-integration fixes (e.g. <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>, <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">nvt</span></code>, <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">npt</span></code>), or you will be integrating
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You should not update the atoms in rigid bodies via other
+time-integration fixes (e.g. <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>, <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">nvt</span></code>, <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">npt</span></code>), or you will be integrating
 their motion more than once each timestep.  When performing a hybrid
 simulation with some atoms in rigid bodies, and some not, a separate
 time integration fix like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> should be used for the non-rigid particles.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">These fixes are overkill if you simply want to hold a
-collection of atoms stationary or have them move with a constant
-velocity.  A simpler way to hold atoms stationary is to not include
-those atoms in your time integration fix.  E.g. use &#8220;fix 1 mobile nve&#8221;
-instead of &#8220;fix 1 all nve&#8221;, where &#8220;mobile&#8221; is the group of atoms that
-you want to move.  You can move atoms with a constant velocity by
-assigning them an initial velocity (via the <a class="reference internal" href="velocity.html"><em>velocity</em></a>
-command), setting the force on them to 0.0 (via the <a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a> command), and integrating them as usual
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These fixes are overkill if you simply want to hold a collection
+of atoms stationary or have them move with a constant velocity.  A
+simpler way to hold atoms stationary is to not include those atoms in
+your time integration fix.  E.g. use &#8220;fix 1 mobile nve&#8221; instead of
+&#8220;fix 1 all nve&#8221;, where &#8220;mobile&#8221; is the group of atoms that you want to
+move.  You can move atoms with a constant velocity by assigning them
+an initial velocity (via the <a class="reference internal" href="velocity.html"><em>velocity</em></a> command),
+setting the force on them to 0.0 (via the <a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a> command), and integrating them as usual
 (e.g. via the <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> command).</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The aggregate properties of each rigid body are
-calculated one time at the start of the first simulation run after
-this fix is specified.  The properties include the position and
-velocity of the center-of-mass of the body, its moments of inertia,
-and its angular momentum.  This is done using the properties of the
-constituent atoms of the body at that point in time (or see the
-<em>infile</em> keyword option).  Thereafter, changing properties of
-individual atoms in the body will have no effect on a rigid body&#8217;s
-dynamics, unless they effect the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a>
-interactions that individual particles are part of.  For example, you
-might think you could displace the atoms in a body or add a large
-velocity to each atom in a body to make it move in a desired direction
-before a 2nd run is performed, using the <a class="reference internal" href="set.html"><em>set</em></a> or
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The aggregate properties of each rigid body are calculated one
+time at the start of the first simulation run after this fix is
+specified.  The properties include the position and velocity of the
+center-of-mass of the body, its moments of inertia, and its angular
+momentum.  This is done using the properties of the constituent atoms
+of the body at that point in time (or see the <em>infile</em> keyword
+option).  Thereafter, changing properties of individual atoms in the
+body will have no effect on a rigid body&#8217;s dynamics, unless they
+effect the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> interactions that individual
+particles are part of.  For example, you might think you could
+displace the atoms in a body or add a large velocity to each atom in a
+body to make it move in a desired direction before a 2nd run is
+performed, using the <a class="reference internal" href="set.html"><em>set</em></a> or
 <a class="reference internal" href="displace_atoms.html"><em>displace_atoms</em></a> or <a class="reference internal" href="velocity.html"><em>velocity</em></a>
 command.  But these commands will not affect the internal attributes
 of the body, and the position and velocity or individual atoms in the
@@ -329,13 +329,12 @@ body will be reset when time integration starts.</p>
 <p>Each rigid body must have two or more atoms.  An atom can belong to at
 most one rigid body.  Which atoms are in which bodies can be defined
 via several options.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">With fix rigid/small, which requires bodystyle
-<em>molecule</em>, you can define a system that has no rigid bodies
-initially.  This is useful when you are using the <em>mol</em> keyword in
-conjunction with another fix that is adding rigid bodies on-the-fly,
-such as <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> or <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With fix rigid/small, which requires bodystyle <em>molecule</em>, you
+can define a system that has no rigid bodies initially.  This is
+useful when you are using the <em>mol</em> keyword in conjunction with
+another fix that is adding rigid bodies on-the-fly, such as <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> or <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>.</p>
 </div>
 <p>For bodystyle <em>single</em> the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for fix rigid and its
@@ -352,13 +351,13 @@ includes atoms you want to be part of rigid bodies.</p>
 separate rigid body.  Only atoms that are also in the fix group are
 included in each rigid body.  This option is only allowed for fix
 rigid and its sub-styles.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">To compute the initial center-of-mass position and
-other properties of each rigid body, the image flags for each atom in
-the body are used to &#8220;unwrap&#8221; the atom coordinates.  Thus you must
-insure that these image flags are consistent so that the unwrapping
-creates a valid rigid body (one where the atoms are close together),
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To compute the initial center-of-mass position and other
+properties of each rigid body, the image flags for each atom in the
+body are used to &#8220;unwrap&#8221; the atom coordinates.  Thus you must insure
+that these image flags are consistent so that the unwrapping creates a
+valid rigid body (one where the atoms are close together),
 particularly if the atoms in a single rigid body straddle a periodic
 boundary.  This means the input data file or restart file must define
 the image flags for each atom consistently or that you have used the
@@ -395,11 +394,11 @@ means all types from m to n (inclusive).  Note that you can use the
 <em>force</em> or <em>torque</em> keywords as many times as you like.  If a
 particular rigid body has its component flags set multiple times, the
 settings from the final keyword are used.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For computational efficiency, you may wish to turn off
-pairwise and bond interactions within each rigid body, as they no
-longer contribute to the motion.  The <a class="reference internal" href="neigh_modify.html"><em>neigh_modify exclude</em></a> and <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For computational efficiency, you may wish to turn off pairwise
+and bond interactions within each rigid body, as they no longer
+contribute to the motion.  The <a class="reference internal" href="neigh_modify.html"><em>neigh_modify exclude</em></a> and <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a>
 commands are used to do this.  If the rigid bodies have strongly
 overalapping atoms, you may need to turn off these interactions to
 avoid numerical problems due to large equal/opposite intra-body forces
@@ -539,14 +538,14 @@ integer.</p>
 damp the rotational motion without thermostatting, you can set
 <em>Tstart</em> and <em>Tstop</em> to 0.0, which means only the viscous drag term in
 the Langevin thermostat will be applied.  See the discussion on the
-<code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">viscous</span></code> doc page for details.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When the <em>langevin</em> keyword is used with fix rigid
-versus fix rigid/small, different dynamics will result for parallel
-runs.  This is because of the way random numbers are used in the two
-cases.  The dynamics for the two cases should be statistically
-similar, but will not be identical, even for a single timestep.</p>
+<a class="reference internal" href="fix_viscous.html"><em>fix viscous</em></a> doc page for details.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When the <em>langevin</em> keyword is used with fix rigid versus fix
+rigid/small, different dynamics will result for parallel runs.  This
+is because of the way random numbers are used in the two cases.  The
+dynamics for the two cases should be statistically similar, but will
+not be identical, even for a single timestep.</p>
 </div>
 <p>The <em>temp</em> and <em>tparam</em> keywords apply a Nose/Hoover thermostat to the
 NVT time integration performed by the <em>rigid/nvt</em> style.  They cannot
@@ -566,16 +565,16 @@ of thumb, increasing the chain length should lead to smaller
 oscillations. The keyword <em>pchain</em> specifies the number of
 thermostats in the chain thermostatting the barostat degrees of
 freedom.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">There are alternate ways to thermostat a system of
-rigid bodies.  You can use <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> to treat
-the individual particles in the rigid bodies as effectively immersed
-in an implicit solvent, e.g. a Brownian dynamics model.  For hybrid
-systems with both rigid bodies and solvent particles, you can
-thermostat only the solvent particles that surround one or more rigid
-bodies by appropriate choice of groups in the compute and fix commands
-for temperature and thermostatting.  The solvent interactions with the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There are alternate ways to thermostat a system of rigid bodies.
+You can use <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> to treat the individual
+particles in the rigid bodies as effectively immersed in an implicit
+solvent, e.g. a Brownian dynamics model.  For hybrid systems with both
+rigid bodies and solvent particles, you can thermostat only the
+solvent particles that surround one or more rigid bodies by
+appropriate choice of groups in the compute and fix commands for
+temperature and thermostatting.  The solvent interactions with the
 rigid bodies should then effectively thermostat the rigid body
 temperature as well without use of the Langevin or Nose/Hoover options
 associated with the fix rigid commands.</p>
@@ -597,7 +596,7 @@ molecule command calculates the other quantities itself.</p>
 those defined initially by this fix via the <em>bodystyle</em> setting.</p>
 <p>Also note that when using the <em>mol</em> keyword, extra restart information
 about all rigid bodies is written out whenever a restart file is
-written out.  See the IMPORTANT NOTE in the next section for details.</p>
+written out.  See the NOTE in the next section for details.</p>
 <hr class="docutils" />
 <p>The <em>infile</em> keyword allows a file of rigid body attributes to be read
 in from a file, rather then having LAMMPS compute them.  There are 5
@@ -651,11 +650,11 @@ it is inside the box as defined.  A value of 2 means add 2 box lengths
 to get the true value.  A value of -1 means subtract 1 box length to
 get the true value.  LAMMPS updates these flags as the rigid bodies
 cross periodic boundaries during the simulation.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you use the <em>infile</em> or <em>mol</em> keywords and write
-restart files during a simulation, then each time a restart file is
-written, the fix also write an auxiliary restart file with the name
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you use the <em>infile</em> or <em>mol</em> keywords and write restart
+files during a simulation, then each time a restart file is written,
+the fix also write an auxiliary restart file with the name
 rfile.rigid, where &#8220;rfile&#8221; is the name of the restart file,
 e.g. tmp.restart.10000 and tmp.restart.10000.rigid.  This auxiliary
 file is in the same format described above.  Thus it can be used in a
@@ -674,8 +673,8 @@ particles in a particular rigid body.</p>
 rotational), except for a collection of point particles lying on a
 straight line, which has only 5, e.g a dimer.  A 2d rigid body has 3
 degrees of freedom (2 translational, 1 rotational).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">You may wish to explicitly subtract additional
 degrees-of-freedom if you use the <em>force</em> and <em>torque</em> keywords to
 eliminate certain motions of one or more rigid bodies.  LAMMPS does
@@ -862,7 +861,7 @@ J Chem Phys, 116, 8649 (2002).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -883,7 +882,7 @@ J Chem Phys, 116, 8649 (2002).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

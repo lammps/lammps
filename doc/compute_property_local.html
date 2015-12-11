@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute property/local command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute property/local command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -212,17 +212,16 @@ to the atom IDs of the 2 atoms in each pairwise interaction computed
 by the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command.  The <em>ntype1</em> and
 <em>ntype2</em>, or <em>ptype1</em> and <em>ptype2</em> attributes refer to the atom types
 of the 2 atoms in each pairwise interaction.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For pairs, if two atoms I,J are involved in 1-2, 1-3,
-1-4 interactions within the molecular topology, their pairwise
-interaction may be turned off, and thus they may not appear in the
-neighbor list, and will not be part of the local data created by this
-command.  More specifically, this may be true of I,J pairs with a
-weighting factor of 0.0; pairs with a non-zero weighting factor are
-included.  The weighting factors for 1-2, 1-3, and 1-4 pairwise
-interactions are set by the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
-command.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For pairs, if two atoms I,J are involved in 1-2, 1-3, 1-4
+interactions within the molecular topology, their pairwise interaction
+may be turned off, and thus they may not appear in the neighbor list,
+and will not be part of the local data created by this command.  More
+specifically, this may be true of I,J pairs with a weighting factor of
+0.0; pairs with a non-zero weighting factor are included.  The
+weighting factors for 1-2, 1-3, and 1-4 pairwise interactions are set
+by the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command.</p>
 </div>
 <p>The <em>batom1</em> and <em>batom2</em> attributes refer to the atom IDs of the 2
 atoms in each <a class="reference internal" href="bond_style.html"><em>bond</em></a>.  The <em>btype</em> attribute refers to
@@ -266,7 +265,7 @@ specified attribute.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -287,7 +286,7 @@ specified attribute.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

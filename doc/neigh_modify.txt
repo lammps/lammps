@@ -143,8 +143,8 @@ Note that the exclude options only affect pairwise interactions; see
 the "delete_bonds"_delete_bonds.html command for information on
 turning off bond interactions.
 
-IMPORTANT NOTE: Excluding pairwise interactions will not work
-correctly when also using a long-range solver via the
+NOTE: Excluding pairwise interactions will not work correctly when
+also using a long-range solver via the
 "kspace_style"_kspace_style.html command.  LAMMPS will give a warning
 to this effect.  This is because the short-range pairwise interaction
 needs to subtract off a term from the total energy for pairs whose
@@ -165,16 +165,16 @@ could potentially overflow the list.  This threshold is set by the
 {one} value which tells LAMMPS the maximum number of neighbor's one
 atom can have.
 
-IMPORTANT NOTE: LAMMPS can crash without an error message if the
-number of neighbors for a single particle is larger than the {page}
-setting, which means it is much, much larger than the {one} setting.
-This is because LAMMPS doesn't error check these limits for every
-pairwise interaction (too costly), but only after all the particle's
-neighbors have been found.  This problem usually means something is
-very wrong with the way you've setup your problem (particle spacing,
-cutoff length, neighbor skin distance, etc).  If you really expect
-that many neighbors per particle, then boost the {one} and {page}
-settings accordingly.
+NOTE: LAMMPS can crash without an error message if the number of
+neighbors for a single particle is larger than the {page} setting,
+which means it is much, much larger than the {one} setting.  This is
+because LAMMPS doesn't error check these limits for every pairwise
+interaction (too costly), but only after all the particle's neighbors
+have been found.  This problem usually means something is very wrong
+with the way you've setup your problem (particle spacing, cutoff
+length, neighbor skin distance, etc).  If you really expect that many
+neighbors per particle, then boost the {one} and {page} settings
+accordingly.
 
 The {binsize} option allows you to specify what size of bins will be
 used in neighbor list construction to sort and find neighboring atoms.

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>read_data command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>read_data command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -211,18 +211,18 @@ cannot be used; the read_data command is being used for the first
 time.  If a simulation box does exist, due to using the
 <a class="reference internal" href="create_box.html"><em>create_box</em></a> command, or a previous read_data command,
 then the <em>add</em> keyword must be used.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The simulation box size (xlo to xhi, ylo to yhi, zlo
-to zhi) in the new data file will be merged with the existing
-simulation box to create a large enough box in each dimension to
-contain both the existing and new atoms.  Each box dimension never
-shrinks due to this merge operation, it only stays the same or
-grows. Care must be used if you are growing the existing simulation
-box in a periodic dimension.  If there are existing atoms with bonds
-that straddle that periodic boundary, then the atoms may become far
-apart if the box size grows.  This will separate the atoms in the
-bond, which can lead to &#8220;lost&#8221; bond atoms or bad dynamics.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The simulation box size (xlo to xhi, ylo to yhi, zlo to zhi) in
+the new data file will be merged with the existing simulation box to
+create a large enough box in each dimension to contain both the
+existing and new atoms.  Each box dimension never shrinks due to this
+merge operation, it only stays the same or grows. Care must be used if
+you are growing the existing simulation box in a periodic dimension.
+If there are existing atoms with bonds that straddle that periodic
+boundary, then the atoms may become far apart if the box size grows.
+This will separate the atoms in the bond, which can lead to &#8220;lost&#8221;
+bond atoms or bad dynamics.</p>
 </div>
 <p>The three choices for the <em>add</em> argument affect how the IDs of atoms
 in the data file are treated.  If <em>append</em> is specified, atoms in the
@@ -430,26 +430,25 @@ being used to add atoms to a simulation box that already exists, this
 periodic remapping will be performed using simulation box bounds that
 are the union of the existing box and the box boundaries in the new
 data file.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If the system is non-periodic (in a dimension), then
-all atoms in the data file must have coordinates (in that dimension)
-that are &#8220;greater than or equal to&#8221; the lo value and &#8220;less than or
-equal to&#8221; the hi value.  If the non-periodic dimension is of style
-&#8220;fixed&#8221; (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command), then the atom
-coords must be strictly &#8220;less than&#8221; the hi value, due to the way
-LAMMPS assign atoms to processors.  Note that you should not make the
-lo/hi values radically smaller/larger than the extent of the atoms.
-For example, if your atoms extend from 0 to 50, you should not specify
-the box bounds as -10000 and 10000.  This is because LAMMPS uses the
-specified box size to layout the 3d grid of processors.  A huge
-(mostly empty) box will be sub-optimal for performance when using
-&#8220;fixed&#8221; boundary conditions (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a>
-command).  When using &#8220;shrink-wrap&#8221; boundary conditions (see the
-<a class="reference internal" href="boundary.html"><em>boundary</em></a> command), a huge (mostly empty) box may cause
-a parallel simulation to lose atoms when LAMMPS shrink-wraps the box
-around the atoms.  The read_data command will generate an error
-in this case.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the system is non-periodic (in a dimension), then all atoms
+in the data file must have coordinates (in that dimension) that are
+&#8220;greater than or equal to&#8221; the lo value and &#8220;less than or equal to&#8221;
+the hi value.  If the non-periodic dimension is of style &#8220;fixed&#8221; (see
+the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command), then the atom coords must be
+strictly &#8220;less than&#8221; the hi value, due to the way LAMMPS assign atoms
+to processors.  Note that you should not make the lo/hi values
+radically smaller/larger than the extent of the atoms.  For example,
+if your atoms extend from 0 to 50, you should not specify the box
+bounds as -10000 and 10000.  This is because LAMMPS uses the specified
+box size to layout the 3d grid of processors.  A huge (mostly empty)
+box will be sub-optimal for performance when using &#8220;fixed&#8221; boundary
+conditions (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command).  When using
+&#8220;shrink-wrap&#8221; boundary conditions (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a>
+command), a huge (mostly empty) box may cause a parallel simulation to
+lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
+read_data command will generate an error in this case.</p>
 </div>
 <p>The &#8220;extra bond per atom&#8221; setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to
@@ -464,12 +463,12 @@ defined in the data file.  Using this setting will pre-allocate space
 in the LAMMPS data structures for storing these neighbors.  See the
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> and <a class="reference internal" href="molecule.html"><em>molecule</em></a> doc
 pages for more discussion of 1-2,1-3,1-4 neighbors.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">All of the &#8220;extra&#8221; settings are only used if they
-appear in the first data file read; see the description of the <em>add</em>
-keyword above for reading multiple data files.  If they appear in
-later data files, they are ignored.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All of the &#8220;extra&#8221; settings are only used if they appear in the
+first data file read; see the description of the <em>add</em> keyword above
+for reading multiple data files.  If they appear in later data files,
+they are ignored.</p>
 </div>
 <p>The &#8220;ellipsoids&#8221; and &#8220;lines&#8221; and &#8220;triangles&#8221; and &#8220;bodies&#8221; settings are
 only used with <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid or line or tri or body</em></a> and specify how many of the atoms are
@@ -479,12 +478,12 @@ are point particles.  See the discussion of ellipsoidflag and the
 <em>Lines</em> section below.  See the discussion of triangleflag and the
 <em>Triangles</em> section below.  See the discussion of bodyflag and the
 <em>Bodies</em> section below.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For <a class="reference internal" href="atom_style.html"><em>atom_style template</em></a>, the
-molecular topology (bonds,angles,etc) is contained in the molecule
-templates read-in by the <a class="reference internal" href="molecule.html"><em>molecule</em></a> command.  This means
-you cannot set the <em>bonds</em>, <em>angles</em>, etc header keywords in the data
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For <a class="reference internal" href="atom_style.html"><em>atom_style template</em></a>, the molecular
+topology (bonds,angles,etc) is contained in the molecule templates
+read-in by the <a class="reference internal" href="molecule.html"><em>molecule</em></a> command.  This means you
+cannot set the <em>bonds</em>, <em>angles</em>, etc header keywords in the data
 file, nor can you define <em>Bonds</em>, <em>Angles</em>, etc sections as discussed
 below.  You can set the <em>bond types</em>, <em>angle types</em>, etc header
 keywords, though it is not necessary.  If specified, they must match
@@ -1284,7 +1283,7 @@ fields:</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -1305,7 +1304,7 @@ fields:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

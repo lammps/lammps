@@ -51,6 +51,7 @@ PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
   tripletParameters = NULL;
   elem2param = NULL;
   elem3param = NULL;
+  map = NULL;
   epsilon = 0.0;
   neighsize = 0;
   firstneighV = NULL;
@@ -102,8 +103,9 @@ PairPolymorphic::~PairPolymorphic()
 
 void PairPolymorphic::compute(int eflag, int vflag)
 {
+  tagint itag,jtag;
   int i,j,k,ii,jj,kk,kk1,inum,jnum;
-  int itag,jtag,itype,jtype,ktype;
+  int itype,jtype,ktype;
   int iparam_ii,iparam_jj,iparam_kk,iparam_ij,iparam_ik,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2,r0,r1,r2;
@@ -119,7 +121,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -535,9 +537,9 @@ void PairPolymorphic::coeff(int narg, char **arg)
 void PairPolymorphic::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style eqfree requires atom IDs");
+    error->all(FLERR,"Pair style polymorphic requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style eqfree requires newton pair on");
+    error->all(FLERR,"Pair style polymorphic requires newton pair on");
 
   // need a full neighbor list
 
@@ -567,10 +569,10 @@ void PairPolymorphic::read_file(char *file)
   // open file on proc 0
   FILE *fp=NULL;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
+    fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open eqfree potential file %s",file);
+      sprintf(str,"Cannot open polymorphic potential file %s",file);
       error->one(FLERR,str);
     }
     // move past comments to first data line

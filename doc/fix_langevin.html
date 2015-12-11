@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix langevin command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix langevin command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -212,11 +212,11 @@ consideration for finite-size particles, which have rotational degrees
 of freedom, are being thermostatted.  The translational degrees of
 freedom can also have a bias velocity removed from them before
 thermostatting takes place; see the description below.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which
-performs Nose/Hoover thermostatting AND time integration, this fix
-does NOT perform time integration.  It only modifies forces to effect
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which performs
+Nose/Hoover thermostatting AND time integration, this fix does NOT
+perform time integration.  It only modifies forces to effect
 thermostatting.  Thus you must use a separate time integration fix,
 like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> to actually update the velocities and
 positions of atoms using the modified forces.  Likewise, this fix
@@ -320,11 +320,11 @@ it is the energy exchanged between the infinite thermal reservoir and
 the particles.  As described below, this energy can then be printed
 out or added to the potential energy of the system to monitor energy
 conservation.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">this accumulated energy does NOT include kinetic
-energy removed by the <em>zero</em> flag. LAMMPS will print a warning when
-both options are active.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">this accumulated energy does NOT include kinetic energy removed
+by the <em>zero</em> flag. LAMMPS will print a warning when both options are
+active.</p>
 </div>
 <p>The keyword <em>zero</em> can be used to eliminate drift due to the
 thermostat. Because the random forces on different atoms are
@@ -435,7 +435,7 @@ types, tally = no, zero = no, gjf = no.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -456,7 +456,7 @@ types, tally = no, zero = no, gjf = no.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

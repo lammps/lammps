@@ -107,10 +107,10 @@ ID) will also be deleted.  This is not done for atoms with molecule ID
 = 0, since such an ID is assumed to flag isolated atoms that are not
 part of molecules.
 
-IMPORTANT NOTE: The molecule deletion operation in invoked after all
-individual atoms have been deleted using the rules described above for
-each style.  This means additional atoms may be deleted that are not
-in the group or region, that are not required by the overlap cutoff
+NOTE: The molecule deletion operation in invoked after all individual
+atoms have been deleted using the rules described above for each
+style.  This means additional atoms may be deleted that are not in the
+group or region, that are not required by the overlap cutoff
 criterion, or that will create a higher fraction of porosity than was
 requested.
 

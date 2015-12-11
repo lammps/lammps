@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix nvt command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix nvt command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -232,12 +232,12 @@ correctly, the time-averaged temperature and stress tensor of the
 particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.</p>
 <p>The equations of motion used are those of Shinoda et al in
-<a class="reference internal" href="#shinoda"><span>(Shinoda)</span></a>, which combine the hydrostatic equations of
-Martyna, Tobias and Klein in <a class="reference internal" href="#martyna"><span>(Martyna)</span></a> with the strain
+<a class="reference internal" href="pair_sdk.html#shinoda"><span>(Shinoda)</span></a>, which combine the hydrostatic equations of
+Martyna, Tobias and Klein in <a class="reference internal" href="fix_rigid.html#martyna"><span>(Martyna)</span></a> with the strain
 energy proposed by Parrinello and Rahman in
-<a class="reference internal" href="#parrinello"><span>(Parrinello)</span></a>.  The time integration schemes closely
+<a class="reference internal" href="fix_nh_eff.html#parrinello"><span>(Parrinello)</span></a>.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al in <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.</p>
+integrators derived by Tuckerman et al in <a class="reference internal" href="run_style.html#tuckerman"><span>(Tuckerman)</span></a>.</p>
 <hr class="docutils" />
 <p>The thermostat parameters for fix styles <em>nvt</em> and <em>npt</em> is specified
 using the <em>temp</em> keyword.  Other thermostat-related keywords are
@@ -253,14 +253,14 @@ the temperature in a timespan of (roughly) 10 time units (e.g. tau or
 fmsec or psec - see the <a class="reference internal" href="units.html"><em>units</em></a> command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">A Nose-Hoover thermostat will not work well for
-arbitrary values of <em>Tdamp</em>.  If <em>Tdamp</em> is too small, the temperature
-can fluctuate wildly; if it is too large, the temperature will take a
-very long time to equilibrate.  A good choice for many models is a
-<em>Tdamp</em> of around 100 timesteps.  Note that this is NOT the same as
-100 time units for most <a class="reference internal" href="units.html"><em>units</em></a> settings.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A Nose-Hoover thermostat will not work well for arbitrary values
+of <em>Tdamp</em>.  If <em>Tdamp</em> is too small, the temperature can fluctuate
+wildly; if it is too large, the temperature will take a very long time
+to equilibrate.  A good choice for many models is a <em>Tdamp</em> of around
+100 timesteps.  Note that this is NOT the same as 100 time units for
+most <a class="reference internal" href="units.html"><em>units</em></a> settings.</p>
 </div>
 <hr class="docutils" />
 <p>The barostat parameters for fix styles <em>npt</em> and <em>nph</em> is specified
@@ -296,14 +296,14 @@ simulation box must be triclinic, even if its initial tilt factors are
 relaxed.  For example, a value of 10.0 means to relax the pressure in
 a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
 the <a class="reference internal" href="units.html"><em>units</em></a> command).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">A Nose-Hoover barostat will not work well for
-arbitrary values of <em>Pdamp</em>.  If <em>Pdamp</em> is too small, the pressure
-and volume can fluctuate wildly; if it is too large, the pressure will
-take a very long time to equilibrate.  A good choice for many models
-is a <em>Pdamp</em> of around 1000 timesteps.  Note that this is NOT the same
-as 1000 time units for most <a class="reference internal" href="units.html"><em>units</em></a> settings.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A Nose-Hoover barostat will not work well for arbitrary values
+of <em>Pdamp</em>.  If <em>Pdamp</em> is too small, the pressure and volume can
+fluctuate wildly; if it is too large, the pressure will take a very
+long time to equilibrate.  A good choice for many models is a <em>Pdamp</em>
+of around 1000 timesteps.  Note that this is NOT the same as 1000 time
+units for most <a class="reference internal" href="units.html"><em>units</em></a> settings.</p>
 </div>
 <p>Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -394,7 +394,7 @@ freedom. A value of 0 corresponds to no thermostatting of the
 barostat variables.</p>
 <p>The <em>mtk</em> keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-<a class="reference internal" href="#martyna"><span>(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
+<a class="reference internal" href="fix_rigid.html#martyna"><span>(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using <em>yes</em> is more correct, but in many cases the difference is
@@ -403,7 +403,7 @@ negligible.</p>
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into <em>tloop</em> substeps, each of
 length <em>dt</em>/<em>tloop</em>. This corresponds to using a first-order
-Suzuki-Yoshida scheme <a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a>.  The keyword <em>ploop</em>
+Suzuki-Yoshida scheme <a class="reference internal" href="run_style.html#tuckerman"><span>(Tuckerman)</span></a>.  The keyword <em>ploop</em>
 does the same thing for the barostat thermostat.</p>
 <p>The keyword <em>nreset</em> controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
@@ -445,15 +445,15 @@ far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
 positions.</p>
 <hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Using a barostat coupled to tilt dimensions <em>xy</em>,
-<em>xz</em>, <em>yz</em> can sometimes result in arbitrarily large values of the
-tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-allows the tilt factors to grow a small amount beyond the normal limit
-of half the box length (0.6 times the box length), and then performs a
-box &#8220;flip&#8221; to an equivalent periodic cell.  See the discussion of the
-<em>flip</em> keyword above, to allow this bound to be exceeded, if desired.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Using a barostat coupled to tilt dimensions <em>xy</em>, <em>xz</em>, <em>yz</em> can
+sometimes result in arbitrarily large values of the tilt dimensions,
+i.e. a dramatically deformed simulation box.  LAMMPS allows the tilt
+factors to grow a small amount beyond the normal limit of half the box
+length (0.6 times the box length), and then performs a box &#8220;flip&#8221; to
+an equivalent periodic cell.  See the discussion of the <em>flip</em> keyword
+above, to allow this bound to be exceeded, if desired.</p>
 </div>
 <p>The flip operation is described in more detail in the doc page for
 <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a>.  Both the barostat dynamics and the atom
@@ -476,15 +476,15 @@ factor are not enforced, since flipping the box in that dimension does
 not change the atom positions due to non-periodicity.  In this mode,
 if you tilt the system to extreme angles, the simulation will simply
 become inefficient due to the highly skewed simulation box.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a> command which performs
-thermostatting but NO time integration, these fixes perform
-thermostatting/barostatting AND time integration.  Thus you should not
-use any other time integration fix, such as <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> on
-atoms to which this fix is applied.  Likewise, fix nvt and fix npt
-should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. by <a class="reference internal" href=""><em>fix langevin</em></a> or <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a> commands.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a> command
+which performs thermostatting but NO time integration, these fixes
+perform thermostatting/barostatting AND time integration.  Thus you
+should not use any other time integration fix, such as <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> on atoms to which this fix is applied.  Likewise,
+fix nvt and fix npt should not normally be used on atoms that also
+have their temperature controlled by another fix - e.g. by <a class="reference internal" href=""><em>fix langevin</em></a> or <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>
+commands.</p>
 </div>
 <p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
 a discussion of different ways to compute temperature and perform
@@ -584,18 +584,17 @@ If you do this, note that the kinetic energy derived from the compute
 temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
 compute temperature on a subset of atoms.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If both the <em>temp</em> and <em>press</em> keywords are used in a
-single thermo_modify command (or in two separate commands), then the
-order in which the keywords are specified is important.  Note that a
-<a class="reference internal" href="compute_pressure.html"><em>pressure compute</em></a> defines its own temperature
-compute as an argument when it is specified.  The <em>temp</em> keyword will
-override this (for the pressure compute being used by fix npt), but
-only if the <em>temp</em> keyword comes after the <em>press</em> keyword.  If the
-<em>temp</em> keyword comes before the <em>press</em> keyword, then the new pressure
-compute specified by the <em>press</em> keyword will be unaffected by the
-<em>temp</em> setting.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If both the <em>temp</em> and <em>press</em> keywords are used in a single
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a <a class="reference internal" href="compute_pressure.html"><em>pressure compute</em></a> defines its own temperature compute as
+an argument when it is specified.  The <em>temp</em> keyword will override
+this (for the pressure compute being used by fix npt), but only if the
+<em>temp</em> keyword comes after the <em>press</em> keyword.  If the <em>temp</em> keyword
+comes before the <em>press</em> keyword, then the new pressure compute
+specified by the <em>press</em> keyword will be unaffected by the <em>temp</em>
+setting.</p>
 </div>
 <p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by these
 fixes to add the energy change induced by Nose/Hoover thermostatting
@@ -698,7 +697,7 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -719,7 +718,7 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

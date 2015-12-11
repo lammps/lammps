@@ -103,29 +103,28 @@ far. In all cases, the particle positions at each iteration are
 unaffected by the chosen value, except that all particles are 
 displaced by the same amount, different on each iteration.
 
-IMPORTANT NOTE: Appling an external pressure to tilt dimensions {xy},
-{xz}, {yz} can sometimes result in arbitrarily large values of the
-tilt factors, i.e. a dramatically deformed simulation box.  This
-typically indicates that there is something badly wrong with how the
-simulation was constructed.  The two most common sources of this error
-are applying a shear stress to a liquid system or specifying an
-external shear stress tensor that exceeds the yield stress of the
-solid.  In either case the minimization may converge to a bogus
-conformation or not converge at all.  Also note that if the box shape
-tilts to an extreme shape, LAMMPS will run less efficiently, due to
-the large volume of communication needed to acquire ghost atoms around
-a processor's irregular-shaped sub-domain.  For extreme values of
-tilt, LAMMPS may also lose atoms and generate an error.
+NOTE: Appling an external pressure to tilt dimensions {xy}, {xz}, {yz}
+can sometimes result in arbitrarily large values of the tilt factors,
+i.e. a dramatically deformed simulation box.  This typically indicates
+that there is something badly wrong with how the simulation was
+constructed.  The two most common sources of this error are applying a
+shear stress to a liquid system or specifying an external shear stress
+tensor that exceeds the yield stress of the solid.  In either case the
+minimization may converge to a bogus conformation or not converge at
+all.  Also note that if the box shape tilts to an extreme shape,
+LAMMPS will run less efficiently, due to the large volume of
+communication needed to acquire ghost atoms around a processor's
+irregular-shaped sub-domain.  For extreme values of tilt, LAMMPS may
+also lose atoms and generate an error.
 
-IMPORTANT NOTE: Performing a minimization with this fix is not a
-mathematically well-defined minimization problem.  This is because the
-objective function being minimized changes if the box size/shape
-changes.  In practice this means the minimizer can get "stuck" before
-you have reached the desired tolerance.  The solution to this is to
-restart the minmizer from the new adjusted box size/shape, since that
-creates a new objective function valid for the new box size/shape.
-Repeat as necessary until the box size/shape has reached its new
-equilibrium.
+NOTE: Performing a minimization with this fix is not a mathematically
+well-defined minimization problem.  This is because the objective
+function being minimized changes if the box size/shape changes.  In
+practice this means the minimizer can get "stuck" before you have
+reached the desired tolerance.  The solution to this is to restart the
+minmizer from the new adjusted box size/shape, since that creates a
+new objective function valid for the new box size/shape.  Repeat as
+necessary until the box size/shape has reached its new equilibrium.
 
 :line
 :line
@@ -235,8 +234,8 @@ sometimes causes the minimization to fail. This can be resolved by
 changing the value of {nreset}, or simply continuing the minimization
 from a restart file.
 
-IMPORTANT NOTE: As normally computed, pressure includes a kinetic-
-energy or temperature-dependent component; see the "compute
+NOTE: As normally computed, pressure includes a kinetic- energy or
+temperature-dependent component; see the "compute
 pressure"_compute_pressure.html command.  However, atom velocities are
 ignored during a minimization, and the applied pressure(s) specified
 with this command are assumed to only be the virial component of the
@@ -249,17 +248,16 @@ monitoring the pressure without its kinetic component.  The latter can
 be done by outputting the pressure from the fix this command creates
 (see below) or a pressure fix you define yourself.
 
-IMPORTANT NOTE: Because pressure is often a very sensitive function of
-volume, it can be difficult for the minimizer to equilibrate the
-system the desired pressure with high precision, particularly for
-solids.  Some techniques that seem to help are (a) use the
-"min_modify line quadratic" option when minimizing with box
-relaxations, (b) minimize several times in succession if need be,
-to drive the pressure closer to the target pressure, (c) relax
-the atom positions before relaxing the box, and (d) relax the box
-to the target hydrostatic pressure before relaxing to a target
-shear stress state. Also note that
-some systems (e.g. liquids) will not sustain a non-hydrostatic applied
+NOTE: Because pressure is often a very sensitive function of volume,
+it can be difficult for the minimizer to equilibrate the system the
+desired pressure with high precision, particularly for solids.  Some
+techniques that seem to help are (a) use the "min_modify line
+quadratic" option when minimizing with box relaxations, (b) minimize
+several times in succession if need be, to drive the pressure closer
+to the target pressure, (c) relax the atom positions before relaxing
+the box, and (d) relax the box to the target hydrostatic pressure
+before relaxing to a target shear stress state. Also note that some
+systems (e.g. liquids) will not sustain a non-hydrostatic applied
 pressure, which means the minimizer will not converge.
 
 :line
@@ -305,16 +303,16 @@ that as described above, if you assign a pressure compute to this fix
 that includes a kinetic energy component it will affect the
 minimization, most likely in an undesirable way.
 
-IMPORTANT NOTE: If both the {temp} and {press} keywords are used in a
-single thermo_modify command (or in two separate commands), then the
-order in which the keywords are specified is important.  Note that a
-"pressure compute"_compute_pressure.html defines its own temperature
-compute as an argument when it is specified.  The {temp} keyword will
-override this (for the pressure compute being used by fix npt), but
-only if the {temp} keyword comes after the {press} keyword.  If the
-{temp} keyword comes before the {press} keyword, then the new pressure
-compute specified by the {press} keyword will be unaffected by the
-{temp} setting.
+NOTE: If both the {temp} and {press} keywords are used in a single
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a "pressure
+compute"_compute_pressure.html defines its own temperature compute as
+an argument when it is specified.  The {temp} keyword will override
+this (for the pressure compute being used by fix npt), but only if the
+{temp} keyword comes after the {press} keyword.  If the {temp} keyword
+comes before the {press} keyword, then the new pressure compute
+specified by the {press} keyword will be unaffected by the {temp}
+setting.
 
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the

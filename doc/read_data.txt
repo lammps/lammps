@@ -97,16 +97,16 @@ time.  If a simulation box does exist, due to using the
 "create_box"_create_box.html command, or a previous read_data command,
 then the {add} keyword must be used.
 
-IMPORTANT NOTE: The simulation box size (xlo to xhi, ylo to yhi, zlo
-to zhi) in the new data file will be merged with the existing
-simulation box to create a large enough box in each dimension to
-contain both the existing and new atoms.  Each box dimension never
-shrinks due to this merge operation, it only stays the same or
-grows. Care must be used if you are growing the existing simulation
-box in a periodic dimension.  If there are existing atoms with bonds
-that straddle that periodic boundary, then the atoms may become far
-apart if the box size grows.  This will separate the atoms in the
-bond, which can lead to "lost" bond atoms or bad dynamics.
+NOTE: The simulation box size (xlo to xhi, ylo to yhi, zlo to zhi) in
+the new data file will be merged with the existing simulation box to
+create a large enough box in each dimension to contain both the
+existing and new atoms.  Each box dimension never shrinks due to this
+merge operation, it only stays the same or grows. Care must be used if
+you are growing the existing simulation box in a periodic dimension.
+If there are existing atoms with bonds that straddle that periodic
+boundary, then the atoms may become far apart if the box size grows.
+This will separate the atoms in the bond, which can lead to "lost"
+bond atoms or bad dynamics.
 
 The three choices for the {add} argument affect how the IDs of atoms
 in the data file are treated.  If {append} is specified, atoms in the
@@ -339,24 +339,23 @@ periodic remapping will be performed using simulation box bounds that
 are the union of the existing box and the box boundaries in the new
 data file.
 
-IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
-all atoms in the data file must have coordinates (in that dimension)
-that are "greater than or equal to" the lo value and "less than or
-equal to" the hi value.  If the non-periodic dimension is of style
-"fixed" (see the "boundary"_boundary.html command), then the atom
-coords must be strictly "less than" the hi value, due to the way
-LAMMPS assign atoms to processors.  Note that you should not make the
-lo/hi values radically smaller/larger than the extent of the atoms.
-For example, if your atoms extend from 0 to 50, you should not specify
-the box bounds as -10000 and 10000.  This is because LAMMPS uses the
-specified box size to layout the 3d grid of processors.  A huge
-(mostly empty) box will be sub-optimal for performance when using
-"fixed" boundary conditions (see the "boundary"_boundary.html
-command).  When using "shrink-wrap" boundary conditions (see the
-"boundary"_boundary.html command), a huge (mostly empty) box may cause
-a parallel simulation to lose atoms when LAMMPS shrink-wraps the box
-around the atoms.  The read_data command will generate an error
-in this case.
+NOTE: If the system is non-periodic (in a dimension), then all atoms
+in the data file must have coordinates (in that dimension) that are
+"greater than or equal to" the lo value and "less than or equal to"
+the hi value.  If the non-periodic dimension is of style "fixed" (see
+the "boundary"_boundary.html command), then the atom coords must be
+strictly "less than" the hi value, due to the way LAMMPS assign atoms
+to processors.  Note that you should not make the lo/hi values
+radically smaller/larger than the extent of the atoms.  For example,
+if your atoms extend from 0 to 50, you should not specify the box
+bounds as -10000 and 10000.  This is because LAMMPS uses the specified
+box size to layout the 3d grid of processors.  A huge (mostly empty)
+box will be sub-optimal for performance when using "fixed" boundary
+conditions (see the "boundary"_boundary.html command).  When using
+"shrink-wrap" boundary conditions (see the "boundary"_boundary.html
+command), a huge (mostly empty) box may cause a parallel simulation to
+lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
+read_data command will generate an error in this case.
 
 The "extra bond per atom" setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to
@@ -376,10 +375,10 @@ in the LAMMPS data structures for storing these neighbors.  See the
 "special_bonds"_special_bonds.html and "molecule"_molecule.html doc
 pages for more discussion of 1-2,1-3,1-4 neighbors.
 
-IMPORTANT NOTE: All of the "extra" settings are only used if they
-appear in the first data file read; see the description of the {add}
-keyword above for reading multiple data files.  If they appear in
-later data files, they are ignored.
+NOTE: All of the "extra" settings are only used if they appear in the
+first data file read; see the description of the {add} keyword above
+for reading multiple data files.  If they appear in later data files,
+they are ignored.
 
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
 only used with "atom_style ellipsoid or line or tri or
@@ -391,10 +390,10 @@ are point particles.  See the discussion of ellipsoidflag and the
 {Triangles} section below.  See the discussion of bodyflag and the
 {Bodies} section below.
 
-IMPORTANT NOTE: For "atom_style template"_atom_style.html, the
-molecular topology (bonds,angles,etc) is contained in the molecule
-templates read-in by the "molecule"_molecule.html command.  This means
-you cannot set the {bonds}, {angles}, etc header keywords in the data
+NOTE: For "atom_style template"_atom_style.html, the molecular
+topology (bonds,angles,etc) is contained in the molecule templates
+read-in by the "molecule"_molecule.html command.  This means you
+cannot set the {bonds}, {angles}, etc header keywords in the data
 file, nor can you define {Bonds}, {Angles}, etc sections as discussed
 below.  You can set the {bond types}, {angle types}, etc header
 keywords, though it is not necessary.  If specified, they must match

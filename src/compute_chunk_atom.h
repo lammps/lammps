@@ -56,12 +56,20 @@ class ComputeChunkAtom : public Compute {
   int argindex;
   char *cfvid;
 
+  // xyz spatial bins
+
   int ndim;
   int dim[3],originflag[3],nlayers[3];
   int minflag[3],maxflag[3];
   double origin[3],delta[3];
   double offset[3],invdelta[3];
   double minvalue[3],maxvalue[3];
+
+  // spherical spatial bins
+
+  double sorigin[3];
+  double sradmin,sradmax,sinvdelta;
+  int nsphere;
 
   char *idregion;
   class Region *region;
@@ -97,11 +105,13 @@ class ComputeChunkAtom : public Compute {
   void assign_chunk_ids();
   void compress_chunk_ids();
   void check_molecules();
-  int setup_bins();
+  int setup_xyz_bins();
+  int setup_sphere_bins();
   void bin_volumes();
   void atom2bin1d();
   void atom2bin2d();
   void atom2bin3d();
+  void atom2binsphere();
   void readdim(int, char **, int, int);
 };
 

@@ -269,8 +269,8 @@ compile with -DLAMMPS_GZIP.  It requires that your machine supports
 the "popen()" function in the standard runtime library and that a gzip
 executable can be found by LAMMPS during a run.
 
-IMPORTANT NOTE: on some clusters with high-speed networks, using the
-fork() library calls (required by popen()) can interfere with the fast
+NOTE: on some clusters with high-speed networks, using the fork()
+library calls (required by popen()) can interfere with the fast
 communication library and lead to simulations using compressed output
 or input to hang or crash. For selected operations, compressed file
 I/O is also available using a compression library instead, which are
@@ -292,8 +292,8 @@ the need to store intermediate image files. It requires that your
 machines supports the "popen" function in the standard runtime library
 and that an FFmpeg executable can be found by LAMMPS during the run.
 
-IMPORTANT NOTE: Similar to the note above, this option can conflict
-with high-speed networks, because it uses popen().
+NOTE: Similar to the note above, this option can conflict with
+high-speed networks, because it uses popen().
 
 Using -DLAMMPS_MEMALIGN=<bytes> enables the use of the
 posix_memalign() call instead of malloc() when large chunks or memory
@@ -493,15 +493,14 @@ You should get the executable lmp_foo when the build is complete.
 
 [{Errors that can occur when making LAMMPS:}] :link(start_2_3)
 
-IMPORTANT NOTE: If an error occurs when building LAMMPS, the compiler
-or linker will state very explicitly what the problem is.  The error
-message should give you a hint as to which of the steps above has
-failed, and what you need to do in order to fix it.  Building a code
-with a Makefile is a very logical process.  The compiler and linker
-need to find the appropriate files and those files need to be
-compatible with LAMMPS source files.  When a make fails, there is
-usually a very simple reason, which you or a local expert will need to
-fix.
+NOTE: If an error occurs when building LAMMPS, the compiler or linker
+will state very explicitly what the problem is.  The error message
+should give you a hint as to which of the steps above has failed, and
+what you need to do in order to fix it.  Building a code with a
+Makefile is a very logical process.  The compiler and linker need to
+find the appropriate files and those files need to be compatible with
+LAMMPS source files.  When a make fails, there is usually a very
+simple reason, which you or a local expert will need to fix.
 
 Here are two non-obvious errors that can occur:
 
@@ -712,11 +711,11 @@ or
 make no-manybody
 make g++ :pre
 
-IMPORTANT NOTE: You should NOT include/exclude packages and build
-LAMMPS in a single make command using multiple targets, e.g. make
-yes-colloid g++.  This is because the make procedure creates a list of
-source files that will be out-of-date for the build if the package
-configuration changes within the same command.
+NOTE: You should NOT include/exclude packages and build LAMMPS in a
+single make command using multiple targets, e.g. make yes-colloid g++.
+This is because the make procedure creates a list of source files that
+will be out-of-date for the build if the package configuration changes
+within the same command.
 
 Some packages have individual files that depend on other packages
 being included.  LAMMPS checks for this and does the right thing.
@@ -744,11 +743,11 @@ no-user", "make yes-all" or "make no-all" to include/exclude various
 sets of packages.  Type "make package" to see the all of the
 package-related make options.
 
-IMPORTANT NOTE: Inclusion/exclusion of a package works by simply
-moving files back and forth between the main src directory and
-sub-directories with the package name (e.g. src/KSPACE, src/USER-ATC),
-so that the files are seen or not seen when LAMMPS is built.  After
-you have included or excluded a package, you must re-build LAMMPS.
+NOTE: Inclusion/exclusion of a package works by simply moving files
+back and forth between the main src directory and sub-directories with
+the package name (e.g. src/KSPACE, src/USER-ATC), so that the files
+are seen or not seen when LAMMPS is built.  After you have included or
+excluded a package, you must re-build LAMMPS.
 
 Additional package-related make options exist to help manage LAMMPS
 files that exist in both the src directory and in package

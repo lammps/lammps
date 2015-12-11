@@ -116,12 +116,12 @@ fmsec or psec - see the "units"_units.html command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
 
-IMPORTANT NOTE: A Nose-Hoover thermostat will not work well for
-arbitrary values of {Tdamp}.  If {Tdamp} is too small, the temperature
-can fluctuate wildly; if it is too large, the temperature will take a
-very long time to equilibrate.  A good choice for many models is a
-{Tdamp} of around 100 timesteps.  Note that this is NOT the same as
-100 time units for most "units"_units.html settings.
+NOTE: A Nose-Hoover thermostat will not work well for arbitrary values
+of {Tdamp}.  If {Tdamp} is too small, the temperature can fluctuate
+wildly; if it is too large, the temperature will take a very long time
+to equilibrate.  A good choice for many models is a {Tdamp} of around
+100 timesteps.  Note that this is NOT the same as 100 time units for
+most "units"_units.html settings.
 
 :line
 
@@ -166,12 +166,12 @@ relaxed.  For example, a value of 10.0 means to relax the pressure in
 a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
 the "units"_units.html command).
 
-IMPORTANT NOTE: A Nose-Hoover barostat will not work well for
-arbitrary values of {Pdamp}.  If {Pdamp} is too small, the pressure
-and volume can fluctuate wildly; if it is too large, the pressure will
-take a very long time to equilibrate.  A good choice for many models
-is a {Pdamp} of around 1000 timesteps.  Note that this is NOT the same
-as 1000 time units for most "units"_units.html settings.
+NOTE: A Nose-Hoover barostat will not work well for arbitrary values
+of {Pdamp}.  If {Pdamp} is too small, the pressure and volume can
+fluctuate wildly; if it is too large, the pressure will take a very
+long time to equilibrate.  A good choice for many models is a {Pdamp}
+of around 1000 timesteps.  Note that this is NOT the same as 1000 time
+units for most "units"_units.html settings.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -328,13 +328,13 @@ positions.
 
 :line
 
-IMPORTANT NOTE: Using a barostat coupled to tilt dimensions {xy},
-{xz}, {yz} can sometimes result in arbitrarily large values of the
-tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-allows the tilt factors to grow a small amount beyond the normal limit
-of half the box length (0.6 times the box length), and then performs a
-box "flip" to an equivalent periodic cell.  See the discussion of the
-{flip} keyword above, to allow this bound to be exceeded, if desired.
+NOTE: Using a barostat coupled to tilt dimensions {xy}, {xz}, {yz} can
+sometimes result in arbitrarily large values of the tilt dimensions,
+i.e. a dramatically deformed simulation box.  LAMMPS allows the tilt
+factors to grow a small amount beyond the normal limit of half the box
+length (0.6 times the box length), and then performs a box "flip" to
+an equivalent periodic cell.  See the discussion of the {flip} keyword
+above, to allow this bound to be exceeded, if desired.
 
 The flip operation is described in more detail in the doc page for
 "fix deform"_fix_deform.html.  Both the barostat dynamics and the atom
@@ -359,15 +359,15 @@ not change the atom positions due to non-periodicity.  In this mode,
 if you tilt the system to extreme angles, the simulation will simply
 become inefficient due to the highly skewed simulation box.
 
-IMPORTANT NOTE: Unlike the "fix
-temp/berendsen"_fix_temp_berendsen.html command which performs
-thermostatting but NO time integration, these fixes perform
-thermostatting/barostatting AND time integration.  Thus you should not
-use any other time integration fix, such as "fix nve"_fix_nve.html on
-atoms to which this fix is applied.  Likewise, fix nvt and fix npt
-should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. by "fix langevin"_fix_nh.html or "fix
-temp/rescale"_fix_temp_rescale.html commands.
+NOTE: Unlike the "fix temp/berendsen"_fix_temp_berendsen.html command
+which performs thermostatting but NO time integration, these fixes
+perform thermostatting/barostatting AND time integration.  Thus you
+should not use any other time integration fix, such as "fix
+nve"_fix_nve.html on atoms to which this fix is applied.  Likewise,
+fix nvt and fix npt should not normally be used on atoms that also
+have their temperature controlled by another fix - e.g. by "fix
+langevin"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html
+commands.
 
 See "this howto section"_Section_howto.html#howto_16 of the manual for
 a discussion of different ways to compute temperature and perform
@@ -490,16 +490,16 @@ temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
 compute temperature on a subset of atoms.
 
-IMPORTANT NOTE: If both the {temp} and {press} keywords are used in a
-single thermo_modify command (or in two separate commands), then the
-order in which the keywords are specified is important.  Note that a
-"pressure compute"_compute_pressure.html defines its own temperature
-compute as an argument when it is specified.  The {temp} keyword will
-override this (for the pressure compute being used by fix npt), but
-only if the {temp} keyword comes after the {press} keyword.  If the
-{temp} keyword comes before the {press} keyword, then the new pressure
-compute specified by the {press} keyword will be unaffected by the
-{temp} setting.
+NOTE: If both the {temp} and {press} keywords are used in a single
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a "pressure
+compute"_compute_pressure.html defines its own temperature compute as
+an argument when it is specified.  The {temp} keyword will override
+this (for the pressure compute being used by fix npt), but only if the
+{temp} keyword comes after the {press} keyword.  If the {temp} keyword
+comes before the {press} keyword, then the new pressure compute
+specified by the {press} keyword will be unaffected by the {temp}
+setting.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by these
 fixes to add the energy change induced by Nose/Hoover thermostatting

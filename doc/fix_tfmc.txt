@@ -101,13 +101,13 @@ of the center-of-mass along the included directions, by setting the
 corresponding flag to 1. The {rot} keyword does the same for the
 rotational component of the tfMC displacements after every iteration.
 
-IMPORTANT NOTE: the {com} and {rot} keywords should not be used if an
-external force is acting on the specified fix group, along the
-included directions. This can be either a true external force (e.g.
-through "fix wall"_fix_wall.html) or forces due to the interaction
-with atoms not included in the fix group. This is because in such
-cases, translations or rotations of the fix group could be induced by
-these external forces, and removing them will lead to a violation of
+NOTE: the {com} and {rot} keywords should not be used if an external
+force is acting on the specified fix group, along the included
+directions. This can be either a true external force (e.g.  through
+"fix wall"_fix_wall.html) or forces due to the interaction with atoms
+not included in the fix group. This is because in such cases,
+translations or rotations of the fix group could be induced by these
+external forces, and removing them will lead to a violation of
 detailed balance.
 
 :line

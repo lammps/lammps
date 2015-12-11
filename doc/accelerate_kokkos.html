@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5.KOKKOS package &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>5.KOKKOS package &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -226,12 +226,12 @@ version 6.5 or later must be installed on your system.  See the
 discussion for the <a class="reference internal" href="accelerate_cuda.html"><em>USER-CUDA</em></a> and
 <a class="reference internal" href="accelerate_gpu.html"><em>GPU</em></a> packages for details of how to check and do
 this.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For good performance of the KOKKOS package on GPUs,
-you must have Kepler generation GPUs (or later).  The Kokkos library
-exploits texture cache options not supported by Telsa generation GPUs
-(or older).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For good performance of the KOKKOS package on GPUs, you must
+have Kepler generation GPUs (or later).  The Kokkos library exploits
+texture cache options not supported by Telsa generation GPUs (or
+older).</p>
 </div>
 <p>To build with Kokkos support for Intel Xeon Phi coprocessors, your
 sysmte must be configured to use them in &#8220;native&#8221; mode, not &#8220;offload&#8221;
@@ -272,14 +272,13 @@ make cuda KOKKOS_DEVICES=Cuda
 <p>These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
 make command line which requires a GNU-compatible make command.  Try
 &#8220;gmake&#8221; if your system&#8217;s standard make complains.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you build using make line variables and re-build
-LAMMPS twice with different KOKKOS options and the <em>same</em> target,
-e.g. g++ in the first two examples above, then you <em>must</em> perform a
-&#8220;make clean-all&#8221; or &#8220;make clean-machine&#8221; before each build.  This is
-to force all the KOKKOS-dependent files to be re-compiled with the new
-options.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you build using make line variables and re-build LAMMPS twice
+with different KOKKOS options and the <em>same</em> target, e.g. g++ in the
+first two examples above, then you <em>must</em> perform a &#8220;make clean-all&#8221;
+or &#8220;make clean-machine&#8221; before each build.  This is to force all the
+KOKKOS-dependent files to be re-compiled with the new options.</p>
 </div>
 <p>You can also hardwire these make variables in the specified machine
 makefile, e.g. src/MAKE/Makefile.g++ in the first two examples above,
@@ -291,23 +290,22 @@ with a line like:</p>
 different KOKKOS options (defined in different machine makefiles), you
 do not have to worry about doing a &#8220;clean&#8221; in between.  This is
 because the targets will be different.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The 3rd example above for a GPU, uses a different
-machine makefile, in this case src/MAKE/Makefile.cuda, which is
-included in the LAMMPS distribution.  To build the KOKKOS package for
-a GPU, this makefile must use the NVIDA &#8220;nvcc&#8221; compiler.  And it must
-have a KOKKOS_ARCH setting that is appropriate for your NVIDIA
-hardware and installed software.  Typical values for KOKKOS_ARCH are given
-below, as well
-as other settings that must be included in the machine makefile, if
-you create your own.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The 3rd example above for a GPU, uses a different machine
+makefile, in this case src/MAKE/Makefile.cuda, which is included in
+the LAMMPS distribution.  To build the KOKKOS package for a GPU, this
+makefile must use the NVIDA &#8220;nvcc&#8221; compiler.  And it must have a
+KOKKOS_ARCH setting that is appropriate for your NVIDIA hardware and
+installed software.  Typical values for KOKKOS_ARCH are given below,
+as well as other settings that must be included in the machine
+makefile, if you create your own.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Currently, there are no precision options with the
-KOKKOS package.  All compilation and computation is performed in
-double precision.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently, there are no precision options with the KOKKOS
+package.  All compilation and computation is performed in double
+precision.</p>
 </div>
 <p>There are other allowed options when building with the KOKKOS package.
 As above, they can be set either as variables on the make command line
@@ -508,13 +506,13 @@ threads/task to a smaller value.  This is because using all the cores
 on a dual-socket node will incur extra cost to copy memory from the
 2nd socket to the GPU.</p>
 <p>Examples of mpirun commands that follow these rules are shown above.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When using a GPU, you will achieve the best
-performance if your input script does not use any fix or compute
-styles which are not yet Kokkos-enabled.  This allows data to stay on
-the GPU for multiple timesteps, without being copied back to the host
-CPU.  Invoking a non-Kokkos fix or compute, or performing I/O for
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using a GPU, you will achieve the best performance if your
+input script does not use any fix or compute styles which are not yet
+Kokkos-enabled.  This allows data to stay on the GPU for multiple
+timesteps, without being copied back to the host CPU.  Invoking a
+non-Kokkos fix or compute, or performing I/O for
 <a class="reference internal" href="thermo_style.html"><em>thermo</em></a> or <a class="reference internal" href="dump.html"><em>dump</em></a> output will cause data
 to be copied back to the CPU.</p>
 </div>
@@ -567,7 +565,7 @@ change in the future.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -588,7 +586,7 @@ change in the future.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

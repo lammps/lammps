@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>2. Getting Started &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>2. Getting Started &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/>
         <link rel="next" title="3. Commands" href="Section_commands.html"/>
         <link rel="prev" title="1. Introduction" href="Section_intro.html"/> 
 
@@ -397,10 +397,10 @@ within the LAMMPS code.  The options that are currently recogized are:</p>
 compile with -DLAMMPS_GZIP.  It requires that your machine supports
 the &#8220;popen()&#8221; function in the standard runtime library and that a gzip
 executable can be found by LAMMPS during a run.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">on some clusters with high-speed networks, using the
-fork() library calls (required by popen()) can interfere with the fast
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">on some clusters with high-speed networks, using the fork()
+library calls (required by popen()) can interfere with the fast
 communication library and lead to simulations using compressed output
 or input to hang or crash. For selected operations, compressed file
 I/O is also available using a compression library instead, which are
@@ -420,10 +420,10 @@ will be available to support on-the-fly generation of rendered movies
 the need to store intermediate image files. It requires that your
 machines supports the &#8220;popen&#8221; function in the standard runtime library
 and that an FFmpeg executable can be found by LAMMPS during the run.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Similar to the note above, this option can conflict
-with high-speed networks, because it uses popen().</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Similar to the note above, this option can conflict with
+high-speed networks, because it uses popen().</p>
 </div>
 <p>Using -DLAMMPS_MEMALIGN=&lt;bytes&gt; enables the use of the
 posix_memalign() call instead of malloc() when large chunks or memory
@@ -588,17 +588,16 @@ gmake foo
 <p>You should get the executable lmp_foo when the build is complete.</p>
 <hr class="docutils" />
 <p id="start-2-3"><strong>*Errors that can occur when making LAMMPS:*</strong></p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If an error occurs when building LAMMPS, the compiler
-or linker will state very explicitly what the problem is.  The error
-message should give you a hint as to which of the steps above has
-failed, and what you need to do in order to fix it.  Building a code
-with a Makefile is a very logical process.  The compiler and linker
-need to find the appropriate files and those files need to be
-compatible with LAMMPS source files.  When a make fails, there is
-usually a very simple reason, which you or a local expert will need to
-fix.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If an error occurs when building LAMMPS, the compiler or linker
+will state very explicitly what the problem is.  The error message
+should give you a hint as to which of the steps above has failed, and
+what you need to do in order to fix it.  Building a code with a
+Makefile is a very logical process.  The compiler and linker need to
+find the appropriate files and those files need to be compatible with
+LAMMPS source files.  When a make fails, there is usually a very
+simple reason, which you or a local expert will need to fix.</p>
 </div>
 <p>Here are two non-obvious errors that can occur:</p>
 <p>(1) If the make command breaks immediately with errors that indicate
@@ -769,13 +768,13 @@ make g++
 make g++
 </pre></div>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">You should NOT include/exclude packages and build
-LAMMPS in a single make command using multiple targets, e.g. make
-yes-colloid g++.  This is because the make procedure creates a list of
-source files that will be out-of-date for the build if the package
-configuration changes within the same command.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You should NOT include/exclude packages and build LAMMPS in a
+single make command using multiple targets, e.g. make yes-colloid g++.
+This is because the make procedure creates a list of source files that
+will be out-of-date for the build if the package configuration changes
+within the same command.</p>
 </div>
 <p>Some packages have individual files that depend on other packages
 being included.  LAMMPS checks for this and does the right thing.
@@ -799,13 +798,13 @@ no-standard&#8221;, &#8220;make yes-std&#8221;, &#8220;make no-std&#8221;, &#822
 no-user&#8221;, &#8220;make yes-all&#8221; or &#8220;make no-all&#8221; to include/exclude various
 sets of packages.  Type &#8220;make package&#8221; to see the all of the
 package-related make options.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Inclusion/exclusion of a package works by simply
-moving files back and forth between the main src directory and
-sub-directories with the package name (e.g. src/KSPACE, src/USER-ATC),
-so that the files are seen or not seen when LAMMPS is built.  After
-you have included or excluded a package, you must re-build LAMMPS.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Inclusion/exclusion of a package works by simply moving files
+back and forth between the main src directory and sub-directories with
+the package name (e.g. src/KSPACE, src/USER-ATC), so that the files
+are seen or not seen when LAMMPS is built.  After you have included or
+excluded a package, you must re-build LAMMPS.</p>
 </div>
 <p>Additional package-related make options exist to help manage LAMMPS
 files that exist in both the src directory and in package
@@ -1935,7 +1934,7 @@ close if you have setup the problem for both codes the same.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -1956,7 +1955,7 @@ close if you have setup the problem for both codes the same.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

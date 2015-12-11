@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style gran/hooke command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style gran/hooke command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -158,16 +158,16 @@
 <li>xmu = static yield criterion (unitless value between 0.0 and 1.0e4)</li>
 <li>dampflag = 0 or 1 if tangential damping force is excluded or included</li>
 </ul>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Versions of LAMMPS before 9Jan09 had different style
-names for granular force fields.  This is to emphasize the fact that
-the Hertzian equation has changed to model polydispersity more
-accurately.  A side effect of the change is that the Kn, Kt, gamma_n,
-and gamma_t coefficients in the pair_style command must be specified
-with different values in order to reproduce calculations made with
-earlier versions of LAMMPS, even for monodisperse systems.  See the
-NOTE below for details.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Versions of LAMMPS before 9Jan09 had different style names for
+granular force fields.  This is to emphasize the fact that the
+Hertzian equation has changed to model polydispersity more accurately.
+A side effect of the change is that the Kn, Kt, gamma_n, and gamma_t
+coefficients in the pair_style command must be specified with
+different values in order to reproduce calculations made with earlier
+versions of LAMMPS, even for monodisperse systems.  See the NOTE below
+for details.</p>
 </div>
 </div>
 <div class="section" id="examples">
@@ -252,18 +252,18 @@ true in the Hookean case, except that a spring constant must be chosen
 that is appropriate for the absolute size of particles in the model.
 Since relative particle sizes are not accounted for, the Hookean
 styles may not be a suitable model for polydisperse systems.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">In versions of LAMMPS before 9Jan09, the equation for
-Hertzian interactions did not include the sqrt(RiRj/Ri+Rj) term and
-thus was not as accurate for polydisperse systems.  For monodisperse
-systems, sqrt(RiRj/Ri+Rj) is a constant factor that effectively scales
-all 4 coefficients: Kn, Kt, gamma_n, gamma_t.  Thus you can set the
-values of these 4 coefficients appropriately in the current code to
-reproduce the results of a previous Hertzian monodisperse calculation.
-For example, for the common case of a monodisperse system with
-particles of diameter 1, all 4 of these coefficients should now be set
-2x larger than they were previously.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In versions of LAMMPS before 9Jan09, the equation for Hertzian
+interactions did not include the sqrt(RiRj/Ri+Rj) term and thus was
+not as accurate for polydisperse systems.  For monodisperse systems,
+sqrt(RiRj/Ri+Rj) is a constant factor that effectively scales all 4
+coefficients: Kn, Kt, gamma_n, gamma_t.  Thus you can set the values
+of these 4 coefficients appropriately in the current code to reproduce
+the results of a previous Hertzian monodisperse calculation.  For
+example, for the common case of a monodisperse system with particles
+of diameter 1, all 4 of these coefficients should now be set 2x larger
+than they were previously.</p>
 </div>
 <p>Xmu is also specified in the pair_style command and is the upper limit
 of the tangential force through the Coulomb criterion Ft = xmu*Fn,
@@ -273,12 +273,12 @@ between 2 particles grows according to a tangential spring and
 dash-pot model until Ft/Fn = xmu and is then held at Ft = Fn*xmu until
 the particles lose contact.  In the Hertzian case, a similar analogy
 holds, though the spring is no longer linear.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Normally, xmu should be specified as a fractional
-value between 0.0 and 1.0, however LAMMPS allows large values (up to
-1.0e4) to allow for modeling of systems which can sustain very large
-tangential forces.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Normally, xmu should be specified as a fractional value between
+0.0 and 1.0, however LAMMPS allows large values (up to 1.0e4) to allow
+for modeling of systems which can sustain very large tangential
+forces.</p>
 </div>
 <p>For granular styles there are no additional coefficients to set for
 each pair of atom types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.
@@ -370,7 +370,7 @@ E, 64, p 051302 (2001).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -391,7 +391,7 @@ E, 64, p 051302 (2001).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix drude/transform/direct command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix drude/transform/direct command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -150,7 +150,7 @@ fix 1 all drude/transform/inverse
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Transform the coordinates of Drude oscillators from real to reduced
 and back for thermalizing the Drude oscillators as described in
-<a class="reference internal" href="#lamoureux"><span>(Lamoureux)</span></a> using a Nose-Hoover thermostat.  This fix is
+<a class="reference internal" href="tutorial_drude.html#lamoureux"><span>(Lamoureux)</span></a> using a Nose-Hoover thermostat.  This fix is
 designed to be used with the <a class="reference internal" href="tutorial_drude.html"><em>thermalized Drude oscillator model</em></a>.  Polarizable models in LAMMPS are
 described in <a class="reference internal" href="Section_howto.html#howto-25"><span>this Section</span></a>.</p>
 <p>Drude oscillators are a pair of atoms representing a single
@@ -166,31 +166,44 @@ defined by the following equations.  Note that in these equations
 upper case denotes atomic or center of mass values and lower case
 denotes Drude particle or dipole values. Primes denote the transformed
 (reduced) values, while bare letters denote the original values.</p>
-<p>Masses: begin{equation} M&#8217; = M + m end{equation}
-begin{equation} m&#8217; = frac {M, m } {M&#8217;} end{equation}
-Positions: begin{equation} X&#8217; = frac {M, X + m, x} {M&#8217;}
-end{equation} begin{equation} x&#8217; = x - X end{equation}
-Velocities: begin{equation} V&#8217; = frac {M, V + m, v} {M&#8217;}
-end{equation} begin{equation} v&#8217; = v - V end{equation}
-Forces: begin{equation} F&#8217; = F + f end{equation}
-begin{equation} f&#8217; = frac { M, f - m, F} {M&#8217;}
-end{equation}</p>
-<p>This transform conserves the total kinetic energy
-begin{equation} frac 1 2 , (M, V^2+ m, v^2)
-= frac 1 2 , (M&#8217;, V&#8217;^2+ m&#8217;, v&#8217;^2) end{equation}
-and the virial defined with absolute positions
-begin{equation} X, F + x, f = X&#8217;, F&#8217; + x&#8217;, f&#8217; end{equation}</p>
+<p>Masses:</p>
+<div class="math">
+\[\begin{equation} M' = M + m \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} m' = \frac {M\, m } {M'} \end{equation}\]</div>
+<p>Positions:</p>
+<div class="math">
+\[\begin{equation} X' = \frac {M\, X + m\, x} {M'}\end{equation}\]</div>
+<div class="math">
+\[\begin{equation} x' = x - X \end{equation}\]</div>
+<p>Velocities:</p>
+<div class="math">
+\[\begin{equation} V' = \frac {M\, V + m\, v} {M'}\end{equation}\]</div>
+<div class="math">
+\[\begin{equation} v' = v - V \end{equation}\]</div>
+<p>Forces:</p>
+<div class="math">
+\[\begin{equation} F' = F + f \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} f' = \frac { M\, f - m\, F} {M'}\end{equation}\]</div>
+<p>This transform conserves the total kinetic energy</p>
+<div class="math">
+\[\begin{equation} \frac 1 2 \, (M\, V^2\ + m\, v^2)
+= \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2) \end{equation}\]</div>
+<p>and the virial defined with absolute positions</p>
+<div class="math">
+\[\begin{equation} X\, F + x\, f = X'\, F' + x'\, f' \end{equation}\]</div>
 <hr class="docutils" />
 <p>This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the <a class="reference internal" href="fix_drude.html"><em>fix drude</em></a> command to
 specify the Drude status of each atom type.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">only the Drude core atoms need to be in the group
-specified for this fix. A Drude electron will be transformed together
-with its core even if it is not itself in the group.  It is safe to
-include Drude electrons or non-polarizable atoms in the group. The
-non-polarizable atoms will simply not be transformed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">only the Drude core atoms need to be in the group specified for
+this fix. A Drude electron will be transformed together with its core
+even if it is not itself in the group.  It is safe to include Drude
+electrons or non-polarizable atoms in the group. The non-polarizable
+atoms will simply not be transformed.</p>
 </div>
 <hr class="docutils" />
 <p>This fix does NOT perform time integration. It only transform masses,
@@ -199,12 +212,11 @@ integration fixes, like <a class="reference internal" href="fix_nve.html"><em>fi
 atoms.  In order to thermalize the reduced degrees of freedom at
 different temperatures, two Nose-Hoover thermostats must be defined,
 acting on two distinct groups.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <em>fix drude/transform/direct</em> command must appear
-before any Nose-Hoover thermostating fixes.  The <em>fix
-drude/transform/inverse</em> command must appear after any Nose-Hoover
-thermostating fixes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>fix drude/transform/direct</em> command must appear before any
+Nose-Hoover thermostating fixes.  The <em>fix drude/transform/inverse</em>
+command must appear after any Nose-Hoover thermostating fixes.</p>
 </div>
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre>fix fDIRECT all drude/transform/direct
@@ -280,7 +292,7 @@ to add a <em>fix momentum</em> command:</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -301,7 +313,7 @@ to add a <em>fix momentum</em> command:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

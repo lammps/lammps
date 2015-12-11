@@ -155,9 +155,9 @@ specify force components with a variable that has time-dependence for
 use with a minimizer, since the minimizer increments the timestep as
 the iteration count during the minimization.
 
-IMPORTANT NOTE: If you want the fictitious potential energy associated
-with the added forces to be included in the total potential energy of
-the system (the quantity being minimized), you MUST enable the
+NOTE: If you want the fictitious potential energy associated with the
+added forces to be included in the total potential energy of the
+system (the quantity being minimized), you MUST enable the
 "fix_modify"_fix_modify.html {energy} option for this fix.
 
 [Restrictions:] none

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix bond/create command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix bond/create command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -229,12 +229,12 @@ can choose to create new angles, dihedrals, impropers as well, using
 the <em>atype</em>, <em>dtype</em>, and <em>itype</em> keywords.  All of these changes
 typically affect pairwise interactions between atoms that are now part
 of new bonds, angles, etc.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">One data structure that is not updated when a bond
-breaks are the molecule IDs stored by each atom.  Even though two
-molecules become one moleclue due to the created bond, all atoms in
-the new moleclue retain their original molecule IDs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">One data structure that is not updated when a bond breaks are
+the molecule IDs stored by each atom.  Even though two molecules
+become one moleclue due to the created bond, all atoms in the new
+moleclue retain their original molecule IDs.</p>
 </div>
 <p>If the <em>atype</em> keyword is used and if an angle potential is defined
 via the <code class="xref doc docutils literal"><span class="pre">angle_style</span></code> command, then any new 3-body
@@ -243,13 +243,13 @@ of type <em>angletype</em>, with parameters assigned by the corresponding
 <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a> command.  Likewise, the <em>dtype</em> and
 <em>itype</em> keywords will create new dihedrals and impropers of type
 <em>dihedraltype</em> and <em>impropertype</em>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">To create a new bond, the internal LAMMPS data
-structures that store this information must have space for it.  When
-LAMMPS is initialized from a data file, the list of bonds is scanned
-and the maximum number of bonds per atom is tallied.  If some atom
-will acquire more bonds than this limit as this fix operates, then the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To create a new bond, the internal LAMMPS data structures that
+store this information must have space for it.  When LAMMPS is
+initialized from a data file, the list of bonds is scanned and the
+maximum number of bonds per atom is tallied.  If some atom will
+acquire more bonds than this limit as this fix operates, then the
 &#8220;extra bond per atom&#8221; parameter must be set to allow for it.  Ditto
 for &#8220;extra angle per atom&#8221;, &#8220;extra dihedral per atom&#8221;, and &#8220;extra
 improper per atom&#8221; if angles, dihedrals, or impropers are being added
@@ -259,28 +259,28 @@ data file with no atoms can be used if you wish to add unbonded atoms
 via the <a class="reference internal" href="create_atoms.html"><em>create atoms</em></a> command, e.g. for a
 percolation simulation.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">LAMMPS stores and maintains a data structure with a
-list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
-topology of the system) for use in weighting pairwise interactions for
-bonded atoms.  Note that adding a single bond always adds a new 1st
-neighbor but may also induce <em>many</em> new 2nd and 3rd neighbors,
-depending on the molecular topology of your system.  The &#8220;extra
-special per atom&#8221; parameter must typically be set to allow for the new
-maximum total size (1st + 2nd + 3rd neighbors) of this per-atom list.
-There are 3 ways to do this.  See the <a class="reference internal" href="read_data.html"><em>read_data</em></a> or
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">LAMMPS stores and maintains a data structure with a list of the
+1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+the system) for use in weighting pairwise interactions for bonded
+atoms.  Note that adding a single bond always adds a new 1st neighbor
+but may also induce <em>many</em> new 2nd and 3rd neighbors, depending on the
+molecular topology of your system.  The &#8220;extra special per atom&#8221;
+parameter must typically be set to allow for the new maximum total
+size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 3
+ways to do this.  See the <a class="reference internal" href="read_data.html"><em>read_data</em></a> or
 <a class="reference internal" href="create_box.html"><em>create_box</em></a> or &#8220;special_bonds extra&#8221; commands for
 details.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Even if you do not use the <em>atype</em>, <em>dtype</em>, or
-<em>itype</em> keywords, the list of topological neighbors is updated for
-atoms affected by the new bond.  This in turn affects which neighbors
-are considered for pairwise interactions, using the weighting rules
-set by the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command.  Consider a new
-bond created between atoms I,J.  If J has a bonded neighbor K, then K
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Even if you do not use the <em>atype</em>, <em>dtype</em>, or <em>itype</em>
+keywords, the list of topological neighbors is updated for atoms
+affected by the new bond.  This in turn affects which neighbors are
+considered for pairwise interactions, using the weighting rules set by
+the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command.  Consider a new bond
+created between atoms I,J.  If J has a bonded neighbor K, then K
 becomes a 2nd neighbor of I.  Even if the <em>atype</em> keyword is not used
 to create angle I-J-K, the pairwise interaction between I and K will
 be potentially turned off or weighted by the 1-3 weighting specified
@@ -309,16 +309,16 @@ excluded by the presence of the bond and the settings of the
 recognized.  All of these operations increase the cost of a timestep.
 Thus you should be cautious about invoking this fix too frequently.</p>
 <p>You can dump out snapshots of the current bond topology via the <a class="reference internal" href="dump.html"><em>dump local</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Creating a bond typically alters the energy of a
-system.  You should be careful not to choose bond creation criteria
-that induce a dramatic change in energy.  For example, if you define a
-very stiff harmonic bond and create it when 2 atoms are separated by a
-distance far from the equilibribum bond length, then the 2 atoms will
-oscillate dramatically when the bond is formed.  More generally, you
-may need to thermostat your system to compensate for energy changes
-resulting from created bonds (and angles, dihedrals, impropers).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Creating a bond typically alters the energy of a system.  You
+should be careful not to choose bond creation criteria that induce a
+dramatic change in energy.  For example, if you define a very stiff
+harmonic bond and create it when 2 atoms are separated by a distance
+far from the equilibribum bond length, then the 2 atoms will oscillate
+dramatically when the bond is formed.  More generally, you may need to
+thermostat your system to compensate for energy changes resulting from
+created bonds (and angles, dihedrals, impropers).</p>
 </div>
 </div>
 <hr class="docutils" />
@@ -370,7 +370,7 @@ prob = 1.0.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -391,7 +391,7 @@ prob = 1.0.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

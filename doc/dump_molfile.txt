@@ -44,10 +44,9 @@ to one single file with the specified format. Otherwise there will be
 one file per snapshot and the * will be replaced by the time step number
 when the snapshot is written.
 
-IMPORTANT NOTE: Because periodic boundary conditions are enforced only
-on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom written to a dump file may be slightly outside the simulation
-box.
+NOTE: Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.
 
 The molfile plugin API has a few restrictions that have to be honored
 by this dump style: the number of atoms must not change, the atoms

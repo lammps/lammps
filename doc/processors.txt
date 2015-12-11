@@ -93,8 +93,8 @@ different processor grids for different partitions, e.g.
 partition yes 1 processors 4 4 4
 partition yes 2 processors 2 3 2 :pre
 
-IMPORTANT NOTE: This command only affects the initial regular 3d grid
-created when the simulation box is first specified via a
+NOTE: This command only affects the initial regular 3d grid created
+when the simulation box is first specified via a
 "create_box"_create_box.html or "read_data"_read_data.html or
 "read_restart"_read_restart.html command.  Or if the simulation box is
 re-created via the "replicate"_replicate.html command.  The same
@@ -141,14 +141,13 @@ sub-grid.  As with Px,Py,Pz, it will do this based on the size and
 shape of the global simulation box so as to minimize the
 surface-to-volume ratio of each processor's sub-domain.
 
-IMPORTANT NOTE: For the {twolevel} style to work correctly, it
-assumes the MPI ranks of processors LAMMPS is running on are ordered
-by core and then by node.  E.g. if you are running on 2 quad-core
-nodes, for a total of 8 processors, then it assumes processors 0,1,2,3
-are on node 1, and processors 4,5,6,7 are on node 2.  This is the
-default rank ordering for most MPI implementations, but some MPIs
-provide options for this ordering, e.g. via environment variable
-settings.
+NOTE: For the {twolevel} style to work correctly, it assumes the MPI
+ranks of processors LAMMPS is running on are ordered by core and then
+by node.  E.g. if you are running on 2 quad-core nodes, for a total of
+8 processors, then it assumes processors 0,1,2,3 are on node 1, and
+processors 4,5,6,7 are on node 2.  This is the default rank ordering
+for most MPI implementations, but some MPIs provide options for this
+ordering, e.g. via environment variable settings.
 
 The {numa} style operates similar to the {twolevel} keyword except
 that it auto-detects which cores are running on which nodes.
@@ -165,10 +164,9 @@ The {numa} style will give an error if the number of MPI processes is
 not divisible by the number of cores used per node, or any of the Px
 or Py of Pz values is greater than 1.
 
-IMPORTANT NOTE: Unlike the {twolevel} style, the {numa} style does not
-require any particular ordering of MPI ranks i norder to work
-correctly.  This is because it auto-detects which processes are
-running on which nodes.
+NOTE: Unlike the {twolevel} style, the {numa} style does not require
+any particular ordering of MPI ranks i norder to work correctly.  This
+is because it auto-detects which processes are running on which nodes.
 
 The {custom} style uses the file {infile} to define both the 3d
 factorization and the mapping of processors to the grid.
@@ -272,13 +270,13 @@ processors, it could create a 4x2x10 grid, but it will not create a
 2x4x10 grid, since in the y-dimension, 6 is not an integer multiple of
 4.
 
-IMPORTANT NOTE: If you use the "partition"_partition.html command to
-invoke different "processsors" commands on different partitions, and
-you also use the {part} keyword, then you must insure that both the
-sending and receiving partitions invoke the "processors" command that
-connects the 2 partitions via the {part} keyword.  LAMMPS cannot
-easily check for this, but your simulation will likely hang in its
-setup phase if this error has been made.
+NOTE: If you use the "partition"_partition.html command to invoke
+different "processsors" commands on different partitions, and you also
+use the {part} keyword, then you must insure that both the sending and
+receiving partitions invoke the "processors" command that connects the
+2 partitions via the {part} keyword.  LAMMPS cannot easily check for
+this, but your simulation will likely hang in its setup phase if this
+error has been made.
 
 :line
 

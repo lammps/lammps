@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>create_bonds command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>create_bonds command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -199,20 +199,19 @@ similar to what a <a class="reference internal" href="run.html"><em>run</em></a>
 executes, e.g. if you wish to use long-range Coulombic interactions
 via the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command for your subsequent
 simulation.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If the system has no bonds to begin with, or if more
-bonds per atom are being added than currently exist, then you must
-insure that the number of bond types and the maximum number of bonds
-per atom are set to large enough values.  Otherwise an error may occur
-when too many bonds are added to an atom.  If the
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> command is used to define the system, these
-2 parameters can be set via the &#8220;bond types&#8221; and &#8220;extra bond per atom&#8221;
-fields in the header section of the data file.  If the
-<a class="reference internal" href="create_box.html"><em>create_box</em></a> command is used to define the system,
-these 2 parameters can be set via its optional &#8220;bond/types&#8221; and
-&#8220;extra/bond/per/atom&#8221; arguments.  See the doc pages for the 2 commands
-for details.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the system has no bonds to begin with, or if more bonds per
+atom are being added than currently exist, then you must insure that
+the number of bond types and the maximum number of bonds per atom are
+set to large enough values.  Otherwise an error may occur when too
+many bonds are added to an atom.  If the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
+command is used to define the system, these 2 parameters can be set
+via the &#8220;bond types&#8221; and &#8220;extra bond per atom&#8221; fields in the header
+section of the data file.  If the <a class="reference internal" href="create_box.html"><em>create_box</em></a> command
+is used to define the system, these 2 parameters can be set via its
+optional &#8220;bond/types&#8221; and &#8220;extra/bond/per/atom&#8221; arguments.  See the
+doc pages for the 2 commands for details.</p>
 </div>
 </div>
 <div class="section" id="restrictions">
@@ -238,7 +237,7 @@ molecule template files via the <a class="reference internal" href="molecule.htm
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -259,7 +258,7 @@ molecule template files via the <a class="reference internal" href="molecule.htm
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

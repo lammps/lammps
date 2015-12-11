@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dump command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>dump command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -263,17 +263,16 @@ options; see details below.</p>
 <p>As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
 or multiple smaller files).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because periodic boundary conditions are enforced only
-on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom written to a dump file may be slightly outside the simulation
-box.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unless the <a class="reference internal" href="dump_modify.html"><em>dump_modify sort</em></a> option
-is invoked, the lines of atom information written to dump files
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unless the <a class="reference internal" href="dump_modify.html"><em>dump_modify sort</em></a> option is
+invoked, the lines of atom information written to dump files
 (typically one line per atom) will be in an indeterminate order for
 each snapshot.  This is even true when running on a single processor,
 if the <a class="reference internal" href="atom_modify.html"><em>atom_modify sort</em></a> option is on, which it is
@@ -716,7 +715,7 @@ machines.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -737,7 +736,7 @@ machines.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

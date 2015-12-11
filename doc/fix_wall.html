@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix wall/lj93 command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix wall/lj93 command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -272,15 +272,15 @@ Equal-style variables can specify formulas with various mathematical
 functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent wall interaction.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For all of the styles, you must insure that r is
-always &gt; 0 for all particles in the group, or LAMMPS will generate an
-error.  This means you cannot start your simulation with particles at
-the wall position <em>coord</em> (r = 0) or with particles on the wrong side
-of the wall (r &lt; 0).  For the <em>wall/lj93</em> and <em>wall/lj126</em> styles, the
-energy of the wall/particle interaction (and hence the force on the
-particle) blows up as r -&gt; 0.  The <em>wall/colloid</em> style is even more
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For all of the styles, you must insure that r is always &gt; 0 for
+all particles in the group, or LAMMPS will generate an error.  This
+means you cannot start your simulation with particles at the wall
+position <em>coord</em> (r = 0) or with particles on the wrong side of the
+wall (r &lt; 0).  For the <em>wall/lj93</em> and <em>wall/lj126</em> styles, the energy
+of the wall/particle interaction (and hence the force on the particle)
+blows up as r -&gt; 0.  The <em>wall/colloid</em> style is even more
 restrictive, since the energy blows up as D = r-R -&gt; 0.  This means
 the finite-size particles of radius R must be a distance larger than R
 from the wall position <em>coord</em>.  The <em>harmonic</em> style is a softer
@@ -375,12 +375,12 @@ The scalar and vector values calculated by this fix are &#8220;extensive&#8221;.
 the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
 <p>The forces due to this fix are imposed during an energy minimization,
 invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the atom/wall interaction energy to be
-included in the total potential energy of the system (the quantity
-being minimized), you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a>
-<em>energy</em> option for this fix.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the atom/wall interaction energy to be included in
+the total potential energy of the system (the quantity being
+minimized), you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em>
+option for this fix.</p>
 </div>
 </div>
 <div class="section" id="restrictions">
@@ -413,7 +413,7 @@ erratum in JCP 84, 2901 (1986).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -434,7 +434,7 @@ erratum in JCP 84, 2901 (1986).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

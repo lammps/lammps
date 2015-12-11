@@ -181,8 +181,8 @@ See the "dump modify format"_dump_modify.html, "print"_print.html,
 A "#" or "$" character that is between quotes will not be treated as a
 comment indicator in (2) or substituted for as a variable in (3).
 
-IMPORTANT NOTE: If the argument is itself a command that requires a
-quoted argument (e.g. using a "print"_print.html command as part of an
+NOTE: If the argument is itself a command that requires a quoted
+argument (e.g. using a "print"_print.html command as part of an
 "if"_if.html or "run every"_run.html command), then single, double, or
 triple quotes can be nested in the usual manner.  See the doc pages
 for those commands for examples.  Only one of level of nesting is

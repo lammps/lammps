@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style thole command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style thole command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -158,28 +158,30 @@ main pair style including Coulomb interactions, i.e. any pair style
 containing <em>coul/cut</em> or <em>coul/long</em> in its style name.</p>
 <p>The <em>thole</em> pair style computes the Coulomb interaction damped at
 short distances by a function</p>
-<p>begin{equation} T_{ij}(r_{ij}) = 1 - left( 1 +
-frac{s_{ij} r_{ij} }{2} right)
-exp left( - s_{ij} r_{ij} right) end{equation}</p>
+<div class="math">
+\[\begin{equation} T_{ij}(r_{ij}) = 1 - \left( 1 +
+\frac{s_{ij} r_{ij} }{2} \right)
+\exp \left( - s_{ij} r_{ij} \right) \end{equation}\]</div>
 <p>This function results from an adaptation to point charges
-<a class="reference internal" href="#noskov"><span>(Noskov)</span></a> of the dipole screening scheme originally proposed
-by <a class="reference internal" href="#thole"><span>Thole</span></a>. The scaling coefficient (s_{ij} ) is determined
-by the polarizability of the atoms, ( alpha_i ), and by a Thole
-damping parameter ( a ).  This Thole damping parameter usually takes
+<a class="reference internal" href="tutorial_drude.html#noskov"><span>(Noskov)</span></a> of the dipole screening scheme originally proposed
+by <a class="reference internal" href="tutorial_drude.html#thole"><span>Thole</span></a>. The scaling coefficient <span class="math">\(s_{ij}\)</span> is determined
+by the polarizability of the atoms, <span class="math">\(\alpha_i\)</span>, and by a Thole
+damping parameter <span class="math">\(a\)</span>.  This Thole damping parameter usually takes
 a value of 2.6, but in certain force fields the value can depend upon
 the atom types. The mixing rule for Thole damping parameters is the
 arithmetic average, and for polarizabilities the geometric average
 between the atom-specific values.</p>
-<p>begin{equation} s_{ij} = frac{ a_{ij} }{
-(alpha_{ij})^{1/3} } = frac{ (a_i + a_j)/2 }{
-[(alpha_ialpha_j)^{1/2}]^{1/3} } end{equation}</p>
+<div class="math">
+\[\begin{equation} s_{ij} = \frac{ a_{ij} }{
+(\alpha_{ij})^{1/3} } = \frac{ (a_i + a_j)/2 }{
+[(\alpha_i\alpha_j)^{1/2}]^{1/3} } \end{equation}\]</div>
 <p>The damping function is only applied to the interactions between the
 point charges representing the induced dipoles on polarizable sites,
-that is, charges on Drude particles, ( q_{D,i} ), and opposite
-charges, ( -q_{D,i} ), located on the respective core particles
+that is, charges on Drude particles, <span class="math">\(q_{D,i}\)</span>, and opposite
+charges, <span class="math">\(-q_{D,i}\)</span>, located on the respective core particles
 (to which each Drude particle is bonded). Therefore, Thole screening
-is not applied to the full charge of the core particle ( q_i ), but
-only to the ( -q_{D,i} ) part of it.</p>
+is not applied to the full charge of the core particle <span class="math">\(q_i\)</span>, but
+only to the <span class="math">\(-q_{D,i}\)</span> part of it.</p>
 <p>The interactions between core charges are subject to the weighting
 factors set by the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command. The
 interactions between Drude particles and core charges or
@@ -230,7 +232,7 @@ pairs are 1-4 partners of which dihedrals.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -251,7 +253,7 @@ pairs are 1-4 partners of which dihedrals.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

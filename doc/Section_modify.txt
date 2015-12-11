@@ -187,8 +187,8 @@ in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
 the word "customize" and you will find locations you will need to
 modify.
 
-IMPORTANT NOTE: It is possible to add some attributes, such as a
-molecule ID, to atom styles that do not have them via the "fix
+NOTE: It is possible to add some attributes, such as a molecule ID, to
+atom styles that do not have them via the "fix
 property/atom"_fix_property_atom.html command.  This command also
 allows new custom attributes consisting of extra integer or
 floating-point values to be added to atoms.  See the "fix

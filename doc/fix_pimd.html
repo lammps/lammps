@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix pimd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix pimd command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -178,11 +178,11 @@ target temperature for the system and the keyword <em>nhc</em> sets the
 number <em>Nc</em> of thermostats in each chain.  For example, for a
 simulation of N particles with P beads in each ring-polymer, the total
 number of NH thermostats would be 3 x N x P x Nc.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This fix implements a complete velocity-verlet
-integrator combined with NH massive chain thermostat, so no
-other time integration fix should be used.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This fix implements a complete velocity-verlet integrator
+combined with NH massive chain thermostat, so no other time
+integration fix should be used.</p>
 </div>
 <p>The <em>method</em> keyword determines what style of PIMD is performed.  A
 value of <em>pimd</em> is standard PIMD.  A value of <em>nmpimd</em> is for
@@ -291,7 +291,7 @@ Path Integrals, McGraw-Hill, New York (1965).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -312,7 +312,7 @@ Path Integrals, McGraw-Hill, New York (1965).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix bond/break command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix bond/break command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -194,12 +194,12 @@ is part of a 3-body (angle) or 4-body (dihedral, improper)
 interaction, that interaction is removed as well.  These changes
 typically affect pairwise interactions between atoms that used to be
 part of bonds, angles, etc.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">One data structure that is not updated when a bond
-breaks are the molecule IDs stored by each atom.  Even though
-one molecule becomes two moleclues due to the broken bond, all atoms
-in both new moleclues retain their original molecule IDs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">One data structure that is not updated when a bond breaks are
+the molecule IDs stored by each atom.  Even though one molecule
+becomes two moleclues due to the broken bond, all atoms in both new
+moleclues retain their original molecule IDs.</p>
 </div>
 <p>Computationally, each timestep this fix operates, it loops over all
 the bonds in the system and computes distances between pairs of bonded
@@ -213,14 +213,14 @@ presence of the bond and the settings of the
 recognized.  All of these operations increase the cost of a timestep.
 Thus you should be cautious about invoking this fix too frequently.</p>
 <p>You can dump out snapshots of the current bond topology via the <a class="reference internal" href="dump.html"><em>dump local</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Breaking a bond typically alters the energy of a
-system.  You should be careful not to choose bond breaking criteria
-that induce a dramatic change in energy.  For example, if you define a
-very stiff harmonic bond and break it when 2 atoms are separated by a
-distance far from the equilibribum bond length, then the 2 atoms will
-be dramatically released when the bond is broken.  More generally, you
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Breaking a bond typically alters the energy of a system.  You
+should be careful not to choose bond breaking criteria that induce a
+dramatic change in energy.  For example, if you define a very stiff
+harmonic bond and break it when 2 atoms are separated by a distance
+far from the equilibribum bond length, then the 2 atoms will be
+dramatically released when the bond is broken.  More generally, you
 may need to thermostat your system to compensate for energy changes
 resulting from broken bonds (and angles, dihedrals, impropers).</p>
 </div>
@@ -273,7 +273,7 @@ built with that package.  See the <a class="reference internal" href="Section_st
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -294,7 +294,7 @@ built with that package.  See the <a class="reference internal" href="Section_st
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

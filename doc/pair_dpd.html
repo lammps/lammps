@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style dpd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style dpd command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -218,18 +218,18 @@ atoms types via the <a class="reference internal" href="pair_coeff.html"><em>pai
 except that A is not included.</p>
 <p>The GPU-accelerated versions of these styles are implemented based on
 the work of <a class="reference internal" href="#afshar"><span>(Afshar)</span></a> and <a class="reference internal" href="#phillips"><span>(Phillips)</span></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you are modeling DPD polymer chains, you may want
-to use the <a class="reference internal" href="pair_srp.html"><em>pair_style srp</em></a> command in conjuction with
-these pair styles.  It is a soft segmental repulsive potential (SRP)
-that can prevent DPD polymer chains from crossing each other.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are modeling DPD polymer chains, you may want to use the
+<a class="reference internal" href="pair_srp.html"><em>pair_style srp</em></a> command in conjuction with these pair
+styles.  It is a soft segmental repulsive potential (SRP) that can
+prevent DPD polymer chains from crossing each other.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The virial calculation for pressure when using this
-pair style includes all the components of force listed above,
-including the random force.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The virial calculation for pressure when using this pair style
+includes all the components of force listed above, including the
+random force.</p>
 </div>
 <hr class="docutils" />
 <p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
@@ -317,7 +317,7 @@ Phys Comm, 230, 7191-7201 (2011).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -338,7 +338,7 @@ Phys Comm, 230, 7191-7201 (2011).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

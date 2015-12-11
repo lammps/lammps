@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>set command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>set command &mdash; LAMMPS 9 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -290,13 +290,12 @@ spatially-dependent set of per-atom values.  As explained on the
 used in place of atom-style variables, and thus as arguments to the
 set command.  Atomfile-style variables read their per-atoms values
 from a file.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Atom-style and atomfile-style variables return
-floating point per-atom values.  If the values are assigned to an
-integer variable, such as the molecule ID, then the floating point
-value is truncated to its integer portion, e.g. a value of 2.6 would
-become 2.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Atom-style and atomfile-style variables return floating point
+per-atom values.  If the values are assigned to an integer variable,
+such as the molecule ID, then the floating point value is truncated to
+its integer portion, e.g. a value of 2.6 would become 2.</p>
 </div>
 <p>Keyword <em>type</em> sets the atom type for all selected atoms.  The
 specified value must be from 1 to ntypes, where ntypes was set by the
@@ -502,7 +501,7 @@ coordinates outside the simulation box if they are ghost atoms.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -523,7 +522,7 @@ coordinates outside the simulation box if they are ghost atoms.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'9 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

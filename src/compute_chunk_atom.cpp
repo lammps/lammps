@@ -1163,7 +1163,6 @@ int ComputeChunkAtom::setup_xyz_bins()
   // allocate and initialize arrays based on new bin count
 
   double binlo[3],binhi[3];
-  double *prd;
   if (scaleflag == REDUCED) {
     binlo[0] = domain->boxlo_lamda[0];
     binlo[1] = domain->boxlo_lamda[1];
@@ -1171,7 +1170,6 @@ int ComputeChunkAtom::setup_xyz_bins()
     binhi[0] = domain->boxhi_lamda[0];
     binhi[1] = domain->boxhi_lamda[1];
     binhi[2] = domain->boxhi_lamda[2];
-    prd = domain->prd_lamda;
   } else {
     binlo[0] = domain->boxlo[0];
     binlo[1] = domain->boxlo[1];
@@ -1179,7 +1177,6 @@ int ComputeChunkAtom::setup_xyz_bins()
     binhi[0] = domain->boxhi[0];
     binhi[1] = domain->boxhi[1];
     binhi[2] = domain->boxhi[2];
-    prd = domain->prd;
   }
 
   if (minflag[0] == COORD) binlo[0] = minvalue[0];

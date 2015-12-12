@@ -392,8 +392,7 @@ void FixGCMC::init()
         (force->pair == NULL) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
-        (force->pair_match("eam",0)) ||
-        (triclinic == 1)
+        (force->pair_match("eam",0))
 	) {
       full_flag = true;
       if (comm->me == 0)
@@ -643,8 +642,8 @@ void FixGCMC::pre_exchange()
         int random_int_fraction =
           static_cast<int>(random_equal->uniform()*ncycles) + 1;
         if (random_int_fraction <= nmcmoves) {
-	  if (random_equal->uniform() < 0.5) attempt_molecule_translation_full();
-	  else attempt_molecule_rotation_full();
+ 	  if (random_equal->uniform() < 0.5) attempt_molecule_translation_full();
+ 	  else attempt_molecule_rotation_full();
         } else {
           if (random_equal->uniform() < 0.5) attempt_molecule_deletion_full();
           else attempt_molecule_insertion_full();
@@ -662,12 +661,12 @@ void FixGCMC::pre_exchange()
         }
       }
     }
-  if (triclinic) domain->x2lamda(atom->nlocal);
+    if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
-  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
   } else {
 

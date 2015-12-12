@@ -1,0 +1,8 @@
+# Standard ignores
+*~
+*.pyc
+\#*#
+.#*
+.*.swp
+.cproject
+.project

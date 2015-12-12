@@ -52,50 +52,85 @@
 
 namespace Test {
 
-namespace {
-volatile int nested_view_count ;
-}
-
 template< class Space >
-class NestedView {
-private:
+struct NestedView {
+
   Kokkos::View<int*,Space> member ;
 
 public:
 
   KOKKOS_INLINE_FUNCTION
-  NestedView()
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    : member("member",2)
-    { Kokkos::atomic_increment( & nested_view_count ); }
-#else
-    : member(){}
-#endif
-
-  ~NestedView()
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    { Kokkos::atomic_decrement( & nested_view_count ); }
-#else
+  NestedView() : member()
     {}
-#endif
 
+  KOKKOS_INLINE_FUNCTION
+  NestedView & operator = ( const Kokkos::View<int*,Space> & lhs )
+    {
+      member = lhs ;
+      if ( member.dimension_0() ) Kokkos::atomic_add( & member(0) , 1 );
+      return *this ;
+    }
+
+  KOKKOS_INLINE_FUNCTION
+  ~NestedView()
+  { 
+    if ( member.dimension_0() ) {
+      Kokkos::atomic_add( & member(0) , -1 );
+    }
+  }
+};
+
+template< class Space >
+struct NestedViewFunctor {
+
+  Kokkos::View< NestedView<Space> * , Space > nested ;
+  Kokkos::View<int*,Space>                    array ;
+
+  NestedViewFunctor( 
+    const Kokkos::View< NestedView<Space> * , Space > & arg_nested ,
+    const Kokkos::View<int*,Space>                    & arg_array )
+  : nested( arg_nested )
+  , array(  arg_array )
+  {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int i ) const
+    { nested[i] = array ; }
 };
 
 
 template< class Space >
 void view_nested_view()
 {
-  ASSERT_EQ( 0 , nested_view_count );
+  Kokkos::View<int*,Space> tracking("tracking",1);
+
+  typename Kokkos::View<int*,Space>::HostMirror
+     host_tracking = Kokkos::create_mirror( tracking );
+
   {
     Kokkos::View< NestedView<Space> * , Space > a("a_nested_view",2);
-    ASSERT_EQ( 2 , nested_view_count );
+
+    Kokkos::parallel_for( Kokkos::RangePolicy<Space>(0,2) , NestedViewFunctor<Space>( a , tracking ) );
+    Kokkos::deep_copy( host_tracking , tracking );
+    ASSERT_EQ( 2 , host_tracking(0) );
+
     Kokkos::View< NestedView<Space> * , Space > b("b_nested_view",2);
-    ASSERT_EQ( 4 , nested_view_count );
+    Kokkos::parallel_for( Kokkos::RangePolicy<Space>(0,2) , NestedViewFunctor<Space>( b , tracking ) );
+    Kokkos::deep_copy( host_tracking , tracking );
+    ASSERT_EQ( 4 , host_tracking(0) );
+
   }
-  // ASSERT_EQ( 0 , nested_view_count );
+  Kokkos::deep_copy( host_tracking , tracking );
+
+#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+  ASSERT_EQ( 0 , host_tracking(0) );
+#endif
+
 }
 
 }
+
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
 
 namespace Kokkos {
 namespace Impl {
@@ -121,6 +156,8 @@ struct ViewDefaultConstruct< ExecSpace , Test::NestedView<S> , true >
 
 } // namespace Impl
 } // namespace Kokkos
+
+#endif
 
 /*--------------------------------------------------------------------------*/
 

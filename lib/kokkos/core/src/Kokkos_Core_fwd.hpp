@@ -52,11 +52,33 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+namespace Kokkos {
+
+struct AUTO_t {
+  KOKKOS_INLINE_FUNCTION
+  constexpr const AUTO_t & operator()() const { return *this ; }
+};
+
+namespace {
+/**\brief Token to indicate that a parameter's value is to be automatically selected */
+constexpr AUTO_t AUTO = Kokkos::AUTO_t();
+}
+}
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Forward declarations for class inter-relationships
 
 namespace Kokkos {
 
 class HostSpace ; ///< Memory space for main process and CPU execution spaces
+
+#ifdef KOKKOS_HAVE_HBWSPACE
+namespace Experimental {
+class HBWSpace ; /// Memory space for hbw_malloc from memkind (e.g. for KNL processor)
+}
+#endif
 
 #if defined( KOKKOS_HAVE_SERIAL )
 class Serial ;    ///< Execution space main process on CPU
@@ -162,9 +184,15 @@ struct VerifyExecutionCanAccessMemorySpace< Space , Space >
   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
     Kokkos::Impl::ActiveExecutionMemorySpace , DATA_SPACE >::verify()
 
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
 namespace Kokkos {
   void fence();
 }
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */
 

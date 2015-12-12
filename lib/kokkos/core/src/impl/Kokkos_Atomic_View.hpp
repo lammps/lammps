@@ -427,6 +427,8 @@ struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<8> {
   typedef int64_t type;
 };
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
 // Must be non-const, atomic access trait, and 32 or 64 bit type for true atomics.
 template<class ViewTraits>
 class ViewDataHandle<
@@ -456,6 +458,8 @@ public:
     return handle_type(arg_data_ptr);
   }
 };
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 
 }} // namespace Kokkos::Impl
 

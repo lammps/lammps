@@ -212,7 +212,7 @@ public:
 
         // Join from lower ranking to higher ranking worker.
         // Value at m_worker_base[n-1] is zero so skip adding it to m_worker_base[n-2].
-        for ( int i = m_worker_size - 1 ; --i ; ) {
+        for ( int i = m_worker_size - 1 ; --i > 0 ; ) {
           ValueJoin::join( func , m_worker_base[i-1]->m_scratch_alloc , m_worker_base[i]->m_scratch_alloc );
         }
       }

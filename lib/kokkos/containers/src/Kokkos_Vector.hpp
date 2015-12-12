@@ -53,12 +53,8 @@
  */
   namespace Kokkos {
 
-template <typename Scalar, class Space = Kokkos::DefaultExecutionSpace >
-class vector : public DualView<Scalar*,LayoutLeft,Space> {
-public:
-  typedef typename Space::memory_space memory_space;
-  typedef typename Space::execution_space execution_space;
-  typedef typename Kokkos::Device<execution_space,memory_space> device_type;
+template< class Scalar, class Arg1Type = void>
+class vector : public DualView<Scalar*,LayoutLeft,Arg1Type> {
 
   typedef Scalar value_type;
   typedef Scalar* pointer;
@@ -72,7 +68,7 @@ private:
   size_t _size;
   typedef size_t size_type;
   float _extra_storage;
-  typedef DualView<Scalar*,LayoutLeft,Space> DV;
+  typedef DualView<Scalar*,LayoutLeft,Arg1Type> DV;
 
 
 public:
@@ -93,7 +89,7 @@ public:
   };
 
 
-  vector(int n, Scalar val=Scalar()):DualView<Scalar*,LayoutLeft,Space>("Vector",size_t(n*(1.1))) {
+  vector(int n, Scalar val=Scalar()):DualView<Scalar*,LayoutLeft,Arg1Type>("Vector",size_t(n*(1.1))) {
     _size = n;
     _extra_storage = 1.1;
     DV::modified_host() = 1;

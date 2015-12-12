@@ -1,0 +1,73 @@
+
+Developers of Kokkos (those who commit modifications to Kokkos)
+must maintain the snapshot of Kokkos in the Trilinos repository.
+
+This file contains instructions for how to
+snapshot Kokkos from github.com/kokkos to Trilinos.
+
+------------------------------------------------------------------------
+*** EVERYTHING GOES RIGHT WORKFLOW ***
+
+1) Given a 'git clone' of Kokkos and of Trilinos repositories.
+1.1) Let ${KOKKOS} be the absolute path to the Kokkos clone.
+     This path *must* terminate with the directory name 'kokkos';
+     e.g., ${HOME}/kokkos .
+1.2) Let ${TRILINOS} be the absolute path to the Trilinos directory.
+
+2) Given that the Kokkos build & test is clean and
+   changes are committed to the Kokkos clone.
+
+3) Snapshot the current commit in the Kokkos clone into the Trilinos clone.
+   This overwrites ${TRILINOS}/packages/kokkos with the content of ${KOKKOS}:
+	${KOKKOS}/config/snapshot.py --verbose ${KOKKOS} ${TRILINOS}/packages
+
+4) Verify the snapshot commit happened as expected
+	cd ${TRILINOS}/packages/kokkos
+	git log -1 --name-only
+
+5) Modify, build, and test Trilinos with the Kokkos snapshot.
+
+6) Given that that the Trilinos build & test is clean and
+   changes are committed to the Trilinos clone.
+
+7) Attempt push to the Kokkos repository.
+   If push fails then you must 'remove the Kokkos snapshot'
+   from your Trilinos clone.
+   See below.
+
+8) Attempt to push to the Trilinos repository.
+   If updating for a failed push requires you to change Kokkos you must
+   'remove the Kokkos snapshot' from your Trilinos clone.
+   See below.
+
+------------------------------------------------------------------------
+*** WHEN SOMETHING GOES WRONG AND YOU MUST              ***
+*** REMOVE THE KOKKOS SNAPSHOT FROM YOUR TRILINOS CLONE ***
+
+1) Query the Trilinos clone commit log.
+	git log --oneline
+
+2) Note the <SHA1> of the commit to the Trillinos clone
+   immediately BEFORE the Kokkos snapshot commit.
+   Copy this <SHA1> for use in the next command.
+
+3) IF more than one outstanding commit then you can remove just the
+   Kokkos snapshot commit with 'git rebase -i'.  Edit the rebase file.
+   Remove or comment out the Kokkos snapshot commit entry.
+	git rebase -i <SHA1>
+
+4) IF the Kokkos snapshot commit is the one and only
+   outstanding commit then remove just than commit.
+	git reset --hard HEAD~1
+
+------------------------------------------------------------------------
+*** REGARDING 'snapshot.py' TOOL ***
+
+The 'snapshot.py' tool is developed and maintained by the
+Center for Computing Research (CCR)
+Software Engineering, Maintenance, and Support (SEMS) team.
+
+Contact Brent Perschbacher <bmpersc@sandia.gov> for questions>
+
+------------------------------------------------------------------------
+

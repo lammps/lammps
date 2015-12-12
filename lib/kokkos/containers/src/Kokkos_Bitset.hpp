@@ -90,7 +90,7 @@ public:
 private:
   enum { block_size = static_cast<unsigned>(sizeof(unsigned)*CHAR_BIT) };
   enum { block_mask = block_size-1u };
-  enum { block_shift = static_cast<int>(Impl::power_of_two<block_size>::value) };
+  enum { block_shift = Kokkos::Impl::integral_power_of_two(block_size) };
 
 public:
 
@@ -322,7 +322,7 @@ public:
 private:
   enum { block_size = static_cast<unsigned>(sizeof(unsigned)*CHAR_BIT) };
   enum { block_mask = block_size -1u };
-  enum { block_shift = static_cast<int>(Impl::power_of_two<block_size>::value) };
+  enum { block_shift = Kokkos::Impl::integral_power_of_two(block_size) };
 
 public:
   ConstBitset()

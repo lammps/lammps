@@ -54,7 +54,59 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
+template<>
+struct ViewOperatorBoundsErrorAbort< Kokkos::CudaSpace > {
+  KOKKOS_INLINE_FUNCTION
+  static void apply( const size_t rank
+                   , const size_t n0 , const size_t n1
+                   , const size_t n2 , const size_t n3
+                   , const size_t n4 , const size_t n5
+                   , const size_t n6 , const size_t n7
+                   , const size_t i0 , const size_t i1
+                   , const size_t i2 , const size_t i3
+                   , const size_t i4 , const size_t i5
+                   , const size_t i6 , const size_t i7 )
+    {
+      const int r =
+        ( n0 <= i0 ? 0 :
+        ( n1 <= i1 ? 1 :
+        ( n2 <= i2 ? 2 :
+        ( n3 <= i3 ? 3 :
+        ( n4 <= i4 ? 4 :
+        ( n5 <= i5 ? 5 :
+        ( n6 <= i6 ? 6 : 7 )))))));
+      const size_t n =
+        ( n0 <= i0 ? n0 :
+        ( n1 <= i1 ? n1 :
+        ( n2 <= i2 ? n2 :
+        ( n3 <= i3 ? n3 :
+        ( n4 <= i4 ? n4 :
+        ( n5 <= i5 ? n5 :
+        ( n6 <= i6 ? n6 : n7 )))))));
+      const size_t i =
+        ( n0 <= i0 ? i0 :
+        ( n1 <= i1 ? i1 :
+        ( n2 <= i2 ? i2 :
+        ( n3 <= i3 ? i3 :
+        ( n4 <= i4 ? i4 :
+        ( n5 <= i5 ? i5 :
+        ( n6 <= i6 ? i6 : i7 )))))));
+      printf("Cuda view array bounds error index %d : FAILED %lu < %lu\n" , r , i , n );
+      Kokkos::Impl::cuda_abort("Cuda view array bounds error");
+    }
+};
+
+} // namespace Impl
+} // namespace Experimental
+} // namespace Kokkos
+
 //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+namespace Experimental {
+namespace Impl {
+
 // Cuda Texture fetches can be performed for 4, 8 and 16 byte objects (int,int2,int4)
 // Via reinterpret_case this can be used to support all scalar types of those sizes.
 // Any other scalar type falls back to either normal reads out of global memory,
@@ -130,7 +182,6 @@ struct CudaTextureFetch {
   CudaTextureFetch( const ValueType * const arg_ptr
                   , Kokkos::Experimental::Impl::SharedAllocationRecord< CudaMemorySpace , void > & record
                   )
-    // 'attach_texture_object' returns 0 when __CUDA_ARCH__ < 300
     : m_obj( record.template attach_texture_object< AliasType >() )
     , m_ptr( arg_ptr )
     , m_offset( record.attach_texture_object_offset( reinterpret_cast<const AliasType*>( arg_ptr ) ) )

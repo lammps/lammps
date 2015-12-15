@@ -1,0 +1,13 @@
+set term post enha colo 20
+set out 'pdos.eps'
+
+set xlabel '{/Symbol n} (THz)'
+set ylabel 'g({/Symbol n})'
+set xr [0:8]
+set yr [0:0.5]
+set key top left
+unset ytics
+
+plot 'dos-ld.dat'   u 1:2 w l lt -1 t 'LD',\
+     'dos.dat'      u 1:2 w l lt  2 lw 2 t 'MD',\
+     'dos-expr.dat' u 1:2 w l lt  3 lw 2 t 'expr'

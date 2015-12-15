@@ -1,0 +1,20 @@
+m = 1.
+k = 1.
+
+# analytic solution for 1D monoatomic chain
+omega(x) = 2.*sqrt(k/m) * abs(sin(pi*x))
+
+set xlabel 'q'
+set ylabel '{/Symbol w}'
+set xr [-0.5:0.5]
+set yr [0:2.5]
+
+set format y '%.1f'
+set term post enha color 20
+set out 'pdisp.eps'
+set key top left
+set xtics ("-{/Symbol p}/a" -0.5, "{/Symbol G}" 0.0, "{/Symbol p}/a" 0.5)
+set samples 101
+set grid xtics lt 9
+
+plot omega(x) w l lt 1 lc 3 t 'Theory', 'disp.dat' u 1:5 w p pt 7 ps 1.0 lc 1 t 'MD'

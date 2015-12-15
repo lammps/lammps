@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Body particles &mdash; LAMMPS 11 Dec 2015 documentation</title>
+  <title>Body particles &mdash; LAMMPS 15 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 11 Dec 2015 documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -140,17 +140,10 @@ particle types.</p>
 command.  It takes a body style as an argument.  The current body
 styles supported by LAMMPS are as follows.  The name in the first
 column is used as the <em>bstyle</em> argument for the <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a> command.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="28%" />
-<col width="72%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><em>nparticle</em></td>
-<td>rigid body with N sub-particles</td>
-</tr>
-</tbody>
-</table>
+<p><em>rounded/polygon</em> |
++&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;+
+| 2d convex polygon with N vertices |                                                   |
++&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;+</p>
 <p>The body style determines what attributes are stored for each body and
 thus how they can be used to compute pairwise body/body or
 bond/non-body (point particle) interactions.  More details of each
@@ -203,10 +196,22 @@ particles of different styles</p>
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="fix_nve_body.html"><em>fix nve/body</em></a></td>
-<td>integrate motion of a body particle</td>
+<td>integrate motion of a body particle in NVE ensemble</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_body_local.html"><em>compute body/local</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="fix_nvt_body.html"><em>fix nvt/body</em></a></td>
+<td>ditto for NVT ensemble</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_npt_body.html"><em>fix npt/body</em></a></td>
+<td>ditto for NPT ensemble</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_nph_body.html"><em>fix nph/body</em></a></td>
+<td>ditto for NPH ensemble</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_body_local.html"><em>compute body/local</em></a></td>
 <td>store sub-particle attributes of a body particle</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_temp_body.html"><em>compute temp/body</em></a></td>
+<td>compute temperature of body particles</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="dump.html"><em>dump local</em></a></td>
 <td>output sub-particle attributes of a body particle</td>
@@ -269,7 +274,78 @@ sub-particles in a body particle.  The datum has 3 values:</p>
 <p>These values are the current position of the sub-particle within the
 simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
-current COM and orientiation of the body particle.</p>
+current COM and orientation of the body particle.</p>
+<hr class="docutils" />
+<p><strong>Specifics of body style rounded/polygon:</strong></p>
+<p>The <em>rounded/polygon</em> body style represents body particles as a convex
+polygon with a variable number N &gt; 2 of vertices, which can only be
+used for 2d models.  One example use of this body style is for 2d
+discrete element models, as described in <a class="reference internal" href="pair_body_rounded_polygon.html#fraige"><span>Fraige</span></a>.  Similar to
+body style <em>nparticle</em>, the atom_style body command for this body
+style takes two additional arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre>atom_style body rounded/polygon Nmin Nmax
+Nmin = minimum # of vertices in any body in the system
+Nmax = maximum # of vertices in any body in the system
+</pre></div>
+</div>
+<p>The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.</p>
+<p>When the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command reads a data file for this
+body style, the following information must be provided for each entry
+in the <em>Bodies</em> section of the data file:</p>
+<div class="highlight-python"><div class="highlight"><pre>atom-ID 1 M
+N
+ixx iyy izz ixy ixz iyz x1 y1 z1 ...
+...
+... xN yN zN i j j k ...
+</pre></div>
+</div>
+<p>N is the number of vertices in the body particle.  M = 6 + 3*N + 2*N +
+1.  The integer line has a single value N.  The floating point line(s)
+list 6 moments of inertia followed by the coordinates of the N
+vertices (x1 to zN) as 3N values on as many lines as required.  Note
+that this in not N lines, but 10 values per line; see the
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command for details. The next 2N elements
+are the vertex indices corresponding to the ends of the N edges. The
+vertex indices (i, j, k, ...) range from 0 to (N-1), consistent with
+the order of the vertices listed. The last element is the radius of
+the smallest circle encompassing the polygon, which is used to
+facilitate the body/body contact detection.</p>
+<p>The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
+values consistent with the current orientation of the rigid body
+around its center of mass.  The values are with respect to the
+simulation box XYZ axes, not with respect to the prinicpal axes of the
+rigid body itself.  LAMMPS performs the latter calculation internally.
+The coordinates of each vertex are specified as its x,y,z displacement
+from the center-of-mass of the body particle.  The center-of-mass
+position of the particle is specified by the x,y,z values in the
+<em>Atoms</em> section of the data file.</p>
+<p>For example, the following information would specify a square
+particles whose edge length is sqrt(2):</p>
+<div class="highlight-python"><div class="highlight"><pre>3 1 27
+4
+1 1 4 0 0 0 -0.7071 -0.7071 0 -0.7071
+0.7071 0 0.7071 0.7071 0 0.7071 -0.7071 0 0 1
+1 2 2 3 3 0 1.0
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="pair_body_rounded_polygon.html"><em>pair_style body/rounded/polygon</em></a> command
+can be used with this body style to compute body/body interactions.</p>
+<p>For output purposes via the <a class="reference internal" href="compute_body_local.html"><em>compute body/local</em></a> and <a class="reference internal" href="dump.html"><em>dump local</em></a>
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:</p>
+<div class="highlight-python"><div class="highlight"><pre>1 = x position of vertex
+2 = y position of vertex
+3 = z position of vertex
+</pre></div>
+</div>
+<p>These values are the current position of the vertex within the
+simulation domain, not a displacement from the center-of-mass (COM) of
+the body particle itself.  These values are calculated using the
+current COM and orientation of the body particle.</p>
+<hr class="docutils" />
+<p id="fraige"><strong>(Fraige)</strong> F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
+Particuology, 6, 455 (2008).</p>
 </div>
 
 
@@ -303,7 +379,7 @@ current COM and orientiation of the body particle.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'11 Dec 2015',
+            VERSION:'15 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

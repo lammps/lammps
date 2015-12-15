@@ -66,7 +66,6 @@ class PairCoulDSFKokkos : public PairCoulDSF {
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread q;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;

@@ -56,7 +56,7 @@ private:
 
   doublecomplex **DM_all;
 
-  void car2dir(int); // to convert basis from cartisian coordinate into factional.
+  void car2dir();      // to convert basis from cartisian coordinate into factional.
   void real2rec();
   void GaussJordan(int, double *);
 

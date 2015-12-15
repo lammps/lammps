@@ -1,0 +1,134 @@
+Kokkos implements a programming model in C++ for writing performance portable
+applications targeting all major HPC platforms. For that purpose it provides
+abstractions for both parallel execution of code and data management.
+Kokkos is designed to target complex node architectures with N-level memory
+hierarchies and multiple types of execution resources. It currently can use
+OpenMP, Pthreads and CUDA as backend programming models.
+
+The core developers of Kokkos are Carter Edwards and Christian Trott
+at the Computer Science Research Institute of the Sandia National
+Laboratories.
+
+The KokkosP interface and associated tools are developed by the Application
+Performance Team and Kokkos core developers at Sandia National Laboratories.
+
+To learn more about Kokkos consider watching one of our presentations:
+GTC 2015:
+  http://on-demand.gputechconf.com/gtc/2015/video/S5166.html
+  http://on-demand.gputechconf.com/gtc/2015/presentation/S5166-H-Carter-Edwards.pdf
+
+A programming guide can be found under doc/Kokkos_PG.pdf. This is an initial version
+and feedback is greatly appreciated.
+
+A separate repository with extensive tutorial material can be found under 
+https://github.com/kokkos/kokkos-tutorials.
+
+If you have a patch to contribute please feel free to issue a pull request against
+the develop branch. For major contributions it is better to contact us first
+for guidance.
+
+For questions please send an email to
+kokkos-users@software.sandia.gov
+
+For non-public questions send an email to
+hcedwar(at)sandia.gov and crtrott(at)sandia.gov
+
+============================================================================
+====Requirements============================================================
+============================================================================
+
+Primary tested compilers are:
+  GCC 4.7.2
+  GCC 4.8.4
+  GCC 4.9.2
+  GCC 5.1.0
+  Intel 14.0.4
+  Intel 15.0.2
+  Clang 3.5.2
+  Clang 3.6.1
+
+Secondary tested compilers are:
+  CUDA 6.5 (with gcc 4.7.2)
+  CUDA 7.0 (with gcc 4.7.2)
+  CUDA 7.5 (with gcc 4.7.2)
+
+Other compilers working:
+  PGI 15.4
+  IBM XL 13.1.2
+  Cygwin 2.1.0 64bit with gcc 4.9.3
+
+Primary tested compiler are passing in release mode
+with warnings as errors. We are using the following set
+of flags:
+GCC:   -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits
+       -Wignored-qualifiers -Wempty-body -Wclobbered -Wuninitialized
+Intel: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
+Clang: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
+
+Secondary compilers are passing without -Werror.
+Other compilers are tested occasionally.
+
+============================================================================
+====Getting started=========================================================
+============================================================================
+
+In the 'example/tutorial' directory you will find step by step tutorial
+examples which explain many of the features of Kokkos. They work with
+simple Makefiles. To build with g++ and OpenMP simply type 'make openmp'
+in the 'example/tutorial' directory. This will build all examples in the
+subfolders.
+
+============================================================================
+====Running Unit Tests======================================================
+============================================================================
+
+To run the unit tests create a build directory and run the following commands
+
+KOKKOS_PATH/generate_makefile.bash
+make build-test
+make test
+
+Run KOKKOS_PATH/generate_makefile.bash --help for more detailed options such as
+changing the device type for which to build.
+
+============================================================================
+====Install the library=====================================================
+============================================================================
+
+To install Kokkos as a library create a build directory and run the following
+
+KOKKOS_PATH/generate_makefile.bash --prefix=INSTALL_PATH
+make lib
+make install
+
+KOKKOS_PATH/generate_makefile.bash --help for more detailed options such as
+changing the device type for which to build.
+
+============================================================================
+====CMakeFiles==============================================================
+============================================================================
+
+The CMake files contained in this repository require Tribits and are used
+for integration with Trilinos. They do not currently support a standalone
+CMake build.
+
+===========================================================================
+====Kokkos and CUDA UVM====================================================
+===========================================================================
+
+Kokkos does support UVM as a specific memory space called CudaUVMSpace. 
+Allocations made with that space are accessible from host and device. 
+You can tell Kokkos to use that as the default space for Cuda allocations.
+In either case UVM comes with a number of restrictions:
+(i) You can't access allocations on the host while a kernel is potentially 
+running. This will lead to segfaults. To avoid that you either need to 
+call Kokkos::Cuda::fence() (or just Kokkos::fence()), after kernels, or
+you can set the environment variable CUDA_LAUNCH_BLOCKING=1.
+Furthermore in multi socket multi GPU machines, UVM defaults to using 
+zero copy allocations for technical reasons related to using multiple
+GPUs from the same process. If an executable doesn't do that (e.g. each
+MPI rank of an application uses a single GPU [can be the same GPU for 
+multiple MPI ranks]) you can set CUDA_MANAGED_FORCE_DEVICE_ALLOC=1.
+This will enforce proper UVM allocations, but can lead to errors if 
+more than a single GPU is used by a single process.
+ 

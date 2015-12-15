@@ -1,0 +1,62 @@
+Kokkos_UnorderedMap_impl.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/containers/src/impl/Kokkos_UnorderedMap_impl.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/containers/src/impl/Kokkos_UnorderedMap_impl.cpp
+Kokkos_AllocationTracker.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_AllocationTracker.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_AllocationTracker.cpp
+Kokkos_BasicAllocators.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_BasicAllocators.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_BasicAllocators.cpp
+Kokkos_Core.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Core.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Core.cpp
+Kokkos_Error.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Error.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Error.cpp
+Kokkos_HostSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace.cpp
+Kokkos_hwloc.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_hwloc.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_hwloc.cpp
+Kokkos_Serial.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Serial.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Serial.cpp
+Kokkos_Serial_TaskPolicy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Serial_TaskPolicy.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Serial_TaskPolicy.cpp
+Kokkos_Shape.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Shape.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Shape.cpp
+Kokkos_spinwait.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_spinwait.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_spinwait.cpp
+Kokkos_Profiling_Interface.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Profiling_Interface.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Profiling_Interface.cpp
+KokkosExp_SharedAlloc.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/KokkosExp_SharedAlloc.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/KokkosExp_SharedAlloc.cpp
+
+ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
+Kokkos_Cuda_BasicAllocators.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_BasicAllocators.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_BasicAllocators.cpp
+Kokkos_Cuda_Impl.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Impl.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Impl.cpp
+Kokkos_CudaSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+Kokkos_ThreadsExec_base.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec_base.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec_base.cpp
+Kokkos_ThreadsExec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec.cpp
+Kokkos_Threads_TaskPolicy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_Threads_TaskPolicy.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_Threads_TaskPolicy.cpp
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_QTHREAD), 1)
+Kokkos_QthreadExec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Qthread/Kokkos_QthreadExec.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Qthread/Kokkos_QthreadExec.cpp
+Kokkos_Qthread_TaskPolicy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Qthread/Kokkos_Qthread_TaskPolicy.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Qthread/Kokkos_Qthread_TaskPolicy.cpp
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
+Kokkos_OpenMPexec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMPexec.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMPexec.cpp
+endif
+
+Kokkos_HBWSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWSpace.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWSpace.cpp
+Kokkos_HBWAllocators.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWAllocators.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWAllocators.cpp
+

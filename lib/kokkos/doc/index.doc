@@ -1,0 +1,72 @@
+/*! 
+\mainpage Trilinos/Kokkos: Shared-memory programming interface and computational kernels
+
+\section Kokkos_Intro Introduction
+
+The %Kokkos package has two main components.  The first, sometimes
+called "%Kokkos Array" or just "%Kokkos," implements a
+performance-portable shared-memory parallel programming model and data
+containers.  The second, called "%Kokkos Classic," consists of
+computational kernels that support the %Tpetra package.
+
+\section Kokkos_Kokkos The %Kokkos programming model
+
+%Kokkos implements a performance-portable shared-memory parallel
+programming model and data containers.  It lets you write an algorithm
+once, and just change a template parameter to get the optimal data
+layout for your hardware.  %Kokkos has back-ends for the following
+parallel programming models:
+
+- Kokkos::Threads: POSIX Threads (Pthreads)
+- Kokkos::OpenMP: OpenMP
+- Kokkos::Cuda: NVIDIA's CUDA programming model for graphics
+  processing units (GPUs)
+- Kokkos::Serial: No thread parallelism
+
+%Kokkos also has optimizations for shared-memory parallel systems with
+nonuniform memory access (NUMA).  Its containers can hold data of any
+primitive ("plain old") data type (and some aggregate types).  %Kokkos
+Array may be used as a stand-alone programming model.
+
+%Kokkos' parallel operations include the following:
+
+- parallel_for: a thread-parallel "for loop"
+- parallel_reduce: a thread-parallel reduction
+- parallel_scan: a thread-parallel prefix scan operation
+
+as well as expert-level platform-independent interfaces to thread
+"teams," per-team "shared memory," synchronization, and atomic update
+operations.
+
+%Kokkos' data containers include the following:
+
+- Kokkos::View: A multidimensional array suitable for thread-parallel
+  operations.  Its layout (e.g., row-major or column-major) is
+  optimized by default for the particular thread-parallel device.
+- Kokkos::Vector: A drop-in replacement for std::vector that eases
+  porting from standard sequential C++ data structures to %Kokkos'
+  parallel data structures.
+- Kokkos::UnorderedMap: A parallel lookup table comparable in
+  functionality to std::unordered_map.
+
+%Kokkos also uses the above basic containers to implement higher-level
+data structures, like sparse graphs and matrices.
+
+A good place to start learning about %Kokkos would be <a href="http://trilinos.sandia.gov/events/trilinos_user_group_2013/presentations/2013-11-TUG-Kokkos-Tutorial.pdf">these tutorial slides</a> from the 2013 Trilinos Users' Group meeting.
+
+\section Kokkos_Classic %Kokkos Classic
+
+"%Kokkos Classic" consists of computational kernels that support the
+%Tpetra package.  These kernels include sparse matrix-vector multiply,
+sparse triangular solve, Gauss-Seidel, and dense vector operations.
+They are templated on the type of objects (\c Scalar) on which they
+operate.  This component was not meant to be visible to users; it is
+an implementation detail of the %Tpetra distributed linear algebra
+package.  
+
+%Kokkos Classic also implements a shared-memory parallel programming
+model.  This inspired and preceded the %Kokkos programming model
+described in the previous section.  Users should consider the %Kokkos
+Classic programming model deprecated, and prefer the new %Kokkos
+programming model.
+*/

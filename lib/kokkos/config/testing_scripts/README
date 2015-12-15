@@ -1,0 +1,5 @@
+jenkins_test_driver is designed to be run through Jenkins as a
+multiconfiguration job. It relies on a number of environment variables that will
+only be set when run in that context. It is possible to override these if you
+know the Jenkins job setup. It is not recommended that a non-expert try to run
+this script directly.

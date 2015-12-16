@@ -5,9 +5,6 @@ units		lj
 atom_style	sphere
 dimension	2
 
-print "test disabled because it stalls on oversubscribed nodes for unknown reasons"
-quit 0
-
 lattice		sq 0.01
 region		box block 0 30 0 30 -0.5 0.5
 create_box	2 box

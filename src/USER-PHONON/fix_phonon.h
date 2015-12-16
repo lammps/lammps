@@ -22,6 +22,7 @@
 
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(phonon,FixPhonon)
@@ -41,7 +42,7 @@ typedef double FFT_SCALAR;
 
 #include <complex>
 #include "fix.h"
-#include <map.h>
+#include <map>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

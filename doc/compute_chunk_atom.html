@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute chunk/atom command &mdash; LAMMPS 9 Dec 2015 documentation</title>
+  <title>compute chunk/atom command &mdash; LAMMPS 15 Dec 2015 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 9 Dec 2015 documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 Dec 2015 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -149,17 +149,17 @@ style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>bin/sphere<
     dim = <em>x</em> or <em>y</em> or <em>z</em>
     origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
-  <em>bin/sphere</em> args = xorig yorig zorig rmin rmax nrbin
+  <em>bin/sphere</em> args = xorig yorig zorig rmin rmax nsbin
     xorig,yorig,zorig = center point of sphere
     srmin,srmax = bin from sphere radius rmin to rmax
-    nsbin = # of bins between rmin and rmax
-  <em>bin/cylinder</em> args = dim origin delta c1 c2 rmin rmax nrbin
+    nsbin = # of spherical shell bins between rmin and rmax
+  <em>bin/cylinder</em> args = dim origin delta c1 c2 rmin rmax ncbin
     dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cylinder axis
     origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     crmin,crmax = bin from cylinder radius rmin to rmax (distance units)
-    ncbin = # of bins between rmin and rmax
+    ncbin = # of concentric circle bins between rmin and rmax
   <em>type</em> args = none
   <em>molecule</em> args = none
   <em>compute/fix/variable</em> = c_ID, c_ID[I], f_ID, f_ID[I], v_name with no args
@@ -288,9 +288,9 @@ box and an <em>origin</em> of 1.0 means to start layers at the upper &#8220;b&#8
 cross &#8220;c&#8221; face of the box.  A <em>delta</em> value of 0.1 in <em>reduced</em> units
 means there will be 10 layers from 0.0 to 1.0, regardless of the
 current size or shape of the simulation box.</p>
-<p>The <em>bin/sphere</em> style defines a set of spherical shells around the
-origin (<em>xorig</em>,*yorig*,*zorig*), using <em>nsbin</em> shells with radii
-equally spaced between <em>srmin</em> and <em>srmax</em>, for effectively a 1d
+<p>The <em>bin/sphere</em> style defines a set of spherical shell bins around
+the origin (<em>xorig</em>,*yorig*,*zorig*), using <em>nsbin</em> bins with radii
+equally spaced between <em>srmin</em> and <em>srmax</em>.  This is effectively a 1d
 vector of bins.  For example, if <em>srmin</em> = 1.0 and <em>srmax</em> = 10.0 and
 <em>nsbin</em> = 9, then the first bin spans 1.0 &lt; r &lt; 2.0, and the last bin
 spans 9.0 &lt; r 10.0.  The geometry of the bins is the same whether the
@@ -298,29 +298,30 @@ simulation box is orthogonal or triclinic; i.e. the spherical shells
 are not tilted or scaled differently in different dimensions to
 transform them into ellipsoidal shells.</p>
 <p>The <em>bin/cylinder</em> style defines bins for a cylinder oriented along
-the axis <em>dim</em> with the axis position in the other two radial
+the axis <em>dim</em> with the axis coordinates in the other two radial
 dimensions at (<em>c1</em>,*c2*).  For dim = x, c1/c2 = y/z; for dim = y,
-c1/c2 = x/z; for dim = z, c1/c2 = x/y.  These can be thought of as a
-2d array of bins, each of which is a pie-shaped wedge (radial
-dimensions) of finite height (along the cylinder axis).  The bin size
+c1/c2 = x/z; for dim = z, c1/c2 = x/y.  This is effectively a 2d array
+of bins.  The first dimension is along the cylinder axis, the second
+dimension is radially outward from the cylinder axis.  The bin size
 and positions along the cylinder axis are specified by the <em>origin</em>
 and <em>delta</em> values, the same as for the <em>bin/1d</em>, <em>bin/2d</em>, and
-<em>bin/3d</em> styles.  There are <em>ncbin</em> concentric circles in the radial
-direction from the cylinder axis with radii equally spaced between
-<em>crmin</em> and <em>crmax</em>.  For example, if <em>crmin</em> = 1.0 and <em>crmax</em> = 10.0
-and <em>ncbin</em> = 9, then the first bin spans 1.0 &lt; r &lt; 2.0, and the last
-bin spans 9.0 &lt; r 10.0.  The geometry of the bins in the radial
-dimensions is the same whether the simulation box is orthogonal or
-triclinic; i.e. the circles are not tilted or scaled differently in
-the two different dimensions to transform them into ellipses.</p>
+<em>bin/3d</em> styles.  There are <em>ncbin</em> concentric circle bins in the
+radial direction from the cylinder axis with radii equally spaced
+between <em>crmin</em> and <em>crmax</em>.  For example, if <em>crmin</em> = 1.0 and
+<em>crmax</em> = 10.0 and <em>ncbin</em> = 9, then the first bin spans 1.0 &lt; r &lt;
+2.0, and the last bin spans 9.0 &lt; r 10.0.  The geometry of the bins in
+the radial dimensions is the same whether the simulation box is
+orthogonal or triclinic; i.e. the concetric circles are not tilted or
+scaled differently in the two different dimensions to transform them
+into ellipses.</p>
 <p>The created bins (and hence the chunk IDs) are numbered consecutively
-from 1 to the number of bins = <em>Nchunk</em>.  For 2d and 3d bins, the
+from 1 to the number of bins = <em>Nchunk</em>.  For <em>bin2d</em> and <em>bin3d</em>, the
 numbering varies most rapidly in the first dimension (which could be
 x, y, or z), next rapidly in the 2nd dimension, and most slowly in the
-3rd dimension.  For spherical 1d bins, the innermost shell is chunk 1
-and the outermost shell is chunk Nchunk = <em>nsbin</em>.  For cylindrical
-2d bins, the numbering varies most rapidly in the dimension along the
-cylinder axis and most slowly in the radial direction.</p>
+3rd dimension.  For <em>bin/sphere</em>, the bin with smallest radii is chunk
+1 and the bni with largest radii is chunk Nchunk = <em>ncbin</em>.  For
+<em>bin/cylinder</em>, the numbering varies most rapidly in the dimension
+along the cylinder axis and most slowly in the radial direction.</p>
 <p>Each time this compute is invoked, each atom is mapped to a bin based
 on its current position.  Note that between reneighboring timesteps,
 atoms can move outside the current simulation box.  If the box is
@@ -718,7 +719,7 @@ the restarted simulation begins.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'9 Dec 2015',
+            VERSION:'15 Dec 2015',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -27,7 +27,8 @@ styles supported by LAMMPS are as follows.  The name in the first
 column is used as the {bstyle} argument for the "atom_style
 body"_atom_style.html command.
 
-{nparticle} | rigid body with N sub-particles :tb(c=2,s=|)
+{nparticle} | rigid body with N sub-particles
+{rounded/polygon} | 2d convex polygon with N vertices :tb(c=2,s=|)
 
 The body style determines what attributes are stored for each body and
 thus how they can be used to compute pairwise body/body or
@@ -83,8 +84,12 @@ sufaces that inter-penetrate.
 These are additional LAMMPS commands that can be used with body
 particles of different styles
 
-"fix nve/body"_fix_nve_body.html : integrate motion of a body particle
+"fix nve/body"_fix_nve_body.html : integrate motion of a body particle in NVE ensemble
+"fix nvt/body"_fix_nvt_body.html : ditto for NVT ensemble
+"fix npt/body"_fix_npt_body.html : ditto for NPT ensemble
+"fix nph/body"_fix_nph_body.html : ditto for NPH ensemble
 "compute body/local"_compute_body_local.html : store sub-particle attributes of a body particle
+"compute temp/body"_compute_temp_body.html : compute temperature of body particles
 "dump local"_dump.html : output sub-particle attributes of a body particle :tb(s=:)
 
 The pair styles defined for use with specific body styles are listed
@@ -151,4 +156,86 @@ sub-particles in a body particle.  The datum has 3 values:
 These values are the current position of the sub-particle within the
 simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
-current COM and orientiation of the body particle.
+current COM and orientation of the body particle.
+
+:line
+
+[Specifics of body style rounded/polygon:]
+
+The {rounded/polygon} body style represents body particles as a convex
+polygon with a variable number N > 2 of vertices, which can only be
+used for 2d models.  One example use of this body style is for 2d
+discrete element models, as described in "Fraige"_#Fraige.  Similar to
+body style {nparticle}, the atom_style body command for this body
+style takes two additional arguments:
+
+atom_style body rounded/polygon Nmin Nmax
+Nmin = minimum # of vertices in any body in the system
+Nmax = maximum # of vertices in any body in the system :pre
+
+The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.
+
+When the "read_data"_read_data.html command reads a data file for this
+body style, the following information must be provided for each entry
+in the {Bodies} section of the data file:
+
+atom-ID 1 M
+N
+ixx iyy izz ixy ixz iyz x1 y1 z1 ...
+...
+... xN yN zN i j j k ... :pre
+
+N is the number of vertices in the body particle.  M = 6 + 3*N + 2*N +
+1.  The integer line has a single value N.  The floating point line(s)
+list 6 moments of inertia followed by the coordinates of the N
+vertices (x1 to zN) as 3N values on as many lines as required.  Note
+that this in not N lines, but 10 values per line; see the
+"read_data"_read_data.html command for details. The next 2N elements
+are the vertex indices corresponding to the ends of the N edges. The
+vertex indices (i, j, k, ...) range from 0 to (N-1), consistent with
+the order of the vertices listed. The last element is the radius of
+the smallest circle encompassing the polygon, which is used to
+facilitate the body/body contact detection.
+
+The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
+values consistent with the current orientation of the rigid body
+around its center of mass.  The values are with respect to the
+simulation box XYZ axes, not with respect to the prinicpal axes of the
+rigid body itself.  LAMMPS performs the latter calculation internally.
+The coordinates of each vertex are specified as its x,y,z displacement
+from the center-of-mass of the body particle.  The center-of-mass
+position of the particle is specified by the x,y,z values in the
+{Atoms} section of the data file.
+
+For example, the following information would specify a square
+particles whose edge length is sqrt(2):
+
+3 1 27
+4
+1 1 4 0 0 0 -0.7071 -0.7071 0 -0.7071
+0.7071 0 0.7071 0.7071 0 0.7071 -0.7071 0 0 1
+1 2 2 3 3 0 1.0 :pre
+
+The "pair_style body/rounded/polygon"_pair_body_rounded_polygon.html command
+can be used with this body style to compute body/body interactions.
+
+For output purposes via the "compute
+body/local"_compute_body_local.html and "dump local"_dump.html
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:
+
+1 = x position of vertex
+2 = y position of vertex
+3 = z position of vertex :pre
+
+These values are the current position of the vertex within the
+simulation domain, not a displacement from the center-of-mass (COM) of
+the body particle itself.  These values are calculated using the
+current COM and orientation of the body particle.
+
+:line
+
+:link(Fraige)
+[(Fraige)] F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
+Particuology, 6, 455 (2008).

@@ -28,7 +28,6 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
 #include "force.h"
 #include "group.h"
 #include "lattice.h"
@@ -64,7 +63,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
-
+  
   if (narg < 8) error->all(FLERR,"Illegal fix phonon command: number of arguments < 8");
 
   nevery = force->inumeric(FLERR, arg[3]);   // Calculate this fix every n steps!
@@ -85,7 +84,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   strcpy(prefix, arg[7]);
   logfile = new char[n+4];
   sprintf(logfile,"%s.log",prefix);
-
+  
   int sdim = sysdim = domain->dimension;
   int iarg = 8;
   nasr = 20;
@@ -139,23 +138,23 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   nxlo = 0;
   int *nx_loc = new int [nprocs];
   for (int i = 0; i < nprocs; ++i){
-    nx_loc[i] = nx/nprocs;
+    nx_loc[i] = nx / nprocs;
     if (i < nx%nprocs) ++nx_loc[i];
   }
   for (int i = 0; i < me; ++i) nxlo += nx_loc[i];
   nxhi  = nxlo + nx_loc[me] - 1;
-  mynpt = nx_loc[me]*ny*nz;
+  mynpt = nx_loc[me] * ny * nz;
   mynq  = mynpt;
 
-  fft_dim   = nucell*sysdim;
-  fft_dim2  = fft_dim*fft_dim;
-  fft_nsend = mynpt*fft_dim;
+  fft_dim   = nucell  * sysdim;
+  fft_dim2  = fft_dim * fft_dim;
+  fft_nsend = mynpt   * fft_dim;
 
   fft_cnts  = new int[nprocs];
   fft_disp  = new int[nprocs];
   fft_disp[0] = 0;
-  for (int i = 0; i < nprocs; ++i) fft_cnts[i] = nx_loc[i]*ny*nz*fft_dim;
-  for (int i = 1; i < nprocs; ++i) fft_disp[i] = fft_disp[i-1]+fft_cnts[i-1];
+  for (int i = 0; i < nprocs; ++i) fft_cnts[i] = nx_loc[i] * ny * nz * fft_dim;
+  for (int i = 1; i < nprocs; ++i) fft_disp[i] = fft_disp[i-1] + fft_cnts[i-1];
   delete []nx_loc;
 
   fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
@@ -165,10 +164,10 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   memory->create(RIloc,ngroup,(sysdim+1),"fix_phonon:RIloc");
   memory->create(RIall,ngroup,(sysdim+1),"fix_phonon:RIall");
   memory->create(Rsort,ngroup, sysdim, "fix_phonon:Rsort");
-
+                              
   memory->create(Rnow, MAX(1,mynpt),fft_dim,"fix_phonon:Rnow");
   memory->create(Rsum, MAX(1,mynpt),fft_dim,"fix_phonon:Rsum");
-
+                              
   memory->create(basis,nucell, sysdim, "fix_phonon:basis");
 
   // because of hermit, only nearly half of q points are stored
@@ -199,7 +198,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
     fprintf(flog,"# output result after this many measurement: %d\n", nfreq);
     fprintf(flog,"# number of processors used by this run    : %d\n", nprocs);
     for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog,"# mapping information between lattice index and atom id\n");
+    fprintf(flog,"# mapping information between lattice indices and atom id\n");
     fprintf(flog,"# nx ny nz nucell\n");
     fprintf(flog,"%d %d %d %d\n", nx, ny, nz, nucell);
     fprintf(flog,"# l1 l2 l3 k atom_id\n");
@@ -216,14 +215,14 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
     fflush(flog);
   }
   surf2tag.clear();
-
+ 
   // default temperature is from thermo
   TempSum = new double[sysdim];
   id_temp = new char[12];
   strcpy(id_temp,"thermo_temp");
   int icompute = modify->find_compute(id_temp);
   temperature = modify->compute[icompute];
-  inv_nTemp = 1.0/group->count(temperature->igroup);
+  inv_nTemp = 1./group->count(temperature->igroup);
 
 } // end of constructor
 
@@ -268,7 +267,7 @@ FixPhonon::~FixPhonon()
   // destroy FFT
   delete fft;
   memory->sfree(fft_data);
-
+  
   // clear map info
   tag2surf.clear();
   surf2tag.clear();
@@ -291,7 +290,7 @@ void FixPhonon::init()
 {
   // warn if more than one fix-phonon
   int count = 0;
-  for (int i = 0; i < modify->nfix; ++i) if (strcmp(modify->fix[i]->style,"gfc") == 0) ++count;
+  for (int i = 0; i < modify->nfix; ++i) if (strcmp(modify->fix[i]->style,"phonon") == 0) ++count;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix phonon defined"); // just warn, but allowed.
 }
 
@@ -313,8 +312,8 @@ void FixPhonon::setup(int flag)
   for (int i = 0; i < nucell; ++i)
   for (int j = 0; j < sysdim; ++j) basis[i][j] = 0.;
 
+  neval = ifreq = 0;
   prev_nstep = update->ntimestep;
-  neval  = ifreq = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -324,12 +323,12 @@ void FixPhonon::end_of_step()
   if ( (update->ntimestep-prev_nstep) <= waitsteps) return;
 
   double **x = atom->x;
-  int *mask  = atom->mask;
-  tagint *tag   = atom->tag;
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  double *h   = domain->h;
+  double *h = domain->h;
 
   int i,idim,jdim,ndim;
   double xcur[3];
@@ -346,9 +345,9 @@ void FixPhonon::end_of_step()
       idx  = tag2surf[itag];
 
       domain->unmap(x[i], image[i], xcur);
-
+        
       for (idim = 0; idim < sysdim; ++idim) RIloc[nfind][idim] = xcur[idim];
-      RIloc[nfind++][sysdim] = double(idx);
+      RIloc[nfind++][sysdim] = static_cast<double>(idx);
     }
   }
 
@@ -374,17 +373,17 @@ void FixPhonon::end_of_step()
 
   // FFT R(r) to get R(q)
   for (idim = 0; idim < fft_dim; ++idim){
-    int m=0;
+    int m = 0;
     for (idx = 0; idx < mynpt; ++idx){
-      fft_data[m++] = Rnow[idx][idim];
-      fft_data[m++] = 0.f;
+      fft_data[m++] = static_cast<FFT_SCALAR>(Rnow[idx][idim]);
+      fft_data[m++] = static_cast<FFT_SCALAR>(0.);
     }
 
     fft->compute(fft_data, fft_data, -1);
 
     m = 0;
     for (idq = 0; idq < mynq; ++idq){
-      Rqnow[idq][idim] = std::complex<double>(fft_data[m], fft_data[m+1]);
+      Rqnow[idq][idim] = std::complex<double>(static_cast<double>(fft_data[m]), static_cast<double>(fft_data[m+1]));
       m += 2;
     }
   }
@@ -393,7 +392,7 @@ void FixPhonon::end_of_step()
   for (idq = 0; idq < mynq; ++idq){
     ndim = 0;
     for (idim = 0; idim < fft_dim; ++idim)
-    for (jdim = 0; jdim < fft_dim; ++jdim) Rqsum[idq][ndim++] += Rqnow[idq][idim]*conj(Rqnow[idq][jdim]);
+    for (jdim = 0; jdim < fft_dim; ++jdim) Rqsum[idq][ndim++] += Rqnow[idq][idim] * std::conj(Rqnow[idq][jdim]);
   }
 
   // get basis info
@@ -540,14 +539,14 @@ void FixPhonon::readmap()
     for (int i = 0; i < atom->nlocal; ++i){
       if (atom->mask[i] & groupbit) tag_loc[nfind++] = atom->tag[i];
     }
-
+   
     // gather IDs on local proc
     displs[0] = 0;
     for (int i = 0; i < nprocs; ++i) recvcnts[i] = 0;
     MPI_Allgather(&nfind,1,MPI_INT,recvcnts,1,MPI_INT,world);
     for (int i = 1; i < nprocs; ++i) displs[i] = displs[i-1] + recvcnts[i-1];
-
-    MPI_Allgatherv(tag_loc,nfind,MPI_LMP_TAGINT,tag_all,recvcnts,displs,MPI_INT,world);
+   
+    MPI_Allgatherv(tag_loc,nfind,MPI_LMP_TAGINT,tag_all,recvcnts,displs,MPI_LMP_TAGINT,world);
     for (int i = 0; i < ngroup; ++i){
       itag = tag_all[i];
       tag2surf[itag] = i;
@@ -567,24 +566,24 @@ void FixPhonon::readmap()
     error->all(FLERR,line);
   }
 
-  if (fgets(line,MAXLINE,fp) == NULL)
+  if (fgets(line,MAXLINE,fp) == NULL) 
     error->all(FLERR,"Error while reading header of mapping file!");
   nx     = force->inumeric(FLERR, strtok(line, " \n\t\r\f"));
   ny     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
   nz     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
   nucell = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
   ntotal = nx*ny*nz;
-  if (ntotal*nucell != ngroup)
+  if (ntotal*nucell != ngroup) 
     error->all(FLERR,"FFT mesh and number of atoms in group mismatch!");
-
+  
   // second line of mapfile is comment
-  if (fgets(line,MAXLINE,fp) == NULL)
+  if (fgets(line,MAXLINE,fp) == NULL) 
     error->all(FLERR,"Error while reading comment of mapping file!");
 
   int ix, iy, iz, iu;
   // the remaining lines carry the mapping info
   for (int i = 0; i < ngroup; ++i){
-    if (fgets(line,MAXLINE,fp) == NULL) {info = 1; break;}
+    if (fgets(line,MAXLINE,fp) == NULL) {info = 1; break;} 
     ix   = force->inumeric(FLERR, strtok(line, " \n\t\r\f"));
     iy   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
     iz   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
@@ -592,21 +591,21 @@ void FixPhonon::readmap()
     itag = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
 
     // check if index is in correct range
-    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny ||
+    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny || 
         iz < 0 || iz >= nz || iu < 0 || iu >= nucell) {info = 2; break;}
     // 1 <= itag <= natoms
-    if (itag < 1 || itag > static_cast<int>(atom->natoms)) {info = 3; break;}
+    if (itag < 1 || itag > static_cast<tagint>(atom->natoms)) {info = 3; break;}
     idx = ((ix*ny+iy)*nz+iz)*nucell + iu;
     tag2surf[itag] = idx;
     surf2tag[idx]  = itag;
   }
   fclose(fp);
 
-  if (tag2surf.size() != surf2tag.size() ||
+  if (tag2surf.size() != surf2tag.size() || 
       tag2surf.size() != static_cast<std::size_t>(ngroup) )
     error->all(FLERR,"The mapping is incomplete!");
   if (info) error->all(FLERR,"Error while reading mapping file!");
-
+  
   // check the correctness of mapping
   int *mask  = atom->mask;
   tagint *tag   = atom->tag;
@@ -616,7 +615,7 @@ void FixPhonon::readmap()
     if (mask[i] & groupbit){
       itag = tag[i];
       idx  = tag2surf[itag];
-      if (itag != surf2tag[idx])
+      if (itag != surf2tag[idx]) 
         error->one(FLERR,"The mapping info read is incorrect!");
     }
   }
@@ -631,11 +630,11 @@ void FixPhonon::postprocess( )
 
   ifreq = 0;
   int idim, jdim, ndim;
-  double inv_neval = 1.0 /double(neval);
+  double inv_neval = 1. /double(neval);
 
   // to get <Rq.Rq*>
   for (idq = 0; idq < mynq; ++idq)
-  for (idim = 0; idim < fft_dim2; ++idim) Phi_q[idq][idim] = Rqsum[idq][idim]*inv_neval;
+  for (idim = 0; idim < fft_dim2; ++idim) Phi_q[idq][idim] = Rqsum[idq][idim] * inv_neval;
 
   // to get <R>
   for (idx = 0; idx < mynpt; ++idx)
@@ -645,15 +644,15 @@ void FixPhonon::postprocess( )
   for (idim = 0; idim < fft_dim; ++idim){
     int m = 0;
     for (idx = 0; idx < mynpt; ++idx){
-      fft_data[m++] = Rnow[idx][idim];
-      fft_data[m++] = 0.;
+      fft_data[m++] = static_cast<FFT_SCALAR>(Rnow[idx][idim]);
+      fft_data[m++] = static_cast<FFT_SCALAR>(0.);
     }
 
     fft->compute(fft_data,fft_data,-1);
 
     m = 0;
     for (idq = 0; idq < mynq; ++idq){
-      Rqnow[idq][idim]  = std::complex<double>(fft_data[m], fft_data[m+1]);
+      Rqnow[idq][idim]  = std::complex<double>(static_cast<double>(fft_data[m]), static_cast<double>(fft_data[m+1]));
       m += 2;
     }
   }
@@ -662,20 +661,20 @@ void FixPhonon::postprocess( )
   for (idq = 0; idq < mynq; ++idq){
     ndim = 0;
     for (idim = 0; idim < fft_dim; ++idim)
-    for (jdim = 0; jdim < fft_dim; ++jdim) Phi_q[idq][ndim++] -= Rqnow[idq][idim]*conj(Rqnow[idq][jdim]);
+    for (jdim = 0; jdim < fft_dim; ++jdim) Phi_q[idq][ndim++] -= Rqnow[idq][idim] * std::conj(Rqnow[idq][jdim]);
   }
 
   // to get Phi = KT.G^-1; normalization of FFTW data is done here
   double boltz = force->boltz, kbtsqrt[sysdim], TempAve = 0.;
-  double TempFac = inv_neval*inv_nTemp;
-  double NormFac = TempFac*double(ntotal);
+  double TempFac = inv_neval * inv_nTemp;
+  double NormFac = TempFac * double(ntotal);
 
   for (idim = 0; idim < sysdim; ++idim){
-    kbtsqrt[idim] = sqrt(TempSum[idim]*NormFac);
-    TempAve += TempSum[idim]*TempFac;
+    kbtsqrt[idim] = sqrt(TempSum[idim] * NormFac);
+    TempAve += TempSum[idim] * TempFac;
   }
   TempAve /= sysdim*boltz;
-
+  
   for (idq = 0; idq < mynq; ++idq){
     GaussJordan(fft_dim, Phi_q[idq]);
     ndim =0;
@@ -688,7 +687,7 @@ void FixPhonon::postprocess( )
   for (int i = 0; i < nprocs; ++i) recvcnts[i] = fft_cnts[i]*fft_dim*2;
   for (int i = 1; i < nprocs; ++i) displs[i] = displs[i-1] + recvcnts[i-1];
   MPI_Gatherv(Phi_q[0],mynq*fft_dim2*2,MPI_DOUBLE,Phi_all[0],recvcnts,displs,MPI_DOUBLE,0,world);
-
+  
   // to collect all basis info and averaged it on root
   double basis_root[fft_dim];
   if (fft_dim > sysdim) MPI_Reduce(&basis[1][0], &basis_root[sysdim], fft_dim-sysdim, MPI_DOUBLE, MPI_SUM, 0, world);
@@ -707,7 +706,7 @@ void FixPhonon::postprocess( )
     basevec[7] = hsum[3] * inv_neval / double(nz);
     basevec[6] = hsum[4] * inv_neval / double(nz);
     basevec[3] = hsum[5] * inv_neval / double(ny);
-
+    
     // write binary file, in fact, it is the force constants matrix that is written
     // Enforcement of ASR and the conversion of dynamical matrix is done in the postprocessing code
     char fname[MAXLINE];
@@ -822,7 +821,7 @@ void FixPhonon::GaussJordan(int n, std::complex<double> *Mat)
     indxc[i] = icol;
     idr = icol*n+icol;
     if (Mat[idr] == std::complex<double>(0.,0.)) error->one(FLERR,"Singular matrix in complex GaussJordan!");
-
+    
     pivinv = 1./ Mat[idr];
     Mat[idr] = std::complex<double>(1.,0.);
     idr = icol*n;
@@ -881,7 +880,7 @@ void FixPhonon::EnforceASR()
         }
       }
     }
-
+   
     // symmetrize
     for (int k = 0; k < nucell; ++k)
     for (int kp = k; kp < nucell; ++kp){

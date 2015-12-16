@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 #define DELTA 10000
 
-enum{TYPE,INDEX};
+enum{ID,TYPE,INDEX};
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,7 +47,8 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
 
   for (int iarg = 3; iarg < narg; iarg++) {
-    if (strcmp(arg[iarg],"type") == 0) which[nvalues++] = TYPE;
+    if (strcmp(arg[iarg],"id") == 0) which[nvalues++] = ID;
+    else if (strcmp(arg[iarg],"type") == 0) which[nvalues++] = TYPE;
     else {
       which[nvalues] = INDEX;
       index[nvalues] = force->inumeric(FLERR,arg[iarg]) - 1;
@@ -61,7 +62,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int indexmax = bptr->noutcol();
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == INDEX && (index[i] < 0 || index[i] >= indexmax))
+    if (which[i] == INDEX && (index[i] < 0 || index[i] >= indexmax)) 
       error->all(FLERR,"Invalid index in compute body/local command");
   }
 
@@ -92,7 +93,7 @@ void ComputeBodyLocal::init()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i] & groupbit) 
       if (body[i] < 0) nonbody = 1;
 
   int flag;
@@ -155,6 +156,7 @@ int ComputeBodyLocal::compute_body(int flag)
   double *values = new double[bptr->noutcol()];
 
   double **x = atom->x;
+  tagint *tag = atom->tag;
   int *type = atom->type;
 
   ncount = 0;
@@ -162,11 +164,13 @@ int ComputeBodyLocal::compute_body(int flag)
     if (mask[i] & groupbit) {
       if (body[i] < 0) {
         if (nvalues == 1) {
-          if (which[0] == TYPE) vector[ncount] = type[i];
+          if (which[0] == ID) vector[ncount] = tag[i];
+          else if (which[0] == TYPE) vector[ncount] = type[i];
           else vector[ncount] = x[i][index[0]];
         } else {
           for (m = 0; m < nvalues; m++) {
-            if (which[m] == TYPE) array[ncount][m] = type[i];
+            if (which[m] == ID) array[ncount][m] = tag[i];
+            else if (which[m] == TYPE) array[ncount][m] = type[i];
             else array[ncount][m] = x[i][index[m]];
           }
         }
@@ -178,11 +182,13 @@ int ComputeBodyLocal::compute_body(int flag)
         for (int j = 0; j < n; j++) {
           bptr->output(ibonus,j,values);
           if (nvalues == 1) {
-            if (which[0] == TYPE) vector[ncount] = type[i];
+            if (which[0] == ID) vector[ncount] = tag[i];
+            else if (which[0] == TYPE) vector[ncount] = type[i];
             else vector[ncount] = values[index[0]];
           } else {
             for (m = 0; m < nvalues; m++) {
-              if (which[m] == TYPE) array[ncount][m] = type[i];
+              if (which[m] == ID) array[ncount][m] = tag[i];
+              else if (which[m] == TYPE) array[ncount][m] = type[i];
               else array[ncount][m] = values[index[m]];
             }
           }

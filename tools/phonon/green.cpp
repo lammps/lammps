@@ -4,8 +4,7 @@
 #include <math.h>
 #include "green.h"
 #include <complex>
-
-#define MAXLINE 256
+#include "global.h"
 
 /*******************************************************************************
  * The class of Green is designed to evaluate the LDOS via the Green's Function
@@ -45,7 +44,7 @@ Green::Green(const int ntm, const int sdim, const int niter, const double min, c
   H = Hessian; iatom = itm;
   ldos = lpdos;
 
-  memory = new Memory;
+  memory = new Memory();
   if (natom < 1 || iatom < 0 || iatom >= natom){
     printf("\nError: Wrong number of total atoms or wrong index of interested atom!\n");
     return;
@@ -58,9 +57,9 @@ Green::Green(const int ntm, const int sdim, const int niter, const double min, c
 
   // initialize variables and allocate local memories
   dw = (wmax - wmin)/double(nw-1);
-  alpha = memory->create(alpha, sysdim,nit,  "Green_Green:alpha");
-  beta  = memory->create(beta,  sysdim,nit+1,"Green_Green:beta");
-  //ldos  = memory->create(ldos,  nw,sysdim, "Green_Green:ldos");
+  memory->create(alpha, sysdim,nit,  "Green_Green:alpha");
+  memory->create(beta,  sysdim,nit+1,"Green_Green:beta");
+  //memory->create(ldos,  nw,sysdim, "Green_Green:ldos");
 
   // use Lanczos algorithm to diagonalize the Hessian
   Lanczos();
@@ -100,35 +99,35 @@ void Green::Lanczos()
   int ipos = iatom*sysdim;
 
   // Loop over dimension
-  for (int idim=0; idim<sysdim; idim++){
+  for (int idim = 0; idim < sysdim; ++idim){
     beta[idim][0] = 0.;
-    for (int i=0; i<ndim; i++){vp[i] = v[i] = 0.;}
+    for (int i = 0; i < ndim; ++i) vp[i] = v[i] = 0.;
     v[ipos+idim] = 1.;
 
     // Loop on fraction levels
-    for (int i=0; i<nit; i++){
+    for (int i = 0; i < nit; ++i){
       double sum_a = 0.;
-      for (int j=0; j<ndim; j++){
+      for (int j = 0; j < ndim; ++j){
         double sumHv = 0.;
-        for (int k=0; k<ndim; k++) sumHv += H[j][k]*v[k];
+        for (int k = 0; k < ndim; ++k) sumHv += H[j][k]*v[k];
         w[j] = sumHv - beta[idim][i]*vp[j];
         sum_a += w[j]*v[j];
       }
       alpha[idim][i] = sum_a;
 
-      for (int k=0; k<ndim; k++) w[k] -= alpha[idim][i]*v[k];
+      for (int k = 0; k < ndim; ++k) w[k] -= alpha[idim][i]*v[k];
 
       double gamma = 0.;
-      for (int k=0; k<ndim; k++) gamma += w[k]*v[k];
-      for (int k=0; k<ndim; k++) w[k] -= gamma*v[k];
+      for (int k = 0; k < ndim; ++k) gamma += w[k]*v[k];
+      for (int k = 0; k < ndim; ++k) w[k] -= gamma*v[k];
 
       double sum_b = 0.;
-      for (int k=0; k<ndim; k++) sum_b += w[k]*w[k];
+      for (int k = 0; k < ndim; ++k) sum_b += w[k]*w[k];
       beta[idim][i+1] = sqrt(sum_b);
 
       ptr = vp; vp = v; v = ptr;
       double tmp = 1./beta[idim][i+1];    
-      for (int k=0; k<ndim; k++) v[k] = w[k]*tmp;
+      for (int k = 0; k < ndim; ++k) v[k] = w[k] * tmp;
     }
   }
 
@@ -154,10 +153,10 @@ void Green::Recursion()
   xmax  = new double [sysdim];
 
   int nave = nit/4;
-  for (int idim=0; idim<sysdim; idim++){
+  for (int idim = 0; idim < sysdim; ++idim){
     alpha_inf[idim] = beta_inf[idim] = 0.;
 
-    for (int i= nit-nave; i<nit; i++){
+    for (int i = nit-nave; i < nit; ++i){
       alpha_inf[idim] += alpha[idim][i];
       beta_inf[idim] += beta[idim][i+1];
     }
@@ -173,11 +172,11 @@ void Green::Recursion()
   double sr, si;
 
   double w = wmin;
-  for (int i=0; i<nw; i++){
+  for (int i = 0; i < nw; ++i){
     double a = w*w, ax, bx;
     Z = std::complex<double>(w*w, epson);
 
-    for (int idim=0; idim<sysdim; idim++){
+    for (int idim = 0; idim < sysdim; ++idim){
       double two_b = 2.*beta_inf[idim]*beta_inf[idim];
       double rtwob = 1./two_b;
 
@@ -201,7 +200,7 @@ void Green::Recursion()
       si = epson * rtwob + bx;
       rec_x = std::complex<double> (sr, si);
 
-      for (int j=0; j<nit; j++){
+      for (int j = 0; j < nit; ++j){
         rec_x_inv = Z - alpha[idim][nit-j-1] - beta[idim][nit-j]*beta[idim][nit-j]*rec_x;
         rec_x = 1./rec_x_inv;
       }
@@ -229,13 +228,13 @@ void Green::recursion()
 
   double w = wmin;
 
-  for (int i=0; i<nw; i++){
+  for (int i = 0; i < nw; ++i){
     Z = std::complex<double>(w*w, epson);
 
-    for (int idim=0; idim<sysdim; idim++){
+    for (int idim = 0; idim < sysdim; ++idim){
       rec_x = std::complex<double>(0.,0.);
 
-      for (int j=0; j<nit; j++){
+      for (int j = 0; j < nit; ++j){
         rec_x_inv = Z - alpha[idim][nit-j-1] - beta[idim][nit-j]*beta[idim][nit-j]*rec_x;
         rec_x = 1./rec_x_inv;
       }

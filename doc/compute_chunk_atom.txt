@@ -27,17 +27,17 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule}
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
-  {bin/sphere} args = xorig yorig zorig rmin rmax nrbin
+  {bin/sphere} args = xorig yorig zorig rmin rmax nsbin
     xorig,yorig,zorig = center point of sphere
     srmin,srmax = bin from sphere radius rmin to rmax
-    nsbin = # of bins between rmin and rmax
-  {bin/cylinder} args = dim origin delta c1 c2 rmin rmax nrbin
+    nsbin = # of spherical shell bins between rmin and rmax
+  {bin/cylinder} args = dim origin delta c1 c2 rmin rmax ncbin
     dim = {x} or {y} or {z} = axis of cylinder axis
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     crmin,crmax = bin from cylinder radius rmin to rmax (distance units)
-    ncbin = # of bins between rmin and rmax
+    ncbin = # of concentric circle bins between rmin and rmax
   {type} args = none
   {molecule} args = none
   {compute/fix/variable} = c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name with no args
@@ -183,9 +183,9 @@ cross "c" face of the box.  A {delta} value of 0.1 in {reduced} units
 means there will be 10 layers from 0.0 to 1.0, regardless of the
 current size or shape of the simulation box.
 
-The {bin/sphere} style defines a set of spherical shells around the
-origin ({xorig},{yorig},{zorig}), using {nsbin} shells with radii
-equally spaced between {srmin} and {srmax}, for effectively a 1d
+The {bin/sphere} style defines a set of spherical shell bins around
+the origin ({xorig},{yorig},{zorig}), using {nsbin} bins with radii
+equally spaced between {srmin} and {srmax}.  This is effectively a 1d
 vector of bins.  For example, if {srmin} = 1.0 and {srmax} = 10.0 and
 {nsbin} = 9, then the first bin spans 1.0 < r < 2.0, and the last bin
 spans 9.0 < r 10.0.  The geometry of the bins is the same whether the
@@ -194,30 +194,31 @@ are not tilted or scaled differently in different dimensions to
 transform them into ellipsoidal shells.
 
 The {bin/cylinder} style defines bins for a cylinder oriented along
-the axis {dim} with the axis position in the other two radial
+the axis {dim} with the axis coordinates in the other two radial
 dimensions at ({c1},{c2}).  For dim = x, c1/c2 = y/z; for dim = y,
-c1/c2 = x/z; for dim = z, c1/c2 = x/y.  These can be thought of as a
-2d array of bins, each of which is a pie-shaped wedge (radial
-dimensions) of finite height (along the cylinder axis).  The bin size
+c1/c2 = x/z; for dim = z, c1/c2 = x/y.  This is effectively a 2d array
+of bins.  The first dimension is along the cylinder axis, the second
+dimension is radially outward from the cylinder axis.  The bin size
 and positions along the cylinder axis are specified by the {origin}
 and {delta} values, the same as for the {bin/1d}, {bin/2d}, and
-{bin/3d} styles.  There are {ncbin} concentric circles in the radial
-direction from the cylinder axis with radii equally spaced between
-{crmin} and {crmax}.  For example, if {crmin} = 1.0 and {crmax} = 10.0
-and {ncbin} = 9, then the first bin spans 1.0 < r < 2.0, and the last
-bin spans 9.0 < r 10.0.  The geometry of the bins in the radial
-dimensions is the same whether the simulation box is orthogonal or
-triclinic; i.e. the circles are not tilted or scaled differently in
-the two different dimensions to transform them into ellipses.
+{bin/3d} styles.  There are {ncbin} concentric circle bins in the
+radial direction from the cylinder axis with radii equally spaced
+between {crmin} and {crmax}.  For example, if {crmin} = 1.0 and
+{crmax} = 10.0 and {ncbin} = 9, then the first bin spans 1.0 < r <
+2.0, and the last bin spans 9.0 < r 10.0.  The geometry of the bins in
+the radial dimensions is the same whether the simulation box is
+orthogonal or triclinic; i.e. the concetric circles are not tilted or
+scaled differently in the two different dimensions to transform them
+into ellipses.
 
 The created bins (and hence the chunk IDs) are numbered consecutively
-from 1 to the number of bins = {Nchunk}.  For 2d and 3d bins, the
+from 1 to the number of bins = {Nchunk}.  For {bin2d} and {bin3d}, the
 numbering varies most rapidly in the first dimension (which could be
 x, y, or z), next rapidly in the 2nd dimension, and most slowly in the
-3rd dimension.  For spherical 1d bins, the innermost shell is chunk 1
-and the outermost shell is chunk Nchunk = {nsbin}.  For cylindrical
-2d bins, the numbering varies most rapidly in the dimension along the
-cylinder axis and most slowly in the radial direction.
+3rd dimension.  For {bin/sphere}, the bin with smallest radii is chunk
+1 and the bni with largest radii is chunk Nchunk = {ncbin}.  For
+{bin/cylinder}, the numbering varies most rapidly in the dimension
+along the cylinder axis and most slowly in the radial direction.
 
 Each time this compute is invoked, each atom is mapped to a bin based
 on its current position.  Note that between reneighboring timesteps,

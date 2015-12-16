@@ -31,9 +31,6 @@ FixStyle(phonon,FixPhonon)
 #ifndef FIX_PHONON_H
 #define FIX_PHONON_H
 
-#include "lmptype.h"
-#include <mpi.h>
-
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
 #define MPI_FFT_SCALAR MPI_FLOAT
@@ -44,10 +41,11 @@ typedef double FFT_SCALAR;
 
 #include <complex>
 #include "fix.h"
-#include <map>
+#include <map.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "fft3d_wrap.h"
 
 namespace LAMMPS_NS {
 
@@ -75,7 +73,7 @@ class FixPhonon : public Fix {
   int ngroup, nfind;                            // total number of atoms in group; total number of atoms on this proc
   char *prefix, *logfile;                       // prefix of output file names
   FILE *flog;
-
+  
   double *M_inv_sqrt;
 
   class FFT3d *fft;                             // to do fft via the fft3d wraper
@@ -84,7 +82,7 @@ class FixPhonon : public Fix {
   int *fft_cnts, *fft_disp;
   int fft_dim, fft_dim2;
   FFT_SCALAR *fft_data;
-
+  
   tagint itag;                                  // index variables
   int idx, idq;                                 // more index variables
   std::map<tagint,int> tag2surf;                // Mapping info

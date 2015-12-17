@@ -104,6 +104,16 @@ void FixSRP::init()
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR,"Illegal bond particle type");
 
+  // fix SRP should be the first fix running at the PRE_EXCHANGE step.
+  // Otherwise it might conflict with, e.g. fix deform
+
+  if (modify->n_pre_exchange > 1) {
+    char *first = modify->fix[modify->list_pre_exchange[0]]->id;
+    if ((comm->me == 0) && (strcmp(id,first) != 0))
+      error->warning(FLERR,"Internal fix for pair srp defined too late."
+                     " May lead to incorrect behavior.");
+  }
+
   // setup neigh exclusions for diff atom types
   // bond particles do not interact with other types
   // type bptype only interacts with itself

@@ -355,12 +355,12 @@ struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
   EV_FLOAT compute_item(const typename Kokkos::TeamPolicy<device_type>::member_type& dev,
                         const NeighListKokkos<device_type> &list, const NoCoulTag& ) const {
     EV_FLOAT ev;
-    const int i = dev.league_rank()*dev.team_size() + dev.team_rank();
+    int i = dev.league_rank()*dev.team_size() + dev.team_rank();
 
     const X_FLOAT xtmp = c.c_x(i,0);
     const X_FLOAT ytmp = c.c_x(i,1);
     const X_FLOAT ztmp = c.c_x(i,2);
-    const int itype = c.type(i);
+    int itype = c.type(i);
 
     const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
     const int jnum = list.d_numneigh[i];
@@ -368,7 +368,7 @@ struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
     F_FLOAT3 ftmp;
 
     for (int jj = 0; jj < jnum; jj++) {
-      const int jjj = neighbors_i(jj);
+      int jjj = neighbors_i(jj);
 
       Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(dev,NeighClusterSize),[&] (const int& k, F_FLOAT3& fftmp) {
         const F_FLOAT factor_lj = c.special_lj[sbmask(jjj+k)];

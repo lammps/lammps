@@ -45,7 +45,6 @@ using namespace MathConst;
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
 #define CUDA_CHUNK 3000
-#define MAXBODY 20       // max # of lines in one body, also in ReadData class
 
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
@@ -714,6 +713,29 @@ int Atom::count_words(const char *line)
 }
 
 /* ----------------------------------------------------------------------
+   count and return words in a single line using provided copy buf
+   make copy of line before using strtok so as not to change line
+   trim anything from '#' onward
+------------------------------------------------------------------------- */
+
+int Atom::count_words(const char *line, char *copy)
+{
+  strcpy(copy,line);
+
+  char *ptr;
+  if ((ptr = strchr(copy,'#'))) *ptr = '\0';
+
+  if (strtok(copy," \t\n\r\f") == NULL) {
+    memory->destroy(copy);
+    return 0;
+  }
+  int n = 1;
+  while (strtok(NULL," \t\n\r\f")) n++;
+
+  return n;
+}
+
+/* ----------------------------------------------------------------------
    deallocate molecular topology arrays
    done before realloc with (possibly) new 2nd dimension set to
      correctly initialized per-atom values, e.g. bond_per_atom
@@ -756,7 +778,7 @@ void Atom::deallocate_topology()
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from Atom section of data file
+   unpack N lines from Atom section of data file
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
@@ -900,7 +922,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from Velocity section of data file
+   unpack N lines from Velocity section of data file
    check that atom IDs are > 0 and <= map_tag_max
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
@@ -1240,7 +1262,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from atom-style specific section of data file
+   unpack N lines from atom-style specific bonus section of data file
    check that atom IDs are > 0 and <= map_tag_max
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
@@ -1287,7 +1309,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from atom-style specific section of data file
+   unpack N bodies from Bodies section of data file
+   each body spans multiple lines
    check that atom IDs are > 0 and <= map_tag_max
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
@@ -1297,8 +1320,10 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 {
   int j,m,tagdata,ninteger,ndouble;
 
-  char **ivalues = new char*[10*MAXBODY];
-  char **dvalues = new char*[10*MAXBODY];
+  int maxint = 0;
+  int maxdouble = 0;
+  char **ivalues = NULL;
+  char **dvalues = NULL;
 
   // loop over lines of body data
   // tokenize the lines into ivalues and dvalues
@@ -1307,8 +1332,20 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
   for (int i = 0; i < n; i++) {
     if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
     else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f")) + id_offset;
+
     ninteger = atoi(strtok(NULL," \t\n\r\f"));
     ndouble = atoi(strtok(NULL," \t\n\r\f"));
+
+    if (ninteger > maxint) {
+      delete [] ivalues;
+      maxint = ninteger;
+      ivalues = new char*[maxint];
+    }
+    if (ndouble > maxdouble) {
+      delete [] dvalues;
+      maxdouble = ndouble;
+      dvalues = new char*[maxdouble];
+    }
 
     for (j = 0; j < ninteger; j++)
       ivalues[j] = strtok(NULL," \t\n\r\f");

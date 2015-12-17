@@ -40,6 +40,8 @@ class DumpImage : public DumpCustom {
   int acolor,adiam;                // what determines color/diam of atoms
   double adiamvalue;               // atom diameter value
   int atomflag,bondflag;           // 0/1 for draw atoms,bonds
+  int bodyflag;                    // 0/1 for draw atoms as bodies
+  double bodyflag1,bodyflag2;      // user params for drawing bodies
   int bcolor,bdiam;                // what determines color/diam of bonds
   double bdiamvalue;               // bond diameter value
   char *thetastr,*phistr;          // variables for view theta,phi
@@ -63,6 +65,7 @@ class DumpImage : public DumpCustom {
   double **colortype,**colorelement,**bcolortype;   // per-type colors
 
   class Image *image;              // class that renders each image
+  class Body *bptr;                // class for Body particles
 
   int *chooseghost;                // extended choose array for comm
   double **bufcopy;                // buffer for communicating bond/atom info

@@ -39,6 +39,12 @@ class BodyNparticle : public Body {
   int noutrow(int);
   int noutcol();
   void output(int, int, double *);
+  int image(int, int *&, double **&);
+
+ private:
+  int *imflag;
+  double **imdata;
+
 };
 
 }

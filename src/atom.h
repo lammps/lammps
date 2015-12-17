@@ -207,6 +207,7 @@ class Atom : protected Pointers {
 
   int parse_data(const char *);
   int count_words(const char *);
+  int count_words(const char *, char *);
 
   void deallocate_topology();
 

@@ -19,6 +19,8 @@
 #include "image.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
+#include "body.h"
 #include "molecule.h"
 #include "domain.h"
 #include "group.h"
@@ -36,6 +38,7 @@ using namespace MathConst;
 #define BIG 1.0e20
 
 enum{NUMERIC,ATOM,TYPE,ELEMENT,ATTRIBUTE};
+enum{SPHERE,LINE};           // also in Body child classes
 enum{STATIC,DYNAMIC};
 enum{NO,YES};
 
@@ -103,6 +106,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // set defaults for optional args
 
   atomflag = YES;
+  bodyflag = NO;
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
     bondflag = YES;
@@ -141,6 +145,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"no") == 0) atomflag = NO;
       else error->all(FLERR,"Illegal dump image command");
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"body") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
+      if (strcmp(arg[iarg+1],"yes") == 0) bodyflag = YES;
+      else if (strcmp(arg[iarg+1],"no") == 0) bodyflag = NO;
+      else error->all(FLERR,"Illegal dump image command");
+      bodyflag1 = force->numeric(FLERR,arg[iarg+2]);
+      bodyflag2 = force->numeric(FLERR,arg[iarg+3]);
+      iarg += 4;
 
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
@@ -318,6 +331,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
 
     } else error->all(FLERR,"Illegal dump image command");
+  }
+
+  // error check for bodyflag
+
+  if (bodyflag) {
+    AtomVecBody *avec = (AtomVecBody *) atom->style_match("body");
+    if (!avec) error->all(FLERR,"Dump image body yes requires atom style body");
+    bptr = avec->bptr;
   }
 
   // allocate image buffer now that image size is known
@@ -658,9 +679,11 @@ void DumpImage::view_params()
 
 void DumpImage::create_image()
 {
-  int i,j,m,n,itype,atom1,atom2,imol,iatom,btype;
+  int i,j,k,m,n,itype,atom1,atom2,imol,iatom,btype,ibonus;
   tagint tagprev;
   double diameter,delx,dely,delz;
+  int *bodyvec;
+  double **bodyarray;
   double *color,*color1,*color2;
   double xmid[3];
 
@@ -668,6 +691,7 @@ void DumpImage::create_image()
 
   if (atomflag) {
     double **x = atom->x;
+    int *body = atom->body;
 
     m = 0;
     for (i = 0; i < nchoose; i++) {
@@ -695,7 +719,20 @@ void DumpImage::create_image()
         diameter = buf[m+1];
       }
 
-      image->draw_sphere(x[j],color,diameter);
+      if (!body || !bodyflag || body[j] < 0)
+        image->draw_sphere(x[j],color,diameter);
+      else {
+        ibonus = body[i];
+        n = bptr->image(ibonus,bodyflag1,bodyflag2,bodyvec,bodyarray);
+        for (k = 0; k < n; k++) {
+          if (bodyvec[k] == SPHERE)
+            image->draw_sphere(bodyarray[k],color,bodyarray[k][3]);
+          else if (bodyvec[k] == LINE)
+            image->draw_cylinder(&bodyarray[k][0],&bodyarray[k][3],
+                                 color,bodyarray[k][6],3);
+        }
+      }
+
       m += size_one;
     }
   }

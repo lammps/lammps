@@ -45,6 +45,7 @@ class Body : protected Pointers {
   virtual int noutrow(int) = 0;
   virtual int noutcol() = 0;
   virtual void output(int, int, double *) = 0;
+  virtual int image(int, double, double, int *&, double **&) = 0;
 };
 
 }

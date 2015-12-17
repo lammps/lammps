@@ -816,15 +816,15 @@ script.</p>
 <p><em>Bodies</em> section:</p>
 <ul class="simple">
 <li>one or more lines per body</li>
-<li>first line syntax: atom-ID ninteger ndouble</li>
+<li>first line syntax: atom-ID Ninteger Ndouble</li>
 </ul>
-<div class="highlight-python"><div class="highlight"><pre>ninteger = # of integer quantities for this particle
-ndouble = # of floating-point quantities for this particle
+<div class="highlight-python"><div class="highlight"><pre>Ninteger = # of integer quantities for this particle
+Ndouble = # of floating-point quantities for this particle
 </pre></div>
 </div>
 <ul class="simple">
-<li>0 or more integer lines: one line for every 10 integer quantities</li>
-<li>0 or more double lines: one line for every 10 double quantities</li>
+<li>0 or more integer lines with total of Ninteger values</li>
+<li>0 or more double lines with total of Ndouble values</li>
 <li>example:</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>12 3 6
@@ -836,8 +836,8 @@ ndouble = # of floating-point quantities for this particle
 <li>example:</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>12 0 14
-1.0 2.0 3.0 1.0 2.0 4.0 1.0 2.0 3.0 1.0
-2.0 4.0 4.0 2.0
+1.0 2.0 3.0 1.0 2.0 4.0 1.0
+2.0 3.0 1.0 2.0 4.0 4.0 2.0
 </pre></div>
 </div>
 <p>The <em>Bodies</em> section must appear if <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
@@ -849,16 +849,14 @@ values.  The number and meaning of the values is defined by the body
 style, as described in the <a class="reference internal" href="body.html"><em>body</em></a> doc page.  The body style
 is given as an argument to the <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
 command.</p>
-<p>The ninteger and ndouble values determine how many integer and
+<p>The Ninteger and Ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and
-ndouble can be as large as needed and can be different for every body.
-Integer values are then listed on subsequent lines, 10 values per
-line.  Floating-point values follow on subsequent lines, again 10 per
-line.  If the number of lines is not evenly divisible by 10, the last
-line in that group contains the remaining values, e.g. 4 values out of
-14 in the last example above, for floating-point values.  If there are
-no values of a particular type, no lines appear for that type,
-e.g. there are no integer lines in the last example above.</p>
+Ndouble can be as large as needed and can be different for every body.
+Integer values are then listed next on subsequent lines.  Lines are
+read one at a time until Ninteger values are read.  Floating-point
+values follow on subsequent lines, Again lines are read one at a time
+until Ndouble values are read.  Note that if there are no values of a
+particular type, no lines appear for that type.</p>
 <p>The <em>Bodies</em> section must appear after the <em>Atoms</em> section.</p>
 <hr class="docutils" />
 <p><em>Bond Coeffs</em> section:</p>

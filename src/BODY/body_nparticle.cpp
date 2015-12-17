@@ -23,6 +23,7 @@
 using namespace LAMMPS_NS;
 
 #define EPSILON 1.0e-7
+enum{SPHERE,LINE};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,7 +46,7 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
   dcp = new MyPoolChunk<double>(3*nmin,3*nmax);
 
   memory->create(imflag,nmax,"body/nparticle:imflag");
-  memory->create(imdata,nmax,3,"body/nparticle:imdata");
+  memory->create(imdata,nmax,4,"body/nparticle:imdata");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -229,7 +230,8 @@ void BodyNparticle::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyNparticle::image(int ibonus, int *&ivec, double **&darray)
+int BodyNparticle::image(int ibonus, double flag1, double flag2,
+                         int *&ivec, double **&darray)
 {
   double p[3][3];
   double *x;
@@ -238,8 +240,7 @@ int BodyNparticle::image(int ibonus, int *&ivec, double **&darray)
   int n = bonus->ivalue[0];
 
   for (int i = 0; i < n; i++) {
-    imflag[i] = 0;
-    //imflag[i] = SPHERE;
+    imflag[i] = SPHERE;
     MathExtra::quat_to_mat(bonus->quat,p);
     MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
 
@@ -247,6 +248,7 @@ int BodyNparticle::image(int ibonus, int *&ivec, double **&darray)
     imdata[i][0] += x[0];
     imdata[i][1] += x[1];
     imdata[i][2] += x[2];
+    imdata[i][3] = flag1;
   }
 
   ivec = imflag;

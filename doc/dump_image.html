@@ -143,11 +143,14 @@
 <li>color = atom attribute that determines color of each atom</li>
 <li>diameter = atom attribute that determines size of each atom</li>
 <li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>adiam</em> or <em>atom</em> or <em>bond</em> or <em>size</em> or <em>view</em> or <em>center</em> or <em>up</em> or <em>zoom</em> or <em>persp</em> or <em>box</em> or <em>axes</em> or <em>subbox</em> or <em>shiny</em> or <em>ssao</em></li>
+<li>keyword = <em>adiam</em> or <em>atom</em> or <em>body</em> or <em>bond</em> or <em>size</em> or <em>view</em> or <em>center</em> or <em>up</em> or <em>zoom</em> or <em>persp</em> or <em>box</em> or <em>axes</em> or <em>subbox</em> or <em>shiny</em> or <em>ssao</em></li>
 </ul>
 <pre class="literal-block">
 <em>adiam</em> value = number = numeric value for atom diameter (distance units)
 <em>atom</em> = yes/no = do or do not draw atoms
+<em>body</em> = yes/no bflag1 bflag2
+  yes/no = do or do not draw atoms as bodies
+  bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
 <em>bond</em> values = color width = color and width of bonds
   color = <em>atom</em> or <em>type</em> or <em>none</em>
   width = number or <em>atom</em> or <em>type</em> or <em>none</em>
@@ -297,9 +300,8 @@ for the <a class="reference internal" href="dump.html"><em>dump custom</em></a> 
 <em>element</em>.  This includes per-atom quantities calculated by a
 <a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix.html"><em>fix</em></a>, or <a class="reference internal" href="variable.html"><em>variable</em></a>,
 which are prefixed by &#8220;<a href="#id9"><span class="problematic" id="id10">c_</span></a>&#8221;, &#8220;<a href="#id11"><span class="problematic" id="id12">f_</span></a>&#8221;, or &#8220;<a href="#id13"><span class="problematic" id="id14">v_</span></a>&#8221; respectively.  Note that the
-<em>diameter</em> setting can be overridden with a numeric value by the
-optional <em>adiam</em> keyword, in which case you can specify the <em>diameter</em>
-setting with any valid atom attribute.</p>
+<em>diameter</em> setting can be overridden with a numeric value applied to
+all atoms by the optional <em>adiam</em> keyword.</p>
 <p>If <em>type</em> is specified for the <em>color</em> setting, then the color of each
 atom is determined by its atom type.  By default the mapping of types
 to colors is as follows:</p>
@@ -354,6 +356,20 @@ drawn with that diameter, e.g. 1.5, which is in whatever distance
 <a class="reference internal" href="units.html"><em>units</em></a> the input script defines, e.g. Angstroms.</p>
 <p>The <em>atom</em> keyword allow you to turn off the drawing of all atoms,
 if the specified value is <em>no</em>.</p>
+<p>The <em>body</em> keyword can be used when <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
+is used to define body particles with internal state
+(e.g. sub-particles).  The <a class="reference internal" href="body.html"><em>body</em></a> doc page descibes the body
+styles LAMMPS currently supports, and provides more details as to the
+kind of body particles they represent and how they are drawn by this
+dump image command.  For all the body styles, individual atoms can be
+either a body particle or a usual point (non-body) particle.  If the
+<em>body</em> keyword is set to <em>yes</em>, then atoms which are body particles
+are drawn by the method defined by the body style.  Non-body particles
+the same way they would be if the <em>body</em> keyword is <em>no</em>, i.e. as
+spheres.  The <em>bflag1</em> and <em>bflag2</em> settings are numerical values
+which are passed to the body style to affect how the drawing of a body
+particle is done.  See the <a class="reference internal" href="body.html"><em>body</em></a> doc page for a description
+of what these parameters mean for each body style.</p>
 <p>The <em>bond</em> keyword allows to you to alter how bonds are drawn.  A bond
 is only drawn if both atoms in the bond are being drawn due to being
 in the specified group and due to other selection criteria

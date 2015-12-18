@@ -16,12 +16,14 @@
 #include "math_extra.h"
 #include "atom_vec_body.h"
 #include "atom.h"
-#include "error.h"
 #include "force.h"
+#include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
 #define EPSILON 1.0e-7
+enum{SPHERE,LINE};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 
@@ -42,6 +44,9 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 
   icp = new MyPoolChunk<int>(1,1);
   dcp = new MyPoolChunk<double>(3*nmin,3*nmax);
+
+  memory->create(imflag,nmax,"body/nparticle:imflag");
+  memory->create(imdata,nmax,4,"body/nparticle:imdata");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -50,6 +55,8 @@ BodyNparticle::~BodyNparticle()
 {
   delete icp;
   delete dcp;
+  memory->destroy(imflag);
+  memory->destroy(imdata);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,4 +226,32 @@ void BodyNparticle::output(int ibonus, int m, double *values)
   values[0] += x[0];
   values[1] += x[1];
   values[2] += x[2];
+}
+
+/* ---------------------------------------------------------------------- */
+
+int BodyNparticle::image(int ibonus, double flag1, double flag2,
+                         int *&ivec, double **&darray)
+{
+  double p[3][3];
+  double *x;
+
+  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+  int n = bonus->ivalue[0];
+
+  for (int i = 0; i < n; i++) {
+    imflag[i] = SPHERE;
+    MathExtra::quat_to_mat(bonus->quat,p);
+    MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
+
+    x = atom->x[bonus->ilocal];
+    imdata[i][0] += x[0];
+    imdata[i][1] += x[1];
+    imdata[i][2] += x[2];
+    imdata[i][3] = flag1;
+  }
+
+  ivec = imflag;
+  darray = imdata;
+  return n;
 }

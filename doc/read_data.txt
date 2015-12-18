@@ -702,19 +702,19 @@ script.
 {Bodies} section:
 
 one or more lines per body :ulb,l
-first line syntax: atom-ID ninteger ndouble :l
-  ninteger = # of integer quantities for this particle
-  ndouble = # of floating-point quantities for this particle :pre
-0 or more integer lines: one line for every 10 integer quantities :l
-0 or more double lines: one line for every 10 double quantities :l
+first line syntax: atom-ID Ninteger Ndouble :l
+  Ninteger = # of integer quantities for this particle
+  Ndouble = # of floating-point quantities for this particle :pre
+0 or more integer lines with total of Ninteger values :l
+0 or more double lines with total of Ndouble values :l
 example: :l
   12 3 6
   2 3 2
   1.0 2.0 3.0 1.0 2.0 4.0 :pre
 example: :l
   12 0 14
-  1.0 2.0 3.0 1.0 2.0 4.0 1.0 2.0 3.0 1.0
-  2.0 4.0 4.0 2.0 :pre
+  1.0 2.0 3.0 1.0 2.0 4.0 1.0
+  2.0 3.0 1.0 2.0 4.0 4.0 2.0 :pre
 :ule
 
 The {Bodies} section must appear if "atom_style body"_atom_style.html
@@ -728,16 +728,14 @@ style, as described in the "body"_body.html doc page.  The body style
 is given as an argument to the "atom_style body"_atom_style.html
 command.
 
-The ninteger and ndouble values determine how many integer and
+The Ninteger and Ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and
-ndouble can be as large as needed and can be different for every body.
-Integer values are then listed on subsequent lines, 10 values per
-line.  Floating-point values follow on subsequent lines, again 10 per
-line.  If the number of lines is not evenly divisible by 10, the last
-line in that group contains the remaining values, e.g. 4 values out of
-14 in the last example above, for floating-point values.  If there are
-no values of a particular type, no lines appear for that type,
-e.g. there are no integer lines in the last example above.
+Ndouble can be as large as needed and can be different for every body.
+Integer values are then listed next on subsequent lines.  Lines are
+read one at a time until Ninteger values are read.  Floating-point
+values follow on subsequent lines, Again lines are read one at a time
+until Ndouble values are read.  Note that if there are no values of a
+particular type, no lines appear for that type.
 
 The {Bodies} section must appear after the {Atoms} section.
 

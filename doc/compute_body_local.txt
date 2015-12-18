@@ -15,7 +15,8 @@ compute ID group-ID body/local input1 input2 ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 body/local = style name of this compute command :l
 one or more keywords may be appended :l
-keyword = {type} or {integer} :l
+keyword = {id} or {type} or {integer} :l
+  {id} = atom ID of the body particle
   {type} = atom type of the body particle
   {integer} = 1,2,3,etc = index of fields defined by body style :pre
 :ule
@@ -41,8 +42,11 @@ the atom is a body particle, then its N sub-particles will be looped
 over, and it will contribute N datums to the count of datums.  If it
 is not a body particle, it will contribute 1 datum.
 
+For both body particles and non-body particles, the {id} keyword
+will store the ID of the particle.
+
 For both body particles and non-body particles, the {type} keyword
-will store the type of the atom.
+will store the type of the particle.
 
 The {integer} keywords mean different things for body and non-body
 particles.  If the atom is not a body particle, only its {x}, {y}, {z}

@@ -27,13 +27,16 @@ styles supported by LAMMPS are as follows.  The name in the first
 column is used as the {bstyle} argument for the "atom_style
 body"_atom_style.html command.
 
-{nparticle} | rigid body with N sub-particles
+{nparticle} | rigid body with N sub-particles |
 {rounded/polygon} | 2d convex polygon with N vertices :tb(c=2,s=|)
 
 The body style determines what attributes are stored for each body and
 thus how they can be used to compute pairwise body/body or
 bond/non-body (point particle) interactions.  More details of each
 style are described below.
+
+NOTE: The rounded/polygon style listed in the table above and
+described below has not yet been relesed in LAMMPS.  It will be soon.
 
 We hope to add more styles in the future.  See "Section_modify
 12"_Section_modify.html#mod_12 for details on how to add a new body
@@ -90,7 +93,8 @@ particles of different styles
 "fix nph/body"_fix_nph_body.html : ditto for NPH ensemble
 "compute body/local"_compute_body_local.html : store sub-particle attributes of a body particle
 "compute temp/body"_compute_temp_body.html : compute temperature of body particles
-"dump local"_dump.html : output sub-particle attributes of a body particle :tb(s=:)
+"dump local"_dump.html : output sub-particle attributes of a body particle
+"dump image"_dump_image.html : output body particle attributes as an image :tb(s=:)
 
 The pair styles defined for use with specific body styles are listed
 in the sections below.
@@ -121,25 +125,28 @@ in the {Bodies} section of the data file:
 
 atom-ID 1 M
 N
-ixx iyy izz ixy ixz iyz x1 y1 z1 ...
+ixx iyy izz ixy ixz iyz 
+x1 y1 z1
 ...
-... xN yN zN :pre
+xN yN zN :pre
 
 N is the number of sub-particles in the body particle.  M = 6 + 3*N.
 The integer line has a single value N.  The floating point line(s)
 list 6 moments of inertia followed by the coordinates of the N
-sub-particles (x1 to zN) as 3N values on as many lines as required.
-Note that this in not N lines, but 10 values per line; see the
-"read_data"_read_data.html command for details.  The 6 moments of
-inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the values consistent with
-the current orientation of the rigid body around its center of mass.
-The values are with respect to the simulation box XYZ axes, not with
-respect to the prinicpal axes of the rigid body itself.  LAMMPS
-performs the latter calculation internally.  The coordinates of each
-sub-particle are specified as its x,y,z displacement from the
-center-of-mass of the body particle.  The center-of-mass position of
-the particle is specified by the x,y,z values in the {Atoms} section
-of the data file.
+sub-particles (x1 to zN) as 3N values.  These values can be listed on
+as many lines as you wish; see the "read_data"_read_data.html command
+for more details.
+
+The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
+values consistent with the current orientation of the rigid body
+around its center of mass.  The values are with respect to the
+simulation box XYZ axes, not with respect to the prinicpal axes of the
+rigid body itself.  LAMMPS performs the latter calculation internally.
+The coordinates of each sub-particle are specified as its x,y,z
+displacement from the center-of-mass of the body particle.  The
+center-of-mass position of the particle is specified by the x,y,z
+values in the {Atoms} section of the data file, as is the total mass
+of the body particle.
 
 The "pair_style body"_pair_body.html command can be used with this
 body style to compute body/body and body/non-body interactions.
@@ -157,6 +164,12 @@ These values are the current position of the sub-particle within the
 simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
 current COM and orientation of the body particle.
+
+For images created by the "dump image"_dump_image.html command, if the
+{body} keyword is set to {yes}, then each body particle is drawn as a
+collection of spheres, one for each sub-particle.  The size of each
+sphere is determined by the {bflag1} parameter for the {body} keyword.
+The {bflag2} argument is ignored.
 
 :line
 
@@ -182,21 +195,22 @@ in the {Bodies} section of the data file:
 
 atom-ID 1 M
 N
-ixx iyy izz ixy ixz iyz x1 y1 z1 ...
+ixx iyy izz ixy ixz iyz 
+x1 y1 z1
 ...
-... xN yN zN i j j k ... :pre
+xN yN zN
+i j j k k ... 
+radius :pre
 
 N is the number of vertices in the body particle.  M = 6 + 3*N + 2*N +
 1.  The integer line has a single value N.  The floating point line(s)
 list 6 moments of inertia followed by the coordinates of the N
-vertices (x1 to zN) as 3N values on as many lines as required.  Note
-that this in not N lines, but 10 values per line; see the
-"read_data"_read_data.html command for details. The next 2N elements
-are the vertex indices corresponding to the ends of the N edges. The
-vertex indices (i, j, k, ...) range from 0 to (N-1), consistent with
-the order of the vertices listed. The last element is the radius of
-the smallest circle encompassing the polygon, which is used to
-facilitate the body/body contact detection.
+vertices (x1 to zN) as 3N values, followed by 2N vertex indices
+corresponding to the end points of the N edges, followed by a single
+radius value = the smallest circle encompassing the polygon.  That
+last value is used to facilitate the body/body contact detection.
+These floating-point values can be listed on as many lines as you
+wish; see the "read_data"_read_data.html command for more details.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
@@ -213,9 +227,13 @@ particles whose edge length is sqrt(2):
 
 3 1 27
 4
-1 1 4 0 0 0 -0.7071 -0.7071 0 -0.7071
-0.7071 0 0.7071 0.7071 0 0.7071 -0.7071 0 0 1
-1 2 2 3 3 0 1.0 :pre
+1 1 4 0 0 0 
+-0.7071 -0.7071 0 
+-0.7071 0.7071 0 
+0.7071 0.7071 0 
+0.7071 -0.7071 0 
+0 1 1 2 2 3 3 0
+1.0 :pre
 
 The "pair_style body/rounded/polygon"_pair_body_rounded_polygon.html command
 can be used with this body style to compute body/body interactions.
@@ -233,6 +251,17 @@ These values are the current position of the vertex within the
 simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
 current COM and orientation of the body particle.
+
+For images created by the "dump image"_dump_image.html command, if the
+{body} keyword is set to {yes}, then each body particle is drawn as a
+convex polygon consisting of N line segments.  Note that the line
+segments are drawn between the N vertices, which does not correspond
+exactly to the physical extent of the body (because the "pair_style
+rounded/polygon"_pair_body_rounded_polygon.cpp defines finite-size
+spheres at those point and the line segments between the spheres are
+tangent to the spheres).  The drawn diameter of each line segment is
+determined by the {bflag1} parameter for the {body} keyword.  The
+{bflag2} argument is ignored.
 
 :line
 

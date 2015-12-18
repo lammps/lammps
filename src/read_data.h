@@ -33,7 +33,7 @@ class ReadData : protected Pointers {
 
  private:
   int me,compressed;
-  char *line,*keyword,*buffer,*style;
+  char *line,*copy,*keyword,*buffer,*style;
   FILE *fp;
   char **arg;
   int narg,maxarg;

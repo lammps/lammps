@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: W. Michael Brown (Intel)
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(INTEL,FixIntel)
@@ -39,7 +43,7 @@ class FixIntel : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
-  void pair_init_check();
+  void pair_init_check(const bool cdmessage=false);
 
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();
@@ -58,12 +62,15 @@ class FixIntel : public Fix {
   inline IntelBuffers<double,double> * get_double_buffers()
     { return _double_buffers; }
 
+  inline int nbor_pack_width() const { return _nbor_pack_width; }
+  inline void nbor_pack_width(const int w) { _nbor_pack_width = w; }
+
  protected:
   IntelBuffers<float,float> *_single_buffers;
   IntelBuffers<float,double> *_mixed_buffers;
   IntelBuffers<double,double> *_double_buffers;
 
-  int _precision_mode, _nthreads;
+  int _precision_mode, _nthreads, _nbor_pack_width;
 
  public:
   inline int* get_overflow_flag() { return _overflow_flag; }

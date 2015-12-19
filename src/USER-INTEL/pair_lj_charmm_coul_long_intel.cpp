@@ -217,7 +217,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
     ITABLE_IN signal(f_start)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
@@ -459,7 +459,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         ev_global[7] = ov5;
       }
     }
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end of offload region

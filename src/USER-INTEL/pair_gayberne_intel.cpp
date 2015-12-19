@@ -12,9 +12,17 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
 #include "pair_gayberne_intel.h"
 #include "math_extra_intel.h"
+
+#ifdef _LMP_INTEL_OFFLOAD
+#pragma offload_attribute(push,target(mic))
+#endif
+#include <cmath>
+#ifdef _LMP_INTEL_OFFLOAD
+#pragma offload_attribute(pop)
+#endif
+
 #include "atom.h"
 #include "comm.h"
 #include "atom_vec_ellipsoid.h"
@@ -295,7 +303,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
     signal(f_start)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute=MIC_Wtime();
     #endif
 
@@ -335,8 +343,8 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EVFLAG) {
-      oevdwl = (acc_t)0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+      oevdwl = (acc_t)0.0;
+      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
     }
 
     // loop over neighbors of my atoms
@@ -394,8 +402,8 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = t1tmp = t2tmp = t3tmp = (acc_t)0.0;
 
         if (EVFLAG) {
-          if (EFLAG) fwtmp = sevdwl = (acc_t)0;
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (EFLAG) fwtmp = sevdwl = (acc_t)0.0;
+          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
         }
 
         bool multiple_forms = false;
@@ -485,14 +493,14 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           tempv_1 = kappa_1 * inv_r;
           tempv_2 = kappa_2 * inv_r;
           flt_t sigma12 = ME_dot3(r12hat, tempv);
-          sigma12 = pow((flt_t)0.5 * sigma12,(flt_t) - 0.5);
+          sigma12 = std::pow((flt_t)0.5 * sigma12,(flt_t) - 0.5);
           flt_t h12 = r - sigma12;
 
           // energy
           // compute u_r
 
           flt_t varrho = sigma / (h12 + gamma * sigma);
-          flt_t varrho6 = pow(varrho, (flt_t)6.0);
+          flt_t varrho6 = std::pow(varrho, (flt_t)6.0);
           flt_t varrho12 = varrho6 * varrho6;
           flt_t u_r = (flt_t)4.0 * epsilon * (varrho12 - varrho6);
 
@@ -500,7 +508,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
           flt_t eta = (flt_t)2.0 * ijci[jtype].lshape;
           flt_t det_g12 = ME_det3(g12);
-          eta = pow(eta / det_g12, upsilon);
+          eta = std::pow(eta / det_g12, upsilon);
 
           // compute chi_12
 
@@ -516,7 +524,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           tempv_1 = iota_1 * inv_r;
           tempv_2 = iota_2 * inv_r;
           flt_t chi = ME_dot3(r12hat, tempv);
-          chi = pow(chi * (flt_t)2.0, mu);
+          chi = std::pow(chi * (flt_t)2.0, mu);
 
           // force
           // compute dUr/dr
@@ -524,7 +532,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           temp1 = ((flt_t)2.0 * varrho12 * varrho - varrho6 * varrho) /
 	    sigma;
           temp1 = temp1 * (flt_t)24.0 * epsilon;
-          flt_t u_slj = temp1 * pow(sigma12, (flt_t)3.0) * (flt_t)0.5;
+          flt_t u_slj = temp1 * std::pow(sigma12, (flt_t)3.0) * (flt_t)0.5;
           flt_t dUr_0, dUr_1, dUr_2;
           temp2 = ME_dot3(kappa, r12hat);
           flt_t uslj_rsq = u_slj / rsq_form[jj];
@@ -536,8 +544,8 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
           flt_t dchi_0, dchi_1, dchi_2;
           temp1 = ME_dot3(iota, r12hat);
-          temp2 = (flt_t)-4.0 / rsq_form[jj] * mu *
-	    pow(chi, (mu - (flt_t)1.0) / mu);
+          temp2 = (flt_t)-4.0 / rsq_form[jj] * mu * 
+	    std::pow(chi, (mu - (flt_t)1.0) / mu);
           dchi_0 = temp2 * (iota_0 - temp1 * r12hat_0);
           dchi_1 = temp2 * (iota_1 - temp1 * r12hat_1);
           dchi_2 = temp2 * (iota_2 - temp1 * r12hat_2);
@@ -714,7 +722,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 	    }
 
 	    if (EVFLAG) {
-	      flt_t ev_pre = (flt_t)0;
+	      flt_t ev_pre = (flt_t)0.0;
 	      if (NEWTON_PAIR || i < nlocal)
 		ev_pre += (flt_t)0.5;
 	      if (NEWTON_PAIR || j < nlocal)
@@ -863,7 +871,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       }
     }
 
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // offload

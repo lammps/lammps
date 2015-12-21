@@ -717,6 +717,8 @@ int ReadDump::whichtype(char *str)
   else if (strcmp(str,"ix") == 0) type = IX;
   else if (strcmp(str,"iy") == 0) type = IY;
   else if (strcmp(str,"iz") == 0) type = IZ;
+  else if (strcmp(str,"id") == 0) type = ID;
+  else if (strcmp(str,"type") == 0) type = TYPE;
   return type;
 }
 

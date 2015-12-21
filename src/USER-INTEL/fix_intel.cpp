@@ -60,6 +60,8 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   int ncops = force->inumeric(FLERR,arg[3]);
 
+  _nbor_pack_width = 1;
+
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = 1.0;
   _overflow_flag[LMP_OVERFLOW] = 0;
@@ -307,11 +309,13 @@ void FixIntel::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::pair_init_check()
+void FixIntel::pair_init_check(const bool cdmessage)
 {
   #ifdef INTEL_VMASK
   atom->sortfreq = 1;
   #endif
+
+  _nbor_pack_width = 1;
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_offload_balance != 0.0) atom->sortfreq = 1;
@@ -371,15 +375,12 @@ void FixIntel::pair_init_check()
   char kmode[80];
   if (_precision_mode == PREC_MODE_SINGLE) {
     strcpy(kmode, "single");
-    get_single_buffers()->free_all_nbor_buffers();
     get_single_buffers()->need_tag(need_tag);
   } else if (_precision_mode == PREC_MODE_MIXED) {
     strcpy(kmode, "mixed");
-    get_mixed_buffers()->free_all_nbor_buffers();
     get_mixed_buffers()->need_tag(need_tag);
   } else {
     strcpy(kmode, "double");
-    get_double_buffers()->free_all_nbor_buffers();
     get_double_buffers()->need_tag(need_tag);
   }
 
@@ -399,6 +400,13 @@ void FixIntel::pair_init_check()
 	fprintf(screen,"Using Intel Package without Coprocessor.\n");
       }
       fprintf(screen,"Precision: %s\n",kmode);
+      if (cdmessage) {
+	#ifdef LMP_USE_AVXCD
+	fprintf(screen,"AVX512 CD Optimizations: Enabled\n");
+	#else
+	fprintf(screen,"AVX512 CD Optimizations: Disabled\n");
+	#endif
+      }
       fprintf(screen,
 	      "----------------------------------------------------------\n");
     }

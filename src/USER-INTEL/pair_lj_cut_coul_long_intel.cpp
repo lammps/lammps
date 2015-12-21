@@ -212,7 +212,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
     ITABLE_IN signal(f_start)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
@@ -263,7 +263,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
 	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 	}
 
-        #if defined(__INTEL_COMPILER)
+        #if defined(LMP_SIMD_COMPILER)
 	#pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, secoul, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
@@ -283,7 +283,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
 
           const flt_t r2inv = (flt_t)1.0 / rsq;
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < c_forcei[jtype].cutsq) {
           #endif
             #ifdef INTEL_ALLOW_TABLE
@@ -335,11 +335,11 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
               }
             }
             #endif
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #endif
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < c_forcei[jtype].cut_ljsq) {
 	  #endif
             flt_t r6inv = r2inv * r2inv * r2inv;
@@ -354,7 +354,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
               forcelj *= factor_lj;
               if (EFLAG) evdwl *= factor_lj;
             }
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #else
 	  if (rsq > c_forcei[jtype].cutsq)
@@ -363,7 +363,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
 	    { forcelj = (flt_t)0.0; evdwl = (flt_t)0.0; }
 	  #endif
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < c_forcei[jtype].cutsq) {
 	  #endif
             const flt_t fpair = (forcecoul + forcelj) * r2inv;
@@ -395,7 +395,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
               }
  	      IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair, delx, dely, delz);
             }
-          #ifdef __MIC__
+          #ifdef INTEL_VMASK
 	  }
 	  #endif
         } // for jj
@@ -426,7 +426,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
         ev_global[7] = ov5;
       }
     }
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end of offload region

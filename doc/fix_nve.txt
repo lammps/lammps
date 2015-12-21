@@ -8,6 +8,7 @@
 
 fix nve command :h3
 fix nve/cuda command :h3
+fix nve/intel command :h3
 fix nve/kk command :h3
 fix nve/omp command :h3
 

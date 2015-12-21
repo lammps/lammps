@@ -26,14 +26,12 @@ action () {
 # do not install child files if parent does not exist
 
 for file in *_intel.cpp; do
-  test $file = thr_intel.cpp && continue
   dep=`echo $file | sed 's/neigh_full_intel/neigh_full/g' | \
       sed 's/_offload_intel//g' | sed 's/_intel//g'`
   action $file $dep
 done
 
 for file in *_intel.h; do
-  test $file = thr_intel.h && continue
   dep=`echo $file | sed 's/_offload_intel//g' | sed 's/_intel//g'`
   action $file $dep
 done
@@ -42,6 +40,8 @@ action intel_preprocess.h
 action intel_buffers.h
 action intel_buffers.cpp
 action math_extra_intel.h
+action intel_simd.h pair_sw_intel.cpp
+action intel_intrinsics.h pair_tersoff_intel.cpp
 
 # step 2: handle cases and tasks not handled in step 1.
 

@@ -75,14 +75,14 @@ class IntelBuffers {
     free_local();
   }
 
-  inline void grow_nbor(NeighList *list, const int nlocal,
-                        const int offload_end) {
+  inline void grow_nbor(NeighList *list, const int nlocal, const int nthreads,
+                        const int offload_end, const int pack_width=1) {
     grow_local(list, offload_end);
     if (offload_end) {
       grow_nmax();
       grow_binhead();
     }
-    grow_nbor_list(list, nlocal, offload_end);
+    grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
   }
 
   void free_nmax();
@@ -111,7 +111,7 @@ class IntelBuffers {
   }
 
   void free_ccache();
-  void grow_ccache(const int off_flag, const int nthreads);
+  void grow_ccache(const int off_flag, const int nthreads, const int width=1);
   inline int ccache_stride() { return _ccache_stride; }
   inline flt_t * get_ccachex() { return _ccachex; }
   inline flt_t * get_ccachey() { return _ccachey; }
@@ -119,6 +119,10 @@ class IntelBuffers {
   inline flt_t * get_ccachew() { return _ccachew; }
   inline int * get_ccachei() { return _ccachei; }
   inline int * get_ccachej() { return _ccachej; }
+  #ifdef LMP_USE_AVXCD
+  inline int ccache_stride3() { return _ccache_stride3; }
+  inline acc_t * get_ccachef() { return _ccachef; }
+  #endif
 
   inline int get_max_nbors() {
     int mn = lmp->neighbor->oneatom * sizeof(int) /
@@ -129,9 +133,10 @@ class IntelBuffers {
   void free_nbor_list();
 
   inline void grow_nbor_list(NeighList *list, const int nlocal,
-                             const int offload_end) {
+                             const int nthreads, const int offload_end,
+			     const int pack_width) {
     if (nlocal > _list_alloc_atoms)
-      _grow_nbor_list(list, nlocal, offload_end);
+      _grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
     #ifdef _LMP_INTEL_OFFLOAD
     else if (offload_end > 0 && _off_map_stencil != list->stencil)
       _grow_stencil(list);
@@ -281,6 +286,10 @@ class IntelBuffers {
   int _ccache_stride;
   flt_t *_ccachex, *_ccachey, *_ccachez, *_ccachew;
   int *_ccachei, *_ccachej;
+  #ifdef LMP_USE_AVXCD
+  int _ccache_stride3;
+  acc_t * _ccachef;
+  #endif
 
   #ifdef _LMP_INTEL_OFFLOAD
   int _separate_buffers;
@@ -305,8 +314,8 @@ class IntelBuffers {
   void _grow_nmax();
   void _grow_local(NeighList *list, const int offload_end);
   void _grow_binhead();
-  void _grow_nbor_list(NeighList *list, const int nlocal,
-                       const int offload_end);
+  void _grow_nbor_list(NeighList *list, const int nlocal, const int nthreads,
+                       const int offload_end, const int pack_width);
   void _grow_stencil(NeighList *list);
 };
 

@@ -676,7 +676,7 @@ void Domain::image_check()
 
   if (!atom->molecular) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
-  if (strcmp(update->integrate_style,"verlet/split") == 0 &&
+  if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
 
   // communicate unwrapped position of owned atoms to ghost atoms
@@ -786,7 +786,7 @@ void Domain::box_too_small_check()
 
   if (!atom->molecular) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
-  if (strcmp(update->integrate_style,"verlet/split") == 0 &&
+  if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
 
   // maxbondall = longest current bond length

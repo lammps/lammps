@@ -32,6 +32,7 @@ class PairTersoffIntel : public PairTersoff {
   virtual void compute(int, int);
   void init_style();
 
+#ifdef __INTEL_COMPILER
  protected:
   typedef struct { float x,y,z; int w; } sng4_t;
 
@@ -86,6 +87,7 @@ class PairTersoffIntel : public PairTersoff {
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc,
                         IntelBuffers<flt_t, acc_t> *buffers);
+#endif // __INTEL_COMPILER
 };
 
 }
@@ -146,5 +148,9 @@ needed entry.
 E: The 'package intel' command is required for /intel styles
 
 Self-explanatory.
+
+W: Tersoff/intel currently requires intel compiler. Using MANYBODY version.
+
+Self-explanatory
 
 */

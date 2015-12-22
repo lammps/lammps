@@ -707,7 +707,9 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 int ReadDump::whichtype(char *str)
 {
   int type = -1;
-  if (strcmp(str,"x") == 0) type = X;
+  if (strcmp(str,"id") == 0) type = ID;
+  else if (strcmp(str,"type") == 0) type = TYPE;
+  else if (strcmp(str,"x") == 0) type = X;
   else if (strcmp(str,"y") == 0) type = Y;
   else if (strcmp(str,"z") == 0) type = Z;
   else if (strcmp(str,"vx") == 0) type = VX;
@@ -717,8 +719,6 @@ int ReadDump::whichtype(char *str)
   else if (strcmp(str,"ix") == 0) type = IX;
   else if (strcmp(str,"iy") == 0) type = IY;
   else if (strcmp(str,"iz") == 0) type = IZ;
-  else if (strcmp(str,"id") == 0) type = ID;
-  else if (strcmp(str,"type") == 0) type = TYPE;
   return type;
 }
 

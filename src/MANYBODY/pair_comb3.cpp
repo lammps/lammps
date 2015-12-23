@@ -604,7 +604,7 @@ void PairComb3::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open COMB3 potential file %s",file);
@@ -3426,7 +3426,6 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
     }
   }
 
-  double enegtot;
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Bcast(&enegtot,1,MPI_DOUBLE,0,world);
   return enegtot;

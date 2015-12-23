@@ -22,9 +22,9 @@
    Richard Berger (JKU)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dump_custom_vtk.h"
 #include "atom.h"
 #include "force.h"
@@ -73,21 +73,23 @@ using namespace LAMMPS_NS;
 // * adjusting thresh part in modify_param and count functions
 
 enum{X,Y,Z, // required for vtk, must come first
-     ID,MOL,TYPE,ELEMENT,MASS,
+     ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q, MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
+     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
      VARIABLE,COMPUTE,FIX,INAME,DNAME,
      ATTRIBUTES}; // must come last
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE,STRING};    // same as in DumpCFG
+enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
 #define INVOKED_PERATOM 8
+#define ONEFIELD 32
+#define DELTA 1048576
 
 /* ---------------------------------------------------------------------- */
 
@@ -107,6 +109,8 @@ DumpCustomVTK::DumpCustomVTK(LAMMPS *lmp, int narg, char **arg) :
   vtype.clear();
   name.clear();
 
+  buffer_allow = 1;
+  buffer_flag = 1;
   iregion = -1;
   idregion = NULL;
   nthresh = 0;
@@ -138,12 +142,13 @@ DumpCustomVTK::DumpCustomVTK(LAMMPS *lmp, int narg, char **arg) :
 
   // process attributes
   // ioptional = start of additional optional args
-  // only dump image style processes optional args
+  // only dump image and dump movie styles process optional args
 
   ioptional = parse_fields(narg,arg);
 
-  if (ioptional < narg)
-    error->all(FLERR,"Invalid attribute in dump custom/vtk command");
+  if (ioptional < narg &&
+      strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
+    error->all(FLERR,"Invalid attribute in dump custom command");
   size_one = pack_choice.size();
   current_pack_choice_key = -1;
 
@@ -316,7 +321,7 @@ void DumpCustomVTK::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::write_header(bigint /*ndump*/)
+void DumpCustomVTK::write_header(bigint)
 {
 }
 
@@ -354,13 +359,23 @@ int DumpCustomVTK::count()
   }
 
   // invoke Computes for per-atom quantities
+  // only if within a run or minimize
+  // else require that computes are current
+  // this prevents a compute from being invoked by the WriteDump class
 
   if (ncompute) {
-    for (i = 0; i < ncompute; i++)
-      if (!(compute[i]->invoked_flag & INVOKED_PERATOM)) {
-        compute[i]->compute_peratom();
-        compute[i]->invoked_flag |= INVOKED_PERATOM;
+    if (update->whichflag == 0) {
+      for (i = 0; i < ncompute; i++)
+        if (compute[i]->invoked_peratom != update->ntimestep)
+          error->all(FLERR,"Compute used in dump between runs is not current");
+    } else {
+      for (i = 0; i < ncompute; i++) {
+        if (!(compute[i]->invoked_flag & INVOKED_PERATOM)) {
+          compute[i]->compute_peratom();
+          compute[i]->invoked_flag |= INVOKED_PERATOM;
+        }
       }
+    }
   }
 
   // evaluate atom-style Variables for per-atom quantities
@@ -386,6 +401,7 @@ int DumpCustomVTK::count()
 
   if (iregion >= 0) {
     Region *region = domain->regions[iregion];
+    region->prematch();
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
       if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)
@@ -405,7 +421,7 @@ int DumpCustomVTK::count()
       // customize by adding to if statement
 
       if (thresh_array[ithresh] == ID) {
-        int *tag = atom->tag;
+        tagint *tag = atom->tag;
         for (i = 0; i < nlocal; i++) dchoose[i] = tag[i];
         ptr = dchoose;
         nstride = 1;
@@ -413,8 +429,16 @@ int DumpCustomVTK::count()
         if (!atom->molecule_flag)
           error->all(FLERR,
                      "Threshold for an atom property that isn't allocated");
-        int *molecule = atom->molecule;
+        tagint *molecule = atom->molecule;
         for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
+        ptr = dchoose;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == PROC) {
+        for (i = 0; i < nlocal; i++) dchoose[i] = me;
+        ptr = dchoose;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == PROCP1) {
+        for (i = 0; i < nlocal; i++) dchoose[i] = me;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == TYPE) {
@@ -503,7 +527,7 @@ int DumpCustomVTK::count()
 
       } else if (thresh_array[ithresh] == XU) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double xprd = domain->xprd;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = x[i][0] + ((image[i] & IMGMASK) - IMGMAX) * xprd;
@@ -511,16 +535,16 @@ int DumpCustomVTK::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == YU) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double yprd = domain->yprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = x[i][1] + 
+          dchoose[i] = x[i][1] +
             ((image[i] >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == ZU) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double zprd = domain->zprd;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = x[i][2] + ((image[i] >> IMG2BITS) - IMGMAX) * zprd;
@@ -529,7 +553,7 @@ int DumpCustomVTK::count()
 
       } else if (thresh_array[ithresh] == XUTRI) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double *h = domain->h;
         int xbox,ybox,zbox;
         for (i = 0; i < nlocal; i++) {
@@ -554,7 +578,7 @@ int DumpCustomVTK::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == ZUTRI) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double *h = domain->h;
         int zbox;
         for (i = 0; i < nlocal; i++) {
@@ -566,41 +590,41 @@ int DumpCustomVTK::count()
 
       } else if (thresh_array[ithresh] == XSU) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double boxxlo = domain->boxlo[0];
         double invxprd = 1.0/domain->xprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][0] - boxxlo) * invxprd + 
+          dchoose[i] = (x[i][0] - boxxlo) * invxprd +
             (image[i] & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == YSU) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double boxylo = domain->boxlo[1];
         double invyprd = 1.0/domain->yprd;
         for (i = 0; i < nlocal; i++)
           dchoose[i] =
-            (x[i][1] - boxylo) * invyprd + 
+            (x[i][1] - boxylo) * invyprd +
             (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == ZSU) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double boxzlo = domain->boxlo[2];
         double invzprd = 1.0/domain->zprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][2] - boxzlo) * invzprd + 
+          dchoose[i] = (x[i][2] - boxzlo) * invzprd +
             (image[i] >> IMG2BITS) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == XSUTRI) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double *boxlo = domain->boxlo;
         double *h_inv = domain->h_inv;
         for (i = 0; i < nlocal; i++)
@@ -612,7 +636,7 @@ int DumpCustomVTK::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == YSUTRI) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double *boxlo = domain->boxlo;
         double *h_inv = domain->h_inv;
         for (i = 0; i < nlocal; i++)
@@ -623,7 +647,7 @@ int DumpCustomVTK::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == ZSUTRI) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double *boxlo = domain->boxlo;
         double *h_inv = domain->h_inv;
         for (i = 0; i < nlocal; i++)
@@ -633,19 +657,19 @@ int DumpCustomVTK::count()
         nstride = 1;
 
       } else if (thresh_array[ithresh] == IX) {
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = (image[i] & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == IY) {
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == IZ) {
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = (image[i] >> IMG2BITS) - IMGMAX;
         ptr = dchoose;
@@ -672,7 +696,7 @@ int DumpCustomVTK::count()
 
       } else if (thresh_array[ithresh] == Q) {
         if (!atom->q_flag)
-          error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = atom->q;
         nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
@@ -2151,6 +2175,8 @@ int DumpCustomVTK::modify_param(int narg, char **arg)
 
     if (strcmp(arg[1],"id") == 0) thresh_array[nthresh] = ID;
     else if (strcmp(arg[1],"mol") == 0) thresh_array[nthresh] = MOL;
+    else if (strcmp(arg[1],"proc") == 0) thresh_array[nthresh] = PROC;
+    else if (strcmp(arg[1],"procp1") == 0) thresh_array[nthresh] = PROCP1;
     else if (strcmp(arg[1],"type") == 0) thresh_array[nthresh] = TYPE;
     else if (strcmp(arg[1],"mass") == 0) thresh_array[nthresh] = MASS;
 
@@ -2447,7 +2473,7 @@ void DumpCustomVTK::pack_custom(int n)
 
 void DumpCustomVTK::pack_id(int n)
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = tag[clist[i]];
@@ -2459,7 +2485,7 @@ void DumpCustomVTK::pack_id(int n)
 
 void DumpCustomVTK::pack_molecule(int n)
 {
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = molecule[clist[i]];
@@ -2637,7 +2663,7 @@ void DumpCustomVTK::pack_xu(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double xprd = domain->xprd;
 
@@ -2654,7 +2680,7 @@ void DumpCustomVTK::pack_yu(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double yprd = domain->yprd;
 
@@ -2671,7 +2697,7 @@ void DumpCustomVTK::pack_zu(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double zprd = domain->zprd;
 
@@ -2688,7 +2714,7 @@ void DumpCustomVTK::pack_xu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double *h = domain->h;
   int xbox,ybox,zbox;
@@ -2709,7 +2735,7 @@ void DumpCustomVTK::pack_yu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double *h = domain->h;
   int ybox,zbox;
@@ -2729,7 +2755,7 @@ void DumpCustomVTK::pack_zu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double *h = domain->h;
   int zbox;
@@ -2748,7 +2774,7 @@ void DumpCustomVTK::pack_xsu(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
@@ -2766,7 +2792,7 @@ void DumpCustomVTK::pack_ysu(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
@@ -2784,7 +2810,7 @@ void DumpCustomVTK::pack_zsu(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
@@ -2802,7 +2828,7 @@ void DumpCustomVTK::pack_xsu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
@@ -2821,7 +2847,7 @@ void DumpCustomVTK::pack_ysu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
@@ -2840,7 +2866,7 @@ void DumpCustomVTK::pack_zsu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
@@ -2856,7 +2882,7 @@ void DumpCustomVTK::pack_zsu_triclinic(int n)
 
 void DumpCustomVTK::pack_ix(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = (image[clist[i]] & IMGMASK) - IMGMAX;
@@ -2868,7 +2894,7 @@ void DumpCustomVTK::pack_ix(int n)
 
 void DumpCustomVTK::pack_iy(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = (image[clist[i]] >> IMGBITS & IMGMASK) - IMGMAX;
@@ -2880,7 +2906,7 @@ void DumpCustomVTK::pack_iy(int n)
 
 void DumpCustomVTK::pack_iz(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = (image[clist[i]] >> IMG2BITS) - IMGMAX;

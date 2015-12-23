@@ -1459,6 +1459,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       iregion = domain->find_region(arg[1]);
       if (iregion == -1)
         error->all(FLERR,"Dump_modify region ID does not exist");
+      delete [] idregion;
       int n = strlen(arg[1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[1]);

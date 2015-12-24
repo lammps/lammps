@@ -10,25 +10,35 @@ fix qeq/point command :h3
 fix qeq/shielded command :h3
 fix qeq/slater command :h3
 fix qeq/dynamic command :h3
+fix qeq/fire command :h3
 
 [Syntax:]
 
-fix ID group-ID style Nevery cutoff tolerance maxiter qfile :pre
+fix ID group-ID style Nevery cutoff tolerance maxiter qfile keyword ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-style = {qeq/point} or {qeq/shielded} or {qeq/slater} or {qeq/dynamic}
-Nevery = perform charge equilibration every this many steps
-cutoff = global cutoff for charge-charge interactions (distance unit)
-tolerance = precision to which charges will be equilibrated
-maxiter = maximum iterations to perform charge equilibration
-qfile = a filename with QEq parameters :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+style = {qeq/point} or {qeq/shielded} or {qeq/slater} or {qeq/dynamic} or {qeq/fire} :l
+Nevery = perform charge equilibration every this many steps :l
+cutoff = global cutoff for charge-charge interactions (distance unit) :l
+tolerance = precision to which charges will be equilibrated :l
+maxiter = maximum iterations to perform charge equilibration :l
+qfile = a filename with QEq parameters :l
+
+zero or more keyword/value pairs may be appended :l
+keyword = {alpha} or {qdamp} or {qstep} :l
+  {alpha} value = Slater type orbital exponent (qeq/slater only) 
+  {qdamp} value = damping factor for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
+  {qstep} value = time step size for damped dynamics charge solver (qeq/dynamic and qeq/fire only) :pre
+
+:ule
 
 [Examples:]
 
 fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
 fix 1 qeq qeq/shielded 1 8 1.0e-6 100 param.qeq2
-fix 1 all qeq/slater 5 10 1.0e-6 100 params
-fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq :pre
+fix 1 all qeq/slater 5 10 1.0e-6 100 params alpha 0.2
+fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq 
+fix 1 all qeq/fire 1 10 1.0e-3 100 my_qeq qdamp 0.2 qstep 0.1 :pre
 
 [Description:]
 
@@ -42,8 +52,8 @@ These fixes can be used with any "pair style"_pair_style.html in
 LAMMPS, so long as per-atom charges are defined.  The most typical
 use-case is in conjunction with a "pair style"_pair_style.html that
 performs charge equilibration periodically (e.g. every timestep), such
-as the ReaxFF or Streitz-Mintmire potential (the latter is not yet
-implemented in LAMMPS).  But these fixes can also be used with
+as the ReaxFF or Streitz-Mintmire potential. 
+But these fixes can also be used with
 potentials that normally assume per-atom charges are fixed, e.g. a
 "Buckingham"_pair_buck.html or "LJ/Coulombic"_pair_lj.html potential.
 
@@ -119,7 +129,8 @@ product of two Slater 1{s} orbitals.  The expression for the Slater
 "Streitz-Mintmire"_#Streitz paper.  Only the {chi}, {eta}, {zeta}, and
 {qcore} parameters from the {qfile} file are used.  This style solves
 partial charges on atoms via the matrix inversion method.  A tolerance
-of 1.0e-6 is usually a good number.
+of 1.0e-6 is usually a good number.  Keyword {alpha} can be used to 
+change the Slater type orbital exponent.
 
 The {qeq/dynamic} style describes partial charges on atoms as point
 charges that interact through 1/r, but the extended Lagrangian method
@@ -127,26 +138,34 @@ is used to solve partial charges on atoms.  Only the {chi} and {eta}
 parameters from the {qfile} file are used.  Note that Coulomb
 catastrophe can occur if repulsion between the pair of charged
 particles is too weak.  A tolerance of 1.0e-3 is usually a good
-number.
+number.  Keyword {qdamp} can be used to change the damping factor, while
+keyword {qstep} can be used to change the time step size.
+
+The "{qeq/fire}"_#Shan style describes the same charge model and charge 
+solver as the {qeq/dynamic} style, but employs a FIRE minimization 
+algorithm to solve for equilibrium charges.
+Keyword {qdamp} can be used to change the damping factor, while
+keyword {qstep} can be used to change the time step size.
 
 Note that {qeq/point}, {qeq/shielded}, and {qeq/slater} describe
 different charge models, whereas the matrix inversion method and the
-extended Lagrangian method ({qeq/dynamic}) are different solvers.
+extended Lagrangian method ({qeq/dynamic} and {qeq/fire}) are 
+different solvers.
 
-Note that the {qeq/point} and the {qeq/dynamic} styles both describe
+Note that {qeq/point}, {qeq/dynamic} and {qeq/fire} styles all describe
 charges as point charges that interact through 1/r relationship, but
-solve partial charges on atoms using different solvers.  Styles
-{qeq/point} and the {qeq/dynamic} should yield comparable results if
+solve partial charges on atoms using different solvers.  These three 
+styles should yield comparable results if
 the QEq parameters and {Nevery}, {cutoff}, and {tolerance} are the
-same.  Style {qeq/point} is typically faster, but {qeq/dynamic} scales
-better on larger sizes.
+same.  Style {qeq/point} is typically faster, {qeq/dynamic} scales
+better on larger sizes, and {qeq/fire} is faster than {qeq/dynamic}.
 
 NOTE: To avoid the evaluation of the derivative of charge with respect
 to position, which is typically ill-defined, the system should have a
 zero net charge.
 
 NOTE: Developing QEq parameters (chi, eta, gamma, zeta, and qcore) is
-an "art".  Charges on atoms are not guaranteed to equilibrate with
+non-trivial.  Charges on atoms are not guaranteed to equilibrate with
 arbitrary choices of these parameters.  We do not develop these QEq
 paramters.  See the examples/qeq directory for some examples.
 
@@ -193,3 +212,6 @@ Chemistry, 95, 3358-3363 (1991).
 :link(vanDuin)
 [(ReaxFF)] A. C. T. van Duin, S. Dasgupta, F. Lorant, W. A. Goddard III, J 
 Physical Chemistry, 105, 9396-9049 (2001)
+
+:link(Shan)
+[(QEq/Fire)] T.-R. Shan, A. P. Thompson, S. J. Plimpton, in preparation

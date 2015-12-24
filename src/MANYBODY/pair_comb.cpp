@@ -1790,7 +1790,6 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
     if (mask[i] & groupbit)
       eneg += qf[i];
   }
-  double enegtot;
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);
   return enegtot;
 }

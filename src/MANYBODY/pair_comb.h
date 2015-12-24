@@ -37,6 +37,7 @@ class PairComb : public Pair {
   double memory_usage();
 
   virtual double yasu_char(double *, int &);
+  double enegtot;
 
  protected:
   struct Param {

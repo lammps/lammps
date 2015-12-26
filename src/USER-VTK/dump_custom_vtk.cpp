@@ -566,7 +566,7 @@ int DumpCustomVTK::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == YUTRI) {
         double **x = atom->x;
-        tagint *image = atom->image;
+        imageint *image = atom->image;
         double *h = domain->h;
         int ybox,zbox;
         for (i = 0; i < nlocal; i++) {
@@ -981,7 +981,7 @@ void DumpCustomVTK::write()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomVTK::pack(int *ids)
+void DumpCustomVTK::pack(tagint *ids)
 {
   int n = 0;
   for (std::map<int,FnPtrPack>::iterator it=pack_choice.begin(); it!=pack_choice.end(); ++it, ++n) {
@@ -990,7 +990,7 @@ void DumpCustomVTK::pack(int *ids)
   }
 
   if (ids) {
-    int *tag = atom->tag;
+    tagint *tag = atom->tag;
     for (int i = 0; i < nchoose; i++)
       ids[i] = tag[clist[i]];
   }
@@ -1593,6 +1593,14 @@ int DumpCustomVTK::parse_fields(int narg, char **arg)
       pack_choice[MOL] = &DumpCustomVTK::pack_molecule;
       vtype[MOL] = INT;
       name[MOL] = arg[iarg];
+    } else if (strcmp(arg[iarg],"proc") == 0) {
+      pack_choice[PROC] = &DumpCustomVTK::pack_proc;
+      vtype[PROC] = INT;
+      name[PROC] = arg[iarg];
+    } else if (strcmp(arg[iarg],"procp1") == 0) {
+      pack_choice[PROCP1] = &DumpCustomVTK::pack_procp1;
+      vtype[PROCP1] = INT;
+      name[PROCP1] = arg[iarg];
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[TYPE] = &DumpCustomVTK::pack_type;
       vtype[TYPE] = INT;
@@ -2489,6 +2497,26 @@ void DumpCustomVTK::pack_molecule(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = molecule[clist[i]];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustomVTK::pack_proc(int n)
+{
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = me;
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustomVTK::pack_procp1(int n)
+{
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = me+1;
     n += size_one;
   }
 }

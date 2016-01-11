@@ -48,7 +48,7 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule}
     v_name = per-atom vector calculated by an atom-style variable with name :pre
 
 zero or more keyword/values pairs may be appended :l
-keyword = {region} or {nchunk} or {static} or {compress} or {bound} or {discard} or {units} :l
+keyword = {region} or {nchunk} or {static} or {compress} or {bound} or {discard} or {pbc} or {units} :l
   {region} value = region-ID
     region-ID = ID of region atoms must be in to be part of a chunk
   {nchunk} value = {once} or {every}
@@ -73,6 +73,8 @@ keyword = {region} or {nchunk} or {static} or {compress} or {bound} or {discard}
     x/y/z = {x} or {y} or {z} to bound sptial bins in this dimension
     lo = {lower} or coordinate value (distance units)
     hi = {upper} or coordinate value (distance units)
+  {pbc} value = {no} or {yes}
+    yes = use periodic distance for bin/sphere and bin/cylinder styles
   {units} value = {box} or {lattice} or {reduced} :pre
 :ule
 
@@ -570,6 +572,20 @@ box boundaries, though LAMMPS does not check for this.  Note that
 using the {bound} keyword typically reduces the total number of bins
 and thus the number of chunks {Nchunk}.
 
+The {pbc} keyword only applies to the {bin/sphere} and {bin/cylinder}
+styles.  If set to {yes}, the distance an atom is from the sphere
+origin or cylinder axis is calculated in a minimum image sense with
+respect to periodic dimensions, when determining which bin the atom is
+in.  I.e. if x is a periodic dimension and the distance between the
+atom and the sphere center in the x dimension is greater than 0.5 *
+simulation box length in x, then a box length is subtracted to give a
+distance < 0.5 * simulation box length.  This allosws the sphere or
+cylinder center to be near a box edge, and atoms on the other side of
+the periodic box will still be close to the center point/axis.  Note
+that with a setting of {yes}, the outer sphere or cylinder radius must
+also be <= 0.5 * simulation box length in any periodic dimension
+except for the cylinder axis dimension, or an error is generated.
+
 The {units} keyword only applies to the {binning} styles; otherwise it
 is ignored.  For the {bin/1d}, {bin/2d}, {bin/3d} styles, it
 determines the meaning of the distance units used for the bin sizes
@@ -645,4 +661,5 @@ compress = no
 discard = yes, for all styles except binning
 discard = mixed, for binning styles
 bound = lower and upper in all dimensions
+pbc = no
 units = lattice :ul

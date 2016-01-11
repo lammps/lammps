@@ -17,10 +17,10 @@ store/state = style name of this fix command :l
 N = store atom attributes every N steps, N = 0 for initial store only :l
 input = one or more atom attributes :l
   possible attributes = id, mol, type, mass,
- 	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+ 	                x, y, z, xs, ys, zs, xu, yu, zu, xsu, ysu, zsu, ix, iy, iz,
 		        vx, vy, vz, fx, fy, fz,
-                        q, mux, muy, muz,
-                        radius, omegax, omegay, omegaz,
+                        q, mux, muy, muz, mu,
+                        radius, diameter, omegax, omegay, omegaz,
                         angmomx, angmomy, angmomz, tqx, tqy, tqz,
                         c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name,
                         d_name, i_name :pre
@@ -32,12 +32,14 @@ input = one or more atom attributes :l
       x,y,z = unscaled atom coordinates
       xs,ys,zs = scaled atom coordinates
       xu,yu,zu = unwrapped atom coordinates
+      xsu,ysu,zsu = scaled unwrapped atom coordinates
       ix,iy,iz = box image that the atom is in
       vx,vy,vz = atom velocities
       fx,fy,fz = forces on atoms
       q = atom charge
       mux,muy,muz = orientation of dipolar atom
-      radius = radius of spherical particle
+      mu = magnitued of dipole moment of atom
+      radius,diameter = radius.diameter of spherical particle
       omegax,omegay,omegaz = angular velocity of spherical particle
       angmomx,angmomy,angmomz = angular momentum of aspherical particle
       tqx,tqy,tqz = torque on finite-size particles
@@ -67,29 +69,25 @@ time the fix is defined.  If {N} is 0, then the values are never
 updated, so this is a way of archiving an atom attribute at a given
 time for future use in a calculation or output.  See the discussion of
 "output commands"_Section_howto.html#howto_15 that take fixes as
-inputs.  And see for example, the "compute
-reduce"_compute_reduce.html, "fix ave/atom"_fix_ave_atom.html, "fix
-ave/histo"_fix_ave_histo.html, "fix ave/spatial"_fix_ave_spatial.html,
-and "atom-style variable"_variable.html commands.
+inputs.
 
 If {N} is not zero, then the attributes will be updated every {N}
 steps.
 
-NOTE: Actually, only atom attributes specified by keywords like {xu}
-or {vy} are initially stored immediately at the point in your input
-script when the fix is defined.  Attributes specified by a compute,
-fix, or variable are not initially stored until the first run
-following the fix definition begins.  This is because calculating
-those attributes may require quantities that are not defined in
-between runs.
+IMPORTANT NOTE: Actually, only atom attributes specified by keywords
+like {xu} or {vy} or {radius} are initially stored immediately at the
+point in your input script when the fix is defined.  Attributes
+specified by a compute, fix, or variable are not initially stored
+until the first run following the fix definition begins.  This is
+because calculating those attributes may require quantities that are
+not defined in between runs.
 
 The list of possible attributes is the same as that used by the "dump
 custom"_dump.html command, which describes their meaning.
 
 If the {com} keyword is set to {yes} then the {xu}, {yu}, and {zu}
 inputs store the position of each atom relative to the center-of-mass
-of the group of atoms, instead of storing the absolute position.  This
-option is used by the "compute msd"_compute_msd.html command.
+of the group of atoms, instead of storing the absolute position.
 
 The requested values are stored in a per-atom vector or array as
 discussed below.  Zeroes are stored for atoms not in the specified

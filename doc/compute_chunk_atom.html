@@ -171,7 +171,7 @@ style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>bin/sphere<
 </pre>
 <ul class="simple">
 <li>zero or more keyword/values pairs may be appended</li>
-<li>keyword = <em>region</em> or <em>nchunk</em> or <em>static</em> or <em>compress</em> or <em>bound</em> or <em>discard</em> or <em>units</em></li>
+<li>keyword = <em>region</em> or <em>nchunk</em> or <em>static</em> or <em>compress</em> or <em>bound</em> or <em>discard</em> or <em>pbc</em> or <em>units</em></li>
 </ul>
 <pre class="literal-block">
 <em>region</em> value = region-ID
@@ -198,6 +198,8 @@ style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>bin/sphere<
   x/y/z = <em>x</em> or <em>y</em> or <em>z</em> to bound sptial bins in this dimension
   lo = <em>lower</em> or coordinate value (distance units)
   hi = <em>upper</em> or coordinate value (distance units)
+<em>pbc</em> value = <em>no</em> or <em>yes</em>
+  yes = use periodic distance for bin/sphere and bin/cylinder styles
 <em>units</em> value = <em>box</em> or <em>lattice</em> or <em>reduced</em>
 </pre>
 </div>
@@ -616,6 +618,19 @@ value, which is assumed to be inside (or at least near) the simulation
 box boundaries, though LAMMPS does not check for this.  Note that
 using the <em>bound</em> keyword typically reduces the total number of bins
 and thus the number of chunks <em>Nchunk</em>.</p>
+<p>The <em>pbc</em> keyword only applies to the <em>bin/sphere</em> and <em>bin/cylinder</em>
+styles.  If set to <em>yes</em>, the distance an atom is from the sphere
+origin or cylinder axis is calculated in a minimum image sense with
+respect to periodic dimensions, when determining which bin the atom is
+in.  I.e. if x is a periodic dimension and the distance between the
+atom and the sphere center in the x dimension is greater than 0.5 *
+simulation box length in x, then a box length is subtracted to give a
+distance &lt; 0.5 * simulation box length.  This allosws the sphere or
+cylinder center to be near a box edge, and atoms on the other side of
+the periodic box will still be close to the center point/axis.  Note
+that with a setting of <em>yes</em>, the outer sphere or cylinder radius must
+also be &lt;= 0.5 * simulation box length in any periodic dimension
+except for the cylinder axis dimension, or an error is generated.</p>
 <p>The <em>units</em> keyword only applies to the <em>binning</em> styles; otherwise it
 is ignored.  For the <em>bin/1d</em>, <em>bin/2d</em>, <em>bin/3d</em> styles, it
 determines the meaning of the distance units used for the bin sizes
@@ -683,6 +698,7 @@ the restarted simulation begins.</p>
 <li>discard = yes, for all styles except binning</li>
 <li>discard = mixed, for binning styles</li>
 <li>bound = lower and upper in all dimensions</li>
+<li>pbc = no</li>
 <li>units = lattice</li>
 </ul>
 </div>

@@ -139,7 +139,7 @@
 <li><p class="first">one or more keyword/value pairs may be appended</p>
 </li>
 <li><dl class="first docutils">
-<dt>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>angmom</em> or <em>omega</em> or          <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or</dt>
+<dt>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>theta/random</em> or <em>angmom</em> or <em>omega</em> or        <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or</dt>
 <dd><p class="first last"><em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or
 <em>meso_e</em> or <em>meso_cv</em> or <em>meso_rho</em> or          <em>smd_contact_radius</em> or <em>smd_mass_density</em> or           <em>i_name</em> or <em>d_name</em></p>
 </dd>
@@ -184,6 +184,8 @@
 <em>theta</em> value = angle (degrees)
   angle = orientation of line segment with respect to x-axis
   angle can be an atom-style variable (see below)
+<em>theta/random</em> value = seed
+  seed = random # seed (positive integer) for line segment orienations
 <em>angmom</em> values = Lx Ly Lz
   Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
   any of Lx,Ly,Lz can be an atom-style variable (see below)
@@ -318,19 +320,20 @@ vector to set as the orientation of the dipole moment vectors of the
 selected atoms.  The magnitude of the dipole moment is set
 by the length of this orientation vector.</p>
 <p>Keyword <em>dipole/random</em> randomizes the orientation of the dipole
-moment vectors of the selected atoms and sets the magnitude of each to
-the specified <em>Dlen</em> value.  For 2d systems, the z component of the
+moment vectors for the selected atoms and sets the magnitude of each
+to the specified <em>Dlen</em> value.  For 2d systems, the z component of the
 orientation is set to 0.0.  Random numbers are used in such a way that
 the orientation of a particular atom is the same, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.</p>
 <p>Keyword <em>quat</em> uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The
-particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> command or triangles as defined by the
-<a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> command.  Note that particles defined
-by <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> have 3 shape parameters.
-The 3 values must be non-zero for each particle set by this command.
-They are used to specify the aspect ratios of an ellipsoidal particle,
+particles must define a quaternion for their orientation
+(e.g. ellipsoids, triangles, body particles) as defined by the
+<a class="reference internal" href="atom_style.html"><em>atom_style</em></a> command.  Note that particles defined by
+<a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> have 3 shape parameters.  The 3
+values must be non-zero for each particle set by this command.  They
+are used to specify the aspect ratios of an ellipsoidal particle,
 which is oriented by default with its x-axis along the simulation
 box&#8217;s x-axis, and similarly for y and z.  If this body is rotated (via
 the right-hand rule) by an angle theta around a unit rotation vector
@@ -340,16 +343,16 @@ c*sin(theta/2)).  The theta and a,b,c values are the arguments to the
 <em>quat</em> keyword.  LAMMPS normalizes the quaternion in case (a,b,c) was
 not specified as a unit vector.  For 2d systems, the a,b,c values are
 ignored, since a rotation vector of (0,0,1) is the only valid choice.</p>
-<p>Keyword <em>quat/random</em> randomizes the orientation of the quaternion of
-the selected atoms.  The particles must be ellipsoids as defined by
-the <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> command or triangles as
-defined by the <a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> command.  Random
-numbers are used in such a way that the orientation of a particular
-atom is the same, regardless of how many processors are being used.
-For 2d systems, only orientations in the xy plane are generated.  As
-with keyword <em>quat</em>, for ellipsoidal particles, the 3 shape values
-must be non-zero for each particle set by this command.  This keyword
-does not allow use of an atom-style variable.</p>
+<p>Keyword <em>quat/random</em> randomizes the orientation of the quaternion for
+the selected atoms.  The particles must define a quaternion for their
+orientation (e.g. ellipsoids, triangles, body particles) as defined by
+the <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> command.  Random numbers are used in
+such a way that the orientation of a particular atom is the same,
+regardless of how many processors are being used.  For 2d systems,
+only orientations in the xy plane are generated.  As with keyword
+<em>quat</em>, for ellipsoidal particles, the 3 shape values must be non-zero
+for each particle set by this command.  This keyword does not allow
+use of an atom-style variable.</p>
 <p>Keyword <em>diameter</em> sets the size of the selected atoms.  The particles
 must be finite-size spheres as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style sphere</em></a> command.  The diameter of a particle can be
 set to 0.0, which means they will be treated as point particles.  Note
@@ -385,6 +388,12 @@ density, e.g. via the <a class="reference internal" href="read_data.html"><em>re
 <p>Keyword <em>theta</em> sets the orientation of selected atoms.  The particles
 must be line segments as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style line</em></a> command.  The specified value is used to set the
 orientation angle of the line segments with respect to the x axis.</p>
+<p>Keyword <em>theta/random</em> randomizes the orientation of theta for the
+selected atoms.  The particles must be line segments as defined by the
+<a class="reference internal" href="atom_style.html"><em>atom_style line</em></a> command.  Random numbers are used in
+such a way that the orientation of a particular atom is the same,
+regardless of how many processors are being used.  This keyword does
+not allow use of an atom-style variable.</p>
 <p>Keyword <em>angmom</em> sets the angular momentum of selected atoms.  The
 particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> command or triangles as defined by the
 <a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> command.  The angular momentum vector

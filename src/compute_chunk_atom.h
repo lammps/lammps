@@ -51,7 +51,7 @@ class ComputeChunkAtom : public Compute {
   int which,binflag;
   int regionflag,nchunksetflag,nchunkflag,discard;
   int limit,limitstyle,limitfirst;
-  int scaleflag;
+  int scaleflag,pbcflag;
   double xscale,yscale,zscale;
   int argindex;
   char *cfvid;

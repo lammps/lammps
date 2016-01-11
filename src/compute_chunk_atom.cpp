@@ -191,6 +191,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   maxflag[1] = UPPER;
   maxflag[2] = UPPER;
   scaleflag = LATTICE;
+  pbcflag = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
@@ -267,6 +268,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
       else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
+      else error->all(FLERR,"Illegal compute chunk/atom command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pbc") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
+      if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
       else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 2;
     } else error->all(FLERR,"Illegal compute chunk/atom command");
@@ -1265,7 +1272,7 @@ int ComputeChunkAtom::setup_xyz_bins()
 int ComputeChunkAtom::setup_sphere_bins()
 {
   // convert sorigin_user to sorigin
-  // sorigin is always in box units, for orthogonal or triclinic domains
+  // sorigin,srad are always in box units, for orthogonal or triclinic domains
   // lamda2x works for either orthogonal or triclinic
 
   if (scaleflag == REDUCED) {
@@ -1278,6 +1285,23 @@ int ComputeChunkAtom::setup_sphere_bins()
     sorigin[2] = sorigin_user[2];
     sradmin = sradmin_user;
     sradmax = sradmax_user;
+  }
+
+  // if pbcflag set, sradmax must be < 1/2 box in any periodic dim
+  // treat orthongonal and triclinic the same
+  // check every time bins are created
+
+  if (pbcflag) {
+    double *prd_half = domain->prd_half;
+    int *periodicity = domain->periodicity;
+    int flag = 0;
+    if (periodicity[0] && sradmax > prd_half[0]) flag = 1;
+    if (periodicity[1] && sradmax > prd_half[1]) flag = 1;
+    if (domain->dimension == 3 && 
+        periodicity[2] && sradmax > prd_half[2]) flag = 1;
+    if (flag) 
+      error->all(FLERR,"Compute chunk/atom bin/sphere radius "
+                 "is too large for periodic box");
   }
 
   sinvrad = nsbin / (sradmax-sradmin);
@@ -1326,6 +1350,21 @@ int ComputeChunkAtom::setup_cylinder_bins()
     corigin[cdim2] = corigin_user[cdim2];
     cradmin = cradmin_user;
     cradmax = cradmax_user;
+  }
+
+  // if pbcflag set, sradmax must be < 1/2 box in any periodic non-axis dim
+  // treat orthongonal and triclinic the same
+  // check every time bins are created
+
+  if (pbcflag) {
+    double *prd_half = domain->prd_half;
+    int *periodicity = domain->periodicity;
+    int flag = 0;
+    if (periodicity[cdim1] && sradmax > prd_half[cdim1]) flag = 1;
+    if (periodicity[cdim2] && sradmax > prd_half[cdim2]) flag = 1;
+    if (flag) 
+      error->all(FLERR,"Compute chunk/atom bin/cylinder radius "
+                 "is too large for periodic box");
   }
 
   cinvrad = ncbin / (cradmax-cradmin);
@@ -1743,6 +1782,7 @@ void ComputeChunkAtom::atom2binsphere()
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
   double *prd = domain->prd;
+  double *prd_half = domain->prd_half;
   int *periodicity = domain->periodicity;
 
   // remap each atom's relevant coords back into box via PBC if necessary
@@ -1773,6 +1813,33 @@ void ComputeChunkAtom::atom2binsphere()
     dx = xremap - sorigin[0];
     dy = yremap - sorigin[1];
     dz = zremap - sorigin[2];
+
+    // if requested, apply PBC to distance from sphere center
+    // treat orthogonal and triclinic the same
+    //   with dx,dy,dz = lengths independent of each other
+    // so do not use domain->minimum_image() which couples for triclinic
+
+    if (pbcflag) {
+      if (periodicity[0]) {
+        if (fabs(dx) > prd_half[0]) {
+          if (dx < 0.0) dx += prd[0];
+          else dx -= prd[0];
+        }
+      }
+      if (periodicity[1]) {
+        if (fabs(dy) > prd_half[1]) {
+          if (dy < 0.0) dy += prd[1];
+          else dy -= prd[1];
+        }
+      }
+      if (periodicity[2]) {
+        if (fabs(dz) > prd_half[2]) {
+          if (dz < 0.0) dz += prd[2];
+          else dz -= prd[2];
+        }
+      }
+    }
+
     r = sqrt(dx*dx + dy*dy + dz*dz);
 
     ibin = static_cast<int> ((r - sradmin) * sinvrad);
@@ -1792,7 +1859,6 @@ void ComputeChunkAtom::atom2binsphere()
 
 /* ----------------------------------------------------------------------
    assign each atom to a cylindrical bin
-   
 ------------------------------------------------------------------------- */
 
 void ComputeChunkAtom::atom2bincylinder()
@@ -1812,6 +1878,7 @@ void ComputeChunkAtom::atom2bincylinder()
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
   double *prd = domain->prd;
+  double *prd_half = domain->prd_half;
   int *periodicity = domain->periodicity;
 
   // remap each atom's relevant coords back into box via PBC if necessary
@@ -1837,6 +1904,26 @@ void ComputeChunkAtom::atom2bincylinder()
 
     d1 = remap1 - corigin[cdim1];
     d2 = remap2 - corigin[cdim2];
+
+    // if requested, apply PBC to distance from cylinder axis
+    // treat orthogonal and triclinic the same
+    //   with d1,d2 = lengths independent of each other
+
+    if (pbcflag) {
+      if (periodicity[cdim1]) {
+        if (fabs(d1) > prd_half[cdim1]) {
+          if (d1 < 0.0) d1 += prd[cdim1];
+          else d1 -= prd[cdim1];
+        }
+      }
+      if (periodicity[cdim2]) {
+        if (fabs(d2) > prd_half[cdim2]) {
+          if (d2 < 0.0) d2 += prd[cdim2];
+          else d2 -= prd[cdim2];
+        }
+      }
+    }
+
     r = sqrt(d1*d1 + d2*d2);
 
     rbin = static_cast<int> ((r - cradmin) * cinvrad);

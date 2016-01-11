@@ -33,7 +33,6 @@ class FixStore : public Fix {
   ~FixStore();
   int setmask();
 
-  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   int pack_exchange(int, double *);
@@ -42,6 +41,8 @@ class FixStore : public Fix {
   void unpack_restart(int, int);
   int size_restart(int);
   int maxsize_restart();
+
+  double memory_usage();
 
  private:
   int nvalues;                  // total # of values per atom

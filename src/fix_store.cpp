@@ -15,9 +15,9 @@
 #include <string.h>
 #include "fix_store.h"
 #include "atom.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -78,16 +78,6 @@ int FixStore::setmask()
 {
   int mask = 0;
   return mask;
-}
-
-/* ----------------------------------------------------------------------
-   memory usage of local atom-based array
-------------------------------------------------------------------------- */
-
-double FixStore::memory_usage()
-{
-  double bytes = atom->nmax*nvalues * sizeof(double);
-  return bytes;
 }
 
 /* ----------------------------------------------------------------------
@@ -189,3 +179,14 @@ int FixStore::size_restart(int nlocal)
 {
   return nvalues+1;
 }
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based array
+------------------------------------------------------------------------- */
+
+double FixStore::memory_usage()
+{
+  double bytes = atom->nmax*nvalues * sizeof(double);
+  return bytes;
+}
+

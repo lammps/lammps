@@ -1318,45 +1318,51 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
                        tagint id_offset)
 {
-  int j,m,tagdata,ninteger,ndouble;
+  int j,m,nvalues,tagdata,ninteger,ndouble;
 
   int maxint = 0;
   int maxdouble = 0;
-  char **ivalues = NULL;
-  char **dvalues = NULL;
+  int *ivalues = NULL;
+  double *dvalues = NULL;
 
   // loop over lines of body data
-  // tokenize the lines into ivalues and dvalues
-  // if I own atom tag, unpack its values
+  // if I own atom tag, tokenize lines into ivalues/dvalues, call data_body()
+  // else skip values
 
   for (int i = 0; i < n; i++) {
     if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
     else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f")) + id_offset;
 
-    ninteger = atoi(strtok(NULL," \t\n\r\f"));
-    ndouble = atoi(strtok(NULL," \t\n\r\f"));
-
-    if (ninteger > maxint) {
-      delete [] ivalues;
-      maxint = ninteger;
-      ivalues = new char*[maxint];
-    }
-    if (ndouble > maxdouble) {
-      delete [] dvalues;
-      maxdouble = ndouble;
-      dvalues = new char*[maxdouble];
-    }
-
-    for (j = 0; j < ninteger; j++)
-      ivalues[j] = strtok(NULL," \t\n\r\f");
-    for (j = 0; j < ndouble; j++)
-      dvalues[j] = strtok(NULL," \t\n\r\f");
-
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
+    
+    if ((m = map(tagdata)) >= 0) {
+      ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+      ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
 
-    if ((m = map(tagdata)) >= 0)
+      if (ninteger > maxint) {
+	delete [] ivalues;
+	maxint = ninteger;
+	ivalues = new int[maxint];
+      }
+      if (ndouble > maxdouble) {
+	delete [] dvalues;
+	maxdouble = ndouble;
+	dvalues = new double[maxdouble];
+      }
+      
+      for (j = 0; j < ninteger; j++)
+	ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+      for (j = 0; j < ndouble; j++)
+	dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+      
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
+      
+    } else {
+      nvalues = 2 + ninteger + ndouble;    // number of values to skip
+      for (j = 0; j < nvalues; j++)
+	strtok(NULL," \t\n\r\f");
+    }
   }
 
   delete [] ivalues;
@@ -1588,7 +1594,13 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   else if (rmass_flag)
     rmass[ilocal] = 4.0*MY_PI/3.0 *
       radius[ilocal]*radius[ilocal]*radius[ilocal];
-
+  if (onemol->bodyflag) {
+    body[ilocal] = 0;     // as if a body read from data file
+    onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
+				 onemol->ibodyparams,onemol->dbodyparams);
+    onemol->avec_body->set_quat(ilocal,onemol->quat_external);
+  }
+  
   if (molecular != 1) return;
 
   // add bond topology info

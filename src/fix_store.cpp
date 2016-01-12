@@ -15,6 +15,7 @@
 #include <string.h>
 #include "fix_store.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
@@ -121,6 +122,35 @@ int FixStore::setmask()
 {
   int mask = 0;
   return mask;
+}
+
+/* ----------------------------------------------------------------------
+   write global array to restart file
+------------------------------------------------------------------------- */
+
+void FixStore::write_restart(FILE *fp)
+{
+  int n = nrow*ncol;
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    if (vecflag) fwrite(vstore,sizeof(double),n,fp);
+    else fwrite(&astore[0][0],sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use global array from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixStore::restart(char *buf)
+{
+  // HOWTO insure size of buf is the same
+
+  int n = nrow*ncol;
+  double *dbuf = (double *) buf;
+  if (vecflag) memcpy(vstore,dbuf,n*sizeof(double));
+  else memcpy(&astore[0][0],dbuf,n*sizeof(double));
 }
 
 /* ----------------------------------------------------------------------

@@ -20,6 +20,7 @@ FixStyle(STORE,FixStore)
 #ifndef LMP_FIX_STORE_H
 #define LMP_FIX_STORE_H
 
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -34,6 +35,9 @@ class FixStore : public Fix {
   FixStore(class LAMMPS *, int, char **);
   ~FixStore();
   int setmask();
+
+  void write_restart(FILE *);
+  void restart(char *);
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);

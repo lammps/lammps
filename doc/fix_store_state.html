@@ -138,10 +138,10 @@
 <li>input = one or more atom attributes</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre>possible attributes = id, mol, type, mass,
-                   x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+                   x, y, z, xs, ys, zs, xu, yu, zu, xsu, ysu, zsu, ix, iy, iz,
                    vx, vy, vz, fx, fy, fz,
-                      q, mux, muy, muz,
-                      radius, omegax, omegay, omegaz,
+                      q, mux, muy, muz, mu,
+                      radius, diameter, omegax, omegay, omegaz,
                       angmomx, angmomy, angmomz, tqx, tqy, tqz,
                       c_ID, c_ID[N], f_ID, f_ID[N], v_name,
                       d_name, i_name
@@ -154,12 +154,14 @@ mass = atom mass
 x,y,z = unscaled atom coordinates
 xs,ys,zs = scaled atom coordinates
 xu,yu,zu = unwrapped atom coordinates
+xsu,ysu,zsu = scaled unwrapped atom coordinates
 ix,iy,iz = box image that the atom is in
 vx,vy,vz = atom velocities
 fx,fy,fz = forces on atoms
 q = atom charge
 mux,muy,muz = orientation of dipolar atom
-radius = radius of spherical particle
+mu = magnitued of dipole moment of atom
+radius,diameter = radius.diameter of spherical particle
 omegax,omegay,omegaz = angular velocity of spherical particle
 angmomx,angmomy,angmomz = angular momentum of aspherical particle
 tqx,tqy,tqz = torque on finite-size particles
@@ -195,25 +197,23 @@ time the fix is defined.  If <em>N</em> is 0, then the values are never
 updated, so this is a way of archiving an atom attribute at a given
 time for future use in a calculation or output.  See the discussion of
 <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a> that take fixes as
-inputs.  And see for example, the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a>, <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>,
-and <a class="reference internal" href="variable.html"><em>atom-style variable</em></a> commands.</p>
+inputs.</p>
 <p>If <em>N</em> is not zero, then the attributes will be updated every <em>N</em>
 steps.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Actually, only atom attributes specified by keywords like <em>xu</em>
-or <em>vy</em> are initially stored immediately at the point in your input
-script when the fix is defined.  Attributes specified by a compute,
-fix, or variable are not initially stored until the first run
-following the fix definition begins.  This is because calculating
-those attributes may require quantities that are not defined in
-between runs.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Actually, only atom attributes specified by keywords
+like <em>xu</em> or <em>vy</em> or <em>radius</em> are initially stored immediately at the
+point in your input script when the fix is defined.  Attributes
+specified by a compute, fix, or variable are not initially stored
+until the first run following the fix definition begins.  This is
+because calculating those attributes may require quantities that are
+not defined in between runs.</p>
 </div>
 <p>The list of possible attributes is the same as that used by the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command, which describes their meaning.</p>
 <p>If the <em>com</em> keyword is set to <em>yes</em> then the <em>xu</em>, <em>yu</em>, and <em>zu</em>
 inputs store the position of each atom relative to the center-of-mass
-of the group of atoms, instead of storing the absolute position.  This
-option is used by the <a class="reference internal" href="compute_msd.html"><em>compute msd</em></a> command.</p>
+of the group of atoms, instead of storing the absolute position.</p>
 <p>The requested values are stored in a per-atom vector or array as
 discussed below.  Zeroes are stored for atoms not in the specified
 group.</p>

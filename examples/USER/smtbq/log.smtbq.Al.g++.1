@@ -1,4 +1,4 @@
-LAMMPS (23 Oct 2015)
+LAMMPS (24 Dec 2015)
 # Al2O3 crystal, qeq on, minimizes, then calculates elastic constants
 
 variable T_depart equal 300
@@ -64,6 +64,7 @@ velocity	all create 300 277387
 
 pair_style	smtbq
 pair_coeff	* * ffield.smtbq.Al Al
+Reading potential file ffield.smtbq.Al with DATE: 2015-10-22
 
 neighbor	0.5 bin
 neigh_modify	every 20 delay 0 check yes
@@ -100,20 +101,20 @@ Step Temp Press PotEng KinEng TotEng Lx Ly Lz Volume
        8    298.92698      770.098   -5600.6212    64.875459   -5535.7458    28.637825    34.721517    28.059223    27900.653 
        9    298.64244    780.92261   -5600.5595    64.813707   -5535.7458    28.637825    34.721517    28.059223    27900.653 
       10    298.32468    793.00943   -5600.4905    64.744743   -5535.7458    28.637825    34.721517    28.059223    27900.653 
-Loop time of 5.10336 on 1 procs for 10 steps with 1680 atoms
+Loop time of 5.10475 on 1 procs for 10 steps with 1680 atoms
 
-Performance: 0.034 ns/day, 708.800 hours/ns, 1.959 timesteps/s
+Performance: 0.034 ns/day, 708.993 hours/ns, 1.959 timesteps/s
 99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.1023     | 5.1023     | 5.1023     |   0.0 | 99.98
+Pair    | 5.1037     | 5.1037     | 5.1037     |   0.0 | 99.98
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00045538 | 0.00045538 | 0.00045538 |   0.0 |  0.01
-Output  | 0.00024509 | 0.00024509 | 0.00024509 |   0.0 |  0.00
-Modify  | 0.00026131 | 0.00026131 | 0.00026131 |   0.0 |  0.01
-Other   |            | 0.0001056  |            |       |  0.00
+Comm    | 0.00044179 | 0.00044179 | 0.00044179 |   0.0 |  0.01
+Output  | 0.00024772 | 0.00024772 | 0.00024772 |   0.0 |  0.00
+Modify  | 0.00026011 | 0.00026011 | 0.00026011 |   0.0 |  0.01
+Other   |            | 0.0001063  |            |       |  0.00
 
 Nlocal:    1680 ave 1680 max 1680 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -186,7 +187,7 @@ Step Temp Press PotEng KinEng TotEng Lx Ly Lz Volume
       50    298.32468    2486.1481   -5600.8719    64.744743   -5536.1271    28.615167    34.699435    28.038181    27839.955 
       51    298.32468    2498.3384   -5600.8721    64.744743   -5536.1274    28.616069    34.696071    28.039596    27839.537 
       52    298.32468    2443.1247   -5600.8722    64.744743   -5536.1274    28.617616    34.696737    28.039439    27841.421 
-Loop time of 36.9389 on 1 procs for 42 steps with 1680 atoms
+Loop time of 36.8807 on 1 procs for 42 steps with 1680 atoms
 
 99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
@@ -202,12 +203,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 36.918     | 36.918     | 36.918     |   0.0 | 99.94
+Pair    | 36.86      | 36.86      | 36.86      |   0.0 | 99.95
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0033035  | 0.0033035  | 0.0033035  |   0.0 |  0.01
-Output  | 0.0011785  | 0.0011785  | 0.0011785  |   0.0 |  0.00
+Comm    | 0.0032628  | 0.0032628  | 0.0032628  |   0.0 |  0.01
+Output  | 0.001102   | 0.001102   | 0.001102   |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.01603    |            |       |  0.04
+Other   |            | 0.0159     |            |       |  0.04
 
 Nlocal:    1680 ave 1680 max 1680 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -247,20 +248,20 @@ Step Temp Press PotEng KinEng TotEng Lx Ly Lz Volume
       60    297.05416     2489.245   -5600.5964    64.469006   -5536.1274    28.617616    34.696737    28.039439    27841.421 
       61    296.74469    2500.7159   -5600.5293    64.401842   -5536.1274    28.617616    34.696737    28.039439    27841.421 
       62    296.40194    2513.4457   -5600.4549    64.327455   -5536.1274    28.617616    34.696737    28.039439    27841.421 
-Loop time of 5.13028 on 1 procs for 10 steps with 1680 atoms
+Loop time of 5.13584 on 1 procs for 10 steps with 1680 atoms
 
-Performance: 0.034 ns/day, 712.539 hours/ns, 1.949 timesteps/s
+Performance: 0.034 ns/day, 713.311 hours/ns, 1.947 timesteps/s
 99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.1292     | 5.1292     | 5.1292     |   0.0 | 99.98
+Pair    | 5.1346     | 5.1346     | 5.1346     |   0.0 | 99.98
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00045729 | 0.00045729 | 0.00045729 |   0.0 |  0.01
-Output  | 0.00024509 | 0.00024509 | 0.00024509 |   0.0 |  0.00
-Modify  | 0.00026488 | 0.00026488 | 0.00026488 |   0.0 |  0.01
-Other   |            | 0.0001016  |            |       |  0.00
+Comm    | 0.00047112 | 0.00047112 | 0.00047112 |   0.0 |  0.01
+Output  | 0.00036144 | 0.00036144 | 0.00036144 |   0.0 |  0.01
+Modify  | 0.00029016 | 0.00029016 | 0.00029016 |   0.0 |  0.01
+Other   |            | 0.0001101  |            |       |  0.00
 
 Nlocal:    1680 ave 1680 max 1680 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

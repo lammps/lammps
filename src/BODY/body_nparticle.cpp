@@ -98,25 +98,16 @@ int BodyNparticle::unpack_border_body(AtomVecBody::Bonus *bonus, double *buf)
 ------------------------------------------------------------------------- */
 
 void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
-                              char **ifile, char **dfile)
+                              int *ifile, double *dfile)
 {
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
-
-  // error in data file if any values are NULL
-
-  for (int i = 0; i < ninteger; i++)
-    if (ifile[i] == NULL)
-      error->one(FLERR,"Invalid format in Bodies section of data file");
-  for (int i = 0; i < ndouble; i++)
-    if (dfile[i] == NULL)
-      error->one(FLERR,"Invalid format in Bodies section of data file");
 
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles
 
   if (ninteger != 1)
     error->one(FLERR,"Incorrect # of integer values in "
                "Bodies section of data file");
-  int nsub = atoi(ifile[0]);
+  int nsub = ifile[0];
   if (nsub < 1)
     error->one(FLERR,"Incorrect integer value in "
                "Bodies section of data file");
@@ -133,12 +124,12 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   // diagonalize inertia tensor
 
   double tensor[3][3];
-  tensor[0][0] = atof(dfile[0]);
-  tensor[1][1] = atof(dfile[1]);
-  tensor[2][2] = atof(dfile[2]);
-  tensor[0][1] = tensor[1][0] = atof(dfile[3]);
-  tensor[0][2] = tensor[2][0] = atof(dfile[4]);
-  tensor[1][2] = tensor[2][1] = atof(dfile[5]);
+  tensor[0][0] = dfile[0];
+  tensor[1][1] = dfile[1];
+  tensor[2][2] = dfile[2];
+  tensor[0][1] = tensor[1][0] = dfile[3];
+  tensor[0][2] = tensor[2][0] = dfile[4];
+  tensor[1][2] = tensor[2][1] = dfile[5];
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
@@ -188,14 +179,51 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   int j = 6;
   int k = 0;
   for (int i = 0; i < nsub; i++) {
-    delta[0] = atof(dfile[j]);
-    delta[1] = atof(dfile[j+1]);
-    delta[2] = atof(dfile[j+2]);
+    delta[0] = dfile[j];
+    delta[1] = dfile[j+1];
+    delta[2] = dfile[j+2];
     MathExtra::transpose_matvec(ex_space,ey_space,ez_space,
                                 delta,&bonus->dvalue[k]);
     j += 3;
     k += 3;
   }
+}
+
+/* ----------------------------------------------------------------------
+   return radius of body particle defined by ifile/dfile params
+   params are ordered as in data file
+   called by Molecule class which needs single body size
+------------------------------------------------------------------------- */
+
+double BodyNparticle::radius_body(int ninteger, int ndouble,
+				  int *ifile, double *dfile)
+{
+  int nsub = ifile[0];
+  if (nsub < 1)
+    error->one(FLERR,"Incorrect integer value in "
+               "Bodies section of data file");
+  if (ndouble != 6 + 3*nsub)
+    error->one(FLERR,"Incorrect # of floating-point values in "
+               "Bodies section of data file");
+
+  // sub-particle coords are relative to body center at (0,0,0)
+  // offset = 6 for sub-particle coords
+
+  double onerad;
+  double maxrad = 0.0;
+  double delta[3];
+  
+  int offset = 6;          
+  for (int i = 0; i < nsub; i++) {
+    delta[0] = dfile[offset];
+    delta[1] = dfile[offset+1];
+    delta[2] = dfile[offset+2];
+    offset += 3;
+    onerad = MathExtra::len3(delta);
+    maxrad = MAX(maxrad,onerad);
+  }
+
+  return maxrad;
 }
 
 /* ---------------------------------------------------------------------- */

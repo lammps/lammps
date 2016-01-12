@@ -1469,7 +1469,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 
 void ReadData::bodies(int firstpass)
 {
-  int i,m,nchunk,nline,nmax,ninteger,ndouble,nword,onebody,tmp;
+  int i,m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp;
   char *eof;
 
   int mapflag = 0;
@@ -1500,8 +1500,7 @@ void ReadData::bodies(int firstpass)
         sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
         m += strlen(&buffer[m]);
 
-        // read lines one at a time into buffer
-        // make copy of line and count words
+        // read lines one at a time into buffer and count words
         // count to ninteger and ndouble until have enough lines
 
         onebody = 0;
@@ -1510,23 +1509,29 @@ void ReadData::bodies(int firstpass)
         while (nword < ninteger) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          nword += atom->count_words(&buffer[m],copy);
+          ncount = atom->count_words(&buffer[m],copy);
+	  if (ncount == 0)
+	    error->one(FLERR,"Too few values in body lines in data file");
+	  nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }
         if (nword > ninteger) 
-          error->one(FLERR,"Too many value in body lines in data file");
+          error->one(FLERR,"Too many values in body lines in data file");
 
         nword = 0;
         while (nword < ndouble) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          nword += atom->count_words(&buffer[m],copy);
+          ncount = atom->count_words(&buffer[m],copy);
+	  if (ncount == 0)
+	    error->one(FLERR,"Too few values in body lines in data file");
+	  nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }
         if (nword > ndouble) 
-          error->one(FLERR,"Too many value in body lines in data file");
+          error->one(FLERR,"Too many values in body lines in data file");
 
         if (onebody+1 > MAXBODY)
           error->one(FLERR,

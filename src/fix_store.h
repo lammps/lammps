@@ -20,20 +20,25 @@ FixStyle(STORE,FixStore)
 #ifndef LMP_FIX_STORE_H
 #define LMP_FIX_STORE_H
 
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
 class FixStore : public Fix {
  public:
-  double *vstore;        // vector storage if nvalues = 1
-  double **astore;       // array storage if nvalues > 1
+  int nrow,ncol;         // size of global data array
+  int nvalues;           // number of per-atom values
+  double *vstore;        // vector storage for GLOBAL or PERATOM
+  double **astore;       // array storage for GLOBAL or PERATOM
 
   FixStore(class LAMMPS *, int, char **);
   ~FixStore();
   int setmask();
 
-  double memory_usage();
+  void write_restart(FILE *);
+  void restart(char *);
+
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   int pack_exchange(int, double *);
@@ -43,9 +48,11 @@ class FixStore : public Fix {
   int size_restart(int);
   int maxsize_restart();
 
+  double memory_usage();
+
  private:
-  int nvalues;                  // total # of values per atom
-  int vecflag;                  // 1 if nvalues = 1
+  int flavor;                   // GLOBAL or PERATOM
+  int vecflag;                  // 1 if ncol=1 or nvalues=1
 };
 
 }

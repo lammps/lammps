@@ -4480,13 +4480,14 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
     strcpy(id_fix,name);
     strcat(id_fix,"_VARIABLE_STORE");
 
-    char **newarg = new char*[5];
+    char **newarg = new char*[6];
     newarg[0] = id_fix;
     newarg[1] = (char *) "all";
     newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "0";
-    newarg[4] = (char *) "1";
-    modify->add_fix(5,newarg);
+    newarg[3] = (char *) "peratom";
+    newarg[4] = (char *) "0";
+    newarg[5] = (char *) "1";
+    modify->add_fix(6,newarg);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
     delete [] newarg;
 

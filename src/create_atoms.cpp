@@ -347,6 +347,13 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c creating atoms will overwrite ghost atoms
+
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
+
   // add atoms/molecules in one of 3 ways
 
   bigint natoms_previous = atom->natoms;
@@ -400,11 +407,10 @@ void CreateAtoms::command(int narg, char **arg)
   if (atom->tag_enable) atom->tag_extend();
   atom->tag_check();
 
-  // create global mapping of atoms
-  // zero nghost in case are adding new atoms to existing atoms
+  // if global map exists, reset it
+  // invoke map_init() b/c atom count has grown
 
   if (atom->map_style) {
-    atom->nghost = 0;
     atom->map_init();
     atom->map_set();
   }
@@ -595,7 +601,7 @@ void CreateAtoms::add_single()
     if (mode == ATOM) atom->avec->create_atom(ntype,xone);
     else if (quatone[0] == 0.0 && quatone[1] == 0.0 && quatone[2] == 0.0)
       add_molecule(xone);
-    else add_molecule(xone,&quatone[0]);
+    else add_molecule(xone,quatone);
   }
 }
 
@@ -807,24 +813,25 @@ void CreateAtoms::add_molecule(double *center, double *quat_user)
   int n;
   double r[3],rotmat[3][3],quat[4],xnew[3];
 
-  if (domain->dimension == 3) {
-    r[0] = ranmol->uniform() - 0.5;
-    r[1] = ranmol->uniform() - 0.5;
-    r[2] = ranmol->uniform() - 0.5;
-  } else {
-    r[0] = r[1] = 0.0;
-    r[2] = 1.0;
-  }
-
   if (quat_user) {
     quat[0] = quat_user[0]; quat[1] = quat_user[1];
     quat[2] = quat_user[2]; quat[3] = quat_user[3];
   } else {
-    double theta = ranmol->uniform() * MY_2PI;
+    if (domain->dimension == 3) {
+      r[0] = ranmol->uniform() - 0.5;
+      r[1] = ranmol->uniform() - 0.5;
+      r[2] = ranmol->uniform() - 0.5;
+    } else {
+      r[0] = r[1] = 0.0;
+      r[2] = 1.0;
+    }
     MathExtra::norm3(r);
+    double theta = ranmol->uniform() * MY_2PI;
     MathExtra::axisangle_to_quat(r,theta,quat);
   }
+
   MathExtra::quat_to_mat(quat,rotmat);
+  onemol->quat_external = quat;
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0
   // reset in caller after all moleclues created by all procs

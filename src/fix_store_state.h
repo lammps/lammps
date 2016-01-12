@@ -79,6 +79,13 @@ class FixStoreState : public Fix {
   void pack_xu_triclinic(int);
   void pack_yu_triclinic(int);
   void pack_zu_triclinic(int);
+  void pack_xsu(int);
+  void pack_ysu(int);
+  void pack_zsu(int);
+  void pack_xsu_triclinic(int);
+  void pack_ysu_triclinic(int);
+  void pack_zsu_triclinic(int);
+
   void pack_ix(int);
   void pack_iy(int);
   void pack_iz(int);
@@ -93,7 +100,9 @@ class FixStoreState : public Fix {
   void pack_mux(int);
   void pack_muy(int);
   void pack_muz(int);
+  void pack_mu(int);
   void pack_radius(int);
+  void pack_diameter(int);
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);

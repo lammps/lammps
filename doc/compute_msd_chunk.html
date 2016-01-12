@@ -203,10 +203,12 @@ how they are set for each atom.  You can reset the image flags
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Unlike the <a class="reference internal" href="compute_msd.html"><em>compute msd</em></a> command, this compute
-does not store the initial center-of-mass coorindates of its molecules
-in a restart file.  Thus you cannot continue the MSD per chunk
-calculation of this compute when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>.</p>
+<p class="last">If you want the quantities calculated by this compute to be
+continuous when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>, then
+you should use the same ID for this compute, as in the original run.
+This is so that the fix this compute creates to store per-chunk
+quantities will also have the same ID, and thus be initialized
+correctly with chunk reference positions from the restart file.</p>
 </div>
 <p>The simplest way to output the results of the compute com/msd
 calculation to a file is to use the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>

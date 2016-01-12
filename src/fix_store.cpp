@@ -32,15 +32,15 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (narg != 6) error->all(FLERR,"Illegal fix store command");
 
   // 4th arg determines GLOBAL vs PERATOM values
-  // syntax: id group style peratom 0/1 nvalue
-  //   0/1 flag = not-store or store peratom values in restart file
-  //   nvalue = # of peratom values, N=1 is vector, N>1 is array
   // syntax: id group style global nrow ncol
   //   Nrow by Ncol array of global values
   //   Ncol=1 is vector, Nrow>1 is array
+  // syntax: id group style peratom 0/1 nvalue
+  //   0/1 flag = not-store or store peratom values in restart file
+  //   nvalue = # of peratom values, N=1 is vector, N>1 is array
 
-  if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;
-  else if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
+  if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
+  else if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;
   else error->all(FLERR,"Invalid fix store command");
 
   // GLOBAL values are always written to restart file
@@ -54,7 +54,8 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       error->all(FLERR,"Invalid fix store command");
     vecflag = 0;
     if (ncol == 1) vecflag = 1;
-  } else {
+  }
+  if (flavor == PERATOM) {
     restart_peratom = force->inumeric(FLERR,arg[4]);
     nvalues = force->inumeric(FLERR,arg[5]);
     if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
@@ -66,21 +67,23 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   vstore = NULL;
   astore = NULL;
 
-  // allocate vector or array
+  // allocate vector or array and restart buffer rbuf
   // for PERATOM, register with Atom class
 
   if (flavor == GLOBAL) {
     if (vecflag) memory->create(vstore,nrow,"fix/store:vstore");
     else memory->create(astore,nrow,ncol,"fix/store:astore");
+    memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
   }
   if (flavor == PERATOM) {
     grow_arrays(atom->nmax);
     atom->add_callback(0);
     if (restart_peratom) atom->add_callback(1);
+    rbuf = NULL;
   }
 
   // zero the storage
-  // PERATOM may be exchanged before filled by caller
+  // PERATOM may be comm->exchanged before filled by caller
 
   if (flavor == GLOBAL) {
     if (vecflag)
@@ -99,6 +102,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         for (int j = 0; j < nvalues; j++)
           astore[i][j] = 0.0;
   }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,6 +118,7 @@ FixStore::~FixStore()
 
   memory->destroy(vstore);
   memory->destroy(astore);
+  memory->destroy(rbuf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,17 +130,46 @@ int FixStore::setmask()
 }
 
 /* ----------------------------------------------------------------------
+   reset size of global vector/array
+   invoked by caller if size is unknown at time this fix is instantiated
+   caller will do subsequent initialization
+------------------------------------------------------------------------- */
+
+void FixStore::reset_global(int nrow_caller, int ncol_caller)
+{
+  memory->destroy(vstore);
+  memory->destroy(astore);
+  memory->destroy(rbuf);
+  vstore = NULL;
+  astore = NULL;
+
+  vecflag = 0;
+  if (ncol_caller == 1) vecflag = 1;
+  nrow = nrow_caller;
+  ncol = ncol_caller;
+  if (vecflag) memory->create(vstore,nrow,"fix/store:vstore");
+  else memory->create(astore,nrow,ncol,"fix/store:astore");
+  memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
+}
+
+/* ----------------------------------------------------------------------
    write global array to restart file
 ------------------------------------------------------------------------- */
 
 void FixStore::write_restart(FILE *fp)
 {
-  int n = nrow*ncol;
+  // fill rbuf with size and vec/array values
+
+  rbuf[0] = nrow;
+  rbuf[1] = ncol;
+  if (vecflag) memcpy(&rbuf[2],vstore,nrow*sizeof(double));
+  else memcpy(&rbuf[2],&astore[0][0],nrow*ncol*sizeof(double));
+
+  int n = nrow*ncol + 2;
   if (comm->me == 0) {
     int size = n * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
-    if (vecflag) fwrite(vstore,sizeof(double),n,fp);
-    else fwrite(&astore[0][0],sizeof(double),n,fp);
+    fwrite(rbuf,sizeof(double),n,fp);
   }
 }
 
@@ -145,12 +179,36 @@ void FixStore::write_restart(FILE *fp)
 
 void FixStore::restart(char *buf)
 {
-  // HOWTO insure size of buf is the same
+  // first 2 values in buf are vec/array sizes
+
+  double *dbuf = (double *) buf;
+  int nrow_restart = dbuf[0];
+  int ncol_restart = dbuf[1];
+
+  // if size of vec/array has changed,
+  //   means the restart file is setting size of vec or array and doing init
+  //   because caller did not know size at time this fix was instantiated
+  // reallocate vstore or astore accordingly
+
+  if (nrow != nrow_restart || ncol != ncol_restart) {
+    memory->destroy(vstore);
+    memory->destroy(astore);
+    memory->destroy(rbuf);
+    vstore = NULL;
+    astore = NULL;
+
+    vecflag = 0;
+    if (ncol_restart == 1) vecflag = 1;
+    nrow = nrow_restart;
+    ncol = ncol_restart;
+    if (vecflag) memory->create(vstore,nrow,"fix/store:vstore");
+    else memory->create(astore,nrow,ncol,"fix/store:astore");
+    memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
+  }
 
   int n = nrow*ncol;
-  double *dbuf = (double *) buf;
-  if (vecflag) memcpy(vstore,dbuf,n*sizeof(double));
-  else memcpy(&astore[0][0],dbuf,n*sizeof(double));
+  if (vecflag) memcpy(vstore,&dbuf[2],n*sizeof(double));
+  else memcpy(&astore[0][0],&dbuf[2],n*sizeof(double));
 }
 
 /* ----------------------------------------------------------------------

@@ -44,12 +44,13 @@ class ComputeMSDChunk : public Compute {
   int nchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
+  char *id_fix;
+  class FixStore *fix;
+  int firstflag;
 
   double *massproc,*masstotal;
-  double **com,**comall,**cominit;
+  double **com,**comall;
   double **msd;
-
-  int firstflag;
 
   void allocate();
 };

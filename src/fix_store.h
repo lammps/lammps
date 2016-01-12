@@ -31,11 +31,11 @@ class FixStore : public Fix {
   int nvalues;           // number of per-atom values
   double *vstore;        // vector storage for GLOBAL or PERATOM
   double **astore;       // array storage for GLOBAL or PERATOM
-  double *rbuf;                 // restart buffer for GLOBAL vec/array
 
   FixStore(class LAMMPS *, int, char **);
   ~FixStore();
   int setmask();
+  void reset_global(int, int);
 
   void write_restart(FILE *);
   void restart(char *);
@@ -51,12 +51,11 @@ class FixStore : public Fix {
 
   double memory_usage();
 
-  void reset_global(int, int);
-
  private:
   int flavor;                   // GLOBAL or PERATOM
   int vecflag;                  // 1 if ncol=1 or nvalues=1
 
+  double *rbuf;                 // restart buffer for GLOBAL vec/array
 };
 
 }

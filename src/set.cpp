@@ -903,7 +903,7 @@ void Set::setrandom(int keyword)
 
   // set theta to random orientation in 2d
 
-  } else if (keyword == QUAT_RANDOM) {
+  } else if (keyword == THETA_RANDOM) {
     int nlocal = atom->nlocal;
     double theta;
     for (i = 0; i < nlocal; i++) {

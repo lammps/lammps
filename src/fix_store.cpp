@@ -22,41 +22,82 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+enum{GLOBAL,PERATOM};
+
 /* ---------------------------------------------------------------------- */
 
 FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg != 5) error->all(FLERR,"Illegal fix store command");
+  if (narg != 6) error->all(FLERR,"Illegal fix store command");
 
-  // syntax: id group style 0/1 nvalue
-  // 0/1 flag = not-store or store values in restart file
+  // 4th arg determines GLOBAL vs PERATOM values
+  // syntax: id group style peratom 0/1 nvalue
+  //   0/1 flag = not-store or store peratom values in restart file
+  //   nvalue = # of peratom values, N=1 is vector, N>1 is array
+  // syntax: id group style global nrow ncol
+  //   Nrow by Ncol array of global values
+  //   Ncol=1 is vector, Nrow>1 is array
 
-  restart_peratom = force->inumeric(FLERR,arg[3]);
-  nvalues = force->inumeric(FLERR,arg[4]);
+  if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;
+  else if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
+  else error->all(FLERR,"Invalid fix store command");
 
-  vecflag = 0;
-  if (nvalues == 1) vecflag = 1;
+  // GLOBAL values are always written to restart file
+  // PERATOM restart_peratom is set by caller
 
-  // perform initial allocation of atom-based array
-  // register with Atom class
+  if (flavor == GLOBAL) {
+    restart_global = 1;
+    nrow = force->inumeric(FLERR,arg[4]);
+    ncol = force->inumeric(FLERR,arg[5]);
+    if (nrow <= 0 || ncol <= 0)
+      error->all(FLERR,"Invalid fix store command");
+    vecflag = 0;
+    if (ncol == 1) vecflag = 1;
+  } else {
+    restart_peratom = force->inumeric(FLERR,arg[4]);
+    nvalues = force->inumeric(FLERR,arg[5]);
+    if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
+      error->all(FLERR,"Invalid fix store command");
+    vecflag = 0;
+    if (nvalues == 1) vecflag = 1;
+  }
 
   vstore = NULL;
   astore = NULL;
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  if (restart_peratom) atom->add_callback(1);
+
+  // allocate vector or array
+  // for PERATOM, register with Atom class
+
+  if (flavor == GLOBAL) {
+    if (vecflag) memory->create(vstore,nrow,"fix/store:vstore");
+    else memory->create(astore,nrow,ncol,"fix/store:astore");
+  }
+  if (flavor == PERATOM) {
+    grow_arrays(atom->nmax);
+    atom->add_callback(0);
+    if (restart_peratom) atom->add_callback(1);
+  }
 
   // zero the storage
-  // since may be exchanged before filled by caller
+  // PERATOM may be exchanged before filled by caller
 
-  int nlocal = atom->nlocal;
-  if (vecflag)
-    for (int i = 0; i < nlocal; i++)
-      vstore[i] = 0.0;
-  else
-    for (int i = 0; i < nlocal; i++)
-      for (int j = 0; j < nvalues; j++)
-	astore[i][j] = 0.0;
+  if (flavor == GLOBAL) {
+    if (vecflag)
+      for (int i = 0; i < nrow; i++) vstore[i] = 0.0;
+    else
+      for (int i = 0; i < nrow; i++)
+        for (int j = 0; j < ncol; j++)
+          astore[i][j] = 0.0;
+  }
+  if (flavor == PERATOM) {
+    int nlocal = atom->nlocal;
+    if (vecflag)
+      for (int i = 0; i < nlocal; i++) vstore[i] = 0.0;
+    else
+      for (int i = 0; i < nlocal; i++)
+        for (int j = 0; j < nvalues; j++)
+          astore[i][j] = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,8 +106,10 @@ FixStore::~FixStore()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  if (restart_peratom) atom->delete_callback(id,1);
+  if (flavor == PERATOM) {
+    atom->delete_callback(id,0);
+    if (restart_peratom) atom->delete_callback(id,1);
+  }
 
   memory->destroy(vstore);
   memory->destroy(astore);
@@ -186,7 +229,8 @@ int FixStore::size_restart(int nlocal)
 
 double FixStore::memory_usage()
 {
-  double bytes = atom->nmax*nvalues * sizeof(double);
+  double bytes;
+  if (flavor == GLOBAL) bytes += nrow*ncol * sizeof(double);
+  if (flavor == PERATOM) bytes += atom->nmax*nvalues * sizeof(double);
   return bytes;
 }
-

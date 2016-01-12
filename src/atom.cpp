@@ -1335,11 +1335,11 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
+
+    ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
     
     if ((m = map(tagdata)) >= 0) {
-      ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-      ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-
       if (ninteger > maxint) {
 	delete [] ivalues;
 	maxint = ninteger;
@@ -1359,7 +1359,7 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
       
     } else {
-      nvalues = 2 + ninteger + ndouble;    // number of values to skip
+      nvalues = ninteger + ndouble;    // number of values to skip
       for (j = 0; j < nvalues; j++)
 	strtok(NULL," \t\n\r\f");
     }

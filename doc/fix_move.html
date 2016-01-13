@@ -310,10 +310,13 @@ the motion can be continuous in a restarted simulation.  See the
 <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.</p>
-<p>IMPORTANNT NOTE: Because the move positions are a function of the
-current timestep and the initial timestep, you cannot reset the
-timestep to a different value after reading a restart file, if you
-expect a fix move command to work in an uninterrupted fashion.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because the move positions are a function of the current
+timestep and the initial timestep, you cannot reset the timestep to a
+different value after reading a restart file, if you expect a fix move
+command to work in an uninterrupted fashion.</p>
+</div>
 <p>None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options are relevant to this
 fix.</p>
 <p>This fix produces a per-atom array which can be accessed by various

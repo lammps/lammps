@@ -1072,7 +1072,7 @@ void FixStoreState::pack_zsu(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::pack_xsu_triclinic(int n)
+void FixStoreState::pack_xsu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
@@ -1093,7 +1093,7 @@ void DumpCustom::pack_xsu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::pack_ysu_triclinic(int n)
+void FixStoreState::pack_ysu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
@@ -1114,7 +1114,7 @@ void DumpCustom::pack_ysu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::pack_zsu_triclinic(int n)
+void FixStoreState::pack_zsu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
@@ -1126,7 +1126,7 @@ void DumpCustom::pack_zsu_triclinic(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) 
-      buf[n] = h_inv[2]*(x[i][2]-boxlo[2]) + (image[i] >> IMG2BITS) - IMGMAX;
+      vbuf[n] = h_inv[2]*(x[i][2]-boxlo[2]) + (image[i] >> IMG2BITS) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }

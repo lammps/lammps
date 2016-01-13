@@ -35,6 +35,7 @@ class FixStore : public Fix {
   FixStore(class LAMMPS *, int, char **);
   ~FixStore();
   int setmask();
+  void reset_global(int, int);
 
   void write_restart(FILE *);
   void restart(char *);
@@ -53,6 +54,8 @@ class FixStore : public Fix {
  private:
   int flavor;                   // GLOBAL or PERATOM
   int vecflag;                  // 1 if ncol=1 or nvalues=1
+
+  double *rbuf;                 // restart buffer for GLOBAL vec/array
 };
 
 }

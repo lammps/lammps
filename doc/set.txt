@@ -18,9 +18,10 @@ one or more keyword/value pairs may be appended :l
 keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
           {charge} or {dipole} or {dipole/random} or {quat} or \
 	  {quat/random} or {diameter} or {shape} or \
-	  {length} or {tri} or {theta} or {theta/random} or {angmom} or {omega} or \
-	  {mass} or {density} or {volume} or {image} or
-	  {bond} or {angle} or {dihedral} or {improper} or
+	  {length} or {tri} or {theta} or {theta/random} or \
+          {angmom} or {omega} or \
+	  {mass} or {density} or {volume} or {image} or \
+	  {bond} or {angle} or {dihedral} or {improper} or \
 	  {meso_e} or {meso_cv} or {meso_rho} or \
 	  {smd_contact_radius} or {smd_mass_density} or \
           {i_name} or {d_name} :l

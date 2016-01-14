@@ -76,7 +76,8 @@ namespace MathExtra {
   void rotate(double matrix[3][3], int i, int j, int k, int l,
               double s, double tau);
   void richardson(double *q, double *m, double *w, double *moments, double dtq);
-  void no_squish_rotate(int k, double *p, double *q, double *inertia, double dt);
+  void no_squish_rotate(int k, double *p, double *q, double *inertia, 
+                        double dt);
 
   // shape matrix operations
   // upper-triangular 3x3 matrix stored in Voigt notation as 6-vector
@@ -151,7 +152,8 @@ inline void MathExtra::normalize3(const double *v, double *ans)
    scale a vector to length
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::snormalize3(const double length, const double *v, double *ans)
+inline void MathExtra::snormalize3(const double length, const double *v, 
+                                   double *ans)
 {
   double scale = length/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
   ans[0] = v[0]*scale;
@@ -312,7 +314,7 @@ void MathExtra::times3_diag(const double m[3][3], const double *d,
 ------------------------------------------------------------------------- */
 
 inline void MathExtra::plus3(const double m[3][3], const double m2[3][3],
-                      double ans[3][3])
+                             double ans[3][3])
 {
   ans[0][0] = m[0][0]+m2[0][0];
   ans[0][1] = m[0][1]+m2[0][1];
@@ -330,7 +332,7 @@ inline void MathExtra::plus3(const double m[3][3], const double m2[3][3],
 ------------------------------------------------------------------------- */
 
 inline void MathExtra::times3(const double m[3][3], const double m2[3][3],
-                       double ans[3][3])
+                              double ans[3][3])
 {
   ans[0][0] = m[0][0]*m2[0][0] + m[0][1]*m2[1][0] + m[0][2]*m2[2][0];
   ans[0][1] = m[0][0]*m2[0][1] + m[0][1]*m2[1][1] + m[0][2]*m2[2][1];
@@ -601,7 +603,8 @@ inline void MathExtra::axisangle_to_quat(const double *v, const double angle,
    Apply principal rotation generator about x to rotation matrix m
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::rotation_generator_x(const double m[3][3], double ans[3][3])
+inline void MathExtra::rotation_generator_x(const double m[3][3], 
+                                            double ans[3][3])
 {
   ans[0][0] = 0;
   ans[0][1] = -m[0][2];

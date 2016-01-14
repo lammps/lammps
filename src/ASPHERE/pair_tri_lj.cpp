@@ -513,7 +513,7 @@ double PairTriLJ::init_one(int i, int j)
 ------------------------------------------------------------------------- */
 
 void PairTriLJ::discretize(int i, double sigma,
-                          double *c1, double *c2, double *c3)
+                           double *c1, double *c2, double *c3)
 {
   double centroid[3],dc1[3],dc2[3],dc3[3];
 

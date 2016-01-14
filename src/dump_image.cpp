@@ -18,7 +18,8 @@
 #include "dump_image.h"
 #include "image.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "atom_vec_body.h"
 #include "body.h"
 #include "molecule.h"
@@ -29,6 +30,7 @@
 #include "input.h"
 #include "variable.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "error.h"
 #include "memory.h"
 
@@ -106,7 +108,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // set defaults for optional args
 
   atomflag = YES;
-  bodyflag = NO;
+  lineflag = triflag = bodyflag = NO;
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
     bondflag = YES;
@@ -132,28 +134,19 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = ioptional;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"adiam") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
-      adiam = NUMERIC;
-      adiamvalue = force->numeric(FLERR,arg[iarg+1]);
-      if (adiamvalue <= 0.0) error->all(FLERR,"Illegal dump image command");
-      iarg += 2;
-
-    } else if (strcmp(arg[iarg],"atom") == 0) {
+    if (strcmp(arg[iarg],"atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       if (strcmp(arg[iarg+1],"yes") == 0) atomflag = YES;
       else if (strcmp(arg[iarg+1],"no") == 0) atomflag = NO;
       else error->all(FLERR,"Illegal dump image command");
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"body") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
-      if (strcmp(arg[iarg+1],"yes") == 0) bodyflag = YES;
-      else if (strcmp(arg[iarg+1],"no") == 0) bodyflag = NO;
-      else error->all(FLERR,"Illegal dump image command");
-      bodyflag1 = force->numeric(FLERR,arg[iarg+2]);
-      bodyflag2 = force->numeric(FLERR,arg[iarg+3]);
-      iarg += 4;
+    } else if (strcmp(arg[iarg],"adiam") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
+      adiam = NUMERIC;
+      adiamvalue = force->numeric(FLERR,arg[iarg+1]);
+      if (adiamvalue <= 0.0) error->all(FLERR,"Illegal dump image command");
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
@@ -173,6 +166,32 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+2],"none") == 0) bondflag = NO;
       else error->all(FLERR,"Illegal dump image command");
       iarg += 3;
+
+
+    } else if (strcmp(arg[iarg],"line") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
+      lineflag = YES;
+      if (strcmp(arg[iarg+1],"type") == 0) lcolor = TYPE;
+      else error->all(FLERR,"Illegal dump image command");
+      ldiam = NUMERIC;
+      ldiamvalue = force->numeric(FLERR,arg[iarg+2]);
+      iarg += 3;
+
+    } else if (strcmp(arg[iarg],"tri") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
+      triflag = YES;
+      if (strcmp(arg[iarg+1],"type") == 0) tcolor = TYPE;
+      else error->all(FLERR,"Illegal dump image command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"body") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
+      bodyflag = YES;
+      if (strcmp(arg[iarg+1],"type") == 0) bodycolor = TYPE;
+      else error->all(FLERR,"Illegal dump image command");
+      bodyflag1 = force->numeric(FLERR,arg[iarg+2]);
+      bodyflag2 = force->numeric(FLERR,arg[iarg+3]);
+      iarg += 4;
 
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
@@ -333,13 +352,26 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal dump image command");
   }
 
-  // error check for bodyflag
+  // error checks and setup for lineflag, triflag, bodyflag
 
-  if (bodyflag) {
-    AtomVecBody *avec = (AtomVecBody *) atom->style_match("body");
-    if (!avec) error->all(FLERR,"Dump image body yes requires atom style body");
-    bptr = avec->bptr;
+  if (lineflag) {
+    avec_line = (AtomVecLine *) atom->style_match("line");
+    if (!avec_line) 
+      error->all(FLERR,"Dump image line requires atom style line");
   }
+  if (triflag) {
+    avec_tri = (AtomVecTri *) atom->style_match("tri");
+    if (!avec_tri) 
+      error->all(FLERR,"Dump image tri requires atom style tri");
+  }
+  if (bodyflag) {
+    avec_body = (AtomVecBody *) atom->style_match("body");
+    if (!avec_body) 
+      error->all(FLERR,"Dump image body yes requires atom style body");
+  }
+
+  extraflag = 0;
+  if (lineflag || triflag || bodyflag) extraflag = 1;
 
   // allocate image buffer now that image size is known
 
@@ -679,18 +711,21 @@ void DumpImage::view_params()
 
 void DumpImage::create_image()
 {
-  int i,j,k,m,n,itype,atom1,atom2,imol,iatom,btype,ibonus;
+  int i,j,k,m,n,itype,atom1,atom2,imol,iatom,btype,ibonus,drawflag;
   tagint tagprev;
   double diameter,delx,dely,delz;
   int *bodyvec;
   double **bodyarray;
   double *color,*color1,*color2;
-  double xmid[3];
+  double xmid[3],pt1[3],pt2[3],pt3[3];
+  double mat[3][3];
 
   // render my atoms
 
   if (atomflag) {
     double **x = atom->x;
+    int *line = atom->line;
+    int *tri = atom->tri;
     int *body = atom->body;
 
     m = 0;
@@ -719,18 +754,109 @@ void DumpImage::create_image()
         diameter = buf[m+1];
       }
 
-      if (!body || !bodyflag || body[j] < 0)
-        image->draw_sphere(x[j],color,diameter);
-      else {
-        ibonus = body[i];
-        n = bptr->image(ibonus,bodyflag1,bodyflag2,bodyvec,bodyarray);
-        for (k = 0; k < n; k++) {
-          if (bodyvec[k] == SPHERE)
-            image->draw_sphere(bodyarray[k],color,bodyarray[k][3]);
-          else if (bodyvec[k] == LINE)
-            image->draw_cylinder(&bodyarray[k][0],&bodyarray[k][3],
-                                 color,bodyarray[k][6],3);
-        }
+      // do not draw if line,tri,body keywords enabled and atom is one of those
+
+      drawflag = 1;
+      if (extraflag) {
+        if (lineflag && line[j] >= 0) drawflag = 0;
+        if (triflag && tri[j] >= 0) drawflag = 0;
+        if (bodyflag && body[j] >= 0) drawflag = 0;
+      }
+
+      if (drawflag) image->draw_sphere(x[j],color,diameter);
+
+      m += size_one;
+    }
+  }
+
+  // render atoms that are lines
+
+  if (lineflag) {
+    double length,theta,dx,dy;
+    double **x = atom->x;
+    int *line = atom->line;
+    int *type = atom->type;
+
+    for (i = 0; i < nchoose; i++) {
+      j = clist[i];
+      if (line[j] < 0) continue;
+
+      if (lcolor == TYPE) {
+        color = colortype[type[j]];
+      }
+
+      if (ldiam == NUMERIC) {
+        diameter = ldiamvalue;
+      }
+
+      length = avec_line->bonus[line[j]].length;
+      theta = avec_line->bonus[line[j]].theta;
+      dx = 0.5*length*cos(theta);
+      dy = 0.5*length*sin(theta);
+
+      pt1[0] = x[j][0] + dx;
+      pt1[1] = x[j][1] + dy;
+      pt1[2] = 0.0;
+      pt2[0] = x[j][0] - dx;
+      pt2[1] = x[j][1] - dy;
+      pt2[2] = 0.0;
+
+      image->draw_cylinder(pt1,pt2,color,ldiamvalue,3);
+    }
+  }
+
+  // render atoms that are triangles
+
+  if (triflag) {
+    double **x = atom->x;
+    int *tri = atom->tri;
+    int *type = atom->type;
+
+    for (i = 0; i < nchoose; i++) {
+      j = clist[i];
+      if (tri[j] < 0) continue;
+
+      if (tcolor == TYPE) {
+        color = colortype[type[j]];
+      }
+
+      MathExtra::quat_to_mat(avec_tri->bonus[tri[i]].quat,mat);
+      MathExtra::matvec(mat,avec_tri->bonus[tri[i]].c1,pt1);
+      MathExtra::matvec(mat,avec_tri->bonus[tri[i]].c2,pt2);
+      MathExtra::matvec(mat,avec_tri->bonus[tri[i]].c3,pt3);
+      MathExtra::add3(pt1,x[i],pt1);
+      MathExtra::add3(pt2,x[i],pt2);
+      MathExtra::add3(pt3,x[i],pt3);
+
+      image->draw_triangle(pt1,pt2,pt3,color);
+    }
+  }
+
+  // render atoms that are bodies
+
+  if (bodyflag) {
+    Body *bptr = avec_body->bptr;
+    double **x = atom->x;
+    int *body = atom->body;
+
+    m = 0;
+    for (i = 0; i < nchoose; i++) {
+      j = clist[i];
+      if (body[j] < 0) continue;
+
+      if (bodycolor == TYPE) {
+        itype = static_cast<int> (buf[m]);
+        color = colortype[itype];
+      }
+
+      ibonus = body[i];
+      n = bptr->image(ibonus,bodyflag1,bodyflag2,bodyvec,bodyarray);
+      for (k = 0; k < n; k++) {
+        if (bodyvec[k] == SPHERE)
+          image->draw_sphere(bodyarray[k],color,bodyarray[k][3]);
+        else if (bodyvec[k] == LINE)
+          image->draw_cylinder(&bodyarray[k][0],&bodyarray[k][3],
+                               color,bodyarray[k][6],3);
       }
 
       m += size_one;

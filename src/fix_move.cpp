@@ -714,7 +714,7 @@ void FixMove::initial_integrate(int vflag)
               MathExtra::quatquat(qrotate,qoriginal[i],quat);
             }
           }
-          }
+        }
 
         domain->remap_near(x[i],xold);
       }

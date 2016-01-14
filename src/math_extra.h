@@ -278,7 +278,7 @@ inline double MathExtra::det3(const double m[3][3])
 ------------------------------------------------------------------------- */
 
 inline void MathExtra::diag_times3(const double *d, const double m[3][3],
-                            double ans[3][3])
+                                   double ans[3][3])
 {
   ans[0][0] = d[0]*m[0][0];
   ans[0][1] = d[0]*m[0][1];
@@ -407,7 +407,8 @@ inline void MathExtra::invert3(const double m[3][3], double ans[3][3])
    matrix times vector
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::matvec(const double m[3][3], const double *v, double *ans)
+inline void MathExtra::matvec(const double m[3][3], const double *v, 
+                              double *ans)
 {
   ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
   ans[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
@@ -418,8 +419,8 @@ inline void MathExtra::matvec(const double m[3][3], const double *v, double *ans
    matrix times vector
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::matvec(const double *ex, const double *ey, const double *ez,
-                       const double *v, double *ans)
+inline void MathExtra::matvec(const double *ex, const double *ey, 
+                              const double *ez, const double *v, double *ans)
 {
   ans[0] = ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2];
   ans[1] = ex[1]*v[0] + ey[1]*v[1] + ez[1]*v[2];
@@ -473,7 +474,8 @@ inline void MathExtra::transpose_diag3(const double m[3][3], const double *d,
    row vector times matrix
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::vecmat(const double *v, const double m[3][3], double *ans)
+inline void MathExtra::vecmat(const double *v, const double m[3][3], 
+                              double *ans)
 {
   ans[0] = v[0]*m[0][0] + v[1]*m[1][0] + v[2]*m[2][0];
   ans[1] = v[0]*m[0][1] + v[1]*m[1][1] + v[2]*m[2][1];
@@ -496,8 +498,8 @@ inline void MathExtra::scalar_times3(const double f, double m[3][3])
    upper-triangular 3x3, stored as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::multiply_shape_shape(const double *one, const double *two,
-                                     double *ans)
+inline void MathExtra::multiply_shape_shape(const double *one, 
+                                            const double *two, double *ans)
 {
   ans[0] = one[0]*two[0];
   ans[1] = one[1]*two[1];

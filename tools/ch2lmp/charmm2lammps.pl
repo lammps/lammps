@@ -1384,6 +1384,11 @@
     CreateCorrectedPairCoefficients();
     for (my $i=0; $i<scalar(@types); ++$i) { $types[$i] = $ids{$types[$i]}; }
     $natom_types	= WriteParameters(-1);	# pairs
+    if ($#types != $natom_types) {
+      print "Warning: $#types atom types present, but only $natom_types pair coeffs found\n";
+      # reset to what is found while determining the number of atom types.
+      $natom_types = $#types;
+    }
     $natoms		= WriteAtoms();
     $nbond_types	= WriteParameters(0);	# bonds
     $nbonds		= WriteBonded(0);

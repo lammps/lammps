@@ -166,7 +166,7 @@ the body particle itself.  These values are calculated using the
 current COM and orientation of the body particle.
 
 For images created by the "dump image"_dump_image.html command, if the
-{body} keyword is set to {yes}, then each body particle is drawn as a
+{body} keyword is set, then each body particle is drawn as a
 collection of spheres, one for each sub-particle.  The size of each
 sphere is determined by the {bflag1} parameter for the {body} keyword.
 The {bflag2} argument is ignored.
@@ -253,10 +253,10 @@ the body particle itself.  These values are calculated using the
 current COM and orientation of the body particle.
 
 For images created by the "dump image"_dump_image.html command, if the
-{body} keyword is set to {yes}, then each body particle is drawn as a
-convex polygon consisting of N line segments.  Note that the line
-segments are drawn between the N vertices, which does not correspond
-exactly to the physical extent of the body (because the "pair_style
+{body} keyword is set, then each body particle is drawn as a convex
+polygon consisting of N line segments.  Note that the line segments
+are drawn between the N vertices, which does not correspond exactly to
+the physical extent of the body (because the "pair_style
 rounded/polygon"_pair_body_rounded_polygon.cpp defines finite-size
 spheres at those point and the line segments between the spheres are
 tangent to the spheres).  The drawn diameter of each line segment is

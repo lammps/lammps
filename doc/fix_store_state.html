@@ -200,15 +200,15 @@ time for future use in a calculation or output.  See the discussion of
 inputs.</p>
 <p>If <em>N</em> is not zero, then the attributes will be updated every <em>N</em>
 steps.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Actually, only atom attributes specified by keywords
-like <em>xu</em> or <em>vy</em> or <em>radius</em> are initially stored immediately at the
-point in your input script when the fix is defined.  Attributes
-specified by a compute, fix, or variable are not initially stored
-until the first run following the fix definition begins.  This is
-because calculating those attributes may require quantities that are
-not defined in between runs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Actually, only atom attributes specified by keywords like <em>xu</em>
+or <em>vy</em> or <em>radius</em> are initially stored immediately at the point in
+your input script when the fix is defined.  Attributes specified by a
+compute, fix, or variable are not initially stored until the first run
+following the fix definition begins.  This is because calculating
+those attributes may require quantities that are not defined in
+between runs.</p>
 </div>
 <p>The list of possible attributes is the same as that used by the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command, which describes their meaning.</p>
 <p>If the <em>com</em> keyword is set to <em>yes</em> then the <em>xu</em>, <em>yu</em>, and <em>zu</em>

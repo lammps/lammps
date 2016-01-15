@@ -38,10 +38,10 @@
    <http://www.gnu.org/licenses/>.
    ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_smtbq.h"
 #include "atom.h"
 #include "comm.h"
@@ -146,7 +146,6 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
   Neverypot = 0.0;
 
   fct = NULL;
-
 
   maxpage = 0;
 
@@ -257,6 +256,9 @@ void PairSMTBQ::coeff(int narg, char **arg)
   int i,j,n;
 
   if (!allocated) allocate();
+
+  if (strstr(force->pair_style,"hybrid"))
+    error->all(FLERR,"Pair style SMTBQ is not compatible with hybrid styles");
 
   if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -460,11 +462,11 @@ void PairSMTBQ::read_file(char *file)
   for (i=1; i <= maxintparam; i++)
     intparams[i].mode = (char*) malloc(sizeof(char)*6);
 
-  QEqMode = (char*) malloc(sizeof(char)*18);
-  Bavard = (char*) malloc(sizeof(char)*5);
-  QInitMode = (char*) malloc(sizeof(char)*18);
-  writepot = (char*) malloc(sizeof(char)*5);
-  writeenerg = (char*) malloc(sizeof(char)*5);
+  QEqMode = (char*) malloc(sizeof(char)*19);
+  Bavard = (char*) malloc(sizeof(char)*6);
+  QInitMode = (char*) malloc(sizeof(char)*19);
+  writepot = (char*) malloc(sizeof(char)*6);
+  writeenerg = (char*) malloc(sizeof(char)*6);
 
 
   //  Little loop for ion's parameters
@@ -844,7 +846,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double rsq,iq,jq,Eself,natom;
+  double rsq,iq,jq,Eself;
   double ecovtot,ErepOO,ErepMO,Eion,Ecoh;
   double **tmp,**tmpAll,*nmol;
   double dq,dqcov;
@@ -891,13 +893,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-    
-#ifdef LAMMPS_BIGBIG
-  long int *tag = atom->tag;
-#else
   tagint *tag = atom->tag;
-#endif
-    
   int *type = atom->type;
   int newton_pair = force->newton_pair;
   int nlocal = atom->nlocal;
@@ -950,10 +946,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
     iq = q[i];
     gp = flag_QEq[i];
 
-    if (gp == 0 && itype > 0) natom += 1.0;
-    //    if (gp == 0 && itype > 0) nmol[gp] += 1.0;
-
-
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -999,6 +991,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       //  ===============================
       j = jlist[jj];
+      j &= NEIGHMASK;
       jtype = map[type[j]];
       jtag = tag[j]; jq = q[j];
 
@@ -2345,7 +2338,9 @@ void PairSMTBQ::QForce_charge(int loop)
   if (loop == 0) {
     //   ==================
 
-
+    memset(sbcov,0,sizeof(double)*atom->nmax);
+    memset(coord,0,sizeof(double)*atom->nmax);
+    memset(sbmet,0,sizeof(double)*atom->nmax);
 
     for (ii = 0; ii < inum; ii ++) {
       //--------------------------------
@@ -2353,8 +2348,6 @@ void PairSMTBQ::QForce_charge(int loop)
       itype = map[type[i]];
 
       gp = flag_QEq[i];
-
-      sbcov[i] =coord[i]= sbmet[i] = 0.0;
 
       itype = map[type[i]];
       xtmp = x[i][0];
@@ -2454,6 +2447,7 @@ void PairSMTBQ::QForce_charge(int loop)
       for (jj = 0; jj < jnum; jj++)
         {
           j = jlist[jj];
+          j &= NEIGHMASK;
           jtype = map[type[j]];
           m = intype[itype][jtype];
           jq = q[j];
@@ -2897,16 +2891,17 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 {
   int ii,i,jj,j,kk,k,itype,jtype,ktype,jnum,m,gp,zz,z,kgp;
   int iproc,team_elt[10][nproc],team_QEq[10][nproc][5];
-  int *ilist,*jlist,*numneigh,**firstneigh,ngp,igp,nboite;
+  int *ilist,*jlist,*numneigh,**firstneigh,ngp,igp;
   double delr[3],xtmp,ytmp,ztmp,rsq;
   int **flag_gp, *nelt, **tab_gp;
   int QEq,QEqall[nproc];
 
   double **x = atom->x;
   int *type = atom->type;
+  const int nlocal = atom->nlocal;
+  const int nghost = atom->nghost;
+  const int nall = nlocal + nghost;
   int inum = list->inum;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -2916,7 +2911,6 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   //  On declare et initialise nos p'tits tableaux
   // +++++++++++++++++++++++++++++++++++++++++++++++++
 
-  nboite = nlocal + nghost;
   int **tabtemp,**Alltabtemp, *gptmp, *Allgptmp;
 
   memory->create(tabtemp,10*nproc+10,nproc,"pair:tabtemp");
@@ -2924,19 +2918,19 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   memory->create(gptmp,10*nproc+10,"pair:gptmp");
   memory->create(Allgptmp,10*nproc+10,"pair:Allgptmp");
 
-  memory->create(flag_gp,nproc,nboite,"pair:flag_gp");
-  memory->create(nelt,nboite,"pair:nelt");
-  memory->create(tab_gp,10,nboite,"pair:flag_gp");
+  memory->create(flag_gp,nproc,nall,"pair:flag_gp");
+  memory->create(nelt,nall,"pair:nelt");
+  memory->create(tab_gp,10,nall,"pair:flag_gp");
 
 
-  for (i = 0; i < nlocal+nghost ; i++) { flag_QEq[i] = 0; }
+  for (i = 0; i < nall ; i++) { flag_QEq[i] = 0; }
   for (i = 0; i < 10*nproc; i++) {
     gptmp[i] = 0; Allgptmp[i] = 0;
     for (j=0;j<nproc;j++) { tabtemp[i][j] = 0;
       Alltabtemp[i][j] = 0;}
   }
   for (i = 0; i < 10; i++) {
-    for (k = 0; k < nboite; k++) { tab_gp[i][k] = 0;
+    for (k = 0; k < nall; k++) { tab_gp[i][k] = 0;
       if (i == 0) nelt[k] = 0;
     }
     for (j = 0; j < nproc; j++) {
@@ -2949,7 +2943,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
 
   //   printf ("groupeQEq me %d - nloc %d nghost %d boite %d\n",
-  //             me,nlocal,nghost,nboite);
+  //             me,nlocal,nghost,nall);
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++
   //  On identifie les atomes rentrant dans le schema QEq +
@@ -2968,7 +2962,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
       jnum = numneigh[i];
       for (jj = 0; jj < jnum; jj++ )
         {
-          j = jlist[jj] ; jtype = map[type[j]];
+          j = jlist[jj] ;
+          j &= NEIGHMASK;
+          jtype = map[type[j]];
           if (jtype == itype) continue;
           m = intype[itype][jtype];
 
@@ -3007,7 +3003,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
 
   for (m = 0; m < nproc; m++) {
-    for (i = 0; i < nboite; i++) { flag_gp[m][i] = 0; }
+    for (i = 0; i < nall; i++) { flag_gp[m][i] = 0; }
   }
 
   // OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
@@ -3057,7 +3053,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
         //  ---------------------------------------------
         jlist = firstneigh[k];
         jnum = numneigh[k];
-        for (j = 0; j < nboite; j++ )
+        for (j = 0; j < nall; j++ )
           {
             jtype = map[type[j]];
             if (jtype == ktype) continue;
@@ -3104,7 +3100,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
                 }
 
                 nelt[ngp] = 0;
-                for (z = nlocal; z < nboite; z++) {
+                for (z = nlocal; z < nall; z++) {
                   if (flag_gp[me][z] == ngp) flag_gp[me][z] = igp;
                 }
 
@@ -3152,7 +3148,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
       jnum = numneigh[i];
       for (jj = 0; jj < jnum; jj++ )
         {
-          j = jlist[jj] ; jtype = map[type[j]];
+          j = jlist[jj] ;
+          j &= NEIGHMASK;
+          jtype = map[type[j]];
           if (jtype != 0) continue;
 
           m = 0;
@@ -3192,7 +3190,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
               }
               nelt[kgp] = 0;
 
-              for (k = 0; k < nboite; k++) {
+              for (k = 0; k < nall; k++) {
                 if (flag_gp[me][k] == kgp) flag_gp[me][k] = igp;
               }
 
@@ -3223,7 +3221,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   //  =============== End of COMM =================
 
 
-  for (i = 0; i < nboite; i++) {
+  for (i = 0; i < nall; i++) {
 
     m = 10*me + flag_gp[me][i];
     if (m == 10*me) continue; // Pas de groupe zero
@@ -3553,7 +3551,7 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
   mot = NULL;
 
 
-  strncpy( test, s, MAXLINE );
+  strncpy( test, s, MAXLINE-1 );
 
   for( mot = strtok(test, sep); mot; mot = strtok(NULL, sep) ) {
     strncpy( (*tok)[count], mot, MAXLINE );

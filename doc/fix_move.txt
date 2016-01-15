@@ -122,16 +122,19 @@ fix 1 boundary move variable v_x NULL NULL v_v NULL NULL :pre
 
 The {rotate} style rotates atoms around a rotation axis {R} =
 (Rx,Ry,Rz) that goes thru a point {P} = (Px,Py,Pz).  The {period} of
-the rotation is also specified.  This style also sets the velocity of
-each atom to (omega cross Rperp) where omega is its angular velocity
-around the rotation axis and Rperp is a perpendicular vector from the
-rotation axis to the atom.  If the defined
-"atom_style"_atom_style.html assigns an angular velocity to each atom,
-then each atom's angular velocity is also set to omega.  Note that the
-direction of rotation for the atoms around the rotation axis is
-consistent with the right-hand rule: if your right-hand's thumb points
-along {R}, then your fingers wrap around the axis in the direction of
-rotation.
+the rotation is also specified.  The direction of rotation for the
+atoms around the rotation axis is consistent with the right-hand rule:
+if your right-hand thumb points along {R}, then your fingers wrap
+around the axis in the direction of rotation.
+
+This style also sets the velocity of each atom to (omega cross Rperp)
+where omega is its angular velocity around the rotation axis and Rperp
+is a perpendicular vector from the rotation axis to the atom.  If the
+defined "atom_style"_atom_style.html assigns an angular velocity or
+angular moementum or orientation to each atom ("atom
+styles"_atom_style.html sphere, ellipsoid, line, tri, body), then
+those properties are also updated appropriately to correspond to the
+atom's motion and rotation over time.
 
 The {variable} style allows the position and velocity components of
 each atom to be set by formulas specified via the

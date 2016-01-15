@@ -74,13 +74,13 @@ inputs.
 If {N} is not zero, then the attributes will be updated every {N}
 steps.
 
-IMPORTANT NOTE: Actually, only atom attributes specified by keywords
-like {xu} or {vy} or {radius} are initially stored immediately at the
-point in your input script when the fix is defined.  Attributes
-specified by a compute, fix, or variable are not initially stored
-until the first run following the fix definition begins.  This is
-because calculating those attributes may require quantities that are
-not defined in between runs.
+NOTE: Actually, only atom attributes specified by keywords like {xu}
+or {vy} or {radius} are initially stored immediately at the point in
+your input script when the fix is defined.  Attributes specified by a
+compute, fix, or variable are not initially stored until the first run
+following the fix definition begins.  This is because calculating
+those attributes may require quantities that are not defined in
+between runs.
 
 The list of possible attributes is the same as that used by the "dump
 custom"_dump.html command, which describes their meaning.

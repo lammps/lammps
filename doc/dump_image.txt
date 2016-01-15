@@ -21,16 +21,21 @@ file = name of file to write image to :l
 color = atom attribute that determines color of each atom :l
 diameter = atom attribute that determines size of each atom :l
 zero or more keyword/value pairs may be appended :l
-keyword = {adiam} or {atom} or {body} or {bond} or {size} or {view} or {center} or {up} or {zoom} or {persp} or {box} or {axes} or {subbox} or {shiny} or {ssao} :l
-  {adiam} value = number = numeric value for atom diameter (distance units)
+keyword = {atom} or {adiam} or {bond} or {line} or {tri} or {body} or {size} or {view} or {center} or {up} or {zoom} or {persp} or {box} or {axes} or {subbox} or {shiny} or {ssao} :l
   {atom} = yes/no = do or do not draw atoms
-  {body} = yes/no bflag1 bflag2
-    yes/no = do or do not draw atoms as bodies
-    bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
+  {adiam} size = numeric value for atom diameter (distance units)
   {bond} values = color width = color and width of bonds
     color = {atom} or {type} or {none}
     width = number or {atom} or {type} or {none}
       number = numeric value for bond width (distance units)
+  {line} = color width
+    color = {type}
+    width = numeric value for line width (distance units)
+  {tri} = color
+    color = {type}
+  {body} = color bflag1 bflag2
+    color = {type}
+    bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
   {size} values = width height = size of images
     width = width of image in # of pixels
     height = height of image in # of pixels
@@ -234,28 +239,16 @@ assigning colors to atoms, bonds, and other image features.
 
 :line
 
-The {adiam} keyword allows you to override the {diameter} setting to a
-per-atom attribute with a specified numeric value.  All atoms will be
-drawn with that diameter, e.g. 1.5, which is in whatever distance
-"units"_units.html the input script defines, e.g. Angstroms.
+The {atom} keyword allow you to turn off the drawing of all atoms, if
+the specified value is {no}.  Note that this will not turn off the
+drawing of particles that are represented as lines, triangles, or
+bodies, as discussed below.  These particles can be drawn separately
+if the {line}, {tri}, or {body} keywords are used.
 
-The {atom} keyword allow you to turn off the drawing of all atoms,
-if the specified value is {no}.
-
-The {body} keyword can be used when "atom_style body"_atom_style.html
-is used to define body particles with internal state
-(e.g. sub-particles).  The "body"_body.html doc page descibes the body
-styles LAMMPS currently supports, and provides more details as to the
-kind of body particles they represent and how they are drawn by this
-dump image command.  For all the body styles, individual atoms can be
-either a body particle or a usual point (non-body) particle.  If the
-{body} keyword is set to {yes}, then atoms which are body particles
-are drawn by the method defined by the body style.  Non-body particles
-the same way they would be if the {body} keyword is {no}, i.e. as
-spheres.  The {bflag1} and {bflag2} settings are numerical values
-which are passed to the body style to affect how the drawing of a body
-particle is done.  See the "body"_body.html doc page for a description
-of what these parameters mean for each body style.
+The {adiam} keyword allows you to override the {diameter} setting to
+set a single numeric {size}.  All atoms will be drawn with that
+diameter, e.g. 1.5, which is in whatever distance "units"_units.html
+the input script defines, e.g. Angstroms.
 
 The {bond} keyword allows to you to alter how bonds are drawn.  A bond
 is only drawn if both atoms in the bond are being drawn due to being
@@ -299,6 +292,64 @@ If {type} is specified for the {width} value then the diameter of each
 bond is determined by its bond type.  By default all types have
 diameter 0.5.  This mapping can be changed by the "dump_modify
 bdiam"_dump_modify.html command.
+
+The {line} keyword can be used when "atom_style line"_atom_style.html
+is used to define particles as line segments, and will draw them as
+lines.  If this keyword is not used, such particles will be drawn as
+spheres, the same as if they were regular atoms.  The only setting
+currently allowed for the {color} value is {type}, which will color
+the lines according to the atom type of the particle.  By default the
+mapping of types to colors is as follows:
+
+type 1 = red
+type 2 = green
+type 3 = blue
+type 4 = yellow
+type 5 = aqua
+type 6 = cyan :ul
+
+and repeats itself for types > 6.  There is not yet an option to
+change this via the "dump_modify"_dump_modify.html command.
+
+The line {width} can only be a numeric value, which specifies that all
+lines will be drawn as cylinders with that diameter, e.g. 1.0, which
+is in whatever distance "units"_units.html the input script defines,
+e.g. Angstroms.
+
+The {tri} keyword can be used when "atom_style tri"_atom_style.html is
+used to define particles as triangles, and will draw them as
+triangles.  If this keyword is not used, such particles will be drawn
+as spheres, the same as if they were regular atoms.  The only setting
+currently allowed for the {color} value is {type}, which will color
+the triangles according to the atom type of the particle.  By default
+the mapping of types to colors is as follows:
+
+type 1 = red
+type 2 = green
+type 3 = blue
+type 4 = yellow
+type 5 = aqua
+type 6 = cyan :ul
+
+and repeats itself for types > 6.  There is not yet an option to
+change this via the "dump_modify"_dump_modify.html command.
+
+The {body} keyword can be used when "atom_style body"_atom_style.html
+is used to define body particles with internal state
+(e.g. sub-particles), and will drawn them in a manner specific to the
+body style.  If this keyword is not used, such particles will be drawn
+as spheres, the same as if they were regular atoms.
+
+The "body"_body.html doc page descibes the body styles LAMMPS
+currently supports, and provides more details as to the kind of body
+particles they represent and how they are drawn by this dump image
+command.  For all the body styles, individual atoms can be either a
+body particle or a usual point (non-body) particle.  Non-body
+particles will be drawn the same way they would be as a regular atom.
+The {bflag1} and {bflag2} settings are numerical values which are
+passed to the body style to affect how the drawing of a body particle
+is done.  See the "body"_body.html doc page for a description of what
+these parameters mean for each body style.
 
 :line
 

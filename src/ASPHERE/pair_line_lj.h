@@ -36,14 +36,16 @@ class PairLineLJ : public Pair {
 
  protected:
   double cut_global;
+  double *subsize;
+  double **epsilon,**sigma,**cutsub,**cutsubsq;
   double **cut;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **lj1,**lj2,**lj3,**lj4;     // for sphere/sphere interactions
   class AtomVecLine *avec;
+
+  double *size;     // per-type size of sub-particles to tile line segment
 
   struct Discrete {
     double dx,dy;
-    double sigma;
   };
   Discrete *discrete;           // list of all discretes for all lines
   int ndiscrete;                // number of discretes in list

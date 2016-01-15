@@ -230,6 +230,7 @@ void richardson(double *q, double *m, double *w, double *moments, double dtq)
    apply evolution operators to quat, quat momentum
    Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
+
 void no_squish_rotate(int k, double *p, double *q, double *inertia,
                       double dt)
 {

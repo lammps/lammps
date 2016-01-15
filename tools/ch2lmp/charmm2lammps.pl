@@ -28,6 +28,8 @@
 #    20050630	Fixed symbol issues arising from salt addition
 #    20060818	Changed reading of pdb format to read exact columns
 #    20070109	Changed AddMass() to use $max_id correctly
+#    20160114   Added compatibility for parameter files that use IMPROPERS instead of IMPROPER
+#               Print warning when not all parameters are detected. Set correct number of atom types.
 #    
 #    General	Many thanks to Paul S. Crozier for checking script validity
 #    		against his projects.
@@ -69,8 +71,8 @@
     my $notes;
     
     $program		= "charmm2lammps";
-    $version		= "1.8.1";
-    $year		= "2007";
+    $version		= "1.8.2";
+    $year		= "2016";
     $add		= 0;
     $water_dens		= 0;
     $ions		= 0;
@@ -508,11 +510,14 @@
     
   sub Markers
   {
-    my %markers;
-    my $n		= 0;
-
-    foreach ("NONBONDED", "BONDS", "ANGLES", "DIHEDRALS", "IMPROPER") {
-      $markers{$_}	= $n++;	}
+    my %markers = (
+      NONBONDED => '0',
+      BONDS     => '1',
+      ANGLES    => '2',
+      DIHEDRALS => '3',
+      IMPROPERS => '4',
+      IMPROPER  => '4'
+    );
     return %markers;
   }
 
@@ -1380,6 +1385,11 @@
     CreateCorrectedPairCoefficients();
     for (my $i=0; $i<scalar(@types); ++$i) { $types[$i] = $ids{$types[$i]}; }
     $natom_types	= WriteParameters(-1);	# pairs
+    if ($#types != $natom_types) {
+      print "Warning: $#types atom types present, but only $natom_types pair coeffs found\n";
+      # reset to what is found while determining the number of atom types.
+      $natom_types = $#types;
+    }
     $natoms		= WriteAtoms();
     $nbond_types	= WriteParameters(0);	# bonds
     $nbonds		= WriteBonded(0);

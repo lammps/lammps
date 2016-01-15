@@ -163,8 +163,8 @@ assumes point particles and only updates their position and velocity.</p>
 <p>If the <em>update</em> keyword is used with the <em>dipole</em> value, then the
 orientation of the dipole moment of each particle is also updated
 during the time integration.  This option should be used for models
-where a dipole moment is assigned to particles via use of the
-<a class="reference internal" href="atom_style.html"><em>atom_style dipole</em></a> command.</p>
+where a dipole moment is assigned to finite-size particles,
+e.g. spheroids via use of the <a class="reference internal" href="atom_style.html"><em>atom_style hybrid sphere dipole</em></a> command.</p>
 <hr class="docutils" />
 <p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.

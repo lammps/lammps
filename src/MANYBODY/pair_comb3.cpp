@@ -604,7 +604,7 @@ void PairComb3::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
+    fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open COMB3 potential file %s",file);

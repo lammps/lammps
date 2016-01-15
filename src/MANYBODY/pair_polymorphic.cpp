@@ -108,7 +108,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
   int itype,jtype,ktype;
   int iparam_ii,iparam_jj,iparam_kk,iparam_ij,iparam_ik,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,rsq1,rsq2,r0,r1,r2;
+  double rsq,r0,r1,r2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double zeta_ij,prefactor,wfac,pfac,gfac,fa,fa_d,bij,bij_d;
   double costheta;
@@ -872,7 +872,8 @@ void PairPolymorphic::grab(FILE *fp, int n, double *list)
     fgets(line,MAXLINE,fp);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
-    while (ptr = strtok(NULL," \t\n\r\f")) list[i++] = atof(ptr);
+    while ((ptr = strtok(NULL," \t\n\r\f")))
+      list[i++] = atof(ptr);
   }
 }
  

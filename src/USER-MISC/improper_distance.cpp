@@ -65,7 +65,6 @@ void ImproperDistance::compute(int eflag, int vflag)
 //  double ss1,ss2,ss3,r1,r2,r3,c0,c1,c2,s1,s2;
 //  double s12,c,s,domega,a,a11,a22,a33,a12,a13,a23;
   double domega,a;
-  double sx2,sy2,sz2;
 
   eimproper = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);

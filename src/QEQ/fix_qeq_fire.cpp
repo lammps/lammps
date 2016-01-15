@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_fire.h"
 #include "atom.h"
 #include "comm.h"
@@ -49,8 +49,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) : 
-  FixQEq(lmp, narg, arg) 
+FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
+  FixQEq(lmp, narg, arg)
 {
   qdamp = 0.20;
   qstep = 0.20;
@@ -68,7 +68,7 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/fire command");
   }
-  
+
   comb = NULL;
   comb3 = NULL;
 }
@@ -89,7 +89,7 @@ void FixQEqFire::init()
   neighbor->requests[irequest]->half = 1;
   neighbor->requests[irequest]->full = 0;
 
-  if (tolerance < 1e-4) 
+  if (tolerance < 1e-4)
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
 		    " for damped fires");

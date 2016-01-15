@@ -29,6 +29,7 @@
 #    20060818	Changed reading of pdb format to read exact columns
 #    20070109	Changed AddMass() to use $max_id correctly
 #    20160114   Added compatibility for parameter files that use IMPROPERS instead of IMPROPER
+#               Print warning when not all parameters are detected. Set correct number of atom types.
 #    
 #    General	Many thanks to Paul S. Crozier for checking script validity
 #    		against his projects.

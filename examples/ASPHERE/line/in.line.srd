@@ -44,9 +44,9 @@ neigh_modify	include big
 # no pairwise interactions with small particles
 
 pair_style	line/lj 2.5
-pair_coeff	1 1 1.0 1.0
-pair_coeff	2 2 0.0 1.0 0.0
-pair_coeff	1 2 0.0 1.0 0.0
+pair_coeff	1 1 1.0 1.0 1.0 1.0 2.5
+pair_coeff	2 2 0.0 0.0 0.0 1.0 0.0
+pair_coeff	1 2 1.0 0.0 0.0 1.0 0.0
 
 # use fix SRD to push small particles out from inside big ones
 # if comment out, big particles won't see SRD particles

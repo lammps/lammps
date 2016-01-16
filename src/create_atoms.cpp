@@ -416,13 +416,18 @@ void CreateAtoms::command(int narg, char **arg)
   }
 
   // for MOLECULE mode:
-  // set molecule IDs for created atoms if used
-  // reset new molecule bond,angle,etc and special values
+  // molecule can mean just a mol ID or bonds/angles/etc or mol templates
+  // set molecule IDs for created atoms if atom->molecule_flag is set
+  // reset new molecule bond,angle,etc and special values if defined
   // send atoms to new owning procs via irregular comm
   //   since not all atoms I created will be within my sub-domain
   // perform special list build if needed
 
   if (mode == MOLECULE) {
+
+    int molecule_flag = atom->molecule_flag;
+    int molecular = atom->molecular;
+    tagint *molecule = atom->molecule;
 
     // molcreate = # of molecules I created
 
@@ -444,8 +449,7 @@ void CreateAtoms::command(int narg, char **arg)
     //             including molecules existing before this creation
 
     tagint moloffset;
-    tagint *molecule = atom->molecule;
-    if (atom->molecule_flag) {
+    if (molecule_flag) {
       tagint max = 0;
       for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
       tagint maxmol;
@@ -480,13 +484,12 @@ void CreateAtoms::command(int narg, char **arg)
     tagint **improper_atom4 = atom->improper_atom4;
     int **nspecial = atom->nspecial;
     tagint **special = atom->special;
-    int molecular = atom->molecular;
 
     int ilocal = nlocal_previous;
     for (int i = 0; i < molcreate; i++) {
       if (tag) offset = tag[ilocal]-1;
       for (int m = 0; m < natoms; m++) {
-        if (atom->molecule_flag) molecule[ilocal] = moloffset + i+1;
+        if (molecule_flag) molecule[ilocal] = moloffset + i+1;
         if (molecular == 2) {
           atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;

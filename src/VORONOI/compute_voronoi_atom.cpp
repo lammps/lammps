@@ -233,22 +233,38 @@ void ComputeVoronoi::buildCells()
 
     // cutghost is in lamda coordinates for triclinic boxes, use subxx_lamda
     double *h = domain->h;
-    sublo_bound[0] = h[0]*sublo_lamda[0] + h[5]*sublo_lamda[1] + h[4]*sublo_lamda[2] + boxlo[0];
-    sublo_bound[1] = h[1]*sublo_lamda[1] + h[3]*sublo_lamda[2] + boxlo[1];
-    sublo_bound[2] = h[2]*sublo_lamda[2] + boxlo[2];
-    subhi_bound[0] = h[0]*subhi_lamda[0] + h[5]*subhi_lamda[1] + h[4]*subhi_lamda[2] + boxlo[0];
-    subhi_bound[1] = h[1]*subhi_lamda[1] + h[3]*subhi_lamda[2] + boxlo[1];
-    subhi_bound[2] = h[2]*subhi_lamda[2] + boxlo[2];
-    cut_bound[0] = h[0]*cut[0] + h[5]*cut[1] + h[4]*cut[2];
-    cut_bound[1] = h[1]*cut[1] + h[3]*cut[2];
-    cut_bound[2] = h[2]*cut[2];
+    for( i=0; i<3; ++i ) {
+      sublo_bound[i] = sublo[i]-cut[i]-e;
+      subhi_bound[i] = subhi[i]+cut[i]+e;
+      if (domain->periodicity[i]==0) {
+	sublo_bound[i] = MAX(sublo_bound[i],0.0);
+	subhi_bound[i] = MIN(subhi_bound[i],1.0);
+      }
+    }
+    if (dim == 2) {
+      sublo_bound[2] = 0.0;
+      subhi_bound[2] = 1.0;
+    }
+    sublo_bound[0] = h[0]*sublo_bound[0] + h[5]*sublo_bound[1] + h[4]*sublo_bound[2] + boxlo[0];
+    sublo_bound[1] = h[1]*sublo_bound[1] + h[3]*sublo_bound[2] + boxlo[1];
+    sublo_bound[2] = h[2]*sublo_bound[2] + boxlo[2];
+    subhi_bound[0] = h[0]*subhi_bound[0] + h[5]*subhi_bound[1] + h[4]*subhi_bound[2] + boxlo[0];
+    subhi_bound[1] = h[1]*subhi_bound[1] + h[3]*subhi_bound[2] + boxlo[1];
+    subhi_bound[2] = h[2]*subhi_bound[2] + boxlo[2];
 
   } else {
     // orthogonal box
     for( i=0; i<3; ++i ) {
-      sublo_bound[i] = sublo[i];
-      subhi_bound[i] = subhi[i];
-      cut_bound[i] = cut[i];
+      sublo_bound[i] = sublo[i]-cut[i]-e;
+      subhi_bound[i] = subhi[i]+cut[i]+e;
+      if (domain->periodicity[i]==0) {
+	sublo_bound[i] = MAX(sublo_bound[i],domain->boxlo[i]);
+	subhi_bound[i] = MIN(subhi_bound[i],domain->boxhi[i]);
+      }
+    }
+    if (dim == 2) {
+      sublo_bound[2] = sublo[2];
+      subhi_bound[2] = subhi[2];
     }
   }
 
@@ -290,10 +306,14 @@ void ComputeVoronoi::buildCells()
 
     // polydisperse voro++ container
     delete con_poly;
-    con_poly = new container_poly(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
-                       sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                       sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
-                       int(n[0]),int(n[1]),int(n[2]),false,false,false,8);
+    con_poly = new container_poly(sublo_bound[0],
+				  subhi_bound[0],
+				  sublo_bound[1],
+				  subhi_bound[1],
+				  sublo_bound[2],
+				  subhi_bound[2],
+				  int(n[0]),int(n[1]),int(n[2]),
+				  false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++) {
@@ -303,10 +323,15 @@ void ComputeVoronoi::buildCells()
   } else {
     // monodisperse voro++ container
     delete con_mono;
-    con_mono = new container(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
-                  sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                  sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
-                  int(n[0]),int(n[1]),int(n[2]),false,false,false,8);
+
+    con_mono = new container(sublo_bound[0],
+			     subhi_bound[0],
+			     sublo_bound[1],
+			     subhi_bound[1],
+			     sublo_bound[2],
+			     subhi_bound[2],
+			     int(n[0]),int(n[1]),int(n[2]),
+			     false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
@@ -433,6 +458,12 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
     // number of cell faces
     c.neighbors(neigh);
     int neighs = neigh.size();
+
+//     // DEBUG CODE!!
+//     // loop over all faces (neighbors) 
+//     for (j=0; j<neighs; ++j)
+//       printf("neighbors %d %d %d\n",i,j,neigh[j]);
+//     // END DEBUG CODE!!
 
     if (fthresh > 0) {
       // count only faces above area threshold

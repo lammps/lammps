@@ -44,13 +44,14 @@ compute 5 defects voronoi/atom occupation :pre
 Define a computation that calculates the Voronoi tessellation of the
 atoms in the simulation box.  The tessellation is calculated using all
 atoms in the simulation, but non-zero values are only stored for atoms
-in the group.
+in the group. 
 
 By default two quantities per atom are calculated by this compute.
 The first is the volume of the Voronoi cell around each atom.  Any
 point in an atom's Voronoi cell is closer to that atom than any other.
-The second is the number of faces of the Voronoi cell, which is also
-the number of nearest neighbors of the atom in the middle of the cell.
+The second is the number of faces of the Voronoi cell. This is 
+equal to the number of nearest neighbors of the central atom,
+plus any exterior faces (see note below).
 
 :line
 
@@ -135,13 +136,23 @@ density systems.  By default, the set of ghost atoms stored by each
 processor is determined by the cutoff used for
 "pair_style"_pair_style.html interactions.  The cutoff can be set
 explicitly via the "comm_modify cutoff"_comm_modify.html command.
+The Voronoi cells for atoms adjacent to empty regions will extend
+into those regions up to the communication cutoff in x, y, or z.
+In that situation, an exterior
+face is created at the cutoff distance normal to the x, y, or z 
+direction.  For triclinic systems, the exterior face is
+parallel to the corresponding reciprocal lattice vector.
 
-NOTE: The Voro++ package performs its calculation in 3d.  This should
-still work for a 2d LAMMPS simulation, to effectively compute Voronoi
-"areas", so long as the z-dimension of the box is roughly the same (or
-smaller) compared to the separation of the atoms.  Typical values for
-the z box dimensions in a 2d LAMMPS model are -0.5 to 0.5, which
-satisfies the criterion for most "units"_units.html systems.  Note
+NOTE: The Voro++ package performs its calculation in 3d.  This will
+still work for a 2d LAMMPS simulation, provided all the atoms have 
+the same z coordinate. The Voronoi cell of each atom will be
+a columnar polyhedron with constant cross-sectional area
+along the z direction and two exterior faces at the top and bottom of the
+simulation box. If the atoms do not all
+have the same z coordinate, then the columnar cells will be 
+accordingly distorted. The cross-sectional area of each Voronoi
+cell can be obtained by dividing its volume by the z extent
+of the simulation box.  Note
 that you define the z extent of the simulation box for 2d simulations
 when using the "create_box"_create_box.html or
 "read_data"_read_data.html commands.

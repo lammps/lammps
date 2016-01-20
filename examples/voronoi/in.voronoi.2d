@@ -51,7 +51,4 @@ run  		0
 #
 
 change_box 	all boundary f f p
-variable 	rless equal ${rcomm}<(${rcut}+${rskin})
-variable 	rmargin equal 0.01+${rcomm}*!${rless}+(${rcut}+${rskin})*${rless}
-variable 	volsys equal (lx+2*${rmargin})*(ly+2*${rmargin})*lz
 run  		0

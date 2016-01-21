@@ -56,6 +56,8 @@ class ComputeVoronoi : public Compute {
 
   tagint *tags;
   int *occvec, *sendocc, *lroot, *lnext, lmax, oldnatoms, oldnall;
+  int faces_flag, nfaces, nfacesmax;
+  double **faces;
 };
 
 }

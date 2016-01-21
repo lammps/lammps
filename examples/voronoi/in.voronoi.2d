@@ -37,8 +37,10 @@ thermo 		1
 # TEST 1: Volume check for 2d bulk system
 #
 
-compute 	v1 all voronoi/atom
+compute 	v1 all voronoi/atom neighbors yes
 dump    	d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+dump            d2 all local  1 dump.neighbors index c_v1[1] c_v1[2] c_v1[3]
+
 compute 	volvor all reduce sum c_v1[1]
 variable 	volsys equal lz*lx*ly
 variable 	err equal c_volvor-v_volsys

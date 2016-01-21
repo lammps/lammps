@@ -28,7 +28,8 @@ keyword = {only_group} or {surface} or {radius} or {edge_histo} or {edge_thresho
   {edge_threshold} arg = minlength
     minlength = minimum length for an edge to be counted
   {face_threshold} arg = minarea
-    minarea = minimum area for a face to be counted :pre
+    minarea = minimum area for a face to be counted
+  {neighbors} value = {yes} or {no} = store list of all neighbors or no :pre
 :ule
 
 [Examples:]
@@ -38,6 +39,7 @@ compute 2 precipitate voronoi/atom surface matrix
 compute 3b precipitate voronoi/atom radius v_r 
 compute 4 solute voronoi/atom only_group :pre
 compute 5 defects voronoi/atom occupation :pre
+compute 6 all voronoi/atom neighbors yes
 
 [Description:]
 
@@ -86,11 +88,11 @@ present in atom_style sphere for granular models.
 
 The {edge_histo} keyword activates the compilation of a histogram of
 number of edges on the faces of the Voronoi cells in the compute
-group. The argument maxedge of the this keyword is the largest number
+group. The argument {maxedge} of the this keyword is the largest number
 of edges on a single Voronoi cell face expected to occur in the
 sample. This keyword adds the generation of a global vector with
-maxedge+1 entries. The last entry in the vector contains the number of
-faces with with more than maxedge edges. Since the polygon with the
+{maxedge}+1 entries. The last entry in the vector contains the number of
+faces with with more than {maxedge} edges. Since the polygon with the
 smallest amount of edges is a triangle, entries 1 and 2 of the vector
 will always be zero.
 
@@ -115,6 +117,25 @@ values will always be greater than zero. Column one data can be used
 to locate vacancies (the coordinates are given by the atom coordinates
 at the time step when the compute was first invoked), while column two
 data can be used to identify interstitial atoms.
+
+If the {neighbors} value is set to yes, then 
+this compute creates a local array with 3 columns. There
+is one row for each face of each Voronoi cell. The 
+3 columns are the atom ID of the atom that owns the cell, 
+the atom ID of the atom in the neighboring cell 
+(or zero if the face is external), and the area of the face. 
+The array can be accessed by any command that
+uses local values from a compute as input.  See "this
+section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+options. More specifically, the array can be accessed by a 
+"dump local"_dump.html command to write a file containing
+all the Voronoi neighbors in a system:
+
+compute 6 all voronoi/atom neighbors yes
+dump d2 all local 1 dump.neighbors index c_6\[1\] c_6\[2\] c_6\[3\] :pre
+
+If the {face_threshold} keyword is used, then only faces 
+with areas greater than the threshold are stored.
 
 :line
 
@@ -168,7 +189,16 @@ uses per-atom values from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
+If the {edge_histo} keyword is used, then this compute
+generates a global vector of length {maxedge}+1, containing
+a histogram of the number of edges per face.
+
+If the {neighbors} value is set to yes, then 
+this compute calculates a local array with 3 columns. There
+is one row for each face of each Voronoi cell. 
+
 The Voronoi cell volume will be in distance "units"_units.html cubed.
+The Voronoi face area  will be in distance "units"_units.html squared.
 
 [Restrictions:]
 
@@ -178,6 +208,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"dump custom"_dump.html
+"dump custom"_dump.html, "dump local"_dump.html
 
 [Default:] none

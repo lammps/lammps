@@ -37,6 +37,8 @@
 using namespace LAMMPS_NS;
 using namespace voro;
 
+#define FACESDELTA 10000
+
 /* ---------------------------------------------------------------------- */
 
 ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
@@ -47,6 +49,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 2;
   peratom_flag = 1;
   comm_forward = 1;
+  faces_flag = 0;
 
   surface = VOROSURF_NONE;
   maxedge = 0;
@@ -59,6 +62,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   con_poly = NULL;
   tags = NULL;
   occvec = sendocc = lroot = lnext = NULL;
+  faces = NULL;
 
   int iarg = 3;
   while ( iarg<narg ) {
@@ -103,6 +107,12 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
       ethresh = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "neighbors") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
+      if (strcmp(arg[iarg+1],"yes") == 0) faces_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) faces_flag = 0;
+      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      iarg += 2;
     }
     else error->all(FLERR,"Illegal compute voronoi/atom command");
   }
@@ -120,6 +130,14 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     memory->create(edge,maxedge+1,"voronoi/atom:edge");
     memory->create(sendvector,maxedge+1,"voronoi/atom:sendvector");
     vector = edge;
+  }
+
+  // store local face data: i, j, area
+
+  if (faces_flag) {
+    local_flag = 1;
+    size_local_cols = 3;
+    nfacesmax = 0;
   }
 }
 
@@ -145,6 +163,7 @@ ComputeVoronoi::~ComputeVoronoi()
   memory->destroy(sendocc);
 #endif
   memory->destroy(tags);
+  memory->destroy(faces);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -423,6 +442,7 @@ void ComputeVoronoi::loopCells()
   // invoke voro++ and fetch results for owned atoms in group
   voronoicell_neighbor c;
   int i;
+  if (faces_flag) nfaces = 0;
   if (radstr) {
     c_loop_all cl(*con_poly);
     if (cl.start()) do if (con_poly->compute_cell(c,cl)) {
@@ -436,6 +456,8 @@ void ComputeVoronoi::loopCells()
       processCell(c,i);
     } while (cl.inc());
   }
+  if (faces_flag) size_local_rows = nfaces;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -459,12 +481,6 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
     c.neighbors(neigh);
     int neighs = neigh.size();
 
-//     // DEBUG CODE!!
-//     // loop over all faces (neighbors) 
-//     for (j=0; j<neighs; ++j)
-//       printf("neighbors %d %d %d\n",i,j,neigh[j]);
-//     // END DEBUG CODE!!
-
     if (fthresh > 0) {
       // count only faces above area threshold
       c.face_areas(narea);
@@ -486,7 +502,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 
       // each entry in neigh should correspond to an entry in narea
       if (neighs != narea.size())
-        error->all(FLERR,"Voro++ error: narea and neigh have a different size");
+        error->one(FLERR,"Voro++ error: narea and neigh have a different size");
 
       // loop over all faces (neighbors) and check if they are in the surface group
       for (j=0; j<neighs; ++j)
@@ -495,6 +511,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
     }
 
     // histogram of number of face edges
+
     if (maxedge>0) {
       if (ethresh > 0) {
         // count only edges above length threshold
@@ -533,12 +550,48 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
           }
       }
     }
+
+    // store info for local faces
+
+    if (faces_flag) {
+      if (nfaces+voro[i][1] > nfacesmax) {
+	while (nfacesmax < nfaces+voro[i][1]) nfacesmax += FACESDELTA;
+	memory->grow(faces,nfacesmax,size_local_cols,"compute/voronoi/atom:faces");
+	array_local = faces;
+      }
+
+      if (!have_narea) c.face_areas(narea);
+
+      if (neighs != narea.size())
+        error->one(FLERR,"Voro++ error: narea and neigh have a different size");
+      tagint itag, jtag;
+      tagint *tag = atom->tag;
+      itag = tag[i];
+      for (j=0; j<neighs; ++j)
+	if (narea[j] > fthresh) {
+
+	  // external faces assigned the tag 0
+
+	  int jj = neigh[j];
+	  if (jj >= 0) jtag = tag[jj];
+	  else jtag = 0;
+
+	  faces[nfaces][0] = itag;
+	  faces[nfaces][1] = jtag;
+	  faces[nfaces][2] = narea[j];
+	  nfaces++;
+	}
+    }
+      
+
   } else if (i < atom->nlocal) voro[i][0] = voro[i][1] = 0.0;
 }
 
 double ComputeVoronoi::memory_usage()
 {
   double bytes = size_peratom_cols * nmax * sizeof(double);
+  // estimate based on average coordination of 12
+  if (faces_flag) bytes += 12 * size_local_cols * nmax * sizeof(double);
   return bytes;
 }
 

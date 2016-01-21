@@ -1383,6 +1383,8 @@ void AtomVecChargeKokkos::data_atom(double *coord, imageint imagetmp,
   h_v(nlocal,1) = 0.0;
   h_v(nlocal,2) = 0.0;
 
+  atomKK->modified(Host,ALL_MASK);
+
   atom->nlocal++;
 }
 /* ----------------------------------------------------------------------

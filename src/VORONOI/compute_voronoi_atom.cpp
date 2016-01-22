@@ -113,6 +113,12 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"no") == 0) faces_flag = 0;
       else error->all(FLERR,"Illegal compute voronoi/atom command");
       iarg += 2;
+    } else if (strcmp(arg[iarg], "peratom") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
+      if (strcmp(arg[iarg+1],"yes") == 0) peratom_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) peratom_flag = 0;
+      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      iarg += 2;
     }
     else error->all(FLERR,"Illegal compute voronoi/atom command");
   }
@@ -137,6 +143,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   if (faces_flag) {
     local_flag = 1;
     size_local_cols = 3;
+    size_local_rows = 0;
     nfacesmax = 0;
   }
 }
@@ -298,7 +305,7 @@ void ComputeVoronoi::buildCells()
   }
 
   // clear edge statistics
-  for (i = 0; i < maxedge; ++i) edge[i]=0;
+  for (i = 0; i <= maxedge; ++i) edge[i]=0;
 
   // initialize voro++ container
   // preallocates 8 atoms per cell
@@ -602,6 +609,14 @@ void ComputeVoronoi::compute_vector()
 
   for( int i=0; i<size_vector; ++i ) sendvector[i] = edge[i];
   MPI_Allreduce(sendvector,edge,size_vector,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeVoronoi::compute_local()
+{
+  invoked_local = update->ntimestep;
+  if( invoked_peratom < invoked_local ) compute_peratom();
 }
 
 /* ---------------------------------------------------------------------- */

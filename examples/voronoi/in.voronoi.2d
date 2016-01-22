@@ -26,25 +26,21 @@ pair_style      lj/cut ${rcut}
 pair_coeff      1 1 0.0 1.0 
 
 neighbor	${rskin} nsq
-neigh_modify	delay 10
 
 # set the minimum communication cut-off 
 comm_modify     cutoff ${rcomm}
 
+compute 	v1 all voronoi/atom neighbors yes
+compute 	volvor all reduce sum c_v1[1]
+variable 	volsys equal lz*lx*ly
+variable 	err equal c_volvor-v_volsys
+thermo_style 	custom c_volvor v_volsys vol v_err
 thermo 		1
 
 #
 # TEST 1: Volume check for 2d bulk system
 #
 
-compute 	v1 all voronoi/atom neighbors yes
-dump    	d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
-dump            d2 all local  1 dump.neighbors index c_v1[1] c_v1[2] c_v1[3]
-
-compute 	volvor all reduce sum c_v1[1]
-variable 	volsys equal lz*lx*ly
-variable 	err equal c_volvor-v_volsys
-thermo_style 	custom c_volvor v_volsys vol v_err
 run  		0
 
 #

@@ -39,7 +39,6 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 
   void compute(int, int);
 
-  void settings(int, char **);
   void init_tables(double cut_coul, double *cut_respa);
   void init_style();
   double init_one(int, int);

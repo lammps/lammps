@@ -22,10 +22,12 @@
 #include "modify.h"
 #include "force.h"
 #include "fix.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define EPSILON 0.001
 
@@ -38,7 +40,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   comm_x_only = comm_f_only = 0;
   size_forward = 7;
   size_reverse = 6;
-  size_border = 24;
+  size_border = 26;
   size_velocity = 6;
   size_data_atom = 8;
   size_data_vel = 7;
@@ -47,10 +49,13 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->tri_flag = 1;
   atom->molecule_flag = atom->rmass_flag = 1;
-  atom->angmom_flag = atom->torque_flag = 1;
+  atom->radius_flag = atom->angmom_flag = atom->torque_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = NULL;
+
+  if (domain->dimension != 3)
+    error->all(FLERR,"Atom_style tri can only be used in 3d simulations");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,6 +99,7 @@ void AtomVecTri::grow(int n)
 
   molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
+  radius = memory->grow(atom->radius,nmax,"atom:radius");
   angmom = memory->grow(atom->angmom,nmax,3,"atom:angmom");
   torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
   tri = memory->grow(atom->tri,nmax,"atom:tri");
@@ -113,7 +119,7 @@ void AtomVecTri::grow_reset()
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
   molecule = atom->molecule; rmass = atom->rmass;
-  angmom = atom->angmom; torque = atom->torque;
+  radius = atom->radius; angmom = atom->angmom; torque = atom->torque;
   tri = atom->tri;
 }
 
@@ -151,6 +157,7 @@ void AtomVecTri::copy(int i, int j, int delflag)
 
   molecule[j] = molecule[i];
   rmass[j] = rmass[i];
+  radius[j] = radius[i];
   angmom[j][0] = angmom[i][0];
   angmom[j][1] = angmom[i][1];
   angmom[j][2] = angmom[i][2];
@@ -202,6 +209,9 @@ void AtomVecTri::clear_bonus()
 
 void AtomVecTri::set_equilateral(int i, double size)
 {
+  // also set radius = distance from center to corner-pt = len(c1)
+  // unless size = 0.0, then set diameter = 1.0
+
   if (tri[i] < 0) {
     if (size == 0.0) return;
     if (nlocal_bonus == nmax_bonus) grow_bonus();
@@ -226,9 +236,11 @@ void AtomVecTri::set_equilateral(int i, double size)
     inertia[0] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[1] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[2] = sqrt(3.0)/48.0 * size*size*size*size;
+    radius[i] = MathExtra::len3(c1);
     bonus[nlocal_bonus].ilocal = i;
     tri[i] = nlocal_bonus++;
   } else if (size == 0.0) {
+    radius[i] = 0.5;
     copy_bonus(nlocal_bonus-1,tri[i]);
     nlocal_bonus--;
     tri[i] = -1;
@@ -249,6 +261,7 @@ void AtomVecTri::set_equilateral(int i, double size)
     inertia[0] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[1] = sqrt(3.0)/96.0 * size*size*size*size;
     inertia[2] = sqrt(3.0)/48.0 * size*size*size*size;
+    radius[i] = MathExtra::len3(c1);
   }
 }
 
@@ -581,6 +594,8 @@ int AtomVecTri::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (tri[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -626,6 +641,8 @@ int AtomVecTri::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (tri[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -681,6 +698,8 @@ int AtomVecTri::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (tri[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -733,6 +752,8 @@ int AtomVecTri::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
         buf[m++] = ubuf(molecule[j]).d;
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
         if (tri[j] < 0) buf[m++] = ubuf(0).d;
         else {
           buf[m++] = ubuf(1).d;
@@ -778,6 +799,8 @@ int AtomVecTri::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
         buf[m++] = ubuf(molecule[j]).d;
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
         if (tri[j] < 0) buf[m++] = ubuf(0).d;
         else {
           buf[m++] = ubuf(1).d;
@@ -837,6 +860,8 @@ int AtomVecTri::pack_border_hybrid(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = ubuf(molecule[j]).d;
+    buf[m++] = radius[j];
+    buf[m++] = rmass[j];
     if (tri[j] < 0) buf[m++] = ubuf(0).d;
     else {
       buf[m++] = ubuf(1).d;
@@ -884,6 +909,8 @@ void AtomVecTri::unpack_border(int n, int first, double *buf)
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     tri[i] = (int) ubuf(buf[m++]).i;
     if (tri[i] == 0) tri[i] = -1;
     else {
@@ -940,6 +967,8 @@ void AtomVecTri::unpack_border_vel(int n, int first, double *buf)
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     tri[i] = (int) ubuf(buf[m++]).i;
     if (tri[i] == 0) tri[i] = -1;
     else {
@@ -995,6 +1024,8 @@ int AtomVecTri::unpack_border_hybrid(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     molecule[i] = (tagint) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     tri[i] = (int) ubuf(buf[m++]).i;
     if (tri[i] == 0) tri[i] = -1;
     else {
@@ -1050,6 +1081,7 @@ int AtomVecTri::pack_exchange(int i, double *buf)
 
   buf[m++] = ubuf(molecule[i]).d;
   buf[m++] = rmass[i];
+  buf[m++] = radius[i];
   buf[m++] = angmom[i][0];
   buf[m++] = angmom[i][1];
   buf[m++] = angmom[i][2];
@@ -1110,6 +1142,7 @@ int AtomVecTri::unpack_exchange(double *buf)
 
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
   rmass[nlocal] = buf[m++];
+  radius[nlocal] = buf[m++];
   angmom[nlocal][0] = buf[m++];
   angmom[nlocal][1] = buf[m++];
   angmom[nlocal][2] = buf[m++];
@@ -1164,8 +1197,8 @@ int AtomVecTri::size_restart()
   int n = 0;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++)
-    if (tri[i] >= 0) n += 33;
-    else n += 17;
+    if (tri[i] >= 0) n += 34;
+    else n += 18;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -1197,6 +1230,7 @@ int AtomVecTri::pack_restart(int i, double *buf)
 
   buf[m++] = ubuf(molecule[i]).d;
   buf[m++] = rmass[i];
+  buf[m++] = radius[i];
   buf[m++] = angmom[i][0];
   buf[m++] = angmom[i][1];
   buf[m++] = angmom[i][2];
@@ -1263,6 +1297,7 @@ int AtomVecTri::unpack_restart(double *buf)
 
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
   rmass[nlocal] = buf[m++];
+  radius[nlocal] = buf[m++];
   angmom[nlocal][0] = buf[m++];
   angmom[nlocal][1] = buf[m++];
   angmom[nlocal][2] = buf[m++];
@@ -1329,7 +1364,8 @@ void AtomVecTri::create_atom(int itype, double *coord)
   v[nlocal][2] = 0.0;
 
   molecule[nlocal] = 0;
-  rmass[nlocal] = 1.0;
+  radius[nlocal] = 0.5;
+  rmass[nlocal] = 4.0*MY_PI/3.0 * radius[nlocal]*radius[nlocal]*radius[nlocal];
   angmom[nlocal][0] = 0.0;
   angmom[nlocal][1] = 0.0;
   angmom[nlocal][2] = 0.0;
@@ -1362,6 +1398,12 @@ void AtomVecTri::data_atom(double *coord, imageint imagetmp, char **values)
   rmass[nlocal] = atof(values[4]);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
+
+  if (tri[nlocal] < 0) {
+    radius[nlocal] = 0.5;
+    rmass[nlocal] *= 4.0*MY_PI/3.0 *
+      radius[nlocal]*radius[nlocal]*radius[nlocal];
+  } else radius[nlocal] = 0.0;
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -1397,6 +1439,12 @@ int AtomVecTri::data_atom_hybrid(int nlocal, char **values)
   rmass[nlocal] = atof(values[2]);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
+
+  if (tri[nlocal] < 0) {
+    radius[nlocal] = 0.5;
+    rmass[nlocal] *= 4.0*MY_PI/3.0 *
+      radius[nlocal]*radius[nlocal]*radius[nlocal];
+  } else radius[nlocal] = 0.0;
 
   return 3;
 }
@@ -1457,9 +1505,18 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   x[m][1] = centroid[1];
   x[m][2] = centroid[2];
 
-  // reset tri mass
-  // previously stored density in rmass
+  // reset tri radius and mass
+  // rmass currently holds density
   // tri area = 0.5 len(U x V), where U,V are edge vectors from one vertex
+
+  double c4[3];
+  MathExtra::sub3(c1,centroid,c4);
+  radius[m] = MathExtra::lensq3(c4);
+  MathExtra::sub3(c2,centroid,c4);
+  radius[m] = MAX(radius[m],MathExtra::lensq3(c4));
+  MathExtra::sub3(c3,centroid,c4);
+  radius[m] = MAX(radius[m],MathExtra::lensq3(c4));
+  radius[m] = sqrt(radius[m]);
 
   double norm[3];
   MathExtra::cross3(c2mc1,c3mc1,norm);
@@ -1567,7 +1624,8 @@ void AtomVecTri::pack_data(double **buf)
     buf[i][2] = ubuf(type[i]).d;
     if (tri[i] < 0) buf[i][3] = ubuf(0).d;
     else buf[i][3] = ubuf(1).d;
-    if (tri[i] < 0) buf[i][4] = rmass[i];
+    if (tri[i] < 0)
+      buf[i][4] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
     else {
       MathExtra::sub3(bonus[tri[i]].c2,bonus[tri[i]].c1,c2mc1);
       MathExtra::sub3(bonus[tri[i]].c3,bonus[tri[i]].c1,c3mc1);
@@ -1593,7 +1651,8 @@ int AtomVecTri::pack_data_hybrid(int i, double *buf)
   buf[0] = ubuf(molecule[i]).d;
   if (tri[i] < 0) buf[1] = ubuf(0).d;
   else buf[1] = ubuf(1).d;
-  if (tri[i] < 0) buf[2] = rmass[i];
+  if (tri[i] < 0)
+    buf[2] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
   else {
     double c2mc1[3],c3mc1[3],norm[3];
     MathExtra::sub3(bonus[tri[i]].c2,bonus[tri[i]].c1,c2mc1);
@@ -1703,6 +1762,7 @@ bigint AtomVecTri::memory_usage()
 
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
+  if (atom->memcheck("radius")) bytes += memory->usage(radius,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
   if (atom->memcheck("torque")) bytes +=
                                   memory->usage(torque,nmax*comm->nthreads,3);

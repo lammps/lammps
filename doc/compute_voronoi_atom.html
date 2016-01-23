@@ -271,52 +271,54 @@ systems, but may lead to underestimation of Voronoi volumes in low
 density systems.  By default, the set of ghost atoms stored by each
 processor is determined by the cutoff used for
 <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> interactions.  The cutoff can be set
-explicitly via the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command.
-The Voronoi cells for atoms adjacent to empty regions will extend
-into those regions up to the communication cutoff in x, y, or z.
-In that situation, an exterior
-face is created at the cutoff distance normal to the x, y, or z
-direction.  For triclinic systems, the exterior face is
-parallel to the corresponding reciprocal lattice vector.</p>
+explicitly via the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command.  The
+Voronoi cells for atoms adjacent to empty regions will extend into
+those regions up to the communication cutoff in x, y, or z.  In that
+situation, an exterior face is created at the cutoff distance normal
+to the x, y, or z direction.  For triclinic systems, the exterior face
+is parallel to the corresponding reciprocal lattice vector.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The Voro++ package performs its calculation in 3d.  This will
-still work for a 2d LAMMPS simulation, provided all the atoms have
-the same z coordinate. The Voronoi cell of each atom will be
-a columnar polyhedron with constant cross-sectional area
-along the z direction and two exterior faces at the top and bottom of the
-simulation box. If the atoms do not all
-have the same z coordinate, then the columnar cells will be
-accordingly distorted. The cross-sectional area of each Voronoi
-cell can be obtained by dividing its volume by the z extent
-of the simulation box.  Note
-that you define the z extent of the simulation box for 2d simulations
-when using the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.</p>
+still work for a 2d LAMMPS simulation, provided all the atoms have the
+same z coordinate. The Voronoi cell of each atom will be a columnar
+polyhedron with constant cross-sectional area along the z direction
+and two exterior faces at the top and bottom of the simulation box. If
+the atoms do not all have the same z coordinate, then the columnar
+cells will be accordingly distorted. The cross-sectional area of each
+Voronoi cell can be obtained by dividing its volume by the z extent of
+the simulation box.  Note that you define the z extent of the
+simulation box for 2d simulations when using the
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> or <a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.</p>
 </div>
 <p><strong>Output info:</strong></p>
-<p>By default, this compute calculates a per-atom array with 2 columns. In regular
-dynamic tessellation mode the first column is the Voronoi volume, the
-second is the neighbor count, as described above (read above for the
-output data in case the <em>occupation</em> keyword is specified).
-These values can be accessed by any command that
-uses per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
-options. If the <em>peratom</em> keyword is set to &#8220;no&#8221;, the
-per-atom array is still created, but it is not accessible.</p>
-<p>If the <em>edge_histo</em> keyword is used, then this compute
-generates a global vector of length <a href="#id1"><span class="problematic" id="id2">*</span></a>maxedge*+1, containing
-a histogram of the number of edges per face.</p>
-<p>If the <em>neighbors</em> value is set to yes, then
-this compute calculates a local array with 3 columns. There
-is one row for each face of each Voronoi cell.</p>
-<p>In LAMMPS contexts such as <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> that can
-accept either a per-atom vector quantity or a local vector
-quantity, the behavior depends on the value gives for the <em>peratom</em>
-keyword: for the default value &#8220;yes&#8221; the per-atom array is accessed,
-for the value <em>no</em> the local array is accessed.</p>
+<p>By default, this compute calculates a per-atom array with 2
+columns. In regular dynamic tessellation mode the first column is the
+Voronoi volume, the second is the neighbor count, as described above
+(read above for the output data in case the <em>occupation</em> keyword is
+specified).  These values can be accessed by any command that uses
+per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options. If the <em>peratom</em> keyword is set to &#8220;no&#8221;, the per-atom array
+is still created, but it is not accessible.</p>
+<p>If the <em>edge_histo</em> keyword is used, then this compute generates a
+global vector of length <a href="#id1"><span class="problematic" id="id2">*</span></a>maxedge*+1, containing a histogram of the
+number of edges per face.</p>
+<p>If the <em>neighbors</em> value is set to yes, then this compute calculates a
+local array with 3 columns. There is one row for each face of each
+Voronoi cell.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some LAMMPS commands such as the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command can accept either a per-atom or
+local quantity. If this compute produces both quantities, the command
+may access the per-atom quantity, even if you want to access the local
+quantity.  This effect can be eliminated by using the <em>peratom</em>
+keyword to turn off the production of the per-atom quantities.  For
+the default value <em>yes</em> both quantities are produced.  For the value
+<em>no</em>, only the local array is produced.</p>
+</div>
 <p>The Voronoi cell volume will be in distance <a class="reference internal" href="units.html"><em>units</em></a> cubed.
-The Voronoi face area  will be in distance <a class="reference internal" href="units.html"><em>units</em></a> squared.</p>
+The Voronoi face area will be in distance <a class="reference internal" href="units.html"><em>units</em></a> squared.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>

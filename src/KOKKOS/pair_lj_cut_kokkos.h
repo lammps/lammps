@@ -77,6 +77,9 @@ class PairLJCutKokkos : public PairLJCut {
   typename ArrayTypes<DeviceType>::t_x_array c_x;
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
   typename ArrayTypes<DeviceType>::t_tagint_1d tag;

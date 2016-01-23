@@ -119,6 +119,7 @@ void Verlet::setup()
 
   // compute all forces
 
+  force->setup();
   ev_set(update->ntimestep);
   force_clear();
   modify->setup_pre_force(vflag);

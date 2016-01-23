@@ -305,7 +305,8 @@ void ComputeVoronoi::buildCells()
   }
 
   // clear edge statistics
-  for (i = 0; i <= maxedge; ++i) edge[i]=0;
+  if ( maxedge > 0 )
+    for (i = 0; i <= maxedge; ++i) edge[i]=0;
 
   // initialize voro++ container
   // preallocates 8 atoms per cell

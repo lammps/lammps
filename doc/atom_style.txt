@@ -114,6 +114,13 @@ a point particle.  If it is an ellipsoid, it also stores a shape
 vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
+For the {dipole} style, a point dipole is defined for each point
+particle.  Note that if you wish the particles to be finite-size
+spheres as in a Stockmayer potential for a dipolar fluid, so that the
+particles can rotate due to dipole-dipole interactions, then you need
+to use atom_style hybrid sphere dipole, which will assign both a
+diameter and dipole moment to each particle.
+
 For the {electron} style, the particles representing electrons are 3d
 Gaussians with a specified position and bandwidth or uncertainty in
 position, which is represented by the eradius = electron size.
@@ -197,10 +204,10 @@ If some atoms have bonds, but others do not, use the {bond} style.
 
 The only scenario where the {hybrid} style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want dipolar particles which will rotate due to
-torque, you would need to use "atom_style hybrid sphere dipole".  When
-a hybrid style is used, atoms store and communicate the union of all
-quantities implied by the individual styles.
+example, as mentioned above, if you want dipolar particles which will
+rotate due to torque, you need to use "atom_style hybrid sphere
+dipole".  When a hybrid style is used, atoms store and communicate the
+union of all quantities implied by the individual styles.
 
 When using the {hybrid} style, you cannot combine the {template} style
 with another molecular style that stores bond,angle,etc info on a

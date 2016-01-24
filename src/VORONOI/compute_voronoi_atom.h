@@ -32,6 +32,7 @@ class ComputeVoronoi : public Compute {
   void init();
   void compute_peratom();
   void compute_vector();
+  void compute_local();
   double memory_usage();
 
   int pack_forward_comm(int, int *, double *, int, int *);

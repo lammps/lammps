@@ -39,6 +39,7 @@ class PairHybrid : public Pair {
   virtual void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+  void setup();
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, int, int, int, double, double, double, double &);

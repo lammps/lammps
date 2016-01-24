@@ -28,6 +28,7 @@ namespace LAMMPS_NS {
 class FixShearHistory : public Fix {
   friend class Neighbor;
   friend class PairGranHookeHistory;
+  friend class PairGranLine;
 
  public:
   FixShearHistory(class LAMMPS *, int, char **);

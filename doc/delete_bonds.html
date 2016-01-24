@@ -245,10 +245,15 @@ have been modified by the delete_bonds command.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This command requires inter-processor communication to coordinate the
-deleting of bonds.  This means that your system must be ready to
-perform a simulation before using this command (force fields setup,
-atom masses set, etc).</p>
+<p>This command requires inter-processor communication to acquire ghost
+atoms, to coordinate the deleting of bonds, angles, etc between atoms
+shared by multiple processors.  This means that your system must be
+ready to perform a simulation before using this command (force fields
+setup, atom masses set, etc).  Just as would be needed to run
+dynamics, the force field you define should define a cutoff
+(e.g. through a <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command) which is long
+enough for a processor to acquire the ghost atoms its needs to compute
+bond, angle, etc interactions.</p>
 <p>If deleted bonds (angles, etc) are removed but the 1-2, 1-3, 1-4
 weighting list is not recomputed, this can cause a later <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command to fail due to an atom&#8217;s bonds being
 inconsistent with the weighting list.  This should only happen if the

@@ -160,56 +160,56 @@ systems, but may lead to underestimation of Voronoi volumes in low
 density systems.  By default, the set of ghost atoms stored by each
 processor is determined by the cutoff used for
 "pair_style"_pair_style.html interactions.  The cutoff can be set
-explicitly via the "comm_modify cutoff"_comm_modify.html command.
-The Voronoi cells for atoms adjacent to empty regions will extend
-into those regions up to the communication cutoff in x, y, or z.
-In that situation, an exterior
-face is created at the cutoff distance normal to the x, y, or z 
-direction.  For triclinic systems, the exterior face is
-parallel to the corresponding reciprocal lattice vector.
+explicitly via the "comm_modify cutoff"_comm_modify.html command.  The
+Voronoi cells for atoms adjacent to empty regions will extend into
+those regions up to the communication cutoff in x, y, or z.  In that
+situation, an exterior face is created at the cutoff distance normal
+to the x, y, or z direction.  For triclinic systems, the exterior face
+is parallel to the corresponding reciprocal lattice vector.
 
 NOTE: The Voro++ package performs its calculation in 3d.  This will
-still work for a 2d LAMMPS simulation, provided all the atoms have 
-the same z coordinate. The Voronoi cell of each atom will be
-a columnar polyhedron with constant cross-sectional area
-along the z direction and two exterior faces at the top and bottom of the
-simulation box. If the atoms do not all
-have the same z coordinate, then the columnar cells will be 
-accordingly distorted. The cross-sectional area of each Voronoi
-cell can be obtained by dividing its volume by the z extent
-of the simulation box.  Note
-that you define the z extent of the simulation box for 2d simulations
-when using the "create_box"_create_box.html or
-"read_data"_read_data.html commands.
+still work for a 2d LAMMPS simulation, provided all the atoms have the
+same z coordinate. The Voronoi cell of each atom will be a columnar
+polyhedron with constant cross-sectional area along the z direction
+and two exterior faces at the top and bottom of the simulation box. If
+the atoms do not all have the same z coordinate, then the columnar
+cells will be accordingly distorted. The cross-sectional area of each
+Voronoi cell can be obtained by dividing its volume by the z extent of
+the simulation box.  Note that you define the z extent of the
+simulation box for 2d simulations when using the
+"create_box"_create_box.html or "read_data"_read_data.html commands.
 
 [Output info:]
 
-By default, this compute calculates a per-atom array with 2 columns. In regular
-dynamic tessellation mode the first column is the Voronoi volume, the 
-second is the neighbor count, as described above (read above for the 
-output data in case the {occupation} keyword is specified). 
-These values can be accessed by any command that
-uses per-atom values from a compute as input.  See "Section_howto
+By default, this compute calculates a per-atom array with 2
+columns. In regular dynamic tessellation mode the first column is the
+Voronoi volume, the second is the neighbor count, as described above
+(read above for the output data in case the {occupation} keyword is
+specified).  These values can be accessed by any command that uses
+per-atom values from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options. If the {peratom} keyword is set to "no", the
-per-atom array is still created, but it is not accessible.
+options. If the {peratom} keyword is set to "no", the per-atom array
+is still created, but it is not accessible.
  
-If the {edge_histo} keyword is used, then this compute
-generates a global vector of length {maxedge}+1, containing
-a histogram of the number of edges per face.
+If the {edge_histo} keyword is used, then this compute generates a
+global vector of length {maxedge}+1, containing a histogram of the
+number of edges per face.
 
-If the {neighbors} value is set to yes, then 
-this compute calculates a local array with 3 columns. There
-is one row for each face of each Voronoi cell. 
+If the {neighbors} value is set to yes, then this compute calculates a
+local array with 3 columns. There is one row for each face of each
+Voronoi cell.
 
-In LAMMPS contexts such as "compute reduce"_compute_reduce.html that can
-accept either a per-atom vector quantity or a local vector
-quantity, the behavior depends on the value gives for the {peratom}
-keyword: for the default value "yes" the per-atom array is accessed,
-for the value {no} the local array is accessed. 
+NOTE: Some LAMMPS commands such as the "compute
+reduce"_compute_reduce.html command can accept either a per-atom or
+local quantity. If this compute produces both quantities, the command
+may access the per-atom quantity, even if you want to access the local
+quantity.  This effect can be eliminated by using the {peratom}
+keyword to turn off the production of the per-atom quantities.  For
+the default value {yes} both quantities are produced.  For the value
+{no}, only the local array is produced.
 
 The Voronoi cell volume will be in distance "units"_units.html cubed.
-The Voronoi face area  will be in distance "units"_units.html squared.
+The Voronoi face area will be in distance "units"_units.html squared.
 
 [Restrictions:]
 

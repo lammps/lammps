@@ -423,6 +423,7 @@ void Respa::setup()
 
   // compute all forces
 
+  force->setup();
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {

@@ -606,6 +606,15 @@ double PairHybrid::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
+   invoke setup for each sub-style
+------------------------------------------------------------------------- */
+
+void PairHybrid::setup()
+{
+  for (int m = 0; m < nstyles; m++) styles[m]->setup();
+}
+
+/* ----------------------------------------------------------------------
    combine sub-style neigh list requests and create new ones if needed
 ------------------------------------------------------------------------- */
 

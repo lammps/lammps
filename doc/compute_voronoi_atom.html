@@ -135,7 +135,8 @@
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
 <li>voronoi/atom = style name of this compute command</li>
 <li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>only_group</em> or <em>surface</em> or <em>radius</em> or <em>edge_histo</em> or <em>edge_threshold</em> or <em>face_threshold</em></li>
+<li>keyword = <em>only_group</em> or <em>surface</em> or <em>radius</em> or <em>edge_histo</em> or <em>edge_threshold</em>
+or <em>face_threshold</em> or <em>neighbors</em> or <em>peratom</em></li>
 </ul>
 <pre class="literal-block">
 <em>only_group</em> = no arg
@@ -151,6 +152,8 @@
   minlength = minimum length for an edge to be counted
 <em>face_threshold</em> arg = minarea
   minarea = minimum area for a face to be counted
+<em>neighbors</em> value = <em>yes</em> or <em>no</em> = store list of all neighbors or no
+<em>peratom</em> value = <em>yes</em> or <em>no</em> = per-atom quantities accessible or no
 </pre>
 </div>
 <div class="section" id="examples">
@@ -164,6 +167,7 @@ compute 4 solute voronoi/atom only_group
 <div class="highlight-python"><div class="highlight"><pre>compute 5 defects voronoi/atom occupation
 </pre></div>
 </div>
+<p>compute 6 all voronoi/atom neighbors yes</p>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
@@ -171,11 +175,14 @@ compute 4 solute voronoi/atom only_group
 atoms in the simulation box.  The tessellation is calculated using all
 atoms in the simulation, but non-zero values are only stored for atoms
 in the group.</p>
-<p>By default two quantities per atom are calculated by this compute.
+<p>By default two per-atom quantities are calculated by this compute.
 The first is the volume of the Voronoi cell around each atom.  Any
 point in an atom&#8217;s Voronoi cell is closer to that atom than any other.
-The second is the number of faces of the Voronoi cell, which is also
-the number of nearest neighbors of the atom in the middle of the cell.</p>
+The second is the number of faces of the Voronoi cell. This is
+equal to the number of nearest neighbors of the central atom,
+plus any exterior faces (see note below). If the <em>peratom</em> keyword
+is set to &#8220;no&#8221;, the per-atom quantities are still calculated,
+but they are not accessible.</p>
 <hr class="docutils" />
 <p>If the <em>only_group</em> keyword is specified the tessellation is performed
 only with respect to the atoms contained in the compute group. This is
@@ -204,11 +211,11 @@ and 0.4 units for type 2 atoms, and v_r2 accesses the radius property
 present in atom_style sphere for granular models.</p>
 <p>The <em>edge_histo</em> keyword activates the compilation of a histogram of
 number of edges on the faces of the Voronoi cells in the compute
-group. The argument maxedge of the this keyword is the largest number
+group. The argument <em>maxedge</em> of the this keyword is the largest number
 of edges on a single Voronoi cell face expected to occur in the
 sample. This keyword adds the generation of a global vector with
-maxedge+1 entries. The last entry in the vector contains the number of
-faces with with more than maxedge edges. Since the polygon with the
+<em>maxedge*+1 entries. The last entry in the vector contains the number of
+faces with with more than *maxedge</em> edges. Since the polygon with the
 smallest amount of edges is a triangle, entries 1 and 2 of the vector
 will always be zero.</p>
 <p>The <em>edge_threshold</em> and <em>face_threshold</em> keywords allow the
@@ -231,6 +238,23 @@ values will always be greater than zero. Column one data can be used
 to locate vacancies (the coordinates are given by the atom coordinates
 at the time step when the compute was first invoked), while column two
 data can be used to identify interstitial atoms.</p>
+<p>If the <em>neighbors</em> value is set to yes, then
+this compute creates a local array with 3 columns. There
+is one row for each face of each Voronoi cell. The
+3 columns are the atom ID of the atom that owns the cell,
+the atom ID of the atom in the neighboring cell
+(or zero if the face is external), and the area of the face.
+The array can be accessed by any command that
+uses local values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options. More specifically, the array can be accessed by a
+<a class="reference internal" href="dump.html"><em>dump local</em></a> command to write a file containing
+all the Voronoi neighbors in a system:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute 6 all voronoi/atom neighbors yes
+dump d2 all local 1 dump.neighbors index c_6[1] c_6[2] c_6[3]
+</pre></div>
+</div>
+<p>If the <em>face_threshold</em> keyword is used, then only faces
+with areas greater than the threshold are stored.</p>
 <hr class="docutils" />
 <p>The Voronoi calculation is performed by the freely available <a class="reference external" href="http://math.lbl.gov/voro++">Voro++ package</a>, written by Chris Rycroft at UC Berkeley and LBL,
 which must be installed on your system when building LAMMPS for use
@@ -247,29 +271,54 @@ systems, but may lead to underestimation of Voronoi volumes in low
 density systems.  By default, the set of ghost atoms stored by each
 processor is determined by the cutoff used for
 <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> interactions.  The cutoff can be set
-explicitly via the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command.</p>
+explicitly via the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command.  The
+Voronoi cells for atoms adjacent to empty regions will extend into
+those regions up to the communication cutoff in x, y, or z.  In that
+situation, an exterior face is created at the cutoff distance normal
+to the x, y, or z direction.  For triclinic systems, the exterior face
+is parallel to the corresponding reciprocal lattice vector.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The Voro++ package performs its calculation in 3d.  This should
-still work for a 2d LAMMPS simulation, to effectively compute Voronoi
-&#8220;areas&#8221;, so long as the z-dimension of the box is roughly the same (or
-smaller) compared to the separation of the atoms.  Typical values for
-the z box dimensions in a 2d LAMMPS model are -0.5 to 0.5, which
-satisfies the criterion for most <a class="reference internal" href="units.html"><em>units</em></a> systems.  Note
-that you define the z extent of the simulation box for 2d simulations
-when using the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.</p>
+<p class="last">The Voro++ package performs its calculation in 3d.  This will
+still work for a 2d LAMMPS simulation, provided all the atoms have the
+same z coordinate. The Voronoi cell of each atom will be a columnar
+polyhedron with constant cross-sectional area along the z direction
+and two exterior faces at the top and bottom of the simulation box. If
+the atoms do not all have the same z coordinate, then the columnar
+cells will be accordingly distorted. The cross-sectional area of each
+Voronoi cell can be obtained by dividing its volume by the z extent of
+the simulation box.  Note that you define the z extent of the
+simulation box for 2d simulations when using the
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> or <a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.</p>
 </div>
 <p><strong>Output info:</strong></p>
-<p>This compute calculates a per-atom array with 2 columns. In regular
-dynamic tessellation mode the first column is the Voronoi volume, the
-second is the neighbor count, as described above (read above for the
-output data in case the <em>occupation</em> keyword is specified).
-These values can be accessed by any command that
-uses per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
-options.</p>
-<p>The Voronoi cell volume will be in distance <a class="reference internal" href="units.html"><em>units</em></a> cubed.</p>
+<p>By default, this compute calculates a per-atom array with 2
+columns. In regular dynamic tessellation mode the first column is the
+Voronoi volume, the second is the neighbor count, as described above
+(read above for the output data in case the <em>occupation</em> keyword is
+specified).  These values can be accessed by any command that uses
+per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options. If the <em>peratom</em> keyword is set to &#8220;no&#8221;, the per-atom array
+is still created, but it is not accessible.</p>
+<p>If the <em>edge_histo</em> keyword is used, then this compute generates a
+global vector of length <a href="#id1"><span class="problematic" id="id2">*</span></a>maxedge*+1, containing a histogram of the
+number of edges per face.</p>
+<p>If the <em>neighbors</em> value is set to yes, then this compute calculates a
+local array with 3 columns. There is one row for each face of each
+Voronoi cell.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some LAMMPS commands such as the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command can accept either a per-atom or
+local quantity. If this compute produces both quantities, the command
+may access the per-atom quantity, even if you want to access the local
+quantity.  This effect can be eliminated by using the <em>peratom</em>
+keyword to turn off the production of the per-atom quantities.  For
+the default value <em>yes</em> both quantities are produced.  For the value
+<em>no</em>, only the local array is produced.</p>
+</div>
+<p>The Voronoi cell volume will be in distance <a class="reference internal" href="units.html"><em>units</em></a> cubed.
+The Voronoi face area will be in distance <a class="reference internal" href="units.html"><em>units</em></a> squared.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
@@ -278,8 +327,8 @@ LAMMPS was built with that package.  See the <a class="reference internal" href=
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="dump.html"><em>dump custom</em></a></p>
-<p><strong>Default:</strong> none</p>
+<p><a class="reference internal" href="dump.html"><em>dump custom</em></a>, <a class="reference internal" href="dump.html"><em>dump local</em></a></p>
+<p><strong>Default:</strong> <em>neighbors</em> no, <em>peratom</em> yes</p>
 </div>
 </div>
 

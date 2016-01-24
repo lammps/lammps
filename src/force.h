@@ -77,6 +77,7 @@ class Force : protected Pointers {
   Force(class LAMMPS *);
   ~Force();
   void init();
+  void setup();
 
   void create_pair(const char *, int);
   class Pair *new_pair(const char *, int, int &);

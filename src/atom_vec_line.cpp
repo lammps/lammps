@@ -21,10 +21,12 @@
 #include "modify.h"
 #include "force.h"
 #include "fix.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define EPSILON 0.001
 
@@ -37,7 +39,7 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
   comm_x_only = comm_f_only = 0;
   size_forward = 4;
   size_reverse = 6;
-  size_border = 10;
+  size_border = 12;
   size_velocity = 6;
   size_data_atom = 8;
   size_data_vel = 7;
@@ -46,7 +48,8 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->line_flag = 1;
   atom->molecule_flag = atom->rmass_flag = 1;
-  atom->omega_flag = atom->torque_flag = 1;
+  atom->radius_flag = atom->omega_flag = atom->torque_flag = 1;
+  atom->sphere_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = NULL;
@@ -93,6 +96,7 @@ void AtomVecLine::grow(int n)
 
   molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
+  radius = memory->grow(atom->radius,nmax,"atom:radius");
   omega = memory->grow(atom->omega,nmax,3,"atom:omega");
   torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
   line = memory->grow(atom->line,nmax,"atom:line");
@@ -112,7 +116,7 @@ void AtomVecLine::grow_reset()
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
   molecule = atom->molecule; rmass = atom->rmass;
-  omega = atom->omega; torque = atom->torque;
+  radius = atom->radius; omega = atom->omega; torque = atom->torque;
   line = atom->line;
 }
 
@@ -149,6 +153,7 @@ void AtomVecLine::copy(int i, int j, int delflag)
 
   molecule[j] = molecule[i];
   rmass[j] = rmass[i];
+  radius[j] = radius[i];
   omega[j][0] = omega[i][0];
   omega[j][1] = omega[i][1];
   omega[j][2] = omega[i][2];
@@ -212,6 +217,12 @@ void AtomVecLine::set_length(int i, double value)
     nlocal_bonus--;
     line[i] = -1;
   } else bonus[line[i]].length = value;
+
+  // also set radius = half of length
+  // unless value = 0.0, then set diameter = 1.0
+
+  radius[i] = 0.5 * value;
+  if (value == 0.0) radius[i] = 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -482,6 +493,8 @@ int AtomVecLine::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (line[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -508,6 +521,8 @@ int AtomVecLine::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (line[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -543,6 +558,8 @@ int AtomVecLine::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = ubuf(molecule[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (line[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -576,6 +593,8 @@ int AtomVecLine::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
         buf[m++] = ubuf(molecule[j]).d;
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
         if (line[j] < 0) buf[m++] = ubuf(0).d;
         else {
           buf[m++] = ubuf(1).d;
@@ -602,6 +621,8 @@ int AtomVecLine::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
         buf[m++] = ubuf(molecule[j]).d;
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
         if (line[j] < 0) buf[m++] = ubuf(0).d;
         else {
           buf[m++] = ubuf(1).d;
@@ -641,6 +662,8 @@ int AtomVecLine::pack_border_hybrid(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = ubuf(molecule[j]).d;
+    buf[m++] = radius[j];
+    buf[m++] = rmass[j];
     if (line[j] < 0) buf[m++] = ubuf(0).d;
     else {
       buf[m++] = ubuf(1).d;
@@ -668,6 +691,8 @@ void AtomVecLine::unpack_border(int n, int first, double *buf)
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     line[i] = (int) ubuf(buf[m++]).i;
     if (line[i] == 0) line[i] = -1;
     else {
@@ -704,6 +729,8 @@ void AtomVecLine::unpack_border_vel(int n, int first, double *buf)
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     line[i] = (int) ubuf(buf[m++]).i;
     if (line[i] == 0) line[i] = -1;
     else {
@@ -739,6 +766,8 @@ int AtomVecLine::unpack_border_hybrid(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     molecule[i] = (tagint) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     line[i] = (int) ubuf(buf[m++]).i;
     if (line[i] == 0) line[i] = -1;
     else {
@@ -775,6 +804,7 @@ int AtomVecLine::pack_exchange(int i, double *buf)
 
   buf[m++] = ubuf(molecule[i]).d;
   buf[m++] = rmass[i];
+  buf[m++] = radius[i];
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
@@ -816,6 +846,7 @@ int AtomVecLine::unpack_exchange(double *buf)
 
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
   rmass[nlocal] = buf[m++];
+  radius[nlocal] = buf[m++];
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
@@ -851,8 +882,8 @@ int AtomVecLine::size_restart()
   int n = 0;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++)
-    if (line[i] >= 0) n += 19;
-    else n += 17;
+    if (line[i] >= 0) n += 20;
+    else n += 18;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -884,6 +915,7 @@ int AtomVecLine::pack_restart(int i, double *buf)
 
   buf[m++] = ubuf(molecule[i]).d;
   buf[m++] = rmass[i];
+  buf[m++] = radius[i];
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
@@ -931,6 +963,7 @@ int AtomVecLine::unpack_restart(double *buf)
 
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
   rmass[nlocal] = buf[m++];
+  radius[nlocal] = buf[m++];
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
@@ -978,7 +1011,8 @@ void AtomVecLine::create_atom(int itype, double *coord)
   v[nlocal][2] = 0.0;
 
   molecule[nlocal] = 0;
-  rmass[nlocal] = 1.0;
+  radius[nlocal] = 0.5;
+  rmass[nlocal] = 4.0*MY_PI/3.0 * radius[nlocal]*radius[nlocal]*radius[nlocal];
   omega[nlocal][0] = 0.0;
   omega[nlocal][1] = 0.0;
   omega[nlocal][2] = 0.0;
@@ -1011,6 +1045,12 @@ void AtomVecLine::data_atom(double *coord, imageint imagetmp, char **values)
   rmass[nlocal] = atof(values[4]);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
+
+  if (line[nlocal] < 0) {
+    radius[nlocal] = 0.5;
+    rmass[nlocal] *= 4.0*MY_PI/3.0 *
+      radius[nlocal]*radius[nlocal]*radius[nlocal];
+  } else radius[nlocal] = 0.0;
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -1046,6 +1086,12 @@ int AtomVecLine::data_atom_hybrid(int nlocal, char **values)
   rmass[nlocal] = atof(values[2]);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
+
+  if (line[nlocal] < 0) {
+    radius[nlocal] = 0.5;
+    rmass[nlocal] *= 4.0*MY_PI/3.0 *
+      radius[nlocal]*radius[nlocal]*radius[nlocal];
+  } else radius[nlocal] = 0.0;
 
   return 3;
 }
@@ -1084,9 +1130,10 @@ void AtomVecLine::data_atom_bonus(int m, char **values)
   x[m][0] = xc;
   x[m][1] = yc;
 
-  // reset line mass
-  // previously stored density in rmass
+  // reset line radius and mass
+  // rmass currently holds density
 
+  radius[m] = 0.5 * length;
   rmass[m] *= length;
 
   bonus[nlocal_bonus].ilocal = m;
@@ -1132,7 +1179,8 @@ void AtomVecLine::pack_data(double **buf)
     buf[i][2] = ubuf(type[i]).d;
     if (line[i] < 0) buf[i][3] = ubuf(0).d;
     else buf[i][3] = ubuf(1).d;
-    if (line[i] < 0) buf[i][4] = rmass[i];
+    if (line[i] < 0) 
+      buf[i][4] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
     else buf[i][4] = rmass[i]/bonus[line[i]].length;
     buf[i][5] = x[i][0];
     buf[i][6] = x[i][1];
@@ -1152,7 +1200,8 @@ int AtomVecLine::pack_data_hybrid(int i, double *buf)
   buf[0] = ubuf(molecule[i]).d;
   if (line[i] < 0) buf[1] = ubuf(0).d;
   else buf[1] = ubuf(1).d;
-  if (line[i] < 0) buf[2] = rmass[i];
+  if (line[i] < 0)
+    buf[2] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
   else buf[2] = rmass[i]/bonus[line[i]].length;
   return 3;
 }
@@ -1255,6 +1304,7 @@ bigint AtomVecLine::memory_usage()
 
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
+  if (atom->memcheck("radius")) bytes += memory->usage(radius,nmax);
   if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
   if (atom->memcheck("torque"))
     bytes += memory->usage(torque,nmax*comm->nthreads,3);

@@ -100,6 +100,10 @@ E: Fix adapt pair style param not supported
 
 The pair style does not know about the parameter you specified.
 
+E: Fix adapt pair style param is not compatible
+
+Self-explanatory
+
 E: Fix adapt type pair range is not valid for pair hybrid sub-style
 
 Self-explanatory.

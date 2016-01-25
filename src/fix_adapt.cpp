@@ -323,18 +323,20 @@ void FixAdapt::init()
       }
       if (ad->pair == NULL) ad->pair = force->pair_match(pstyle,1,nsub);
       if (ad->pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");
+
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == NULL)
         error->all(FLERR,"Fix adapt pair style param not supported");
 
-      //ad->pdim = 2;
-      if (ad->pdim == 0) ad->scalar = (double *) ptr;
-      if (ad->pdim == 2) ad->array = (double **) ptr;
+      // for pair styles only parameters that are 2-d arrays in atom types are supported
+      if (ad->pdimp != 2)
+        error->all(FLERR,"Fix adapt pair style param is not compatible");
+      else ad->array = (double **) ptr;
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
-      if (ad->pdim == 2 && (strcmp(force->pair_style,"hybrid") == 0 ||
-                            strcmp(force->pair_style,"hybrid/overlay") == 0)) {
+      if (strcmp(force->pair_style,"hybrid") == 0 ||
+          strcmp(force->pair_style,"hybrid/overlay") == 0) {
         PairHybrid *pair = (PairHybrid *) force->pair;
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)

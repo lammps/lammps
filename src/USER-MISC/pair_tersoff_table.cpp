@@ -773,7 +773,7 @@ void PairTersoffTable::coeff(int narg, char **arg)
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
-  setup();
+  setup_params();
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -970,7 +970,7 @@ void PairTersoffTable::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairTersoffTable::setup()
+void PairTersoffTable::setup_params()
 {
   int i,j,k,m,n;
 

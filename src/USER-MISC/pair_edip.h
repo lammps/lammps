@@ -103,7 +103,7 @@ class PairEDIP : public Pair {
   void initGrids(void);
 
   void read_file(char *);
-  void setup();
+  void setup_params();
 };
 
 }

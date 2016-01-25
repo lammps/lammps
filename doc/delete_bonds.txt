@@ -129,10 +129,15 @@ have been modified by the delete_bonds command.
 
 [Restrictions:]
 
-This command requires inter-processor communication to coordinate the
-deleting of bonds.  This means that your system must be ready to
-perform a simulation before using this command (force fields setup,
-atom masses set, etc).
+This command requires inter-processor communication to acquire ghost
+atoms, to coordinate the deleting of bonds, angles, etc between atoms
+shared by multiple processors.  This means that your system must be
+ready to perform a simulation before using this command (force fields
+setup, atom masses set, etc).  Just as would be needed to run
+dynamics, the force field you define should define a cutoff
+(e.g. through a "pair_style"_pair_style.html command) which is long
+enough for a processor to acquire the ghost atoms its needs to compute
+bond, angle, etc interactions.
 
 If deleted bonds (angles, etc) are removed but the 1-2, 1-3, 1-4
 weighting list is not recomputed, this can cause a later "fix

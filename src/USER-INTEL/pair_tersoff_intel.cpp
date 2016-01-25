@@ -29,6 +29,31 @@
 #include "memory.h"
 #include "error.h"
 
+// Currently Intel compiler is required for this pair style.
+// For convenience, base class routines are called if not using Intel compiler.
+#ifndef __INTEL_COMPILER
+using namespace LAMMPS_NS;
+
+PairTersoffIntel::PairTersoffIntel(LAMMPS *lmp) : PairTersoff(lmp)
+{
+}
+
+void PairTersoffIntel::compute(int eflag, int vflag)
+{
+  PairTersoff::compute(eflag, vflag);
+}
+
+void PairTersoffIntel::init_style()
+{
+  if (comm->me == 0) {
+    error->warning(FLERR, "Tersoff/intel currently requires intel compiler. "
+		   "Using MANYBODY version.");
+  }
+  PairTersoff::init_style();
+}
+
+#else
+
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(push,target(mic))
 #endif
@@ -1468,4 +1493,6 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
 
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(pop)
+#endif
+
 #endif

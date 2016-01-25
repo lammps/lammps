@@ -297,13 +297,15 @@ which by the mesh.  The global array has 2 columns.</p>
 <p>The first column contains the diffraction angle in the units (radians
 or degrees) provided with the <em>2Theta</em> values. The second column contains
 the computed diffraction intensities as described above.</p>
-<p>The array can be accessed by any command that uses global values
-from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
-options.</p>
+<p>The array can be accessed by any command that uses global values from
+a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a>
+for an overview of LAMMPS output options.</p>
 <p>All array values calculated by this compute are &#8220;intensive&#8221;.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the USER-DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 <p>The compute_xrd command does not work for triclinic cells.</p>
 </div>
 <div class="section" id="related-commands">

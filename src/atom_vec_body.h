@@ -85,13 +85,19 @@ class AtomVecBody : public AtomVec {
   // manipulate Bonus data structure for extra atom info
 
   void clear_bonus();
-  void data_body(int, int, int, char **, char **);
+  void data_body(int, int, int, int *, double *);
 
+  // methods used by other classes to query/set body info
+  
+  double radius_body(int, int, int *, double *);
+  void set_quat(int, double *);
+  
  private:
   tagint *tag;
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
+  double *radius;
   double *rmass;
   double **angmom,**torque;
   int *body;

@@ -10,7 +10,7 @@ find ./ -name \*.cpp -print -or -name \*.c -print \
     -or -name \*.h -print -or -name Makefile\* -print \
   | xargs chmod -x $f
 
-# remove training whitespace from C/C++ source files
+# remove trailing whitespace from C/C++ source files
 find ./ -name \*.cpp -print -or -name \*.c -print  -or -name \*.h -print \
   | xargs sed -i -e 's,[	 ]\+$,,'
 

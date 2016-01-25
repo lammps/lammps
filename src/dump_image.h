@@ -37,13 +37,24 @@ class DumpImage : public DumpCustom {
   int filetype;
   enum{PPM,JPG,PNG};
 
+  int atomflag;                    // 0/1 for draw atoms
   int acolor,adiam;                // what determines color/diam of atoms
   double adiamvalue;               // atom diameter value
-  int atomflag,bondflag;           // 0/1 for draw atoms,bonds
+
+  int lineflag;                    // 0/1 for draw atoms as lines
+  int lcolor,ldiam;                // what determines color/diam of lines
+  double ldiamvalue;               // line diameter value
+  int triflag;                     // 0/1 for draw atoms as triangles
+  int tcolor;                      // what determines color of tris
   int bodyflag;                    // 0/1 for draw atoms as bodies
-  double bodyflag1,bodyflag2;      // user params for drawing bodies
+  int bodycolor;                   // what determines color of bodies
+  double bodyflag1,bodyflag2;      // user-specified params for drawing bodies
+  
+  int bondflag;                    // 0/1 for draw bonds
   int bcolor,bdiam;                // what determines color/diam of bonds
   double bdiamvalue;               // bond diameter value
+
+  int extraflag;                   // 0/1 for any of line/tri/body flag set
   char *thetastr,*phistr;          // variables for view theta,phi
   int thetavar,phivar;             // index to theta,phi vars
   int cflag;                       // static/dynamic box center
@@ -64,8 +75,11 @@ class DumpImage : public DumpCustom {
   double *diamtype,*diamelement,*bdiamtype;         // per-type diameters
   double **colortype,**colorelement,**bcolortype;   // per-type colors
 
+  class AtomVecLine *avec_line;    // ptrs to atom style (sub)classes
+  class AtomVecTri *avec_tri;
+  class AtomVecBody *avec_body;
+
   class Image *image;              // class that renders each image
-  class Body *bptr;                // class for Body particles
 
   int *chooseghost;                // extended choose array for comm
   double **bufcopy;                // buffer for communicating bond/atom info

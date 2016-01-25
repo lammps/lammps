@@ -210,7 +210,8 @@ install-python:
 tar:
 	@cd STUBS; $(MAKE) clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.sh src/MAKE src/*.cpp src/*.h src/STUBS \
+	  src/Make* src/Package.sh src/Depend.sh \
+	  src/MAKE src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
 	@cd STUBS; $(MAKE)

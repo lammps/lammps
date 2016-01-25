@@ -26,11 +26,13 @@ class Molecule : protected Pointers {
   int last;   // 1 if last molecule in set, else 0
 
   // number of atoms,bonds,etc in molecule
+  // nibody,ndbody = # of integer/double fields in body
 
   int natoms;
   int nbonds,nangles,ndihedrals,nimpropers;
   int ntypes;
   int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
+  int nibody,ndbody;
 
   // max bond,angle,etc per atom
 
@@ -43,6 +45,7 @@ class Molecule : protected Pointers {
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
   int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
+  int bodyflag,ibodyflag,dbodyflag;
 
   // 1 if attribute defined or computed, 0 if not
 
@@ -83,6 +86,10 @@ class Molecule : protected Pointers {
   tagint **shake_atom;
   int **shake_type;
 
+  class AtomVecBody *avec_body;
+  int *ibodyparams;         // integer and double body params
+  double *dbodyparams;
+
   double center[3];         // geometric center of molecule
   double masstotal;         // total mass of molecule
   double com[3];            // center of mass of molecule
@@ -102,6 +109,9 @@ class Molecule : protected Pointers {
   double **dxbody;     // displacement of each atom relative to COM
                        // in body frame (diagonalized interia tensor)
 
+  double *quat_external;   // orientation imposed by external class
+                           // e.g. FixPour or CreateAtoms
+  
   Molecule(class LAMMPS *, int, char **, int &);
   ~Molecule();
   void compute_center();
@@ -117,7 +127,7 @@ class Molecule : protected Pointers {
   int toffset,boffset,aoffset,doffset,ioffset;
   int autospecial;
   double sizescale;
-
+  
   void read(int);
   void coords(char *);
   void types(char *);
@@ -134,6 +144,7 @@ class Molecule : protected Pointers {
   void shakeflag_read(char *);
   void shakeatom_read(char *);
   void shaketype_read(char *);
+  void body(int, int, char *);
 
   void initialize();
   void allocate();

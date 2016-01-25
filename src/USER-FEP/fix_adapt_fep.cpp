@@ -224,11 +224,12 @@ void FixAdaptFEP::post_constructor()
   id_fix_diam = NULL;
   id_fix_chg = NULL;
 
-  char **newarg = new char*[5];
+  char **newarg = new char*[6];
   newarg[1] = group->names[igroup];
   newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "1";
+  newarg[3] = (char *) "peratom";
   newarg[4] = (char *) "1";
+  newarg[5] = (char *) "1";
 
   if (diamflag) {
     int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
@@ -236,7 +237,7 @@ void FixAdaptFEP::post_constructor()
     strcpy(id_fix_diam,id);
     strcat(id_fix_diam,"_FIX_STORE_DIAM");
     newarg[0] = id_fix_diam;
-    modify->add_fix(5,newarg);
+    modify->add_fix(6,newarg);
     fix_diam = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
@@ -259,7 +260,7 @@ void FixAdaptFEP::post_constructor()
     strcpy(id_fix_chg,id);
     strcat(id_fix_chg,"_FIX_STORE_CHG");
     newarg[0] = id_fix_chg;
-    modify->add_fix(5,newarg);
+    modify->add_fix(6,newarg);
     fix_chg = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;

@@ -86,8 +86,13 @@ The {rotate} style rotates each atom in the group by the angle {theta}
 around a rotation axis {R} = (Rx,Ry,Rz) that goes thru a point {P} =
 (Px,Py,Pz).  The direction of rotation for the atoms around the
 rotation axis is consistent with the right-hand rule: if your
-right-hand's thumb points along {R}, then your fingers wrap around the
+right-hand thumb points along {R}, then your fingers wrap around the
 axis in the direction of positive theta.
+
+If the defined "atom_style"_atom_style.html assigns an orientation to
+each atom ("atom styles"_atom_style.html ellipsoid, line, tri, body),
+then that property is also updated appropriately to correspond to the
+atom's rotation.
 
 Distance units for displacements and the origin point of the {rotate}
 style are determined by the setting of {box} or {lattice} for the

@@ -45,7 +45,8 @@ potentials: embedded atom method (EAM) potential files
 src: source files
 tools: pre- and post-processing tools :tb(s=:)
 
-Note that the "download page"_download also has links to download
+Note that the "download page"_http://lammps.sandia.gov/download.html
+also has links to download
 Windows exectubles and installers, as well as pre-built executables
 for a few specific Linux distributions.  It also has instructions for
 how to download/install LAMMPS for Macs (via Homebrew), and to

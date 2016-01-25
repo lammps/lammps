@@ -26,7 +26,7 @@ fix ID group-ID style_name keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {nvt} or {npt} or {nph} :l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint}
+keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update}
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -56,8 +56,9 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {scalexz} value = {yes} or {no} = scale xz with lz
   {flip} value = {yes} or {no} = allow or disallow box flips when it becomes highly skewed
   {fixedpoint} values = x y z
-    x,y,z = perform barostat dilation/contraction around this point (distance units) :pre
-    
+    x,y,z = perform barostat dilation/contraction around this point (distance units)
+  {update} value = {dipole} update dipole orientation (only for sphere variants) :pre
+
 :ule
 
 [Examples:]
@@ -327,6 +328,13 @@ far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
 positions.
 
+If the {update} keyword is used with the {dipole} value, then the
+orientation of the dipole moment of each particle is also updated
+during the time integration.  This option should be used for models
+where a dipole moment is assigned to finite-size particles,
+e.g. spheroids via use of the "atom_style hybrid sphere
+dipole"_atom_style.html command.
+
 :line
 
 NOTE: Using a barostat coupled to tilt dimensions {xy}, {xz}, {yz} can
@@ -439,6 +447,26 @@ the outermost rRESPA timestep, the barostat dynamics are not the
 limiting factor for numerical stability. Both factorizations are
 time-reversible and can be shown to preserve the phase space measure
 of the underlying non-Hamiltonian equations of motion.
+
+NOTE: This implementation has been shown to conserve linear momentum
+up to machine precision under NVT dynamics. Under NPT dynamics,
+for a system with zero initial total linear momentum, the total
+momentum fluctuates close to zero. It may occasionally undergo brief
+excursions to non-negligible values, before returning close to zero. 
+Over long simulations, this has the effect of causing the center-of-mass
+to undergo a slow random walk. This can be mitigated by resetting
+the momentum at infrequent intervals using the
+"fix momentum"_fix_momentum.html command.
+
+NOTE: This implementation has been shown to conserve linear momentum
+up to machine precision under NVT dynamics. Under NPT dynamics,
+for a system with zero initial total linear momentum, the total
+momentum fluctuates close to zero. It may occasionally undergo brief
+excursions to non-negligible values, before returning close to zero. 
+Over long simulations, this has the effect of causing the center-of-mass
+to undergo a slow random walk. This can be mitigated by resetting
+the momentum at infrequent intervals using the
+"fix momentum"_fix_momentum.html command.
 
 :line
 

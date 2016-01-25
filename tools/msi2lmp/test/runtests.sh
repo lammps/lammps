@@ -154,7 +154,7 @@ do \
 done
 
 # Class2 tests with pcff with ignore flag set
-for m in solv-poly
+for m in pmma-poly solv-poly
 do \
     before=$errors
     vglog=${m}-class2c.chk

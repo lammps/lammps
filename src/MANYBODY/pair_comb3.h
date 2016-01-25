@@ -36,6 +36,7 @@ class PairComb3 : public Pair {
   double init_one(int, int);
   double memory_usage();
   virtual double combqeq(double *, int &);
+  double enegtot;
 
  // general potential parameters
  protected:

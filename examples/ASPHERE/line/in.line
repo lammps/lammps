@@ -13,7 +13,7 @@ neigh_modify	delay 0 every 1 check yes
 neigh_modify	exclude molecule all
 
 pair_style	line/lj 2.5
-pair_coeff	* * 1.0 0.25
+pair_coeff	* * 1.0 1.0 1.0 0.25 2.5
 
 fix		2 all rigid molecule langevin 2.0 2.0 1.0 492983
 

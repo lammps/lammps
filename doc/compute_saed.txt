@@ -82,18 +82,19 @@ it can reduce the likelihood that Bragg reflections will be satisfied
 unless small spacing parameters <0.05 Angstrom^(-1) are implemented. 
 Meshes with manual spacing do not require a periodic boundary.
 
-The limits of the reciprocal lattice mesh are determined by the use of 
-the {Kmax}, {Zone}, and {dR_Ewald} parameters.  The rectilinear mesh 
-created about the origin of reciprocal space is terminated at the 
-boundary of a sphere of radius {Kmax} centered at the origin.  If 
-{Zone} parameters z1=z2=z3=0 are used, diffraction intensities are 
-computed throughout the entire spherical volume - note this can greatly 
-increase the cost of computation.  Otherwise, {Zone} parameters will 
-denote the z1=h, z2=k, and z3=l (in a global since) zone axis of an 
-intersecting Ewald sphere.  Diffraction intensities will only be 
-computed at the intersection of the reciprocal lattice mesh and a 
-{dR_Ewald} thick surface of the Ewald sphere.  See the example 3D 
-intestiety data and the intersection of a \[010\] zone axis in the below image. 
+The limits of the reciprocal lattice mesh are determined by the use of
+the {Kmax}, {Zone}, and {dR_Ewald} parameters.  The rectilinear mesh
+created about the origin of reciprocal space is terminated at the
+boundary of a sphere of radius {Kmax} centered at the origin.  If
+{Zone} parameters z1=z2=z3=0 are used, diffraction intensities are
+computed throughout the entire spherical volume - note this can
+greatly increase the cost of computation.  Otherwise, {Zone}
+parameters will denote the z1=h, z2=k, and z3=l (in a global since)
+zone axis of an intersecting Ewald sphere.  Diffraction intensities
+will only be computed at the intersection of the reciprocal lattice
+mesh and a {dR_Ewald} thick surface of the Ewald sphere.  See the
+example 3D intestiety data and the intersection of a \[010\] zone axis
+in the below image.
 
 :c,image(JPG/saed_ewald_intersect_small.jpg,JPG/saed_ewald_intersect.jpg)
 
@@ -150,6 +151,10 @@ options.
 All array values calculated by this compute are "intensive".  
 
 [Restrictions:] 
+
+This compute is part of the USER-DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 The compute_saed command does not work for triclinic cells. 
 

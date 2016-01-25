@@ -116,6 +116,7 @@ class Pair : protected Pointers {
 
   void init();
   virtual void reinit();
+  virtual void setup() {}
   double mix_energy(double, double, double, double);
   double mix_distance(double, double);
   void write_file(int, char **);
@@ -236,6 +237,17 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int,
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
+
+  // union data struct for packing 32-bit and 64-bit ints into double bufs
+  // see atom_vec.h for documentation
+
+  union ubuf {
+    double d;
+    int64_t i;
+    ubuf(double arg) : d(arg) {}
+    ubuf(int64_t arg) : i(arg) {}
+    ubuf(int arg) : i(arg) {}
+  };
 
   inline int sbmask(int j) {
     return j >> SBBITS & 3;

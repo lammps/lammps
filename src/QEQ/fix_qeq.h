@@ -102,6 +102,9 @@ class FixQEq : public Fix {
 
   double *qf, *q1, *q2, qdamp, qstep;
 
+  // fire
+  double *qv;
+
   void calculate_Q();
 
   double parallel_norm(double*, int);

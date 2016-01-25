@@ -84,11 +84,12 @@ how they are set for each atom.  You can reset the image flags
 (e.g. to 0) before invoking this compute by using the "set
 image"_set.html command.
 
-NOTE: Unlike the "compute msd"_compute_msd.html command, this compute
-does not store the initial center-of-mass coorindates of its molecules
-in a restart file.  Thus you cannot continue the MSD per chunk
-calculation of this compute when running from a "restart
-file"_read_restart.html.
+NOTE: If you want the quantities calculated by this compute to be
+continuous when running from a "restart file"_read_restart.html, then
+you should use the same ID for this compute, as in the original run.
+This is so that the fix this compute creates to store per-chunk
+quantities will also have the same ID, and thus be initialized
+correctly with chunk reference positions from the restart file.
 
 The simplest way to output the results of the compute com/msd
 calculation to a file is to use the "fix ave/time"_fix_ave_time.html

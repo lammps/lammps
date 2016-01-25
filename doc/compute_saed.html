@@ -212,13 +212,14 @@ the <em>Kmax</em>, <em>Zone</em>, and <em>dR_Ewald</em> parameters.  The rectili
 created about the origin of reciprocal space is terminated at the
 boundary of a sphere of radius <em>Kmax</em> centered at the origin.  If
 <em>Zone</em> parameters z1=z2=z3=0 are used, diffraction intensities are
-computed throughout the entire spherical volume - note this can greatly
-increase the cost of computation.  Otherwise, <em>Zone</em> parameters will
-denote the z1=h, z2=k, and z3=l (in a global since) zone axis of an
-intersecting Ewald sphere.  Diffraction intensities will only be
-computed at the intersection of the reciprocal lattice mesh and a
-<em>dR_Ewald</em> thick surface of the Ewald sphere.  See the example 3D
-intestiety data and the intersection of a [010] zone axis in the below image.</p>
+computed throughout the entire spherical volume - note this can
+greatly increase the cost of computation.  Otherwise, <em>Zone</em>
+parameters will denote the z1=h, z2=k, and z3=l (in a global since)
+zone axis of an intersecting Ewald sphere.  Diffraction intensities
+will only be computed at the intersection of the reciprocal lattice
+mesh and a <em>dR_Ewald</em> thick surface of the Ewald sphere.  See the
+example 3D intestiety data and the intersection of a [010] zone axis
+in the below image.</p>
 <a data-lightbox="group-default"
                    href="_images/saed_ewald_intersect.jpg"
                    class=""
@@ -279,6 +280,8 @@ options.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the USER-DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 <p>The compute_saed command does not work for triclinic cells.</p>
 </div>
 <div class="section" id="related-commands">

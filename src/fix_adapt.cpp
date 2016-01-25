@@ -329,7 +329,7 @@ void FixAdapt::init()
         error->all(FLERR,"Fix adapt pair style param not supported");
 
       // for pair styles only parameters that are 2-d arrays in atom types are supported
-      if (ad->pdimp != 2)
+      if (ad->pdim != 2)
         error->all(FLERR,"Fix adapt pair style param is not compatible");
       else ad->array = (double **) ptr;
 

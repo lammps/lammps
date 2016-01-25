@@ -52,6 +52,8 @@ how to download/install LAMMPS for Macs (via Homebrew), and to
 download and update LAMMPS from SVN and Git repositories, which gives
 you the same files that are in the download tarball.
 
+:link(download,http://lammps.sandia.gov/download.html)
+
 The Windows and Linux executables for serial or parallel only include
 certain packages and bug-fixes/upgrades listed on "this
 page"_http://lammps.sandia.gov/bug.html up to a certain date, as

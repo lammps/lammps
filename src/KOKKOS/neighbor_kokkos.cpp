@@ -518,7 +518,7 @@ void NeighborKokkos::setup_bins_kokkos(int i)
     (this->*stencil_create[slist[i]])(lists_device[slist[i]],sx,sy,sz);
   }
 
-  if (i < nslist-1) return;
+  //if (i < nslist-1) return; // this won't work if a non-kokkos neighbor list is last
 
   if (maxhead > k_bins.d_view.dimension_0()) {
     k_bins = DAT::tdual_int_2d("Neighbor::d_bins",maxhead,atoms_per_bin);

@@ -172,7 +172,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 		F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
   void allocate();
-  void setup();
+  void setup_params();
 
   KOKKOS_INLINE_FUNCTION
   double fermi_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;

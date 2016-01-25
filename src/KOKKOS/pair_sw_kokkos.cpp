@@ -574,9 +574,9 @@ void PairSWKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairSWKokkos<DeviceType>::setup()
+void PairSWKokkos<DeviceType>::setup_params()
 {
-  PairSW::setup();
+  PairSW::setup_params();
 
   // sync elem2param and params
 

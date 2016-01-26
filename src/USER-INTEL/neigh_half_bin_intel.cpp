@@ -369,6 +369,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
       const int list_size = (ito + tid + 1) * maxnbors;
       int ct = (ifrom + tid) * maxnbors;
       int *neighptr = firstneigh + ct;
+
       for (int i = ifrom; i < ito; i++) {
         int j, k, n, n2, itype, jtype, ibin;
         double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
@@ -861,22 +862,23 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
       int e_ito = ito;
       if (ito == num) {
 	int imod = ito % swidth;
-	if (imod) e_ito += swidth - e_ito;
+	if (imod) e_ito += swidth - imod;
       }
-      const int list_size = (e_ito + tid + 1) * maxnbors;
+      const int list_size = (e_ito + tid * 2 + 2) * maxnbors;
       #else
       const int swidth = 1;
       IP_PRE_omp_range_id(ifrom, ito, tid, num, nthreads);
       ifrom += astart;
       ito += astart;
-      const int list_size = (ito + tid + 1) * maxnbors;
+      const int list_size = (ito + tid * 2 + 2) * maxnbors;
       #endif
 
       int which;
 
       int pack_offset = maxnbors * swidth;
-      int ct = (ifrom + tid) * maxnbors;
+      int ct = (ifrom + tid * 2) * maxnbors;
       int *neighptr = firstneigh + ct;
+      const int obound = pack_offset + maxnbors * 2;
 
       int max_chunk = 0;
       int lane = 0;
@@ -933,6 +935,8 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 	    neighptr[raw_count++] = j;
 	  }
 	}
+
+	if (raw_count > obound) *overflow = 1;
 
         #if defined(LMP_SIMD_COMPILER)
 	#ifdef _LMP_INTEL_OFFLOAD
@@ -994,7 +998,6 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 	  }
 	}
 	int ns = (n - lane) / swidth;
-	if (ns > maxnbors || n2 > list_size) *overflow = 1;
 	for (int u = pack_offset; u < n2; u++) {
 	  neighptr[n] = neighptr[u];
 	  n += swidth;
@@ -1011,7 +1014,6 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 	#ifdef OUTER_CHUNK
 	if (ns > max_chunk) max_chunk = ns;
 	lane++;
-	pack_offset -= maxnbors;
 	if (lane == swidth) {
 	  ct += max_chunk * swidth;
 	  const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
@@ -1021,10 +1023,10 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 	  max_chunk = 0;
 	  pack_offset = maxnbors * swidth;
 	  lane = 0;
-	  if (ct + pack_offset + maxnbors > list_size) {
+	  if (ct + obound > list_size) {
             if (i < ito - 1) {
 	      *overflow = 1;
-	      ct = (ifrom + tid) * maxnbors;
+	      ct = (ifrom + tid * 2) * maxnbors;
             }
 	  }
 	}
@@ -1034,10 +1036,10 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 	const int edge = (ct % alignb);
 	if (edge) ct += alignb - edge;
 	neighptr = firstneigh + ct;
-	if (ct + pack_offset + maxnbors > list_size) {
+	if (ct + obound > list_size) {
 	  if (i < ito - 1) {
 	    *overflow = 1;
-	    ct = (ifrom + tid) * maxnbors;
+	    ct = (ifrom + tid * 2) * maxnbors;
 	  }
 	}
 	#endif
@@ -1965,15 +1967,14 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
       int e_ito = ito;
       if (ito == num) {
 	int imod = ito % pack_width;
-	if (imod) e_ito += pack_width - e_ito;
+	if (imod) e_ito += pack_width - imod;
       }
-      const int list_size = (e_ito + tid + 1) * maxnbors;
-
+      const int list_size = (e_ito + tid * 2 + 2) * maxnbors;
       int which;
-
       int pack_offset = maxnbors * pack_width;
-      int ct = (ifrom + tid) * maxnbors;
+      int ct = (ifrom + tid * 2) * maxnbors;
       int *neighptr = firstneigh + ct;
+      const int obound = pack_offset + maxnbors * 2;
 
       int max_chunk = 0;
       int lane = 0;
@@ -2010,6 +2011,8 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
 	    neighptr[raw_count++] = j;
           }
         }
+
+	if (raw_count > obound) *overflow = 1;
 
         #if defined(LMP_SIMD_COMPILER)
 	#ifdef _LMP_INTEL_OFFLOAD
@@ -2084,7 +2087,6 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
           }
         }
 	int ns = (n - lane) / pack_width;
-	if (ns > maxnbors || n2 > list_size) *overflow = 1;
 	atombin[i] = ns;
 	for (int u = pack_offset; u < n2; u++) {
 	  neighptr[n] = neighptr[u];
@@ -2098,7 +2100,6 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
 
 	if (ns > max_chunk) max_chunk = ns;
 	lane++;
-	pack_offset -= maxnbors;
 	if (lane == pack_width) {
 	  ct += max_chunk * pack_width;
 	  const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
@@ -2108,10 +2109,10 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
 	  max_chunk = 0;
 	  pack_offset = maxnbors * pack_width;
 	  lane = 0;
-	  if (ct + pack_offset + maxnbors > list_size) {
+	  if (ct + obound > list_size) {
   	    if (i < ito - 1) {
 	      *overflow = 1;
-	      ct = (ifrom + tid) * maxnbors;
+	      ct = (ifrom + tid * 2) * maxnbors;
 	    }
           }
 	}

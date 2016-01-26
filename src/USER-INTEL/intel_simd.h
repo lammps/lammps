@@ -110,6 +110,16 @@ namespace ip_simd {
     return _mm512_maskz_mov_pd(m, one);
   }
 
+  inline SIMD_float SIMD_set(const SIMD_float &src, const SIMD_mask &m, 
+			     const SIMD_float &one) {
+    return _mm512_mask_mov_ps(src,m,one);
+  }
+
+  inline SIMD_double SIMD_set(const SIMD_double &src, const SIMD_mask &m, 
+			      const SIMD_double &one) {
+    return _mm512_mask_mov_pd(src,m,one);
+  }
+
   // -------- Load Operations
 
   inline SIMD_int SIMD_load(const int *p) {
@@ -352,6 +362,14 @@ namespace ip_simd {
     return _mm512_rcp28_pd(one);
   }
 
+  inline SIMD_float SIMD_rcpz(const SIMD_mask &m, const SIMD_float &one) {
+    return _mm512_maskz_rcp28_ps(m, one);
+  }
+
+  inline SIMD_double SIMD_rcpz(const SIMD_mask &m, const SIMD_double &one) {
+    return _mm512_maskz_rcp28_pd(m, one);
+  }
+
   inline SIMD_float SIMD_sqrt(const SIMD_float &one) {
     return _mm512_sqrt_ps(one);
   }
@@ -456,6 +474,40 @@ namespace ip_simd {
     return _mm512_cmple_pd_mask(SIMD_set(one), two);
   }
 
+  inline SIMD_mask operator>(const SIMD_int &one, const SIMD_int &two) {
+    return _mm512_cmpgt_epi32_mask(one,two);
+  }
+
+  inline SIMD_mask operator>(const SIMD_float &one, const SIMD_float &two) {
+    return _mm512_cmplt_ps_mask(two,one);
+  }
+
+  inline SIMD_mask operator>(const SIMD_double &one, const SIMD_double &two) {
+    return _mm512_cmplt_pd_mask(two,one);
+  }
+
+  inline SIMD_mask operator==(const SIMD_int &one, const SIMD_int &two) {
+    return _mm512_cmpeq_epi32_mask(one,two);
+  }
+
+  inline SIMD_mask operator==(const SIMD_float &one, const SIMD_float &two) {
+    return _mm512_cmpeq_ps_mask(one,two);
+  }
+
+  inline SIMD_mask operator==(const SIMD_double &one, const SIMD_double &two) {
+    return _mm512_cmpeq_pd_mask(one,two);
+  }
+
+  // ------- Typecast operations
+
+  inline void SIMD_cast(const SIMD_int &one, SIMD_float &two) {
+    two = _mm512_cvtepi32_ps(one);
+  }
+
+  inline void SIMD_cast(const SIMD_int &one, SIMD_double &two) {
+    two = _mm512_cvtepi32lo_pd(one);
+  }
+
   // ------- Reduction operations
 
   inline int SIMD_max(const SIMD_int &i) {
@@ -480,6 +532,55 @@ namespace ip_simd {
 
   inline double SIMD_sum(const SIMD_double &i) {
     return _mm512_reduce_add_pd(i);
+  }
+
+  // i indices should be positive
+  inline void SIMD_conflict_pi_reduce1(const SIMD_mask &m, const SIMD_int &i,
+				       SIMD_float &v1) {
+    SIMD_int jc = _mm512_mask_mov_epi32(_mm512_set1_epi32(-1), m, i);
+    SIMD_int cd = _mm512_maskz_conflict_epi32(m, jc);
+    SIMD_mask todo_mask = _mm512_test_epi32_mask(cd, _mm512_set1_epi32(-1));
+    if (todo_mask) {
+      SIMD_int lz  = _mm512_lzcnt_epi32(cd);
+      SIMD_int lid = _mm512_sub_epi32(_mm512_set1_epi32(31),
+				      _mm512_lzcnt_epi32(cd));
+      
+      while(todo_mask) {
+	SIMD_int todo_bcast = _mm512_broadcastmw_epi32(todo_mask);
+	SIMD_mask now_mask = _mm512_mask_testn_epi32_mask(todo_mask, cd, 
+							  todo_bcast);
+	SIMD_float am_perm;
+	am_perm = _mm512_mask_permutexvar_ps(_mm512_undefined_ps(),
+					     now_mask, lid, v1);
+	v1 = _mm512_mask_add_ps(v1, now_mask, v1, am_perm);
+	todo_mask = _mm512_kxor(todo_mask, now_mask);
+      }
+    }
+  }
+
+  // i indices should be positive
+  inline void SIMD_conflict_pi_reduce1(const SIMD_mask &m, const SIMD_int &i,
+				       SIMD_double &v1) {
+    SIMD_int jc = _mm512_mask_mov_epi32(_mm512_set1_epi32(-1), m, i);
+    SIMD_int cd = _mm512_maskz_conflict_epi32(m, jc);
+    SIMD_mask todo_mask = _mm512_test_epi32_mask(cd, _mm512_set1_epi32(-1));
+    if (todo_mask) {
+      SIMD_int lz  = _mm512_lzcnt_epi32(cd);
+      SIMD_int lid = _mm512_sub_epi32(_mm512_set1_epi32(31),
+				      _mm512_lzcnt_epi32(cd));
+      lid = _mm512_cvtepi32_epi64(_mm512_castsi512_si256(lid));
+      
+      while(todo_mask) {
+	SIMD_int todo_bcast = _mm512_broadcastmw_epi32(todo_mask);
+	SIMD_mask now_mask = _mm512_mask_testn_epi32_mask(todo_mask, cd, 
+							  todo_bcast);
+	SIMD_double am_perm;
+	am_perm = _mm512_mask_permutexvar_pd(_mm512_undefined_pd(),
+					     now_mask, lid, v1);
+	v1 = _mm512_mask_add_pd(v1, now_mask, v1, am_perm);
+	todo_mask = _mm512_kxor(todo_mask, now_mask);
+      }
+    }
   }
 
   // i indices should be positive
@@ -653,6 +754,166 @@ namespace ip_simd {
 				   _MM_SCALE_2);
     type = _mm512_mask_i32gather_epi32(_mm512_undefined_epi32(), m, i, atom+3,
 				       _MM_SCALE_2);
+  }
+
+  inline SIMD_float SIMD_ev_add(const SIMD_float &one, 
+				const SIMD_float &two) {
+    return _mm512_add_ps(one,two);
+  }
+
+  inline SIMD_double SIMD_ev_add(const SIMD_double &one, 
+				 const SIMD_double &two) {
+    return _mm512_add_pd(one,two);
+  }
+
+  inline SIMD_double SIMD_ev_add(const SIMD_double &one, 
+				 const SIMD_float &two) {
+    SIMD_double twod = _mm512_cvtps_pd(_mm512_castps512_ps256(two));
+    SIMD_double ans = _mm512_add_pd(one,twod);
+    twod = _mm512_cvtps_pd(_mm512_castps512_ps256(
+			     _mm512_shuffle_f32x4(two,two,238)));
+    return _mm512_add_pd(ans,twod);
+  }
+
+  inline void SIMD_jeng_update(const SIMD_mask &rmask, float *force, 
+			       const SIMD_int &joffset, SIMD_float &eng) {
+    SIMD_float jeng;
+    SIMD_conflict_pi_reduce1(rmask, joffset, eng);
+    jeng = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), rmask, joffset, 
+				    force, _MM_SCALE_1);
+    jeng = jeng + eng;
+    _mm512_mask_i32scatter_ps(force, rmask, joffset, jeng, _MM_SCALE_1);
+  }
+
+  inline void SIMD_jeng_update(const SIMD_mask &rmask, double *force, 
+			       const SIMD_int &joffset, SIMD_double &eng) {
+    SIMD_double jeng;
+    SIMD_conflict_pi_reduce1(rmask, joffset, eng);
+    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset, 
+				      force, _MM_SCALE_2);
+    jeng = jeng + eng;
+    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jeng, _MM_SCALE_2);
+  }
+
+  inline void SIMD_jeng_update(const SIMD_mask &rmask, double *force, 
+			       const SIMD_int &joffset, SIMD_float &eng) {
+    SIMD_double engd, jeng;
+    engd = _mm512_cvtps_pd(_mm512_castps512_ps256(eng));
+    SIMD_conflict_pi_reduce1(rmask, joffset, engd);
+    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset, 
+				      force, _MM_SCALE_2);
+    jeng = jeng + engd;
+    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jeng, _MM_SCALE_2);
+
+    SIMD_mask rmask2 = rmask >> 8;
+    engd = _mm512_cvtps_pd(_mm512_castps512_ps256(
+			     _mm512_shuffle_f32x4(eng,eng,238)));
+    SIMD_int joffset2 = _mm512_shuffle_i32x4(joffset, joffset, 238);
+    SIMD_conflict_pi_reduce1(rmask2, joffset2, engd);
+    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2, 
+				      force, _MM_SCALE_2);
+    jeng = jeng + engd;
+    _mm512_mask_i32loscatter_pd(force, rmask2, joffset2, jeng, _MM_SCALE_2);
+  }
+
+  inline void SIMD_jeng_update_hi(const SIMD_mask &mask, float *force, 
+				  const SIMD_int &joffset1, SIMD_float &eng) {
+  }
+
+  inline void SIMD_jeng_update_hi(const SIMD_mask &mask, double *force, 
+				  const SIMD_int &joffset1, SIMD_double &eng) {
+    SIMD_mask rmask = mask >> 8;
+    SIMD_int joffset = _mm512_shuffle_i32x4(joffset1, joffset1, 238);
+
+    SIMD_double jeng;
+    SIMD_conflict_pi_reduce1(rmask, joffset, eng);
+    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset, 
+				      force, _MM_SCALE_2);
+    jeng = jeng + eng;
+    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jeng, _MM_SCALE_2);
+  }
+
+  inline void SIMD_safe_jforce(const SIMD_mask &m, float *force,
+			       const SIMD_int &i, SIMD_float &fx,
+			       SIMD_float &fy, SIMD_float &fz) {
+    SIMD_conflict_pi_reduce3(m, i, fx, fy, fz);
+    SIMD_float jfrc;
+    jfrc = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), m, i, force, 
+				    _MM_SCALE_1);
+    jfrc = jfrc + fx;
+    _mm512_mask_i32scatter_ps(force, m, i, jfrc, _MM_SCALE_1);
+    jfrc = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), m, i, force + 1, 
+				    _MM_SCALE_1);
+    jfrc = jfrc + fy;
+    _mm512_mask_i32scatter_ps(force+1, m, i, jfrc, _MM_SCALE_1);
+    jfrc = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), m, i, force + 2,
+				    _MM_SCALE_1);
+    jfrc = jfrc + fz;
+    _mm512_mask_i32scatter_ps(force+2, m, i, jfrc, _MM_SCALE_1);
+  }
+
+  inline void SIMD_safe_jforce(const SIMD_mask &m, double *force,
+			       const SIMD_int &i, SIMD_double &fx,
+			       SIMD_double &fy, SIMD_double &fz) {
+    SIMD_conflict_pi_reduce3(m, i, fx, fy, fz);
+    SIMD_double jfrc;
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force, 
+				      _MM_SCALE_2);
+    jfrc = jfrc + fx;
+    _mm512_mask_i32loscatter_pd(force, m, i, jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 1, 
+				      _MM_SCALE_2);
+    jfrc = jfrc + fy;
+    _mm512_mask_i32loscatter_pd(force+1, m, i, jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 2,
+				      _MM_SCALE_2);
+    jfrc = jfrc + fz;
+    _mm512_mask_i32loscatter_pd(force+2, m, i, jfrc, _MM_SCALE_2);
+  }
+
+  inline void SIMD_safe_jforce(const SIMD_mask &rmask, double *force, 
+			       const SIMD_int &joffset, SIMD_float &amx,
+			       SIMD_float &amy, SIMD_float &amz) {
+    SIMD_double amxd, amyd, amzd;
+    amxd = _mm512_cvtps_pd(_mm512_castps512_ps256(amx));
+    amyd = _mm512_cvtps_pd(_mm512_castps512_ps256(amy));
+    amzd = _mm512_cvtps_pd(_mm512_castps512_ps256(amz));
+    SIMD_conflict_pi_reduce3(rmask, joffset, amxd, amyd, amzd);
+    SIMD_double jfrc;
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset, 
+				      force, _MM_SCALE_2);
+    jfrc = jfrc + amxd;
+    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset, 
+				      force + 1, _MM_SCALE_2);
+    jfrc = jfrc + amyd;
+    _mm512_mask_i32loscatter_pd(force+1, rmask, joffset, jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset, 
+				      force + 2, _MM_SCALE_2);
+    jfrc = jfrc + amzd;
+    _mm512_mask_i32loscatter_pd(force+2, rmask, joffset, jfrc, _MM_SCALE_2);
+
+    SIMD_mask rmask2 = rmask >> 8;
+    amxd = _mm512_cvtps_pd(_mm512_castps512_ps256(
+				_mm512_shuffle_f32x4(amx,amx,238)));
+    amyd = _mm512_cvtps_pd(_mm512_castps512_ps256(
+                                _mm512_shuffle_f32x4(amy,amy,238)));
+    amzd = _mm512_cvtps_pd(_mm512_castps512_ps256(
+                                _mm512_shuffle_f32x4(amz,amz,238)));
+    SIMD_int joffset2 = _mm512_shuffle_i32x4(joffset, joffset, 238);
+    SIMD_conflict_pi_reduce3(rmask2, joffset2, amxd, amyd, amzd);
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2, 
+				      force, _MM_SCALE_2);
+    jfrc = jfrc + amxd;
+    _mm512_mask_i32loscatter_pd(force, rmask2, joffset2, jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2, 
+				      force + 1, _MM_SCALE_2);
+    jfrc = jfrc + amyd;
+    _mm512_mask_i32loscatter_pd(force+1, rmask2, joffset2, jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2, 
+				      force + 2, _MM_SCALE_2);
+    jfrc = jfrc + amzd;
+    _mm512_mask_i32loscatter_pd(force+2, rmask2, joffset2, jfrc, _MM_SCALE_2);
   }
 
   inline void SIMD_jforce_update(const SIMD_mask &m, float *force,
@@ -1086,37 +1347,48 @@ namespace ip_simd {
     }
   }
 
-  inline void SIMD_acc_three(const SIMD_mask &hmask, 
-			     const SIMD_float &facrad, const int eatom,
-			     SIMD_float &sevdwl, SIMD_float &fwtmp,
-			     SIMD_float &fjtmp, SIMD_float &fwtmp2,
-			     SIMD_float &fjtmp2) {
+  inline void SIMD_acc_three(const SIMD_mask &hmask, const SIMD_float &facrad, 
+			     const int eatom, SIMD_float &sevdwl, 
+			     SIMD_float &fwtmp, SIMD_float &fjtmp, 
+			     SIMD_float &fwtmp2, SIMD_float &fjtmp2, 
+			     const SIMD_int &k, float *force) {
     sevdwl = SIMD_add(sevdwl, hmask, sevdwl, facrad);
     if (eatom) {
       SIMD_float hevdwl = facrad * SIMD_set((float)0.33333333);
       fwtmp = SIMD_add(fwtmp, hmask, fwtmp, hevdwl);
       fjtmp = SIMD_add(fjtmp, hmask, fjtmp, hevdwl);
+      SIMD_conflict_pi_reduce1(hmask, k, hevdwl);
+      SIMD_float keng = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), hmask, 
+						 k, force + 3, _MM_SCALE_1);
+      keng = keng + hevdwl;
+      _mm512_mask_i32scatter_ps(force + 3, hmask, k, keng, _MM_SCALE_1);
     }
   }
 
-  inline void SIMD_acc_three(const SIMD_mask &hmask, 
-			     const SIMD_double &facrad, const int eatom,
-			     SIMD_double &sevdwl, SIMD_double &fwtmp,
-			     SIMD_double &fjtmp, SIMD_double &fwtmp2,
-			     SIMD_double &fjtmp2) {
+  inline void SIMD_acc_three(const SIMD_mask &hmask, const SIMD_double &facrad,
+			     const int eatom, SIMD_double &sevdwl, 
+			     SIMD_double &fwtmp, SIMD_double &fjtmp, 
+			     SIMD_double &fwtmp2, SIMD_double &fjtmp2, 
+			     const SIMD_int &k, double *force) {
     sevdwl = SIMD_add(sevdwl, hmask, sevdwl, facrad);
     if (eatom) {
       SIMD_double hevdwl = facrad * SIMD_set((double)0.33333333);
       fwtmp = SIMD_add(fwtmp, hmask, fwtmp, hevdwl);
       fjtmp = SIMD_add(fjtmp, hmask, fjtmp, hevdwl);
+      SIMD_conflict_pi_reduce1(hmask, k, hevdwl);
+      SIMD_double keng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), 
+						    hmask, k, force + 3, 
+						    _MM_SCALE_2);
+      keng = keng + hevdwl;
+      _mm512_mask_i32loscatter_pd(force + 3, hmask, k, keng, _MM_SCALE_2);
     }
   }
 
-  inline void SIMD_acc_three(const SIMD_mask &hmask, 
-			     const SIMD_float &facrad, const int eatom,
-			     SIMD_double &sevdwl, SIMD_double &fwtmp,
-			     SIMD_double &fjtmp, SIMD_double &fwtmp2,
-			     SIMD_double &fjtmp2) {
+  inline void SIMD_acc_three(const SIMD_mask &hmask, const SIMD_float &facrad, 
+			     const int eatom, SIMD_double &sevdwl, 
+			     SIMD_double &fwtmp, SIMD_double &fjtmp, 
+			     SIMD_double &fwtmp2, SIMD_double &fjtmp2, 
+			     const SIMD_int &k, double *force) {
     SIMD_double facradd;
     facradd = _mm512_cvtps_pd(_mm512_castps512_ps256(facrad));
     sevdwl = SIMD_add(sevdwl, hmask, sevdwl, facradd);
@@ -1124,6 +1396,12 @@ namespace ip_simd {
       SIMD_double hevdwl = facradd * SIMD_set((double)0.33333333);
       fwtmp = SIMD_add(fwtmp, hmask, fwtmp, hevdwl);
       fjtmp = SIMD_add(fjtmp, hmask, fjtmp, hevdwl);
+      SIMD_conflict_pi_reduce1(hmask, k, hevdwl);
+      SIMD_double keng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), 
+						    hmask, k, force + 3, 
+						    _MM_SCALE_2);
+      keng = keng + hevdwl;
+      _mm512_mask_i32loscatter_pd(force + 3, hmask, k, keng, _MM_SCALE_2);
     }
     SIMD_mask hmask2 = hmask >> 8;
     facradd = _mm512_cvtps_pd(_mm512_castps512_ps256(
@@ -1133,6 +1411,13 @@ namespace ip_simd {
       SIMD_double hevdwl = facradd * SIMD_set((double)0.33333333);
       fwtmp2 = SIMD_add(fwtmp2, hmask2, fwtmp2, hevdwl);
       fjtmp2 = SIMD_add(fjtmp2, hmask2, fjtmp2, hevdwl);
+      SIMD_int k2 = _mm512_shuffle_i32x4(k, k, 238);
+      SIMD_conflict_pi_reduce1(hmask2, k2, hevdwl);
+      SIMD_double keng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), 
+						    hmask2, k2, force + 3, 
+						    _MM_SCALE_2);
+      keng = keng + hevdwl;
+      _mm512_mask_i32loscatter_pd(force + 3, hmask2, k2, keng, _MM_SCALE_2);
     }
   }
 
@@ -1372,7 +1657,9 @@ namespace ip_simd {
 
   inline void SIMD_iforce_update(const SIMD_mask &m, float *force,
 				 const SIMD_int &i, const SIMD_float &fx,
-				 const SIMD_float &fy, const SIMD_float &fz) {
+				 const SIMD_float &fy, const SIMD_float &fz,
+				 const int EVFLAG, const int eatom,
+				 const SIMD_float &fwtmp) {
     SIMD_float jfrc;
     jfrc = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), m, i, force, 
 				    _MM_SCALE_1);
@@ -1386,11 +1673,21 @@ namespace ip_simd {
 				    _MM_SCALE_1);
     jfrc = jfrc + fz;
     _mm512_mask_i32scatter_ps(force+2, m, i, jfrc, _MM_SCALE_1);
+    if (EVFLAG) {
+      if (eatom) {
+	jfrc = _mm512_mask_i32gather_ps(_mm512_undefined_ps(), m, i, force + 3,
+					_MM_SCALE_1);
+	jfrc = jfrc + fwtmp;
+	_mm512_mask_i32scatter_ps(force+3, m, i, jfrc, _MM_SCALE_1);
+      }
+    }
   }
 
   inline void SIMD_iforce_update(const SIMD_mask &m, double *force,
 				 const SIMD_int &i, const SIMD_double &fx,
-				 const SIMD_double &fy, const SIMD_double &fz) {
+				 const SIMD_double &fy, const SIMD_double &fz,
+				 const int EVFLAG, const int eatom,
+				 const SIMD_double &fwtmp) {
     SIMD_double jfrc;
     jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force, 
 				      _MM_SCALE_2);
@@ -1404,6 +1701,14 @@ namespace ip_simd {
 				      _MM_SCALE_2);
     jfrc = jfrc + fz;
     _mm512_mask_i32loscatter_pd(force+2, m, i, jfrc, _MM_SCALE_2);
+    if (EVFLAG) {
+      if (eatom) {
+	jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, 
+					  force + 3, _MM_SCALE_2);
+	jfrc = jfrc + fwtmp;
+	_mm512_mask_i32loscatter_pd(force+3, m, i, jfrc, _MM_SCALE_2);
+      }
+    }
   }
 
   #ifdef SW_GATHER_TEST

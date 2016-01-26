@@ -1,0 +1,8 @@
+
+timer	off
+
+info	all
+
+variable test equal version
+print "test = ${test} / version = $(version)"
+info    variables

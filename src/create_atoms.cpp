@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "create_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -225,7 +225,7 @@ void CreateAtoms::command(int narg, char **arg)
     onemol->compute_center();
 
     // molecule random number generator, different for each proc
-    
+
     ranmol = new RanMars(lmp,molseed+comm->me);
   }
 
@@ -347,6 +347,13 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c creating atoms will overwrite ghost atoms
+
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
+
   // add atoms/molecules in one of 3 ways
 
   bigint natoms_previous = atom->natoms;
@@ -400,30 +407,34 @@ void CreateAtoms::command(int narg, char **arg)
   if (atom->tag_enable) atom->tag_extend();
   atom->tag_check();
 
-  // create global mapping of atoms
-  // zero nghost in case are adding new atoms to existing atoms
+  // if global map exists, reset it
+  // invoke map_init() b/c atom count has grown
 
   if (atom->map_style) {
-    atom->nghost = 0;
     atom->map_init();
     atom->map_set();
   }
 
   // for MOLECULE mode:
-  // set molecule IDs for created atoms if used
-  // reset new molecule bond,angle,etc and special values
+  // molecule can mean just a mol ID or bonds/angles/etc or mol templates
+  // set molecule IDs for created atoms if atom->molecule_flag is set
+  // reset new molecule bond,angle,etc and special values if defined
   // send atoms to new owning procs via irregular comm
   //   since not all atoms I created will be within my sub-domain
   // perform special list build if needed
 
   if (mode == MOLECULE) {
 
+    int molecule_flag = atom->molecule_flag;
+    int molecular = atom->molecular;
+    tagint *molecule = atom->molecule;
+
     // molcreate = # of molecules I created
 
     int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
-    // increment total bonds,angles,etc 
-    
+    // increment total bonds,angles,etc
+
     bigint nmolme = molcreate;
     bigint nmoltotal;
     MPI_Allreduce(&nmolme,&nmoltotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -438,8 +449,7 @@ void CreateAtoms::command(int narg, char **arg)
     //             including molecules existing before this creation
 
     tagint moloffset;
-    tagint *molecule = atom->molecule;
-    if (molecule) {
+    if (molecule_flag) {
       tagint max = 0;
       for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
       tagint maxmol;
@@ -474,13 +484,12 @@ void CreateAtoms::command(int narg, char **arg)
     tagint **improper_atom4 = atom->improper_atom4;
     int **nspecial = atom->nspecial;
     tagint **special = atom->special;
-    int molecular = atom->molecular;
 
     int ilocal = nlocal_previous;
     for (int i = 0; i < molcreate; i++) {
       if (tag) offset = tag[ilocal]-1;
       for (int m = 0; m < natoms; m++) {
-        if (molecular) molecule[ilocal] = moloffset + i+1;
+        if (molecule_flag) molecule[ilocal] = moloffset + i+1;
         if (molecular == 2) {
           atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;
@@ -509,7 +518,7 @@ void CreateAtoms::command(int narg, char **arg)
               improper_atom4[ilocal][j] += offset;
             }
           if (onemol->specialflag)
-            for (int j = 0; j < nspecial[ilocal][2]; j++) 
+            for (int j = 0; j < nspecial[ilocal][2]; j++)
               special[ilocal][j] += offset;
         }
         ilocal++;
@@ -595,7 +604,7 @@ void CreateAtoms::add_single()
     if (mode == ATOM) atom->avec->create_atom(ntype,xone);
     else if (quatone[0] == 0.0 && quatone[1] == 0.0 && quatone[2] == 0.0)
       add_molecule(xone);
-    else add_molecule(xone,&quatone[0]);
+    else add_molecule(xone,quatone);
   }
 }
 
@@ -807,24 +816,25 @@ void CreateAtoms::add_molecule(double *center, double *quat_user)
   int n;
   double r[3],rotmat[3][3],quat[4],xnew[3];
 
-  if (domain->dimension == 3) {
-    r[0] = ranmol->uniform() - 0.5;
-    r[1] = ranmol->uniform() - 0.5;
-    r[2] = ranmol->uniform() - 0.5;
-  } else {
-    r[0] = r[1] = 0.0;
-    r[2] = 1.0;
-  }
-
   if (quat_user) {
     quat[0] = quat_user[0]; quat[1] = quat_user[1];
     quat[2] = quat_user[2]; quat[3] = quat_user[3];
   } else {
-    double theta = ranmol->uniform() * MY_2PI;
+    if (domain->dimension == 3) {
+      r[0] = ranmol->uniform() - 0.5;
+      r[1] = ranmol->uniform() - 0.5;
+      r[2] = ranmol->uniform() - 0.5;
+    } else {
+      r[0] = r[1] = 0.0;
+      r[2] = 1.0;
+    }
     MathExtra::norm3(r);
+    double theta = ranmol->uniform() * MY_2PI;
     MathExtra::axisangle_to_quat(r,theta,quat);
   }
+
   MathExtra::quat_to_mat(quat,rotmat);
+  onemol->quat_external = quat;
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0
   // reset in caller after all moleclues created by all procs

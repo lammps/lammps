@@ -32,9 +32,9 @@ computed as 1/2 I w^2, where I is the inertia tensor for the
 aspherical particle and w is its angular velocity, which is computed
 from its angular momentum if needed.
 
-IMPORTANT NOTE: For "2d models"_dimension.html, ellipsoidal particles
-are treated as ellipsoids, not ellipses, meaning their moments of
-inertia will be the same as in 3d.
+NOTE: For "2d models"_dimension.html, ellipsoidal particles are
+treated as ellipsoids, not ellipses, meaning their moments of inertia
+will be the same as in 3d.
 
 [Output info:]
 

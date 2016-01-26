@@ -20,19 +20,33 @@ PairStyle(eam/fs/gpu,PairEAMFSGPU)
 #ifndef LMP_PAIR_EAM_FS_GPU_H
 #define LMP_PAIR_EAM_FS_GPU_H
 
-#include "pair_eam_gpu.h"
+#include "pair_eam.h"
 
 namespace LAMMPS_NS {
 
-class PairEAMFSGPU : public PairEAMGPU {
+class PairEAMFSGPU : public PairEAM {
 public:
   PairEAMFSGPU(class LAMMPS *);
-  virtual ~PairEAMFSGPU() {}
+  virtual ~PairEAMFSGPU();
   void coeff(int, char **);
+  void compute(int, int);
+  void init_style();
+  double single(int, int, int, int, double, double, double, double &);
+  double memory_usage();
+
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
+
+ enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   void read_file(char *);
   void file2array();
+
+  int gpu_mode;
+  double cpu_time;
+  void *fp_pinned;
+  bool fp_single;
 };
 
 }

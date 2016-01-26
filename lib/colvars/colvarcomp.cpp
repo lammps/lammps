@@ -8,7 +8,9 @@
 
 
 colvar::cvc::cvc()
-  : sup_coeff(1.0), sup_np(1),
+  : sup_coeff(1.0),
+    sup_np(1),
+    b_enabled(true),
     b_periodic(false),
     b_inverse_gradients(false),
     b_Jacobian_derivative(false),
@@ -17,7 +19,9 @@ colvar::cvc::cvc()
 
 
 colvar::cvc::cvc(std::string const &conf)
-  : sup_coeff(1.0), sup_np(1),
+  : sup_coeff(1.0),
+    sup_np(1),
+    b_enabled(true),
     b_periodic(false),
     b_inverse_gradients(false),
     b_Jacobian_derivative(false),

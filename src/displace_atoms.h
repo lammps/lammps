@@ -27,10 +27,15 @@ namespace LAMMPS_NS {
 class DisplaceAtoms : protected Pointers {
  public:
   DisplaceAtoms(class LAMMPS *);
+  ~DisplaceAtoms();
   void command(int, char **);
 
  private:
+  int igroup,groupbit;
   int scaleflag;
+  double *mvec;
+
+  void move(int, char *, double);
   void options(int, char **);
 };
 

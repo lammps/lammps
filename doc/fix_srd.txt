@@ -230,9 +230,9 @@ error or warning is generated.  Similarly, if the ratio of any bin
 dimension with {hgrid} exceeds (1 +/- tolerance), then an error or
 warning is generated.
 
-IMPORTANT NOTE: The fix srd command can be used with simluations the
-size and/or shape of the simulation box changes.  This can be due to
-non-periodic boundary conditions or the use of fixes such as the "fix
+NOTE: The fix srd command can be used with simluations the size and/or
+shape of the simulation box changes.  This can be due to non-periodic
+boundary conditions or the use of fixes such as the "fix
 deform"_fix_deform.html or "fix wall/srd"_fix_wall_srd.html commands
 to impose a shear on an SRD fluid or an interaction with an external
 wall.  If the box size changes then the size of SRD bins must be
@@ -309,17 +309,16 @@ one of the operations and off for the other.
 
 :line
 
-IMPORTANT NOTE: This fix is normally used for simulations with a huge
-number of SRD particles relative to the number of big particles,
-e.g. 100 to 1.  In this scenario, computations that involve only big
-particles (neighbor list creation, communication, time integration)
-can slow down dramatically due to the large number of background SRD
-particles.
+NOTE: This fix is normally used for simulations with a huge number of
+SRD particles relative to the number of big particles, e.g. 100 to 1.
+In this scenario, computations that involve only big particles
+(neighbor list creation, communication, time integration) can slow
+down dramatically due to the large number of background SRD particles.
 
 Three other input script commands will largely overcome this effect,
 speeding up an SRD simulation by a significant amount.  These are the
 "atom_modify first"_atom_modify.html, "neigh_modify
-include"_neigh_modify.html, and "communicate group"_communicate.html
+include"_neigh_modify.html, and "comm_modify group"_comm_modify.html
 commands.  Each takes a group-ID as an argument, which in this case
 should be the group-ID of the big solute particles.
 

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -74,7 +74,7 @@ template <typename Device>
 class Bitset
 {
 public:
-  typedef Device device_type;
+  typedef Device execution_space;
   typedef unsigned size_type;
 
   enum { BIT_SCAN_REVERSE = 1u };
@@ -90,7 +90,7 @@ public:
 private:
   enum { block_size = static_cast<unsigned>(sizeof(unsigned)*CHAR_BIT) };
   enum { block_mask = block_size-1u };
-  enum { block_shift = static_cast<int>(Impl::power_of_two<block_size>::value) };
+  enum { block_shift = Kokkos::Impl::integral_power_of_two(block_size) };
 
 public:
 
@@ -146,8 +146,8 @@ public:
 
     if (m_last_block_mask) {
       //clear the unused bits in the last block
-      typedef Kokkos::Impl::DeepCopy< typename device_type::memory_space, Kokkos::HostSpace > raw_deep_copy;
-      raw_deep_copy( m_blocks.ptr_on_device() + (m_blocks.size() -1u), &m_last_block_mask, sizeof(unsigned));
+      typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, Kokkos::HostSpace > raw_deep_copy;
+      raw_deep_copy( m_blocks.ptr_on_device() + (m_blocks.dimension_0() -1u), &m_last_block_mask, sizeof(unsigned));
     }
   }
 
@@ -212,7 +212,7 @@ public:
   KOKKOS_FORCEINLINE_FUNCTION
   unsigned max_hint() const
   {
-    return m_blocks.size();
+    return m_blocks.dimension_0();
   }
 
   /// find a bit set to 1 near the hint
@@ -221,10 +221,10 @@ public:
   KOKKOS_INLINE_FUNCTION
   Kokkos::pair<bool, unsigned> find_any_set_near( unsigned hint , unsigned scan_direction = BIT_SCAN_FORWARD_MOVE_HINT_FORWARD ) const
   {
-    const unsigned block_idx = (hint >> block_shift) < m_blocks.size() ? (hint >> block_shift) : 0;
+    const unsigned block_idx = (hint >> block_shift) < m_blocks.dimension_0() ? (hint >> block_shift) : 0;
     const unsigned offset = hint & block_mask;
     unsigned block = volatile_load(&m_blocks[ block_idx ]);
-    block = !m_last_block_mask || (block_idx < (m_blocks.size()-1)) ? block : block & m_last_block_mask ;
+    block = !m_last_block_mask || (block_idx < (m_blocks.dimension_0()-1)) ? block : block & m_last_block_mask ;
 
     return find_any_helper(block_idx, offset, block, scan_direction);
   }
@@ -238,7 +238,7 @@ public:
     const unsigned block_idx = hint >> block_shift;
     const unsigned offset = hint & block_mask;
     unsigned block = volatile_load(&m_blocks[ block_idx ]);
-    block = !m_last_block_mask || (block_idx < (m_blocks.size()-1) ) ? ~block : ~block & m_last_block_mask ;
+    block = !m_last_block_mask || (block_idx < (m_blocks.dimension_0()-1) ) ? ~block : ~block & m_last_block_mask ;
 
     return find_any_helper(block_idx, offset, block, scan_direction);
   }
@@ -281,8 +281,8 @@ private:
   unsigned update_hint( long long block_idx, unsigned offset, unsigned scan_direction ) const
   {
     block_idx += scan_direction & MOVE_HINT_BACKWARD ? -1 : 1;
-    block_idx = block_idx >= 0 ? block_idx : m_blocks.size() - 1;
-    block_idx = block_idx < static_cast<long long>(m_blocks.size()) ? block_idx : 0;
+    block_idx = block_idx >= 0 ? block_idx : m_blocks.dimension_0() - 1;
+    block_idx = block_idx < static_cast<long long>(m_blocks.dimension_0()) ? block_idx : 0;
 
     return static_cast<unsigned>(block_idx)*block_size + offset;
   }
@@ -291,7 +291,7 @@ private:
 
   unsigned m_size;
   unsigned m_last_block_mask;
-  View< unsigned *, device_type, MemoryTraits<RandomAccess> > m_blocks;
+  View< unsigned *, execution_space, MemoryTraits<RandomAccess> > m_blocks;
 
 private:
   template <typename DDevice>
@@ -316,13 +316,13 @@ template <typename Device>
 class ConstBitset
 {
 public:
-  typedef Device device_type;
+  typedef Device execution_space;
   typedef unsigned size_type;
 
 private:
   enum { block_size = static_cast<unsigned>(sizeof(unsigned)*CHAR_BIT) };
   enum { block_mask = block_size -1u };
-  enum { block_shift = static_cast<int>(Impl::power_of_two<block_size>::value) };
+  enum { block_shift = Kokkos::Impl::integral_power_of_two(block_size) };
 
 public:
   ConstBitset()
@@ -382,7 +382,7 @@ public:
 private:
 
   unsigned m_size;
-  View< const unsigned *, device_type, MemoryTraits<RandomAccess> > m_blocks;
+  View< const unsigned *, execution_space, MemoryTraits<RandomAccess> > m_blocks;
 
 private:
   template <typename DDevice>
@@ -407,7 +407,7 @@ void deep_copy( Bitset<DstDevice> & dst, Bitset<SrcDevice> const& src)
   }
 
   typedef Kokkos::Impl::DeepCopy< typename DstDevice::memory_space, typename SrcDevice::memory_space > raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.size());
+  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.dimension_0());
 }
 
 template <typename DstDevice, typename SrcDevice>
@@ -418,7 +418,7 @@ void deep_copy( Bitset<DstDevice> & dst, ConstBitset<SrcDevice> const& src)
   }
 
   typedef Kokkos::Impl::DeepCopy< typename DstDevice::memory_space, typename SrcDevice::memory_space > raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.size());
+  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.dimension_0());
 }
 
 template <typename DstDevice, typename SrcDevice>
@@ -429,7 +429,7 @@ void deep_copy( ConstBitset<DstDevice> & dst, ConstBitset<SrcDevice> const& src)
   }
 
   typedef Kokkos::Impl::DeepCopy< typename DstDevice::memory_space, typename SrcDevice::memory_space > raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.size());
+  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.dimension_0());
 }
 
 } // namespace Kokkos

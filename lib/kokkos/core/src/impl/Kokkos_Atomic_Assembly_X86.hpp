@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -46,6 +44,7 @@
 #define KOKKOS_ATOMIC_ASSEMBLY_X86_HPP
 namespace Kokkos {
 
+#ifdef KOKKOS_ENABLE_ASM
 #ifndef __CUDA_ARCH__
 template<>
 KOKKOS_INLINE_FUNCTION
@@ -135,15 +134,45 @@ void atomic_decrement<long long int>(volatile long long int* a) {
   );
 }
 #endif
+#endif
 
 namespace Impl {
   struct cas128_t
   {
     uint64_t lower;
     uint64_t upper;
+
+    KOKKOS_INLINE_FUNCTION
+    cas128_t () {
+      lower = 0;
+      upper = 0;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    cas128_t (const cas128_t& a) {
+      lower = a.lower;
+      upper = a.upper;
+    }
+    KOKKOS_INLINE_FUNCTION
+    cas128_t (volatile cas128_t* a) {
+      lower = a->lower;
+      upper = a->upper;
+    }
+
     KOKKOS_INLINE_FUNCTION
     bool operator != (const cas128_t& a) const {
       return (lower != a.lower) || upper!=a.upper;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    void operator = (const cas128_t& a) {
+      lower = a.lower;
+      upper = a.upper;
+    }
+    KOKKOS_INLINE_FUNCTION
+    void operator = (const cas128_t& a) volatile {
+      lower = a.lower;
+      upper = a.upper;
     }
   }
   __attribute__ (( __aligned__( 16 ) ));
@@ -153,7 +182,8 @@ namespace Impl {
 
   inline cas128_t cas128( volatile cas128_t * ptr, cas128_t cmp,  cas128_t swap )
   {
-    bool swapped;
+    #ifdef KOKKOS_ENABLE_ASM
+    bool swapped = false;
     __asm__ __volatile__
     (
      "lock cmpxchg16b %1\n\t"
@@ -164,10 +194,18 @@ namespace Impl {
      , "+a" ( cmp.lower )
      : "c" ( swap.upper )
      , "b" ( swap.lower )
-     : "cc"
+     , "q" ( swapped )
     );
-    (void) swapped;
     return cmp;
+    #else
+      cas128_t tmp(ptr);
+      if(tmp !=  cmp) {
+        return tmp;
+      } else {
+        *ptr = swap;
+        return swap;
+      }
+    #endif
   }
 
 }

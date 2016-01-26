@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style thole command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style thole command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-thole-command">
+<span id="index-0"></span><h1>pair_style thole command<a class="headerlink" href="#pair-style-thole-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style thole damp cutoff
+</pre></div>
+</div>
+<ul class="simple">
+<li>thole = style name</li>
+<li>damp = global damping parameter</li>
+<li>cutoff = global cutoff</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid/overlay ... thole 2.6 12.0
+pair_coeff 1 1 thole 1.0
+pair_coeff 1 2 thole 1.0 2.6 10.0
+pair_coeff * 2 thole 1.0 2.6
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>thole</em> pair style is meant to be used with force fields that
+include explicit polarization through Drude dipoles.  This link
+describes how to use the <a class="reference internal" href="tutorial_drude.html"><em>thermalized Drude oscillator model</em></a> in LAMMPS and polarizable models in LAMMPS
+are discussed in <a class="reference internal" href="Section_howto.html#howto-25"><span>this Section</span></a>.</p>
+<p>The <em>thole</em> pair style should be used as a sub-style within in the
+<a class="reference internal" href="pair_hybrid.html"><em>pair_hybrid/overlay</em></a> command, in conjunction with a
+main pair style including Coulomb interactions, i.e. any pair style
+containing <em>coul/cut</em> or <em>coul/long</em> in its style name.</p>
+<p>The <em>thole</em> pair style computes the Coulomb interaction damped at
+short distances by a function</p>
+<div class="math">
+\[\begin{equation} T_{ij}(r_{ij}) = 1 - \left( 1 +
+\frac{s_{ij} r_{ij} }{2} \right)
+\exp \left( - s_{ij} r_{ij} \right) \end{equation}\]</div>
+<p>This function results from an adaptation to point charges
+<a class="reference internal" href="tutorial_drude.html#noskov"><span>(Noskov)</span></a> of the dipole screening scheme originally proposed
+by <a class="reference internal" href="tutorial_drude.html#thole"><span>Thole</span></a>. The scaling coefficient <span class="math">\(s_{ij}\)</span> is determined
+by the polarizability of the atoms, <span class="math">\(\alpha_i\)</span>, and by a Thole
+damping parameter <span class="math">\(a\)</span>.  This Thole damping parameter usually takes
+a value of 2.6, but in certain force fields the value can depend upon
+the atom types. The mixing rule for Thole damping parameters is the
+arithmetic average, and for polarizabilities the geometric average
+between the atom-specific values.</p>
+<div class="math">
+\[\begin{equation} s_{ij} = \frac{ a_{ij} }{
+(\alpha_{ij})^{1/3} } = \frac{ (a_i + a_j)/2 }{
+[(\alpha_i\alpha_j)^{1/2}]^{1/3} } \end{equation}\]</div>
+<p>The damping function is only applied to the interactions between the
+point charges representing the induced dipoles on polarizable sites,
+that is, charges on Drude particles, <span class="math">\(q_{D,i}\)</span>, and opposite
+charges, <span class="math">\(-q_{D,i}\)</span>, located on the respective core particles
+(to which each Drude particle is bonded). Therefore, Thole screening
+is not applied to the full charge of the core particle <span class="math">\(q_i\)</span>, but
+only to the <span class="math">\(-q_{D,i}\)</span> part of it.</p>
+<p>The interactions between core charges are subject to the weighting
+factors set by the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command. The
+interactions between Drude particles and core charges or
+non-polarizable atoms are also subject to these weighting factors. The
+Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
+their respective cores.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the example
+above.</p>
+<ul class="simple">
+<li>alpha (distance units^3)</li>
+<li>damp</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The last two coefficients are optional.  If not specified the global
+Thole damping parameter or global cutoff specified in the pair_style
+command are used. In order to specify a cutoff (third argument) a damp
+parameter (second argument) must also be specified.</p>
+<p><strong>Mixing</strong>:</p>
+<p>The <em>thole</em> pair style does not support mixing.  Thus, coefficients
+for all I,J pairs must be specified explicitly.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>These pair styles are part of the USER-DRUDE package. They are only
+enabled if LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This pair_style should currently not be used with the <a class="reference internal" href="dihedral_charmm.html"><em>charmm dihedral style</em></a> if the latter has non-zero 1-4 weighting
+factors. This is because the <em>thole</em> pair style does not know which
+pairs are 1-4 partners of which dihedrals.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_drude.html"><em>fix drude</em></a>, <a class="reference internal" href="fix_langevin_drude.html"><em>fix langevin/drude</em></a>, <a class="reference internal" href="fix_drude_transform.html"><em>fix drude/transform</em></a>, <a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="noskov"><strong>(Noskov)</strong> Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).</p>
+<p id="thole"><strong>(Thole)</strong> Chem Phys, 59, 341 (1981).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

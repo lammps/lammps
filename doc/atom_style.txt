@@ -14,7 +14,8 @@ atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {electron} or {ellipsoid} or {full} or {line} or {meso} or \
-	{molecular} or {peri} or {sphere} or {tri} or {template} or {hybrid} :ulb,l
+	{molecular} or {peri} or {smd} or {sphere} or {tri} or \
+        {template} or {hybrid} :ulb,l
   args = none for any style except {body} and {hybrid}
   {body} args = bstyle bstyle-args
     bstyle = style of body particles
@@ -76,13 +77,14 @@ quantities.
 {meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
 {peri} | mass, volume | mesocopic Peridynamic models |
+{smd} | volume, kernel diameter, contact radius, mass | solid and fluid SPH particles |
 {sphere} | diameter, mass, angular velocity | granular models |
 {template} | template index, template atom | small molecules with fixed topology |
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
-IMPORTANT NOTE: It is possible to add some attributes, such as a
-molecule ID, to atom styles that do not have them via the "fix
+NOTE: It is possible to add some attributes, such as a molecule ID, to
+atom styles that do not have them via the "fix
 property/atom"_fix_property_atom.html command.  This command also
 allows new custom attributes consisting of extra integer or
 floating-point values to be added to atoms.  See the "fix
@@ -112,6 +114,13 @@ a point particle.  If it is an ellipsoid, it also stores a shape
 vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
+For the {dipole} style, a point dipole is defined for each point
+particle.  Note that if you wish the particles to be finite-size
+spheres as in a Stockmayer potential for a dipolar fluid, so that the
+particles can rotate due to dipole-dipole interactions, then you need
+to use atom_style hybrid sphere dipole, which will assign both a
+diameter and dipole moment to each particle.
+
 For the {electron} style, the particles representing electrons are 3d
 Gaussians with a specified position and bandwidth or uncertainty in
 position, which is represented by the eradius = electron size.
@@ -122,6 +131,13 @@ per-particle mass and volume.
 The {meso} style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
 (cv).
+
+The {smd} style is for a general formulation of Smooth Particle
+Hydrodynamics.  Both fluids and solids can be modeled.  Particles
+store the mass and volume of an integration point, a kernel diameter
+used for calculating the field variables (e.g. stress and deformation)
+and a contact radius for calculating repulsive forces which prevent
+individual physical bodies from penetretating each other.
 
 The {wavepacket} style is similar to {electron}, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
@@ -149,7 +165,7 @@ molecules, all of a single type (or small number of types).  See the
 paper by Grime and Voth, in "(Grime)"_#Grime, for examples of how this
 can be advantageous for large-scale coarse-grained systems.
 
-IMPORTANT NOTE: When using the {template} style with a "molecule
+NOTE: When using the {template} style with a "molecule
 template"_molecule.html that contains multiple molecules, you should
 insure the atom types, bond types, angle_types, etc in all the
 molecules are consistent.  E.g. if one molecule represents H2O and
@@ -188,10 +204,10 @@ If some atoms have bonds, but others do not, use the {bond} style.
 
 The only scenario where the {hybrid} style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want dipolar particles which will rotate due to
-torque, you would need to use "atom_style hybrid sphere dipole".  When
-a hybrid style is used, atoms store and communicate the union of all
-quantities implied by the individual styles.
+example, as mentioned above, if you want dipolar particles which will
+rotate due to torque, you need to use "atom_style hybrid sphere
+dipole".  When a hybrid style is used, atoms store and communicate the
+union of all quantities implied by the individual styles.
 
 When using the {hybrid} style, you cannot combine the {template} style
 with another molecular style that stores bond,angle,etc info on a

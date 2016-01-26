@@ -2,8 +2,8 @@
 //@HEADER
 // ************************************************************************
 // 
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 // 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov) 
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -46,8 +46,8 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-
-#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ )
+#include "Kokkos_Macros.hpp"
+#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ ) && defined( KOKKOS_HAVE_CUDA )
 
 #include <cuda.h>
 
@@ -77,6 +77,7 @@ namespace Impl {
 __device__ inline
 void cuda_abort( const char * const message )
 {
+#ifndef __APPLE__
   const char empty[] = "" ;
 
   __assertfail( (const void *) message ,
@@ -84,6 +85,7 @@ void cuda_abort( const char * const message )
                 (unsigned int) 0 ,
                 (const void *) empty ,
                 sizeof(char) );
+#endif
 }
 
 } // namespace Impl

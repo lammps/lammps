@@ -21,15 +21,16 @@ namespace LAMMPS_NS {
 class Comm : protected Pointers {
  public:
   int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
-  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
+  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
 
   int me,nprocs;                    // proc info
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
-  double cutghostuser;              // user-specified ghost cutoff
+  double cutghostuser;              // user-specified ghost cutoff (mode == 0)
+  double *cutusermulti;            // per type user ghost cutoff (mode == 1)
   int recv_from_partition;          // recv proc layout from this partition
   int send_to_partition;            // send my proc layout to this partition
                                     // -1 if no recv or send
@@ -59,6 +60,7 @@ class Comm : protected Pointers {
 
   Comm(class LAMMPS *);
   virtual ~Comm();
+  // NOTE: copy_arrays is called from a constructor and must not be made virtual
   void copy_arrays(class Comm *);
   virtual void init();
   void modify_params(int, char **);
@@ -87,7 +89,7 @@ class Comm : protected Pointers {
   // exchange of info on neigh stencil
   // set processor mapping options
 
-  virtual void forward_comm_array(int, double **) = 0;  
+  virtual void forward_comm_array(int, double **) = 0;
   virtual int exchange_variable(int, double *, double *&) = 0;
   int binary(double, int, double *);
 
@@ -104,8 +106,8 @@ class Comm : protected Pointers {
 
   void ring(int, int, void *, int, void (*)(int, char *),
             void *, int self = 1);
-  int read_lines_from_file(FILE *, int, int, char *);  
-  int read_lines_from_file_universe(FILE *, int, int, char *);  
+  int read_lines_from_file(FILE *, int, int, char *);
+  int read_lines_from_file_universe(FILE *, int, int, char *);
 
  protected:
   int bordergroup;           // only communicate this group in borders
@@ -119,7 +121,7 @@ class Comm : protected Pointers {
   int size_border;                  // # of datums in forward border comm
 
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
-  int maxexchange;                  // max # of datums/atom in exchange comm 
+  int maxexchange;                  // max # of datums/atom in exchange comm
 
   int gridflag;                     // option for creating 3d grid
   int mapflag;                      // option for mapping procs to 3d grid

@@ -34,7 +34,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>

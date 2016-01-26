@@ -23,27 +23,27 @@ $ git clone https://github.com/libAtoms/QUIP.git QUIP
 
 If GAP is needed, it may be downloaded from the `Software' section of
 libatoms.org, after accepting the terms and conditions of the Academic
-License Agreement. Extract the tarball into the QUIP directory.
+License Agreement. Extract the tarball under the /path/to/QUIP/src/ directory.
 
 1.2) Building QUIP
 
 There is a README file in the top-level QUIP directory, but here are
 the main steps.
 
-The Makefiles directory contains a selection of machine- and
+The arch directory contains a selection of machine- and
 compiler-specific makefiles,
 e.g. Makefile.linux_x86_64_gfortran. Decide which one is most
 appropriate for your system, and edit if necessary. The configuring
 step will use the makefile based on the QUIP_ARCH environment
 variable, i.e. Makefile.${QUIP_ARCH}. The script will create a build
-directory, build.${QUIP_ARCH}, and all the building will happen
+directory, build/${QUIP_ARCH}, and all the building will happen
 there. First it will ask you some questions about where you keep
 libraries and other stuff.
 
 If you don't use something it is asking for, just leave it blank. NB
 make sure to answer `y' to `Do you want to compile with GAP prediction
 support ? [y/n]'. The answers will be stored in Makefile.inc in the
-build.${QUIP_ARCH} directory, and you can edit them later (e.g. to
+build/${QUIP_ARCH} directory, and you can edit them later (e.g. to
 change optimisation or debug options). Note that the default state is
 usually with rather heavy debugging on, including bounds checking,
 which makes the code quite slow. The make command has to be executed
@@ -53,7 +53,7 @@ necessary libraries will be built.
 for example:
 
 $ cd QUIP
-$ export QUIP_DIR=/path/to/QUIP
+$ export QUIP_ROOT=/path/to/QUIP
 $ export QUIP_ARCH=linux_x86_64_gfortran
 $ make config
 $ make libquip
@@ -64,13 +64,8 @@ to run a test suite.
 
 2) Building LAMMPS
 
-2.1) Adding QUIP support
-Obtain the most recent version of the QUIPforLAMMPS package:
-$ git clone https://github.com/libAtoms/QUIPforLAMMPS
-$ cd QUIPforLAMMPS
-$ make LAMMPS_DIR=/path/to/lammps/directory install
-
-Enter the LAMMPS directory:
+LAMMPS is now shipped with the interface necessary to use QUIP potentials, but
+it should be enabled first. Enter the LAMMPS directory:
 
 $ cd LAMMPS
 $ cd src

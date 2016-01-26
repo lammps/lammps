@@ -46,6 +46,6 @@ namespace ATC {
     ATC_matrix::Array<std::pair<std::string,std::set<int> > > * nodeSets_;
   };
 
-}; // end namespace ATC
+} // end namespace ATC
 
 #endif

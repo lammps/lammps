@@ -57,7 +57,7 @@ typedef struct { double x,y,z; } dbl3_t;
 void FixRigidNHOMP::initial_integrate(int vflag)
 {
   double scale_r,scale_t[3],scale_v[3];
-  
+
   // compute scale variables
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
@@ -150,13 +150,13 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     }
 
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
-  
+
     MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
     MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
     MathExtra::no_squish_rotate(1,conjqm[ibody],quat[ibody],inertia[ibody],dtv);
     MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
     MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-  
+
     // update exyz_space
     // transform p back to angmom
     // update angular velocity
@@ -193,7 +193,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     compute_temp_target();
     nhc_temp_integrate();
   }
-    
+
   // update thermostat chains coupled with barostat
   // refer to update_nhcb() in Kamberaj et al.
 
@@ -490,13 +490,13 @@ void FixRigidNHOMP::final_integrate()
       set_v_thr<0,1>();
   else
     set_v_thr<0,0>();
-  
+
   // compute current temperature
   if (tcomputeflag) t_current = temperature->compute_scalar();
 
   // compute current and target pressures
   // update epsilon dot using akin_t and akin_r
-  
+
   if (pstat_flag) {
     if (pstyle == ISO) {
       temperature->compute_scalar();

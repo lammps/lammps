@@ -187,7 +187,7 @@ void CommKokkos::forward_comm_device(int dummy)
         else buf = NULL;
 
         if (size_forward_recv[iswap]) {
-            buf = atomKK->k_x.view<DeviceType>().ptr_on_device() + 
+            buf = atomKK->k_x.view<DeviceType>().ptr_on_device() +
               firstrecv[iswap]*atomKK->k_x.view<DeviceType>().dimension_1();
             MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
                     recvproc[iswap],0,world,&request);
@@ -480,7 +480,7 @@ void CommKokkos::exchange_device()
         k_count.modify<LMPHostType>();
         k_count.sync<DeviceType>();
 
-        BuildExchangeListFunctor<DeviceType> 
+        BuildExchangeListFunctor<DeviceType>
           f(atomKK->k_x,k_exchange_sendlist,k_count,k_sendflag,
             nlocal,dim,lo,hi);
         Kokkos::parallel_for(nlocal,f);
@@ -512,7 +512,7 @@ void CommKokkos::exchange_device()
 
       k_exchange_copylist.modify<LMPHostType>();
       k_exchange_copylist.sync<DeviceType>();
-      nsend = 
+      nsend =
         avec->pack_exchange_kokkos(k_count.h_view(0),k_buf_send,
                                    k_exchange_sendlist,k_exchange_copylist,
                                    ExecutionSpaceFromDevice<DeviceType>::
@@ -634,11 +634,11 @@ struct BuildBorderListFunctor {
   typename AT::t_int_2d sendlist;
   typename AT::t_int_1d nsend;
 
-  BuildBorderListFunctor(typename AT::tdual_x_array _x, 
+  BuildBorderListFunctor(typename AT::tdual_x_array _x,
                          typename AT::tdual_int_2d _sendlist,
-                         typename AT::tdual_int_1d _nsend,int _nfirst, 
+                         typename AT::tdual_int_1d _nsend,int _nfirst,
                          int _nlast, int _dim,
-                         X_FLOAT _lo, X_FLOAT _hi, int _iswap, 
+                         X_FLOAT _lo, X_FLOAT _hi, int _iswap,
                          int _maxsendlist):
     x(_x.template view<DeviceType>()),
     sendlist(_sendlist.template view<DeviceType>()),
@@ -649,7 +649,7 @@ struct BuildBorderListFunctor {
 
   KOKKOS_INLINE_FUNCTION
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
-    const int chunk = ((nlast - nfirst + dev.league_size() - 1 ) / 
+    const int chunk = ((nlast - nfirst + dev.league_size() - 1 ) /
                        dev.league_size());
     const int teamstart = chunk*dev.league_rank() + nfirst;
     const int teamend = (teamstart + chunk) < nlast?(teamstart + chunk):nlast;

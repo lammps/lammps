@@ -36,7 +36,7 @@ class Timer : protected Pointers {
   void stamp(enum ttype which=START) {
     if (_level > LOOP) _stamp(which);
   }
-  
+
   void barrier_start();
   void barrier_stop();
 
@@ -46,6 +46,9 @@ class Timer : protected Pointers {
   bool has_normal() const { return (_level >= NORMAL); }
   bool has_full()   const { return (_level >= FULL); }
   bool has_sync()   const { return (_sync  != OFF); }
+
+  // flag if wallclock time is expired
+  bool is_timeout() const { return (_timeout == 0.0); }
 
   double elapsed(enum ttype);
   double cpu(enum ttype);
@@ -57,6 +60,21 @@ class Timer : protected Pointers {
 
   void set_wall(enum ttype, double);
 
+  // initialize timeout timer
+  void init_timeout();
+
+  // trigger enforced timeout
+  void force_timeout() { _timeout = 0.0; };
+
+  // print timeout message
+  void print_timeout(FILE *);
+
+  // check for timeout. inline wrapper around internal
+  // function to reduce overhead in case there is no check.
+  bool check_timeout(int step) {
+    if (_nextcheck != step) return false;
+    else return _check_timeout();
+  }
 
   void modify_params(int, char **);
 
@@ -65,11 +83,18 @@ class Timer : protected Pointers {
   double wall_array[NUM_TIMER];
   double previous_cpu;
   double previous_wall;
-  int _level;  // level of detail: off=0,loop=1,normal=2,full=3
-  int _sync;   // if nonzero, synchronize tasks before setting the timer
+  double timeout_start;
+  int _level;     // level of detail: off=0,loop=1,normal=2,full=3
+  int _sync;      // if nonzero, synchronize tasks before setting the timer
+  int _timeout;   // max allowed wall time in seconds. infinity if negative
+  int _checkfreq; // frequency of timeout checking
+  int _nextcheck; // timestep number of next timeout check
 
-  // update requested timer array
+  // update one specific timer array
   void _stamp(enum ttype);
+
+  // check for timeout
+  bool _check_timeout();
 };
 
 }

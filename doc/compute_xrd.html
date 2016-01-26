@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute xrd command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute xrd command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-xrd-command">
+<span id="index-0"></span><h1>compute xrd command<a class="headerlink" href="#compute-xrd-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID xrd lambda type1 type2 ... typeN keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>xrd = style name of this compute command</li>
+<li>lambda = wavelength of incident radiation (length units)</li>
+<li>type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>2Theta</em> or <em>c</em> or <em>LP</em> or <em>manual</em> or <em>echo</em></li>
+</ul>
+<pre class="literal-block">
+<em>2Theta</em> values = Min2Theta Max2Theta
+  Min2Theta,Max2Theta = minimum and maximum 2 theta range to explore
+  (radians or degrees)
+<em>c</em> values = c1 c2 c3
+  c1,c2,c3 = parameters to adjust the spacing of the reciprocal
+             lattice nodes in the h, k, and l directions respectively
+<em>LP</em> value = switch to apply Lorentz-polarization factor
+  0/1 = off/on
+<em>manual</em> = flag to use manual spacing of reciprocal lattice points
+           based on the values of the <em>c</em> parameters
+<em>echo</em> = flag to provide extra output for debugging purposes
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all xrd 1.541838 Al O 2Theta 0.087 0.87 c 1 1 1 LP 1 echo
+compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all ave/histo/weight 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
+fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates x-ray diffraction intensity as described
+in <a class="reference internal" href="fix_saed_vtk.html#coleman"><span>(Coleman)</span></a> on a mesh of reciprocal lattice nodes defined
+by the entire simulation domain (or manually) using a simulated radiation
+of wavelength lambda.</p>
+<p>The x-ray diffraction intensity, I, at each reciprocal lattice point, k,
+is computed from the structure factor, F, using the equations:</p>
+<img alt="_images/compute_xrd1.jpg" class="align-center" src="_images/compute_xrd1.jpg" />
+<img alt="_images/compute_xrd2.jpg" class="align-center" src="_images/compute_xrd2.jpg" />
+<img alt="_images/compute_xrd3.jpg" class="align-center" src="_images/compute_xrd3.jpg" />
+<img alt="_images/compute_xrd4.jpg" class="align-center" src="_images/compute_xrd4.jpg" />
+<p>Here, K is the location of the reciprocal lattice node, rj is the
+position of each atom, fj are atomic scattering factors, LP is the
+Lorentz-polarization factor, and theta is the scattering angle of
+diffraction.  The Lorentz-polarization factor can be turned off using
+the optional <em>LP</em> keyword.</p>
+<p>Diffraction intensities are calculated on a three-dimensional mesh of
+reciprocal lattice nodes. The mesh spacing is defined either (a)
+by the entire simulation domain or (b) manually using selected values as
+shown in the 2D diagram below.</p>
+<a data-lightbox="group-default"
+                   href="_images/xrd_mesh.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/xrd_mesh.jpg"
+                    class="align-center"
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a><p>For a mesh defined by the simulation domain, a rectilinear grid is
+constructed with spacing <a href="#id1"><span class="problematic" id="id2">*</span></a>c**inv(A) along each reciprocal lattice
+axis. Where A are the vectors corresponding to the edges of the
+simulation cell. If one or two directions has non-periodic boundary
+conditions, then the spacing in these directions is defined from the
+average of the (inversed) box lengths with periodic boundary conditions.
+Meshes defined by the simulation domain must contain at least one periodic
+boundary.</p>
+<p>If the <em>manual</em> flag is included, the mesh of reciprocal lattice nodes
+will defined using the <em>c</em> values for the spacing along each
+reciprocal lattice axis. Note that manual mapping of the reciprocal
+space mesh is good for comparing diffraction results from multiple
+simulations; however it can reduce the likelihood that Bragg
+reflections will be satisfied unless small spacing parameters (&lt; 0.05
+Angstrom^(-1)) are implemented.  Meshes with manual spacing do not
+require a periodic boundary.</p>
+<p>The limits of the reciprocal lattice mesh are determined by range of
+scattering angles explored.  The <em>2Theta</em> parameters allows the user
+to reduce the scattering angle range to only the region of interest
+which reduces the cost of the computation.</p>
+<p>The atomic scattering factors, fj, accounts for the reduction in
+diffraction intensity due to Compton scattering.  Compute xrd uses
+analytical approximations of the atomic scattering factors that vary
+for each atom type (type1 type2 ... typeN) and angle of diffraction.
+The analytic approximation is computed using the formula
+<a class="reference internal" href="#colliex"><span>(Colliex)</span></a>:</p>
+<img alt="_images/compute_xrd5.jpg" class="align-center" src="_images/compute_xrd5.jpg" />
+<p>Coefficients parameterized by <a class="reference internal" href="#peng"><span>(Peng)</span></a> are assigned for each
+atom type designating the chemical symbol and charge of each atom
+type. Valid chemical symbols for compute xrd are:</p>
+<dl class="docutils">
+<dt>H:    He1-:      He:      Li:    Li1+:</dt>
+<dd><blockquote class="first">
+<div><blockquote>
+<div><dl class="docutils">
+<dt>Be:    Be2+:       B:       C:    Cval:</dt>
+<dd>N:       O:     O1-:       F:     F1-:</dd>
+</dl>
+<p>Ne:      Na:    Na1+:      Mg:    Mg2+:
+Al:    Al3+:      Si:    Sival:   Si4+:</p>
+<blockquote>
+<div>P:       S:      Cl:    Cl1-:      Ar:
+K:      Ca:    Ca2+:      Sc:    Sc3+:</div></blockquote>
+<p>Ti:    Ti2+:    Ti3+:    Ti4+:       V:</p>
+</div></blockquote>
+<p>V2+:     V3+:     V5+:      Cr:    Cr2+:</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>Cr3+:      Mn:    Mn2+:    Mn3+:    Mn4+:</dt>
+<dd>Fe:    Fe2+:    Fe3+:      Co:    Co2+:
+Co:      Ni:    Ni2+:    Ni3+:      Cu:</dd>
+</dl>
+<p>Cu1+:    Cu2+:      Zn:    Zn2+:      Ga:
+Ga3+:      Ge:    Ge4+:      As:      Se:</p>
+<blockquote>
+<div>Br:    Br1-:      Kr:      Rb:    Rb1+:
+Sr:    Sr2+:       Y:     Y3+:      Zr:</div></blockquote>
+<p>Zr4+:      Nb:    Nb3+:    Nb5+:      Mo:
+Mo3+:    Mo5+:    Mo6+:      Tc:      Ru:
+Ru3+:    Ru4+:      Rh:    Rh3+:    Rh4+:</p>
+<blockquote>
+<div>Pd:    Pd2+:    Pd4+:      Ag:    Ag1+:</div></blockquote>
+<dl class="docutils">
+<dt>Ag2+:      Cd:    Cd2+:      In:    In3+:</dt>
+<dd>Sn:    Sn2+:    Sn4+:      Sb:    Sb3+:</dd>
+<dt>Sb5+:      Te:       I:     I1-:      Xe:</dt>
+<dd>Cs:    Cs1+:      Ba:    Ba2+:      La:</dd>
+</dl>
+<p>La3+:      Ce:    Ce3+:    Ce4+:      Pr:
+Pr3+:    Pr4+:      Nd:    Nd3+:      Pm:
+Pm3+:      Sm:    Sm3+:      Eu:    Eu2+:
+Eu3+:      Gd:    Gd3+:      Tb:    Tb3+:</p>
+<blockquote>
+<div>Dy:    Dy3+:      Ho:    Ho3+:      Er:</div></blockquote>
+<p>Er3+:      Tm:    Tm3+:      Yb:    Yb2+:
+Yb3+:      Lu:    Lu3+:      Hf:    Hf4+:</p>
+<blockquote>
+<div>Ta:    Ta5+:       W:     W6+:      Re:
+Os:    Os4+:      Ir:    Ir3+:    Ir4+:
+Pt:    Pt2+:    Pt4+:      Au:    Au1+:</div></blockquote>
+<p>Au3+:      Hg:    Hg1+:    Hg2+:      Tl:
+Tl1+:    Tl3+:      Pb:    Pb2+:    Pb4+:</p>
+<blockquote>
+<div>Bi:    Bi3+:    Bi5+:      Po:      At:
+Rn:      Fr:      Ra:    Ra2+:      Ac:</div></blockquote>
+<dl class="docutils">
+<dt>Ac3+:      Th:    Th4+:      Pa:       U:</dt>
+<dd>U3+:     U4+:     U6+:      Np:    Np3+:</dd>
+</dl>
+<p class="last">Np4+:    Np6+:      Pu:    Pu3+:    Pu4+:
+Pu6+:      Am:      Cm:      Bk:      Cf:tb(c=5,s=:)</p>
+</dd>
+</dl>
+<p>If the <em>echo</em> keyword is specified, compute xrd will provide extra
+reporting information to the screen.</p>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global array.  The number of rows in the
+array is the number of reciprocal lattice nodes that are explored
+which by the mesh.  The global array has 2 columns.</p>
+<p>The first column contains the diffraction angle in the units (radians
+or degrees) provided with the <em>2Theta</em> values. The second column contains
+the computed diffraction intensities as described above.</p>
+<p>The array can be accessed by any command that uses global values from
+a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a>
+for an overview of LAMMPS output options.</p>
+<p>All array values calculated by this compute are &#8220;intensive&#8221;.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the USER-DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>The compute_xrd command does not work for triclinic cells.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>,
+<a class="reference internal" href="compute_saed.html"><em>compute saed</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are 2Theta = 1 179 (degrees), c = 1 1 1, LP = 1,
+no manual flag, no echo flag.</p>
+<hr class="docutils" />
+<p id="coleman"><strong>(Coleman)</strong> Coleman, Spearot, Capolungo, MSMSE, 21, 055020
+(2013).</p>
+<p id="colliex"><strong>(Colliex)</strong> Colliex et al. International Tables for Crystallography
+Volume C: Mathematical and Chemical Tables, 249-429 (2004).</p>
+<p id="peng"><strong>(Peng)</strong> Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
+(1996).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

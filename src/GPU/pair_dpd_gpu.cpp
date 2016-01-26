@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_dpd_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,7 +33,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -49,10 +49,10 @@ void dpd_gpu_clear();
 int ** dpd_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double **host_x, int *host_type, double *sublo,
                          double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag, 
-                         const bool eatom, const bool vatom, int &host_start, 
+                         tagint **special, const bool eflag, const bool vflag,
+                         const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum, const double cpu_time, bool &success,
-                         double **host_v, const double dtinvsqrt, 
+                         double **host_v, const double dtinvsqrt,
                          const int seed, const int timestep,
                          double *boxlo, double *prd);
 void dpd_gpu_compute(const int ago, const int inum_full, const int nall,
@@ -60,7 +60,7 @@ void dpd_gpu_compute(const int ago, const int inum_full, const int nall,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
                      const double cpu_time, bool &success, tagint *tag,
-                     double **host_v, const double dtinvsqrt, 
+                     double **host_v, const double dtinvsqrt,
                      const int seed, const int timestep,
                      const int nlocal, double *boxlo, double *prd);
 double dpd_gpu_bytes();
@@ -75,7 +75,7 @@ double dpd_gpu_bytes();
 #define _USE_UNIFORM_SARU_LCG
 #endif
 
-// References: 
+// References:
 // 1. Y. Afshar, F. Schmid, A. Pishevar, S. Worley, Comput. Phys. Comm. 184 (2013), 1119–1128.
 // 2. C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput. Phys. Comm. 230 (2011), 7191-7201.
 // PRNG period = 3666320093*2^32 ~ 2^64 ~ 10^19
@@ -87,9 +87,9 @@ double dpd_gpu_bytes();
 #define TWO_N32 0.232830643653869628906250e-9f /* 2^-32 */
 
 // specifically implemented for steps = 1; high = 1.0; low = -1.0
-// returns uniformly distributed random numbers u in [-1.0;1.0] 
-// using the inherent LCG, then multiply u with sqrt(3) to "match" 
-// with a normal random distribution. 
+// returns uniformly distributed random numbers u in [-1.0;1.0]
+// using the inherent LCG, then multiply u with sqrt(3) to "match"
+// with a normal random distribution.
 // Afshar et al. mutlplies u in [-0.5;0.5] with sqrt(12)
 // Curly brackets to make variables local to the scope.
 #ifdef _USE_UNIFORM_SARU_LCG
@@ -119,8 +119,8 @@ double dpd_gpu_bytes();
 #endif
 
 // specifically implemented for steps = 1; high = 1.0; low = -1.0
-// returns uniformly distributed random numbers u in [-1.0;1.0] using TEA8 
-// then multiply u with sqrt(3) to "match" with a normal random distribution 
+// returns uniformly distributed random numbers u in [-1.0;1.0] using TEA8
+// then multiply u with sqrt(3) to "match" with a normal random distribution
 // Afshar et al. mutlplies u in [-0.5;0.5] with sqrt(12)
 #ifdef _USE_UNIFORM_SARU_TEA8
 #define numtyp double
@@ -159,7 +159,7 @@ double dpd_gpu_bytes();
 #endif
 
 // specifically implemented for steps = 1; high = 1.0; low = -1.0
-// returns two uniformly distributed random numbers r1 and r2 in [-1.0;1.0], 
+// returns two uniformly distributed random numbers r1 and r2 in [-1.0;1.0],
 // and uses the polar method (Marsaglia's) to transform to a normal random value
 // This is used to compared with CPU DPD using RandMars::gaussian()
 #ifdef _USE_GAUSSIAN_SARU_LCG
@@ -232,7 +232,7 @@ void PairDPDGPU::compute(int eflag, int vflag)
   int inum, host_start;
 
   double dtinvsqrt = 1.0/sqrt(update->dt);
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -242,7 +242,7 @@ void PairDPDGPU::compute(int eflag, int vflag)
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
                                    host_start, &ilist, &numneigh, cpu_time,
-                                   success, atom->v, dtinvsqrt, seed, 
+                                   success, atom->v, dtinvsqrt, seed,
                                    update->ntimestep,
                                    domain->boxlo, domain->prd);
   } else {
@@ -252,8 +252,8 @@ void PairDPDGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
     dpd_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-                    vflag_atom, host_start, cpu_time, success, 
-                    atom->tag, atom->v, dtinvsqrt, seed, 
+                    vflag_atom, host_start, cpu_time, success,
+                    atom->tag, atom->v, dtinvsqrt, seed,
                     update->ntimestep,
                     atom->nlocal, domain->boxlo, domain->prd);
   }
@@ -296,7 +296,7 @@ void PairDPDGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = dpd_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma, 
+  int success = dpd_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma,
                              cut, force->special_lj, false, atom->nlocal,
                              atom->nlocal+atom->nghost, 300, maxspecial,
                              cell_size, gpu_mode, screen);

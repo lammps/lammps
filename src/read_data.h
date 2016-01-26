@@ -20,7 +20,7 @@ CommandStyle(read_data,ReadData)
 #ifndef LMP_READ_DATA_H
 #define LMP_READ_DATA_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -32,19 +32,20 @@ class ReadData : protected Pointers {
   void command(int, char **);
 
  private:
-  char *line,*keyword,*buffer,*style;
+  int me,compressed;
+  char *line,*copy,*keyword,*buffer,*style;
   FILE *fp;
   char **arg;
-  int me,narg,maxarg,compressed;
+  int narg,maxarg;
+  char argoffset1[8],argoffset2[8];
 
-  // optional args
+  bigint id_offset;
 
-  int addflag,mergeflag;
-  double offset[3];
-  int nfix;         
-  int *fix_index;
-  char **fix_header;
-  char **fix_section;
+  int nlocal_previous;
+  bigint natoms;
+  bigint nbonds,nangles,ndihedrals,nimpropers;
+  int ntypes;
+  int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
 
   bigint nellipsoids;
   class AtomVecEllipsoid *avec_ellipsoid;
@@ -55,13 +56,36 @@ class ReadData : protected Pointers {
   bigint nbodies;
   class AtomVecBody *avec_body;
 
+  // box info
+
+  double boxlo[3],boxhi[3];
+  double xy,xz,yz;
+  int triclinic;
+
+  // optional args
+
+  int addflag,offsetflag,shiftflag;
+  tagint addvalue;
+  int toffset,boffset,aoffset,doffset,ioffset;
+  double shift[3];
+  int extra_atom_types,extra_bond_types,extra_angle_types;
+  int extra_dihedral_types,extra_improper_types;
+  int groupbit;
+
+  int nfix;
+  int *fix_index;
+  char **fix_header;
+  char **fix_section;
+
+  // methods
+
   void open(char *);
   void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
-  void header();
+  void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
-  void parse_coeffs(char *, const char *, int);
+  void parse_coeffs(char *, const char *, int, int, int);
   int style_match(const char *, const char *);
 
   void atoms();

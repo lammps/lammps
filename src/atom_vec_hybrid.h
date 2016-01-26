@@ -20,7 +20,7 @@ AtomStyle(hybrid,AtomVecHybrid)
 #ifndef LMP_ATOM_VEC_HYBRID_H
 #define LMP_ATOM_VEC_HYBRID_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {

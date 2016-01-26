@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_cut_coul_long_soft_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -144,10 +144,10 @@ void PairLJCutCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
           expm2 = exp(-grij*grij);
           t = 1.0 / (1.0 + EWALD_P*grij);
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          
+
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
-          
+
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
@@ -155,7 +155,7 @@ void PairLJCutCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (rsq < cut_ljsq[itype][jtype]) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
         } else forcelj = 0.0;
 
@@ -178,7 +178,7 @@ void PairLJCutCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;

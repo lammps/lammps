@@ -13,11 +13,11 @@ namespace MathInline {
 
 // IEEE 754 double precision floating point data manipulation
 
-typedef union 
+typedef union
 {
     double   f;
     uint64_t u;
-    struct {int32_t  i0,i1;};
+    struct {int32_t  i0,i1;} s;
 }  udi_t;
 
 #define FM_DOUBLE_BIAS 1023
@@ -4170,22 +4170,22 @@ static double sqrtlgx2byx(const double x)
     int32_t hx, ipart;
 
     val.f = x*x;
-    hx = val.i1;
-    
+    hx = val.s.i1;
+
     /* extract exponent and subtract bias */
     ipart = (((hx & FM_DOUBLE_EMASK) >> FM_DOUBLE_MBITS) - FM_DOUBLE_BIAS);
 
     /* mask out exponent to get the prefactor to 2**ipart */
     hx &= FM_DOUBLE_MMASK;
-    val.i1 = hx | FM_DOUBLE_EZERO;
+    val.s.i1 = hx | FM_DOUBLE_EZERO;
     z = val.f;
 
     /* table index */
     hx >>= FM_SPLINE_SHIFT;
 
     /* compute x value matching table index */
-    val.i0 = 0;
-    val.i1 = FM_DOUBLE_EZERO | (hx << FM_SPLINE_SHIFT);
+    val.s.i0 = 0;
+    val.s.i1 = FM_DOUBLE_EZERO | (hx << FM_SPLINE_SHIFT);
     b = (z - val.f) * fm_log_dinv;
     a = 1.0 - b;
 
@@ -4240,12 +4240,12 @@ static double sqrtlgx2byx(const double x)
     /* compute log(x*x) */
     val.f = x*x;
     /* extract exponent and part of the mantissa */
-    fpart = val.i1 & FM_DOUBLE_MMASK;
-    ipart = val.i1 & FM_DOUBLE_EMASK;
+    fpart = val.s.i1 & FM_DOUBLE_MMASK;
+    ipart = val.s.i1 & FM_DOUBLE_EMASK;
 
     /* set exponent to 0 to get the prefactor to 2**ipart */
     fpart |= FM_DOUBLE_EZERO;
-    val.i1 = fpart;
+    val.s.i1 = fpart;
     y = val.f;
 
     /* convert exponent bits to integer */

@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style smtbq command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style smtbq command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-smtbq-command">
+<span id="index-0"></span><h1>pair_style smtbq command<a class="headerlink" href="#pair-style-smtbq-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style smtbq
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style smtbq
+pair_coeff * * ffield.smtbq.Al2O3 O Al
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This pair stylecomputes a variable charge SMTB-Q (Second-Moment
+tight-Binding QEq) potential as described in <a class="reference internal" href="#smtb-q-1"><span>SMTB-Q_1</span></a> and
+<a class="reference internal" href="#smtb-q-2"><span>SMTB-Q_2</span></a>. Briefly, the energy of metallic-oxygen systems
+is given by three contributions:</p>
+<img alt="_images/pair_smtbq1.jpg" class="align-center" src="_images/pair_smtbq1.jpg" />
+<p>where <em>E&lt;sub&gt;tot&lt;/sub&gt;</em> is the total potential energy of the system,
+<em>E&lt;sub&gt;ES&lt;/sub&gt;</em> is the electrostatic part of the total energy,
+<em>E&lt;sub&gt;OO&lt;/sub&gt;</em> is the interaction between oxygens and
+<em>E&lt;sub&gt;MO&lt;/sub&gt;</em> is a short-range interaction between metal and oxygen
+atoms. This interactions depend on interatomic distance
+<em>r&lt;sub&gt;ij&lt;/sub&gt;</em> and/or the charge <em>Q&lt;sub&gt;i&lt;/sub&gt;</em> of atoms
+<em>i</em>. Cut-off function enables smooth convergence to zero interaction.</p>
+<p>The parameters appearing in the upper expressions are set in the
+ffield.SMTBQ.Syst file where Syst corresponds to the selected system
+(e.g. field.SMTBQ.Al2O3). Exemples for TiO&lt;sub&gt;2&lt;/sub&gt;,
+Al&lt;sub&gt;2&lt;/sub&gt;O&lt;sub&gt;3&lt;/sub&gt; are provided.  A single pair_coeff command
+is used with the SMTBQ styles which provides the path to the potential
+file with parameters for needed elements. These are mapped to LAMMPS
+atom types by specifying additional arguments after the potential
+filename in the pair_coeff command. Note that atom type 1 must always
+correspond to oxygen atoms. As an example, to simulate a TiO2 system,
+atom type 1 has to be oxygen and atom type 2 Ti. The following
+pair_coeff command should then be used:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * PathToLammps/potentials/ffield.smtbq.TiO2 O Ti
+</pre></div>
+</div>
+<p>The electrostatic part of the energy consists of two components</p>
+<p>self-energy of atom <em>i</em> in the form of a second order charge dependent
+polynomial and a long-range Coulombic electrostatic interaction. The
+latter uses the wolf summation method described in <a class="reference internal" href="#wolf"><span>Wolf</span></a>,
+spherically truncated at a longer cutoff, <em>R&lt;sub&gt;coul&lt;/sub&gt;</em>. The
+charge of each ion is modeled by an orbital Slater which depends on
+the principal quantum number (<em>n</em>) of the outer orbital shared by the
+ion.</p>
+<p>Interaction between oxygen, <em>E&lt;sub&gt;OO&lt;/sub&gt;</em>, consists of two parts,
+an attractive and a repulsive part. The attractive part is effective
+only at short range (&lt; r&lt;sub&gt;2&lt;/sub&gt;&lt;sup&gt;OO&lt;/sup&gt;). The attractive
+contribution was optimized to study surfaces reconstruction
+(e.g. <a class="reference internal" href="#smtb-q-2"><span>SMTB-Q_2</span></a> in TiO&lt;sub&gt;2&lt;/sub&gt;) and is not necessary
+for oxide bulk modeling. The repulsive part is the Pauli interaction
+between the electron clouds of oxygen. The Pauli repulsion and the
+coulombic electrostatic interaction have same cut off value. In the
+ffield.SMTBQ.Syst, the keyword <em>&#8216;buck&#8217;</em> allows to consider only the
+repulsive O-O interactions. The keyword <em>&#8216;buckPlusAttr&#8217;</em> allows to
+consider the repulsive and the attractive O-O interactions.</p>
+<p>The short-range interaction between metal-oxygen, <em>E&lt;sub&gt;MO&lt;/sub&gt;</em> is
+based on the second moment approximation of the density of states with
+a N-body potential for the band energy term,
+<em>E&lt;sup&gt;i&lt;/sup&gt;&lt;sub&gt;cov&lt;/sub&gt;</em>, and a Born-Mayer type repulsive terms
+as indicated by the keyword <em>&#8216;second_moment&#8217;</em> in the
+ffield.SMTBQ.Syst. The energy band term is given by:</p>
+<img alt="_images/pair_smtbq2.jpg" class="align-center" src="_images/pair_smtbq2.jpg" />
+<p>where <em>&amp;#951&lt;sub&gt;i&lt;/sub&gt;</em> is the stoichiometry of atom <em>i</em>,
+<em>&amp;#948Q&lt;sub&gt;i&lt;/sub&gt;</em> is the charge delocalization of atom <em>i</em>,
+compared to its formal charge
+<em>Q&lt;sup&gt;F&lt;/sup&gt;&lt;sub&gt;i&lt;/sub&gt;</em>. n&lt;sub&gt;0&lt;/sub&gt;, the number of hybridized
+orbitals, is calculated with to the atomic orbitals shared
+<em>d&lt;sub&gt;i&lt;/sub&gt;</em> and the stoichiometry
+<em>&amp;#951&lt;sub&gt;i&lt;/sub&gt;</em>. <em>r&lt;sub&gt;c1&lt;/sub&gt;</em> and <em>r&lt;sub&gt;c2&lt;/sub&gt;</em> are the two
+cutoff radius around the fourth neighbors in the cutoff function.</p>
+<p>In the formalism used here, <em>&amp;#958&lt;sup&gt;0&lt;/sup&gt;</em> is the energy
+parameter. <em>&amp;#958&lt;sup&gt;0&lt;/sup&gt;</em> is in tight-binding approximation the
+hopping integral between the hybridized orbitals of the cation and the
+anion. In the literature we find many ways to write the hopping
+integral depending on whether one takes the point of view of the anion
+or cation. These are equivalent vision. The correspondence between the
+two visions is explained in appendix A of the article in the
+SrTiO&lt;sub&gt;3&lt;/sub&gt; <a class="reference internal" href="#smtb-q-3"><span>SMTB-Q_3</span></a> (parameter <em>&amp;#946</em> shown in
+this article is in fact the <em>&amp;#946&lt;sub&gt;O&lt;/sub&gt;</em>). To summarize the
+relationship between the hopping integral <em>&amp;#958&lt;sup&gt;0&lt;/sup&gt;</em> and the
+others, we have in an oxide C&lt;sub&gt;n&lt;/sub&gt;O&lt;sub&gt;m&lt;/sub&gt; the following
+relationship:</p>
+<img alt="_images/pair_smtbq3.jpg" class="align-center" src="_images/pair_smtbq3.jpg" />
+<p>Thus parameter &amp;#956, indicated above, is given by : &amp;#956 = (&amp;#8730n
++ &amp;#8730m) &amp;#8260 2</p>
+<p>The potential offers the possibility to consider the polarizability of
+the electron clouds of oxygen by changing the slater radius of the
+charge density around the oxygens through the parameters <em>rBB, rB and
+rS</em> in the ffield.SMTBQ.Syst. This change in radius is performed
+according to the method developed by E. Maras
+<a class="reference internal" href="#smtb-q-2"><span>SMTB-Q_2</span></a>. This method needs to determine the number of
+nearest neighbors around the oxygen. This calculation is based on
+first (<em>r&lt;sub&gt;1n&lt;/sub&gt;</em>) and second (<em>r&lt;sub&gt;2n&lt;/sub&gt;</em>) distances
+neighbors.</p>
+<p>The SMTB-Q potential is a variable charge potential. The equilibrium
+charge on each atom is calculated by the electronegativity
+equalization (QEq) method. See <a class="reference internal" href="#rick"><span>Rick</span></a> for further detail. One
+can adjust the frequency, the maximum number of iterative loop and the
+convergence of the equilibrium charge calculation. To obtain the
+energy conservation in NVE thermodynamic ensemble, we recommend to use
+a convergence parameter in the interval 10&lt;sup&gt;-5&lt;/sup&gt; -
+10&lt;sup&gt;-6&lt;/sup&gt; eV.</p>
+<p>The ffield.SMTBQ.Syst files are provided for few systems. They consist
+of nine parts and the lines beginning with &#8216;#&#8217; are comments (note that
+the number of comment lines matter). The first sections are on the
+potential parameters and others are on the simulation options and
+might be modified. Keywords are character type and must be enclosed in
+quotation marks (&#8216;&#8217;).</p>
+<ol class="arabic simple">
+<li>Number of different element in the oxide:</li>
+</ol>
+<ul class="simple">
+<li>N&lt;sub&gt;elem&lt;/sub&gt;= 2 or 3</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="2">
+<li>Atomic parameters</li>
+</ol>
+<p>For the anion (oxygen)</p>
+<ul class="simple">
+<li>Name of element (char) and stoichiometry in oxide</li>
+<li>Formal charge and mass of element</li>
+<li>Principal quantic number of outer orbital (<em>n</em>), electronegativity (<em>&amp;#967&lt;sup&gt;0&lt;/sup&gt;&lt;sub&gt;i&lt;/simulationub&gt;</em>) and hardness (<em>J&lt;sup&gt;0&lt;/sup&gt;&lt;sub&gt;i&lt;/sub&gt;</em>)</li>
+<li>Ionic radius parameters  : max coordination number (<em>coordBB</em> = 6 by default), bulk coordination number <em>(coordB)</em>, surface coordination number  <em>(coordS)</em> and <em>rBB, rB and rS</em>  the slater radius for each coordination number. (&lt;b&gt;note : If you don&#8217;t want to change the slater radius, use three identical radius values&lt;/b&gt;)</li>
+<li>Number of orbital shared by the element in the oxide (<em>d&lt;sub&gt;i&lt;/sub&gt;</em>)</li>
+<li>Divided line</li>
+</ul>
+<p>For each cations (metal):</p>
+<ul class="simple">
+<li>Name of element (char) and stoichiometry in oxide</li>
+<li>Formal charge and mass of element</li>
+<li>Number of electron in outer orbital <em>(ne)</em>, electronegativity (<em>&amp;#967&lt;sup&gt;0&lt;/sup&gt;&lt;sub&gt;i&lt;/simulationub&gt;</em>), hardness (<em>J&lt;sup&gt;0&lt;/sup&gt;&lt;sub&gt;i&lt;/sub&gt;</em>) and <em>r&lt;sub&gt;Salter&lt;/sub&gt;</em> the slater radius for the cation.</li>
+<li>Number of orbitals shared by the elements in the oxide (<em>d&lt;sub&gt;i&lt;/sub&gt;</em>)</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="3">
+<li>Potential parameters:</li>
+</ol>
+<ul class="simple">
+<li>Keyword for element1, element2 and interaction potential (&#8216;second_moment&#8217; or &#8216;buck&#8217; or &#8216;buckPlusAttr&#8217;) between element 1 and 2.  If the potential is &#8216;second_moment&#8217;, specify &#8216;oxide&#8217; or &#8216;metal&#8217; for metal-oxygen or metal-metal interactions respectively.</li>
+<li>Potential parameter: &lt;pre&gt;&lt;br/&gt;       If type of potential is &#8216;second_moment&#8217; : <em>A (eV)</em>, <em>p</em>, <em>&amp;#958&lt;sup&gt;0&lt;/sup&gt;</em> (eV) and <em>q</em> &lt;br/&gt;                                           <em>r&lt;sub&gt;c1&lt;/sub&gt;</em> (&amp;#197), <em>r&lt;sub&gt;c2&lt;/sub&gt;</em> (&amp;#197) and <em>r&lt;sub&gt;0&lt;/sub&gt;</em> (&amp;#197) &lt;br/&gt;  If type of potential is &#8216;buck&#8217; : <em>C</em> (eV) and <em>&amp;#961</em> (&amp;#197) &lt;br/&gt;     If type of potential is &#8216;buckPlusAttr&#8217; : <em>C</em> (eV) and <em>&amp;#961</em> (&amp;#197) &lt;br/&gt;                                              <em>D</em> (eV), <em>B</em> (&amp;#197&lt;sup&gt;-1&lt;/sup&gt;), <em>r&lt;sub&gt;1&lt;/sub&gt;&lt;sup&gt;OO&lt;/sup&gt;</em> (&amp;#197) and <em>r&lt;sub&gt;2&lt;/sub&gt;&lt;sup&gt;OO&lt;/sup&gt;</em> (&amp;#197) &lt;/pre&gt;</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="4">
+<li>Tables parameters:</li>
+</ol>
+<ul class="simple">
+<li>Cutoff radius for the Coulomb interaction (<em>R&lt;sub&gt;coul&lt;/sub&gt;</em>)</li>
+<li>Starting radius  (<em>r&lt;sub&gt;min&lt;/sub&gt;</em> = 1,18845 &amp;#197) and increments (<em>dr</em> = 0,001 &amp;#197) for creating the potential table.</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="5">
+<li>Rick model parameter:</li>
+</ol>
+<ul class="simple">
+<li><em>Nevery</em> : parameter to set the frequency (<em>1/Nevery</em>) of the charge resolution. The charges are evaluated each <em>Nevery</em> time steps.</li>
+<li>Max number of iterative loop (<em>loopmax</em>) and precision criterion (<em>prec</em>) in eV of the charge resolution</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="6">
+<li>Coordination parameter:</li>
+</ol>
+<ul class="simple">
+<li>First (<em>r&lt;sub&gt;1n&lt;/sub&gt;</em>) and second (<em>r&lt;sub&gt;2n&lt;/sub&gt;</em>) neighbor distances in &amp;#197</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="7">
+<li>Charge initialization mode:</li>
+</ol>
+<ul class="simple">
+<li>Keyword (<em>QInitMode</em>) and initial oxygen charge (<em>Q&lt;sub&gt;init&lt;/sub&gt;</em>). If keyword = &#8216;true&#8217;, all oxygen charges are initially set equal to <em>Q&lt;sub&gt;init&lt;/sub&gt;</em>. The charges on the cations are initially set in order to respect the neutrality of the box. If keyword = &#8216;false&#8217;, all atom charges are initially set equal to 0 if you use &#8220;create_atom&#8221;#create_atom command or the charge specified in the file structure using <span class="xref std std-ref">read_data</span> command.</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="8">
+<li>Mode for the electronegativity equalization (Qeq)</li>
+</ol>
+<ul class="simple">
+<li>Keyword mode: &lt;pre&gt; &lt;br/&gt;             QEqAll  (one QEq group)                 |   no parameters &lt;br/&gt;         QEqAllParallel (several QEq groups)     |   no parameters &lt;br/&gt;         Surface                 |   zlim   (QEq only for z&gt;zlim)   &lt;/pre&gt;</li>
+<li>Parameter if necessary</li>
+<li>Divided line</li>
+</ul>
+<ol class="arabic simple" start="9">
+<li>Verbose</li>
+</ol>
+<ul class="simple">
+<li>If you want the code to work in verbose mode or not : &#8216;true&#8217; or &#8216;false&#8217;</li>
+<li>If you want to print or not in file &#8216;Energy_component.txt&#8217; the three main contributions to the energy of the system according to the description presented above : &#8216;true&#8217; or &#8216;false&#8217; and <em>N&lt;sub&gt;Energy&lt;/sub&gt;</em>. This option writes in file every <em>N&lt;sub&gt;Energy&lt;/sub&gt;</em> time step. If the value is &#8216;false&#8217; then <em>N&lt;sub&gt;Energy&lt;/sub&gt;</em> = 0. The file take into account the possibility to have several QEq group <em>g</em> then it writes: time step, number of atoms in group <em>g</em>, electrostatic part of energy, <em>E&lt;sub&gt;ES&lt;/sub&gt;</em>, the interaction between oxygen, <em>E&lt;sub&gt;OO&lt;/sub&gt;</em>, and short range metal-oxygen interaction, <em>E&lt;sub&gt;MO&lt;/sub&gt;</em>.</li>
+<li>If you want to print in file &#8216;Electroneg_component.txt&#8217; the electronegativity component (<em>&amp;#8706E&lt;sub&gt;tot&lt;/sub&gt; &amp;#8260&amp;#8706Q&lt;sub&gt;i&lt;/sub&gt;</em>) or not: &#8216;true&#8217; or &#8216;false&#8217; and <em>N&lt;sub&gt;Electroneg&lt;/sub&gt;</em>.This option writes in file every <em>N&lt;sub&gt;Electroneg&lt;/sub&gt;</em> time step. If the value is &#8216;false&#8217; then <em>N&lt;sub&gt;Electroneg&lt;/sub&gt;</em> = 0.  The file consist in atom number <em>i</em>, atom type (1 for oxygen and # higher than 1 for metal), atom position: <em>x</em>, <em>y</em> and <em>z</em>, atomic charge of atom <em>i</em>, electrostatic part of atom <em>i</em> electronegativity, covalent part of atom <em>i</em> electronegativity, the hopping integral of atom <em>i</em> <em>(Z&amp;#946&lt;sup&gt;2&lt;/sup&gt;)&lt;sub&gt;i&lt;sub&gt;</em> and box electronegativity.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This last option slows down the calculation dramatically.  Use
+only with a single processor simulation.</p>
+</div>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info:</strong></p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+mix, shift, table, and tail options.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in potential files.  Thus, you
+needs to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+<hr class="docutils" />
+<p><strong>Restriction:</strong></p>
+<p>This pair style is part of the USER-SMTBQ package and is only enabled
+if LAMMPS is built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This potential requires using atom type 1 for oxygen and atom type
+higher than 1 for metal atoms.</p>
+<p>This pair style requires the <a class="reference internal" href="newton.html"><em>newton</em></a> setting to be &#8220;on&#8221;
+for pair interactions.</p>
+<p>The SMTB-Q potential files provided with LAMMPS (see the potentials
+directory) are parameterized for metal <code class="xref doc docutils literal"><span class="pre">units</span></code>.</p>
+<hr class="docutils" />
+<p><strong>Citing this work:</strong></p>
+<p>Please cite related publication: N. Salles, O. Politano, E. Amzallag
+and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189</p>
+<hr class="docutils" />
+<p id="smtb-q-1"><strong>(SMTB-Q_1)</strong> N. Salles, O. Politano, E. Amzallag, R. Tetot,
+Comput. Mater. Sci. 111 (2016) 181-189</p>
+<p id="smtb-q-2"><strong>(SMTB-Q_2)</strong> E. Maras, N. Salles, R. Tetot, T. Ala-Nissila,
+H. Jonsson, J. Phys. Chem. C 2015, 119, 10391-10399</p>
+<p id="smtb-q-3"><strong>(SMTB-Q_3)</strong> R. Tetot, N. Salles, S. Landron, E. Amzallag, Surface
+Science 616, 19-8722 28 (2013)</p>
+<p id="wolf"><strong>(Wolf)</strong> D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).</p>
+<p id="rick"><strong>(Rick)</strong> S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
+(1994).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -14,12 +14,13 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
 class Variable : protected Pointers {
+ friend class Info;
  public:
   Variable(class LAMMPS *);
   ~Variable();
@@ -73,7 +74,7 @@ class Variable : protected Pointers {
   class Python *python;    // ptr to embedded Python interpreter
 
   struct Tree {            // parse tree for atom-style variables
-    double value;          // single scalar  
+    double value;          // single scalar
     double *array;         // per-atom or per-type list of doubles
     int *iarray;           // per-atom list of ints
     bigint *barray;        // per-atom list of bigints

@@ -1,0 +1,7 @@
+
+timer	off
+
+read_data empty-tric.data
+read_data few-tric.data add append
+
+info	all

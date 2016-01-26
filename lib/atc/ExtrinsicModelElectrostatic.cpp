@@ -782,11 +782,12 @@ namespace ATC {
       rcritSq *= rcritSq;
       int nodalIndex = myNodeData->first;
       DENS_VEC myCoords((myNodeData->second).first);
-      double xtArgs[8];
+      double xtArgs[12];
       xtArgs[0] = myCoords(0); xtArgs[1] = myCoords(1); xtArgs[2] = myCoords(2);
       xtArgs[3] = 1.; xtArgs[4] = 1.; xtArgs[5] = 1.;
       xtArgs[6] = coulombConstant*chargeDensity;
       xtArgs[7] = -1.;
+      xtArgs[8] = xtArgs[9] = xtArgs[10] = xtArgs[11] = 0.0;
       string radialPower = "radial_power";
       f = XT_Function_Mgr::instance()->function(radialPower,8,xtArgs);
 

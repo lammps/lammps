@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "verlet_intel.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -97,7 +97,13 @@ void VerletIntel::init()
 
 void VerletIntel::setup()
 {
-  if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up Verlet run ...\n");
+    fprintf(screen,"  Unit style  : %s\n", update->unit_style);
+    fprintf(screen,"  Current step: " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  Time step   : %g\n", update->dt);
+    timer->print_timeout(screen);
+  }
 
   update->setupflag = 1;
 
@@ -154,7 +160,7 @@ void VerletIntel::setup()
 	sync_mode = 1;
     }
   }
-  
+
   if (sync_mode == 1) fix_intel->sync_coprocessor();
   #endif
 
@@ -232,7 +238,7 @@ void VerletIntel::setup_minimal(int flag)
 	sync_mode = 1;
     }
   }
-  
+
   if (sync_mode == 1) fix_intel->sync_coprocessor();
   #endif
 
@@ -266,6 +272,11 @@ void VerletIntel::run(int n)
   else sortflag = 0;
 
   for (int i = 0; i < n; i++) {
+
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
 
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
@@ -325,7 +336,6 @@ void VerletIntel::run(int n)
       modify->pre_force(vflag);
       timer->stamp(Timer::MODIFY);
     }
-
 
     if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);

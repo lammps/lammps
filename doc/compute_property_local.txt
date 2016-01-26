@@ -98,15 +98,14 @@ by the "pair_style"_pair_style.html command.  The {ntype1} and
 {ntype2}, or {ptype1} and {ptype2} attributes refer to the atom types
 of the 2 atoms in each pairwise interaction.
 
-IMPORTANT NOTE: For pairs, if two atoms I,J are involved in 1-2, 1-3,
-1-4 interactions within the molecular topology, their pairwise
-interaction may be turned off, and thus they may not appear in the
-neighbor list, and will not be part of the local data created by this
-command.  More specifically, this may be true of I,J pairs with a
-weighting factor of 0.0; pairs with a non-zero weighting factor are
-included.  The weighting factors for 1-2, 1-3, and 1-4 pairwise
-interactions are set by the "special_bonds"_special_bonds.html
-command.
+NOTE: For pairs, if two atoms I,J are involved in 1-2, 1-3, 1-4
+interactions within the molecular topology, their pairwise interaction
+may be turned off, and thus they may not appear in the neighbor list,
+and will not be part of the local data created by this command.  More
+specifically, this may be true of I,J pairs with a weighting factor of
+0.0; pairs with a non-zero weighting factor are included.  The
+weighting factors for 1-2, 1-3, and 1-4 pairwise interactions are set
+by the "special_bonds"_special_bonds.html command.
 
 The {batom1} and {batom2} attributes refer to the atom IDs of the 2
 atoms in each "bond"_bond_style.html.  The {btype} attribute refers to

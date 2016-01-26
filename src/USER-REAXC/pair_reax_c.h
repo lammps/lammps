@@ -37,18 +37,12 @@ namespace LAMMPS_NS {
 
 class PairReaxC : public Pair {
  public:
-  PairReaxC(class LAMMPS *);
-  ~PairReaxC();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void *extract(const char *, int &);
   int fixbond_flag, fixspecies_flag;
   int **tmpid;
-  double ** tmpbo, **tmpr;
+  double **tmpbo,**tmpr;
+  double *chi,*eta,*gamma;
 
+  int *map;
   control_params *control;
   reax_system *system;
   output_controls *out_control;
@@ -57,16 +51,21 @@ class PairReaxC : public Pair {
   reax_list *lists;
   mpi_datatypes *mpi_data;
 
-  bigint ngroup;
+  PairReaxC(class LAMMPS *);
+  ~PairReaxC();
+  void compute(int, int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  void init_style();
+  double init_one(int, int);
+  void *extract(const char *, int &);
 
  private:
   double cutmax;
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
-  int *map;
   class FixReaxC *fix_reax;
 
-  double *chi,*eta,*gamma;
   int qeqflag;
   int setup_flag;
   int firstwarn;
@@ -97,8 +96,8 @@ class PairReaxC : public Pair {
 
 E: Too many ghost atoms
 
-Number of ghost atoms has increased too much during simulation and has exceeded 
-the size of reax/c arrays.  Increase safe_zone and min_cap in pair_style reax/c 
+Number of ghost atoms has increased too much during simulation and has exceeded
+the size of reax/c arrays.  Increase safe_zone and min_cap in pair_style reax/c
 command
 
 */

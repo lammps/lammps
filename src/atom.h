@@ -76,6 +76,17 @@ class Atom : protected Pointers {
   double *rho,*drho,*e,*de,*cv;
   double **vest;
 
+  // USER-SMD package
+
+  double *contact_radius;
+  double **smd_data_9;
+  double **smd_stress;
+  double *eff_plastic_strain;
+  double *eff_plastic_strain_rate;
+  double *damage;
+
+  // molecular info
+
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
   int maxspecial;               // special[nlocal][maxspecial]
@@ -123,6 +134,17 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
 
+  // USER-SMD package
+
+  int smd_flag;
+  int contact_radius_flag;
+  int smd_data_9_flag;
+  int smd_stress_flag;
+  int x0_flag;
+  int eff_plastic_strain_flag;
+  int eff_plastic_strain_rate_flag;
+  int damage_flag;
+
   // Peridynamics scale factor, used by dump cfg
 
   double pdscale;
@@ -159,8 +181,8 @@ class Atom : protected Pointers {
   // spatial sorting of atoms
 
   int sortfreq;             // sort atoms every this many steps, 0 = off
-  double userbinsize;       // requested sort bin size
   bigint nextsort;          // next timestep to sort on
+  double userbinsize;       // requested sort bin size
 
   // indices of atoms with same ID
 
@@ -185,22 +207,23 @@ class Atom : protected Pointers {
 
   int parse_data(const char *);
   int count_words(const char *);
+  int count_words(const char *, char *);
 
   void deallocate_topology();
 
-  void data_atoms(int, char *);
-  void data_vels(int, char *);
+  void data_atoms(int, char *, tagint, int, int, double *);
+  void data_vels(int, char *, tagint);
 
-  void data_bonds(int, char *, int *);
-  void data_angles(int, char *, int *);
-  void data_dihedrals(int, char *, int *);
-  void data_impropers(int, char *, int *);
+  void data_bonds(int, char *, int *, tagint, int);
+  void data_angles(int, char *, int *, tagint, int);
+  void data_dihedrals(int, char *, int *, tagint, int);
+  void data_impropers(int, char *, int *, tagint, int);
 
-  void data_bonus(int, char *, class AtomVec *);
-  void data_bodies(int, char *, class AtomVecBody *);
+  void data_bonus(int, char *, class AtomVec *, tagint);
+  void data_bodies(int, char *, class AtomVecBody *, tagint);
 
   virtual void allocate_type_arrays();
-  void set_mass(const char *);
+  void set_mass(const char *, int);
   void set_mass(int, double);
   void set_mass(int, char **);
   void set_mass(double *);
@@ -223,7 +246,7 @@ class Atom : protected Pointers {
   int find_custom(char *, int &);
   int add_custom(char *, int);
   void remove_custom(int, int);
-  
+
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
   void *extract(char *);

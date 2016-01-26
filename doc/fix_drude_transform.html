@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix drude/transform/direct command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix drude/transform/direct command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-drude-transform-direct-command">
+<span id="index-0"></span><h1>fix drude/transform/direct command<a class="headerlink" href="#fix-drude-transform-direct-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-drude-transform-inverse-command">
+<h1>fix drude/transform/inverse command<a class="headerlink" href="#fix-drude-transform-inverse-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID style keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>style = <em>drude/transform/direct</em> or <em>drude/transform/inverse</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 3 all drude/transform/direct
+fix 1 all drude/transform/inverse
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Transform the coordinates of Drude oscillators from real to reduced
+and back for thermalizing the Drude oscillators as described in
+<a class="reference internal" href="tutorial_drude.html#lamoureux"><span>(Lamoureux)</span></a> using a Nose-Hoover thermostat.  This fix is
+designed to be used with the <a class="reference internal" href="tutorial_drude.html"><em>thermalized Drude oscillator model</em></a>.  Polarizable models in LAMMPS are
+described in <a class="reference internal" href="Section_howto.html#howto-25"><span>this Section</span></a>.</p>
+<p>Drude oscillators are a pair of atoms representing a single
+polarizable atom.  Ideally, the mass of Drude particles would vanish
+and their positions would be determined self-consistently by iterative
+minimization of the energy, the cores&#8217; positions being fixed.  It is
+however more efficient and it yields comparable results, if the Drude
+oscillators (the motion of the Drude particle relative to the core)
+are thermalized at a low temperature.  In that case, the Drude
+particles need a small mass.</p>
+<p>The thermostats act on the reduced degrees of freedom, which are
+defined by the following equations.  Note that in these equations
+upper case denotes atomic or center of mass values and lower case
+denotes Drude particle or dipole values. Primes denote the transformed
+(reduced) values, while bare letters denote the original values.</p>
+<p>Masses:</p>
+<div class="math">
+\[\begin{equation} M' = M + m \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} m' = \frac {M\, m } {M'} \end{equation}\]</div>
+<p>Positions:</p>
+<div class="math">
+\[\begin{equation} X' = \frac {M\, X + m\, x} {M'}\end{equation}\]</div>
+<div class="math">
+\[\begin{equation} x' = x - X \end{equation}\]</div>
+<p>Velocities:</p>
+<div class="math">
+\[\begin{equation} V' = \frac {M\, V + m\, v} {M'}\end{equation}\]</div>
+<div class="math">
+\[\begin{equation} v' = v - V \end{equation}\]</div>
+<p>Forces:</p>
+<div class="math">
+\[\begin{equation} F' = F + f \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} f' = \frac { M\, f - m\, F} {M'}\end{equation}\]</div>
+<p>This transform conserves the total kinetic energy</p>
+<div class="math">
+\[\begin{equation} \frac 1 2 \, (M\, V^2\ + m\, v^2)
+= \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2) \end{equation}\]</div>
+<p>and the virial defined with absolute positions</p>
+<div class="math">
+\[\begin{equation} X\, F + x\, f = X'\, F' + x'\, f' \end{equation}\]</div>
+<hr class="docutils" />
+<p>This fix requires each atom know whether it is a Drude particle or
+not.  You must therefore use the <a class="reference internal" href="fix_drude.html"><em>fix drude</em></a> command to
+specify the Drude status of each atom type.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">only the Drude core atoms need to be in the group specified for
+this fix. A Drude electron will be transformed together with its core
+even if it is not itself in the group.  It is safe to include Drude
+electrons or non-polarizable atoms in the group. The non-polarizable
+atoms will simply not be transformed.</p>
+</div>
+<hr class="docutils" />
+<p>This fix does NOT perform time integration. It only transform masses,
+coordinates, velocities and forces. Thus you must use separate time
+integration fixes, like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> to actually update the velocities and positions of
+atoms.  In order to thermalize the reduced degrees of freedom at
+different temperatures, two Nose-Hoover thermostats must be defined,
+acting on two distinct groups.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>fix drude/transform/direct</em> command must appear before any
+Nose-Hoover thermostating fixes.  The <em>fix drude/transform/inverse</em>
+command must appear after any Nose-Hoover thermostating fixes.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix fDIRECT all drude/transform/direct
+fix fNVT gCORES nvt temp 300.0 300.0 100
+fix fNVT gDRUDES nvt temp 1.0 1.0 100
+fix fINVERSE all drude/transform/inverse
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE[1] c_TDRUDE[2]
+</pre></div>
+</div>
+<p>In this example, <em>gCORES</em> is the group of the atom cores and <em>gDRUDES</em>
+is the group of the Drude particles (electrons). The centers of mass
+of the Drude oscillators will be thermostated at 300.0 and the
+internal degrees of freedom will be thermostated at 1.0.  The
+temperatures of cores and Drude particles, in center-of-mass and
+relative coordinates, are calculated using <a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a></p>
+<p>In addition, if you want to use a barostat to simulate a system at
+constant pressure, only one of the Nose-Hoover fixes must be <em>npt</em>,
+the other one should be <em>nvt</em>. You must add a <em>compute temp/com</em> and a
+<em>fix_modify</em> command so that the temperature of the <em>npt</em> fix be just
+that of its group (the Drude cores) but the pressure be the overall
+pressure <em>thermo_press</em>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute cTEMP_CORE gCORES temp/com
+fix fDIRECT all drude/transform/direct
+fix fNPT gCORES npt temp 298.0 298.0 100 iso 1.0 1.0 500
+fix_modify fNPT temp cTEMP_CORE press thermo_press
+fix fNVT gDRUDES nvt temp 5.0 5.0 100
+fix fINVERSE all drude/transform/inverse
+</pre></div>
+</div>
+<p>In this example, <em>gCORES</em> is the group of the atom cores and <em>gDRUDES</em>
+is the group of the Drude particles. The centers of mass of the Drude
+oscillators will be thermostated at 298.0 and the internal degrees of
+freedom will be thermostated at 5.0. The whole system will be
+barostated at 1.0.</p>
+<p>In order to avoid the flying ice cube problem (irreversible transfer
+of linear momentum to the center of mass of the system), you may need
+to add a <em>fix momentum</em> command:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix fMOMENTUM all momentum 100 linear 1 1 1
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_drude.html"><em>fix drude</em></a>,
+<a class="reference internal" href="fix_langevin_drude.html"><em>fix langevin/drude</em></a>,
+<a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a>,
+<a class="reference internal" href="pair_thole.html"><em>pair_style thole</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="lamoureux"><strong>(Lamoureux)</strong> Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

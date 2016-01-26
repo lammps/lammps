@@ -280,10 +280,10 @@ struct NeighborKokkosBuildFunctor {
   const NeighborKokkosExecute<Device> c;
   const size_t sharedsize;
 
-  NeighborKokkosBuildFunctor(const NeighborKokkosExecute<Device> &_c, 
+  NeighborKokkosBuildFunctor(const NeighborKokkosExecute<Device> &_c,
                              const size_t _sharedsize):c(_c),
                              sharedsize(_sharedsize) {};
-  
+
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON>(i);
@@ -304,7 +304,7 @@ struct NeighborKokkosBuildFunctorFullGhost {
   const NeighborKokkosExecute<Device> c;
   const size_t sharedsize;
 
-  NeighborKokkosBuildFunctorFullGhost(const NeighborKokkosExecute<Device> &_c, 
+  NeighborKokkosBuildFunctorFullGhost(const NeighborKokkosExecute<Device> &_c,
                              const size_t _sharedsize):c(_c),
                              sharedsize(_sharedsize) {};
 
@@ -331,17 +331,17 @@ struct NeighborClusterKokkosBuildFunctor {
   }
 };
 
-template<class DeviceType> 
+template<class DeviceType>
 struct TagNeighborCheckDistance{};
 
-template<class DeviceType> 
+template<class DeviceType>
 struct TagNeighborXhold{};
 
 class NeighborKokkos : public Neighbor {
  public:
   typedef int value_type;
 
-  
+
 
   int nlist_host;                       // pairwise neighbor lists on Host
   NeighListKokkos<LMPHostType> **lists_host;
@@ -360,11 +360,11 @@ class NeighborKokkos : public Neighbor {
   ~NeighborKokkos();
   void init();
 
-  template<class DeviceType> 
+  template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborCheckDistance<DeviceType>, const int&, int&) const;
 
-  template<class DeviceType> 
+  template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborXhold<DeviceType>, const int&) const;
 

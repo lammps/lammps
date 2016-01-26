@@ -223,16 +223,16 @@ variable	s equal next(f)
 dump		1 all atom 100 tmp.dump
 dump_modify	1 every v_s :pre
 
-IMPORTANT NOTE: When using a file-style variable with the {every}
-keyword, the file of timesteps must list a first timestep that is
-beyond the current timestep (e.g. it cannot be 0).  And it must list
-one or more timesteps beyond the length of the run you perform.  This
-is because the dump command will generate an error if the next
-timestep it reads from the file is not a value greater than the
-current timestep.  Thus if you wanted output on steps 0,15,100 of a
-100-timestep run, the file should contain the values 15,100,101 and
-you should also use the dump_modify first command.  Any final value >
-100 could be used in place of 101.
+NOTE: When using a file-style variable with the {every} keyword, the
+file of timesteps must list a first timestep that is beyond the
+current timestep (e.g. it cannot be 0).  And it must list one or more
+timesteps beyond the length of the run you perform.  This is because
+the dump command will generate an error if the next timestep it reads
+from the file is not a value greater than the current timestep.  Thus
+if you wanted output on steps 0,15,100 of a 100-timestep run, the file
+should contain the values 15,100,101 and you should also use the
+dump_modify first command.  Any final value > 100 could be used in
+place of 101.
 
 :line
 
@@ -257,19 +257,19 @@ performed with dump style {xtc}.
 The text-based dump styles have a default C-style format string which
 simply specifies %d for integers and %g for floating-point values.
 The {format} keyword can be used to override the default with a new
-C-style format string.  Do not include a trailing "\n" newline
+C-style format string.  Do not include a trailing "\\n" newline
 character in the format string.  This option has no effect on the
 {dcd} and {xtc} dump styles since they write binary files.  Note that
 for the {cfg} style, the first two fields (atom id and type) are not
 actually written into the CFG file, though you must include formats
 for them in the format string.
 
-IMPORTANT NOTE: Any value written to a text-based dump file that is a
-per-atom quantity calculated by a "compute"_compute.html or
-"fix"_fix.html is stored internally as a floating-point value.  If the
-value is actually an integer and you wish it to appear in the text
-dump file as a (large) integer, then you need to use an appropriate
-format.  For example, these commands:
+NOTE: Any value written to a text-based dump file that is a per-atom
+quantity calculated by a "compute"_compute.html or "fix"_fix.html is
+stored internally as a floating-point value.  If the value is actually
+an integer and you wish it to appear in the text dump file as a
+(large) integer, then you need to use an appropriate format.  For
+example, these commands:
 
 compute     1 all property/local batom1 batom2
 dump        1 all local 100 tmp.bonds index c_1\[1\] c_1\[2\]
@@ -406,9 +406,9 @@ file correctly.  If multiple processors are writing the dump file, via
 the "%" wildcard in the dump filename, then sorting cannot be
 performed.
 
-IMPORTANT NOTE: Unless it is required by the dump style, sorting dump
-file output requires extra overhead in terms of CPU and communication
-cost, as well as memory, versus unsorted output.
+NOTE: Unless it is required by the dump style, sorting dump file
+output requires extra overhead in terms of CPU and communication cost,
+as well as memory, versus unsorted output.
 
 :line
 
@@ -659,8 +659,8 @@ also determined by the compression format and encoder.  The default
 setting is 2000 kbit/s, which will result in average quality with
 older compression formats.
 
-IMPORTANT NOTE: Not all movie file formats supported by dump movie
-allow the bitrate to be set.  If not, the setting is silently ignored.
+NOTE: Not all movie file formats supported by dump movie allow the
+bitrate to be set.  If not, the setting is silently ignored.
 
 :line
 

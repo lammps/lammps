@@ -15,10 +15,10 @@
    Contributing author: Daniel Schwen
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_voronoi_atom.h"
 #include "atom.h"
 #include "group.h"
@@ -37,6 +37,8 @@
 using namespace LAMMPS_NS;
 using namespace voro;
 
+#define FACESDELTA 10000
+
 /* ---------------------------------------------------------------------- */
 
 ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
@@ -47,6 +49,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 2;
   peratom_flag = 1;
   comm_forward = 1;
+  faces_flag = 0;
 
   surface = VOROSURF_NONE;
   maxedge = 0;
@@ -59,6 +62,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   con_poly = NULL;
   tags = NULL;
   occvec = sendocc = lroot = lnext = NULL;
+  faces = NULL;
 
   int iarg = 3;
   while ( iarg<narg ) {
@@ -71,7 +75,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     }
     else if (strcmp(arg[iarg], "radius") == 0) {
-      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] ) 
+      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] )
 	error->all(FLERR,"Illegal compute voronoi/atom command");
       int n = strlen(&arg[iarg+1][2]) + 1;
       radstr = new char[n];
@@ -103,6 +107,18 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
       ethresh = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "neighbors") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
+      if (strcmp(arg[iarg+1],"yes") == 0) faces_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) faces_flag = 0;
+      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "peratom") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
+      if (strcmp(arg[iarg+1],"yes") == 0) peratom_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) peratom_flag = 0;
+      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      iarg += 2;
     }
     else error->all(FLERR,"Illegal compute voronoi/atom command");
   }
@@ -120,6 +136,15 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     memory->create(edge,maxedge+1,"voronoi/atom:edge");
     memory->create(sendvector,maxedge+1,"voronoi/atom:sendvector");
     vector = edge;
+  }
+
+  // store local face data: i, j, area
+
+  if (faces_flag) {
+    local_flag = 1;
+    size_local_cols = 3;
+    size_local_rows = 0;
+    nfacesmax = 0;
   }
 }
 
@@ -145,6 +170,7 @@ ComputeVoronoi::~ComputeVoronoi()
   memory->destroy(sendocc);
 #endif
   memory->destroy(tags);
+  memory->destroy(faces);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -233,22 +259,38 @@ void ComputeVoronoi::buildCells()
 
     // cutghost is in lamda coordinates for triclinic boxes, use subxx_lamda
     double *h = domain->h;
-    sublo_bound[0] = h[0]*sublo_lamda[0] + h[5]*sublo_lamda[1] + h[4]*sublo_lamda[2] + boxlo[0];
-    sublo_bound[1] = h[1]*sublo_lamda[1] + h[3]*sublo_lamda[2] + boxlo[1];
-    sublo_bound[2] = h[2]*sublo_lamda[2] + boxlo[2];
-    subhi_bound[0] = h[0]*subhi_lamda[0] + h[5]*subhi_lamda[1] + h[4]*subhi_lamda[2] + boxlo[0];
-    subhi_bound[1] = h[1]*subhi_lamda[1] + h[3]*subhi_lamda[2] + boxlo[1];
-    subhi_bound[2] = h[2]*subhi_lamda[2] + boxlo[2];
-    cut_bound[0] = h[0]*cut[0] + h[5]*cut[1] + h[4]*cut[2];
-    cut_bound[1] = h[1]*cut[1] + h[3]*cut[2];
-    cut_bound[2] = h[2]*cut[2];
+    for( i=0; i<3; ++i ) {
+      sublo_bound[i] = sublo[i]-cut[i]-e;
+      subhi_bound[i] = subhi[i]+cut[i]+e;
+      if (domain->periodicity[i]==0) {
+	sublo_bound[i] = MAX(sublo_bound[i],0.0);
+	subhi_bound[i] = MIN(subhi_bound[i],1.0);
+      }
+    }
+    if (dim == 2) {
+      sublo_bound[2] = 0.0;
+      subhi_bound[2] = 1.0;
+    }
+    sublo_bound[0] = h[0]*sublo_bound[0] + h[5]*sublo_bound[1] + h[4]*sublo_bound[2] + boxlo[0];
+    sublo_bound[1] = h[1]*sublo_bound[1] + h[3]*sublo_bound[2] + boxlo[1];
+    sublo_bound[2] = h[2]*sublo_bound[2] + boxlo[2];
+    subhi_bound[0] = h[0]*subhi_bound[0] + h[5]*subhi_bound[1] + h[4]*subhi_bound[2] + boxlo[0];
+    subhi_bound[1] = h[1]*subhi_bound[1] + h[3]*subhi_bound[2] + boxlo[1];
+    subhi_bound[2] = h[2]*subhi_bound[2] + boxlo[2];
 
   } else {
     // orthogonal box
     for( i=0; i<3; ++i ) {
-      sublo_bound[i] = sublo[i];
-      subhi_bound[i] = subhi[i];
-      cut_bound[i] = cut[i];
+      sublo_bound[i] = sublo[i]-cut[i]-e;
+      subhi_bound[i] = subhi[i]+cut[i]+e;
+      if (domain->periodicity[i]==0) {
+	sublo_bound[i] = MAX(sublo_bound[i],domain->boxlo[i]);
+	subhi_bound[i] = MIN(subhi_bound[i],domain->boxhi[i]);
+      }
+    }
+    if (dim == 2) {
+      sublo_bound[2] = sublo[2];
+      subhi_bound[2] = subhi[2];
     }
   }
 
@@ -263,7 +305,8 @@ void ComputeVoronoi::buildCells()
   }
 
   // clear edge statistics
-  for (i = 0; i < maxedge; ++i) edge[i]=0;
+  if ( maxedge > 0 )
+    for (i = 0; i <= maxedge; ++i) edge[i]=0;
 
   // initialize voro++ container
   // preallocates 8 atoms per cell
@@ -290,10 +333,14 @@ void ComputeVoronoi::buildCells()
 
     // polydisperse voro++ container
     delete con_poly;
-    con_poly = new container_poly(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
-                       sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                       sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
-                       int(n[0]),int(n[1]),int(n[2]),false,false,false,8);
+    con_poly = new container_poly(sublo_bound[0],
+				  subhi_bound[0],
+				  sublo_bound[1],
+				  subhi_bound[1],
+				  sublo_bound[2],
+				  subhi_bound[2],
+				  int(n[0]),int(n[1]),int(n[2]),
+				  false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++) {
@@ -303,10 +350,15 @@ void ComputeVoronoi::buildCells()
   } else {
     // monodisperse voro++ container
     delete con_mono;
-    con_mono = new container(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
-                  sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                  sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
-                  int(n[0]),int(n[1]),int(n[2]),false,false,false,8);
+
+    con_mono = new container(sublo_bound[0],
+			     subhi_bound[0],
+			     sublo_bound[1],
+			     subhi_bound[1],
+			     sublo_bound[2],
+			     subhi_bound[2],
+			     int(n[0]),int(n[1]),int(n[2]),
+			     false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
@@ -398,6 +450,7 @@ void ComputeVoronoi::loopCells()
   // invoke voro++ and fetch results for owned atoms in group
   voronoicell_neighbor c;
   int i;
+  if (faces_flag) nfaces = 0;
   if (radstr) {
     c_loop_all cl(*con_poly);
     if (cl.start()) do if (con_poly->compute_cell(c,cl)) {
@@ -411,6 +464,8 @@ void ComputeVoronoi::loopCells()
       processCell(c,i);
     } while (cl.inc());
   }
+  if (faces_flag) size_local_rows = nfaces;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -455,7 +510,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 
       // each entry in neigh should correspond to an entry in narea
       if (neighs != narea.size())
-        error->all(FLERR,"Voro++ error: narea and neigh have a different size");
+        error->one(FLERR,"Voro++ error: narea and neigh have a different size");
 
       // loop over all faces (neighbors) and check if they are in the surface group
       for (j=0; j<neighs; ++j)
@@ -464,6 +519,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
     }
 
     // histogram of number of face edges
+
     if (maxedge>0) {
       if (ethresh > 0) {
         // count only edges above length threshold
@@ -502,12 +558,48 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
           }
       }
     }
+
+    // store info for local faces
+
+    if (faces_flag) {
+      if (nfaces+voro[i][1] > nfacesmax) {
+	while (nfacesmax < nfaces+voro[i][1]) nfacesmax += FACESDELTA;
+	memory->grow(faces,nfacesmax,size_local_cols,"compute/voronoi/atom:faces");
+	array_local = faces;
+      }
+
+      if (!have_narea) c.face_areas(narea);
+
+      if (neighs != narea.size())
+        error->one(FLERR,"Voro++ error: narea and neigh have a different size");
+      tagint itag, jtag;
+      tagint *tag = atom->tag;
+      itag = tag[i];
+      for (j=0; j<neighs; ++j)
+	if (narea[j] > fthresh) {
+
+	  // external faces assigned the tag 0
+
+	  int jj = neigh[j];
+	  if (jj >= 0) jtag = tag[jj];
+	  else jtag = 0;
+
+	  faces[nfaces][0] = itag;
+	  faces[nfaces][1] = jtag;
+	  faces[nfaces][2] = narea[j];
+	  nfaces++;
+	}
+    }
+      
+
   } else if (i < atom->nlocal) voro[i][0] = voro[i][1] = 0.0;
 }
 
 double ComputeVoronoi::memory_usage()
 {
   double bytes = size_peratom_cols * nmax * sizeof(double);
+  // estimate based on average coordination of 12
+  if (faces_flag) bytes += 12 * size_local_cols * nmax * sizeof(double);
   return bytes;
 }
 
@@ -518,6 +610,14 @@ void ComputeVoronoi::compute_vector()
 
   for( int i=0; i<size_vector; ++i ) sendvector[i] = edge[i];
   MPI_Allreduce(sendvector,edge,size_vector,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeVoronoi::compute_local()
+{
+  invoked_local = update->ntimestep;
+  if( invoked_peratom < invoked_local ) compute_peratom();
 }
 
 /* ---------------------------------------------------------------------- */

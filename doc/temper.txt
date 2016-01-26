@@ -51,7 +51,7 @@ assigned a different temperature.  See the "variable"_variable.html
 command for more details.  For example:
 
 variable t world 300.0 310.0 320.0 330.0
-fix myfix all nvt $t $t 100.0
+fix myfix all nvt temp $t $t 100.0
 temper 100000 100 $t myfix 3847 58382 :pre
 
 would define 4 temperatures, and assign one of them to the thermostat

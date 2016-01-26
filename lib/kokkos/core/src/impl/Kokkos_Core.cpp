@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -69,6 +67,13 @@ bool is_unsigned_int(const char* str)
 
 void initialize_internal(const InitArguments& args)
 {
+// This is an experimental setting
+// For KNL in Flat mode this variable should be set, so that
+// memkind allocates high bandwidth memory correctly.
+#ifdef KOKKOS_HAVE_HBWSPACE
+setenv("MEMKIND_HBW_NODES", "1", 0);
+#endif
+
   // Protect declarations, to prevent "unused variable" warnings.
 #if defined( KOKKOS_HAVE_OPENMP ) || defined( KOKKOS_HAVE_PTHREAD )
   const int num_threads = args.num_threads;
@@ -141,6 +146,10 @@ void initialize_internal(const InitArguments& args)
     //std::cout << "Kokkos::initialize() fyi: Cuda enabled and initialized" << std::endl ;
   }
 #endif
+
+#ifdef KOKKOSP_ENABLE_PROFILING
+    Kokkos::Experimental::initialize();
+#endif
 }
 
 void finalize_internal( const bool all_spaces = false )
@@ -178,6 +187,10 @@ void finalize_internal( const bool all_spaces = false )
     if(Kokkos::Serial::is_initialized())
       Kokkos::Serial::finalize();
   }
+#endif
+
+#ifdef KOKKOSP_ENABLE_PROFILING
+    Kokkos::Experimental::finalize();
 #endif
 
 }

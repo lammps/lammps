@@ -15,10 +15,10 @@
    Contributing author: Greg Wagner (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_meam.h"
 #include "atom.h"
 #include "force.h"
@@ -730,7 +730,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAM::pack_forward_comm(int n, int *list, double *buf, 
+int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,k,m;

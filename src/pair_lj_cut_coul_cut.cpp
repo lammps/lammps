@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_cut.h"
 #include "atom.h"
 #include "comm.h"
@@ -212,7 +212,7 @@ void PairLJCutCoulCut::settings(int narg, char **arg)
 
 void PairLJCutCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) 
+  if (narg < 4 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 

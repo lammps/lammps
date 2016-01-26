@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: W. Michael Brown (Intel)
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(INTEL,FixIntel)
@@ -31,7 +35,7 @@ namespace LAMMPS_NS {
 
 class IntelData;
 template <class flt_t, class acc_t> class IntelBuffers;
- 
+
 class FixIntel : public Fix {
  public:
   FixIntel(class LAMMPS *, int, char **);
@@ -39,7 +43,7 @@ class FixIntel : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
-  void pair_init_check();
+  void pair_init_check(const bool cdmessage=false);
 
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();
@@ -49,21 +53,24 @@ class FixIntel : public Fix {
   typedef struct { double x,y,z; } lmp_ft;
 
   enum {PREC_MODE_SINGLE, PREC_MODE_MIXED, PREC_MODE_DOUBLE};
-  
+
   inline int precision() { return _precision_mode; }
-  inline IntelBuffers<float,float> * get_single_buffers() 
+  inline IntelBuffers<float,float> * get_single_buffers()
     { return _single_buffers; }
-  inline IntelBuffers<float,double> * get_mixed_buffers() 
+  inline IntelBuffers<float,double> * get_mixed_buffers()
     { return _mixed_buffers; }
-  inline IntelBuffers<double,double> * get_double_buffers() 
+  inline IntelBuffers<double,double> * get_double_buffers()
     { return _double_buffers; }
+
+  inline int nbor_pack_width() const { return _nbor_pack_width; }
+  inline void nbor_pack_width(const int w) { _nbor_pack_width = w; }
 
  protected:
   IntelBuffers<float,float> *_single_buffers;
   IntelBuffers<float,double> *_mixed_buffers;
   IntelBuffers<double,double> *_double_buffers;
 
-  int _precision_mode, _nthreads;
+  int _precision_mode, _nthreads, _nbor_pack_width;
 
  public:
   inline int* get_overflow_flag() { return _overflow_flag; }
@@ -77,7 +84,7 @@ class FixIntel : public Fix {
   inline void add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
                                float *ev_in, const int offload,
                                const int eatom = 0, const int vatom = 0);
-  inline void get_buffern(const int offload, int &nlocal, int &nall, 
+  inline void get_buffern(const int offload, int &nlocal, int &nall,
 			  int &minlocal);
 
   #ifdef _LMP_INTEL_OFFLOAD
@@ -101,7 +108,7 @@ class FixIntel : public Fix {
   inline int host_nall() { return _host_nall; }
   inline int separate_buffers() { return _separate_buffers; }
   inline int offload_noghost() { return _offload_noghost; }
-  inline void set_offload_noghost(const int v) 
+  inline void set_offload_noghost(const int v)
     { if (_offload_ghost < 0) _offload_noghost = v; }
   inline void set_neighbor_host_sizes();
 
@@ -301,7 +308,7 @@ void FixIntel::add_results(const ft * _noalias const f_in,
 	const acc_t * _noalias const enull = 0;
 	int offset = _offload_nlocal;
 	if (atom->torque) offset *= 2;
-	add_oresults(f_in + offset, enull, eatom, vatom, 
+	add_oresults(f_in + offset, enull, eatom, vatom,
 		     _offload_min_ghost, _offload_nghost);
       }
     } else {
@@ -311,7 +318,7 @@ void FixIntel::add_results(const ft * _noalias const f_in,
 	const acc_t * _noalias const enull = 0;
 	int offset = _host_used_local;
 	if (atom->torque) offset *= 2;
-	add_oresults(f_in + offset, enull, eatom, 
+	add_oresults(f_in + offset, enull, eatom,
 		     vatom, _host_min_ghost, _host_used_ghost);
       }
     }
@@ -367,6 +374,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
 	out_offset;
       if (eatom) {
 	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
           f[i].y += f_in[ii].y;
@@ -378,6 +388,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
           ii += 2;
         }
       } else {
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
           f[i].y += f_in[ii].y;
@@ -391,6 +404,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
     } else {
       if (eatom) {
 	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
           f[i].y += f_in[i].y;
@@ -398,6 +414,9 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
           lmp_eatom[i] += f_in[i].w;
         }
       } else {
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
           f[i].y += f_in[i].y;
@@ -499,7 +518,7 @@ void FixIntel::add_off_results(const ft * _noalias const f_in,
     _offload_nall = _offload_nlocal + _offload_nghost;
       _offload_nlocal;
   }
-  
+
   int nlocal = atom->nlocal;
   // Load balance?
   if (_offload_balance < 0.0) {
@@ -613,8 +632,8 @@ pair styles.
 
 E: Cannot yet use hybrid styles with Intel package.
 
-The hybrid pair style configuration is not yet supported by the Intel 
-package. Support is limited to hybrid/overlay or a hybrid style that does 
+The hybrid pair style configuration is not yet supported by the Intel
+package. Support is limited to hybrid/overlay or a hybrid style that does
 not require a skip list.
 
 W: Leaving a core/node free can improve performance for offload

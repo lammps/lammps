@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -17,9 +17,9 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 #include "fix_rigid_nh_small.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -51,16 +51,16 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 
 FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
   FixRigidSmall(lmp, narg, arg)
-{  
+{
   // error checks
-  
-  if ((p_flag[0] == 1 && p_period[0] <= 0.0) || 
-      (p_flag[1] == 1 && p_period[1] <= 0.0) || 
-      (p_flag[2] == 1 && p_period[2] <= 0.0)) 
+
+  if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||
+      (p_flag[1] == 1 && p_period[1] <= 0.0) ||
+      (p_flag[2] == 1 && p_period[2] <= 0.0))
     error->all(FLERR,"Fix rigid/small npt/nph period must be > 0.0");
 
   dimension = domain->dimension;
-  
+
   if (dimension == 2 && p_flag[2])
     error->all(FLERR,"Invalid fix rigid/small npt/nph command "
                "for a 2d simulation");
@@ -98,7 +98,7 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,
                "Cannot use fix rigid/small npt/nph on a "
                "non-periodic dimension");
-  
+
   if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
@@ -129,38 +129,38 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
                "must be > 0.0");
 
   // memory allocation and initialization
-  
+
   if (tstat_flag || pstat_flag) {
     allocate_chain();
     allocate_order();
   }
-  
+
   if (tstat_flag) {
     eta_t[0] = eta_r[0] = 0.0;
     eta_dot_t[0] = eta_dot_r[0] = 0.0;
     f_eta_t[0] = f_eta_r[0] = 0.0;
-  
+
     for (int i = 1; i < t_chain; i++) {
       eta_t[i] = eta_r[i] = 0.0;
       eta_dot_t[i] = eta_dot_r[i] = 0.0;
     }
   }
-  
+
   if (pstat_flag) {
     epsilon_dot[0] = epsilon_dot[1] = epsilon_dot[2] = 0.0;
     eta_b[0] = eta_dot_b[0] = f_eta_b[0] = 0.0;
-    for (int i = 1; i < p_chain; i++) 
+    for (int i = 1; i < p_chain; i++)
       eta_b[i] = eta_dot_b[i] = 0.0;
   }
 
   // rigid body pointers
-  
+
   nrigidfix = 0;
   rfix = NULL;
 
   vol0 = 0.0;
   t0 = 1.0;
-  
+
   tcomputeflag = 0;
   pcomputeflag = 0;
 }
@@ -173,16 +173,16 @@ FixRigidNHSmall::~FixRigidNHSmall()
     deallocate_chain();
     deallocate_order();
   }
-  
+
   if (rfix) delete [] rfix;
 
   if (tcomputeflag) {
     modify->delete_compute(id_temp);
     delete [] id_temp;
   }
-  
+
   // delete pressure if fix created it
-  
+
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
     delete [] id_press;
@@ -196,7 +196,7 @@ int FixRigidNHSmall::setmask()
   int mask = 0;
   mask = FixRigidSmall::setmask();
   if (tstat_flag || pstat_flag) mask |= THERMO_ENERGY;
-  
+
   return mask;
 }
 
@@ -216,13 +216,13 @@ void FixRigidNHSmall::init()
   }
 
   // initialize thermostats
-  // set timesteps, constants 
+  // set timesteps, constants
   // store Yoshida-Suzuki integrator parameters
-  
+
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dtq = 0.5 * update->dt;
-  
+
   boltz = force->boltz;
   nktv2p = force->nktv2p;
   mvv2e = force->mvv2e;
@@ -231,7 +231,7 @@ void FixRigidNHSmall::init()
   else kspace_flag = 0;
 
   // see Table 1 in Kamberaj et al
-  
+
   if (tstat_flag || pstat_flag) {
     if (t_order == 3) {
       w[0] = 1.0 / (2.0 - pow(2.0, 1.0/3.0));
@@ -247,30 +247,30 @@ void FixRigidNHSmall::init()
   }
 
   int icompute;
-  if (tcomputeflag) {  
+  if (tcomputeflag) {
     icompute = modify->find_compute(id_temp);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Temperature ID for fix rigid nvt/npt/nph does not exist");
     temperature = modify->compute[icompute];
   }
 
   if (pstat_flag) {
-    if (domain->triclinic) 
+    if (domain->triclinic)
       error->all(FLERR,"Fix rigid npt/nph does not yet allow triclinic box");
-  
+
     // ensure no conflict with fix deform
 
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
       	int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
-      	if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || 
+      	if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
       	    (p_flag[2] && dimflag[2]))
           error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
                      "same component of stress tensor");
       }
 
     // set frequency
-  
+
     p_freq_max = 0.0;
     p_freq_max = MAX(p_freq[0],p_freq[1]);
     p_freq_max = MAX(p_freq_max,p_freq[2]);
@@ -287,10 +287,10 @@ void FixRigidNHSmall::init()
     // set pressure compute ptr
 
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Pressure ID for fix rigid npt/nph does not exist");
     pressure = modify->compute[icompute];
-    
+
     // detect if any rigid fixes exist so rigid bodies move on remap
     // rfix[] = indices to each fix rigid
     // this will include self
@@ -317,13 +317,13 @@ void FixRigidNHSmall::setup(int vflag)
   FixRigidSmall::setup(vflag);
 
   // total translational and rotational degrees of freedom
-  
-  nf_t = dimension * nlocal_body;  
+
+  nf_t = dimension * nlocal_body;
   if (dimension == 3) {
     nf_r = dimension * nlocal_body;
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
       Body *b = &body[ibody];
-      for (int k = 0; k < dimension; k++) 
+      for (int k = 0; k < dimension; k++)
         if (fabs(b->inertia[k]) < EPSILON) nf_r--;
     }
   } else if (dimension == 2) {
@@ -341,10 +341,10 @@ void FixRigidNHSmall::setup(int vflag)
   nf_t = nfall[0];
   nf_r = nfall[1];
 
-  g_f = nf_t + nf_r;  
+  g_f = nf_t + nf_r;
   onednft = 1.0 + (double)(dimension) / (double)g_f;
   onednfr = (double) (dimension) / (double)g_f;
-  
+
   double mbody[3];
   akin_t = akin_r = 0.0;
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
@@ -356,7 +356,7 @@ void FixRigidNHSmall::setup(int vflag)
     b->conjqm[1] *= 2.0;
     b->conjqm[2] *= 2.0;
     b->conjqm[3] *= 2.0;
-    
+
     if (tstat_flag || pstat_flag) {
       akin_t += b->mass*(b->vcm[0]*b->vcm[0] + b->vcm[1]*b->vcm[1] +
         b->vcm[2]*b->vcm[2]);
@@ -364,9 +364,9 @@ void FixRigidNHSmall::setup(int vflag)
         b->angmom[2]*b->omega[2];
     }
   }
-  
+
   // accumulate translational and rotational kinetic energies
-  
+
   if (tstat_flag || pstat_flag) {
     double ke[2],keall[2];
     ke[0] = akin_t;
@@ -375,9 +375,9 @@ void FixRigidNHSmall::setup(int vflag)
     akin_t = keall[0];
     akin_r = keall[1];
   }
-  
+
   // compute target temperature
-  
+
   if (tstat_flag) compute_temp_target();
   else if (pstat_flag) {
     t0 = temperature->compute_scalar();
@@ -391,10 +391,10 @@ void FixRigidNHSmall::setup(int vflag)
   // compute target pressure
   // compute current pressure
   // trigger virial computation on next timestep
-    
-  if (pstat_flag) { 
+
+  if (pstat_flag) {
     compute_press_target();
-    
+
     if (pstyle == ISO) {
       temperature->compute_scalar();
       pressure->compute_scalar();
@@ -406,9 +406,9 @@ void FixRigidNHSmall::setup(int vflag)
     couple();
     pressure->addstep(update->ntimestep+1);
   }
-  
+
   // initialize thermostat/barostat settings
-  
+
   double kt, t_mass, tb_mass;
   kt = boltz * t_target;
 
@@ -416,7 +416,7 @@ void FixRigidNHSmall::setup(int vflag)
     t_mass = kt / (t_freq*t_freq);
     q_t[0] = nf_t * t_mass;
     q_r[0] = nf_r * t_mass;
-    for (int i = 1; i < t_chain; i++) 
+    for (int i = 1; i < t_chain; i++)
       q_t[i] = q_r[i] = t_mass;
 
     for (int i = 1; i < t_chain; i++) {
@@ -424,16 +424,16 @@ void FixRigidNHSmall::setup(int vflag)
       f_eta_r[i] = (q_r[i-1] * eta_dot_r[i-1] * eta_dot_r[i-1] - kt)/q_r[i];
     }
   }
-  
+
   // initial forces on barostat thermostat variables
-  
+
   if (pstat_flag) {
     for (int i = 0; i < 3; i++)
       if (p_flag[i]) {
         epsilon_mass[i] = (g_f + dimension) * kt / (p_freq[i]*p_freq[i]);
         epsilon[i] = log(vol0)/dimension;
-      } 
-    
+      }
+
     tb_mass = kt / (p_freq_max * p_freq_max);
     q_b[0] = dimension * dimension * tb_mass;
     for (int i = 1; i < p_chain; i++) {
@@ -441,9 +441,9 @@ void FixRigidNHSmall::setup(int vflag)
       f_eta_b[i] = (q_b[i] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt)/q_b[i];
     }
   }
-  
+
   // update order/timestep dependent coefficients
-  
+
   if (tstat_flag || pstat_flag) {
     for (int i = 0; i < t_order; i++) {
       wdti1[i] = w[i] * dtv / t_iter;
@@ -452,7 +452,7 @@ void FixRigidNHSmall::setup(int vflag)
     }
   }
 
-  if (pstat_flag) { 
+  if (pstat_flag) {
     compute_press_target();
     nh_epsilon_dot();
   }
@@ -468,7 +468,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   double tmp,scale_r,scale_t[3],scale_v[3];
   double dtfm,mbody[3],tbody[3],fquat[4];
   double dtf2 = dtf * 2.0;
-  
+
   // compute scale variables
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
@@ -480,7 +480,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     scale_t[0] = scale_t[1] = scale_t[2] = tmp;
     tmp = exp(-dtq * eta_dot_r[0]);
     scale_r = tmp;
-  } 
+  }
 
   if (pstat_flag) {
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
@@ -495,25 +495,25 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     tmp = dtq * epsilon_dot[2];
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
-    
+
   // update xcm, vcm, quat, conjqm and angmom
 
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
-    
+
     // step 1.1 - update vcm by 1/2 step
-    
+
     dtfm = dtf / b->mass;
     b->vcm[0] += dtfm * b->fcm[0];
     b->vcm[1] += dtfm * b->fcm[1];
     b->vcm[2] += dtfm * b->fcm[2];
-    
+
     if (tstat_flag || pstat_flag) {
       b->vcm[0] *= scale_t[0];
       b->vcm[1] *= scale_t[1];
       b->vcm[2] *= scale_t[2];
     }
-    
+
     // step 1.2 - update xcm by full step
 
     if (!pstat_flag) {
@@ -525,51 +525,51 @@ void FixRigidNHSmall::initial_integrate(int vflag)
       b->xcm[1] += scale_v[1] * b->vcm[1];
       b->xcm[2] += scale_v[2] * b->vcm[2];
     }
-    
+
     // step 1.3 - apply torque (body coords) to quaternion momentum
-    
+
     MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
                                 b->torque,tbody);
     MathExtra::quatvec(b->quat,tbody,fquat);
-    
+
     b->conjqm[0] += dtf2 * fquat[0];
     b->conjqm[1] += dtf2 * fquat[1];
     b->conjqm[2] += dtf2 * fquat[2];
     b->conjqm[3] += dtf2 * fquat[3];
-    
+
     if (tstat_flag || pstat_flag) {
       b->conjqm[0] *= scale_r;
       b->conjqm[1] *= scale_r;
       b->conjqm[2] *= scale_r;
       b->conjqm[3] *= scale_r;
     }
-    
+
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
-  
+
     no_squish_rotate(3,b->conjqm,b->quat,b->inertia,dtq);
     no_squish_rotate(2,b->conjqm,b->quat,b->inertia,dtq);
     no_squish_rotate(1,b->conjqm,b->quat,b->inertia,dtv);
     no_squish_rotate(2,b->conjqm,b->quat,b->inertia,dtq);
     no_squish_rotate(3,b->conjqm,b->quat,b->inertia,dtq);
-  
+
     // update exyz_space
     // transform p back to angmom
     // update angular velocity
-    
+
     MathExtra::q_to_exyz(b->quat,b->ex_space,b->ey_space,
                          b->ez_space);
     MathExtra::invquatvec(b->quat,b->conjqm,mbody);
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,
                       mbody,b->angmom);
-    
+
     b->angmom[0] *= 0.5;
     b->angmom[1] *= 0.5;
     b->angmom[2] *= 0.5;
-    
+
     MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
                                b->ez_space,b->inertia,b->omega);
   }
-  
+
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
@@ -581,13 +581,13 @@ void FixRigidNHSmall::initial_integrate(int vflag)
 
     akin_t = akin_r = 0.0;
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];  
+      Body *b = &body[ibody];
       akin_t += b->mass*(b->vcm[0]*b->vcm[0] + b->vcm[1]*b->vcm[1] +
         b->vcm[2]*b->vcm[2]);
       akin_r += b->angmom[0]*b->omega[0] + b->angmom[1]*b->omega[1] +
         b->angmom[2]*b->omega[2];
     }
-    
+
     double ke[2],keall[2];
     ke[0] = akin_t;
     ke[1] = akin_r;
@@ -604,7 +604,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     compute_temp_target();
     nhc_temp_integrate();
   }
-    
+
   // update thermostat chains coupled with barostat
   // refer to update_nhcb() in Kamberaj et al.
 
@@ -625,14 +625,14 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   // from quarternion and omega
 
   set_xv();
-  
+
   // remap simulation box by full step
   // redo KSpace coeffs since volume has changed
 
   if (pstat_flag) {
     remap();
     if (kspace_flag) force->kspace->setup();
-  }  
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -646,7 +646,7 @@ void FixRigidNHSmall::final_integrate()
   double dtf2 = dtf * 2.0;
 
   // compute scale variables
-  
+
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_r = 1.0;
 
@@ -654,21 +654,21 @@ void FixRigidNHSmall::final_integrate()
     tmp = exp(-1.0 * dtq * eta_dot_t[0]);
     scale_t[0] = scale_t[1] = scale_t[2] = tmp;
     scale_r = exp(-1.0 * dtq * eta_dot_r[0]);
-  } 
-  
+  }
+
   if (pstat_flag) {
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
     scale_r *= exp(-dtq * (pdim * mtk_term2));
   }
-  
+
   // sum over atoms to get force and torque on rigid body
-  
+
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
-  
+
   double dx,dy,dz;
   double unwrap[3];
   double *xcm,*fcm,*tcm;
@@ -700,7 +700,7 @@ void FixRigidNHSmall::final_integrate()
     tcm[1] += dz*f[i][0] - dx*f[i][2];
     tcm[2] += dx*f[i][1] - dy*f[i][0];
   }
-  
+
   // extended particles add their torque to torque of body
 
   if (extended) {
@@ -737,7 +737,7 @@ void FixRigidNHSmall::final_integrate()
       tcm[2] += langextra[ibody][5];
     }
   }
-  
+
   // update vcm and angmom
   // include Langevin thermostat forces
   // fflag,tflag = 0 for some dimensions in 2d
@@ -760,11 +760,11 @@ void FixRigidNHSmall::final_integrate()
 
     // update conjqm, then transform to angmom, set velocity again
     // virial is already setup from initial_integrate
-    
+
     MathExtra::transpose_matvec(b->ex_space,b->ey_space,
                                 b->ez_space,b->torque,tbody);
     MathExtra::quatvec(b->quat,tbody,fquat);
-    
+
     if (tstat_flag || pstat_flag) {
       b->conjqm[0] = scale_r * b->conjqm[0] + dtf2 * fquat[0];
       b->conjqm[1] = scale_r * b->conjqm[1] + dtf2 * fquat[1];
@@ -779,11 +779,11 @@ void FixRigidNHSmall::final_integrate()
 
     MathExtra::invquatvec(b->quat,b->conjqm,mbody);
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,mbody,b->angmom);
-    
+
     b->angmom[0] *= 0.5;
     b->angmom[1] *= 0.5;
-    b->angmom[2] *= 0.5;  
-    
+    b->angmom[2] *= 0.5;
+
     MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
                                b->ez_space,b->inertia,b->omega);
   }
@@ -799,13 +799,13 @@ void FixRigidNHSmall::final_integrate()
 
     akin_t = akin_r = 0.0;
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];  
+      Body *b = &body[ibody];
       akin_t += b->mass*(b->vcm[0]*b->vcm[0] + b->vcm[1]*b->vcm[1] +
         b->vcm[2]*b->vcm[2]);
       akin_r += b->angmom[0]*b->omega[0] + b->angmom[1]*b->omega[1] +
         b->angmom[2]*b->omega[2];
     }
-    
+
     double ke[2],keall[2];
     ke[0] = akin_t;
     ke[1] = akin_r;
@@ -824,7 +824,7 @@ void FixRigidNHSmall::final_integrate()
 
   // compute current and target pressures
   // update epsilon dot using akin_t and akin_r
-  
+
   if (pstat_flag) {
     if (pstyle == ISO) {
       temperature->compute_scalar();
@@ -848,68 +848,68 @@ void FixRigidNHSmall::nhc_temp_integrate()
 {
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
-  
+
   kt = boltz * t_target;
   gfkt_t = nf_t * kt;
   gfkt_r = nf_r * kt;
 
   // update thermostat masses
-  
+
   double t_mass = boltz * t_target / (t_freq * t_freq);
   q_t[0] = nf_t * t_mass;
   q_r[0] = nf_r * t_mass;
   for (i = 1; i < t_chain; i++)
     q_t[i] = q_r[i] = t_mass;
-  
+
   // update force of thermostats coupled to particles
-  
+
   f_eta_t[0] = (akin_t * mvv2e - gfkt_t) / q_t[0];
   f_eta_r[0] = (akin_r * mvv2e - gfkt_r) / q_r[0];
-  
+
   // multiple timestep iteration
-  
+
   for (i = 0; i < t_iter; i++) {
     for (j = 0; j < t_order; j++) {
-  
+
       // update thermostat velocities half step
-  
+
       eta_dot_t[t_chain-1] += wdti2[j] * f_eta_t[t_chain-1];
       eta_dot_r[t_chain-1] += wdti2[j] * f_eta_r[t_chain-1];
-      
+
       for (k = 1; k < t_chain; k++) {
         tmp = wdti4[j] * eta_dot_t[t_chain-k];
         ms = maclaurin_series(tmp);
         s = exp(-1.0 * tmp);
         s2 = s * s;
-        eta_dot_t[t_chain-k-1] = eta_dot_t[t_chain-k-1] * s2 + 
+        eta_dot_t[t_chain-k-1] = eta_dot_t[t_chain-k-1] * s2 +
           wdti2[j] * f_eta_t[t_chain-k-1] * s * ms;
-	
+
         tmp = wdti4[j] * eta_dot_r[t_chain-k];
         ms = maclaurin_series(tmp);
         s = exp(-1.0 * tmp);
         s2 = s * s;
-        eta_dot_r[t_chain-k-1] = eta_dot_r[t_chain-k-1] * s2 + 
+        eta_dot_r[t_chain-k-1] = eta_dot_r[t_chain-k-1] * s2 +
           wdti2[j] * f_eta_r[t_chain-k-1] * s * ms;
       }
-      
+
       // update thermostat positions a full step
-      
+
       for (k = 0; k < t_chain; k++) {
         eta_t[k] += wdti1[j] * eta_dot_t[k];
         eta_r[k] += wdti1[j] * eta_dot_r[k];
       }
-      
-      // update thermostat forces 
-      
+
+      // update thermostat forces
+
       for (k = 1; k < t_chain; k++) {
         f_eta_t[k] = q_t[k-1] * eta_dot_t[k-1] * eta_dot_t[k-1] - kt;
         f_eta_t[k] /= q_t[k];
         f_eta_r[k] = q_r[k-1] * eta_dot_r[k-1] * eta_dot_r[k-1] - kt;
         f_eta_r[k] /= q_r[k];
       }
-      
+
       // update thermostat velocities a full step
-      
+
       for (k = 0; k < t_chain-1; k++) {
         tmp = wdti4[j] * eta_dot_t[k+1];
         ms = maclaurin_series(tmp);
@@ -918,7 +918,7 @@ void FixRigidNHSmall::nhc_temp_integrate()
         eta_dot_t[k] = eta_dot_t[k] * s2 + wdti2[j] * f_eta_t[k] * s * ms;
         tmp = q_t[k] * eta_dot_t[k] * eta_dot_t[k] - kt;
         f_eta_t[k+1] = tmp / q_t[k+1];
-	
+
         tmp = wdti4[j] * eta_dot_r[k+1];
         ms = maclaurin_series(tmp);
         s = exp(-1.0 * tmp);
@@ -927,7 +927,7 @@ void FixRigidNHSmall::nhc_temp_integrate()
         tmp = q_r[k] * eta_dot_r[k] * eta_dot_r[k] - kt;
         f_eta_r[k+1] = tmp / q_r[k+1];
       }
-      
+
       eta_dot_t[t_chain-1] += wdti2[j] * f_eta_t[t_chain-1];
       eta_dot_r[t_chain-1] += wdti2[j] * f_eta_r[t_chain-1];
     }
@@ -942,9 +942,9 @@ void FixRigidNHSmall::nhc_press_integrate()
   double tmp,s,s2,ms,kecurrent;
   double kt = boltz * t_target;
   double lkt_press = kt;
-  
+
   // update thermostat masses
-  
+
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
   for (int i = 1; i < p_chain; i++) {
@@ -952,11 +952,11 @@ void FixRigidNHSmall::nhc_press_integrate()
     f_eta_b[i] = q_b[i-1] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt;
     f_eta_b[i] /= q_b[i];
   }
-     
+
   // update forces acting on thermostat
-  
+
   kecurrent = 0.0;
-  for (i = 0; i < 3; i++) 
+  for (i = 0; i < 3; i++)
     if (p_flag[i]) {
       epsilon_mass[i] = (g_f + dimension) * kt / (p_freq[i] * p_freq[i]);
       kecurrent += epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
@@ -966,37 +966,37 @@ void FixRigidNHSmall::nhc_press_integrate()
   f_eta_b[0] = (kecurrent - lkt_press) / q_b[0];
 
   // multiple timestep iteration
-  
+
   for (i = 0; i < t_iter; i++) {
     for (j = 0; j < t_order; j++) {
 
       // update thermostat velocities a half step
-  
+
       eta_dot_b[p_chain-1] += wdti2[j] * f_eta_b[p_chain-1];
-  
+
       for (k = 1; k < p_chain; k++) {
         tmp = wdti4[j] * eta_dot_b[p_chain-k];
         ms = maclaurin_series(tmp);
         s = exp(-0.5 * tmp);
         s2 = s * s;
-        eta_dot_b[p_chain-k-1] = eta_dot_b[p_chain-k-1] * s2 + 
+        eta_dot_b[p_chain-k-1] = eta_dot_b[p_chain-k-1] * s2 +
           wdti2[j] * f_eta_b[p_chain-k-1] * s * ms;
       }
-  
+
       // update thermostat positions
-  
+
       for (k = 0; k < p_chain; k++)
         eta_b[k] += wdti1[j] * eta_dot_b[k];
-  
+
       // update thermostat forces
-  
+
       for (k = 1; k < p_chain; k++) {
         f_eta_b[k] = q_b[k-1] * eta_dot_b[k-1] * eta_dot_b[k-1] - kt;
         f_eta_b[k] /= q_b[k];
       }
 
       // update thermostat velocites a full step
-  
+
       for (k = 0; k < p_chain-1; k++) {
         tmp = wdti4[j] * eta_dot_b[k+1];
         ms = maclaurin_series(tmp);
@@ -1006,13 +1006,13 @@ void FixRigidNHSmall::nhc_press_integrate()
         tmp = q_b[k] * eta_dot_b[k] * eta_dot_b[k] - kt;
         f_eta_b[k+1] = tmp / q_b[k+1];
       }
-  
+
       eta_dot_b[p_chain-1] += wdti2[j] * f_eta_b[p_chain-1];
     }
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    compute kinetic energy in the extended Hamiltonian
    conserved quantity = sum of returned energy and potential energy
 -----------------------------------------------------------------------*/
@@ -1022,22 +1022,22 @@ double FixRigidNHSmall::compute_scalar()
   int i,k;
   double kt = boltz * t_target;
   double energy,ke_t,ke_q,tmp,Pkq[4];
-  
+
   double *vcm,*quat;
-  
+
   // compute the kinetic parts of H_NVE in Kameraj et al (JCP 2005, pp 224114)
-  
+
   // translational and rotational kinetic energies
 
   ke_t = 0.0;
   ke_q = 0.0;
-  
+
   for (int i = 0; i < nlocal_body; i++) {
     vcm = body[i].vcm;
     quat = body[i].quat;
     ke_t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] +
       vcm[2]*vcm[2]);
-    
+
     for (k = 1; k < 4; k++) {
       if (k == 1) {
         Pkq[0] = -quat[1];
@@ -1053,43 +1053,43 @@ double FixRigidNHSmall::compute_scalar()
         Pkq[0] = -quat[3];
         Pkq[1] =  quat[2];
         Pkq[2] = -quat[1];
-        Pkq[3] =  quat[0];      
+        Pkq[3] =  quat[0];
       }
-   
+
       tmp = body[i].conjqm[0]*Pkq[0] + body[i].conjqm[1]*Pkq[1] +
         body[i].conjqm[2]*Pkq[2] + body[i].conjqm[3]*Pkq[3];
       tmp *= tmp;
-    
+
       if (fabs(body[i].inertia[k-1]) < 1e-6) tmp = 0.0;
-      else tmp /= (8.0 * body[i].inertia[k-1]); 
+      else tmp /= (8.0 * body[i].inertia[k-1]);
       ke_q += tmp;
     }
   }
-  
+
   double ke[2],keall[2];
   ke[0] = ke_t;
   ke[1] = ke_q;
   MPI_Allreduce(ke,keall,2,MPI_DOUBLE,MPI_SUM,world);
   ke_t = keall[0];
   ke_q = keall[1];
-  
+
   energy = (ke_t + ke_q) * mvv2e;
-  
+
   if (tstat_flag) {
-  
+
     // thermostat chain energy: from equation 12 in Kameraj et al (JCP 2005)
 
     energy += kt * (nf_t * eta_t[0] + nf_r * eta_r[0]);
-  
-    for (i = 1; i < t_chain; i++) 
+
+    for (i = 1; i < t_chain; i++)
       energy += kt * (eta_t[i] + eta_r[i]);
-  
+
     for (i = 0;  i < t_chain; i++) {
       energy += 0.5 * q_t[i] * (eta_dot_t[i] * eta_dot_t[i]);
       energy += 0.5 * q_r[i] * (eta_dot_r[i] * eta_dot_r[i]);
     }
   }
-  
+
   if (pstat_flag) {
 
     // using equation 22 in Kameraj et al for H_NPT
@@ -1099,7 +1099,7 @@ double FixRigidNHSmall::compute_scalar()
       if (p_flag[i])
         e += epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
     energy += e*(0.5/pdim);
-  
+
     double vol;
     if (dimension == 2) vol = domain->xprd * domain->yprd;
     else vol = domain->xprd * domain->yprd * domain->zprd;
@@ -1112,7 +1112,7 @@ double FixRigidNHSmall::compute_scalar()
       energy += 0.5 * q_b[i] * (eta_dot_b[i] * eta_dot_b[i]);
     }
   }
-  
+
   return energy;
 }
 
@@ -1121,7 +1121,7 @@ double FixRigidNHSmall::compute_scalar()
 void FixRigidNHSmall::couple()
 {
   double *tensor = pressure->vector;
- 
+
   if (pstyle == ISO) {
     p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
   } else if (pcouple == XYZ) {
@@ -1152,30 +1152,30 @@ void FixRigidNHSmall::remap()
 {
   int i;
   double oldlo,oldhi,ctr,expfac;
-  
+
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   // epsilon is not used, except for book-keeping
-  
+
   for (i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
-  
+
   // convert pertinent atoms and rigid bodies to lamda coords
-  
+
   if (allremap) domain->x2lamda(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
-  
+
   if (nrigidfix)
     for (i = 0; i < nrigidfix; i++)
       modify->fix[rfix[i]]->deform(0);
-  
+
   // reset global and local box to new size/shape
-  
+
   for (i = 0; i < 3; i++) {
     if (p_flag[i]) {
       oldlo = domain->boxlo[i];
@@ -1189,16 +1189,16 @@ void FixRigidNHSmall::remap()
 
   domain->set_global_box();
   domain->set_local_box();
-  
+
   // convert pertinent atoms and rigid bodies back to box coords
-  
+
   if (allremap) domain->lamda2x(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }
-  
+
   if (nrigidfix)
     for (i = 0; i< nrigidfix; i++)
       modify->fix[rfix[i]]->deform(1);
@@ -1212,7 +1212,7 @@ void FixRigidNHSmall::compute_temp_target()
 {
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
-      
+
   t_target = t_start + delta * (t_stop-t_start);
 }
 
@@ -1224,7 +1224,7 @@ void FixRigidNHSmall::compute_press_target()
 {
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
-      
+
   p_hydro = 0.0;
   for (int i = 0; i < 3; i++)
     if (p_flag[i]) {
@@ -1247,9 +1247,9 @@ void FixRigidNHSmall::nh_epsilon_dot()
   else volume = domain->xprd*domain->yprd*domain->zprd;
 
   // MTK terms
-  
+
   mtk_term1 = (akin_t + akin_r) * mvv2e / g_f;
-  
+
   scale = exp(-1.0 * dtq * eta_dot_b[0]);
 
   for (i = 0; i < 3; i++)
@@ -1259,7 +1259,7 @@ void FixRigidNHSmall::nh_epsilon_dot()
       epsilon_dot[i] += dtq * f_epsilon;
       epsilon_dot[i] *= scale;
     }
-  
+
   mtk_term2 = 0.0;
   for (i = 0; i < 3; i++)
     if (p_flag[i]) mtk_term2 += epsilon_dot[i];
@@ -1267,15 +1267,15 @@ void FixRigidNHSmall::nh_epsilon_dot()
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixRigidNHSmall::write_restart(FILE *fp)
 {
   if (tstat_flag == 0 && pstat_flag == 0) return;
-  
+
   int nsize = 2; // tstat_flag and pstat_flag
-  
+
   if (tstat_flag) {
     nsize += 1;         // t_chain
     nsize += 4*t_chain; // eta_t, eta_r, eta_dot_t, eta_dot_r
@@ -1285,12 +1285,12 @@ void FixRigidNHSmall::write_restart(FILE *fp)
     nsize += 7;         // p_chain, epsilon(3) and epsilon_dot(3)
     nsize += 2*p_chain;
   }
-  
+
   double *list;
   memory->create(list,nsize,"rigid_nh:list");
-  
+
   int n = 0;
-  
+
   list[n++] = tstat_flag;
   if (tstat_flag) {
     list[n++] = t_chain;
@@ -1301,7 +1301,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
       list[n++] = eta_dot_r[i];
     }
   }
-  
+
   list[n++] = pstat_flag;
   if (pstat_flag) {
     list[n++] = epsilon[0];
@@ -1310,25 +1310,25 @@ void FixRigidNHSmall::write_restart(FILE *fp)
     list[n++] = epsilon_dot[0];
     list[n++] = epsilon_dot[1];
     list[n++] = epsilon_dot[2];
-        
+
     list[n++] = p_chain;
     for (int i = 0; i < p_chain; i++) {
       list[n++] = eta_b[i];
       list[n++] = eta_dot_b[i];
     }
   }
-  
+
   if (comm->me == 0) {
     int size = (nsize)*sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),nsize,fp);
   }
-    
+
   memory->destroy(list);
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixRigidNHSmall::restart(char *buf)
@@ -1336,7 +1336,7 @@ void FixRigidNHSmall::restart(char *buf)
   int n = 0;
   double *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
-  
+
   if (flag) {
     int m = static_cast<int> (list[n++]);
     if (tstat_flag && m == t_chain) {
@@ -1357,7 +1357,7 @@ void FixRigidNHSmall::restart(char *buf)
     epsilon_dot[0] = list[n++];
     epsilon_dot[1] = list[n++];
     epsilon_dot[2] = list[n++];
-    
+
     int m = static_cast<int> (list[n++]);
     if (pstat_flag && m == p_chain) {
       for (int i = 0; i < p_chain; i++) {
@@ -1444,7 +1444,7 @@ void FixRigidNHSmall::allocate_chain()
     f_eta_t = new double[t_chain];
     f_eta_r = new double[t_chain];
   }
-  
+
   if (pstat_flag) {
     q_b = new double[p_chain];
     eta_b = new double[p_chain];
@@ -1484,7 +1484,7 @@ void FixRigidNHSmall::deallocate_chain()
     delete [] f_eta_t;
     delete [] f_eta_r;
   }
-  
+
   if (pstat_flag) {
     delete [] q_b;
     delete [] eta_b;

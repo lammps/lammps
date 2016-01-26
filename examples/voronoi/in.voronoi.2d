@@ -1,0 +1,52 @@
+# Test volume definitions for 2d and finite systems
+
+variable        rcut equal 10.0
+variable        rskin equal 2.0
+variable        rcomm equal 20.0
+variable        len equal 4.0
+variable        lenz equal 10.0
+
+dimension       2
+units		metal
+boundary	p p p
+
+#lattice         sq 1.0 origin 0.5 0.5 0.0
+lattice         hex 1.0 origin 0.5 0.5 0.0
+
+atom_style	atomic
+
+region          box block 0 ${len}  0 ${len} 0.0 ${lenz}
+region          atoms block 0 ${len}  0 ${len} 0.0 0.0
+create_box      1 box
+create_atoms    1 region atoms
+
+mass 		1 1.0
+
+pair_style      lj/cut ${rcut}
+pair_coeff      1 1 0.0 1.0 
+
+neighbor	${rskin} nsq
+
+# set the minimum communication cut-off 
+comm_modify     cutoff ${rcomm}
+
+compute 	v1 all voronoi/atom neighbors yes
+compute 	volvor all reduce sum c_v1[1]
+variable 	volsys equal lz*lx*ly
+variable 	err equal c_volvor-v_volsys
+thermo_style 	custom c_volvor v_volsys vol v_err
+thermo 		1
+
+#
+# TEST 1: Volume check for 2d bulk system
+#
+
+run  		0
+
+#
+# TEST 2: Volume check for 2d finite system
+#         add margins in x and y directions
+#
+
+change_box 	all boundary f f p
+run  		0

@@ -25,10 +25,7 @@ movefrac 0.05
 
 # The output file name
 
-#output step3_outerlayer.xyz
-# Give it this name instead:
-
-output system.xyz
+output step3_outerlayer.xyz
 
 # File types are in xyz format
 
@@ -51,7 +48,7 @@ end structure
 structure DPPC.xyz
   number 12500
   atoms 5
-    inside sphere 0. 0. 0. 315.0
+    inside sphere 0. 0. 0. 310.0
   end atoms
   atoms 1
     outside sphere 0. 0. 0. 336.0
@@ -64,7 +61,7 @@ end structure
 structure DLPC.xyz
   number 12500
   atoms 4
-    inside sphere 0. 0. 0. 318.0 
+    inside sphere 0. 0. 0. 313.0 
   end atoms
   atoms 1
     outside sphere 0. 0. 0. 332.0

@@ -707,6 +707,6 @@ namespace ATC {
 
   };
 
-}; // namespace ATC_Transfer
+} // namespace ATC_Transfer
 
 #endif // FE_MESH_H

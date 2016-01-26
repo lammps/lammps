@@ -21,7 +21,7 @@ KSpaceStyle(msm,MSM)
 #define LMP_MSM_H
 
 #include "lmptype.h"
-#include "mpi.h"
+#include <mpi.h>
 
 #include "kspace.h"
 
@@ -62,8 +62,8 @@ class MSM : public KSpace {
   int nlower,nupper;
   int peratom_allocate_flag;
   int levels;
-  
-  MPI_Comm *world_levels;  
+
+  MPI_Comm *world_levels;
 
   double ****qgrid;
   double ****egrid;
@@ -85,7 +85,7 @@ class MSM : public KSpace {
   class GridComm **cg_peratom;
   class GridComm *cg_all;
   class GridComm *cg_peratom_all;
-  
+
   int current_level;
 
   int **part2grid;             // storage for particle -> grid mapping
@@ -221,7 +221,7 @@ The box size has apparently blown up.
 
 E: Out of range atoms - cannot compute MSM
 
-One or more atoms are attempting to map their charge to a MSM grid point 
+One or more atoms are attempting to map their charge to a MSM grid point
 that is not owned by a processor.  This is likely for one of two
 reasons, both of them bad.  First, it may mean that an atom near the
 boundary of a processor's sub-domain has moved more than 1/2 the

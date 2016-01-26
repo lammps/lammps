@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix ave/correlate/long command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix ave/correlate/long command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-ave-correlate-long-command">
+<span id="index-0"></span><h1>fix ave/correlate/long command<a class="headerlink" href="#fix-ave-correlate-long-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID ave/correlate/long Nevery Nfreq value1 value2 ... keyword args ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>ave/correlate/long = style name of this fix command</li>
+<li>Nevery = use input values every this many timesteps</li>
+<li>Nfreq = save state of the time correlation functions every this many timesteps</li>
+<li>one or more input values can be listed</li>
+<li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>c_ID = global scalar calculated by a compute with ID
+c_ID[I] = Ith component of global vector calculated by a compute with ID
+f_ID = global scalar calculated by a fix with ID
+f_ID[I] = Ith component of global vector calculated by a fix with ID
+v_name = global value calculated by an equal-style variable with name
+</pre></div>
+</div>
+<ul class="simple">
+<li>zero or more keyword/arg pairs may be appended</li>
+<li>keyword = <em>type</em> or <em>start</em> or <em>file</em> or <em>overwrite</em> or <em>title1</em> or <em>title2</em> or <em>ncorr</em> or <em>p</em> or <em>m</em></li>
+</ul>
+<pre class="literal-block">
+<em>type</em> arg = <em>auto</em> or <em>upper</em> or <em>lower</em> or <em>auto/upper</em> or <em>auto/lower</em> or <em>full</em>
+  auto = correlate each value with itself
+  upper = correlate each value with each succeeding value
+  lower = correlate each value with each preceding value
+  auto/upper = auto + upper
+  auto/lower = auto + lower
+  full = correlate each value with every other value, including itself = auto + upper + lower
+<em>start</em> args = Nstart
+  Nstart = start accumulating correlations on this timestep
+<em>file</em> arg = filename
+  filename = name of file to output correlation data to
+<em>overwrite</em> arg = none = overwrite output file with only latest output
+<em>title1</em> arg = string
+  string = text to print as 1st line of output file
+<em>title2</em> arg = string
+  string = text to print as 2nd line of output file
+<em>ncorr</em> arg = Ncorrelators
+  Ncorrelators = number of correlators to store
+<em>nlen</em> args = Nlen
+  Nlen = length of each correlator
+<em>ncount</em> args = Ncount
+  Ncount = number of values over which succesive correlators are averaged
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all ave/correlate/long 5 1000 c_myTemp file temp.correlate
+fix 1 all ave/correlate/long 1 10000 &amp;
+          c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &amp;
+       type upper title1 &quot;My correlation data&quot; nlen 15 ncount 3
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This fix is similar in spirit and syntax to the <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a>.  However, this fix allows the
+efficient calculation of time correlation functions on the fly over
+extremely long time windows without too much CPU overhead, using a
+multiple-tau method <a class="reference internal" href="#ramirez"><span>(Ramirez)</span></a> that decreases the resolution
+of the stored correlation function with time.</p>
+<p>The group specified with this command is ignored.  However, note that
+specified values may represent calculations performed by computes and
+fixes which store their own &#8220;group&#8221; definitions.</p>
+<p>Each listed value can be the result of a compute or fix or the
+evaluation of an equal-style variable. See the <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> doc page for details.</p>
+<p>The <em>Nevery</em> and <em>Nfreq</em> arguments specify on what timesteps the input
+values will be used to calculate correlation data, and the frequency
+with which the time correlation functions will be output to a file.
+Note that there is no <em>Nrepeat</em> argument, unlike the <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> command.</p>
+<p>The optional keywords <em>ncorr</em>, <em>nlen</em>, and <em>ncount</em> are unique to this
+command and determine the number of correlation points calculated and
+the memory and CPU overhead used by this calculation. <em>Nlen</em> and
+<em>ncount</em> determine the amount of averaging done at longer correlation
+times.  The default values <em>nlen=16</em>, <em>ncount=2</em> ensure that the
+systematic error of the multiple-tau correlator is always below the
+level of the statistical error of a typical simulation (which depends
+on the ensemble size and the simulation length).</p>
+<p>The maximum correlation time (in time steps) that can be reached is
+given by the formula (nlen-1) * ncount^(ncorr-1).  Longer correlation
+times are discarded and not calculated.  With the default values of
+the parameters (ncorr=20, nlen=16 and ncount=2), this corresponds to
+7864320 time steps.  If longer correlation times are needed, the value
+of ncorr should be increased. Using nlen=16 and ncount=2, with
+ncorr=30, the maximum number of steps that can be correlated is
+80530636808.  If ncorr=40, correlation times in excess of 8e12 time
+steps can be calculated.</p>
+<p>The total memory needed for each correlation pair is roughly
+4*ncorr*nlen*8 bytes. With the default values of the parameters, this
+corresponds to about 10 KB.</p>
+<p>For the meaning of the additional optional keywords, see the <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> doc page.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>Since this fix in intended for the calculation of time correlation
+functions over very long MD simulations, the information about this
+fix is written automatically to binary restart files, so that the time
+correlation calculation can continue in subsequent simulations. None
+of the fix_modify options are relevant to this fix.</p>
+<p>No parameter of this fix can be used with the start/stop keywords of
+the run command. This fix is not invoked during energy minimization.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a></p>
+<p><strong>Default:</strong> none</p>
+<p>The option defaults for keywords that are also keywords for the <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> command are as follows: type =
+auto, start = 0, no file output, title 1,2 = strings as described on
+the <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> doc page.</p>
+<p>The option defaults for keywords unique to this command are as
+follows: ncorr=20, nlen=16, ncount=2.</p>
+<hr class="docutils" />
+<p id="ramirez"><strong>(Ramirez)</strong> J. Ramirez, S.K. Sukumaran, B. Vorselaars and
+A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

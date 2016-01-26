@@ -74,7 +74,7 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
 
   Kokkos::DualView<params_buck_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_buck_coul**,
-    Kokkos::LayoutRight,DeviceType>::t_dev_const params;
+    Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   // hardwired to space for 15 atom types
   params_buck_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
@@ -101,7 +101,7 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cut_coulsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cut_coulsq;
 
-  
+
   int neighflag;
   int nlocal,nall,eflag,vflag;
 

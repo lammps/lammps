@@ -41,17 +41,17 @@ large x velocity.  This position-dependent streaming velocity is
 subtracted from each atom's actual velocity to yield a thermal
 velocity which is used to compute the temperature.
 
-IMPORTANT NOTE: "Fix deform"_fix_deform.html has an option for
-remapping either atom coordinates or velocities to the changing
-simulation box.  When using this compute in conjunction with a
-deforming box, fix deform should NOT remap atom positions, but rather
-should let atoms respond to the changing box by adjusting their own
-velocities (or let "fix deform"_fix_deform.html remap the atom
-velocities, see it's remap option).  If fix deform does remap atom
-positions, then they appear to move with the box but their velocity is
-not changed, and thus they do NOT have the streaming velocity assumed
-by this compute.  LAMMPS will warn you if fix deform is defined and
-its remap setting is not consistent with this compute.
+NOTE: "Fix deform"_fix_deform.html has an option for remapping either
+atom coordinates or velocities to the changing simulation box.  When
+using this compute in conjunction with a deforming box, fix deform
+should NOT remap atom positions, but rather should let atoms respond
+to the changing box by adjusting their own velocities (or let "fix
+deform"_fix_deform.html remap the atom velocities, see it's remap
+option).  If fix deform does remap atom positions, then they appear to
+move with the box but their velocity is not changed, and thus they do
+NOT have the streaming velocity assumed by this compute.  LAMMPS will
+warn you if fix deform is defined and its remap setting is not
+consistent with this compute.
 
 After the streaming velocity has been subtracted from each atom, the
 temperature is calculated by the formula KE = dim/2 N k T, where KE =
@@ -82,10 +82,10 @@ temp/rescale"_fix_temp_rescale.html, "fix
 temp/berendsen"_fix_temp_berendsen.html, and "fix
 langevin"_fix_langevin.html.
 
-IMPORTANT NOTE: The temperature calculated by this compute is only
-accurate if the atoms are indeed moving with a stream velocity profile
-that matches the box deformation.  If not, then the compute will
-subtract off an incorrect stream velocity, yielding a bogus thermal
+NOTE: The temperature calculated by this compute is only accurate if
+the atoms are indeed moving with a stream velocity profile that
+matches the box deformation.  If not, then the compute will subtract
+off an incorrect stream velocity, yielding a bogus thermal
 temperature.  You should NOT assume that your atoms are streaming at
 the same rate the box is deforming.  Rather, you should monitor their
 velocity profile, e.g. via the "fix ave/spatial"_fix_ave_spatial.html

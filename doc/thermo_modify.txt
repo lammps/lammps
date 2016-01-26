@@ -37,11 +37,11 @@ thermo_modify line multi format float %g :pre
 Set options for how thermodynamic information is computed and printed
 by LAMMPS.
 
-IMPORTANT NOTE: These options apply to the currently defined thermo
-style.  When you specify a "thermo_style"_thermo_style.html command,
-all thermodynamic settings are restored to their default values,
-including those previously reset by a thermo_modify command.  Thus if
-your input script specifies a thermo_style command, you should use the
+NOTE: These options apply to the currently defined thermo style.  When
+you specify a "thermo_style"_thermo_style.html command, all
+thermodynamic settings are restored to their default values, including
+those previously reset by a thermo_modify command.  Thus if your input
+script specifies a thermo_style command, you should use the
 thermo_modify command after it.
 
 The {lost} keyword determines whether LAMMPS checks for lost atoms
@@ -108,7 +108,7 @@ value printed in each output line, e.g. the 5th column of output in
 this case.  If the format for a specific column has been set, it will
 take precedent over the {int} or {float} setting.
 
-IMPORTANT NOTE: The thermo output values {step} and {atoms} are stored
+NOTE: The thermo output values {step} and {atoms} are stored
 internally as 8-byte signed integers, rather than the usual 4-byte
 signed integers.  When specifying the "format int" keyword you can use
 a "%d"-style format identifier in the format string and LAMMPS will
@@ -137,16 +137,16 @@ calculates a pressure.  As described in the
 compute for pressure with ID = {thermo_press}.  This option allows the
 user to override the default.
 
-IMPORTANT NOTE: If both the {temp} and {press} keywords are used in a
-single thermo_modify command (or in two separate commands), then the
-order in which the keywords are specified is important.  Note that a
-"pressure compute"_compute_pressure.html defines its own temperature
-compute as an argument when it is specified.  The {temp} keyword will
-override this (for the pressure compute being used by thermodynamics),
-but only if the {temp} keyword comes after the {press} keyword.  If
-the {temp} keyword comes before the {press} keyword, then the new
-pressure compute specified by the {press} keyword will be unaffected
-by the {temp} setting.
+NOTE: If both the {temp} and {press} keywords are used in a single
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a "pressure
+compute"_compute_pressure.html defines its own temperature compute as
+an argument when it is specified.  The {temp} keyword will override
+this (for the pressure compute being used by thermodynamics), but only
+if the {temp} keyword comes after the {press} keyword.  If the {temp}
+keyword comes before the {press} keyword, then the new pressure
+compute specified by the {press} keyword will be unaffected by the
+{temp} setting.
 
 [Restrictions:] none
 

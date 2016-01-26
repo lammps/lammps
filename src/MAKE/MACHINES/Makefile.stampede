@@ -8,12 +8,12 @@ SHELL = /bin/sh
 
 CC =		mpicc -openmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64
 MIC_OPT =       -offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
-CCFLAGS =	-O3 -xAVX -fno-alias -ansi-alias -restrict -override-limits $(MIC_OPT)
+CCFLAGS =	-O3 -xhost -fp-model precise -restrict -override-limits $(MIC_OPT)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicc -openmp
-LINKFLAGS =	-O3 -xAVX
+LINKFLAGS =	-O3 -xhost
 LIB =           
 SIZE =		size
 
@@ -29,7 +29,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -51,7 +51,7 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =      -DFFT_MKL -DFFT_SINGLE -I$(TACC_MKL_INC)
+FFT_INC =      -DFFT_MKL -I$(TACC_MKL_INC)
 FFT_PATH = 
 FFT_LIB =	-L$(TACC_MKL_LIB) -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 

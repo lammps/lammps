@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix qbmsst command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix qbmsst command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-qbmsst-command">
+<span id="index-0"></span><h1>fix qbmsst command<a class="headerlink" href="#fix-qbmsst-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID qbmsst dir shockvel keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>qbmsst = style name of this fix</li>
+<li>dir = <em>x</em> or <em>y</em> or <em>z</em></li>
+<li>shockvel = shock velocity (strictly positive, velocity units)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>q</em> or <em>mu</em> or <em>p0</em> or <em>v0</em> or <em>e0</em> or <em>tscale</em> or <em>damp</em> or <em>seed*or *f_max</em> or <em>N_f</em> or <em>eta</em> or <em>beta</em> or <em>T_init</em></li>
+</ul>
+<pre class="literal-block">
+<em>q</em> value = cell mass-like parameter (mass^2/distance^4 units)
+<em>mu</em> value = artificial viscosity (mass/distance/time units)
+<em>p0</em> value = initial pressure in the shock equations (pressure units)
+<em>v0</em> value = initial simulation cell volume in the shock equations (distance^3 units)
+<em>e0</em> value = initial total energy (energy units)
+<em>tscale</em> value = reduction in initial temperature (unitless fraction between 0.0 and 1.0)
+<em>damp</em> value = damping parameter (time units) inverse of friction &lt;i&gt;&amp;gamma;&lt;/i&gt;
+<em>seed</em> value = random number seed (positive integer)
+<em>f_max</em> value = upper cutoff frequency of the vibration spectrum (1/time units)
+<em>N_f</em> value = number of frequency bins (positive integer)
+<em>eta</em> value = coupling constant between the shock system and the quantum thermal bath (positive unitless)
+<em>beta</em> value = the quantum temperature is updated every beta time steps (positive integer)
+<em>T_init</em> value = quantum temperature for the initial state (temperature units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all qbmsst z 0.122 q 25 mu 0.9 tscale 0.01 damp 200 seed 35082 f_max 0.3 N_f 100 eta 1 beta 400 T_init 110 (liquid methane modeled with the REAX force field, real units)
+fix 2 all qbmsst z 72 q 40 tscale 0.05 damp 1 seed 47508 f_max 120.0 N_f 100 eta 1.0 beta 500 T_init 300 (quartz modeled with the BKS force field, metal units)
+</pre></div>
+</div>
+<p>Two example input scripts are given, including shocked alpha quartz
+and shocked liquid methane. The input script first equilibrate an
+initial state with the quantum thermal bath at the target temperature
+and then apply the qbmsst to simulate shock compression with quantum
+nuclear correction.  The following two figures plot related quantities
+for shocked alpha quartz.</p>
+<img alt="_images/qbmsst_init.jpg" class="align-center" src="_images/qbmsst_init.jpg" />
+<p>Figure 1. Classical temperature &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;cl&lt;/sup&gt; = &amp;sum;
+&lt;i&gt;m&lt;sub&gt;i&lt;/sub&gt;v&lt;sub&gt;i&lt;/sub&gt;&lt;sup&gt;2&lt;/sup&gt;/3Nk&lt;/i&gt;&lt;sub&gt;B&lt;/sub&gt; vs. time
+for coupling the alpha quartz initial state with the quantum thermal
+bath at target quantum temperature &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;qm&lt;/sup&gt; = 300 K. The
+NpH ensemble is used for time integration while QTB provides the
+colored random force. &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;cl&lt;/sup&gt; converges at the timescale
+of <em>damp</em> which is set to be 1 ps.</p>
+<img alt="_images/qbmsst_shock.jpg" class="align-center" src="_images/qbmsst_shock.jpg" />
+<p>Figure 2. Quantum temperature and pressure vs. time for simulating
+shocked alpha quartz with the QBMSST. The shock propagates along the z
+direction. Restart of the QBMSST command is demonstrated in the
+example input script. Thermodynamic quantities stay continuous before
+and after the restart.</p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command performs the Quantum-Bath coupled Multi-Scale Shock
+Technique (QBMSST) integration. See <a class="reference internal" href="#qi"><span>(Qi)</span></a> for a detailed
+description of this method.  The QBMSST provides description of the
+thermodynamics and kinetics of shock processes while incorporating
+quantum nuclear effects.  The <em>shockvel</em> setting determines the steady
+shock velocity that will be simulated along direction <em>dir</em>.</p>
+<p>Quantum nuclear effects <a class="reference internal" href="fix_qtb.html"><em>(fix qtb)</em></a> can be crucial
+especially when the temperature of the initial state is below the
+classical limit or there is a great change in the zero point energies
+between the initial and final states. Theoretical post processing
+quantum corrections of shock compressed water and methane have been
+reported as much as 30% of the temperatures <a class="reference internal" href="#goldman"><span>(Goldman)</span></a>.  A
+self-consistent method that couples the shock to a quantum thermal
+bath described by a colored noise Langevin thermostat has been
+developed by Qi et al <a class="reference internal" href="#qi"><span>(Qi)</span></a> and applied to shocked methane.  The
+onset of chemistry is reported to be at a pressure on the shock
+Hugoniot that is 40% lower than observed with classical molecular
+dynamics.</p>
+<p>It is highly recommended that the system be already in an equilibrium
+state with a quantum thermal bath at temperature of <em>T_init</em>.  The fix
+command <a class="reference internal" href="fix_qtb.html"><em>fix qtb</em></a> at constant temperature <em>T_init</em> could
+be used before applying this command to introduce self-consistent
+quantum nuclear effects into the initial state.</p>
+<p>The parameters <em>q</em>, <em>mu</em>, <em>e0</em>, <em>p0</em>, <em>v0</em> and <em>tscale</em> are described
+in the command <a class="reference internal" href="fix_msst.html"><em>fix msst</em></a>. The values of <em>e0</em>, <em>p0</em>, or
+<em>v0</em> will be calculated on the first step if not specified.  The
+parameter of <em>damp</em>, <em>f_max</em>, and <em>N_f</em> are described in the command
+<a class="reference internal" href="fix_qtb.html"><em>fix qtb</em></a>.</p>
+<p>The fix qbmsst command couples the shock system to a quantum thermal
+bath with a rate that is proportional to the change of the total
+energy of the shock system, &lt;i&gt;etot&lt;/i&gt; - &lt;i&gt;etot&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;.
+Here &lt;i&gt;etot&lt;/i&gt; consists of both the system energy and a thermal
+term, see <a class="reference internal" href="#qi"><span>(Qi)</span></a>, and &lt;i&gt;etot&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; = <em>e0</em> is the
+initial total energy.</p>
+<p>The <em>eta</em> (&lt;i&gt;&amp;eta;&lt;/i&gt;) parameter is a unitless coupling constant
+between the shock system and the quantum thermal bath. A small <em>eta</em>
+value cannot adjust the quantum temperature fast enough during the
+temperature ramping period of shock compression while large <em>eta</em>
+leads to big temperature oscillation. A value of <em>eta</em> between 0.3 and
+1 is usually appropriate for simulating most systems under shock
+compression. We observe that different values of <em>eta</em> lead to almost
+the same final thermodynamic state behind the shock, as expected.</p>
+<p>The quantum temperature is updated every <em>beta</em> (&lt;i&gt;&amp;beta;&lt;/i&gt;) steps
+with an integration time interval <em>beta</em> times longer than the
+simulation time step. In that case, &lt;i&gt;etot&lt;/i&gt; is taken as its
+average over the past <em>beta</em> steps. The temperature of the quantum
+thermal bath &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;qm&lt;/sup&gt; changes dynamically according to
+the following equation where &amp;Delta;&lt;i&gt;t&lt;/i&gt; is the MD time step and
+&lt;i&gt;&amp;gamma;&lt;/i&gt; is the friction constant which is equal to the inverse
+of the <em>damp</em> parameter.</p>
+<center><font size="4"> <i>dT</i><sup>qm</sup>/<i>dt =
+&gamma;&eta;</i>&sum;<i><sup>&beta;</sup><sub>l =
+1</sub></i>[<i>etot</i>(<i>t-l</i>&Delta;<i>t</i>)-<i>etot</i><sub>0</sub>]/<i>3&beta;Nk</i><sub>B</sub>
+</font></center><p>The parameter <em>T_init</em> is the initial temperature of the quantum
+thermal bath and the system before shock loading.</p>
+<p>For all pressure styles, the simulation box stays orthorhombic in
+shape. Parrinello-Rahman boundary conditions (tilted box) are
+supported by LAMMPS, but are not implemented for QBMSST.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>Because the state of the random number generator is not written to
+<a class="reference internal" href="restart.html"><em>binary restart files</em></a>, this fix cannot be restarted
+&#8220;exactly&#8221; in an uninterrupted fashion. However, in a statistical
+sense, a restarted simulation should produce similar behaviors of the
+system as if it is not interrupted.  To achieve such a restart, one
+should write explicitly the same value for <em>q</em>, <em>mu</em>, <em>damp</em>, <em>f_max</em>,
+<em>N_f</em>, <em>eta</em>, and <em>beta</em> and set <em>tscale</em> = 0 if the system is
+compressed during the first run.</p>
+<p>The progress of the QBMSST can be monitored by printing the global
+scalar and global vector quantities computed by the fix.  The global
+vector contains five values in this order:</p>
+<p>[<em>dhugoniot</em>, <em>drayleigh</em>, <em>lagrangian_speed</em>, <em>lagrangian_position</em>,
+<em>quantum_temperature</em>]</p>
+<ol class="arabic simple">
+<li><em>dhugoniot</em> is the departure from the Hugoniot (temperature units).</li>
+<li><em>drayleigh</em> is the departure from the Rayleigh line (pressure units).</li>
+<li><em>lagrangian_speed</em> is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).</li>
+<li><em>lagrangian_position</em> is the computational cell position in the reference frame moving at the shock speed. This is the distance of the computational cell behind the shock front.</li>
+<li><em>quantum_temperature</em> is the temperature of the quantum thermal bath &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;qm&lt;/sup&gt;.</li>
+</ol>
+<p>To print these quantities to the log file with descriptive column
+headers, the following LAMMPS commands are suggested. Here the
+<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> energy command is also enabled to allow
+the thermo keyword <em>etotal</em> to print the quantity &lt;i&gt;etot&lt;/i&gt;.  See
+also the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command.</p>
+<div class="highlight-python"><div class="highlight"><pre>fix          fix_id all msst z
+fix_modify   fix_id energy yes
+variable     dhug    equal f_fix_id[1]
+variable     dray    equal f_fix_id[2]
+variable     lgr_vel equal f_fix_id[3]
+variable     lgr_pos equal f_fix_id[4]
+variable     T_qm    equal f_fix_id[5]
+thermo_style custom  step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id
+</pre></div>
+</div>
+<p>The global scalar under the entry f_fix_id is the quantity of thermo
+energy as an extra part of &lt;i&gt;etot&lt;/i&gt;. This global scalar and the
+vector of 5 quantities can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>. It is worth noting that the
+temp keyword under the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command print
+the instantaneous classical temperature &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;cl&lt;/sup&gt; as
+described in the command <a class="reference internal" href="fix_qtb.html"><em>fix qtb</em></a>.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix style is part of the USER-QTB package.  It is only enabled if
+LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>All cell dimensions must be periodic. This fix can not be used with a
+triclinic cell.  The QBMSST fix has been tested only for the group-ID
+all.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_qtb.html"><em>fix qtb</em></a>, <a class="reference internal" href="fix_msst.html"><em>fix msst</em></a></p>
+</div>
+<hr class="docutils" />
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are q = 10, mu = 0, tscale = 0.01, damp = 1, seed
+= 880302, f_max = 200.0, N_f = 100, eta = 1.0, beta = 100, and
+T_init=300.0. e0, p0, and v0 are calculated on the first step.</p>
+<hr class="docutils" />
+<p id="goldman"><strong>(Goldman)</strong> Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)</p>
+<p id="qi"><strong>(Qi)</strong> Qi and Reed, J. Phys. Chem. A 116, 10451 (2012).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

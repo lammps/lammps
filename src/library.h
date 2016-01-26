@@ -16,7 +16,7 @@
    new LAMMPS-specific functions can be added
 */
 
-#include "mpi.h"
+#include <mpi.h>
 
 /* ifdefs allow this file to be included in a C program */
 
@@ -27,6 +27,7 @@ extern "C" {
 void lammps_open(int, char **, MPI_Comm, void **);
 void lammps_open_no_mpi(int, char **, void **);
 void lammps_close(void *);
+int  lammps_version(void *);
 void lammps_file(void *, char *);
 char *lammps_command(void *, char *);
 void lammps_free(void *);

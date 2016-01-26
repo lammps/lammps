@@ -80,11 +80,11 @@ class NeighBondKokkos : protected Pointers  {
   int me;
 
  private:
-  
+
 
   DAT::tdual_int_1d k_map_array;
   typename AT::t_int_1d_randomread map_array;
-  
+
   DAT::tdual_int_1d k_sametag;
   typename AT::t_int_1d_randomread sametag;
 

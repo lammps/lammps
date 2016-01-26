@@ -16,6 +16,7 @@ SRC =	src/cell.cc src/c_loops.cc src/common.cc src/container.cc	\
 
 LIB = libvoronoi.a
 OBJ = $(SRC:src/%.cc=%.o)
+EXE = voro++
 
 # ------ MAKE PROCEDURE ------
 
@@ -23,6 +24,9 @@ default: $(LIB) $(EXE)
 
 $(LIB):	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+$(EXE): cmd_line.o voro++.o
+	$(CXX) -o $@ $< $(LIB)
 
 # ------ MAKE FLAGS ------
 

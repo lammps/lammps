@@ -66,14 +66,13 @@ class PairCoulWolfKokkos : public PairCoulWolf {
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread q;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
   DAT::t_efloat_1d d_eatom;
   DAT::t_virial_array d_vatom;
 
-  
+
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 

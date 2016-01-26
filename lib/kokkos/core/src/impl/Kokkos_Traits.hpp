@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -51,6 +51,21 @@
 namespace Kokkos {
 namespace Impl {
 
+//----------------------------------------------------------------------------
+// Help with C++11 variadic argument packs
+
+template< unsigned I , class ... Args >
+struct variadic_type { typedef void type ; };
+
+template< class T , class ... Args >
+struct variadic_type< 0 , T , Args ... >
+  { typedef T type ; };
+
+template< unsigned I , class T , class ... Args >
+struct variadic_type< I , T , Args ... >
+  { typedef typename variadic_type< I - 1 , Args ... >::type type ; };
+
+//----------------------------------------------------------------------------
 /* C++11 conformal compile-time type traits utilities.
  * Prefer to use C++11 when portably available.
  */
@@ -249,30 +264,51 @@ struct if_ : public if_c<Cond::value, TrueType, FalseType> {};
 template< typename T >
 struct is_integral : public integral_constant< bool ,
   (
-    Impl::is_same< T ,          char >::value ||
-    Impl::is_same< T , unsigned char >::value ||
-    Impl::is_same< T ,          short int >::value ||
-    Impl::is_same< T , unsigned short int >::value ||
-    Impl::is_same< T ,          int >::value ||
-    Impl::is_same< T , unsigned int >::value ||
-    Impl::is_same< T ,          long int >::value ||
-    Impl::is_same< T , unsigned long int >::value ||
-    Impl::is_same< T ,          long long int >::value ||
-    Impl::is_same< T , unsigned long long int >::value ||
+    std::is_same< T ,          char >::value ||
+    std::is_same< T , unsigned char >::value ||
+    std::is_same< T ,          short int >::value ||
+    std::is_same< T , unsigned short int >::value ||
+    std::is_same< T ,          int >::value ||
+    std::is_same< T , unsigned int >::value ||
+    std::is_same< T ,          long int >::value ||
+    std::is_same< T , unsigned long int >::value ||
+    std::is_same< T ,          long long int >::value ||
+    std::is_same< T , unsigned long long int >::value ||
 
-    Impl::is_same< T , int8_t   >::value ||
-    Impl::is_same< T , int16_t  >::value ||
-    Impl::is_same< T , int32_t  >::value ||
-    Impl::is_same< T , int64_t  >::value ||
-    Impl::is_same< T , uint8_t  >::value ||
-    Impl::is_same< T , uint16_t >::value ||
-    Impl::is_same< T , uint32_t >::value ||
-    Impl::is_same< T , uint64_t >::value 
+    std::is_same< T , int8_t   >::value ||
+    std::is_same< T , int16_t  >::value ||
+    std::is_same< T , int32_t  >::value ||
+    std::is_same< T , int64_t  >::value ||
+    std::is_same< T , uint8_t  >::value ||
+    std::is_same< T , uint16_t >::value ||
+    std::is_same< T , uint32_t >::value ||
+    std::is_same< T , uint64_t >::value 
   )>
 {};
 
 //----------------------------------------------------------------------------
 
+// These 'constexpr'functions can be used as
+// both regular functions and meta-function.
+
+/**\brief  There exists integral 'k' such that N = 2^k */
+KOKKOS_INLINE_FUNCTION
+constexpr bool is_integral_power_of_two( const size_t N )
+{ return ( 0 < N ) && ( 0 == ( N & ( N - 1 ) ) ); }
+
+/**\brief  Return integral 'k' such that N = 2^k, assuming valid.  */
+KOKKOS_INLINE_FUNCTION
+constexpr unsigned integral_power_of_two_assume_valid( const size_t N )
+{ return N == 1 ? 0 : 1 + integral_power_of_two_assume_valid( N >> 1 ); }
+
+/**\brief  Return integral 'k' such that N = 2^k, if exists.
+ *         If does not exist return ~0u.
+ */
+KOKKOS_INLINE_FUNCTION
+constexpr unsigned integral_power_of_two( const size_t N )
+{ return is_integral_power_of_two(N) ? integral_power_of_two_assume_valid(N) : ~0u ; }
+
+//----------------------------------------------------------------------------
 
 template < size_t N >
 struct is_power_of_two
@@ -309,7 +345,7 @@ unsigned power_of_two_if_valid( const unsigned N )
 {
   unsigned p = ~0u ;
   if ( N && ! ( N & ( N - 1 ) ) ) {
-#if defined( __CUDA_ARCH__ )
+#if defined( __CUDA_ARCH__ ) && defined( KOKKOS_HAVE_CUDA )
     p = __ffs(N) - 1 ;
 #elif defined( __GNUC__ ) || defined( __GNUG__ )
     p = __builtin_ffs(N) - 1 ;

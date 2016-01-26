@@ -1,5 +1,5 @@
+# DATE: 2015-05-05  CONTRIBUTOR: Peter Klaver klaver2@gmail.com  CITATION: J. Phys.: Condens. Matter 25 (2013) 445401 & Phys. Rev. B 79 (2009) 144107 
 # Fe and C mixture, parameterized for Tersoff potential
-# this file is from Peter Klaver  klaver2@gmail.com
 # It contains the parameterisation for FeC that is part of the FeCrC system
 # in J. Phys.: Condens. Matter 25 (2013) 445401 by K. O. E. Henriksson,
 # C. Bjorkas and K. Nordlund and the parameterisation in

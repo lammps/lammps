@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "verlet.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -89,9 +89,10 @@ void Verlet::setup()
 {
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up Verlet run ...\n");
-    fprintf(screen,"  Unit style  : %s\n", update->unit_style);
-    fprintf(screen,"  Current step: " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(screen,"  Time step   : %g\n", update->dt);
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  Time step     : %g\n", update->dt);
+    timer->print_timeout(screen);
   }
 
   update->setupflag = 1;
@@ -119,6 +120,7 @@ void Verlet::setup()
 
   // compute all forces
 
+  force->setup();
   ev_set(update->ntimestep);
   force_clear();
   modify->setup_pre_force(vflag);
@@ -139,6 +141,7 @@ void Verlet::setup()
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
@@ -199,6 +202,7 @@ void Verlet::setup_minimal(int flag)
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
@@ -218,6 +222,7 @@ void Verlet::run(int n)
   int n_pre_exchange = modify->n_pre_exchange;
   int n_pre_neighbor = modify->n_pre_neighbor;
   int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
 
@@ -225,6 +230,10 @@ void Verlet::run(int n)
   else sortflag = 0;
 
   for (int i = 0; i < n; i++) {
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
 
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
@@ -285,7 +294,6 @@ void Verlet::run(int n)
       timer->stamp(Timer::MODIFY);
     }
 
-
     if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);
       timer->stamp(Timer::PAIR);
@@ -302,6 +310,11 @@ void Verlet::run(int n)
     if (kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
+    }
+
+    if (n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
     }
 
     // reverse communication of forces

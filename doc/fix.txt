@@ -43,9 +43,9 @@ underscores.
 
 Fixes can be deleted with the "unfix"_unfix.html command.
 
-IMPORTANT NOTE: The "unfix"_unfix.html command is the only way to turn
-off a fix; simply specifying a new fix with a similar style will not
-turn off the first one.  This is especially important to realize for
+NOTE: The "unfix"_unfix.html command is the only way to turn off a
+fix; simply specifying a new fix with a similar style will not turn
+off the first one.  This is especially important to realize for
 integration fixes.  For example, using a "fix nve"_fix_nve.html
 command for a second run after using a "fix nvt"_fix_nh.html command
 for the first run, will not cancel out the NVT time integration
@@ -154,7 +154,7 @@ for further info.
 Each fix style has its own documentation page which describes its
 arguments and what it does, as listed below.  Here is an alphabetic
 list of fix styles available in LAMMPS.  They are also given in more
-compact form in the fix section of "this
+compact form in the Fix section of "this
 page"_Section_commands.html#cmd_5.
 
 There are also additional fix styles (not listed here) submitted by
@@ -162,17 +162,12 @@ users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the fix section
 of "this page"_Section_commands.html#cmd_5.
 
-There are also additional accelerated fix styles (not listed here)
-included in the LAMMPS distribution for faster performance on CPUs and
-GPUs.  The list of these with links to the individual styles are given
-in the fix section of "this page"_Section_commands.html#cmd_5.
-
 "adapt"_fix_adapt.html - change a simulation parameter over time
 "addforce"_fix_addforce.html - add a force to each atom
 "append/atoms"_fix_append_atoms.html - append atoms to a running simulation
 "aveforce"_fix_aveforce.html - add an averaged force to each atom
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
-"ave/correlate"_fix_correlate_atom.html - compute/output time correlations
+"ave/correlate"_fix_ave_correlate.html - compute/output time correlations
 "ave/histo"_fix_ave_histo.html - compute/output time-averaged histograms
 "ave/spatial"_fix_ave_spatial.html - compute/output time-averaged per-atom quantities by layer
 "ave/time"_fix_ave_time.html - compute/output global time-averaged quantities
@@ -235,7 +230,7 @@ in the fix section of "this page"_Section_commands.html#cmd_5.
 "qeq/point"_fix_qeq.html - charge equilibration via point method \
 "qeq/shielded"_fix_qeq.html - charge equilibration via shielded method \
 "qeq/slater"_fix_qeq.html - charge equilibration via Slater method \
-"reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
+"reax/c/bonds"_fix_reaxc_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
 "restrain"_fix_restrain.html - constrain a bond, angle, dihedral

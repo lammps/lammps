@@ -14,7 +14,7 @@ compute ID group-ID chunk/atom style args keyword values ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 chunk/atom = style name of this compute command :l
-style = {bin/1d} or {bin/2d} or {bin/3d} or {type} or {molecule} or {compute/fix/variable}
+style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule} or {compute/fix/variable}
   {bin/1d} args = dim origin delta
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
@@ -27,6 +27,17 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {type} or {molecule} or {compute/fix
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
+  {bin/sphere} args = xorig yorig zorig rmin rmax nsbin
+    xorig,yorig,zorig = center point of sphere
+    srmin,srmax = bin from sphere radius rmin to rmax
+    nsbin = # of spherical shell bins between rmin and rmax
+  {bin/cylinder} args = dim origin delta c1 c2 rmin rmax ncbin
+    dim = {x} or {y} or {z} = axis of cylinder axis
+    origin = {lower} or {center} or {upper} or coordinate value (distance units)
+    delta = thickness of spatial bins in dim (distance units)
+    c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+    crmin,crmax = bin from cylinder radius rmin to rmax (distance units)
+    ncbin = # of concentric circle bins between rmin and rmax
   {type} args = none
   {molecule} args = none
   {compute/fix/variable} = c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name with no args
@@ -37,7 +48,7 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {type} or {molecule} or {compute/fix
     v_name = per-atom vector calculated by an atom-style variable with name :pre
 
 zero or more keyword/values pairs may be appended :l
-keyword = {region} or {nchunk} or {static} or {compress} or {bound} or {discard} or {units} :l
+keyword = {region} or {nchunk} or {static} or {compress} or {bound} or {discard} or {pbc} or {units} :l
   {region} value = region-ID
     region-ID = ID of region atoms must be in to be part of a chunk
   {nchunk} value = {once} or {every}
@@ -62,6 +73,8 @@ keyword = {region} or {nchunk} or {static} or {compress} or {bound} or {discard}
     x/y/z = {x} or {y} or {z} to bound sptial bins in this dimension
     lo = {lower} or coordinate value (distance units)
     hi = {upper} or coordinate value (distance units)
+  {pbc} value = {no} or {yes}
+    yes = use periodic distance for bin/sphere and bin/cylinder styles
   {units} value = {box} or {lattice} or {reduced} :pre
 :ule
 
@@ -70,7 +83,9 @@ keyword = {region} or {nchunk} or {static} or {compress} or {bound} or {discard}
 compute 1 all chunk/atom type
 compute 1 all chunk/atom bin/1d z lower 0.02 units reduced
 compute 1 all chunk/atom bin/2d z lower 1.0 y 0.0 2.5
-compute 1 all chunk/atom molecule region sphere nchunk once ids once compress yes :pre
+compute 1 all chunk/atom molecule region sphere nchunk once ids once compress yes
+compute 1 all chunk/atom bin/sphere 5 5 5 2.0 5.0 5 discard yes
+compute 1 all chunk/atom bin/cylinder z lower 2 10 10 2.0 5.0 3 discard yes :pre
 
 [Description:]
 
@@ -170,11 +185,42 @@ cross "c" face of the box.  A {delta} value of 0.1 in {reduced} units
 means there will be 10 layers from 0.0 to 1.0, regardless of the
 current size or shape of the simulation box.
 
+The {bin/sphere} style defines a set of spherical shell bins around
+the origin ({xorig},{yorig},{zorig}), using {nsbin} bins with radii
+equally spaced between {srmin} and {srmax}.  This is effectively a 1d
+vector of bins.  For example, if {srmin} = 1.0 and {srmax} = 10.0 and
+{nsbin} = 9, then the first bin spans 1.0 < r < 2.0, and the last bin
+spans 9.0 < r 10.0.  The geometry of the bins is the same whether the
+simulation box is orthogonal or triclinic; i.e. the spherical shells
+are not tilted or scaled differently in different dimensions to
+transform them into ellipsoidal shells.
+
+The {bin/cylinder} style defines bins for a cylinder oriented along
+the axis {dim} with the axis coordinates in the other two radial
+dimensions at ({c1},{c2}).  For dim = x, c1/c2 = y/z; for dim = y,
+c1/c2 = x/z; for dim = z, c1/c2 = x/y.  This is effectively a 2d array
+of bins.  The first dimension is along the cylinder axis, the second
+dimension is radially outward from the cylinder axis.  The bin size
+and positions along the cylinder axis are specified by the {origin}
+and {delta} values, the same as for the {bin/1d}, {bin/2d}, and
+{bin/3d} styles.  There are {ncbin} concentric circle bins in the
+radial direction from the cylinder axis with radii equally spaced
+between {crmin} and {crmax}.  For example, if {crmin} = 1.0 and
+{crmax} = 10.0 and {ncbin} = 9, then the first bin spans 1.0 < r <
+2.0, and the last bin spans 9.0 < r 10.0.  The geometry of the bins in
+the radial dimensions is the same whether the simulation box is
+orthogonal or triclinic; i.e. the concetric circles are not tilted or
+scaled differently in the two different dimensions to transform them
+into ellipses.
+
 The created bins (and hence the chunk IDs) are numbered consecutively
-from 1 to the number of bins = {Nchunk}.  For 2d and 3d bins, the
+from 1 to the number of bins = {Nchunk}.  For {bin2d} and {bin3d}, the
 numbering varies most rapidly in the first dimension (which could be
 x, y, or z), next rapidly in the 2nd dimension, and most slowly in the
-3rd dimension.
+3rd dimension.  For {bin/sphere}, the bin with smallest radii is chunk
+1 and the bni with largest radii is chunk Nchunk = {ncbin}.  For
+{bin/cylinder}, the numbering varies most rapidly in the dimension
+along the cylinder axis and most slowly in the radial direction.
 
 Each time this compute is invoked, each atom is mapped to a bin based
 on its current position.  Note that between reneighboring timesteps,
@@ -373,12 +419,12 @@ time window.
 If the setting is {every}, which is the default, then chunk IDs are
 re-calculated on any timestep this compute is invoked.
 
-IMPORTANT NOTE: If you want the persistent chunk-IDs calculated by
-this compute to be continuous when running from a "restart
-file"_read_restart.html, then you should use the same ID for this
-compute, as in the original run.  This is so that the fix this compute
-creates to store per-atom quantities will also have the same ID, and
-thus be initialized correctly with chunk IDs from the restart file.
+NOTE: If you want the persistent chunk-IDs calculated by this compute
+to be continuous when running from a "restart file"_read_restart.html,
+then you should use the same ID for this compute, as in the original
+run.  This is so that the fix this compute creates to store per-atom
+quantities will also have the same ID, and thus be initialized
+correctly with chunk IDs from the restart file.
 
 :line
 
@@ -420,17 +466,17 @@ or by using the "fix ave/time"_fix_ave_time.html command in
 conjunction with the "compute
 property/chunk"_compute_property_chunk.html command.
 
-IMPORTANT NOTE: The compression operation requires global
-communication across all processors to share their chunk ID values.
-It can require large memory on every processor to store them, even
-after they are compressed, if there are are a large number of unique
-chunk IDs with atoms assigned to them.  It uses a STL map to find
-unique chunk IDs and store them in sorted order.  Each time an atom is
-assigned a compressed chunk ID, it must access the STL map.  All of
-this means that compression can be expensive, both in memory and CPU
-time.  The use of the {limit} keyword in conjunction with the
-{compress} keyword can affect these costs, depending on which keyword
-is used first.  So use this option with care.
+NOTE: The compression operation requires global communication across
+all processors to share their chunk ID values.  It can require large
+memory on every processor to store them, even after they are
+compressed, if there are are a large number of unique chunk IDs with
+atoms assigned to them.  It uses a STL map to find unique chunk IDs
+and store them in sorted order.  Each time an atom is assigned a
+compressed chunk ID, it must access the STL map.  All of this means
+that compression can be expensive, both in memory and CPU time.  The
+use of the {limit} keyword in conjunction with the {compress} keyword
+can affect these costs, depending on which keyword is used first.  So
+use this option with care.
 
 :line
 
@@ -459,13 +505,14 @@ the default, then every "discard" atom has its chunk ID set to 0.  If
 
 The {binning} styles use the {discard} keyword to decide whether to
 discard atoms outside the spatial domain covered by bins, or to assign
-them to the bin they are nearest to.  Details are as follows.
+them to the bin they are nearest to.
 
-If {discard} is set to {yes}, an out-of-domain atom will have its
-chunk ID set to 0.  If {discard} is set to {no}, the atom will have
-its chunk ID set to the first or last bin in that dimension.  If
-(discard} is set to {mixed}, which is the default, it will only have
-its chunk ID set to the first or last bin if bins extend to the
+For the {bin/1d}, {bin/2d}, {bin/3d} styles the details are as
+follows.  If {discard} is set to {yes}, an out-of-domain atom will
+have its chunk ID set to 0.  If {discard} is set to {no}, the atom
+will have its chunk ID set to the first or last bin in that dimension.
+If {discard} is set to {mixed}, which is the default, it will only
+have its chunk ID set to the first or last bin if bins extend to the
 simulation box boundary in that dimension.  This is the case if the
 {bound} keyword settings are {lower} and {upper}, which is the
 default.  If the {bound} keyword settings are numeric values, then the
@@ -476,26 +523,82 @@ the specified {origin}.  If this is the case, the chunk ID of the atom
 is only set to 0 if it is outside the first or last bin, not if it is
 simply outside the numeric {bounds} setting.
 
+For the {bin/sphere} style the details are as follows.  If {discard}
+is set to {yes}, an out-of-domain atom will have its chunk ID set to
+0.  If {discard} is set to {no} or {mixed}, the atom will have its
+chunk ID set to the first or last bin, i.e. the innermost or outermost
+spherical shell.  If the distance of the atom from the origin is less
+than {rmin}, it will be assigned to the first bin.  If the distance of
+the atom from the origin is greater than {rmax}, it will be assigned
+to the last bin.
+
+For the {bin/cylinder} style the details are as follows.  If {discard}
+is set to {yes}, an out-of-domain atom will have its chunk ID set to
+0.  If {discard} is set to {no}, the atom will have its chunk ID set
+to the first or last bin in both the radial and axis dimensions.  If
+{discard} is set to {mixed}, which is the default, the the radial
+dimension is treated the same as for {discard} = no.  But for the axis
+dimensinon, it will only have its chunk ID set to the first or last
+bin if bins extend to the simulation box boundary in the axis
+dimension.  This is the case if the {bound} keyword settings are
+{lower} and {upper}, which is the default.  If the {bound} keyword
+settings are numeric values, then the atom will have its chunk ID set
+to 0 if it is outside the bounds of any bin.  Note that in this case,
+it is possible that the first or last bin extends beyond the numeric
+{bounds} settings, depending on the specified {origin}.  If this is
+the case, the chunk ID of the atom is only set to 0 if it is outside
+the first or last bin, not if it is simply outside the numeric
+{bounds} setting.
+
+If {discard} is set to {no} or {mixed}, the atom will have its
+chunk ID set to the first or last bin, i.e. the innermost or outermost
+spherical shell.  If the distance of the atom from the origin is less
+than {rmin}, it will be assigned to the first bin.  If the distance of
+the atom from the origin is greater than {rmax}, it will be assigned
+to the last bin.
+
 :line
 
-The {bound} keyword only applies to the {binning} styles; otherwise it
-is ignored.  It can be used one or more times to limit the extent of
-bin coverage in a specified dimension, i.e. to only bin a portion of
-the box.  If the {lo} setting is {lower} or the {hi} setting is
-{upper}, the bin extent in that direction extends to the box boundary.
-If a numeric value is used for {lo} and/or {hi}, then the bin extent
-in the {lo} or {hi} direction extends only to that value, which is
-assumed to be inside (or at least near) the simulation box boundaries,
-though LAMMPS does not check for this.  Note that using the {bound}
-keyword typically reduces the total number of bins and thus the number
-of chunks {Nchunk}.
+The {bound} keyword only applies to the {bin/1d}, {bin/2d}, {bin/3d}
+styles and to the axis dimension of the {bin/cylinder} style;
+otherwise it is ignored.  It can be used one or more times to limit
+the extent of bin coverage in a specified dimension, i.e. to only bin
+a portion of the box.  If the {lo} setting is {lower} or the {hi}
+setting is {upper}, the bin extent in that direction extends to the
+box boundary.  If a numeric value is used for {lo} and/or {hi}, then
+the bin extent in the {lo} or {hi} direction extends only to that
+value, which is assumed to be inside (or at least near) the simulation
+box boundaries, though LAMMPS does not check for this.  Note that
+using the {bound} keyword typically reduces the total number of bins
+and thus the number of chunks {Nchunk}.
+
+The {pbc} keyword only applies to the {bin/sphere} and {bin/cylinder}
+styles.  If set to {yes}, the distance an atom is from the sphere
+origin or cylinder axis is calculated in a minimum image sense with
+respect to periodic dimensions, when determining which bin the atom is
+in.  I.e. if x is a periodic dimension and the distance between the
+atom and the sphere center in the x dimension is greater than 0.5 *
+simulation box length in x, then a box length is subtracted to give a
+distance < 0.5 * simulation box length.  This allosws the sphere or
+cylinder center to be near a box edge, and atoms on the other side of
+the periodic box will still be close to the center point/axis.  Note
+that with a setting of {yes}, the outer sphere or cylinder radius must
+also be <= 0.5 * simulation box length in any periodic dimension
+except for the cylinder axis dimension, or an error is generated.
 
 The {units} keyword only applies to the {binning} styles; otherwise it
-is ignored.  It determines the meaning of the distance units used for
-the bin sizes {delta} and for {origin} and {bounds} values if they are
-coordinate values.  For orthogonal simulation boxes, any of the 3
-options may be used.  For non-orthogonal (triclinic) simulation boxes,
-only the {reduced} option may be used.
+is ignored.  For the {bin/1d}, {bin/2d}, {bin/3d} styles, it
+determines the meaning of the distance units used for the bin sizes
+{delta} and for {origin} and {bounds} values if they are coordinate
+values.  For the {bin/sphere} style it determines the meaning of the
+distance units used for {xorig},{yorig},{zorig} and the radii {srmin}
+and {srmax}.  For the {bin/cylinder} style it determines the meaning
+of the distance units used for {delta},{c1},{c2} and the radii {crmin}
+and {crmax}.
+
+For orthogonal simulation boxes, any of the 3 options may
+be used.  For non-orthogonal (triclinic) simulation boxes, only the
+{reduced} option may be used.
 
 A {box} value selects standard distance units as defined by the
 "units"_units.html command, e.g. Angstroms for units = real or metal.
@@ -507,7 +610,14 @@ faces of the simulation box respectively.  Thus an {origin} value of
 0.5 means the center of the box in any dimension.  A {delta} value of
 0.1 means 10 bins span the box in that dimension.
 
-:line
+Note that for the {bin/sphere} style, the radii {srmin} and {srmax} are
+scaled by the lattice spacing or reduced value of the {x} dimension.
+
+Note that for the {bin/cylinder} style, the radii {crmin} and {crmax}
+are scaled by the lattice spacing or reduced value of the 1st
+dimension perpendicular to the cylinder axis.  E.g. y for an x-axis
+cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
+
 :line
 
 [Output info:]
@@ -538,17 +648,18 @@ the restarted simulation begins.
 The option defaults are as follows:
 
 region = none
-nchunk = every if compress is yes, overriding other defaults listed here
-nchunk = once for type style
-nchunk = once for mol style if region is none
-nchunk = every for mol style if region is set
-nchunk = once for binning style if the simulation box size is static or units = reduced
-nchunk = every for binning style if the simulation box size is dynamic and units is lattice or box
-nchunk = every for compute/fix/variable style
+nchunk = every, if compress is yes, overriding other defaults listed here
+nchunk = once, for type style
+nchunk = once, for mol style if region is none
+nchunk = every, for mol style if region is set
+nchunk = once, for binning style if the simulation box size is static or units = reduced
+nchunk = every, for binning style if the simulation box size is dynamic and units is lattice or box
+nchunk = every, for compute/fix/variable style
 limit = 0
 ids = every
 compress = no
-discard = yes for all styles except binning
-discard = mixed for binning styles
+discard = yes, for all styles except binning
+discard = mixed, for binning styles
 bound = lower and upper in all dimensions
+pbc = no
 units = lattice :ul

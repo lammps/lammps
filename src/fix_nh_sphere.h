@@ -26,6 +26,7 @@ class FixNHSphere : public FixNH {
 
  protected:
   void nve_v();
+  void nve_x();
   void nh_v_temp();
 };
 

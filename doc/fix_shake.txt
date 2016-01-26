@@ -119,16 +119,16 @@ for in temperature and pressure computations.  Similarly, the SHAKE
 contribution to the pressure of the system (virial) is also accounted
 for.
 
-IMPORTANT NOTE: This command works by using the current forces on
-atoms to caculate an additional constraint force which when added will
-leave the atoms in positions that satisfy the SHAKE constraints
-(e.g. bond length) after the next time integration step.  If you
-define fixes (e.g. "fix efield"_fix_efield.html) that add additional
-force to the atoms after fix shake operates, then this fix will not
-take them into account and the time integration will typically not
-satisfy the SHAKE constraints.  The solution for this is to make sure
-that fix shake is defined in your input script after any other fixes
-which add or change forces (to atoms that fix shake operates on).
+NOTE: This command works by using the current forces on atoms to
+caculate an additional constraint force which when added will leave
+the atoms in positions that satisfy the SHAKE constraints (e.g. bond
+length) after the next time integration step.  If you define fixes
+(e.g. "fix efield"_fix_efield.html) that add additional force to the
+atoms after fix shake operates, then this fix will not take them into
+account and the time integration will typically not satisfy the SHAKE
+constraints.  The solution for this is to make sure that fix shake is
+defined in your input script after any other fixes which add or change
+forces (to atoms that fix shake operates on).
 
 :line
 
@@ -173,14 +173,14 @@ The velocity constraints lead to a linear system of equations which
 can be solved analytically.  The implementation of the algorithm in
 LAMMPS closely follows ("Andersen (1983)"_#Andersen).
 	
-IMPORTANT NOTE: The fix rattle command modifies forces and velocities
-and thus should be defined after all other integration fixes in your
-input script.  If you define other fixes that modify velocities or
-forces after fix rattle operates, then fix rattle will not take them
-into account and the overall time integration will typically not
-satisfy the RATTLE constraints.  You can check whether the constraints
-work correctly by setting the value of RATTLE_DEBUG in
-src/fix_rattle.cpp to 1 and recompiling LAMMPS.
+NOTE: The fix rattle command modifies forces and velocities and thus
+should be defined after all other integration fixes in your input
+script.  If you define other fixes that modify velocities or forces
+after fix rattle operates, then fix rattle will not take them into
+account and the overall time integration will typically not satisfy
+the RATTLE constraints.  You can check whether the constraints work
+correctly by setting the value of RATTLE_DEBUG in src/fix_rattle.cpp
+to 1 and recompiling LAMMPS.
 
 :line
 
@@ -209,6 +209,9 @@ is too small, the constraints will not be enforced very strongly,
 which can lead to poor energy conservation.  You can test for this in
 your system by running a constant NVE simulation with a particular set
 of SHAKE parameters and monitoring the energy versus time.
+
+SHAKE or RATTLE should not be used to contrain an angle at 180 degrees
+(e.g. linear CO2 molecule).  This causes numeric difficulties.
 
 [Related commands:] none
 

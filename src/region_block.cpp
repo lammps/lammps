@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "region_block.h"
 #include "domain.h"
 #include "error.h"
@@ -103,6 +103,8 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
 RegBlock::~RegBlock()
 {
+  if (copymode) return;
+
   delete [] contact;
 }
 

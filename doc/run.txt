@@ -95,14 +95,14 @@ Note that if {pre} is set to "no" for the very 1st run LAMMPS
 performs, then it is overridden, since the initial setup computations
 must be done.
 
-IMPORTANT NOTE: If your input script changes the system between 2
-runs, then the initial setup must be performed to insure the change is
-recognized by all parts of the code that are affected.  Examples are
-adding a "fix"_fix.html or "dump"_dump.html or "compute"_compute.html,
-changing a "neighbor"_neigh_modify.html list parameter, or writing
-restart file which can migrate atoms between processors.  LAMMPS has
-no easy way to check if this has happened, but it is an error to use
-the {pre no} option in this case.
+NOTE: If your input script changes the system between 2 runs, then the
+initial setup must be performed to insure the change is recognized by
+all parts of the code that are affected.  Examples are adding a
+"fix"_fix.html or "dump"_dump.html or "compute"_compute.html, changing
+a "neighbor"_neigh_modify.html list parameter, or writing restart file
+which can migrate atoms between processors.  LAMMPS has no easy way to
+check if this has happened, but it is an error to use the {pre no}
+option in this case.
 
 If {post} is specified as "no", the full timing summary is skipped;
 only a one-line summary timing is printed.
@@ -169,8 +169,8 @@ If the {pre} and {post} options are set to "no" when used with the
 run will print the full timing summary, but these operations will be
 skipped for intermediate runs.
 
-IMPORTANT NOTE: You might hope to specify a command that exits the run
-by jumping out of the loop, e.g.
+NOTE: You might hope to specify a command that exits the run by
+jumping out of the loop, e.g.
 
 variable t equal temp
 run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'" :pre

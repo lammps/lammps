@@ -42,14 +42,13 @@ E.g. if the first body particle has 3 sub-particles, and the second
 has 10, then 30 interactions are computed and summed to yield the
 total force and torque on each body particle.
 
-IMPORTANT NOTE: In the example just described, all 30 interactions are
-computed even if the distance between a particular pair of
-sub-particles is greater than the cutoff.  Likewise, no interaction
-between two body particles is computed if the two COMs are further
-apart than the cutoff, even if the distance between some pairs of
-their sub-particles is within the cutoff.  Thus care should be used in
-defining the cutoff distances for body particles, depending on their
-shape and size.
+NOTE: In the example just described, all 30 interactions are computed
+even if the distance between a particular pair of sub-particles is
+greater than the cutoff.  Likewise, no interaction between two body
+particles is computed if the two COMs are further apart than the
+cutoff, even if the distance between some pairs of their sub-particles
+is within the cutoff.  Thus care should be used in defining the cutoff
+distances for body particles, depending on their shape and size.
 
 Similar rules apply for a body particle interacting with a point
 particle.  The distance between the two particles is calculated using

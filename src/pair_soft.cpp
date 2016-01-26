@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -169,7 +169,7 @@ void PairSoft::settings(int narg, char **arg)
 
 void PairSoft::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) 
+  if (narg < 3 || narg > 4)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 

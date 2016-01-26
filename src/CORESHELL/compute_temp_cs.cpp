@@ -16,10 +16,10 @@
                         (hendrik.heenen at mytum.com)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
-#include "math.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include "compute_temp_cs.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -57,12 +57,12 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   // find and define groupbits for core and shell groups
 
   cgroup = group->find(arg[3]);
-  if (cgroup == -1) 
+  if (cgroup == -1)
     error->all(FLERR,"Cannot find specified group ID for core particles");
   groupbit_c = group->bitmask[cgroup];
 
   sgroup = group->find(arg[4]);
-  if (sgroup == -1) 
+  if (sgroup == -1)
     error->all(FLERR,"Cannot find specified group ID for shell particles");
   groupbit_s = group->bitmask[sgroup];
 
@@ -74,13 +74,14 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_fix,id);
   strcat(id_fix,"_COMPUTE_STORE");
 
-  char **newarg = new char*[5];
+  char **newarg = new char*[6];
   newarg[0] = id_fix;
   newarg[1] = group->names[igroup];
   newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "0";
-  newarg[4] = (char *) "1";
-  modify->add_fix(5,newarg);
+  newarg[3] = (char *) "peratom";
+  newarg[4] = (char *) "0";
+  newarg[5] = (char *) "1";
+  modify->add_fix(6,newarg);
   fix = (FixStore *) modify->fix[modify->nfix-1];
   delete [] newarg;
 
@@ -228,9 +229,9 @@ double ComputeTempCS::compute_scalar()
 
   vcm_pairs();
 
-  // calculate thermal scalar in respect to atom velocities as center-of-mass 
+  // calculate thermal scalar in respect to atom velocities as center-of-mass
   // velocities of its according core/shell pairs
-  
+
   double **v = atom->v;
   int *mask = atom->mask;
   int *type = atom->type;
@@ -256,24 +257,17 @@ double ComputeTempCS::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0) 
+  if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
-    
+
 /* ---------------------------------------------------------------------- */
 
 void ComputeTempCS::compute_vector()
 {
-  double vthermal[3];
-
   invoked_vector = update->ntimestep;
-
-  vcm_pairs();
-
-  // calculate thermal vector in respect to atom velocities as center-of-mass 
-  // velocities of its according C/S pairs
 
   double **v = atom->v;
   int *mask = atom->mask;
@@ -288,17 +282,14 @@ void ComputeTempCS::compute_vector()
 
   for (int i = 0; i < nlocal; i++){
     if (mask[i] & groupbit) {
-      vthermal[0] = v[i][0] - vint[i][0];
-      vthermal[1] = v[i][1] - vint[i][1];
-      vthermal[2] = v[i][2] - vint[i][2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
-      t[0] += massone * vthermal[0]*vthermal[0];
-      t[1] += massone * vthermal[1]*vthermal[1];
-      t[2] += massone * vthermal[2]*vthermal[2];
-      t[3] += massone * vthermal[0]*vthermal[1];
-      t[4] += massone * vthermal[0]*vthermal[2];
-      t[5] += massone * vthermal[1]*vthermal[2];
+      t[0] += massone * v[i][0]*v[i][0];
+      t[1] += massone * v[i][1]*v[i][1];
+      t[2] += massone * v[i][2]*v[i][2];
+      t[3] += massone * v[i][0]*v[i][1];
+      t[4] += massone * v[i][0]*v[i][2];
+      t[5] += massone * v[i][1]*v[i][2];
     }
   }
 
@@ -323,7 +314,7 @@ void ComputeTempCS::vcm_pairs()
     maxatom = atom->nmax;
     memory->create(vint,maxatom,3,"temp/cs:vint");
   }
-  
+
   // vcm = COM velocity of each CS pair
   // vint = internal velocity of each C/S atom, used as bias
 
@@ -337,7 +328,7 @@ void ComputeTempCS::vcm_pairs()
   tagint partnerID;
 
   for (i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && 
+    if ((mask[i] & groupbit) &&
         (mask[i] & groupbit_c || mask[i] & groupbit_s)) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];

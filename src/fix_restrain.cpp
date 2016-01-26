@@ -16,9 +16,9 @@
      support for bond and angle restraints by Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_restrain.h"
 #include "atom.h"
 #include "force.h"
@@ -512,8 +512,8 @@ void FixRestrain::restrain_dihedral(int m)
     MPI_Comm_rank(world,&me);
     if (screen) {
       char str[128];
-      sprintf(str,"Restrain problem: %d " BIGINT_FORMAT " " 
-              TAGINT_FORMAT " " TAGINT_FORMAT " " 
+      sprintf(str,"Restrain problem: %d " BIGINT_FORMAT " "
+              TAGINT_FORMAT " " TAGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT,
               me,update->ntimestep,
               atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);

@@ -106,16 +106,6 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
       else if (strcmp(arg[iarg]+1,"no") == 0) _neighbor = false;
       else error->all(FLERR,"Illegal package omp command");
       iarg += 2;
-    }
-
-    // undocumented options
-
-    else if (strcmp(arg[iarg],"mixed") == 0) {
-      _mixed = true;
-      iarg++;
-    } else if (strcmp(arg[iarg],"double") == 0) {
-      _mixed = false;
-      iarg++;
     } else error->all(FLERR,"Illegal package omp command");
   }
 
@@ -123,20 +113,17 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 
   if (comm->me == 0) {
     const char * const nmode = _neighbor ? "multi-threaded" : "serial";
-    const char * const kmode = _mixed ? "mixed" : "double";
 
     if (screen) {
       if (reset_thr)
 	fprintf(screen,"set %d OpenMP thread(s) per MPI task\n", nthreads);
       fprintf(screen,"using %s neighbor list subroutines\n", nmode);
-      fprintf(screen,"prefer %s precision OpenMP force kernels\n", kmode);
     }
 
     if (logfile) {
       if (reset_thr)
 	fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
       fprintf(logfile,"using %s neighbor list subroutines\n", nmode);
-      fprintf(logfile,"prefer %s precision OpenMP force kernels\n", kmode);
     }
   }
 
@@ -160,13 +147,9 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 
 FixOMP::~FixOMP()
 {
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-    const int tid = get_tid();
-    delete thr[tid];
-  }
+  for (int i=0; i < _nthr; ++i)
+    delete thr[i];
+
   delete[] thr;
 }
 
@@ -202,8 +185,30 @@ void FixOMP::init()
     error->all(FLERR,"USER-OMP package does not (yet) work with "
                "atom_style template");
 
+  // adjust number of data objects when the number of OpenMP
+  // threads has been changed somehow
+  const int nthreads = comm->nthreads;
+  if (_nthr != nthreads) {
+    if (screen) fprintf(screen,"Re-init USER-OMP for %d OpenMP thread(s)\n", nthreads);
+    if (logfile) fprintf(logfile,"Re-init USER-OMP for %d OpenMP thread(s)\n", nthreads);
+
+    for (int i=0; i < _nthr; ++i)
+      delete thr[i];
+
+    thr = new ThrData *[nthreads];
+    _nthr = nthreads;
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+    {
+      const int tid = get_tid();
+      Timer *t = new Timer(lmp);
+      thr[tid] = new ThrData(tid,t);
+    }
+  }
+
   // reset per thread timer
-  for (int i=0; i < comm->nthreads; ++i) {
+  for (int i=0; i < nthreads; ++i) {
     thr[i]->_timer_active=1;
     thr[i]->timer(Timer::RESET);
     thr[i]->_timer_active=-1;
@@ -336,7 +341,7 @@ void FixOMP::set_neighbor_omp()
 void FixOMP::setup(int)
 {
   // we are post the force compute in setup. turn on timers
-  for (int i=0; i < comm->nthreads; ++i)
+  for (int i=0; i < _nthr; ++i)
     thr[i]->_timer_active=0;
 }
 
@@ -369,8 +374,8 @@ void FixOMP::pre_force(int)
 
 double FixOMP::memory_usage()
 {
-  double bytes = comm->nthreads * (sizeof(ThrData *) + sizeof(ThrData));
-  bytes += comm->nthreads * thr[0]->memory_usage();
+  double bytes = _nthr * (sizeof(ThrData *) + sizeof(ThrData));
+  bytes += _nthr * thr[0]->memory_usage();
 
   return bytes;
 }

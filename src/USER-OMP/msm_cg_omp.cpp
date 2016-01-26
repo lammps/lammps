@@ -16,11 +16,11 @@
    Original MSM class by: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "atom.h"
 #include "gridcomm.h"
@@ -331,7 +331,7 @@ void MSMCGOMP::particle_map()
   int flag = 0;
   int i;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   // XXX: O(N). is it worth to add OpenMP here?

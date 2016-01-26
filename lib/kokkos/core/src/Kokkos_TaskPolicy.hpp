@@ -2,13 +2,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -51,10 +51,12 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Tags.hpp>
 #include <impl/Kokkos_StaticAssert.hpp>
+#include <impl/Kokkos_AllocationTracker.hpp>
 
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+namespace Experimental {
 namespace Impl {
 
 struct FutureValueTypeIsVoidError {};
@@ -72,11 +74,13 @@ template< class ExecPolicy , class ResultType , class FunctorType >
 struct TaskScan ;
 
 } /* namespace Impl */
+} /* namespace Experimental */
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+namespace Experimental {
 
 /**\brief  States of a task */
 enum TaskState
@@ -86,9 +90,6 @@ enum TaskState
   , TASK_STATE_EXECUTING    = 4  ///<  Is executing
   , TASK_STATE_COMPLETE     = 8  ///<  Execution is complete
   };
-
-template< class Arg1 = void , class Arg2 = void >
-class FutureArray ;
 
 /**
  *
@@ -104,29 +105,28 @@ private:
   template< class , class , class > friend class Impl::TaskMember ;
   template< class > friend class TaskPolicy ;
   template< class , class > friend class Future ;
-  template< class , class > friend class FutureArray ;
 
   // Argument #2, if not void, must be the space.
-  enum { Arg1_is_space  = Impl::is_execution_space< Arg1 >::value };
-  enum { Arg2_is_space  = Impl::is_execution_space< Arg2 >::value };
-  enum { Arg2_is_void   = Impl::is_same< Arg2 , void >::value };
+  enum { Arg1_is_space  = Kokkos::Impl::is_execution_space< Arg1 >::value };
+  enum { Arg2_is_space  = Kokkos::Impl::is_execution_space< Arg2 >::value };
+  enum { Arg2_is_void   = Kokkos::Impl::is_same< Arg2 , void >::value };
 
   struct ErrorNoExecutionSpace {};
 
   enum { Opt1  =   Arg1_is_space && Arg2_is_void
        , Opt2  = ! Arg1_is_space && Arg2_is_void
        , Opt3  = ! Arg1_is_space && Arg2_is_space
-       , OptOK = Impl::StaticAssert< Opt1 || Opt2 || Opt3 , ErrorNoExecutionSpace >::value
+       , OptOK = Kokkos::Impl::StaticAssert< Opt1 || Opt2 || Opt3 , ErrorNoExecutionSpace >::value
        };
 
   typedef typename
-    Impl::if_c< Opt2 || Opt3 , Arg1 , void >::type
+    Kokkos::Impl::if_c< Opt2 || Opt3 , Arg1 , void >::type
       ValueType ;
 
   typedef typename
-    Impl::if_c< Opt1 , Arg1 , typename
-    Impl::if_c< Opt2 , Kokkos::DefaultExecutionSpace , typename
-    Impl::if_c< Opt3 , Arg2 , void
+    Kokkos::Impl::if_c< Opt1 , Arg1 , typename
+    Kokkos::Impl::if_c< Opt2 , Kokkos::DefaultExecutionSpace , typename
+    Kokkos::Impl::if_c< Opt3 , Arg2 , void
     >::type >::type >::type
       ExecutionSpace ;
 
@@ -156,7 +156,7 @@ public:
   //----------------------------------------
 
   KOKKOS_INLINE_FUNCTION
-  ~Future() { TaskRoot::assign( & m_task , 0 , true /* no_throw */ ); }
+  ~Future() { TaskRoot::assign( & m_task , 0 ); }
 
   //----------------------------------------
 
@@ -200,102 +200,17 @@ template< class T >
 struct is_future : public Kokkos::Impl::bool_< false > {};
 
 template< class Arg0 , class Arg1 >
-struct is_future< Kokkos::Future<Arg0,Arg1> > : public Kokkos::Impl::bool_< true > {};
+struct is_future< Kokkos::Experimental::Future<Arg0,Arg1> > : public Kokkos::Impl::bool_< true > {};
 
 } /* namespace Impl */
+} /* namespace Experimental */
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-
-template< class Arg1 , class Arg2 >
-class FutureArray {
-private:
-
-  typedef Future<Arg1,Arg2> future_type ;
-
-  typedef typename future_type::execution_space  ExecutionSpace ;
-  typedef typename ExecutionSpace::memory_space  MemorySpace ;
-
-  typedef Impl::TaskMember< ExecutionSpace , void , void >  TaskRoot ;
-
-  future_type * m_future ;
-
-  //----------------------------------------
-
-public:
-
-  typedef ExecutionSpace  execution_space ;
-  typedef future_type     value_type ;
-
-  //----------------------------------------
-
-  KOKKOS_INLINE_FUNCTION
-  size_t size() const
-    { return m_future ? reinterpret_cast<size_t>(m_future->m_task) : size_t(0) ; }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type & operator[]( const int i ) const
-    { return m_future[i+1]; }
-
-  //----------------------------------------
-
-  KOKKOS_INLINE_FUNCTION
-  ~FutureArray()
-    {
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-      if ( m_future ) {
-        const size_t n = size();
-        for ( size_t i = 1 ; i <= n ; ++i ) {
-          TaskRoot::assign( & m_future[i].m_task , 0 );
-        }
-        m_future[0].m_task = 0 ;
-        MemorySpace::decrement( m_future );
-      }
-#endif
-    }
-
-  KOKKOS_INLINE_FUNCTION
-  FutureArray() : m_future(0) {}
-
-  inline
-  FutureArray( const size_t n )
-    : m_future(0)
-    {
-      if ( n ) {
-        m_future = (future_type *) MemorySpace::allocate( "FutureArray" , sizeof(future_type) * ( n + 1 ) );
-        for ( size_t i = 0 ; i <= n ; ++i ) m_future[i].m_task = 0 ;
-      }
-    }
-
-  KOKKOS_INLINE_FUNCTION
-  FutureArray( const FutureArray & rhs )
-    : m_future( rhs.m_future )
-    {
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-      MemorySpace::increment( m_future );
-#endif
-    }
-
-  KOKKOS_INLINE_FUNCTION
-  FutureArray & operator = ( const FutureArray & rhs )
-    {
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-      MemorySpace::decrement( m_future );
-      MemorySpace::increment( rhs.m_future );
-#endif
-      m_future = rhs.m_future ;
-      return *this ;
-    }
-};
-
-} /* namespace Kokkos */
-
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
+namespace Experimental {
 
 /** \brief  If the argument is an execution space then a serial task in that space */
 template< class Arg0 = Kokkos::DefaultExecutionSpace >
@@ -451,13 +366,7 @@ void respawn( TaskPolicy<ExecSpace>   & policy
 template< class ExecSpace >
 void wait( TaskPolicy< ExecSpace > & );
 
-template< class A0 , class A1 >
-inline
-void wait( const Future<A0,A1> & future )
-{
-  wait( Future< void , typename Future<A0,A1>::execution_space >( future ) );
-}
-
+} /* namespace Experimental */
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------

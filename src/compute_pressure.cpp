@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_pressure.h"
 #include "atom.h"
 #include "update.h"
@@ -96,7 +96,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (keflag && id_temp == NULL) 
+  if (keflag && id_temp == NULL)
     error->all(FLERR,"Compute pressure requires temperature ID "
 	       "to include kinetic energy");
 

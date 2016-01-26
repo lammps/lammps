@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_deposit.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -107,17 +107,17 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix deposit molecule must have coordinates");
       if (onemols[i]->typeflag == 0)
         error->all(FLERR,"Fix deposit molecule must have atom types");
-      if (ntype+onemols[i]->ntypes <= 0 || 
+      if (ntype+onemols[i]->ntypes <= 0 ||
           ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix deposit mol command");
-      
+
       if (atom->molecular == 2 && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix deposit molecule template ID must be same "
                    "as atom_style template ID");
       onemols[i]->check_attributes(0);
 
       // fix deposit uses geoemetric center of molecule for insertion
-      
+
       onemols[i]->compute_center();
     }
   }
@@ -253,7 +253,7 @@ void FixDeposit::init()
   // for finite size spherical particles:
   // warn if near < 2 * maxrad of existing and inserted particles
   //   since may lead to overlaps
-  // if inserted molecule does not define diameters, 
+  // if inserted molecule does not define diameters,
   //   use AtomVecSphere::create_atom() default radius = 0.5
 
   if (atom->radius_flag) {
@@ -300,6 +300,13 @@ void FixDeposit::pre_exchange()
   // just return if should not be called on this timestep
 
   if (next_reneighbor != update->ntimestep) return;
+
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c inserting atoms will overwrite ghost atoms
+
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
 
   // compute current offset = bottom of insertion volume
 
@@ -482,7 +489,7 @@ void FixDeposit::pre_exchange()
         domain->x2lamda(coords[m],lamda);
         newcoord = lamda;
       } else newcoord = coords[m];
-      
+
       flag = 0;
       if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
           newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
@@ -496,7 +503,7 @@ void FixDeposit::pre_exchange()
           if (comm->mysplit[2][1] == 1.0 &&
               newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
               newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
-        } 
+        }
       } else if (dimension == 2 && newcoord[1] >= domain->boxhi[1]) {
         if (comm->layout != LAYOUT_TILED) {
           if (comm->myloc[1] == comm->procgrid[1]-1 &&
@@ -524,8 +531,10 @@ void FixDeposit::pre_exchange()
         atom->v[n][0] = vnew[0];
         atom->v[n][1] = vnew[1];
         atom->v[n][2] = vnew[2];
-        if (mode == MOLECULE) 
+        if (mode == MOLECULE) {
+	  onemols[imol]->quat_external = quat;
           atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
+	}
         modify->create_attribute(n);
       }
     }
@@ -559,11 +568,12 @@ void FixDeposit::pre_exchange()
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
   // if global map exists, reset it now instead of waiting for comm
-  // since adding atoms messes up ghosts
+  //   since other pre-exchange fixes may use it
+  //   invoke map_init() b/c atom count has grown
 
   if (success) {
     atom->natoms += natom;
-    if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+    if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
       atom->nbonds += onemols[imol]->nbonds;
@@ -576,7 +586,6 @@ void FixDeposit::pre_exchange()
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
     if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
     if (atom->map_style) {
-      atom->nghost = 0;
       atom->map_init();
       atom->map_set();
     }
@@ -668,9 +677,9 @@ void FixDeposit::options(int narg, char **arg)
       if (mode != MOLECULE) error->all(FLERR,"Illegal fix deposit command");
       if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix deposit command");
       molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
-      for (int i = 1; i < nmol; i++) 
+      for (int i = 1; i < nmol; i++)
         molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
-      if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON) 
+      if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON)
         error->all(FLERR,"Illegal fix deposit command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
@@ -711,13 +720,13 @@ void FixDeposit::options(int narg, char **arg)
       globalflag = 0;
       lo = force->numeric(FLERR,arg[iarg+1]);
       hi = force->numeric(FLERR,arg[iarg+2]);
-      deltasq = force->numeric(FLERR,arg[iarg+3]) * 
+      deltasq = force->numeric(FLERR,arg[iarg+3]) *
         force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"near") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      nearsq = force->numeric(FLERR,arg[iarg+1]) * 
+      nearsq = force->numeric(FLERR,arg[iarg+1]) *
         force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"attempt") == 0) {
@@ -811,23 +820,24 @@ void *FixDeposit::extract(const char *str, int &itype)
 
     } else {
 
-      // find a molecule in template with matching type
+      // loop over onemols molecules
+      // skip a molecule with no atoms as large as itype
 
+      oneradius = 0.0;
       for (int i = 0; i < nmol; i++) {
-        if (itype-ntype > onemols[i]->ntypes) continue;
+        if (itype > ntype+onemols[i]->ntypes) continue;
         double *radius = onemols[i]->radius;
         int *type = onemols[i]->type;
         int natoms = onemols[i]->natoms;
 
-        // check radii of matching types in Molecule
+        // check radii of atoms in Molecule with matching types
         // default to 0.5, if radii not defined in Molecule
         //   same as atom->avec->create_atom(), invoked in pre_exchange()
 
-        oneradius = 0.0;
         for (int i = 0; i < natoms; i++)
-          if (type[i] == itype-ntype) {
+          if (type[i]+ntype == itype) {
             if (radius) oneradius = MAX(oneradius,radius[i]);
-            else oneradius = 0.5;
+            else oneradius = MAX(oneradius,0.5);
           }
       }
     }

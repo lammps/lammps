@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute saed command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute saed command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-saed-command">
+<span id="index-0"></span><h1>compute saed command<a class="headerlink" href="#compute-saed-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID saed lambda type1 type2 ... typeN keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>saed = style name of this compute command</li>
+<li>lambda = wavelength of incident radiation (length units)</li>
+<li>type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>Kmax</em> or <em>Zone</em> or <em>dR_Ewald</em> or <em>c</em> or <em>manual</em> or <em>echo</em></li>
+</ul>
+<pre class="literal-block">
+<em>Kmax</em> value = Maximum distance explored from reciprocal space origin
+               (inverse length units)
+<em>Zone</em> values = z1 z2 z3
+  z1,z2,z3 = Zone axis of incident radiation. If z1=z2=z3=0 all
+             reciprocal space will be meshed up to <em>Kmax</em>
+<em>dR_Ewald</em> value = Thickness of Ewald sphere slice intercepting
+                   reciprocal space (inverse length units)
+<em>c</em> values = c1 c2 c3
+  c1,c2,c3 = parameters to adjust the spacing of the reciprocal
+             lattice nodes in the h, k, and l directions respectively
+<em>manual</em> = flag to use manual spacing of reciprocal lattice points
+           based on the values of the <em>c</em> parameters
+<em>echo</em> = flag to provide extra output for debugging purposes
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
+compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>fix saed/vtk 1 1 1 c_1 file Al2O3_001.saed
+fix saed/vtk 1 1 1 c_2 file Ni_000.saed
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates electron diffraction intensity as
+described in <a class="reference internal" href="fix_saed_vtk.html#coleman"><span>(Coleman)</span></a> on a mesh of reciprocal lattice nodes
+defined by the entire simulation domain (or manually) using simulated
+radiation of wavelength lambda.</p>
+<p>The electron diffraction intensity I at each reciprocal lattice point
+is computed from the structure factor F using the equations:</p>
+<img alt="_images/compute_saed1.jpg" class="align-center" src="_images/compute_saed1.jpg" />
+<img alt="_images/compute_saed2.jpg" class="align-center" src="_images/compute_saed2.jpg" />
+<p>Here, K is the location of the reciprocal lattice node, rj is the
+position of each atom, fj are atomic scattering factors.</p>
+<p>Diffraction intensities are calculated on a three-dimensional mesh of
+reciprocal lattice nodes. The mesh spacing is defined either (a)  by
+the entire simulation domain or (b) manually using selected values as
+shown in the 2D diagram below.</p>
+<a data-lightbox="group-default"
+                   href="_images/saed_mesh.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/saed_mesh.jpg"
+                    class="align-center"
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a><p>For a mesh defined by the simulation domain, a rectilinear grid is
+constructed with spacing <a href="#id1"><span class="problematic" id="id2">*</span></a>c**inv(A) along each reciprocal lattice
+axis. Where A are the vectors corresponding to the edges of the
+simulation cell. If one or two directions has non-periodic boundary
+conditions, then the spacing in these directions is defined from the
+average of the (inversed) box lengths with periodic boundary conditions.
+Meshes defined by the simulation domain must contain at least one periodic
+boundary.</p>
+<p>If the <em>manual</em> flag is included, the mesh of reciprocal lattice nodes
+will defined using the <em>c</em> values for the spacing along each reciprocal
+lattice axis. Note that manual mapping of the reciprocal space mesh is
+good for comparing diffraction results from  multiple simulations; however
+it can reduce the likelihood that Bragg reflections will be satisfied
+unless small spacing parameters &lt;0.05 Angstrom^(-1) are implemented.
+Meshes with manual spacing do not require a periodic boundary.</p>
+<p>The limits of the reciprocal lattice mesh are determined by the use of
+the <em>Kmax</em>, <em>Zone</em>, and <em>dR_Ewald</em> parameters.  The rectilinear mesh
+created about the origin of reciprocal space is terminated at the
+boundary of a sphere of radius <em>Kmax</em> centered at the origin.  If
+<em>Zone</em> parameters z1=z2=z3=0 are used, diffraction intensities are
+computed throughout the entire spherical volume - note this can
+greatly increase the cost of computation.  Otherwise, <em>Zone</em>
+parameters will denote the z1=h, z2=k, and z3=l (in a global since)
+zone axis of an intersecting Ewald sphere.  Diffraction intensities
+will only be computed at the intersection of the reciprocal lattice
+mesh and a <em>dR_Ewald</em> thick surface of the Ewald sphere.  See the
+example 3D intestiety data and the intersection of a [010] zone axis
+in the below image.</p>
+<a data-lightbox="group-default"
+                   href="_images/saed_ewald_intersect.jpg"
+                   class=""
+                   title=""
+                   data-title=""
+                   ><img src="_images/saed_ewald_intersect.jpg"
+                    class="align-center"
+                    width="25%"
+                    height="auto"
+                    alt=""/>
+                    </a><p>The atomic scattering factors, fj, accounts for the reduction in
+diffraction intensity due to Compton scattering.  Compute saed uses
+analytical approximations of the atomic scattering factors that vary
+for each atom type (type1 type2 ... typeN) and angle of diffraction.
+The analytic approximation is computed using the formula
+<a class="reference internal" href="#brown"><span>(Brown)</span></a>:</p>
+<img alt="_images/compute_saed3.jpg" class="align-center" src="_images/compute_saed3.jpg" />
+<p>Coefficients parameterized by <a class="reference internal" href="#fox"><span>(Fox)</span></a> are assigned for each
+atom type designating the chemical symbol and charge of each atom
+type. Valid chemical symbols for compute saed are:</p>
+<dl class="docutils">
+<dt>H:      He:      Li:      Be:       B:</dt>
+<dd><blockquote class="first">
+<div>C:       N:       O:       F:      Ne:</div></blockquote>
+<dl class="docutils">
+<dt>Na:      Mg:      Al:      Si:       P:</dt>
+<dd>S:      Cl:      Ar:       K:      Ca:</dd>
+</dl>
+<p class="last">Sc:      Ti:       V:      Cr:      Mn:
+Fe:      Co:      Ni:      Cu:      Zn:
+Ga:      Ge:      As:      Se:      Br:
+Kr:      Rb:      Sr:       Y:      Zr:
+Nb:      Mo:      Tc:      Ru:      Rh:
+Pd:      Ag:      Cd:      In:      Sn:
+Sb:      Te:       I:      Xe:      Cs:
+Ba:      La:      Ce:      Pr:      Nd:
+Pm:      Sm:      Eu:      Gd:      Tb:
+Dy:      Ho:      Er:      Tm:      Yb:
+Lu:      Hf:      Ta:       W:      Re:
+Os:      Ir:      Pt:      Au:      Hg:
+Tl:      Pb:      Bi:      Po:      At:
+Rn:      Fr:      Ra:      Ac:      Th:
+Pa:       U:      Np:      Pu:      Am:
+Cm:      Bk:      Cf:tb(c=5,s=:)</p>
+</dd>
+</dl>
+<p>If the <em>echo</em> keyword is specified, compute saed will provide extra
+reporting information to the screen.</p>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global vector.  The length of the vector is
+the number of reciprocal lattice nodes that are explored by the mesh.
+The entries of the global vector are the computed diffraction
+intensities as described above.</p>
+<p>The vector can be accessed by any command that uses global values
+from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>All array values calculated by this compute are &#8220;intensive&#8221;.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the USER-DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>The compute_saed command does not work for triclinic cells.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_saed_vtk.html"><em>fix saed_vtk</em></a>, <a class="reference internal" href="compute_xrd.html"><em>compute xrd</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are Kmax = 1.70, Zone 1 0 0, c 1 1 1, dR_Ewald =
+0.01.</p>
+<hr class="docutils" />
+<p id="coleman"><strong>(Coleman)</strong> Coleman, Spearot, Capolungo, MSMSE, 21, 055020
+(2013).</p>
+<p id="brown"><strong>(Brown)</strong> Brown et al. International Tables for Crystallography
+Volume C: Mathematical and Chemical Tables, 554-95 (2004).</p>
+<p id="fox"><strong>(Fox)</strong> Fox, O&#8217;Keefe, Tabbernor, Acta Crystallogr. A, 45, 786-93
+(1989).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

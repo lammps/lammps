@@ -11,13 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_msd_chunk.h"
 #include "atom.h"
+#include "group.h"
 #include "update.h"
 #include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
+#include "fix_store.h"
 #include "memory.h"
 #include "error.h"
 
@@ -42,25 +44,51 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   idchunk = new char[n];
   strcpy(idchunk,arg[3]);
 
+  firstflag = 1;
   init();
 
   massproc = masstotal = NULL;
-  com = comall = cominit = NULL;
+  com = comall = NULL;
   msd = NULL;
 
-  firstflag = 1;
+  // create a new fix STORE style for reference positions
+  // id = compute-ID + COMPUTE_STORE, fix group = compute group
+  // do not know size of array at this point, just allocate 1x3 array
+  // fix creation must be done now so that a restart run can
+  //   potentially re-populate the fix array (and change it to correct size)
+  // otherwise size reset and init will be done in setup()
+
+  n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
+  id_fix = new char[n];
+  strcpy(id_fix,id);
+  strcat(id_fix,"_COMPUTE_STORE");
+
+  char **newarg = new char*[6];
+  newarg[0] = id_fix;
+  newarg[1] = group->names[igroup];
+  newarg[2] = (char *) "STORE";
+  newarg[3] = (char *) "global";
+  newarg[4] = (char *) "1";
+  newarg[5] = (char *) "1";
+  modify->add_fix(6,newarg);
+  fix = (FixStore *) modify->fix[modify->nfix-1];
+  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeMSDChunk::~ComputeMSDChunk()
 {
+  // check nfix in case all fixes have already been deleted
+
+  if (modify->nfix) modify->delete_fix(id_fix);
+
+  delete [] id_fix;
   delete [] idchunk;
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(com);
   memory->destroy(comall);
-  memory->destroy(cominit);
   memory->destroy(msd);
 }
 
@@ -74,6 +102,15 @@ void ComputeMSDChunk::init()
   cchunk = (ComputeChunkAtom *) modify->compute[icompute];
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute msd/chunk does not use chunk/atom compute");
+
+  // set fix which stores reference atom coords
+  // if firstflag, will be created in setup()
+
+  if (!firstflag) {
+    int ifix = modify->find_fix(id_fix);
+    if (ifix < 0) error->all(FLERR,"Could not find compute msd/chunk fix ID");
+    fix = (FixStore *) modify->fix[ifix];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -87,6 +124,13 @@ void ComputeMSDChunk::setup()
   compute_array();
   firstflag = 0;
 
+  // if fix->astore is already correct size, restart file set it up
+  // otherwise reset its size now and initialize to current COM
+
+  if (fix->nrow == nchunk && fix->ncol == 3) return;
+  fix->reset_global(nchunk,3);
+    
+  double **cominit = fix->astore;
   for (int i = 0; i < nchunk; i++) {
     cominit[i][0] = comall[i][0];
     cominit[i][1] = comall[i][1];
@@ -119,7 +163,8 @@ void ComputeMSDChunk::compute_array()
   if (firstflag) {
     nchunk = n;
     allocate();
-  } else if (n != nchunk) 
+    size_array_rows = nchunk;
+  } else if (n != nchunk)
     error->all(FLERR,"Compute msd/chunk nchunk is not static");
 
   // zero local per-chunk values
@@ -162,11 +207,12 @@ void ComputeMSDChunk::compute_array()
   }
 
   // MSD is difference between current and initial COM
-  // cominit does not yet exist when called first time from setup()
+  // cominit is initilialized by setup() when firstflag is set
 
   if (firstflag) return;
 
   double dx,dy,dz;
+  double **cominit = fix->astore;
 
   for (int i = 0; i < nchunk; i++) {
     dx = comall[i][0] - cominit[i][0];
@@ -245,7 +291,6 @@ void ComputeMSDChunk::allocate()
   memory->create(masstotal,nchunk,"msd/chunk:masstotal");
   memory->create(com,nchunk,3,"msd/chunk:com");
   memory->create(comall,nchunk,3,"msd/chunk:comall");
-  memory->create(cominit,nchunk,3,"msd/chunk:cominit");
   memory->create(msd,nchunk,4,"msd/chunk:msd");
   array = msd;
 }
@@ -257,7 +302,7 @@ void ComputeMSDChunk::allocate()
 double ComputeMSDChunk::memory_usage()
 {
   double bytes = (bigint) nchunk * 2 * sizeof(double);
-  bytes += (bigint) nchunk * 3*3 * sizeof(double);
+  bytes += (bigint) nchunk * 2*3 * sizeof(double);
   bytes += (bigint) nchunk * 4 * sizeof(double);
   return bytes;
 }

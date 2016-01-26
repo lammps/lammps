@@ -191,14 +191,14 @@ int Allocate_Workspace( reax_system *system, control_params *control,
   int i, total_real, total_rvec, local_rvec;
 
   workspace->allocated = 1;
-  total_real = total_cap * sizeof(real);
+  total_real = total_cap * sizeof(double);
   total_rvec = total_cap * sizeof(rvec);
   local_rvec = local_cap * sizeof(rvec);
 
   /* communication storage */
   for( i = 0; i < MAX_NBRS; ++i ) {
-    workspace->tmp_dbl[i] = (real*)
-      scalloc( total_cap, sizeof(real), "tmp_dbl", comm );
+    workspace->tmp_dbl[i] = (double*)
+      scalloc( total_cap, sizeof(double), "tmp_dbl", comm );
     workspace->tmp_rvec[i] = (rvec*)
       scalloc( total_cap, sizeof(rvec), "tmp_rvec", comm );
     workspace->tmp_rvec2[i] = (rvec2*)
@@ -208,62 +208,62 @@ int Allocate_Workspace( reax_system *system, control_params *control,
   /* bond order related storage  */
   workspace->within_bond_box = (int*)
     scalloc( total_cap, sizeof(int), "skin", comm );
-  workspace->total_bond_order = (real*) smalloc( total_real, "total_bo", comm );
-  workspace->Deltap = (real*) smalloc( total_real, "Deltap", comm );
-  workspace->Deltap_boc = (real*) smalloc( total_real, "Deltap_boc", comm );
+  workspace->total_bond_order = (double*) smalloc( total_real, "total_bo", comm );
+  workspace->Deltap = (double*) smalloc( total_real, "Deltap", comm );
+  workspace->Deltap_boc = (double*) smalloc( total_real, "Deltap_boc", comm );
   workspace->dDeltap_self = (rvec*) smalloc( total_rvec, "dDeltap_self", comm );
-  workspace->Delta = (real*) smalloc( total_real, "Delta", comm );
-  workspace->Delta_lp = (real*) smalloc( total_real, "Delta_lp", comm );
-  workspace->Delta_lp_temp = (real*)
+  workspace->Delta = (double*) smalloc( total_real, "Delta", comm );
+  workspace->Delta_lp = (double*) smalloc( total_real, "Delta_lp", comm );
+  workspace->Delta_lp_temp = (double*)
     smalloc( total_real, "Delta_lp_temp", comm );
-  workspace->dDelta_lp = (real*) smalloc( total_real, "dDelta_lp", comm );
-  workspace->dDelta_lp_temp = (real*)
+  workspace->dDelta_lp = (double*) smalloc( total_real, "dDelta_lp", comm );
+  workspace->dDelta_lp_temp = (double*)
     smalloc( total_real, "dDelta_lp_temp", comm );
-  workspace->Delta_e = (real*) smalloc( total_real, "Delta_e", comm );
-  workspace->Delta_boc = (real*) smalloc( total_real, "Delta_boc", comm );
-  workspace->Delta_val = (real*) smalloc( total_real, "Delta_val", comm );
-  workspace->nlp = (real*) smalloc( total_real, "nlp", comm );
-  workspace->nlp_temp = (real*) smalloc( total_real, "nlp_temp", comm );
-  workspace->Clp = (real*) smalloc( total_real, "Clp", comm );
-  workspace->vlpex = (real*) smalloc( total_real, "vlpex", comm );
+  workspace->Delta_e = (double*) smalloc( total_real, "Delta_e", comm );
+  workspace->Delta_boc = (double*) smalloc( total_real, "Delta_boc", comm );
+  workspace->Delta_val = (double*) smalloc( total_real, "Delta_val", comm );
+  workspace->nlp = (double*) smalloc( total_real, "nlp", comm );
+  workspace->nlp_temp = (double*) smalloc( total_real, "nlp_temp", comm );
+  workspace->Clp = (double*) smalloc( total_real, "Clp", comm );
+  workspace->vlpex = (double*) smalloc( total_real, "vlpex", comm );
   workspace->bond_mark = (int*)
     scalloc( total_cap, sizeof(int), "bond_mark", comm );
   workspace->done_after = (int*)
     scalloc( total_cap, sizeof(int), "done_after", comm );
 
   /* QEq storage */
-  workspace->Hdia_inv = (real*)
-    scalloc( total_cap, sizeof(real), "Hdia_inv", comm );
-  workspace->b_s = (real*) scalloc( total_cap, sizeof(real), "b_s", comm );
-  workspace->b_t = (real*) scalloc( total_cap, sizeof(real), "b_t", comm );
-  workspace->b_prc = (real*) scalloc( total_cap, sizeof(real), "b_prc", comm );
-  workspace->b_prm = (real*) scalloc( total_cap, sizeof(real), "b_prm", comm );
-  workspace->s = (real*) scalloc( total_cap, sizeof(real), "s", comm );
-  workspace->t = (real*) scalloc( total_cap, sizeof(real), "t", comm );
-  workspace->droptol = (real*)
-    scalloc( total_cap, sizeof(real), "droptol", comm );
+  workspace->Hdia_inv = (double*)
+    scalloc( total_cap, sizeof(double), "Hdia_inv", comm );
+  workspace->b_s = (double*) scalloc( total_cap, sizeof(double), "b_s", comm );
+  workspace->b_t = (double*) scalloc( total_cap, sizeof(double), "b_t", comm );
+  workspace->b_prc = (double*) scalloc( total_cap, sizeof(double), "b_prc", comm );
+  workspace->b_prm = (double*) scalloc( total_cap, sizeof(double), "b_prm", comm );
+  workspace->s = (double*) scalloc( total_cap, sizeof(double), "s", comm );
+  workspace->t = (double*) scalloc( total_cap, sizeof(double), "t", comm );
+  workspace->droptol = (double*)
+    scalloc( total_cap, sizeof(double), "droptol", comm );
   workspace->b = (rvec2*) scalloc( total_cap, sizeof(rvec2), "b", comm );
   workspace->x = (rvec2*) scalloc( total_cap, sizeof(rvec2), "x", comm );
 
   /* GMRES storage */
-  workspace->y = (real*) scalloc( RESTART+1, sizeof(real), "y", comm );
-  workspace->z = (real*) scalloc( RESTART+1, sizeof(real), "z", comm );
-  workspace->g = (real*) scalloc( RESTART+1, sizeof(real), "g", comm );
-  workspace->h = (real**) scalloc( RESTART+1, sizeof(real*), "h", comm );
-  workspace->hs = (real*) scalloc( RESTART+1, sizeof(real), "hs", comm );
-  workspace->hc = (real*) scalloc( RESTART+1, sizeof(real), "hc", comm );
-  workspace->v = (real**) scalloc( RESTART+1, sizeof(real*), "v", comm );
+  workspace->y = (double*) scalloc( RESTART+1, sizeof(double), "y", comm );
+  workspace->z = (double*) scalloc( RESTART+1, sizeof(double), "z", comm );
+  workspace->g = (double*) scalloc( RESTART+1, sizeof(double), "g", comm );
+  workspace->h = (double**) scalloc( RESTART+1, sizeof(double*), "h", comm );
+  workspace->hs = (double*) scalloc( RESTART+1, sizeof(double), "hs", comm );
+  workspace->hc = (double*) scalloc( RESTART+1, sizeof(double), "hc", comm );
+  workspace->v = (double**) scalloc( RESTART+1, sizeof(double*), "v", comm );
 
   for( i = 0; i < RESTART+1; ++i ) {
-    workspace->h[i] = (real*) scalloc( RESTART+1, sizeof(real), "h[i]", comm );
-    workspace->v[i] = (real*) scalloc( total_cap, sizeof(real), "v[i]", comm );
+    workspace->h[i] = (double*) scalloc( RESTART+1, sizeof(double), "h[i]", comm );
+    workspace->v[i] = (double*) scalloc( total_cap, sizeof(double), "v[i]", comm );
   }
 
   /* CG storage */
-  workspace->r = (real*) scalloc( total_cap, sizeof(real), "r", comm );
-  workspace->d = (real*) scalloc( total_cap, sizeof(real), "d", comm );
-  workspace->q = (real*) scalloc( total_cap, sizeof(real), "q", comm );
-  workspace->p = (real*) scalloc( total_cap, sizeof(real), "p", comm );
+  workspace->r = (double*) scalloc( total_cap, sizeof(double), "r", comm );
+  workspace->d = (double*) scalloc( total_cap, sizeof(double), "d", comm );
+  workspace->q = (double*) scalloc( total_cap, sizeof(double), "q", comm );
+  workspace->p = (double*) scalloc( total_cap, sizeof(double), "p", comm );
   workspace->r2 = (rvec2*) scalloc( total_cap, sizeof(rvec2), "r2", comm );
   workspace->d2 = (rvec2*) scalloc( total_cap, sizeof(rvec2), "d2", comm );
   workspace->q2 = (rvec2*) scalloc( total_cap, sizeof(rvec2), "q2", comm );
@@ -274,8 +274,8 @@ int Allocate_Workspace( reax_system *system, control_params *control,
 
   // /* force related storage */
   workspace->f = (rvec*) scalloc( total_cap, sizeof(rvec), "f", comm );
-  workspace->CdDelta = (real*)
-    scalloc( total_cap, sizeof(real), "CdDelta", comm );
+  workspace->CdDelta = (double*)
+    scalloc( total_cap, sizeof(double), "CdDelta", comm );
 
   return SUCCESS;
 }

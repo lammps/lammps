@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_cut_soft_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -126,7 +126,7 @@ void PairLJCutSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         r4sig6 = rsq*rsq / lj2i[jtype];
         denlj = lj3i[jtype] + rsq*r4sig6;
-        forcelj = lj1i[jtype] * epsi[jtype] * 
+        forcelj = lj1i[jtype] * epsi[jtype] *
           (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
         fpair = factor_lj*forcelj;
@@ -141,7 +141,7 @@ void PairLJCutSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          evdwl = lj1i[jtype] * 4.0 * epsi[jtype] * 
+          evdwl = lj1i[jtype] * 4.0 * epsi[jtype] *
             (1.0/(denlj*denlj) - 1.0/denlj) - offseti[jtype];
           evdwl *= factor_lj;
         }

@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_cut_coul_dsf_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -155,10 +155,9 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
           erfcd = exp(-alpha*alpha*r*r);
           t = 1.0 / (1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-          forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
+          forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                    r*f_shift) * r;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-          fpair = forcecoul * r2inv;
         } else forcecoul = 0.0;
 
         fpair = (forcecoul + factor_lj*forcelj) * r2inv;

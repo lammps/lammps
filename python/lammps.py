@@ -15,24 +15,44 @@
 
 import sys,traceback,types
 from ctypes import *
-import os.path
+from os.path import dirname,abspath,join
+from inspect import getsourcefile
 
 class lammps:
-  def __init__(self,name="",cmdargs=None,ptr=None):
+  
+  # detect if Python is using version of mpi4py that can pass a communicator
+  
+  has_mpi4py_v2 = False
+  try:
+    from mpi4py import MPI
+    from mpi4py import __version__ as mpi4py_version
+    if mpi4py_version.split('.')[0] == '2':
+      has_mpi4py_v2 = True
+  except:
+    pass
+
+  # create instance of LAMMPS
+  
+  def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+
+    # determine module location
+    
+    modpath = dirname(abspath(getsourcefile(lambda:0)))
 
     # load liblammps.so by default
     # if name = "g++", load liblammps_g++.so
 
     try:
-      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
-      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+      if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
+      else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
     except:
       type,value,tb = sys.exc_info()
       traceback.print_exception(type,value,tb)
-      raise OSError,"Could not load LAMMPS dynamic library"
+      raise OSError,"Could not load LAMMPS dynamic library from %s" % modpath
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
+    #   but we can pass an MPI communicator from mpi4py v2.0.0 and later
     #   no_mpi call lets LAMMPS use MPI_COMM_WORLD
     #   cargs = array of C strings from args
     # if ptr, then are embedding Python in LAMMPS input script
@@ -40,18 +60,49 @@ class lammps:
     #   just convert it to ctypes ptr and store in self.lmp
     
     if not ptr:
-      self.opened = 1
-      if cmdargs:
-        cmdargs.insert(0,"lammps.py")
-        narg = len(cmdargs)
-        cargs = (c_char_p*narg)(*cmdargs)
+      # with mpi4py v2, can pass MPI communicator to LAMMPS
+      # need to adjust for type of MPI communicator object
+      # allow for int (like MPICH) or void* (like OpenMPI)
+      
+      if lammps.has_mpi4py_v2 and comm != None:
+        if lammps.MPI._sizeof(lammps.MPI.Comm) == sizeof(c_int):
+          MPI_Comm = c_int
+        else:
+          MPI_Comm = c_void_p
+
+        narg = 0
+        cargs = 0
+        if cmdargs:
+          cmdargs.insert(0,"lammps.py")
+          narg = len(cmdargs)
+          cargs = (c_char_p*narg)(*cmdargs)
+          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
+                                           MPI_Comm, c_void_p()]
+        else:
+          self.lib.lammps_open.argtypes = [c_int, c_int, \
+                                           MPI_Comm, c_void_p()]
+
+        self.lib.lammps_open.restype = None
+        self.opened = 1
         self.lmp = c_void_p()
-        self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
+        comm_ptr = lammps.MPI._addressof(comm)
+        comm_val = MPI_Comm.from_address(comm_ptr)
+        self.lib.lammps_open(narg,cargs,comm_val,byref(self.lmp))
+
       else:
-        self.lmp = c_void_p()
-        self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
-        # could use just this if LAMMPS lib interface supported it
-        # self.lmp = self.lib.lammps_open_no_mpi(0,None)
+        self.opened = 1
+        if cmdargs:
+          cmdargs.insert(0,"lammps.py")
+          narg = len(cmdargs)
+          cargs = (c_char_p*narg)(*cmdargs)
+          self.lmp = c_void_p()
+          self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
+        else:
+          self.lmp = c_void_p()
+          self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
+          # could use just this if LAMMPS lib interface supported it
+          # self.lmp = self.lib.lammps_open_no_mpi(0,None)
+          
     else:
       self.opened = 0
       # magic to convert ptr to ctypes ptr
@@ -65,6 +116,9 @@ class lammps:
   def close(self):
     if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
+
+  def version(self):
+    return self.lib.lammps_version(self.lmp)
 
   def file(self,file):
     self.lib.lammps_file(self.lmp,file)
@@ -114,22 +168,23 @@ class lammps:
   # double was allocated by library interface function
   
   def extract_fix(self,id,style,type,i=0,j=0):
-    if type == 0:
-      if style > 0: return None
+    if style == 0:
       self.lib.lammps_extract_fix.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
-    if type == 1:
-      self.lib.lammps_extract_fix.restype = POINTER(c_double)
+    elif (style == 1) or (style == 2):
+      if type == 1:
+        self.lib.lammps_extract_fix.restype = POINTER(c_double)
+      elif type == 2:
+        self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
+      else:
+        return None
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       return ptr
-    if type == 2:
-      self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
-      return ptr
-    return None
+    else:
+      return None
 
   # free memory for 1 double or 1 vector of doubles via lammps_free()
   # for vector, must copy nlocal returned values to local c_double vector

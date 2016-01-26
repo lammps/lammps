@@ -33,6 +33,7 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
+#include "compute.h"
 
 #include "math_const.h"
 
@@ -513,6 +514,18 @@ void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int
 
     v_tally_thr(pair, i, j, nlocal, newton_pair, v, thr);
   }
+
+  if (pair->num_tally_compute > 0) {
+    // ev_tally callbacks are not thread safe and thus have to be protected
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    for (int k=0; k < pair->num_tally_compute; ++k) {
+      Compute *c = pair->list_tally_compute[k];
+      c->pair_tally_callback(i, j, nlocal, newton_pair,
+                             evdwl, ecoul, fpair, delx, dely, delz);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -769,7 +782,7 @@ void ThrOMP::ev_tally_thr(Bond * const bond, const int i, const int j, const int
         v_tally(thr->vatom_bond[i],v);
         v_tally(thr->vatom_bond[j],v);
       } else {
-        if (j < nlocal)
+        if (i < nlocal)
           v_tally(thr->vatom_bond[i],v);
         if (j < nlocal)
           v_tally(thr->vatom_bond[j],v);
@@ -849,7 +862,7 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
         v_tally(thr->vatom_angle[j],v);
         v_tally(thr->vatom_angle[k],v);
       } else {
-        if (j < nlocal) v_tally(thr->vatom_angle[i],v);
+        if (i < nlocal) v_tally(thr->vatom_angle[i],v);
         if (j < nlocal) v_tally(thr->vatom_angle[j],v);
         if (k < nlocal) v_tally(thr->vatom_angle[k],v);
       }

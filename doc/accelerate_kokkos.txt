@@ -11,23 +11,24 @@
 
 5.3.4 KOKKOS package :h4
 
-The KOKKOS package was developed primaritly by Christian Trott
-(Sandia) with contributions of various styles by others, including
-Sikandar Mashayak (UIUC).  The underlying Kokkos library was written
-primarily by Carter Edwards, Christian Trott, and Dan Sunderland (all
-Sandia).
+The KOKKOS package was developed primarily by Christian Trott (Sandia)
+with contributions of various styles by others, including Sikandar
+Mashayak (UIUC), Stan Moore (Sandia), and Ray Shan (Sandia).  The
+underlying Kokkos library was written primarily by Carter Edwards,
+Christian Trott, and Dan Sunderland (all Sandia).
 
 The KOKKOS package contains versions of pair, fix, and atom styles
 that use data structures and macros provided by the Kokkos library,
 which is included with LAMMPS in lib/kokkos.
 
 The Kokkos library is part of
-"Trilinos"_http://trilinos.sandia.gov/packages/kokkos and is a
+"Trilinos"_http://trilinos.sandia.gov/packages/kokkos and can also be
+downloaded from "Github"_https://github.com/kokkos/kokkos. Kokkos is a
 templated C++ library that provides two key abstractions for an
 application like LAMMPS.  First, it allows a single implementation of
 an application kernel (e.g. a pair style) to run efficiently on
 different kinds of hardware, such as a GPU, Intel Phi, or many-core
-chip.
+CPU.
 
 The Kokkos library also provides data abstractions to adjust (at
 compile time) the memory layout of basic data structures like 2d and
@@ -39,39 +40,113 @@ functionality is hidden from the developer, and does not affect how
 the kernel is coded.
 
 These abstractions are set at build time, when LAMMPS is compiled with
-the KOKKOS package installed.  This is done by selecting a "host" and
-"device" to build for, compatible with the compute nodes in your
-machine (one on a desktop machine or 1000s on a supercomputer).
+the KOKKOS package installed.  All Kokkos operations occur within the
+context of an individual MPI task running on a single node of the
+machine.  The total number of MPI tasks used by LAMMPS (one or
+multiple per compute node) is set in the usual manner via the mpirun
+or mpiexec commands, and is independent of Kokkos.
 
-All Kokkos operations occur within the context of an individual MPI
-task running on a single node of the machine.  The total number of MPI
-tasks used by LAMMPS (one or multiple per compute node) is set in the
-usual manner via the mpirun or mpiexec commands, and is independent of
-Kokkos.
+Kokkos currently provides support for 3 modes of execution (per MPI
+task).  These are OpenMP (for many-core CPUs), Cuda (for NVIDIA GPUs),
+and OpenMP (for Intel Phi).  Note that the KOKKOS package supports
+running on the Phi in native mode, not offload mode like the
+USER-INTEL package supports.  You choose the mode at build time to
+produce an executable compatible with specific hardware.
 
-Kokkos provides support for two different modes of execution per MPI
-task.  This means that computational tasks (pairwise interactions,
-neighbor list builds, time integration, etc) can be parallelized for
-one or the other of the two modes.  The first mode is called the
-"host" and is one or more threads running on one or more physical CPUs
-(within the node).  Currently, both multi-core CPUs and an Intel Phi
-processor (running in native mode, not offload mode like the
-USER-INTEL package) are supported.  The second mode is called the
-"device" and is an accelerator chip of some kind.  Currently only an
-NVIDIA GPU is supported via Cuda.  If your compute node does not have
-a GPU, then there is only one mode of execution, i.e. the host and
-device are the same.
+Here is a quick overview of how to use the KOKKOS package
+for CPU acceleration, assuming one or more 16-core nodes.
+More details follow.
 
-When using the KOKKOS package, you must choose at build time whether
-you are building for OpenMP, GPU, or for using the Xeon Phi in native
-mode.
+use a C++11 compatible compiler
+make yes-kokkos
+make mpi KOKKOS_DEVICES=OpenMP                 # build with the KOKKOS package
+make kokkos_omp                                # or Makefile.kokkos_omp already has variable set
+Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py
 
-Here is a quick overview of how to use the KOKKOS package:
+mpirun -np 16 lmp_mpi -k on -sf kk -in in.lj              # 1 node, 16 MPI tasks/node, no threads
+mpirun -np 2 -ppn 1 lmp_mpi -k on t 16 -sf kk -in in.lj   # 2 nodes, 1 MPI task/node, 16 threads/task
+mpirun -np 2 lmp_mpi -k on t 8 -sf kk -in in.lj           # 1 node, 2 MPI tasks/node, 8 threads/task 
+mpirun -np 32 -ppn 4 lmp_mpi -k on t 4 -sf kk -in in.lj   # 8 nodes, 4 MPI tasks/node, 4 threads/task :pre
+
+
+
 
 specify variables and settings in your Makefile.machine that enable OpenMP, GPU, or Phi support
 include the KOKKOS package and build LAMMPS
-enable the KOKKOS package and its hardware options via the "-k on" command-line switch
-use KOKKOS styles in your input script :ul
+enable the KOKKOS package and its hardware options via the "-k on" command-line switch use KOKKOS styles in your input script :ul
+
+Here is a quick overview of how to use the KOKKOS package for GPUs,
+assuming one or more nodes, each with 16 cores and a GPU.  More
+details follow.
+
+discuss use of NVCC, which Makefiles to examine
+
+use a C++11 compatible compiler
+KOKKOS_DEVICES = Cuda, OpenMP
+KOKKOS_ARCH = Kepler35
+make yes-kokkos
+make machine
+Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda
+
+mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
+mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes :pre
+
+mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj           # two MPI tasks, 8 threads per CPU
+mpirun -np 32 -ppn 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj   # ditto on 16 nodes :pre
+
+Here is a quick overview of how to use the KOKKOS package
+for the Intel Phi:
+
+use a C++11 compatible compiler
+KOKKOS_DEVICES = OpenMP
+KOKKOS_ARCH = KNC
+make yes-kokkos
+make machine
+Make.py -p kokkos -kokkos phi -o kokkos_phi -a file mpi :pre
+
+host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
+mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
+mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
+mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
+mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
+
+
+[Required hardware/software:]
+
+Kokkos support within LAMMPS must be built with a C++11 compatible
+compiler.  If using gcc, version 4.8.1 or later is required.
+
+To build with Kokkos support for CPUs, your compiler must support the
+OpenMP interface.  You should have one or more multi-core CPUs so that
+multiple threads can be launched by each MPI task running on a CPU.
+
+To build with Kokkos support for NVIDIA GPUs, NVIDIA Cuda software
+version 6.5 or later must be installed on your system.  See the
+discussion for the "USER-CUDA"_accelerate_cuda.html and
+"GPU"_accelerate_gpu.html packages for details of how to check and do
+this.
+
+NOTE: For good performance of the KOKKOS package on GPUs, you must
+have Kepler generation GPUs (or later).  The Kokkos library exploits
+texture cache options not supported by Telsa generation GPUs (or
+older).
+
+To build with Kokkos support for Intel Xeon Phi coprocessors, your
+sysmte must be configured to use them in "native" mode, not "offload"
+mode like the USER-INTEL package supports.
+
+[Building LAMMPS with the KOKKOS package:]
+
+You must choose at build time whether to build for CPUs (OpenMP),
+GPUs, or Phi.
+
+You can do any of these in one line, using the src/Make.py script,
+described in "Section 2.4"_Section_start.html#start_4 of the manual.
+Type "Make.py -h" for help.  If run from the src directory, these
+commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
+lmp_kokkos_phi.  Note that the OMP and PHI options use
+src/MAKE/Makefile.mpi as the starting Makefile.machine.  The CUDA
+option uses src/MAKE/OPTIONS/Makefile.kokkos_cuda.
 
 The latter two steps can be done using the "-k on", "-pk kokkos" and
 "-sf kk" "command-line switches"_Section_start.html#start_7
@@ -79,47 +154,6 @@ respectively.  Or the effect of the "-pk" or "-sf" switches can be
 duplicated by adding the "package kokkos"_package.html or "suffix
 kk"_suffix.html commands respectively to your input script.
 
-[Required hardware/software:]
-
-The KOKKOS package can be used to build and run LAMMPS on the
-following kinds of hardware:
-
-CPU-only: one MPI task per CPU core (MPI-only, but using KOKKOS styles)
-CPU-only: one or a few MPI tasks per node with additional threading via OpenMP
-Phi: on one or more Intel Phi coprocessors (per node)
-GPU: on the GPUs of a node with additional OpenMP threading on the CPUs :ul
-
-Note that Intel Xeon Phi coprocessors are supported in "native" mode,
-not "offload" mode like the USER-INTEL package supports.
-
-Only NVIDIA GPUs are currently supported.
-
-IMPORTANT NOTE: For good performance of the KOKKOS package on GPUs,
-you must have Kepler generation GPUs (or later).  The Kokkos library
-exploits texture cache options not supported by Telsa generation GPUs
-(or older).
-
-To build the KOKKOS package for GPUs, NVIDIA Cuda software must be
-installed on your system.  See the discussion above for the USER-CUDA
-and GPU packages for details of how to check and do this.
-
-[Building LAMMPS with the KOKKOS package:]
-
-You must choose at build time whether to build for OpenMP, Cuda, or
-Phi.
-
-You can do any of these in one line, using the src/Make.py script,
-described in "Section 2.4"_Section_start.html#start_4 of the manual.
-Type "Make.py -h" for help.  If run from the src directory, these
-commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
-lmp_kokkos_phi.  The OMP and PHI options use src/MAKE/Makefile.mpi as
-the starting Makefile.machine.  The CUDA option uses
-src/MAKE/OPTIONS/Makefile.cuda since the NVIDIA nvcc compiler is
-required.
-
-Make.py -p kokkos -kokkos omp -o kokkos_omp file mpi 
-Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda file kokkos_cuda
-Make.py -p kokkos -kokkos phi -o kokkos_phi file mpi 
 
 Or you can follow these steps:
 
@@ -127,89 +161,80 @@ CPU-only (run all-MPI or with OpenMP threading):
 
 cd lammps/src
 make yes-kokkos
-make g++ OMP=yes :pre
+make g++ KOKKOS_DEVICES=OpenMP :pre
 
 Intel Xeon Phi:
 
 cd lammps/src
 make yes-kokkos
-make g++ OMP=yes MIC=yes :pre
+make g++ KOKKOS_DEVICES=OpenMP KOKKOS_ARCH=KNC :pre
 
 CPUs and GPUs:
 
 cd lammps/src
 make yes-kokkos
-make cuda CUDA=yes :pre
+make cuda KOKKOS_DEVICES=Cuda :pre
 
 These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
 make command line which requires a GNU-compatible make command.  Try
 "gmake" if your system's standard make complains.  
 
-IMPORTANT NOTE: If you build using make line variables and re-build
-LAMMPS twice with different KOKKOS options and the *same* target,
-e.g. g++ in the first two examples above, then you *must* perform a
-"make clean-all" or "make clean-machine" before each build.  This is
-to force all the KOKKOS-dependent files to be re-compiled with the new
-options.
+NOTE: If you build using make line variables and re-build LAMMPS twice
+with different KOKKOS options and the *same* target, e.g. g++ in the
+first two examples above, then you *must* perform a "make clean-all"
+or "make clean-machine" before each build.  This is to force all the
+KOKKOS-dependent files to be re-compiled with the new options.
 
 You can also hardwire these make variables in the specified machine
 makefile, e.g. src/MAKE/Makefile.g++ in the first two examples above,
 with a line like:
 
-MIC = yes :pre
+KOKKOS_ARCH = KNC :pre
 
 Note that if you build LAMMPS multiple times in this manner, using
 different KOKKOS options (defined in different machine makefiles), you
 do not have to worry about doing a "clean" in between.  This is
 because the targets will be different.
 
-IMPORTANT NOTE: The 3rd example above for a GPU, uses a different
-machine makefile, in this case src/MAKE/Makefile.cuda, which is
-included in the LAMMPS distribution.  To build the KOKKOS package for
-a GPU, this makefile must use the NVIDA "nvcc" compiler.  And it must
-have a CCFLAGS -arch setting that is appropriate for your NVIDIA
-hardware and installed software.  Typical values for -arch are given
-in "Section 2.3.4"_Section_start.html#start_3_4 of the manual, as well
-as other settings that must be included in the machine makefile, if
-you create your own.
+NOTE: The 3rd example above for a GPU, uses a different machine
+makefile, in this case src/MAKE/Makefile.cuda, which is included in
+the LAMMPS distribution.  To build the KOKKOS package for a GPU, this
+makefile must use the NVIDA "nvcc" compiler.  And it must have a
+KOKKOS_ARCH setting that is appropriate for your NVIDIA hardware and
+installed software.  Typical values for KOKKOS_ARCH are given below,
+as well as other settings that must be included in the machine
+makefile, if you create your own.
 
-IMPORTANT NOTE: Currently, there are no precision options with the
-KOKKOS package.  All compilation and computation is performed in
-double precision.
+NOTE: Currently, there are no precision options with the KOKKOS
+package.  All compilation and computation is performed in double
+precision.
 
 There are other allowed options when building with the KOKKOS package.
 As above, they can be set either as variables on the make command line
 or in Makefile.machine.  This is the full list of options, including
-those discussed above, Each takes a value of {yes} or {no}.  The
+those discussed above, Each takes a value shown below.  The
 default value is listed, which is set in the
-lib/kokkos/Makefile.lammps file.
+lib/kokkos/Makefile.kokkos file.
 
-OMP, default = {yes}
-CUDA, default = {no}
-HWLOC, default = {no}
-AVX, default = {no}
-MIC, default = {no}
-LIBRT, default = {no}
-DEBUG, default = {no} :ul
+#Default settings specific options
+#Options: force_uvm,use_ldg,rdc
 
-OMP sets the parallelization method used for Kokkos code (within
-LAMMPS) that runs on the host.  OMP=yes means that OpenMP will be
-used.  OMP=no means that pthreads will be used.
+KOKKOS_DEVICES, values = {OpenMP}, {Serial}, {Pthreads}, {Cuda}, default = {OpenMP}
+KOKKOS_ARCH, values = {KNC}, {SNB}, {HSW}, {Kepler}, {Kepler30}, {Kepler32}, {Kepler35}, {Kepler37}, {Maxwell}, {Maxwell50}, {Maxwell52}, {Maxwell53}, {ARMv8}, {BGQ}, {Power7}, {Power8}, default = {none}
+KOKKOS_DEBUG, values = {yes}, {no}, default = {no}
+KOKKOS_USE_TPLS, values = {hwloc}, {librt}, default = {none}
+KOKKOS_CUDA_OPTIONS, values = {force_uvm}, {use_ldg}, {rdc} :ul
 
-CUDA sets the parallelization method used for Kokkos code (within
-LAMMPS) that runs on the device.  CUDA=yes means an NVIDIA GPU running
-CUDA will be used.  CUDA=no means that the OMP=yes or OMP=no setting
-will be used for the device as well as the host.
+KOKKOS_DEVICE sets the parallelization method used for Kokkos code
+(within LAMMPS).  KOKKOS_DEVICES=OpenMP means that OpenMP will be
+used.  KOKKOS_DEVICES=Pthreads means that pthreads will be used.
+KOKKOS_DEVICES=Cuda means an NVIDIA GPU running CUDA will be used.
 
-If CUDA=yes, then the lo-level Makefile in the src/MAKE directory must
-use "nvcc" as its compiler, via its CC setting.  For best performance
-its CCFLAGS setting should use -O3 and have an -arch setting that
-matches the compute capability of your NVIDIA hardware and software
-installation, e.g. -arch=sm_20.  Generally Fermi Generation GPUs are
-sm_20, while Kepler generation GPUs are sm_30 or sm_35 and Maxwell
-cards are sm_50.  A complete list can be found on
-"wikipedia"_http://en.wikipedia.org/wiki/CUDA#Supported_GPUs. You can
-also use the deviceQuery tool that comes with the CUDA samples.  Note
+If KOKKOS_DEVICES=Cuda, then the lo-level Makefile in the src/MAKE
+directory must use "nvcc" as its compiler, via its CC setting.  For
+best performance its CCFLAGS setting should use -O3 and have a
+KOKKOS_ARCH setting that matches the compute capability of your NVIDIA
+hardware and software installation, e.g. KOKKOS_ARCH=Kepler30.  Note
 the minimal required compute capability is 2.0, but this will give
 signicantly reduced performance compared to Kepler generation GPUs
 with compute capability 3.x.  For the LINK setting, "nvcc" should not
@@ -220,28 +245,30 @@ also have a "Compilation rule" for creating *.o files from *.cu files.
 See src/Makefile.cuda for an example of a lo-level Makefile with all
 of these settings.
 
-HWLOC binds threads to hardware cores, so they do not migrate during a
-simulation.  HWLOC=yes should always be used if running with OMP=no
-for pthreads.  It is not necessary for OMP=yes for OpenMP, because
-OpenMP provides alternative methods via environment variables for
-binding threads to hardware cores.  More info on binding threads to
-cores is given in "this section"_Section_accelerate.html#acc_8.
+KOKKOS_USE_TPLS=hwloc binds threads to hardware cores, so they do not
+migrate during a simulation.  KOKKOS_USE_TPLS=hwloc should always be
+used if running with KOKKOS_DEVICES=Pthreads for pthreads.  It is not
+necessary for KOKKOS_DEVICES=OpenMP for OpenMP, because OpenMP
+provides alternative methods via environment variables for binding
+threads to hardware cores.  More info on binding threads to cores is
+given in "this section"_Section_accelerate.html#acc_8.
 
-AVX enables Intel advanced vector extensions when compiling for an
-Intel-compatible chip.  AVX=yes should only be set if your host
-hardware supports AVX.  If it does not support it, this will cause a
-run-time crash.
+KOKKOS_ARCH=KNC enables compiler switches needed when compling for an
+Intel Phi processor.
 
-MIC enables compiler switches needed when compling for an Intel Phi
-processor.
+KOKKOS_USE_TPLS=librt enables use of a more accurate timer mechanism
+on most Unix platforms.  This library is not available on all
+platforms.
 
-LIBRT enables use of a more accurate timer mechanism on most Unix
-platforms.  This library is not available on all platforms.
+KOKKOS_DEBUG is only useful when developing a Kokkos-enabled style
+within LAMMPS.  KOKKOS_DEBUG=yes enables printing of run-time
+debugging information that can be useful.  It also enables runtime
+bounds checking on Kokkos data structures.
 
-DEBUG is only useful when developing a Kokkos-enabled style within
-LAMMPS.  DEBUG=yes enables printing of run-time debugging information
-that can be useful.  It also enables runtime bounds checking on Kokkos
-data structures.
+KOKKOS_CUDA_OPTIONS are additional options for CUDA.
+
+For more information on Kokkos see the Kokkos programmers' guide here:
+/lib/kokkos/doc/Kokkos_PG.pdf.
 
 [Run with the KOKKOS package from the command line:]
 
@@ -303,26 +330,7 @@ you wish to change any of the default "package kokkos"_package.html
 optionns set by the "-k on" "command-line
 switch"_Section_start.html#start_7.
 
-host=OMP, dual hex-core nodes (12 threads/node):
-mpirun -np 12 lmp_g++ -in in.lj                           # MPI-only mode with no Kokkos
-mpirun -np 12 lmp_g++ -k on -sf kk -in in.lj              # MPI-only mode with Kokkos
-mpirun -np 1 lmp_g++ -k on t 12 -sf kk -in in.lj          # one MPI task, 12 threads
-mpirun -np 2 lmp_g++ -k on t 6 -sf kk -in in.lj           # two MPI tasks, 6 threads/task 
-mpirun -np 32 -ppn 2 lmp_g++ -k on t 6 -sf kk -in in.lj   # ditto on 16 nodes :pre
 
-host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
-mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
-mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
-mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
-mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
-
-host=OMP, device=CUDA, node = dual hex-core CPUs and a single GPU:
-mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
-mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes :pre
-
-host=OMP, device=CUDA, node = dual 8-core CPUs and 2 GPUs:
-mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj           # two MPI tasks, 8 threads per CPU
-mpirun -np 32 -ppn 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj   # ditto on 16 nodes :pre
 
 Note that the default for the "package kokkos"_package.html command is
 to use "full" neighbor lists and set the Newton flag to "off" for both
@@ -451,11 +459,11 @@ on a dual-socket node will incur extra cost to copy memory from the
 
 Examples of mpirun commands that follow these rules are shown above.
 
-IMPORTANT NOTE: When using a GPU, you will achieve the best
-performance if your input script does not use any fix or compute
-styles which are not yet Kokkos-enabled.  This allows data to stay on
-the GPU for multiple timesteps, without being copied back to the host
-CPU.  Invoking a non-Kokkos fix or compute, or performing I/O for
+NOTE: When using a GPU, you will achieve the best performance if your
+input script does not use any fix or compute styles which are not yet
+Kokkos-enabled.  This allows data to stay on the GPU for multiple
+timesteps, without being copied back to the host CPU.  Invoking a
+non-Kokkos fix or compute, or performing I/O for
 "thermo"_thermo_style.html or "dump"_dump.html output will cause data
 to be copied back to the CPU.
 
@@ -504,6 +512,3 @@ Currently Kokkos does not support AMD GPUs due to limits in the
 available backend programming models.  Specifically, Kokkos requires
 extensive C++ support from the Kernel language.  This is expected to
 change in the future.
-
-Kokkos must be built with a C++11 compatible compiler.  For example,
-gcc 4.7.2 or later.

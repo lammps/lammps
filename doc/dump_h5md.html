@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dump h5md command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>dump h5md command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="dump-h5md-command">
+<span id="index-0"></span><h1>dump h5md command<a class="headerlink" href="#dump-h5md-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dump ID group-ID h5md N file.h5 args
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID = user-assigned name for the dump</li>
+<li>group-ID = ID of the group of atoms to be imaged</li>
+<li>h5md = style of dump command (other styles <em>atom</em> or <em>cfg</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>local</em> or <em>custom</em> are discussed on the <a class="reference internal" href="dump.html"><em>dump</em></a> doc page)</li>
+<li>N = dump every this many timesteps</li>
+<li>file.h5 = name of file to write to</li>
+<li>args = list of data elements to dump, with their dump &#8220;subintervals&#8221;.
+At least one element must be given and image may only be present if
+position is specified first.</li>
+</ul>
+<pre class="literal-block">
+position options
+image
+velocity options
+force options
+species options
+file_from ID: do not open a new file, re-use the already opened file from dump ID
+box value = <em>yes</em> or <em>no</em>
+create_group value = <em>yes</em> or <em>no</em>
+author value = quoted string
+</pre>
+<p>For the elements <em>position</em>, <em>velocity</em>, <em>force</em> and <em>species</em>, one
+may specify a sub-interval to write the data only every N_element
+iterations of the dump (i.e. every N*N_element time steps). This is
+specified by the option</p>
+<div class="highlight-python"><div class="highlight"><pre>every N_element
+</pre></div>
+</div>
+<p>that follows directly the element declaration.</p>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>dump h5md1 all h5md 100 dump_h5md.h5 position image
+dump h5md1 all h5md 100 dump_h5md.h5 position velocity every 10
+dump h5md1 all h5md 100 dump_h5md.h5 velocity author &quot;John Doe&quot;
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Dump a snapshot of atom coordinates every N timesteps in the
+<a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5</a> based <a class="reference external" href="http://nongnu.org/h5md/">H5MD</a> file format <a class="reference internal" href="#h5md-cpc"><span>(de Buyl)</span></a>.
+HDF5 files are binary, portable and self-describing.  This dump style
+will write only one file, on the root node.</p>
+<p>Several dumps may write to the same file, by using file_from and
+referring to a previously defined dump.  Several groups may also be
+stored within the same file by defining several dumps.  A dump that
+refers (via <em>file_from</em>) to an already open dump ID and that concerns
+another particle group must specify <em>create_group yes</em>.</p>
+<p>Each data element is written every N*N_element steps. For <em>image</em>, no
+subinterval is needed as it must be present at the same interval as
+<em>position</em>.  <em>image</em> must be given after <em>position</em> in any case.  The
+box information (edges in each dimension) is stored at the same
+interval than the <em>position</em> element, if present. Else it is stored
+every N steps.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.</p>
+</div>
+<p><strong>Use from write_dump:</strong></p>
+<p>It is possible to use this dump style with the
+<a class="reference internal" href="write_dump.html"><em>write_dump</em></a> command.  In this case, the subintervals
+must not be set at all.  The write_dump command can be used either to
+create a new file or to add current data to an existing dump file by
+using the <em>file_from</em> keyword.</p>
+<p>Typically, the <em>species</em> data is fixed. The following two commands
+store the position data every 100 timesteps, with the image data, and
+store once the species data in the same file.</p>
+<div class="highlight-python"><div class="highlight"><pre>dump h5md1 all h5md 100 dump.h5 position image
+write_dump all h5md dump.h5 file_from h5md1 species
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The number of atoms per snapshot cannot change with the h5md style.
+The position data is stored wrapped (box boundaries not enforced, see
+note above).  Only orthogonal domains are currently supported. This is
+a limitation of the present dump h5md command and not of H5MD itself.</p>
+<p>The <em>h5md</em> dump style is part of the USER-H5MD package. It is only
+enabled if LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info. It also
+requires (i) building the ch5md library provided with LAMMPS (See the
+<a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.) and
+(ii) having the <a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5</a> library installed (C bindings are
+sufficient) on your system.  The library ch5md is compiled with the
+h5cc wrapper provided by the HDF5 library.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dump.html"><em>dump</em></a>, <a class="reference internal" href="dump_modify.html"><em>dump_modify</em></a>, <a class="reference internal" href="undump.html"><em>undump</em></a></p>
+<hr class="docutils" />
+<p id="h5md-cpc"><strong>(de Buyl)</strong> de Buyl, Colberg and Hofling, H5MD: A structured,
+efficient, and portable file format for molecular data,
+Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
+<a class="reference external" href="http://arxiv.org/abs/1308.6382/">[arXiv:1308.6382]</a>.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -11,15 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "lattice.h"
 #include "update.h"
 #include "domain.h"
 #include "comm.h"
-#include "memory.h"
 #include "force.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

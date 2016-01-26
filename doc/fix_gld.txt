@@ -45,7 +45,7 @@ Fluctuation-Dissipation Theorem.  The functional form of the memory
 kernel associated with the temporally non-local force is constrained
 to be a Prony series.
 
-IMPORTANT NOTE: While this fix bears many similarities to "fix
+NOTE: While this fix bears many similarities to "fix
 langevin"_fix_langevin.html, it has one significant
 difference. Namely, "fix gld"_fix_gld.html performs time integration,
 whereas "fix langevin"_fix_langevin.html does NOT. To this end, the

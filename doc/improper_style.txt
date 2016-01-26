@@ -47,7 +47,7 @@ this.  The one exception is that improper_style {hybrid} only stores
 the list of sub-styles in the restart file; improper coefficients need
 to be re-specified.
 
-IMPORTANT NOTE: When both an improper and pair style is defined, the
+NOTE: When both an improper and pair style is defined, the
 "special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between a group of 4 bonded atoms.

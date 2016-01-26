@@ -48,7 +48,7 @@ methods:
 #ifndef LAMMPS_MY_PAGE_H
 #define LAMMPS_MY_PAGE_H
 
-#include "stdlib.h"
+#include <stdlib.h>
 namespace LAMMPS_NS {
 
 template<class T>
@@ -67,7 +67,7 @@ class MyPage {
   // (re)initialize allocation params
   // also allocate first page(s)
 
-  int init(int user_maxchunk = 1, int user_pagesize = 1024, 
+  int init(int user_maxchunk = 1, int user_pagesize = 1024,
            int user_pagedelta = 1) {
     maxchunk = user_maxchunk;
     pagesize = user_pagesize;
@@ -146,7 +146,7 @@ class MyPage {
   // get ptr to location that can store maxchunk datums
   // will return same ptr as previous call if vgot() not called
   // return NULL if run out of memory
-  
+
   T *vget() {
     if (index+maxchunk <= pagesize) return &page[index];
     ipage++;
@@ -196,7 +196,7 @@ class MyPage {
   int npage;      // # of allocated pages
   int ipage;      // index of current page
   int index;      // current index on current page
-  
+
   int maxchunk;   // max # of datums in one requested chunk
   int pagesize;   // # of datums in one page, default = 1024
   int pagedelta;  // # of pages to allocate at once, default = 1

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "min_fire.h"
 #include "universe.h"
 #include "atom.h"
@@ -26,10 +26,6 @@ using namespace LAMMPS_NS;
 // EPS_ENERGY = minimum normalization for energy tolerance
 
 #define EPS_ENERGY 1.0e-8
-
-// same as in other min classes
-
-enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 #define DELAYSTEP 5
 #define DT_GROW 1.1
@@ -92,6 +88,10 @@ int MinFire::iterate(int maxiter)
   alpha_final = 0.0;
 
   for (int iter = 0; iter < maxiter; iter++) {
+
+    if (timer->check_timeout(niter))
+      return TIMEOUT;
+
     ntimestep = ++update->ntimestep;
     niter++;
 

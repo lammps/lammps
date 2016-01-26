@@ -15,7 +15,7 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_dilatation_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -72,8 +72,8 @@ void ComputeDilatationAtom::init()
   if (force->pair_match("peri/lps",1)) isLPS = 1;
   if (force->pair_match("peri/ves",1)) isVES = 1;
   if (force->pair_match("peri/eps",1)) isEPS = 1;
-  
-  if (isPMB) 
+
+  if (isPMB)
     error->all(FLERR,"Compute dilatation/atom cannot be used "
                "with this pair style");
 

@@ -30,8 +30,8 @@ class ComputeTemp : public Compute {
   virtual ~ComputeTemp();
   void init() {}
   void setup();
-  double compute_scalar();
-  void compute_vector();
+  virtual double compute_scalar();
+  virtual void compute_vector();
 
  protected:
   double tfactor;

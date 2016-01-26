@@ -155,7 +155,7 @@ void FixRigidOMP::final_integrate()
 
   } else if (rstyle == GROUP) {
 
-     // we likely have only a rather number of groups so we loop
+     // we likely have only a rather number of groups so we loops
      // over bodies and thread over all atoms for each of them.
 
      for (int ib = 0; ib < nbody; ++ib) {

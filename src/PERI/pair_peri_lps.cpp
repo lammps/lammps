@@ -15,9 +15,9 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_peri_lps.h"
 #include "atom.h"
 #include "domain.h"
@@ -285,7 +285,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
       omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       omega_minus = influence_function(delx0,dely0,delz0);
-      
+
       rk = ( (3.0 * bulkmodulus[itype][itype]) -
              (5.0 * shearmodulus[itype][itype]) ) * vfrac[j] * vfrac_scale *
         ( (omega_plus * theta[i] / wvolume[i]) +
@@ -303,8 +303,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
       // since I-J is double counted, set newton off & use 1/2 factor and I,I
 
       double deviatoric_extension = dr - (theta[i]* r0[i][jj] / 3.0);
-                  
-      
+
+
       if (eflag) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) *
                    omega_plus*(deviatoric_extension * deviatoric_extension) *
                    vfrac[j] * vfrac_scale;
@@ -326,7 +326,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
                          (alpha[itype][jtype] * stretch));
 
       first = false;
-    }      
+    }
   }
 
   // store new s0

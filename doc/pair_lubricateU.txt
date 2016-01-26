@@ -93,11 +93,11 @@ styles are defined (such as bond or Kspace forces) as they are
 calculated in LAMMPS after the pairwise interactions have been
 computed.
 
-IMPORTANT NOTE: When using these styles, the these pair styles are
-designed to be used with implicit time integration and a
-correspondingly larger timestep.  Thus either "fix
-nve/noforce"_fix_nve_noforce.html should be used for spherical
-particles defined via "atom_style sphere"_atom_style.html or "fix
+NOTE: When using these styles, the these pair styles are designed to
+be used with implicit time integration and a correspondingly larger
+timestep.  Thus either "fix nve/noforce"_fix_nve_noforce.html should
+be used for spherical particles defined via "atom_style
+sphere"_atom_style.html or "fix
 nve/asphere/noforce"_fix_nve_asphere_noforce.html should be used for
 spherical particles defined via "atom_style
 ellipsoid"_atom_style.html.  This is because the velocity and angular

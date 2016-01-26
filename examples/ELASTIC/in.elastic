@@ -42,12 +42,6 @@
 #  that minimization is not required, you can set maxiter = 0.0 in 
 #  init.mod. 
 #
-#  There are two alternate versions of displace.mod provided.
-#  They are displace_restart.mod and displace_reverse.mod. 
-#  The former resets the box using a restart file while 
-#  the latter reverses the deformation. Copy whichever
-#  one you like best to displace.mod.
-#
 
 include init.mod
 include potential.mod
@@ -84,6 +78,8 @@ variable d3 equal -(v_pzz1-${pzz0})/(v_delta/v_len0)*${cfac}
 variable d4 equal -(v_pyz1-${pyz0})/(v_delta/v_len0)*${cfac}
 variable d5 equal -(v_pxz1-${pxz0})/(v_delta/v_len0)*${cfac}
 variable d6 equal -(v_pxy1-${pxy0})/(v_delta/v_len0)*${cfac}
+
+displace_atoms all random ${atomjiggle} ${atomjiggle} ${atomjiggle} 87287 units box
 
 # Write restart
 unfix 3
@@ -149,11 +145,26 @@ variable C45all equal 0.5*(${C45}+${C54})
 variable C46all equal 0.5*(${C46}+${C64})
 variable C56all equal 0.5*(${C56}+${C65})
 
+# Average moduli for cubic crystals
+
+variable C11cubic equal (${C11all}+${C22all}+${C33all})/3.0
+variable C12cubic equal (${C12all}+${C13all}+${C23all})/3.0
+variable C44cubic equal (${C44all}+${C55all}+${C66all})/3.0
+
+variable bulkmodulus equal (${C11cubic}+2*${C12cubic})/3.0
+variable shearmodulus1 equal ${C44cubic}
+variable shearmodulus2 equal (${C11cubic}-${C12cubic})/2.0
+variable poissonratio equal 1.0/(1.0+${C11cubic}/${C12cubic})
+  
 # For Stillinger-Weber silicon, the analytical results
 # are known to be (E. R. Cowley, 1988):
 #               C11 = 151.4 GPa
 #               C12 = 76.4 GPa
 #               C44 = 56.4 GPa
+
+print "========================================="
+print "Components of the Elastic Constant Tensor"
+print "========================================="
 
 print "Elastic Constant C11all = ${C11all} ${cunits}"
 print "Elastic Constant C22all = ${C22all} ${cunits}"
@@ -183,3 +194,11 @@ print "Elastic Constant C45all = ${C45all} ${cunits}"
 print "Elastic Constant C46all = ${C46all} ${cunits}"
 print "Elastic Constant C56all = ${C56all} ${cunits}"
 
+print "========================================="
+print "Average properties for a cubic crystal"
+print "========================================="
+
+print "Bulk Modulus = ${bulkmodulus} ${cunits}"
+print "Shear Modulus 1 = ${shearmodulus1} ${cunits}"
+print "Shear Modulus 2 = ${shearmodulus2} ${cunits}"
+print "Poisson Ratio = ${poissonratio}"

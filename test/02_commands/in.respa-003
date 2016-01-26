@@ -1,0 +1,30 @@
+# 3d Lennard-Jones melt
+
+if $(is_active(pair,respa) == 0) then "quit 0"
+
+timers		off
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 5.0
+pair_coeff	1 1 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	every 4 delay 0 check no
+
+fix		1 all nve
+
+run_style	respa 2 1 inner 1 2.0 2.6 outer 2
+timestep	0.001
+
+thermo		40
+info		all
+run		200

@@ -19,7 +19,7 @@ so that it only contains atom types you plan to have in your simulation
 (see below for details).  Then run the opls_moltemplate.py script this way:
 
 
-python oplsaa_moltemplate.py  oplsaa_subset.prm
+oplsaa_moltemplate.py  oplsaa_subset.prm
 
 
 This will create a file named "oplsaa.lt"
@@ -39,10 +39,12 @@ other lines (beginning with the word "atom") must be deleted or commented out.
 (Leave the rest of the file alone.)
 
 For example:
-If you were working with methane, you would delete every line
+If you were working with methane and SPC water, you would delete every line
 beginning with the word "atom", except for these two lines:
 
 
+atom         76   42    OW    "SPC Water O"                  8    15.999    2
+atom         77   43    HW    "SPC Water H"                  1     1.008    1
 atom         83   13    CT    "Methane CH4"                  6    12.011    4
 atom         85   46    HC    "Alkane H-C"                   1     1.008    1
 
@@ -78,8 +80,10 @@ By default, the OPLSAA force-field assigns atom charge according to atom type.
 When you run moltemplate, it will create a file named "system.in.charges",
 containing commands like:
 
-set type 2 charge -0.42
-set type 3 charge 0.21
+set type 1 charge -0.82
+set type 2 charge 0.41
+set type 3 charge -0.42
+set type 4 charge 0.21
 
 (This assumes your main moltemplate file is named "system.lt".  If it was
 named something else, eg "polymer.lt", then the file created by moltemplate

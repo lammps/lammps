@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_temp_berendsen.h"
 #include "atom.h"
 #include "force.h"
@@ -137,6 +137,10 @@ void FixTempBerendsen::end_of_step()
 {
   double t_current = temperature->compute_scalar();
   double tdof = temperature->dof;
+
+  // there is nothing to do, if there are no degrees of freedom
+
+  if (tdof < 1) return;
 
   if (t_current == 0.0)
     error->all(FLERR,

@@ -13,8 +13,8 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef LAL_BASE_ATOMIC_H
-#define LAL_BASE_ATOMIC_H
+#ifndef LAL_BASE_THREE_H
+#define LAL_BASE_THREE_H
 
 #include "lal_device.h"
 #include "lal_balance.h"
@@ -27,6 +27,8 @@
 #else
 #include "geryon/nvd_texture.h"
 #endif
+
+//#define THREE_CONCURRENT
 
 namespace LAMMPS_AL {
 
@@ -129,7 +131,7 @@ class BaseThree {
                     int *numj, int **firstneigh, bool &success);
 
   /// Build neighbor list on device
-  void build_nbor_list(const int inum, const int host_inum,
+  int build_nbor_list(const int inum, const int host_inum,
                        const int nall, double **host_x, int *host_type,
                        double *sublo, double *subhi, tagint *tag, int **nspecial, 
                        tagint **special, bool &success);

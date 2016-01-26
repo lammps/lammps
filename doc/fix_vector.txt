@@ -13,7 +13,7 @@ fix vector command :h3
 fix ID group-ID vector Nevery value1 value2 ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-ave/time = style name of this fix command :l
+vector = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 one or more input values can be listed :l
 value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l

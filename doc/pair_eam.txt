@@ -72,21 +72,21 @@ DYNAMO potential files for different metals are included in the
 "potentials" directory of the LAMMPS distribution.  All of these files
 are parameterized in terms of LAMMPS "metal units"_units.html.
 
-IMPORTANT NOTE: The {eam} style reads single-element EAM potentials in
-the DYNAMO {funcfl} format.  Either single element or alloy systems
-can be modeled using multiple {funcfl} files and style {eam}.  For the
-alloy case LAMMPS mixes the single-element potentials to produce alloy
+NOTE: The {eam} style reads single-element EAM potentials in the
+DYNAMO {funcfl} format.  Either single element or alloy systems can be
+modeled using multiple {funcfl} files and style {eam}.  For the alloy
+case LAMMPS mixes the single-element potentials to produce alloy
 potentials, the same way that DYNAMO does.  Alternatively, a single
 DYNAMO {setfl} file or Finnis/Sinclair EAM file can be used by LAMMPS
 to model alloy systems by invoking the {eam/alloy} or {eam/cd} or
 {eam/fs} styles as described below.  These files require no mixing
 since they specify alloy interactions explicitly.
 
-Note that unlike for other potentials, cutoffs for EAM potentials are
-not set in the pair_style or pair_coeff command; they are specified in
-the EAM potential files themselves.  Likewise, the EAM potential files
-list atomic masses; thus you do not need to use the "mass"_mass.html
-command to specify them.
+NOTE: Note that unlike for other potentials, cutoffs for EAM
+potentials are not set in the pair_style or pair_coeff command; they
+are specified in the EAM potential files themselves.  Likewise, the
+EAM potential files list atomic masses; thus you do not need to use
+the "mass"_mass.html command to specify them.
 
 There are several WWW sites that distribute and document EAM
 potentials stored in DYNAMO or other formats:

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-    Contributing authors: 
+    Contributing authors:
              Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
@@ -44,7 +44,7 @@ class FixTISpring : public Fix {
   void   initial_integrate(int);
   double compute_scalar();
   double compute_vector(int);
-  
+
   double memory_usage();
   void   grow_arrays(int);
   void   copy_arrays(int, int, int);
@@ -65,9 +65,9 @@ class FixTISpring : public Fix {
   double lambda;      // Coupling parameter.
   double dlambda;     // Lambda variation with t.
   double linfo[2];    // Current lambda status.
-  int    t_switch;    // Total switching steps.
-  int    t_equil;     // Equilibration time.
-  int    t0;          // Initial time.
+  bigint t_switch;    // Total switching steps.
+  bigint t_equil;     // Equilibration time.
+  bigint t0;          // Initial time.
   int    sf;          // Switching function option.
   int    nlevels_respa;
 };

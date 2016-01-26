@@ -19,9 +19,9 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "min.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -185,7 +185,8 @@ void Min::setup()
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up %s style minimization ...\n",
             update->minimize_style);
-    fprintf(screen,"  Unit style: %s\n", update->unit_style);
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    timer->print_timeout(screen);
   }
   update->setupflag = 1;
 
@@ -211,7 +212,7 @@ void Min::setup()
   // ndoftotal = total dof for entire minimization problem
   // dof for atoms, extra per-atom, extra global
 
-  bigint ndofme = 3*atom->nlocal;
+  bigint ndofme = 3 * static_cast<bigint>(atom->nlocal);
   for (int m = 0; m < nextra_atom; m++)
     ndofme += extra_peratom[m]*atom->nlocal;
   MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -253,6 +254,7 @@ void Min::setup()
 
   // compute all forces
 
+  force->setup();
   ev_set(update->ntimestep);
   force_clear();
   modify->setup_pre_force(vflag);
@@ -394,7 +396,7 @@ void Min::run(int n)
   // add ntimestep to all computes that store invocation times
   //   since are hardwiring call to thermo/dumps and computes may not be ready
 
-  if (stop_condition) {
+  if (stop_condition != MAXITER) {
     update->nsteps = niter;
 
     if (update->restrict_output == 0) {
@@ -790,6 +792,7 @@ char *Min::stopstrings(int n)
                            "forces are zero",
                            "quadratic factors are zero",
                            "trust region too small",
-                           "HFTN minimizer error"};
+                           "HFTN minimizer error",
+                           "walltime limit reached"};
   return (char *) strings[n];
 }

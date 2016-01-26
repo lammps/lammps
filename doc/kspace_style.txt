@@ -142,10 +142,10 @@ will be up to 2x slower in the KSpace time (simply 2x more expensive).
 For more details and timings, see
 "Section_accelerate"_Section_accelerate.html.
 
-IMPORTANT NOTE: Using {pppm/stagger} may not give the same increase in
-the accuracy of energy and pressure as it does in forces, so some
-caution must be used if energy and/or pressure are quantities of
-interest, such as when using a barostat.
+NOTE: Using {pppm/stagger} may not give the same increase in the
+accuracy of energy and pressure as it does in forces, so some caution
+must be used if energy and/or pressure are quantities of interest,
+such as when using a barostat.
 
 :line
 
@@ -167,15 +167,15 @@ and how to choose them is described in "(Isele-Holder)"_#Isele-Holder,
 
 :line
 
-IMPORTANT NOTE: All of the PPPM styles can be used with
-single-precision FFTs by using the compiler switch -DFFT_SINGLE for
-the FFT_INC setting in your lo-level Makefile.  This setting also
-changes some of the PPPM operations (e.g. mapping charge to mesh and
-interpolating electric fields to particles) to be performed in single
-precision.  This option can speed-up long-range calulations,
-particularly in parallel or on GPUs.  The use of the -DFFT_SINGLE flag
-is discussed in "this section"_Section_start.html#start_2_4 of the
-manual. MSM does not currently support the -DFFT_SINGLE compiler switch.
+NOTE: All of the PPPM styles can be used with single-precision FFTs by
+using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
+lo-level Makefile.  This setting also changes some of the PPPM
+operations (e.g. mapping charge to mesh and interpolating electric
+fields to particles) to be performed in single precision.  This option
+can speed-up long-range calulations, particularly in parallel or on
+GPUs.  The use of the -DFFT_SINGLE flag is discussed in "this
+section"_Section_start.html#start_2_4 of the manual. MSM does not
+currently support the -DFFT_SINGLE compiler switch.
 
 :line
 

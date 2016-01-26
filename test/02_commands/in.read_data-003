@@ -1,0 +1,6 @@
+
+timer	off
+
+read_data few-tric.data
+
+info	all

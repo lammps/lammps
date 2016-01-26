@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "atom_vec_atomic_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
@@ -87,28 +87,28 @@ void AtomVecAtomicKokkos::grow(int n)
 
 void AtomVecAtomicKokkos::grow_reset()
 {
-  tag = atomKK->tag; 
-  d_tag = atomKK->k_tag.d_view; 
+  tag = atomKK->tag;
+  d_tag = atomKK->k_tag.d_view;
   h_tag = atomKK->k_tag.h_view;
 
-  type = atomKK->type; 
-  d_type = atomKK->k_type.d_view; 
+  type = atomKK->type;
+  d_type = atomKK->k_type.d_view;
   h_type = atomKK->k_type.h_view;
-  mask = atomKK->mask; 
-  d_mask = atomKK->k_mask.d_view; 
+  mask = atomKK->mask;
+  d_mask = atomKK->k_mask.d_view;
   h_mask = atomKK->k_mask.h_view;
-  image = atomKK->image; 
-  d_image = atomKK->k_image.d_view; 
+  image = atomKK->image;
+  d_image = atomKK->k_image.d_view;
   h_image = atomKK->k_image.h_view;
 
-  x = atomKK->x; 
-  d_x = atomKK->k_x.d_view; 
+  x = atomKK->x;
+  d_x = atomKK->k_x.d_view;
   h_x = atomKK->k_x.h_view;
-  v = atomKK->v; 
-  d_v = atomKK->k_v.d_view; 
+  v = atomKK->v;
+  d_v = atomKK->k_v.d_view;
   h_v = atomKK->k_v.h_view;
-  f = atomKK->f; 
-  d_f = atomKK->k_f.d_view; 
+  f = atomKK->f;
+  d_f = atomKK->k_f.d_view;
   h_f = atomKK->k_f.h_view;
 }
 
@@ -187,8 +187,8 @@ struct AtomVecAtomicKokkos_PackComm {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecAtomicKokkos::pack_comm_kokkos(const int &n, 
-                                          const DAT::tdual_int_2d &list, 
+int AtomVecAtomicKokkos::pack_comm_kokkos(const int &n,
+                                          const DAT::tdual_int_2d &list,
                                           const int & iswap,
                                           const DAT::tdual_xfloat_2d &buf,
                                           const int &pbc_flag,
@@ -1127,7 +1127,7 @@ int AtomVecAtomicKokkos::unpack_exchange(double *buf)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK | 
+  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK);
 
   int m = 1;
@@ -1179,6 +1179,9 @@ int AtomVecAtomicKokkos::size_restart()
 
 int AtomVecAtomicKokkos::pack_restart(int i, double *buf)
 {
+  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+            MASK_MASK | IMAGE_MASK );
+
   int m = 1;
   buf[m++] = h_x(i,0);
   buf[m++] = h_x(i,1);
@@ -1211,6 +1214,8 @@ int AtomVecAtomicKokkos::unpack_restart(double *buf)
     if (atom->nextra_store)
       memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
+  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+                MASK_MASK | IMAGE_MASK );
 
   int m = 1;
   h_x(nlocal,0) = buf[m++];
@@ -1270,7 +1275,7 @@ void AtomVecAtomicKokkos::create_atom(int itype, double *coord)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecAtomicKokkos::data_atom(double *coord, tagint imagetmp, 
+void AtomVecAtomicKokkos::data_atom(double *coord, tagint imagetmp,
                                     char **values)
 {
   int nlocal = atom->nlocal;
@@ -1291,6 +1296,8 @@ void AtomVecAtomicKokkos::data_atom(double *coord, tagint imagetmp,
   h_v(nlocal,0) = 0.0;
   h_v(nlocal,1) = 0.0;
   h_v(nlocal,2) = 0.0;
+
+  atomKK->modified(Host,ALL_MASK);
 
   atom->nlocal++;
 }

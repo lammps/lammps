@@ -50,6 +50,7 @@ class Fix : protected Pointers {
   int wd_section;                // # of sections fix writes to data file
   int dynamic_group_allow;       // 1 if can be used with dynamic group, else 0
   int dof_flag;                  // 1 if has dof() method (not min_dof())
+  int special_alter_flag;        // 1 if has special_alter() meth for spec lists
   int cudable_comm;              // 1 if fix has CUDA-enabled communication
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
@@ -119,6 +120,7 @@ class Fix : protected Pointers {
   virtual void pre_exchange() {}
   virtual void pre_neighbor() {}
   virtual void pre_force(int) {}
+  virtual void pre_reverse(int,int) {}
   virtual void post_force(int) {}
   virtual void final_integrate() {}
   virtual void end_of_step() {}
@@ -182,7 +184,7 @@ class Fix : protected Pointers {
   virtual void reset_dt() {}
 
   virtual void read_data_header(char *) {}
-  virtual void read_data_section(char *, int, char *) {}
+  virtual void read_data_section(char *, int, char *, tagint) {}
   virtual bigint read_data_skip_lines(char *) {return 0;}
 
   virtual void write_data_header(FILE *, int) {}
@@ -193,6 +195,8 @@ class Fix : protected Pointers {
 
   virtual void zero_momentum() {}
   virtual void zero_rotation() {}
+
+  virtual void rebuild_special() {}
 
   virtual int modify_param(int, char **) {return 0;}
   virtual void *extract(const char *, int &) {return NULL;}
@@ -248,7 +252,8 @@ namespace FixConst {
   static const int MIN_POST_FORCE =          1<<17;
   static const int MIN_ENERGY =              1<<18;
   static const int POST_RUN =                1<<19;
-  static const int FIX_CONST_LAST =          1<<20;
+  static const int PRE_REVERSE =             1<<20;
+  static const int FIX_CONST_LAST =          1<<21;
 }
 
 }

@@ -1,5 +1,5 @@
 
-#include "mpi.h"
+#include <mpi.h>
 #include "lammps.h"
 #include "atom.h"
 #include "error.h"

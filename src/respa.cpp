@@ -15,8 +15,8 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "respa.h"
 #include "neighbor.h"
 #include "atom.h"
@@ -269,7 +269,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     cutoff[3] = cutoff[1];
   }
 
-  // ensure that pair->compute() is run properly when the "hybrid" keyword is not used. 
+  // ensure that pair->compute() is run properly when the "hybrid" keyword is not used.
   if (nhybrid_styles < 1) {
     pair_compute = 1;
     tally_global = 1;
@@ -395,6 +395,7 @@ void Respa::setup()
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
     fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
     fprintf(screen,"  OuterTime step: %g\n", update->dt);
+    timer->print_timeout(screen);
   }
 
   update->setupflag = 1;
@@ -422,6 +423,7 @@ void Respa::setup()
 
   // compute all forces
 
+  force->setup();
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
@@ -453,6 +455,7 @@ void Respa::setup()
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
 
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -527,6 +530,8 @@ void Respa::setup_minimal(int flag)
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
+
+    modify->pre_reverse(eflag,vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -545,6 +550,10 @@ void Respa::run(int n)
   bigint ntimestep;
 
   for (int i = 0; i < n; i++) {
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
 
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
@@ -625,7 +634,7 @@ void Respa::recurse(int ilevel)
         }
         timer->stamp();
         comm->exchange();
-        if (atom->sortfreq > 0 && 
+        if (atom->sortfreq > 0 &&
             update->ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
@@ -709,6 +718,11 @@ void Respa::recurse(int ilevel)
     if (level_kspace == ilevel && kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
+    }
+
+    if (modify->n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
     }
 
     if (newton[ilevel]) {

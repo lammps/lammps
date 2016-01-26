@@ -1,0 +1,51 @@
+# To test the "table" dihedral_style, we use a coarse-grained n-butane-like
+# molecule consiting of only 4 carbon atoms in a chain (hydrogen atoms omitted).
+# This molecule contains only one dihedral angle.
+#  as described in: J Phys Chem B, 1998, volume 102, pp.2569-2577.)
+
+timer		off
+
+units           real
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+improper_style  none
+kspace_style    none
+
+pair_style     lj/cut 15.0
+special_bonds  lj 0.0 0.0 0.0
+
+read_data  butane.data
+
+
+# --- uncomment one of these: ---
+
+dihedral_style table spline 360
+
+# --- uncomment one of these: ---
+
+dihedral_coeff 1 dihedral.table DIH_TEST_NOF
+
+
+# --- for benchmarking comparisons only: ---
+#
+#  harmonic:
+#dihedral_style harmonic
+#dihedral_coeff 1 80.0 1 2
+#
+#  opls:
+#dihedral_style opls
+#dihedral_coeff 1 1.411036 -0.271016 3.145034 0.0
+
+
+timestep        0.5
+
+thermo          100  # time interval for printing out "thermo" data
+thermo_style    custom step pe etotal epair ebond eangle edihed
+
+
+fix             1 all nve
+
+run             1000
+

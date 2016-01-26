@@ -53,7 +53,7 @@
 #include <ctime>
 #include <cmath>
 #ifdef _OPENMP
-#include "omp.h"
+#include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;
@@ -118,7 +118,13 @@ void VerletCuda::setup()
 
   cuda->allocate();
 
-  if(comm->me == 0 && screen) fprintf(screen, "Setting up run ...\n");
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up Verlet run ...\n");
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  Time step     : %g\n", update->dt);
+    timer->print_timeout(screen);
+  }
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -639,6 +645,12 @@ void VerletCuda::run(int n)
   int firstreneigh = 1;
 
   for(int i = 0; i < n; i++) {
+
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
+
     if(atom->nlocal == 0)
       error->warning(FLERR, "# CUDA: There are currently no atoms on one of the MPI processes. This is currently prone to encountering errors with USER-CUDA package. Please use the 'processors' keyword to use a more balanced processor layout.");
 

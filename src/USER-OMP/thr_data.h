@@ -35,7 +35,7 @@ class ThrData {
 
  public:
   ThrData(int tid, class Timer *t);
-  ~ThrData() {};
+  ~ThrData() { delete _timer; _timer = NULL; };
 
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
@@ -140,7 +140,7 @@ class ThrData {
 
  // disabled default methods
  private:
-  ThrData() : _tid(-1) {};
+  ThrData() : _tid(-1), _timer(NULL) {};
 };
 
 ////////////////////////////////////////////////////////////////////////

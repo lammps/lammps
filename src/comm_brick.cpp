@@ -15,11 +15,11 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "comm_brick.h"
 #include "comm_tiled.h"
 #include "universe.h"
@@ -55,6 +55,7 @@ CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
 {
   style = 0;
   layout = LAYOUT_UNIFORM;
+  pbc_flag = NULL;
   init_buffers();
 }
 
@@ -77,6 +78,11 @@ CommBrick::~CommBrick()
 }
 
 /* ---------------------------------------------------------------------- */
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
 
 CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
@@ -85,7 +91,7 @@ CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 
   style = 0;
   layout = oldcomm->layout;
-  copy_arrays(oldcomm);
+  Comm::copy_arrays(oldcomm);
   init_buffers();
 }
 
@@ -172,9 +178,13 @@ void CommBrick::setup()
 
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++)
-        cutghostmulti[i][0] = cutghostmulti[i][1] = cutghostmulti[i][2] =
-          cuttype[i];
+      for (i = 1; i <= ntypes; i++) {
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
+      }
     }
 
   } else {
@@ -193,9 +203,11 @@ void CommBrick::setup()
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
-        cutghostmulti[i][0] = cuttype[i] * length0;
-        cutghostmulti[i][1] = cuttype[i] * length1;
-        cutghostmulti[i][2] = cuttype[i] * length2;
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
       }
     }
   }
@@ -1015,7 +1027,7 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
       if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
-    
+
     // unpack buffer
 
     fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
@@ -1246,7 +1258,7 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
   // loop over dimensions
 
   for (int dim = 0; dim < 3; dim++) {
-    
+
     // no exchange if only one proc in a dimension
 
     if (procgrid[dim] == 1) continue;
@@ -1266,12 +1278,12 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
     } else nrecv2 = 0;
 
     if (nrecv > maxrecv) grow_recv(nrecv);
-    
+
     MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
               world,&request);
     MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
     MPI_Wait(&request,MPI_STATUS_IGNORE);
-    
+
     if (procgrid[dim] > 2) {
       MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
                 world,&request);
@@ -1403,6 +1415,7 @@ void CommBrick::free_multi()
 {
   memory->destroy(multilo);
   memory->destroy(multihi);
+  multilo = multihi = NULL;
 }
 
 /* ----------------------------------------------------------------------

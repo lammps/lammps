@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "run.h"
 #include "domain.h"
 #include "update.h"
@@ -41,6 +41,9 @@ void Run::command(int narg, char **arg)
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Run command before simulation box is defined");
+
+  // ignore run command, if walltime limit was already reached
+  if (timer->is_timeout()) return;
 
   bigint nsteps_input = force->bnumeric(FLERR,arg[0]);
 
@@ -118,17 +121,20 @@ void Run::command(int narg, char **arg)
   // error check
 
   if (startflag) {
-    if (start < 0 || start > MAXBIGINT)
+    if (start < 0)
       error->all(FLERR,"Invalid run command start/stop value");
     if (start > update->ntimestep)
       error->all(FLERR,"Run command start value is after start of run");
   }
   if (stopflag) {
-    if (stop < 0 || stop > MAXBIGINT)
+    if (stop < 0)
       error->all(FLERR,"Invalid run command start/stop value");
     if (stop < update->ntimestep + nsteps)
       error->all(FLERR,"Run command stop value is before end of run");
   }
+
+  if (!preflag && strstr(update->integrate_style,"respa"))
+    error->all(FLERR,"Run flag 'pre no' not compatible with r-RESPA");
 
   // if nevery, make copies of arg strings that are commands
   // required because re-parsing commands via input->one() will wipe out args
@@ -152,12 +158,13 @@ void Run::command(int narg, char **arg)
   // if post, do full Finish, else just print time
 
   update->whichflag = 1;
+  timer->init_timeout();
 
   if (nevery == 0) {
     update->nsteps = nsteps;
     update->firststep = update->ntimestep;
     update->laststep = update->ntimestep + nsteps;
-    if (update->laststep < 0 || update->laststep > MAXBIGINT)
+    if (update->laststep < 0 || update->laststep < update->firststep)
       error->all(FLERR,"Too many timesteps");
 
     if (startflag) update->beginstep = start;
@@ -190,12 +197,15 @@ void Run::command(int narg, char **arg)
     int iter = 0;
     int nleft = nsteps;
     while (nleft > 0 || iter == 0) {
+      if (timer->is_timeout()) break;
+      timer->init_timeout();
+
       nsteps = MIN(nleft,nevery);
 
       update->nsteps = nsteps;
       update->firststep = update->ntimestep;
       update->laststep = update->ntimestep + nsteps;
-      if (update->laststep < 0 || update->laststep > MAXBIGINT)
+      if (update->laststep < 0 || update->laststep < update->firststep)
         error->all(FLERR,"Too many timesteps");
 
       if (startflag) update->beginstep = start;

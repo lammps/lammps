@@ -1,0 +1,97 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+timer command :h3
+
+[Syntax:]
+
+timer args :pre
+
+{args} = one or more of {off} or {loop} or {normal} or {full} or {sync} or {nosync} or {timeout} or {every} :l
+  {off} = do not collect or print any timing information
+  {loop} = collect only the total time for the simulation loop
+  {normal} = collect timer information broken down by sections (default)
+  {full} = like {normal} but also include CPU and thread utilzation 
+  {sync} = explicitly synchronize MPI tasks between sections
+  {nosync} = do not synchronize MPI tasks between sections (default)
+  {timeout} value = set walltime limit to {value}
+  {every} value = perform timeout check every {value} steps :pre
+
+[Examples:]
+
+timer full sync
+timer timeout 2:00:00 every 100
+timer loop :pre
+
+[Description:]
+
+Select the level of detail LAMMPS performs its CPU timings.
+
+During a simulation run LAMMPS collects information about how much
+time is spent in different sections of the code and thus can provide
+valuable information for determining performance and load imbalance
+problems.  This can be done at different levels of detail and
+accuracy.  For more information about the timing output, see this
+"discussion of screen output"_Section_start.html#start_8.
+
+The {off} setting will turn all time measurements off. The {loop}
+setting will only measure the total time for a run and not collect any
+detailed per section information.  With the {normal} setting, timing
+information for portions of the timestep (pairwise calculations,
+neighbor list construction, output, etc) are collected as well as
+information about load imbalances for those sections across
+procsessors.  The {full} setting adds information about CPU
+utilization and thread utilization, when multi-threading is enabled.
+
+With the {sync} setting, all MPI tasks are synchronized at each timer
+call which meaures load imbalance more accuractly, though it can also
+slow down the simulation.  Using the {nosync} setting (which is the
+default) turns off this synchronization.
+
+With the {timeout} keyword a walltime limit can be imposed that affects
+"run"_run.html  and "minimize"_minimize.html commands. If the time
+limit it reached, ongoing calculations will be stopped on the next
+step that is a multiple of the value specified with {every}. All
+follwing run or minimize commands will be skipped until the timeout
+is reset or turned off by a new {timer} command. The timeout value
+can be "off" or "unlimited" to turn the timeout off, otherwise a
+single number is interpreted as seconds, two numbers separated by
+a colon (MM:SS) as minutes and seconds and three numbers separated
+by colons as hours, minutes and seconds, respectively.
+
+The {every} keyword sets how frequent during a run or minimization
+the wall clock will be checked. This check count applies to the outer
+iterations or time steps during minimizations or r-RESPA runs, respectively.
+Checking for timeout very often, can slow a calculation down, checking
+too infrequent makes the timeout measurement less accurate and the run
+will be stopped later than desired.
+
+Multiple keywords can be specified with the {timer} command.  For
+keywords that are mutually exclusive, the last one specified takes
+effect.
+
+NOTE: Using the {full} and {sync} options provides the most detailed
+and accurate timing information, but can also have a negative
+performance impact due to the overhead of the many required system
+calls. It is thus recommended to use these settings only when testing
+tests to identify performance bottlenecks. For calculations with few
+atoms or a very large number of processors, even the {normal} setting
+can have a measurable negative performance impact. In those cases you
+can just use the {loop} or {off} setting.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"run post no"_run.html, "kspace_modify fftbench"_kspace_modify.html
+
+[Default:]
+
+timer normal nosync
+timer timeout off
+timer every 10 :pre

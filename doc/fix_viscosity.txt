@@ -85,19 +85,19 @@ the shear velocity profile is proportional to the viscosity of the
 fluid, in appropriate units.  See the "Muller-Plathe
 paper"_#Muller-Plathe for details.
 
-IMPORTANT NOTE: If your system is periodic in the direction of the
-momentum flux, then the flux is going in 2 directions.  This means the
+NOTE: If your system is periodic in the direction of the momentum
+flux, then the flux is going in 2 directions.  This means the
 effective momentum flux in one direction is reduced by a factor of 2.
 You will see this in the equations for viscosity in the Muller-Plathe
 paper.  LAMMPS is simply tallying momentum which does not account for
 whether or not your system is periodic; you must use the value
 appropriately to yield a viscosity for your system.
 
-IMPORTANT NOTE: After equilibration, if the velocity profile you
-observe is not linear, then you are likely swapping momentum too
-frequently and are not in a regime of linear response.  In this case
-you cannot accurately infer a viscosity and should try increasing
-the Nevery parameter.
+NOTE: After equilibration, if the velocity profile you observe is not
+linear, then you are likely swapping momentum too frequently and are
+not in a regime of linear response.  In this case you cannot
+accurately infer a viscosity and should try increasing the Nevery
+parameter.
 
 An alternative method for calculating a viscosity is to run a NEMD
 simulation, as described in "Section_howto

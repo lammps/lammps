@@ -15,6 +15,10 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#ifdef __INTEL_COMPILER
+#define LMP_SIMD_COMPILER
+#endif
+
 #ifdef __INTEL_OFFLOAD
 #ifdef LMP_INTEL_OFFLOAD
 #define _LMP_INTEL_OFFLOAD
@@ -38,7 +42,7 @@
 #define _use_omp_pragma(txt)
 #endif
 
-#if defined(__INTEL_COMPILER)
+#if defined(LMP_SIMD_COMPILER)
 #define _use_simd_pragma(txt) _Pragma(txt)
 #else
 #define _use_simd_pragma(txt)
@@ -51,13 +55,42 @@ enum {LMP_OVERFLOW, LMP_LOCAL_MIN, LMP_LOCAL_MAX, LMP_GHOST_MIN,
 enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
       TIME_OFFLOAD_PAIR, TIME_OFFLOAD_WAIT, TIME_OFFLOAD_LATENCY,
       TIME_IMBALANCE};
+
 #define NUM_ITIMERS ( TIME_IMBALANCE + 1 )
+#define INTEL_MIC_VECTOR_WIDTH 16
+#define INTEL_VECTOR_WIDTH 4
+
+#ifdef __AVX__
+#undef INTEL_VECTOR_WIDTH
+#define INTEL_VECTOR_WIDTH 8
+#endif
+
+#ifdef __AVX2__
+#undef INTEL_VECTOR_WIDTH
+#define INTEL_VECTOR_WIDTH 8
+#endif
+
+#ifdef __AVX512F__
+#undef INTEL_VECTOR_WIDTH
+#define INTEL_VECTOR_WIDTH 16
+#define INTEL_V512 1
+#define INTEL_VMASK 1
+#else
+#ifdef __MIC__
+#define INTEL_V512 1
+#define INTEL_VMASK 1
+#endif
+#endif
+
+#ifdef __AVX512CD__
+#ifndef _LMP_INTEL_OFFLOAD
+#define LMP_USE_AVXCD
+#endif
+#endif
 
 #define INTEL_DATA_ALIGN 64
 #define INTEL_ONEATOM_FACTOR 2
-#define INTEL_MIC_VECTOR_WIDTH 16
 #define INTEL_MIC_NBOR_PAD INTEL_MIC_VECTOR_WIDTH
-#define INTEL_VECTOR_WIDTH 8
 #define INTEL_NBOR_PAD INTEL_VECTOR_WIDTH
 #define INTEL_LB_MEAN_WEIGHT 0.1
 #define INTEL_BIGP 1e15
@@ -108,6 +141,18 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 			   datasize);				\
   }
 
+#define IP_PRE_omp_range_id_vec(ifrom, ito, tid, inum,          \
+				nthreads, vecsize)		\
+  {								\
+    tid = omp_get_thread_num();         			\
+    int idelta = static_cast<int>(ceil(static_cast<float>(inum)	\
+				       /vecsize/nthreads));	\
+    idelta *= vecsize;						\
+    ifrom = tid*idelta;						\
+    ito = ifrom + idelta;					\
+    if (ito > inum) ito = inum;					\
+  }
+
 #else
 
 #define IP_PRE_omp_range(ifrom, ito, tid, inum, nthreads)	\
@@ -137,6 +182,16 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   ifrom = 0;							\
   ito = inum;							\
 }
+
+#define IP_PRE_omp_range_id_vec(ifrom, ito, tid, inum,          \
+				nthreads, vecsize)		\
+  {								\
+    tid = 0;                            			\
+    int idelta = static_cast<int>(ceil(static_cast<float>(inum)	\
+				       /vecsize));         	\
+    ifrom = 0;							\
+    ito = inum;							\
+  }
 
 #endif
 
@@ -272,7 +327,7 @@ inline double MIC_Wtime() {
 
 #define MIC_Wtime MPI_Wtime
 #define IP_PRE_pack_separate_buffers(fix, buffers, ago, offload,        \
-                                     nlocal, nall)			
+                                     nlocal, nall)
 
 #define IP_PRE_get_transfern(ago, newton, evflag, eflag, vflag, 	\
 			     buffers, offload, fix, separate_flag,	\
@@ -297,7 +352,7 @@ inline double MIC_Wtime() {
 }
 
 #define IP_PRE_repack_for_offload(newton, separate_flag, nlocal, nall,	\
-				  f_stride, x, q)			
+				  f_stride, x, q)
 
 
 #endif
@@ -335,6 +390,43 @@ inline double MIC_Wtime() {
     sv3 += delx * fj1;							\
     sv4 += delx * fj2;							\
     sv5 += dely * fj2;							\
+  }                                                                     \
+}
+
+#define IP_PRE_ev_tally_dihed(eflag, eatom, vflag, deng, i1, i2, i3, i4,\
+			      f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y,	\
+			      f4z, vb1x, vb1y, vb1z, vb2x, vb2y, vb2z,	\
+			      vb3x, vb3y, vb3z,oedihedral, force,	\
+			      newton, nlocal)				\
+{                                                                       \
+  flt_t ev_pre;								\
+  if (newton) ev_pre = (flt_t)1.0;					\
+  else {								\
+    ev_pre = (flt_t)0.0;						\
+    if (i1 < nlocal) ev_pre += (flt_t)0.25;				\
+    if (i2 < nlocal) ev_pre += (flt_t)0.25;				\
+    if (i3 < nlocal) ev_pre += (flt_t)0.25;				\
+    if (i4 < nlocal) ev_pre += (flt_t)0.25;				\
+  }									\
+									\
+  if (eflag) {								\
+    oedihedral += ev_pre * deng;					\
+    if (eatom) {							\
+      flt_t qdeng = deng * (flt_t)0.25;					\
+      if (newton || i1 < nlocal) f[i1].w += qdeng;			\
+      if (newton || i2 < nlocal) f[i2].w += qdeng;			\
+      if (newton || i3 < nlocal) f[i3].w += qdeng;			\
+      if (newton || i4 < nlocal) f[i4].w += qdeng;			\
+    }									\
+  }									\
+									\
+  if (vflag) {								\
+    sv0 += ev_pre * (vb1x*f1x + vb2x*f3x + (vb3x+vb2x)*f4x);		\
+    sv1 += ev_pre * (vb1y*f1y + vb2y*f3y + (vb3y+vb2y)*f4y);		\
+    sv2 += ev_pre * (vb1z*f1z + vb2z*f3z + (vb3z+vb2z)*f4z);		\
+    sv3 += ev_pre * (vb1x*f1y + vb2x*f3y + (vb3x+vb2x)*f4y);		\
+    sv4 += ev_pre * (vb1x*f1z + vb2x*f3z + (vb3x+vb2x)*f4z);		\
+    sv5 += ev_pre * (vb1y*f1z + vb2y*f3z + (vb3y+vb2y)*f4z);		\
   }                                                                     \
 }
 

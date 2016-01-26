@@ -9,10 +9,10 @@
 
 # -----------------------------------
 
-LAMMPS_COMMAND="lmp_ubuntu"
+LAMMPS_COMMAND="lmp_mpi"
 
 # Here "$LAMMPS_BINARY" is the name of the command you use to invoke lammps
-# (such as lmp_linux, lmp_g++, lmp_mac, lmp_cygwin, etc...) Change if necessary.
+# (such as lmp_ubuntu, lmp_mac_mpi, lmp_cygwin etc...).  Change if necessary.
 
 # Run lammps using the following 3 commands:
 

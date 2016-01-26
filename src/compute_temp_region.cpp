@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_temp_region.h"
 #include "atom.h"
 #include "update.h"
@@ -136,7 +136,7 @@ double ComputeTempRegion::compute_scalar()
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
   dof = domain->dimension * tarray_all[0] - extra_dof;
-  if (dof < 0.0 && tarray_all[0] > 0.0) 
+  if (dof < 0.0 && tarray_all[0] > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else scalar = 0.0;

@@ -2,8 +2,8 @@
 //@HEADER
 // ************************************************************************
 // 
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 // 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov) 
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -44,7 +44,10 @@
 #ifndef KOKKOS_CUDA_REDUCESCAN_HPP
 #define KOKKOS_CUDA_REDUCESCAN_HPP
 
-#if defined( __CUDACC__ )
+#include <Kokkos_Macros.hpp>
+
+/* only compile this file if CUDA is enabled for Kokkos */
+#if defined( __CUDACC__ ) && defined( KOKKOS_HAVE_CUDA )
 
 #include <utility>
 
@@ -114,7 +117,7 @@ inline void cuda_inter_warp_reduction( ValueType& value,
 
 
   value = result[0];
-  for(int i = 1; (i*step<=max_active_thread) && i<STEP_WIDTH; i++)
+  for(int i = 1; (i*step<max_active_thread) && i<STEP_WIDTH; i++)
     join(value,result[i]);
 }
 
@@ -342,8 +345,11 @@ bool cuda_single_inter_block_reduce_scan( const FunctorType     & functor ,
   typedef typename ValueTraits::pointer_type    pointer_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
+  // '__ffs' = position of the least significant bit set to 1.
+  // 'blockDim.y' is guaranteed to be a power of two so this
+  // is the integral shift value that can replace an integral divide.
+  const unsigned BlockSizeShift = __ffs( blockDim.y ) - 1 ;
   const unsigned BlockSizeMask  = blockDim.y - 1 ;
-  const unsigned BlockSizeShift = power_of_two_if_valid( blockDim.y );
 
   // Must have power of two thread count
   if ( BlockSizeMask & blockDim.y ) { Kokkos::abort("Cuda::cuda_single_inter_block_reduce_scan requires power-of-two blockDim"); }

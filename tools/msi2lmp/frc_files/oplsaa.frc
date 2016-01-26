@@ -102,6 +102,7 @@
 !---- ---    ----  ----  ----  ----      -------      ------    ------   -----
  X.X  XX     HC    CT    CT    HC        0.0          0.0       0.318    0.0
  X.X  XX     HC    CT    CT    CT        0.0          0.0       0.366    0.0  
+ X.X  XX     CT    CT    CT    CT        1.740       -0.157     0.279    0.0
  X.X  XX     HC    CT    OH    HO        0.0          0.0       0.450    0.0
  X.X  XX     CT    CT    OH    HO       -0.356       -0.174     0.492    0.0
  X.X  XX     HC    CT    CT    OH        0.0          0.0       0.468    0.0

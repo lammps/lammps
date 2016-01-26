@@ -47,15 +47,15 @@ only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 
-IMPORTANT NOTE: Unlike the "fix npt"_fix_nh.html or "fix
-nph"_fix_nh.html commands which perform Nose/Hoover barostatting AND
-time integration, this fix does NOT perform time integration.  It only
-modifies the box size and atom coordinates to effect barostatting.
-Thus you must use a separate time integration fix, like "fix
-nve"_fix_nve.html or "fix nvt"_fix_nh.html to actually update the
-positions and velocities of atoms.  This fix can be used in
-conjunction with thermostatting fixes to control the temperature, such
-as "fix nvt"_fix_nh.html or "fix langevin"_fix_langevin.html or "fix
+NOTE: Unlike the "fix npt"_fix_nh.html or "fix nph"_fix_nh.html
+commands which perform Nose/Hoover barostatting AND time integration,
+this fix does NOT perform time integration.  It only modifies the box
+size and atom coordinates to effect barostatting.  Thus you must use a
+separate time integration fix, like "fix nve"_fix_nve.html or "fix
+nvt"_fix_nh.html to actually update the positions and velocities of
+atoms.  This fix can be used in conjunction with thermostatting fixes
+to control the temperature, such as "fix nvt"_fix_nh.html or "fix
+langevin"_fix_langevin.html or "fix
 temp/berendsen"_fix_temp_berendsen.html.
 
 See "this howto section"_Section_howto.html#howto_16 of the manual for
@@ -91,11 +91,11 @@ scale on which pressure is relaxed.  For example, a value of 1000.0
 means to relax the pressure in a timespan of (roughly) 1000 time units
 (tau or fmsec or psec - see the "units"_units.html command).
 
-IMPORTANT NOTE: The relaxation time is actually also a function of the
-bulk modulus of the system (inverse of isothermal compressibility).
-The bulk modulus has units of pressure and is the amount of pressure
-that would need to be applied (isotropically) to reduce the volume of
-the system by a factor of 2 (assuming the bulk modulus was a constant,
+NOTE: The relaxation time is actually also a function of the bulk
+modulus of the system (inverse of isothermal compressibility).  The
+bulk modulus has units of pressure and is the amount of pressure that
+would need to be applied (isotropically) to reduce the volume of the
+system by a factor of 2 (assuming the bulk modulus was a constant,
 independent of density, which it's not).  The bulk modulus can be set
 via the keyword {modulus}.  The {Pdamp} parameter is effectively
 multiplied by the bulk modulus, so if the pressure is relaxing faster

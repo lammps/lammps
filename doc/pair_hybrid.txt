@@ -70,12 +70,14 @@ other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
 pair_coeff command to assign parameters for the different type pairs.
 
-IMPORTANT NOTE: An exception to this option to list an individual pair
-style multiple times are the pair styles implemented as Fortran
-libraries: "pair_style meam"_pair_meam.html and "pair_style
-reax"_pair_reax.html ("pair_style reax/c"_pair_reax_c.html is OK).
+NOTE: There are two exceptions to this option to list an individual
+pair style multiple times.  The first is for pair styles implemented
+as Fortran libraries: "pair_style meam"_pair_meam.html.
 This is because unlike a C++ class, they can not be instantiated
 multiple times, due to the manner in which they were coded in Fortran.
+The second is for GPU-enabled pair styles in the GPU package.  This is
+b/c the GPU package also currently assumes that only one instance of a
+pair style is being used.
 
 In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
@@ -184,16 +186,59 @@ potentials.
 
 :line
 
+Different force fields (e.g. CHARMM vs AMBER) may have different rules
+for applying weightings that change the strength of pairwise
+interactions bewteen pairs of atoms that are also 1-2, 1-3, and 1-4
+neighbors in the molecular bond topology, as normally set by the
+"special_bonds"_special_bonds.html command.  Different weights can be
+assigned to different pair hybrid sub-styles via the "pair_modify
+special"_pair_modify.html command. This allows multiple force fields
+to be used in a model of a hybrid system, however, there is no consistent
+approach to determine parameters automatically for the interactions
+between the two force fields, this is only recommended when particles
+described by the different force fields do not mix.
+
+Here is an example for mixing CHARMM and AMBER: The global {amber}
+setting sets the 1-4 interactions to non-zero scaling factors and
+then overrides them with 0.0 only for CHARMM:
+
+special_bonds amber
+pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0 :pre
+
+The this input achieves the same effect:
+
+special_bonds 0.0 0.0 0.1
+pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
+pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333
+pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0 :pre
+
+Here is an example for mixing Tersoff with OPLS/AA based on
+a data file that defines bonds for all atoms where for the
+Tersoff part of the system the force constants for the bonded
+interactions have been set to 0. Note the global settings are
+effectively {lj/coul 0.0 0.0 0.5} as required for OPLS/AA:
+
+special_bonds lj/coul 1e-20 1e-20 0.5
+pair_hybrid tersoff lj/cut/coul/long 12.0
+pair_modify pair tersoff special lj/coul 1.0 1.0 1.0 :pre
+
+See the "pair_modify"_pair_modify.html doc page for details on
+the specific syntax, requirements and restrictions.
+
+:line
+
 The potential energy contribution to the overall system due to an
 individual sub-style can be accessed and output via the "compute
 pair"_compute_pair.html command.
 
 :line
 
-IMPORTANT: Several of the potentials defined via the pair_style
-command in LAMMPS are really many-body potentials, such as Tersoff,
-AIREBO, MEAM, ReaxFF, etc.  The way to think about using these
-potentials in a hybrid setting is as follows.
+NOTE: Several of the potentials defined via the pair_style command in
+LAMMPS are really many-body potentials, such as Tersoff, AIREBO, MEAM,
+ReaxFF, etc.  The way to think about using these potentials in a
+hybrid setting is as follows.
 
 A subset of atom types is assigned to the many-body potential with a
 single "pair_coeff"_pair_coeff.html command, using "* *" to include
@@ -286,7 +331,7 @@ more instructions on how to use the accelerated styles effectively.
 
 :line
 
-[Mixing, shift, table, tail correction, exclusions, restart, rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 Any pair potential settings made via the
 "pair_modify"_pair_modify.html command are passed along to all
@@ -307,33 +352,6 @@ mixing.
 The hybrid pair styles supports the "pair_modify"_pair_modify.html
 shift, table, and tail options for an I,J pair interaction, if the
 associated sub-style supports it.
-
-The hybrid pair styles include mechanism to assign different
-"special_bonds"_special_bonds.html settings to different sub-styles
-via the "pair_modify"_pair_modify.html special command. This is
-implemented by temporarily overwriting the global factors for each
-sub-style and then restoring the original values. The syntax
-is similar to the special_bonds command. For example:
-
-special_bonds lj/coul 0.0 0.0 1.0e-100
-pair_modify special lj/coul 0.0 0.0 0.5 :pre
-
-or:
-
-special_bonds lj/coul 0.0 0.0 1.0e-100
-pair_modify pair lj/cut special lj 0.0 0.0 0.5 :pre
-
-In the first example the special_bond setting is changed for all
-sub-styles and for non-bonded and coulomb, while in the second only
-the non-bonded factors are overridden and only for the {lj/cut}
-sub-style.
-
-NOTE: since the global {special_bonds} settings influences the
-construction of neighbor lists, a sub-style override is only accepted,
-if the override is compatible with the global setting, i.e. the local
-factor [must] be the same, if the global factor is either 0.0 or 1.0;
-a global factor of 1.0e-100 can be overridden, though, and will be
-in practice indistinguishable from 0.0.
 
 For the hybrid pair styles, the list of sub-styles and their
 respective settings are written to "binary restart

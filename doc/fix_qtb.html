@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix qtb command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix qtb command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-qtb-command">
+<span id="index-0"></span><h1>fix qtb command<a class="headerlink" href="#fix-qtb-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID qtb keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>qtb = style name of this fix</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>temp</em> or <em>damp</em> or <em>seed</em> or <em>f_max</em> or <em>N_f</em></li>
+</ul>
+<pre class="literal-block">
+<em>temp</em> value = target quantum temperature (temperature units)
+<em>damp</em> value = damping parameter (time units) inverse of friction &lt;i&gt;&amp;gamma&lt;/i&gt;;
+<em>seed</em> value = random number seed (positive integer)
+<em>f_max</em> value = upper cutoff frequency of the vibration spectrum (1/time units)
+<em>N_f</em> value = number of frequency bins (positive integer)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all nve
+fix 1 all qtb temp 110 damp 200 seed 35082 f_max 0.3 N_f 100 (liquid methane modeled with the REAX force field, real units)
+fix 2 all nph iso 1.01325 1.01325 1
+fix 2 all qtb temp 300 damp 1 seed 47508 f_max 120.0 N_f 100 (quartz modeled with the BKS force field, metal units)
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command performs the quantum thermal bath scheme proposed by
+<a class="reference internal" href="#dammak"><span>(Dammak)</span></a> to include self-consistent quantum nuclear effects,
+when used in conjunction with the <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> commands.</p>
+<p>Classical molecular dynamics simulation does not include any quantum
+nuclear effect. Quantum treatment of the vibrational modes will
+introduce zero point energy into the system, alter the energy power
+spectrum and bias the heat capacity from the classical limit. Missing
+all the quantum nuclear effects, classical MD cannot model systems at
+temperatures lower than their classical limits. This effect is
+especially important for materials with a large population of hydrogen
+atoms and thus higher classical limits.</p>
+<p>The equation of motion implemented by this command follows a Langevin
+form:</p>
+<center><font size="4"><i> m<sub>i</sub>a<sub>i</sub> = f<sub>i</sub>
++ R<sub>i</sub> -
+m<sub>i</sub>&gamma;v<sub>i</sub>. </i></font></center><p>Here &lt;i&gt;m&lt;sub&gt;i&lt;/sub&gt;&lt;/i&gt;, &lt;i&gt;a&lt;sub&gt;i&lt;/sub&gt;&lt;/i&gt;, &lt;i&gt;f&lt;sub&gt;i&lt;/sub&gt;
+&lt;/i&gt;, &lt;i&gt;R&lt;sub&gt;i&lt;/sub&gt;&lt;/i&gt;, &lt;i&gt;&amp;gamma;&lt;/i&gt; and &lt;i&gt;v&lt;sub&gt;i&lt;/sub&gt; &lt;/i&gt;
+represent mass, acceleration, force exerted by all other atoms, random
+force, frictional coefficient (the inverse of damping parameter damp),
+and velocity. The random force &lt;i&gt;R&lt;sub&gt;i&lt;/sub&gt;&lt;/i&gt; is &#8220;colored&#8221; so
+that any vibrational mode with frequency &lt;i&gt;&amp;omega;&lt;/i&gt; will have a
+temperature-sensitive energy &lt;i&gt;&amp;theta;&lt;/i&gt;(&lt;i&gt;&amp;omega;,T&lt;/i&gt;) which
+resembles the energy expectation for a quantum harmonic oscillator
+with the same natural frequency:</p>
+<center><font size="4"> <i>&theta;</i>(<i>&omega;,T</i>) =
+&#8463;&omega;/2 +
+&#8463;&omega;[</i>exp(<i>&#8463;&omega;/k</i><sub>B</sub><i>T</i>)<i>-1</i>]<i><sup>-1</sup></i>
+</font></center><p>To efficiently generate the random forces, we employ the method
+of <a class="reference internal" href="#barrat"><span>(Barrat)</span></a>, that circumvents the need to generate all
+random forces for all times before the simulation. The memory
+requirement of this approach is less demanding and independent
+of the simulation duration. Since the total random force &lt;i&gt;R&lt;/i&gt;&lt;sub&gt;tot&lt;/sub&gt;
+does not necessarily vanish for a finite number of atoms,
+&lt;i&gt;R&lt;sub&gt;i&lt;/sub&gt;&lt;/i&gt; is replaced by &lt;i&gt;R&lt;sub&gt;i&lt;/sub&gt;&lt;/i&gt; - &lt;i&gt;R&lt;/i&gt;&lt;sub&gt;tot&lt;/sub&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;tot&lt;/sub&gt;
+to avoid collective motion of the system.</p>
+<p>The <em>temp</em> parameter sets the target quantum temperature. LAMMPS will
+still have an output temperature in its thermo style. That is the
+instantaneous classical temperature &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;cl&lt;/sup&gt; derived from
+the atom velocities at thermal equilibrium. A non-zero
+&lt;i&gt;T&lt;/i&gt;&lt;sup&gt;cl&lt;/sup&gt; will be present even when the quantum
+temperature approaches zero. This is associated with zero-point energy
+at low temperatures.</p>
+<center><font size="4"> <i>T</i><sup>cl</sup> = &sum;
+<i>m<sub>i</sub>v<sub>i</sub><sup>2</sup>/3Nk</i><sub>B</sub>
+</font></center><p>The <em>damp</em> parameter is specified in time units, and it equals the
+inverse of the frictional coefficient &lt;i&gt;&amp;gamma;&lt;/i&gt;. &lt;i&gt;&amp;gamma;&lt;/i&gt;
+should be as small as possible but slightly larger than the timescale
+of anharmonic coupling in the system which is about 10 ps to 100
+ps. When &lt;i&gt;&amp;gamma;&lt;/i&gt; is too large, it gives an energy spectrum that
+differs from the desired Bose-Einstein spectrum. When &lt;i&gt;&amp;gamma;&lt;/i&gt;
+is too small, the quantum thermal bath coupling to the system will be
+less significant than anharmonic effects, reducing to a classical
+limit. We find that setting &lt;i&gt;&amp;gamma;&lt;/i&gt; between 5 THz and 1 THz
+could be appropriate depending on the system.</p>
+<p>The random number <em>seed</em> is a positive integer used to initiate a
+Marsaglia random number generator. Each processor uses the input seed
+to generate its own unique seed and its own stream of random
+numbers. Thus the dynamics of the system will not be identical on two
+runs on different numbers of processors.</p>
+<p>The <em>f_max</em> parameter truncate the noise frequency domain so that
+vibrational modes with frequencies higher than <em>f_max</em> will not be
+modulated. If we denote &amp;Delta;&lt;i&gt;t&lt;/i&gt; as the time interval for the
+MD integration, <em>f_max</em> is always reset by the code to make
+&lt;i&gt;&amp;alpha;&lt;/i&gt; = (int)(2*f_max*&amp;Delta;&lt;i&gt;t&lt;/i&gt;)&lt;sup&gt;&lt;i&gt;-1&lt;/i&gt;&lt;/sup&gt; a
+positive integer and print out relative information. An appropriate
+value for the cutoff frequency <em>f_max</em> would be around 2~3
+&lt;i&gt;f&lt;/i&gt;&lt;sub&gt;D&lt;/sub&gt;, where &lt;i&gt;f&lt;/i&gt;&lt;sub&gt;D&lt;/sub&gt; is the Debye
+frequency.</p>
+<p>The <em>N_f</em> parameter is the frequency grid size, the number of points
+from 0 to <em>f_max</em> in the frequency domain that will be
+sampled. &lt;i&gt;3&amp;times;2&lt;/i&gt; <em>N_f</em> per-atom random numbers are required
+in the random force generation and there could be as many atoms as in
+the whole simulation that can migrate into every individual
+processor. A larger <em>N_f</em> provides a more accurate sampling of the
+spectrum while consumes more memory.  With fixed <em>f_max</em> and
+&lt;i&gt;&amp;gamma;&lt;/i&gt;, <em>N_f</em> should be big enough to converge the classical
+temperature &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;cl&lt;/sup&gt; as a function of target quantum bath
+temperature. Memory usage per processor could be from 10 to 100
+Mbytes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which performs
+Nose/Hoover thermostatting AND time integration, this fix does NOT
+perform time integration. It only modifies forces to a colored
+thermostat. Thus you must use a separate time integration fix, like
+<a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> to actually update the
+velocities and positions of atoms (as shown in the
+examples). Likewise, this fix should not normally be used with other
+fixes or commands that also specify system temperatures , e.g. <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> and <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>.</p>
+</div>
+<hr class="docutils" />
+<p><strong>Restart, fix_modify, output, run start/stop, minimizie info:</strong></p>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do &#8220;exact&#8221;
+restarts with this fix. However, in a statistical sense, a restarted
+simulation should produce similar behaviors of the system.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix style is part of the USER-QTB package.  It is only enabled if
+LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>, <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>, <a class="reference internal" href="fix_qbmsst.html"><em>fix qbmsst</em></a></p>
+</div>
+<hr class="docutils" />
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are temp = 300, damp = 1, seed = 880302,
+f_max=200.0 and N_f = 100.</p>
+<hr class="docutils" />
+<p id="dammak"><strong>(Dammak)</strong> Dammak, Chalopin, Laroche, Hayoun, and Greffet, Phys Rev
+Lett, 103, 190601 (2009).</p>
+<p id="barrat"><strong>(Barrat)</strong> Barrat and Rodney, J. Stat. Phys, 144, 679 (2011).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_external.h"
 #include "atom.h"
 #include "update.h"
@@ -42,7 +42,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
     mode = PF_CALLBACK;
     ncall = force->inumeric(FLERR,arg[4]);
     napply = force->inumeric(FLERR,arg[5]);
-    if (ncall <= 0 || napply <= 0) 
+    if (ncall <= 0 || napply <= 0)
       error->all(FLERR,"Illegal fix external command");
   } else if (strcmp(arg[3],"pf/array") == 0) {
     if (narg != 5) error->all(FLERR,"Illegal fix external command");

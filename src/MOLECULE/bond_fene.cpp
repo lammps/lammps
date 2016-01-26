@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_fene.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -85,7 +85,7 @@ void BondFENE::compute(int eflag, int vflag)
 
     if (rlogarg < 0.1) {
       char str[128];
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " " 
+      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       error->warning(FLERR,str,0);
@@ -242,7 +242,7 @@ void BondFENE::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondFENE::single(int type, double rsq, int i, int j, 
+double BondFENE::single(int type, double rsq, int i, int j,
                         double &fforce)
 {
   double r0sq = r0[type] * r0[type];

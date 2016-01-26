@@ -1,0 +1,7 @@
+
+timer	off
+
+read_data empty-orth.data
+read_data few-orth.data add append
+
+info	all

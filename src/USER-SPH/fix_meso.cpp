@@ -11,12 +11,12 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 #include "fix_meso.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -67,7 +67,7 @@ void FixMeso::init() {
 
 void FixMeso::setup_pre_force(int vflag)
 {
-  // set vest equal to v 
+  // set vest equal to v
   double **v = atom->v;
   double **vest = atom->vest;
   int *mask = atom->mask;

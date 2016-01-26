@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
 #include "fix_shear_history.h"
 #include "atom.h"
 #include "comm.h"
@@ -293,7 +293,7 @@ void FixShearHistory::grow_arrays(int nmax)
   partner = (tagint **) memory->srealloc(partner,nmax*sizeof(tagint *),
                                          "shear_history:partner");
   typedef double (*sptype)[3];
-  shearpartner = (sptype *) 
+  shearpartner = (sptype *)
     memory->srealloc(shearpartner,nmax*sizeof(sptype),
                      "shear_history:shearpartner");
 }

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "reader_native.h"
 #include "atom.h"
 #include "memory.h"
@@ -141,10 +141,16 @@ bigint ReaderNative::read_header(double box[3][3], int &triclinic,
   nwords = atom->count_words(labelline);
   char **labels = new char*[nwords];
   labels[0] = strtok(labelline," \t\n\r\f");
-  if (labels[0] == NULL) return 1;
+  if (labels[0] == NULL) {
+    delete[] labels;
+    return 1;
+  }
   for (int m = 1; m < nwords; m++) {
     labels[m] = strtok(NULL," \t\n\r\f");
-    if (labels[m] == NULL) return 1;
+    if (labels[m] == NULL) {
+      delete[] labels;
+      return 1;
+    }
   }
 
   // match each field with a column of per-atom data
@@ -318,13 +324,13 @@ int ReaderNative::find_label(const char *label, int n, char **labels)
 /* ----------------------------------------------------------------------
    read N lines from dump file
    only last one is saved in line
-   return NULL if end-of-file error, else non-NULL
    only called by proc 0
 ------------------------------------------------------------------------- */
 
 void ReaderNative::read_lines(int n)
 {
-  char *eof;
+  char *eof = NULL;
+  if (n <= 0) return;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->all(FLERR,"Unexpected end of dump file");
+  if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 }

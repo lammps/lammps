@@ -15,8 +15,8 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_tune_kspace.h"
 #include "update.h"
 #include "domain.h"
@@ -84,9 +84,9 @@ int FixTuneKspace::setmask()
 
 void FixTuneKspace::init()
 {
-  if (!force->kspace) 
+  if (!force->kspace)
     error->all(FLERR,"Cannot use fix tune/kspace without a kspace style");
-  if (!force->pair) 
+  if (!force->pair)
     error->all(FLERR,"Cannot use fix tune/kspace without a pair style");
 
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;
@@ -212,13 +212,14 @@ void FixTuneKspace::store_old_kspace_settings()
   old_differentiation_flag = force->kspace->differentiation_flag;
   old_slabflag = force->kspace->slabflag;
   old_slab_volfactor = force->kspace->slab_volfactor;
+  delete[] old_kspace_style;
 }
 
 /* ----------------------------------------------------------------------
    update the pair style if necessary, preserving the settings
 ------------------------------------------------------------------------- */
 
-void FixTuneKspace::update_pair_style(char *new_pair_style, 
+void FixTuneKspace::update_pair_style(char *new_pair_style,
                                       double pair_cut_coul)
 {
   int itmp;
@@ -253,7 +254,7 @@ void FixTuneKspace::update_pair_style(char *new_pair_style,
    update the kspace style if necessary
 ------------------------------------------------------------------------- */
 
-void FixTuneKspace::update_kspace_style(char *new_kspace_style, 
+void FixTuneKspace::update_kspace_style(char *new_kspace_style,
                                         char *new_acc_str)
 {
   // create kspace style char string

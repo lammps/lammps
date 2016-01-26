@@ -14,7 +14,7 @@
 #ifndef LMP_INPUT_H
 #define LMP_INPUT_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 #include <map>
 #include <string>
@@ -22,6 +22,7 @@
 namespace LAMMPS_NS {
 
 class Input : protected Pointers {
+  friend class Info;
  public:
   int narg;                    // # of command args
   char **arg;                  // parsed args for command
@@ -32,7 +33,7 @@ class Input : protected Pointers {
   void file();                   // process all input
   void file(const char *);       // process an input script
   char *one(const char *);       // process a single command
-  void substitute(char *&, char *&, int &, int &, int);  
+  void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
 
  private:
@@ -51,11 +52,13 @@ class Input : protected Pointers {
 
   FILE **infiles;              // list of open input files
 
+ protected:
   typedef void (*CommandCreator)(LAMMPS *, int, char **);
   std::map<std::string,CommandCreator> *command_map;
 
   template <typename T> static void command_creator(LAMMPS *, int, char **);
 
+ private:
   void parse();                          // parse an input text line
   char *nextword(char *, char **);       // find next word in string with quotes
   int numtriple(char *);                 // count number of triple quotes
@@ -126,7 +129,7 @@ class Input : protected Pointers {
   void thermo_modify();
   void thermo_style();
   void timestep();
-  void timers();
+  void timer_command();
   void uncompute();
   void undump();
   void unfix();

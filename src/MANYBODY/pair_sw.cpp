@@ -15,10 +15,10 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_sw.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -50,6 +50,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
+  map = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -139,7 +140,7 @@ void PairSW::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
+      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -165,7 +166,7 @@ void PairSW::compute(int eflag, int vflag)
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-      if (rsq1 > params[ijparam].cutsq) continue;
+      if (rsq1 >= params[ijparam].cutsq) continue;
 
       for (kk = jj+1; kk < jnum; kk++) {
         k = jlist[kk];
@@ -178,7 +179,7 @@ void PairSW::compute(int eflag, int vflag)
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-        if (rsq2 > params[ikparam].cutsq) continue;
+        if (rsq2 >= params[ikparam].cutsq) continue;
 
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);

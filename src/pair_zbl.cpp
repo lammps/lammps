@@ -15,10 +15,10 @@
    Contributing authors: Stephen Foiles, Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_zbl.h"
 #include "atom.h"
 #include "comm.h"
@@ -33,7 +33,7 @@
 #include "memory.h"
 #include "error.h"
 
-// From J.F. Zeigler, J. P. Biersack and U. Littmark, 
+// From J.F. Zeigler, J. P. Biersack and U. Littmark,
 // "The Stopping and Range of Ions in Matter" volume 1, Pergamon, 1985.
 
 using namespace LAMMPS_NS;
@@ -117,7 +117,7 @@ void PairZBL::compute(int eflag, int vflag)
 
 	if (rsq > cut_innersq) {
 	  t = r - cut_inner;
-	  fswitch = t*t * 
+	  fswitch = t*t *
 	    (sw1[itype][jtype] + sw2[itype][jtype]*t);
 	  fpair += fswitch;
 	}
@@ -136,7 +136,7 @@ void PairZBL::compute(int eflag, int vflag)
           evdwl = e_zbl(r, itype, jtype);
 	  evdwl += sw5[itype][jtype];
 	  if (rsq > cut_innersq) {
-	    eswitch = t*t*t * 
+	    eswitch = t*t*t *
 	      (sw3[itype][jtype] + sw4[itype][jtype]*t);
 	    evdwl += eswitch;
 	  }
@@ -199,11 +199,14 @@ void PairZBL::settings(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
+
 ------------------------------------------------------------------------- */
 
 void PairZBL::coeff(int narg, char **arg)
 {
-  if (narg != 3)
+  double z_one, z_two;
+
+  if (narg != 4)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -213,7 +216,8 @@ void PairZBL::coeff(int narg, char **arg)
   int jlo,jhi;
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double z_one = force->numeric(FLERR,arg[2]);
+  z_one = force->numeric(FLERR,arg[2]);
+  z_two = force->numeric(FLERR,arg[3]);
 
   // set flag for each i-j pair
   // set z-parameter only for i-i pairs
@@ -221,8 +225,13 @@ void PairZBL::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      if (i == j) z[i] = z_one;
+      if (i == j) {
+	if (z_one != z_two)
+	  error->all(FLERR,"Incorrect args for pair coefficients");
+	z[i] = z_one;
+      }
       setflag[i][j] = 1;
+      set_coeff(i, j, z_one, z_two);
       count++;
     }
   }
@@ -248,63 +257,8 @@ void PairZBL::init_style()
 
 double PairZBL::init_one(int i, int j)
 {
-
-  double ainv = (pow(z[i],pzbl) + pow(z[j],pzbl))/(a0*force->angstrom);
-  d1a[i][j] = d1*ainv;
-  d2a[i][j] = d2*ainv;
-  d3a[i][j] = d3*ainv;
-  d4a[i][j] = d4*ainv;
-  zze[i][j] = z[i]*z[j]*force->qqr2e*force->qelectron*force->qelectron;
-
-  d1a[j][i] = d1a[i][j];
-  d2a[j][i] = d2a[i][j];
-  d3a[j][i] = d3a[i][j];
-  d4a[j][i] = d4a[i][j];
-  zze[j][i] = zze[i][j];
-
-  // e =  t^3 (sw3 + sw4*t) + sw5 
-  //   = A/3*t^3 + B/4*t^4 + C
-  // sw3 = A/3 
-  // sw4 = B/4 
-  // sw5 = C
-
-  // dedr = t^2 (sw1 + sw2*t) 
-  //      = A*t^2 + B*t^3
-  // sw1 = A 
-  // sw2 = B 
-
-  // de2dr2 = 2*A*t + 3*B*t^2
-
-  // Require that at t = tc:
-  // e = -Fc
-  // dedr = -Fc'
-  // d2edr2 = -Fc'' 
-
-  // Hence:
-  // A = (-3Fc' + tc*Fc'')/tc^2
-  // B = ( 2Fc' - tc*Fc'')/tc^3
-  // C = -Fc + tc/2*Fc' - tc^2/12*Fc''
-
-  double tc = cut_global - cut_inner;
-  double fc = e_zbl(cut_global, i, j);
-  double fcp = dzbldr(cut_global, i, j);
-  double fcpp = d2zbldr2(cut_global, i, j);
-
-  double swa = (-3.0*fcp + tc*fcpp)/(tc*tc);
-  double swb = ( 2.0*fcp - tc*fcpp)/(tc*tc*tc);
-  double swc = -fc + (tc/2.0)*fcp - (tc*tc/12.0)*fcpp; 
-  
-  sw1[i][j] = swa;
-  sw2[i][j] = swb;
-  sw3[i][j] = swa/3.0;
-  sw4[i][j] = swb/4.0;
-  sw5[i][j] = swc;
-
-  sw1[j][i] = sw1[i][j];
-  sw2[j][i] = sw2[i][j];
-  sw3[j][i] = sw3[i][j];
-  sw4[j][i] = sw4[i][j];
-  sw5[j][i] = sw5[i][j];
+  if (setflag[i][j] == 0)
+    set_coeff(i, j, z[i], z[j]);
 
   return cut_global;
 }
@@ -321,7 +275,7 @@ double PairZBL::single(int i, int j, int itype, int jtype, double rsq,
   fforce = dzbldr(r, itype, jtype);
   if (rsq > cut_innersq) {
     t = r - cut_inner;
-    fswitch = t*t * 
+    fswitch = t*t *
       (sw1[itype][jtype] + sw2[itype][jtype]*t);
     fforce += fswitch;
   }
@@ -330,7 +284,7 @@ double PairZBL::single(int i, int j, int itype, int jtype, double rsq,
   phi = e_zbl(r, itype, jtype);
   phi += sw5[itype][jtype];
   if (rsq > cut_innersq) {
-    eswitch = t*t*t * 
+    eswitch = t*t*t *
       (sw3[itype][jtype] + sw4[itype][jtype]*t);
     phi += eswitch;
   }
@@ -343,7 +297,7 @@ double PairZBL::single(int i, int j, int itype, int jtype, double rsq,
 ------------------------------------------------------------------------- */
 
 double PairZBL::e_zbl(double r, int i, int j) {
-  
+
   double d1aij = d1a[i][j];
   double d2aij = d2a[i][j];
   double d3aij = d3a[i][j];
@@ -359,7 +313,7 @@ double PairZBL::e_zbl(double r, int i, int j) {
   double result = zzeij*sum*rinv;
 
   return result;
-};
+}
 
 
 /* ----------------------------------------------------------------------
@@ -389,11 +343,11 @@ double PairZBL::dzbldr(double r, int i, int j) {
   sum_p -= c2*d2aij*e2;
   sum_p -= c3*d3aij*e3;
   sum_p -= c4*d4aij*e4;
-  
+
   double result = zzeij*(sum_p - sum*rinv)*rinv;
-  
+
   return result;
-};
+}
 
 /* ----------------------------------------------------------------------
    compute ZBL second derivative
@@ -427,10 +381,74 @@ double PairZBL::d2zbldr2(double r, int i, int j) {
   sum_pp += c2*e2*d2aij*d2aij;
   sum_pp += c3*e3*d3aij*d3aij;
   sum_pp += c4*e4*d4aij*d4aij;
-  
-  double result = zzeij*(sum_pp + 2.0*sum_p*rinv + 
+
+  double result = zzeij*(sum_pp + 2.0*sum_p*rinv +
 			 2.0*sum*rinv*rinv)*rinv;
-  
+
   return result;
-};
+}
+
+/* ----------------------------------------------------------------------
+   calculate the i,j entries in the various coeff arrays
+------------------------------------------------------------------------- */
+
+void PairZBL::set_coeff(int i, int j, double zi, double zj)
+{
+  double ainv = (pow(zi,pzbl) + pow(zj,pzbl))/(a0*force->angstrom);
+  d1a[i][j] = d1*ainv;
+  d2a[i][j] = d2*ainv;
+  d3a[i][j] = d3*ainv;
+  d4a[i][j] = d4*ainv;
+  zze[i][j] = zi*zj*force->qqr2e*force->qelectron*force->qelectron;
+
+  d1a[j][i] = d1a[i][j];
+  d2a[j][i] = d2a[i][j];
+  d3a[j][i] = d3a[i][j];
+  d4a[j][i] = d4a[i][j];
+  zze[j][i] = zze[i][j];
+
+  // e =  t^3 (sw3 + sw4*t) + sw5
+  //   = A/3*t^3 + B/4*t^4 + C
+  // sw3 = A/3
+  // sw4 = B/4
+  // sw5 = C
+
+  // dedr = t^2 (sw1 + sw2*t)
+  //      = A*t^2 + B*t^3
+  // sw1 = A
+  // sw2 = B
+
+  // de2dr2 = 2*A*t + 3*B*t^2
+
+  // Require that at t = tc:
+  // e = -Fc
+  // dedr = -Fc'
+  // d2edr2 = -Fc''
+
+  // Hence:
+  // A = (-3Fc' + tc*Fc'')/tc^2
+  // B = ( 2Fc' - tc*Fc'')/tc^3
+  // C = -Fc + tc/2*Fc' - tc^2/12*Fc''
+
+  double tc = cut_global - cut_inner;
+  double fc = e_zbl(cut_global, i, j);
+  double fcp = dzbldr(cut_global, i, j);
+  double fcpp = d2zbldr2(cut_global, i, j);
+
+  double swa = (-3.0*fcp + tc*fcpp)/(tc*tc);
+  double swb = ( 2.0*fcp - tc*fcpp)/(tc*tc*tc);
+  double swc = -fc + (tc/2.0)*fcp - (tc*tc/12.0)*fcpp;
+
+  sw1[i][j] = swa;
+  sw2[i][j] = swb;
+  sw3[i][j] = swa/3.0;
+  sw4[i][j] = swb/4.0;
+  sw5[i][j] = swc;
+
+  sw1[j][i] = sw1[i][j];
+  sw2[j][i] = sw2[i][j];
+  sw3[j][i] = sw3[i][j];
+  sw4[j][i] = sw4[i][j];
+  sw5[j][i] = sw5[i][j];
+}
 

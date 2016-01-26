@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -15,9 +15,9 @@
    Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_lb_viscous.h"
 #include "atom.h"
 #include "update.h"
@@ -38,7 +38,7 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all(FLERR,"Illegal fix lb/viscous command");
 
   int groupbit_lb_fluid = 0;
- 
+
   for(int ifix=0; ifix<modify->nfix; ifix++)
     if(strcmp(modify->fix[ifix]->style,"lb/fluid")==0){
       fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
@@ -52,9 +52,9 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
   int nlocal = atom->nlocal;
   for(int j=0; j<nlocal; j++){
     if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
-      error->one(FLERR,"to apply a fluid force onto an atom, the lb/fluid fix must be used for that atom.");  
+      error->one(FLERR,"to apply a fluid force onto an atom, the lb/fluid fix must be used for that atom.");
   }
- 
+
 
 }
 

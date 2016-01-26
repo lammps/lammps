@@ -15,11 +15,11 @@
    Contributing authors: Mike Brown (ORNL), Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "pppm_gpu.h"
 #include "atom.h"
 #include "comm.h"
@@ -153,7 +153,7 @@ void PPPMGPU::init()
 
   bool respa_value=false;
   if (strstr(update->integrate_style,"respa"))
-    respa_value=true;  
+    respa_value=true;
 
   if (order>8)
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
@@ -202,7 +202,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global = 
+  else evflag = evflag_atom = eflag_global = vflag_global =
         eflag_atom = vflag_atom = 0;
 
   // If need per-atom energies/virials, allocate per-atom arrays here
@@ -272,7 +272,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    if (differentiation_flag == 1 && vflag_atom) 
+    if (differentiation_flag == 1 && vflag_atom)
       cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
     else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
@@ -636,7 +636,7 @@ void PPPMGPU::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
     FFT_SCALAR *dest = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -15,10 +15,10 @@
    Contributing author: Ahmed Ismail (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_born_coul_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -381,7 +381,7 @@ void PairBornCoulLong::init_style()
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this,instance_me);
-  
+
   // setup force tables
 
   if (ncoultablebits) init_tables(cut_coul,NULL);

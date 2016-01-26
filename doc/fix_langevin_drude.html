@@ -1,0 +1,435 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix langevin/drude command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix langevin/drude command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-langevin-drude-command">
+<span id="index-0"></span><h1>fix langevin/drude command<a class="headerlink" href="#fix-langevin-drude-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>langevin/drude = style name of this fix command</li>
+<li>Tcom = desired temperature of the centers of mass (temperature units)</li>
+<li>damp_com = damping parameter for the thermostat on centers of mass (time units)</li>
+<li>seed_com = random number seed to use for white noise of the thermostat on centers of mass (positive integer)</li>
+<li>Tdrude = desired temperature of the Drude oscillators (temperature units)</li>
+<li>damp_drude = damping parameter for the thermostat on Drude oscillators (time units)</li>
+<li>seed_drude = random number seed to use for white noise of the thermostat on Drude oscillators (positive integer)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>zero</em></li>
+</ul>
+<pre class="literal-block">
+<em>zero</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = do not set total random force on centers of mass to zero
+  <em>yes</em> = set total random force on centers of mass to zero
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
+fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Apply two Langevin thermostats as described in <a class="reference internal" href="tutorial_drude.html#jiang"><span>(Jiang)</span></a> for
+thermalizing the reduced degrees of freedom of Drude oscillators.
+This link describes how to use the <a class="reference internal" href="tutorial_drude.html"><em>thermalized Drude oscillator model</em></a> in LAMMPS and polarizable models in LAMMPS
+are discussed in <a class="reference internal" href="Section_howto.html#howto-25"><span>this Section</span></a>.</p>
+<p>Drude oscillators are a way to simulate polarizables atoms, by
+splitting them into a core and a Drude particle bound by a harmonic
+bond.  The thermalization works by transforming the particles degrees
+of freedom by these equations.  In these equations upper case denotes
+atomic or center of mass values and lower case denotes Drude particle
+or dipole values. Primes denote the transformed (reduced) values,
+while bare letters denote the original values.</p>
+<p>Velocities:</p>
+<div class="math">
+\[\begin{equation} V' = \frac {M\, V + m\, v} {M'} \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} v' = v - V \end{equation}\]</div>
+<p>Masses:</p>
+<div class="math">
+\[\begin{equation} M' = M + m \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} m' = \frac {M\, m } {M'} \end{equation}\]</div>
+<p>The Langevin forces are computed as</p>
+<div class="math">
+\[\begin{equation} F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' \end{equation}\]</div>
+<p><span class="math">\(F_r'\)</span> is a random force proportional to
+<span class="math">\(\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'}                   {\mathrm dt\, \mathtt{damp\_com} }          }\)</span>. <a href="#id1"><span class="problematic" id="id2">:b:math:`f_r&#8217;`</span></a> is a random force proportional to
+<span class="math">\(\sqrt { \frac {2\, k_B \mathtt{Tdrude}\, m'}                   {\mathrm dt\, \mathtt{damp\_drude} }          }\)</span>.
+Then the real forces acting on the particles are computed from the inverse
+transform:</p>
+<div class="math">
+\[\begin{equation} F = \frac M {M'}\, F' - f' \end{equation}\]</div>
+<div class="math">
+\[\begin{equation} f = \frac m {M'}\, F' + f' \end{equation}\]</div>
+<p>This fix also thermostates non-polarizable atoms in the group at
+temperature <em>Tcom</em>, as if they had a massless Drude partner.  The
+Drude particles themselves need not be in the group. The center of
+mass and the dipole are thermostated iff the core atom is in the
+group.</p>
+<p>Note that the thermostat effect of this fix is applied to only the
+translational degrees of freedom of the particles, which is an
+important consideration if finite-size particles, which have
+rotational degrees of freedom, are being thermostated. The
+translational degrees of freedom can also have a bias velocity removed
+from them before thermostating takes place; see the description below.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Like the <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> command, this fix does
+NOT perform time integration. It only modifies forces to effect
+thermostating. Thus you must use a separate time integration fix, like
+<a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> to actually update the
+velocities and positions of atoms using the modified forces.
+Likewise, this fix should not normally be used on atoms that also have
+their temperature controlled by another fix - e.g. by <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a> commands.</p>
+</div>
+<p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostating.</p>
+<hr class="docutils" />
+<p>This fix requires each atom know whether it is a Drude particle or
+not.  You must therefore use the <a class="reference internal" href="fix_drude.html"><em>fix drude</em></a> command to
+specify the Drude status of each atom type.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">only the Drude core atoms need to be in the group specified for
+this fix. A Drude electron will be transformed together with its cores
+even if it is not itself in the group.  It is safe to include Drude
+electrons or non-polarizable atoms in the group. The non-polarizable
+atoms will simply be thermostatted as if they had a massless Drude
+partner (electron).</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Ghost atoms need to know their velocity for this fix to act
+correctly.  You must use the <a class="reference internal" href="comm_modify.html"><em>comm_modify</em></a> command to
+enable this, e.g.</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>comm_modify vel yes
+</pre></div>
+</div>
+<hr class="docutils" />
+<p><em>Tcom</em> is the target temperature of the centers of mass, which would
+be used to thermostate the non-polarizable atoms.  <em>Tdrude</em> is the
+(normally low) target temperature of the core-Drude particle pairs
+(dipoles).  <em>Tcom</em> and <em>Tdrude</em> can be specified as an equal-style
+<a class="reference internal" href="variable.html"><em>variable</em></a>.  If the value is a variable, it should be
+specified as v_name, where name is the variable name. In this case,
+the variable will be evaluated each timestep, and its value used to
+determine the target temperature.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.</p>
+<p>Like other fixes that perform thermostating, this fix can be used with
+<a class="reference internal" href="compute.html"><em>compute commands</em></a> that remove a &#8220;bias&#8221; from the atom
+velocities.  E.g. removing the center-of-mass velocity from a group of
+atoms.  This is not done by default, but only if the
+<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> command is used to assign a temperature
+compute to this fix that includes such a bias term.  See the doc pages
+for individual <a class="reference internal" href="compute.html"><em>compute commands</em></a> to determine which ones
+include a bias.  In this case, the thermostat works in the following
+manner: bias is removed from each atom, thermostating is performed on
+the remaining thermal degrees of freedom, and the bias is added back
+in.  NOTE: this feature has not been tested.</p>
+<p>Note: The temperature thermostating the core-Drude particle pairs
+should be chosen low enough, so as to mimic as closely as possible the
+self-consistent minimization. It must however be high enough, so that
+the dipoles can follow the local electric field exerted by the
+neighbouring atoms. The optimal value probably depends on the
+temperature of the centers of mass and on the mass of the Drude
+particles.</p>
+<p><em>damp_com</em> is the characteristic time for reaching thermal equilibrium
+of the centers of mass.  For example, a value of 100.0 means to relax
+the temperature of the centers of mass in a timespan of (roughly) 100
+time units (tau or fmsec or psec - see the <a class="reference internal" href="units.html"><em>units</em></a>
+command).  <em>damp_drude</em> is the characteristic time for reaching
+thermal equilibrium of the dipoles. It is typically a few timesteps.</p>
+<p>The number <em>seed_com</em> and <em>seed_drude</em> are positive integers. They set
+the seeds of the Marsaglia random number generators used for
+generating the random forces on centers of mass and on the
+dipoles. Each processor uses the input seed to generate its own unique
+seed and its own stream of random numbers.  Thus the dynamics of the
+system will not be identical on two runs on different numbers of
+processors.</p>
+<p>The keyword <em>zero</em> can be used to eliminate drift due to the
+thermostat on centers of mass. Because the random forces on different
+centers of mass are independent, they do not sum exactly to zero.  As
+a result, this fix applies a small random force to the entire system,
+and the momentum of the total center of mass of the system undergoes a
+slow random walk.  If the keyword <em>zero</em> is set to <em>yes</em>, the total
+random force on the centers of mass is set exactly to zero by
+subtracting off an equal part of it from each center of mass in the
+group. As a result, the total center of mass of a system with zero
+initial momentum will not drift over time.</p>
+<p>The actual temperatures of cores and Drude particles, in
+center-of-mass and relative coordinates, respectively, can be
+calculated using the <a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a>
+command.</p>
+<hr class="docutils" />
+<p>Usage example for rigid bodies in the NPT ensemble:</p>
+<div class="highlight-python"><div class="highlight"><pre>comm_modify vel yes
+fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
+fix NVE DRUDES nve
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE[1] c_TDRUDE[2]
+</pre></div>
+</div>
+<p>Comments:</p>
+<ul class="simple">
+<li>Drude particles should not be in the rigid group, otherwise the Drude
+oscillators will be frozen and the system will lose its
+polarizability.</li>
+<li><em>zero yes</em> avoids a drift of the center of mass of
+the system, but is a bit slower.</li>
+<li>Use two different random seeds to avoid unphysical correlations.</li>
+<li>Temperature is controlled by the fix <em>langevin/drude</em>, so the
+time-integration fixes do not thermostate.  Don&#8217;t forget to
+time-integrate both cores and Drude particles.</li>
+<li>Pressure is time-integrated only once by using <em>nve</em> for Drude
+particles and <em>nph</em> for atoms/cores (or vice versa). Do not use <em>nph</em>
+for both.</li>
+<li>The temperatures of cores and Drude particles are calculated by
+<a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a></li>
+<li>Contrary to the alternative thermostating using Nose-Hoover thermostat
+fix <em>npt</em> and <a class="reference internal" href="fix_drude_transform.html"><em>fix drude/transform</em></a>, the
+<em>fix_modify</em> command is not required here, because the fix <em>nph</em>
+computes the global pressure even if its group is <em>ATOMS</em>. This is
+what we want. If we thermostated <em>ATOMS</em> using <em>npt</em>, the pressure
+should be the global one, but the temperature should be only that of
+the cores. That&#8217;s why the command <em>fix_modify</em> should be called in
+that case.</li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do &#8220;exact&#8221;
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>temp</em> option is supported by this
+fix.  You can use it to assign a temperature <a class="reference internal" href="compute.html"><em>compute</em></a>
+you have defined to this fix which will be used in its thermostating
+procedure, as described above. For consistency, the group used by the
+compute should include the group of this fix and the Drude particles.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a>,
+<a class="reference internal" href="fix_drude.html"><em>fix drude</em></a>,
+<a class="reference internal" href="fix_drude_transform.html"><em>fix drude/transform</em></a>,
+<a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a>,
+<a class="reference internal" href="pair_thole.html"><em>pair_style thole</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are zero = no.</p>
+<hr class="docutils" />
+<p id="jiang"><strong>(Jiang)</strong> Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
+Phys Chem Lett, 2, 87-92 (2011).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

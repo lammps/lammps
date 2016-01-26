@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,24 +35,27 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
 
-
+#ifndef KOKKOS_RANDOM_HPP
+#define KOKKOS_RANDOM_HPP
 
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Complex.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
 
-#ifndef KOKKOS_RANDOM_HPP
-#define KOKKOS_RANDOM_HPP
-
-// These generators are based on Vigna, Sebastiano (2014). "An experimental exploration of Marsaglia's xorshift generators, scrambled"
-// See: http://arxiv.org/abs/1402.6246
+/// \file Kokkos_Random.hpp
+/// \brief Pseudorandom number generators
+///
+/// These generators are based on Vigna, Sebastiano (2014). "An
+/// experimental exploration of Marsaglia's xorshift generators,
+/// scrambled."  See: http://arxiv.org/abs/1402.6246
 
 namespace Kokkos {
 
@@ -474,6 +475,58 @@ namespace Kokkos {
 
   };
 
+  template<class Generator>
+  struct rand<Generator, ::Kokkos::complex<float> > {
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<float> max () {
+      return ::Kokkos::complex<float> (1.0, 1.0);
+    }
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<float> draw (Generator& gen) {
+      const float re = gen.frand ();
+      const float im = gen.frand ();
+      return ::Kokkos::complex<float> (re, im);
+    }
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<float> draw (Generator& gen, const ::Kokkos::complex<float>& range) {
+      const float re = gen.frand (real (range));
+      const float im = gen.frand (imag (range));
+      return ::Kokkos::complex<float> (re, im);
+    }
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<float> draw (Generator& gen, const ::Kokkos::complex<float>& start, const ::Kokkos::complex<float>& end) {
+      const float re = gen.frand (real (start), real (end));
+      const float im = gen.frand (imag (start), imag (end));
+      return ::Kokkos::complex<float> (re, im);
+    }
+  };
+
+  template<class Generator>
+  struct rand<Generator, ::Kokkos::complex<double> > {
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<double> max () {
+      return ::Kokkos::complex<double> (1.0, 1.0);
+    }
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<double> draw (Generator& gen) {
+      const double re = gen.drand ();
+      const double im = gen.drand ();
+      return ::Kokkos::complex<double> (re, im);
+    }
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<double> draw (Generator& gen, const ::Kokkos::complex<double>& range) {
+      const double re = gen.drand (real (range));
+      const double im = gen.drand (imag (range));
+      return ::Kokkos::complex<double> (re, im);
+    }
+    KOKKOS_INLINE_FUNCTION
+    static ::Kokkos::complex<double> draw (Generator& gen, const ::Kokkos::complex<double>& start, const ::Kokkos::complex<double>& end) {
+      const double re = gen.drand (real (start), real (end));
+      const double im = gen.drand (imag (start), imag (end));
+      return ::Kokkos::complex<double> (re, im);
+    }
+  };
+
   template<class DeviceType>
   class Random_XorShift64_Pool;
 
@@ -647,7 +700,7 @@ namespace Kokkos {
     Random_XorShift64_Pool() {
       num_states_ = 0;
     }
-    Random_XorShift64_Pool(unsigned int seed) {
+    Random_XorShift64_Pool(uint64_t seed) {
       num_states_ = 0;
       init(seed,DeviceType::max_hardware_threads());
     }
@@ -665,7 +718,7 @@ namespace Kokkos {
       return *this;
     }
 
-    void init(unsigned int seed, int num_states) {
+    void init(uint64_t seed, int num_states) {
       num_states_ = num_states;
 
       locks_ = lock_type("Kokkos::Random_XorShift64::locks",num_states_);
@@ -891,7 +944,7 @@ namespace Kokkos {
     }
 
     inline
-    Random_XorShift1024_Pool(unsigned int seed){
+    Random_XorShift1024_Pool(uint64_t seed){
       num_states_ = 0;
       init(seed,DeviceType::max_hardware_threads());
     }
@@ -912,7 +965,7 @@ namespace Kokkos {
     }
 
     inline
-    void init(unsigned int seed, int num_states) {
+    void init(uint64_t seed, int num_states) {
       num_states_ = num_states;
 
       locks_ = int_view_type("Kokkos::Random_XorShift1024::locks",num_states_);
@@ -1121,7 +1174,7 @@ namespace Kokkos {
 
 template<>
 inline
-Random_XorShift64_Pool<Kokkos::Cuda>::Random_XorShift64_Pool(unsigned int seed) {
+Random_XorShift64_Pool<Kokkos::Cuda>::Random_XorShift64_Pool(uint64_t seed) {
   num_states_ = 0;
   init(seed,4*32768);
 }
@@ -1131,8 +1184,8 @@ KOKKOS_INLINE_FUNCTION
 Random_XorShift64<Kokkos::Cuda> Random_XorShift64_Pool<Kokkos::Cuda>::get_state() const {
 #ifdef __CUDA_ARCH__
   const int i_offset = (threadIdx.x*blockDim.y + threadIdx.y)*blockDim.z+threadIdx.z;
-  int i = ((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
-           blockDim.x*blockDim.y*blockDim.z + i_offset;
+  int i = (((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
+           blockDim.x*blockDim.y*blockDim.z + i_offset)%num_states_;
   while(Kokkos::atomic_compare_exchange(&locks_(i),0,1)) {
       i+=blockDim.x*blockDim.y*blockDim.z;
       if(i>=num_states_) {i = i_offset;}
@@ -1157,7 +1210,7 @@ void Random_XorShift64_Pool<Kokkos::Cuda>::free_state(const Random_XorShift64<Ko
 
 template<>
 inline
-Random_XorShift1024_Pool<Kokkos::Cuda>::Random_XorShift1024_Pool(unsigned int seed) {
+Random_XorShift1024_Pool<Kokkos::Cuda>::Random_XorShift1024_Pool(uint64_t seed) {
   num_states_ = 0;
   init(seed,4*32768);
 }
@@ -1167,8 +1220,8 @@ KOKKOS_INLINE_FUNCTION
 Random_XorShift1024<Kokkos::Cuda> Random_XorShift1024_Pool<Kokkos::Cuda>::get_state() const {
 #ifdef __CUDA_ARCH__
   const int i_offset = (threadIdx.x*blockDim.y + threadIdx.y)*blockDim.z+threadIdx.z;
-  int i = ((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
-           blockDim.x*blockDim.y*blockDim.z + i_offset;
+  int i = (((blockIdx.x*gridDim.y+blockIdx.y)*gridDim.z + blockIdx.z) *
+           blockDim.x*blockDim.y*blockDim.z + i_offset)%num_states_;
   while(Kokkos::atomic_compare_exchange(&locks_(i),0,1)) {
       i+=blockDim.x*blockDim.y*blockDim.z;
       if(i>=num_states_) {i = i_offset;}
@@ -1203,7 +1256,7 @@ struct fill_random_functor_begin_end;
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,1>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1228,7 +1281,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,1>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,2>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1256,7 +1309,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,2>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,3>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1284,7 +1337,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,3>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,4>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1313,7 +1366,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,4>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,5>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1343,7 +1396,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,5>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,6>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1374,7 +1427,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,6>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,7>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1406,7 +1459,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,7>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_range<ViewType,RandomPool,loops,8>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type range;
@@ -1438,7 +1491,7 @@ struct fill_random_functor_range<ViewType,RandomPool,loops,8>{
 };
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,1>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;
@@ -1463,7 +1516,7 @@ struct fill_random_functor_begin_end<ViewType,RandomPool,loops,1>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,2>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;
@@ -1491,7 +1544,7 @@ struct fill_random_functor_begin_end<ViewType,RandomPool,loops,2>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,3>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;
@@ -1519,7 +1572,7 @@ struct fill_random_functor_begin_end<ViewType,RandomPool,loops,3>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,4>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;
@@ -1548,7 +1601,7 @@ struct fill_random_functor_begin_end<ViewType,RandomPool,loops,4>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,5>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;
@@ -1578,7 +1631,7 @@ struct fill_random_functor_begin_end<ViewType,RandomPool,loops,5>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,6>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;
@@ -1610,7 +1663,7 @@ struct fill_random_functor_begin_end<ViewType,RandomPool,loops,6>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,7>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;
@@ -1642,7 +1695,7 @@ struct fill_random_functor_begin_end<ViewType,RandomPool,loops,7>{
 
 template<class ViewType, class RandomPool, int loops>
 struct fill_random_functor_begin_end<ViewType,RandomPool,loops,8>{
-  typedef typename ViewType::device_type device_type;
+  typedef typename ViewType::execution_space execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin,end;

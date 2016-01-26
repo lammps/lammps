@@ -1,0 +1,28 @@
+# dimer molecule
+
+2 atoms
+1 bonds
+
+Coords
+
+1 0 0 0
+2 1 0 0
+
+Types
+
+1 2
+2 3
+
+Bonds
+
+1 1 1 2
+
+Special Bond Counts
+
+1 1 0 0
+2 1 0 0
+
+Special Bonds
+
+1 2
+2 1

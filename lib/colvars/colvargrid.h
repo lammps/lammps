@@ -836,6 +836,32 @@ public:
 }
 
 
+  /// \brief Read grid entry in restart file
+  std::istream & read_restart(std::istream &is)
+  {
+    size_t const start_pos = is.tellg();
+    std::string key, conf;
+    if ((is >> key) && (key == std::string("grid_parameters"))) {
+      is.seekg(start_pos, std::ios::beg);
+      is >> colvarparse::read_block("grid_parameters", conf);
+      parse_params(conf);
+    } else {
+      cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
+      is.seekg(start_pos, std::ios::beg);
+    }
+    read_raw(is);
+    return is;
+  }
+
+  /// \brief Write grid entry in restart file
+  std::ostream & write_restart(std::ostream &os)
+  {
+    write_params(os);
+    write_raw(os);
+    return os;
+  }
+
+
 /// \brief Write the grid data without labels, as they are
 /// represented in memory
 /// \param buf_size Number of values per line
@@ -1025,6 +1051,49 @@ public:
     has_data = true;
     return is;
   }
+
+  /// \brief Write the grid data without labels, as they are
+  /// represented in memory
+  /// \param buf_size Number of values per line
+  std::ostream & write_opendx(std::ostream &os)
+  {
+    // write the header
+    os << "object 1 class gridpositions counts";
+    int icv;
+    for (icv = 0; icv < number_of_colvars(); icv++) {
+      os << " " << number_of_points(icv);
+    }
+    os << "\n";
+
+    os << "origin";
+    for (icv = 0; icv < number_of_colvars(); icv++) {
+      os << " " << (lower_boundaries[icv].real_value + 0.5 * widths[icv]);
+    }
+    os << "\n";
+
+    for (icv = 0; icv < number_of_colvars(); icv++) {
+      os << "delta";
+      for (size_t icv2 = 0; icv2 < number_of_colvars(); icv2++) {
+        if (icv == icv2) os << " " << widths[icv];
+        else os << " " << 0.0;
+      }
+      os << "\n";
+    }
+
+    os << "object 2 class gridconnections counts";
+    for (icv = 0; icv < number_of_colvars(); icv++) {
+      os << " " << number_of_points(icv);
+    }
+    os << "\n";
+
+    os << "object 3 class array type double rank 0 items "
+       << number_of_points() << " data follows\n";
+
+    write_raw(os);
+
+    os << "object \"collective variables scalar field\" class field\n";
+    return os;
+  }
 };
 
 
@@ -1062,12 +1131,6 @@ public:
   {
     return new_data[address(ix) + imult];
   }
-
-  /// \brief Read the grid from a restart
-  std::istream & read_restart(std::istream &is);
-
-  /// \brief Write the grid to a restart
-  std::ostream & write_restart(std::ostream &os);
 
   /// \brief Get the value from a formatted output and transform it
   /// into the internal representation (it may have been rescaled or
@@ -1114,12 +1177,12 @@ public:
 
   /// Constructor from a vector of colvars
   colvar_grid_scalar(std::vector<colvar *> &colvars,
-                      bool margin = 0);
+                     bool margin = 0);
 
   /// Accumulate the value
   inline void acc_value(std::vector<int> const &ix,
-                         cvm::real const &new_value,
-                         size_t const &imult = 0)
+                        cvm::real const &new_value,
+                        size_t const &imult = 0)
   {
     // only legal value of imult here is 0
     data[address(ix)] += new_value;
@@ -1154,32 +1217,33 @@ public:
   /// \brief Return the value of the function at ix divided by its
   /// number of samples (if the count grid is defined)
   virtual cvm::real value_output(std::vector<int> const &ix,
-                                  size_t const &imult = 0)
+                                 size_t const &imult = 0)
   {
     if (imult > 0) {
       cvm::error("Error: trying to access a component "
-                  "larger than 1 in a scalar data grid.\n");
+                 "larger than 1 in a scalar data grid.\n");
       return 0.;
     }
-    if (samples)
+    if (samples) {
       return (samples->value(ix) > 0) ?
         (data[address(ix)] / cvm::real(samples->value(ix))) :
         0.0;
-    else
+    } else {
       return data[address(ix)];
+    }
   }
 
   /// \brief Get the value from a formatted output and transform it
   /// into the internal representation (it may have been rescaled or
   /// manipulated)
   virtual void value_input(std::vector<int> const &ix,
-                            cvm::real const &new_value,
-                            size_t const &imult = 0,
-                            bool add = false)
+                           cvm::real const &new_value,
+                           size_t const &imult = 0,
+                           bool add = false)
   {
     if (imult > 0) {
       cvm::error("Error: trying to access a component "
-                  "larger than 1 in a scalar data grid.\n");
+                 "larger than 1 in a scalar data grid.\n");
       return;
     }
     if (add) {
@@ -1196,31 +1260,18 @@ public:
     has_data = true;
   }
 
-  /// \brief Read the grid from a restart
-  std::istream & read_restart(std::istream &is);
-
-  /// \brief Write the grid to a restart
-  std::ostream & write_restart(std::ostream &os);
-
   /// \brief Return the highest value
-  inline cvm::real maximum_value()
-  {
-    cvm::real max = data[0];
-    for (size_t i = 0; i < nt; i++) {
-      if (data[i] > max) max = data[i];
-    }
-    return max;
-  }
+  cvm::real maximum_value() const;
 
   /// \brief Return the lowest value
-  inline cvm::real minimum_value()
-  {
-    cvm::real min = data[0];
-    for (size_t i = 0; i < nt; i++) {
-      if (data[i] < min) min = data[i];
-    }
-    return min;
-  }
+  cvm::real minimum_value() const;
+
+  /// \brief Calculates the integral of the map (uses widths if they are defined)
+  cvm::real integral() const;
+
+  /// \brief Assuming that the map is a normalized probability density,
+  ///        calculates the entropy (uses widths if they are defined)
+  cvm::real entropy() const;
 
 private:
   // gradient
@@ -1305,12 +1356,6 @@ public:
     has_data = true;
   }
 
-
-  /// \brief Read the grid from a restart
-  std::istream & read_restart(std::istream &is);
-
-  /// \brief Write the grid to a restart
-  std::ostream & write_restart(std::ostream &os);
 
   /// Compute and return average value for a 1D gradient grid
   inline cvm::real average()

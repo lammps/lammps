@@ -137,7 +137,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 "pair_coeff"_pair_coeff.html, "fix nve/noforce"_fix_nve_noforce.html,
 "neigh_modify"_neigh_modify.html, "neighbor"_neighbor.html,
-"communicate"_communicate.html
+"comm_modify"_comm_modify.html
 
 [Default:] none
 

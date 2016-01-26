@@ -16,7 +16,7 @@ OBJ = 		$(SRC:%.c=%_32-bit.o)
 # System-specific settings
 
 CC =	        gcc -m32
-CCFLAGS =	-O2 -Wall -march=i686 -mtune=generic -mfpmath=387 -mpc64
+CCFLAGS =	-O2 -Wall -march=i686 -mtune=generic -mfpmath=387 -mpc64 -I.
 ARCHIVE =	ar
 ARCHFLAG =	rs
 

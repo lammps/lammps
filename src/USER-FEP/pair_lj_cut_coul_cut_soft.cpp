@@ -15,10 +15,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_cut_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -121,11 +121,11 @@ void PairLJCutCoulCutSoft::compute(int eflag, int vflag)
           denc = sqrt(lj4[itype][jtype] + rsq);
           forcecoul = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
         } else forcecoul = 0.0;
-        
+
         if (rsq < cut_ljsq[itype][jtype]) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
         } else forcelj = 0.0;
 
@@ -145,7 +145,7 @@ void PairLJCutCoulCutSoft::compute(int eflag, int vflag)
             ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
           else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
@@ -225,7 +225,7 @@ void PairLJCutCoulCutSoft::settings(int narg, char **arg)
 
 void PairLJCutCoulCutSoft::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) 
+  if (narg < 5 || narg > 7)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -481,7 +481,7 @@ double PairLJCutCoulCutSoft::single(int i, int j, int itype, int jtype,
   if (rsq < cut_ljsq[itype][jtype]) {
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
-    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
       (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
   } else forcelj = 0.0;
   fforce = factor_coul*forcecoul + factor_lj*forcelj;
@@ -492,7 +492,7 @@ double PairLJCutCoulCutSoft::single(int i, int j, int itype, int jtype,
     eng += factor_coul*phicoul;
   }
   if (rsq < cut_ljsq[itype][jtype]) {
-    philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+    philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
       (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
     eng += factor_lj*philj;
   }

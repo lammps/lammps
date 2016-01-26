@@ -79,7 +79,7 @@ do \
 done
 
 # OPLS-AA tests 
-for m in ethane
+for m in ethane decane
 do \
     before=$errors
     vglog=${m}-oplsaa.chk
@@ -154,7 +154,7 @@ do \
 done
 
 # Class2 tests with pcff with ignore flag set
-for m in solv-poly
+for m in pmma-poly solv-poly
 do \
     before=$errors
     vglog=${m}-class2c.chk
@@ -177,6 +177,9 @@ do \
     [ $leak = 0 ] && [ $viol = 0 ] && rm ${vglog}
     counter=$(expr $counter + 6)
 done
+
+echo "Total error count: $errors / $counter"
+echo
 
 echo "Total error count: $errors / $counter"
 echo

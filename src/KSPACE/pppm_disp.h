@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -21,7 +21,7 @@ KSpaceStyle(pppm/disp,PPPMDisp)
 #define LMP_PPPM_DISP_H
 
 #include "lmptype.h"
-#include "mpi.h"
+#include <mpi.h>
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -79,7 +79,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
 
   double delxinv,delyinv,delzinv,delvolinv;
   double delxinv_6,delyinv_6,delzinv_6,delvolinv_6;
-    
+
   double shift,shiftone;
   int nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in;
   int nxlo_out,nylo_out,nzlo_out,nxhi_out,nyhi_out,nzhi_out;
@@ -171,9 +171,9 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double *gf_b;
   double *gf_b_6;
 
-  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3, *sf_precoeff4, 
+  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3, *sf_precoeff4,
     *sf_precoeff5, *sf_precoeff6;
-  double *sf_precoeff1_6, *sf_precoeff2_6, *sf_precoeff3_6, 
+  double *sf_precoeff1_6, *sf_precoeff2_6, *sf_precoeff3_6,
     *sf_precoeff4_6, *sf_precoeff5_6, *sf_precoeff6_6;
   FFT_SCALAR **rho1d,**rho_coeff;
   FFT_SCALAR **drho1d, **drho_coeff;
@@ -248,9 +248,9 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double diffpr(double, double, double, double, double **);
   void compute_gf_denom(double*, int);
   double gf_denom(double, double, double, double*, int);
-  
 
-  void compute_sf_precoeff(int, int, int, int, 
+
+  void compute_sf_precoeff(int, int, int, int,
                            int, int, int,
                            int, int, int,
                            double*, double*, double*,
@@ -281,7 +281,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void brick2fft_none();
 
   virtual void poisson_ik(FFT_SCALAR *, FFT_SCALAR *,
-		          FFT_SCALAR *, LAMMPS_NS::FFT3d *,LAMMPS_NS::FFT3d *, 
+		          FFT_SCALAR *, LAMMPS_NS::FFT3d *,LAMMPS_NS::FFT3d *,
                           int, int, int, int, int, int, int,
 		          int, int, int, int, int, int,
                           int, int, int, double&, double *,
@@ -292,7 +292,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                           FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
 
   virtual void poisson_ad(FFT_SCALAR*, FFT_SCALAR*,
-                          FFT_SCALAR*, LAMMPS_NS::FFT3d*,LAMMPS_NS::FFT3d*, 
+                          FFT_SCALAR*, LAMMPS_NS::FFT3d*,LAMMPS_NS::FFT3d*,
                           int, int, int, int,
                           int, int, int, int, int, int,
                           int, int, int, int, int, int,
@@ -301,7 +301,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                           FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                           FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);
 
-  virtual void poisson_peratom(FFT_SCALAR*, FFT_SCALAR*, LAMMPS_NS::FFT3d*, 
+  virtual void poisson_peratom(FFT_SCALAR*, FFT_SCALAR*, LAMMPS_NS::FFT3d*,
                                double**, double**, int,
                                int, int, int, int, int, int,
                                FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
@@ -325,7 +325,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                                   FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);
 
   virtual void poisson_none_ad(int, int, FFT_SCALAR *, FFT_SCALAR *,
-                               FFT_SCALAR ***, FFT_SCALAR ***, 
+                               FFT_SCALAR ***, FFT_SCALAR ***,
                                FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
 			       FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
   virtual void poisson_none_ik(int, int, FFT_SCALAR *, FFT_SCALAR *,
@@ -352,9 +352,9 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void fieldforce_none_ad();
   virtual void fieldforce_none_peratom();
   void procs2grid2d(int,int,int,int *, int*);
-  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
+  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
 		     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
-  void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
+  void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
 		      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);
   void slabcorr(int);

@@ -41,18 +41,20 @@ endif
 
 # Package variables
 
-PACKAGE = asphere body class2 colloid coreshell dipole fld gpu granular kim \
-	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
-	  python qeq reax replica rigid shock snap srd voronoi xtc
+PACKAGE = asphere body class2 colloid compress coreshell dipole fld gpu \
+          granular kim kokkos kspace manybody mc meam misc molecule mpiio \
+          opt peri poems python qeq replica rigid shock snap srd \
+          voronoi xtc
 
-PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
-	   user-cuda user-eff user-fep user-intel user-lb user-misc \
-	   user-molfile user-omp user-phonon user-qmmm user-quip \
-	   user-reaxc user-sph
+PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars user-cuda \
+	   user-diffraction user-drude user-eff user-fep user-h5md \
+	   user-intel user-lb user-mgpt \
+	   user-misc user-molfile user-omp user-phonon user-qmmm user-qtb \
+	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally
 
-PACKLIB = gpu kim kokkos meam poems python reax voronoi \
-	  user-atc user-awpmd user-colvars user-cuda user-molfile \
-	  user-qmmm user-quip 
+PACKLIB = compress gpu kim kokkos meam mpiio poems python voronoi \
+	  user-atc user-awpmd user-colvars user-cuda user-h5md user-intel \
+          user-lb user-molfile user-qmmm user-quip user-smd
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -180,6 +182,13 @@ clean-all:
 clean-%:
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
 
+test-clean:
+	@cd ../test/; $(MAKE) $(MFLAGS) clean; cd ..
+
+test-%:
+	$(MAKE) $(MFLAGS) $(@:test-%=%)
+	@cd ../test/; $(MAKE) $(MFLAGS) test MACH=$(@:test-%=%) MPICMD="$(MPICMD)" LMPFLAGS="$(LMPFLAGS)" TAG=$(TAG) || exit 1 ; cd ..
+
 # Create Makefile.list
 
 makelist:
@@ -201,7 +210,8 @@ install-python:
 tar:
 	@cd STUBS; $(MAKE) clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.sh src/MAKE src/*.cpp src/*.h src/STUBS \
+	  src/Make* src/Package.sh src/Depend.sh \
+	  src/MAKE src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
 	@cd STUBS; $(MAKE)

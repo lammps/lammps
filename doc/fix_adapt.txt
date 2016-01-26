@@ -93,11 +93,15 @@ overrides the parameters.
 
 The {pstyle} argument is the name of the pair style.  If "pair_style
 hybrid or hybrid/overlay"_pair_hybrid.html is used, {pstyle} should be
-a sub-style name.  For example, {pstyle} could be specified as "soft"
-or "lubricate".  The {pparam} argument is the name of the parameter to
-change.  This is the current list of pair styles and parameters that
-can be varied by this fix.  See the doc pages for individual pair
-styles and their energy formulas for the meaning of these parameters:
+a sub-style name.  If there are multiple sub-styles using the same
+pair style, then {pstyle} should be specified as "style:N" where N is
+which instance of the pair style you wish to adapt, e.g. the first,
+second, etc.  For example, {pstyle} could be specified as "soft" or
+"lubricate" or "lj/cut:1" or "lj/cut:2".  The {pparam} argument is the
+name of the parameter to change.  This is the current list of pair
+styles and parameters that can be varied by this fix.  See the doc
+pages for individual pair styles and their energy formulas for the
+meaning of these parameters:
 
 "born"_pair_born.html: a,b,c: type pairs:
 "buck"_pair_buck.html: a,c: type pairs:
@@ -111,9 +115,9 @@ styles and their energy formulas for the meaning of these parameters:
 "morse"_pair_morse.html: d0,r0,alpha: type pairs:
 "soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
 
-IMPORTANT NOTE: It is easy to add new potentials and their parameters
-to this list.  All it typically takes is adding an extract() method to
-the pair_*.cpp file associated with the potential.
+NOTE: It is easy to add new potentials and their parameters to this
+list.  All it typically takes is adding an extract() method to the
+pair_*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.
@@ -204,9 +208,9 @@ discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
 
-IMPORTANT NOTE: The {atom} keyword works this way whether the {scale}
-keyword is set to {no} or {yes}.  I.e. the use of scale yes is not yet
-supported by the {atom} keyword.
+NOTE: The {atom} keyword works this way whether the {scale} keyword is
+set to {no} or {yes}.  I.e. the use of scale yes is not yet supported
+by the {atom} keyword.
 
 If the atom parameter is {diameter} and per-atom density and per-atom
 mass are defined for particles (e.g. "atom_style

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "compute_stress_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -308,7 +308,7 @@ void ComputeStressAtom::compute_peratom()
 	    stress[i][5] += onemass*v[i][1]*v[i][2];
 	    temperature->restore_bias(i,v[i]);
 	  }
-	
+
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) {

@@ -1,9 +1,6 @@
 #include "interpolate.h"
 #include "math.h"
-
-#define MAXLINE 256
-#define MIN(a,b) ((a)>(b)?(b):(a))
-#define MAX(a,b) ((a)>(b)?(a):(b))
+#include "global.h"
 
 /* ----------------------------------------------------------------------------
  * Constructor used to get info from caller, and prepare other necessary data
@@ -15,7 +12,7 @@ Interpolate::Interpolate(int nx, int ny, int nz, int ndm, doublecomplex **DM)
   Nz = nz;
   Npt = Nx*Ny*Nz;
   ndim = ndm;
-  memory = new Memory;
+  memory = new Memory();
 
   which = UseGamma = 0;
 
@@ -33,13 +30,13 @@ void Interpolate::tricubic_init()
 {
   // prepare necessary data for tricubic
   if (flag_allocated_dfs == 0){
-    Dfdx = memory->create(Dfdx, Npt, ndim, "Interpolate_Interpolate:Dfdx");
-    Dfdy = memory->create(Dfdy, Npt, ndim, "Interpolate_Interpolate:Dfdy");
-    Dfdz = memory->create(Dfdz, Npt, ndim, "Interpolate_Interpolate:Dfdz");
-    D2fdxdy = memory->create(D2fdxdy, Npt, ndim, "Interpolate_Interpolate:D2fdxdy");
-    D2fdxdz = memory->create(D2fdxdz, Npt, ndim, "Interpolate_Interpolate:D2fdxdz");
-    D2fdydz = memory->create(D2fdydz, Npt, ndim, "Interpolate_Interpolate:D2fdydz");
-    D3fdxdydz = memory->create(D3fdxdydz, Npt, ndim, "Interpolate_Interpolate:D2fdxdydz");
+    memory->create(Dfdx, Npt, ndim, "Interpolate_Interpolate:Dfdx");
+    memory->create(Dfdy, Npt, ndim, "Interpolate_Interpolate:Dfdy");
+    memory->create(Dfdz, Npt, ndim, "Interpolate_Interpolate:Dfdz");
+    memory->create(D2fdxdy, Npt, ndim, "Interpolate_Interpolate:D2fdxdy");
+    memory->create(D2fdxdz, Npt, ndim, "Interpolate_Interpolate:D2fdxdz");
+    memory->create(D2fdydz, Npt, ndim, "Interpolate_Interpolate:D2fdydz");
+    memory->create(D3fdxdydz, Npt, ndim, "Interpolate_Interpolate:D2fdxdydz");
 
     flag_allocated_dfs = 1;
   }
@@ -47,9 +44,9 @@ void Interpolate::tricubic_init()
   // get the derivatives
   int n=0;
   const double half = 0.5, one4 = 0.25, one8 = 0.125;
-  for (int ii=0; ii<Nx; ii++)
-  for (int jj=0; jj<Ny; jj++)
-  for (int kk=0; kk<Nz; kk++){
+  for (int ii = 0; ii < Nx; ++ii)
+  for (int jj = 0; jj < Ny; ++jj)
+  for (int kk = 0; kk < Nz; ++kk){
 
     int ip = (ii+1)%Nx, jp = (jj+1)%Ny, kp = (kk+1)%Nz;
     int im = (ii-1+Nx)%Nx, jm = (jj-1+Ny)%Ny, km = (kk-1+Nz)%Nz;
@@ -127,8 +124,8 @@ void Interpolate::tricubic(double *qin, doublecomplex *DMq)
 {
   // qin should be in unit of 2*pi/L
   double q[3];
-  for (int i=0; i<3; i++) q[i] = qin[i];
-  for (int i=0; i<3; i++){
+  for (int i = 0; i < 3; ++i) q[i] = qin[i];
+  for (int i = 0; i < 3; ++i){
     while (q[i] < 0.)  q[i] += 1.;
     while (q[i] >= 1.) q[i] -= 1.;
   }
@@ -150,8 +147,8 @@ void Interpolate::tricubic(double *qin, doublecomplex *DMq)
   vidx[7] = (ixp*Ny+iyp)*Nz+izp;
   for (int i=0; i<8; i++) if (vidx[i] == 0) UseGamma = 1;
 
-  for (int idim=0; idim<ndim; idim++){
-    for (int i=0; i<8; i++){
+  for (int idim = 0; idim < ndim; ++idim){
+    for (int i = 0; i < 8; ++i){
       f[i] = data[vidx[i]][idim].r;
       dfdx[i] = Dfdx[vidx[i]][idim].r;
       dfdy[i] = Dfdy[vidx[i]][idim].r;
@@ -164,7 +161,7 @@ void Interpolate::tricubic(double *qin, doublecomplex *DMq)
     tricubic_get_coeff(&a[0],&f[0],&dfdx[0],&dfdy[0],&dfdz[0],&d2fdxdy[0],&d2fdxdz[0],&d2fdydz[0],&d3fdxdydz[0]); 
     DMq[idim].r = tricubic_eval(&a[0],x,y,z);
     
-    for (int i=0; i<8; i++){
+    for (int i = 0; i < 8; ++i){
       f[i] = data[vidx[i]][idim].i;
       dfdx[i] = Dfdx[vidx[i]][idim].i;
       dfdy[i] = Dfdy[vidx[i]][idim].i;
@@ -177,6 +174,8 @@ void Interpolate::tricubic(double *qin, doublecomplex *DMq)
     tricubic_get_coeff(&a[0],&f[0],&dfdx[0],&dfdy[0],&dfdz[0],&d2fdxdy[0],&d2fdxdz[0],&d2fdydz[0],&d3fdxdydz[0]); 
     DMq[idim].i = tricubic_eval(&a[0],x,y,z);
   }
+
+return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -188,8 +187,8 @@ void Interpolate::trilinear(double *qin, doublecomplex *DMq)
 {
   // rescale q[i] into [0 1)
   double q[3];
-  for (int i=0; i<3; i++) q[i] = qin[i];
-  for (int i=0; i<3; i++){
+  for (int i = 0; i < 3; ++i) q[i] = qin[i];
+  for (int i = 0; i < 3; ++i){
     while (q[i] < 0.)  q[i] += 1.;
     while (q[i] >= 1.) q[i] -= 1.;
   }
@@ -220,7 +219,7 @@ void Interpolate::trilinear(double *qin, doublecomplex *DMq)
   vidx[5] = ((ix*Ny)+iyp)*Nz + izp;
   vidx[6] = ((ixp*Ny)+iyp)*Nz + iz;
   vidx[7] = ((ixp*Ny)+iyp)*Nz + izp;
-  for (int i=0; i<8; i++) if (vidx[i] == 0) UseGamma = 1;
+  for (int i = 0; i < 8; ++i) if (vidx[i] == 0) UseGamma = 1;
 
   double fac[8];
   fac[0] = (1.-x)*(1.-y)*(1.-z);
@@ -233,10 +232,10 @@ void Interpolate::trilinear(double *qin, doublecomplex *DMq)
   fac[7] = x*y*z;
   
   // now to do the interpolation
-  for (int idim=0; idim<ndim; idim++){
+  for (int idim = 0; idim < ndim; ++idim){
     DMq[idim].r = 0.;
     DMq[idim].i = 0.;
-    for (int i=0; i<8; i++){
+    for (int i = 0; i < 8; ++i){
       DMq[idim].r += data[vidx[i]][idim].r*fac[i];
       DMq[idim].i += data[vidx[i]][idim].i*fac[i];
     }
@@ -268,13 +267,13 @@ void Interpolate::set_method()
   printf("\n");for(int i=0; i<80; i++) printf("=");
   printf("\nWhich interpolation method would you like to use?\n");
   printf("  1. Tricubic;\n  2. Trilinear;\n");
-  printf("Your choice[1]: ");
+  printf("Your choice [1]: ");
   fgets(str,MAXLINE,stdin);
   char *ptr = strtok(str," \t\n\r\f");
   if (ptr) im = atoi(ptr);
 
   which =2-im%2;
-  printf("Your selection: %d\n", which);
+  printf("Your  selection: %d\n", which);
   for(int i=0; i<80; i++) printf("="); printf("\n\n");
 
   if (which == 1) tricubic_init();

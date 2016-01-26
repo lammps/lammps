@@ -458,8 +458,8 @@ README for more info on Pizza.py and how to use these scripts.
 reax tool :h4,link(reax)
 
 The reax sub-directory contains stand-alond codes that can
-post-process the output of the "fix reax/bonds"_fix_reax_bonds.html
-command from a LAMMPS simulation using "ReaxFF"_pair_reax.html.  See
+post-process the output of the "fix reax/c/bonds"_fix_reaxc_bonds.html
+command from a LAMMPS simulation using "ReaxFF"_pair_reax_c.html.  See
 the README.txt file for more info.
 
 These tools were written by Aidan Thompson at Sandia.
@@ -468,8 +468,8 @@ These tools were written by Aidan Thompson at Sandia.
 
 restart2data tool :h4,link(restart)
 
-IMPORTANT NOTE: This tool is now obsolete and is not included in the
-current LAMMPS distribution.  This is becaues there is now a
+NOTE: This tool is now obsolete and is not included in the current
+LAMMPS distribution.  This is becaues there is now a
 "write_data"_write_data.html command, which can create a data file
 from within an input script.  Running LAMMPS with the "-r"
 "command-line switch"_Section_start.html#start_7 as follows:

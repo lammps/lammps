@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_histo.h"
 #include "atom.h"
 #include "update.h"
@@ -239,7 +239,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/histo command");
-  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nfreq % nevery || nrepeat*nevery > nfreq)
     error->all(FLERR,"Illegal fix ave/histo command");
   if (lo >= hi) error->all(FLERR,"Illegal fix ave/histo command");
   if (nbins <= 0) error->all(FLERR,"Illegal fix ave/histo command");
@@ -436,6 +436,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // print file comment lines
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Histogrammed data for fix %s\n",id);
     if (title2) fprintf(fp,"%s\n",title2);
@@ -443,6 +444,10 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
                  "Total-counts Missing-counts Min-value Max-value\n");
     if (title3) fprintf(fp,"%s\n",title3);
     else fprintf(fp,"# Bin Coord Count Count/Total\n");
+
+    if (ferror(fp))
+      error->one(FLERR,"Error writing file header");
+
     filepos = ftell(fp);
   }
 
@@ -592,7 +597,7 @@ void FixAveHisto::end_of_step()
   // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
     error->all(FLERR,"Invalid timestep reset for fix ave/histo");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
@@ -812,6 +817,7 @@ void FixAveHisto::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
@@ -822,10 +828,14 @@ void FixAveHisto::end_of_step()
     else
       for (i = 0; i < nbins; i++)
         fprintf(fp,"%d %g %g %g\n",i+1,coord[i],0.0,0.0);
+
+    if (ferror(fp))
+      error->one(FLERR,"Error writing out histogram data");
+
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 }
@@ -977,21 +987,21 @@ void FixAveHisto::options(int narg, char **arg)
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       delete [] title1;
       int n = strlen(arg[iarg+1]) + 1;
       title1 = new char[n];
       strcpy(title1,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       delete [] title2;
       int n = strlen(arg[iarg+1]) + 1;
       title2 = new char[n];
       strcpy(title2,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       delete [] title3;
       int n = strlen(arg[iarg+1]) + 1;
       title3 = new char[n];

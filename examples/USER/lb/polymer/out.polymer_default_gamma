@@ -1,0 +1,83 @@
+LAMMPS (10 Aug 2015)
+Reading data file ...
+  orthogonal box = (0 0 0) to (40 40 40)
+  2 by 2 by 4 MPI processor grid
+  reading atoms ...
+  992 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
+  31 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+ Special bond factors lj:   0          1          1         
+ Special bond factors coul: 0          1          1         
+  2 = max # of 1-2 neighbors
+  2 = max # of special neighbors
+32 atoms in group ForceAtoms
+960 atoms in group FluidAtoms
+Using a lattice-Boltzmann grid of 40 by 40 by 40 total grid points. (../fix_lb_fluid.cpp:385)
+32 rigid bodies with 992 atoms
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 2.18369
+  ghost atom cutoff = 2.18369
+Setting up Verlet run ...
+  Unit style  : nano
+  Current step: 0
+  Time step   : 3e-05
+Memory usage per processor = 0.111926 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -8.2758489    2790.7741    2782.4982 1.9081958e-20 
+ 2000001    4.3017148            0    2792.6037    2798.2163 -0.00077006865 
+Loop time of 51900 on 16 procs for 2000001 steps with 992 atoms
+
+Pair  time (%) = 4.33729 (0.00835701)
+Bond  time (%) = 3.33134 (0.00641876)
+Neigh time (%) = 35.1247 (0.0676777)
+Comm  time (%) = 61.528 (0.118551)
+Outpt time (%) = 0.361813 (0.000697135)
+Other time (%) = 51795.3 (99.7983)
+
+Nlocal:    62 ave 465 max 0 min
+Histogram: 11 0 3 1 0 0 0 0 0 1
+Nghost:    94.8125 ave 340 max 0 min
+Histogram: 9 0 0 0 4 0 0 1 0 2
+Neighs:    0.25 ave 2 max 0 min
+Histogram: 13 0 0 0 0 2 0 0 0 1
+
+Total # of neighbors = 4
+Ave neighs/atom = 0.00403226
+Ave special neighs/atom = 0.0625
+Neighbor list builds = 23853
+Dangerous builds = 0
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@lsfhost.localdomain>
+Subject: Job 883849: </opt/hpmpi/bin/mpirun -srun ./lmp_mpi -in in.polymer_default_gamma> Done
+
+Job </opt/hpmpi/bin/mpirun -srun ./lmp_mpi -in in.polymer_default_gamma> was submitted from host <req770> by user <colin>.
+Job was executed on host(s) <16*lsfhost.localdomain>, in queue <mpi>, as user <colin>.
+</home/colin> was used as the home directory.
+</home/colin/lammps-10Aug15/examples/USER/lb/tested/polymer_default> was used as the working directory.
+Started at Mon Aug 24 11:13:12 2015
+Results reported at Tue Aug 25 01:38:50 2015
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/opt/hpmpi/bin/mpirun -srun ./lmp_mpi -in in.polymer_default_gamma
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   : 829343.88 sec.
+    Max Memory :        43 MB
+    Max Swap   :       805 MB
+
+
+The output (if any) is above this job summary.
+

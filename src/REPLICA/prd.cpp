@@ -19,11 +19,11 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h" 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include "lmptype.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "prd.h"
 #include "universe.h"
 #include "update.h"
@@ -220,7 +220,7 @@ void PRD::command(int narg, char **arg)
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
   update->restrict_output = 1;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
   lmp->init();
@@ -333,11 +333,11 @@ void PRD::command(int narg, char **arg)
     // decrement clock by random time at which 1 or more events occurred
 
     int frac_t_event = t_event;
-    for (int i = 0; i <= fix_event->ncoincident; i++) {
+    for (int i = 0; i < fix_event->ncoincident; i++) {
       int frac_rand = static_cast<int> (random_clock->uniform() * t_event);
       frac_t_event = MIN(frac_t_event,frac_rand);
     }
-    int decrement = frac_t_event*universe->nworlds;
+    int decrement = (t_event - frac_t_event)*universe->nworlds;
     clock -= decrement;
 
     // share event across replicas
@@ -431,12 +431,12 @@ void PRD::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
               timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
   }
@@ -508,6 +508,7 @@ void PRD::dephase()
       if (compute_event->compute_scalar() > 0.0) {
         fix_event->restore_state_dephase();
         update->ntimestep -= t_dephase;
+        log_event();
       } else {
         fix_event->restore_state_quench();
         done = 1;
@@ -567,7 +568,7 @@ void PRD::quench()
   update->whichflag = 2;
   update->nsteps = maxiter;
   update->endstep = update->laststep = update->firststep + maxiter;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
 
   // full init works
@@ -694,7 +695,7 @@ void PRD::share_event(int ireplica, int flag, int decrement)
   if (flag != 2) delta *= universe->nworlds;
   if (delta > 0 && flag != 2) delta -= decrement;
   delta += corr_adjust;
-  
+
   // delta passed to store_event_prd() should make its clock update
   //   be consistent with clock in main PRD loop
   // don't change the clock or timestep if this is a restart

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "atom_vec_charge_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
@@ -1256,6 +1256,9 @@ int AtomVecChargeKokkos::size_restart()
 
 int AtomVecChargeKokkos::pack_restart(int i, double *buf)
 {
+  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+            MASK_MASK | IMAGE_MASK | Q_MASK);
+
   int m = 1;
   buf[m++] = h_x(i,0);
   buf[m++] = h_x(i,1);
@@ -1290,6 +1293,9 @@ int AtomVecChargeKokkos::unpack_restart(double *buf)
     if (atom->nextra_store)
       memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
+
+  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+           MASK_MASK | IMAGE_MASK | Q_MASK);
 
   int m = 1;
   h_x(nlocal,0) = buf[m++];
@@ -1376,6 +1382,8 @@ void AtomVecChargeKokkos::data_atom(double *coord, imageint imagetmp,
   h_v(nlocal,0) = 0.0;
   h_v(nlocal,1) = 0.0;
   h_v(nlocal,2) = 0.0;
+
+  atomKK->modified(Host,ALL_MASK);
 
   atom->nlocal++;
 }

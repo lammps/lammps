@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_born_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -40,19 +40,19 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                  double **host_born1, double **host_born2, double **host_born3, 
-                  double **host_a, double **host_c, double **host_d, 
-                  double **host_sigma, double **offset, double *special_lj, 
+                  double **host_born1, double **host_born2, double **host_born3,
+                  double **host_a, double **host_c, double **host_d,
+                  double **host_sigma, double **offset, double *special_lj,
                   const int inum, const int nall, const int max_nbors,
-                  const int maxspecial, const double cell_size, 
+                  const int maxspecial, const double cell_size,
                   int &gpu_mode, FILE *screen);
 void born_gpu_reinit(const int ntypes, double **host_rhoinv,
                      double **host_born1, double **host_born2, double **host_born3,
                      double **host_a, double **host_c, double **host_d,
                      double **offset);
 void born_gpu_clear();
-int ** born_gpu_compute_n(const int ago, const int inum_full, 
-                          const int nall, double **host_x, int *host_type, 
+int ** born_gpu_compute_n(const int ago, const int inum_full,
+                          const int nall, double **host_x, int *host_type,
                           double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
@@ -71,7 +71,7 @@ PairBornGPU::PairBornGPU(LAMMPS *lmp) : PairBorn(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -89,10 +89,10 @@ void PairBornGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -101,7 +101,7 @@ void PairBornGPU::compute(int eflag, int vflag)
                                     atom->x, atom->type, domain->sublo,
                                     domain->subhi, atom->tag, atom->nspecial,
                                     atom->special, eflag, vflag, eflag_atom,
-                                    vflag_atom, host_start, 
+                                    vflag_atom, host_start,
                                     &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
@@ -128,7 +128,7 @@ void PairBornGPU::compute(int eflag, int vflag)
 
 void PairBornGPU::init_style()
 {
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with born/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -151,7 +151,7 @@ void PairBornGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = born_gpu_init(atom->ntypes+1, cutsq, rhoinv, 
+  int success = born_gpu_init(atom->ntypes+1, cutsq, rhoinv,
                               born1, born2, born3, a, c, d, sigma,
                               offset, force->special_lj, atom->nlocal,
                               atom->nlocal+atom->nghost, 300, maxspecial,
@@ -170,7 +170,7 @@ void PairBornGPU::init_style()
 void PairBornGPU::reinit()
 {
   Pair::reinit();
-  
+
   born_gpu_reinit(atom->ntypes+1, rhoinv, born1, born2, born3,
                   a, c, d, offset);
 }
@@ -185,7 +185,7 @@ double PairBornGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBornGPU::cpu_compute(int start, int inum, int eflag, int vflag, 
+void PairBornGPU::cpu_compute(int start, int inum, int eflag, int vflag,
                               int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -225,7 +225,7 @@ void PairBornGPU::cpu_compute(int start, int inum, int eflag, int vflag,
         r6inv = r2inv*r2inv*r2inv;
         r = sqrt(rsq);
         rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
-        forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv + 
+        forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv +
           born3[itype][jtype]*r2inv*r6inv;
         fpair = factor_lj*forceborn*r2inv;
 
@@ -234,7 +234,7 @@ void PairBornGPU::cpu_compute(int start, int inum, int eflag, int vflag,
         f[i][2] += delz*fpair;
 
         if (eflag) {
-          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv + 
+          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
             d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
           evdwl *= factor_lj;
         }

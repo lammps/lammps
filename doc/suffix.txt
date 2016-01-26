@@ -10,9 +10,10 @@ suffix command :h3
 
 [Syntax:]
 
-suffix style :pre
+suffix style args :pre
 
-style = {off} or {on} or {cuda} or {gpu} or {intel} or {kk} or {omp} or {opt} :ul
+style = {off} or {on} or {cuda} or {gpu} or {intel} or {kk} or {omp} or {opt} or {hybrid}
+args = for hybrid style, default suffix to be used and alternative suffix :ul
 
 [Examples:]
 
@@ -20,6 +21,7 @@ suffix off
 suffix on
 suffix gpu
 suffix intel
+suffix hybrid intel omp
 suffix kk :pre
 
 [Description:]
@@ -29,14 +31,14 @@ exist.  In that respect it operates the same as the "-suffix
 command-line switch"_Section_start.html#start_7.  It also has options
 to turn off or back on any suffix setting made via the command line.
 
-The specified style can be {cuda}, {gpu}, {intel}, {kk}, {omp}, or
-{opt}.  These refer to optional packages that LAMMPS can be built
+The specified style can be {cuda}, {gpu}, {intel}, {kk}, {omp}, {opt} 
+or {hybrid}. These refer to optional packages that LAMMPS can be built
 with, as described in "this section of the
 manual"_Section_start.html#start_3.  The "cuda" style corresponds to
 the USER-CUDA package, the "gpu" style to the GPU package, the "intel"
 style to the USER-INTEL package, the "kk" style to the KOKKOS package,
 the "omp" style to the USER-OMP package, and the "opt" style to the
-OPT package,
+OPT package.  
 
 These are the variants these packages provide:
 
@@ -59,7 +61,9 @@ kspace, compute, and fix styles with support for OpenMP
 multi-threading :l
 
 OPT = a handful of pair styles, cache-optimized for faster CPU
-performance :ule,l
+performance :l
+
+HYBRID = a combination of two packages can be specified (see below) :ule,l
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
@@ -76,10 +80,12 @@ input script command creates a new "atom"_atom_style.html,
 If the variant version does not exist, the standard version is
 created.
 
-When using the intel suffix, LAMMPS will first attempt to use a style
-with the intel suffix.  If the USER-OMP package is installed, the the
-omp suffix will be tried as a second choice, if a requested style is
-not available in the USER-INTEL package.
+For "hybrid", two packages are specified. The first is used whenever 
+available. If a style with the first suffix is not available, the style 
+with the suffix for the second package will be used if available. For 
+example, "hybrid intel omp" will use styles from the USER-INTEL package 
+as a first choice and styles from the USER-OMP package as a second choice 
+if no USER-INTEL variant is available.
 
 If the specified style is {off}, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

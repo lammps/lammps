@@ -31,9 +31,9 @@ atom, where Gamma is the force coupling constant described in the "fix
 lb/fluid"_fix_lb_fluid.html command (which applies an equal and
 opposite force to the fluid).
 
-IMPORTANT NOTE: This fix should only be used in conjunction with one
-of the built in LAMMPS integrators; it should not be used with the
-"fix lb/pc"_fix_lb_pc.html or "fix
+NOTE: This fix should only be used in conjunction with one of the
+built in LAMMPS integrators; it should not be used with the "fix
+lb/pc"_fix_lb_pc.html or "fix
 lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html integrators, which
 already include the hydrodynamic forces.  These latter fixes should
 only be used if the force coupling constant has been set by the user

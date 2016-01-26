@@ -15,9 +15,9 @@
    Contributing author: Pavel Elkind (Gothenburg University)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_tip4p_cut.h"
 #include "atom.h"
 #include "force.h"
@@ -31,7 +31,7 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace LAMMPS_NS; 
+using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
@@ -488,7 +488,7 @@ void PairLJCutTIP4PCut::init_style()
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == NULL)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
-  
+
   neighbor->request(this,instance_me);
 
   // set alpha parameter
@@ -525,14 +525,14 @@ double PairLJCutTIP4PCut::init_one(int i, int j)
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;
-  
+
   cut_ljsq[j][i] = cut_ljsq[i][j];
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
-  
+
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce
 
@@ -562,15 +562,15 @@ double PairLJCutTIP4PCut::init_one(int i, int j)
   // check that LJ epsilon = 0.0 for water H
   // set LJ cutoff to 0.0 for any interaction involving water H
   // so LJ term isn't calculated in compute()
-  
+
   if ((i == typeH && epsilon[i][i] != 0.0) ||
       (j == typeH && epsilon[j][j] != 0.0))
     error->all(FLERR,"Water H epsilon must be 0.0 for "
                "pair style lj/cut/tip4p/cut");
-  
+
   if (i == typeH || j == typeH)
     cut_ljsq[j][i] = cut_ljsq[i][j] = 0.0;
-  
+
   return cut;
 }
 

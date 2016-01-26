@@ -15,11 +15,11 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
-#include "math.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
 #include "domain.h"
 #include "style_region.h"
 #include "atom.h"
@@ -72,6 +72,10 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boundary[1][0] = boundary[1][1] = 0;
   boundary[2][0] = boundary[2][1] = 0;
 
+  minxlo = minxhi = 0.0;
+  minylo = minyhi = 0.0;
+  minzlo = minzhi = 0.0;
+
   triclinic = 0;
   tiltsmall = 1;
 
@@ -99,12 +103,16 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 
   nregion = maxregion = 0;
   regions = NULL;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Domain::~Domain()
 {
+  if (copymode) return;
+
   delete lattice;
   for (int i = 0; i < nregion; i++) delete regions[i];
   memory->sfree(regions);
@@ -168,7 +176,7 @@ void Domain::set_initial_box(int expandflag)
   // error check or warning on triclinic tilt factors
 
   if (triclinic) {
-    if ((fabs(xy/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) || 
+    if ((fabs(xy/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
         (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
         (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5 && yperiodic)) {
       if (tiltsmall)
@@ -292,7 +300,7 @@ void Domain::set_lamda_box()
 void Domain::set_local_box()
 {
   if (triclinic) return;
-      
+
   if (comm->layout != LAYOUT_TILED) {
     int *myloc = comm->myloc;
     int *procgrid = comm->procgrid;
@@ -453,7 +461,7 @@ void Domain::reset_box()
 
   // if shrink-wrapped & kspace is defined (i.e. using MSM), call setup()
   // also call init() (to test for compatibility) ?
-  
+
   if (nonperiodic == 2 && force->kspace) {
     //force->kspace->init();
     force->kspace->setup();
@@ -590,31 +598,31 @@ void Domain::pbc()
 
 int Domain::inside(double* x)
 {
-  double *lo,*hi,*period;
-  double delta[3];
+  double *lo,*hi;
+  double lamda[3];
 
   if (triclinic == 0) {
     lo = boxlo;
     hi = boxhi;
-    period = prd;
+
+    if (x[0] < lo[0] || x[0] >= hi[0] ||
+	x[1] < lo[1] || x[1] >= hi[1] ||
+	x[2] < lo[2] || x[2] >= hi[2]) return 0;
+    else return 1;
+    
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
-    period = prd_lamda;
 
-    delta[0] = x[0] - boxlo[0];
-    delta[1] = x[1] - boxlo[1];
-    delta[2] = x[2] - boxlo[2];
+    x2lamda(x,lamda);
 
-    x[0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
-    x[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
-    x[2] = h_inv[2]*delta[2];
+    if (lamda[0] < lo[0] || lamda[0] >= hi[0] ||
+	lamda[1] < lo[1] || lamda[1] >= hi[1] ||
+	lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
+    else return 1;
+    
   }
 
-  if (x[0] < lo[0] || x[0] >= hi[0] ||
-      x[1] < lo[1] || x[1] >= hi[1] ||
-      x[2] < lo[2] || x[2] >= hi[2]) return 0;
-  else return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -624,33 +632,32 @@ int Domain::inside(double* x)
 
 int Domain::inside_nonperiodic(double* x)
 {
-  double *lo,*hi,*period;
-  double delta[3];
+  double *lo,*hi;
+  double lamda[3];
 
   if (xperiodic && yperiodic && zperiodic) return 1;
- 
+
   if (triclinic == 0) {
     lo = boxlo;
     hi = boxhi;
-    period = prd;
+
+    if (!xperiodic && (x[0] < lo[0] || x[0] >= hi[0])) return 0;
+    if (!yperiodic && (x[1] < lo[1] || x[1] >= hi[1])) return 0;
+    if (!zperiodic && (x[2] < lo[2] || x[2] >= hi[2])) return 0;
+    return 1;
+
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
-    period = prd_lamda;
 
-    delta[0] = x[0] - boxlo[0];
-    delta[1] = x[1] - boxlo[1];
-    delta[2] = x[2] - boxlo[2];
+    x2lamda(x,lamda);
 
-    x[0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
-    x[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
-    x[2] = h_inv[2]*delta[2];
+    if (!xperiodic && (lamda[0] < lo[0] || lamda[0] >= hi[0])) return 0;
+    if (!yperiodic && (lamda[1] < lo[1] || lamda[1] >= hi[1])) return 0;
+    if (!zperiodic && (lamda[2] < lo[2] || lamda[2] >= hi[2])) return 0;
+    return 1;
   }
 
-  if (!xperiodic && (x[0] < lo[0] || x[0] >= hi[0])) return 0;
-  if (!yperiodic && (x[1] < lo[1] || x[1] >= hi[1])) return 0;
-  if (!zperiodic && (x[2] < lo[2] || x[2] >= hi[2])) return 0;
-  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -669,7 +676,7 @@ void Domain::image_check()
 
   if (!atom->molecular) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
-  if (strcmp(update->integrate_style,"verlet/split") == 0 &&
+  if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
 
   // communicate unwrapped position of owned atoms to ghost atoms
@@ -715,7 +722,7 @@ void Domain::image_check()
       iatom = molatom[i];
       n = onemols[imol]->num_bond[iatom];
     }
-    
+
     for (j = 0; j < n; j++) {
       if (molecular == 1) {
         if (bond_type[i][j] <= 0) continue;
@@ -736,7 +743,7 @@ void Domain::image_check()
       delx = unwrap[i][0] - unwrap[k][0];
       dely = unwrap[i][1] - unwrap[k][1];
       delz = unwrap[i][2] - unwrap[k][2];
-      
+
       if (xperiodic && delx > xprd_half) flag = 1;
       if (xperiodic && dely > yprd_half) flag = 1;
       if (dimension == 3 && zperiodic && delz > zprd_half) flag = 1;
@@ -748,13 +755,13 @@ void Domain::image_check()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
-  if (flagall && comm->me == 0) 
+  if (flagall && comm->me == 0)
     error->warning(FLERR,"Inconsistent image flags");
 
   if (lostbond == WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-    if (all && comm->me == 0) 
+    if (all && comm->me == 0)
       error->warning(FLERR,"Bond atom missing in image check");
   }
 
@@ -779,7 +786,7 @@ void Domain::box_too_small_check()
 
   if (!atom->molecular) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
-  if (strcmp(update->integrate_style,"verlet/split") == 0 &&
+  if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
 
   // maxbondall = longest current bond length
@@ -844,7 +851,7 @@ void Domain::box_too_small_check()
   if (lostbond == WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-    if (all && comm->me == 0) 
+    if (all && comm->me == 0)
       error->warning(FLERR,"Bond atom missing in box size check");
   }
 
@@ -899,7 +906,7 @@ void Domain::subbox_too_small_check(double thresh)
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && comm->me == 0) 
+  if (flagall && comm->me == 0)
     error->warning(FLERR,"Proc sub-domain size < neighbor skin, "
                    "could lead to lost atoms");
 }
@@ -1457,8 +1464,8 @@ void Domain::image_flip(int m, int n, int p)
     ybox -= p*zbox;
     xbox -= m*ybox + n*zbox;
 
-    image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
-      (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+    image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+      (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
       (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
   }
 }
@@ -1497,6 +1504,46 @@ void Domain::add_region(int narg, char **arg)
   }
 
   // create the Region
+
+  if (lmp->suffix_enable) {
+    if (lmp->suffix) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[1],lmp->suffix);
+
+      if (0) return;
+
+#define REGION_CLASS
+#define RegionStyle(key,Class) \
+      else if (strcmp(estyle,#key) == 0) { \
+            regions[nregion] = new Class(lmp,narg,arg); \
+            regions[nregion]->init(); \
+            nregion++; \
+            return; \
+      }
+#include "style_region.h"
+#undef RegionStyle
+#undef REGION_CLASS
+    }
+
+    if (lmp->suffix2) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[1],lmp->suffix2);
+
+      if (0) return;
+
+#define REGION_CLASS
+#define RegionStyle(key,Class) \
+      else if (strcmp(estyle,#key) == 0) { \
+            regions[nregion] = new Class(lmp,narg,arg); \
+            regions[nregion]->init(); \
+            nregion++; \
+            return; \
+      }
+#include "style_region.h"
+#undef RegionStyle
+#undef REGION_CLASS
+    }
+  }
 
   if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
 

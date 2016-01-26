@@ -15,11 +15,11 @@
    Contributing author: Nathan Fabian (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "ctype.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 #include "image.h"
 #include "math_extra.h"
 #include "random_mars.h"
@@ -1816,7 +1816,7 @@ int ColorMap::reset(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set explicit values for all min/max settings in color map 
+   set explicit values for all min/max settings in color map
      from min/max dynamic values
    set lo/hi current and lvalue/hvalue entries that are MIN/MAX VALUE
    called only once if mlo/mhi != MIN/MAX VALUE, else called repeatedly
@@ -1838,7 +1838,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
     if (mrange == ABSOLUTE) mentry[nentry-1].svalue = hicurrent;
     else mentry[nentry-1].svalue = 1.0;
 
-    // error in ABSOLUTE mode if new lo/hi current cause 
+    // error in ABSOLUTE mode if new lo/hi current cause
     // first/last entry to become lo > hi with adjacent entry
 
     if (mrange == ABSOLUTE) {

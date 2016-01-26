@@ -1,0 +1,6 @@
+
+timer	off
+
+read_data empty-tric.data
+
+info	all

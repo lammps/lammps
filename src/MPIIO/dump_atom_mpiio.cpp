@@ -15,7 +15,7 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "dump_atom_mpiio.h"
 #include "domain.h"
 #include "atom.h"
@@ -211,8 +211,8 @@ void DumpAtomMPIIO::init_style()
     strcat(format,"\n");
   } else {
     char *str;
-    if (image_flag == 0) str = (char *) "%d %d %g %g %g";
-    else str = (char *) "%d %d %g %g %g %d %d %d";
+    if (image_flag == 0) str = (char *) TAGINT_FORMAT " %d %g %g %g";
+    else str = (char *) TAGINT_FORMAT " %d %g %g %g %d %d %d";
     int n = strlen(str) + 2;
     format = new char[n];
     strcpy(format,str);

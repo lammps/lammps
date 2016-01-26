@@ -25,10 +25,10 @@
  * 24-Sep-11 - AS: Adapted code to new interface of Error::one() function.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_meam_spline.h"
 #include "atom.h"
 #include "force.h"
@@ -526,7 +526,7 @@ double PairMEAMSpline::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf, 
+int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf,
                                       int pbc_flag, int *pbc)
 {
         int* list_iter = list;

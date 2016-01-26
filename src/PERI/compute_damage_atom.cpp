@@ -15,7 +15,7 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_damage_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -102,13 +102,13 @@ void ComputeDamageAtom::compute_peratom()
       damage_temp = 0.0;
       for (jj = 0; jj < jnum; jj++) {
         if (partner[i][jj] == 0) continue;
-        
+
         // look up local index of this partner particle
         // skip if particle is "lost"
-        
+
         j = atom->map(partner[i][jj]);
         if (j < 0) continue;
-        
+
         damage_temp += vfrac[j];
       }
 

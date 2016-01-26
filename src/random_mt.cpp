@@ -18,7 +18,7 @@
 //
 // Uses the Marsaglia RNG in RanMars to generate the initial seeds
 
-#include "math.h"
+#include <math.h>
 #include "random_mt.h"
 #include "random_mars.h"
 #include "math_inline.h"
@@ -30,13 +30,16 @@ using namespace LAMMPS_NS;
 #define MT_B 0x9D2C5680
 #define MT_C 0xEFC60000
 
+static const double xn = 3.6541528853610088;
+static const double A  = 0.00492867323399;
+
 /* ---------------------------------------------------------------------- */
 
 RanMT::RanMT(LAMMPS *lmp, int seed) : Pointers(lmp)
 {
   int i;
   const uint32_t f = 1812433253UL;
-  _save = 0;
+  _save = _second = 0;
 
   if (seed <= 0 || seed > 900000000)
     error->one(FLERR,"Invalid seed for Mersenne Twister random # generator");
@@ -50,21 +53,43 @@ RanMT::RanMT(LAMMPS *lmp, int seed) : Pointers(lmp)
   // to seed the RNG some more using a second RNG
   RanMars rng(lmp,seed);
 
-  for (i=0; i < MT_N; ++i)
+  for (i=0; i < MT_N-1; ++i)
     _m[i+1] = (_m[i+1] ^ ((_m[i] ^ (_m[i] >> 30)) * 1664525UL))
       + (uint32_t) (rng.uniform()* (1U<<31)) + i;
 
   _m[0] = _m[MT_N-1];
 
-  for (i=0; i < MT_N; ++i)
+  for (i=0; i < MT_N-1; ++i)
     _m[i+1] = (_m[i+1] ^ ((_m[i] ^ (_m[i] >> 30)) * 1566083941UL))-i-1;
 
   _m[0] = 0x80000000UL;
 
   // randomize one more turn
   _idx = 0;
-  for (i=0; i < MT_N; ++i) _randomize();
+  for (i=0; i < MT_N-1; ++i) _randomize();
+
+  // build ziggurath tables
+  _nlayers = 256;
+  _xlayers = new double[_nlayers];
+  _ylayers = new double[_nlayers];
+  _xlayers[0] = xn;
+  _ylayers[0] = exp(-0.5*xn*xn);
+  for (int i=1; i < _nlayers; ++i) {
+    _ylayers[i] = A/_xlayers[i-1] + _ylayers[i-1];
+    _xlayers[i] = sqrt(-2.0*log(_ylayers[i]));
+  }
+  _xlayers[_nlayers-1] = 0.0;
+  _ylayers[_nlayers-1] = 1.0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+RanMT::~RanMT()
+{
+  delete[] _xlayers;
+  delete[] _ylayers;
+}
+
 
 /* ----------------------------------------------------------------------
    grab 32bits of randomness
@@ -139,4 +164,53 @@ double RanMT::gaussian()
     _save = 0;
   }
   return first;
+}
+
+/* ----------------------------------------------------------------------
+   gaussian distributed RNG via ziggurat method
+------------------------------------------------------------------------- */
+
+double RanMT::gaussian_z()
+{
+  double x,y;
+
+  int n = static_cast<int>(static_cast<double>(_nlayers)*uniform());
+  if (n == 0) {                 // special case: tail
+    const double xbound = A / _ylayers[0];
+    x = 2.0*xbound * uniform() - xbound;
+    if (fabs(x) < _xlayers[0]) {
+      return x;
+    } else {
+      double rv;
+      do {
+        const double x0 = _xlayers[0];
+        x = -log(uniform()) / x0;
+        y = -log(uniform());
+        rv = (uniform() < 0.5) ? -x0-x : x0+x;
+      } while (2*y < x*x);
+      return rv;
+    }
+  } else if (n == _nlayers-1) {  // special case: top
+    const double xbound = _xlayers[n-1];
+    x = 2.0*xbound * uniform() - xbound;
+    const double delta = _ylayers[n]-_ylayers[n-1];
+    y = delta*uniform() + _ylayers[n-1];
+    
+    if (y < exp(-0.5*x*x))
+      return x;
+    else
+      return gaussian_z();
+  } else {                      // normal case
+    const double xbound = _xlayers[n];
+    x = 2.0*xbound * uniform() - xbound;
+    if (fabs(x) < _xlayers[n+1])
+      return x;
+
+    const double delta = _ylayers[n+1]-_ylayers[n];
+    y = delta*uniform() + _ylayers[n];
+    if (y < exp(-0.5*x*x))
+      return x;
+    else
+      return gaussian_z();    
+  }
 }

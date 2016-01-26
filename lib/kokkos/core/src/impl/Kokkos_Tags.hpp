@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -47,21 +45,16 @@
 #define KOKKOS_TAGS_HPP
 
 #include <impl/Kokkos_Traits.hpp>
+#include <Kokkos_Core_fwd.hpp>
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 namespace Impl {
-
-struct LayoutTag {};
-
-struct MemorySpaceTag {};
-struct MemoryTraitsTag {};
-
-struct ExecutionPolicyTag {};
-struct ExecutionSpaceTag {};
-
 
 template< class C , class Enable = void >
 struct is_memory_space : public bool_< false > {};
@@ -99,6 +92,26 @@ template< class C >
 struct is_memory_traits< C , typename Impl::enable_if_type< typename C::memory_traits >::type >
   : public bool_< Impl::is_same< C , typename C::memory_traits >::value > {};
 
+}
+}
+
+namespace Kokkos {
+//----------------------------------------------------------------------------
+
+template< class ExecutionSpace , class MemorySpace >
+struct Device {
+  static_assert( Impl::is_execution_space<ExecutionSpace>::value
+               , "Execution space is not valid" );
+  static_assert( Impl::is_memory_space<MemorySpace>::value
+               , "Memory space is not valid" );
+  typedef ExecutionSpace execution_space;
+  typedef MemorySpace memory_space;
+  typedef Device<execution_space,memory_space> device_type;
+};
+}
+
+namespace Kokkos {
+namespace Impl {
 //----------------------------------------------------------------------------
 
 template< class C , class Enable = void >
@@ -108,7 +121,10 @@ template< class C >
 struct is_space< C
                  , typename Impl::enable_if<(
                      Impl::is_same< C , typename C::execution_space >::value ||
-                     Impl::is_same< C , typename C::memory_space    >::value
+                     Impl::is_same< C , typename C::memory_space    >::value ||
+                     Impl::is_same< C , Device<
+                                             typename C::execution_space,
+                                             typename C::memory_space> >::value
                    )>::type
                  >
   : public Impl::true_type
@@ -116,15 +132,32 @@ struct is_space< C
   typedef typename C::execution_space  execution_space ;
   typedef typename C::memory_space     memory_space ;
 
-  // The host_mirror_space defines a space with host-resident memory.
-  // If the execution space's memory space is HostSpace then use that execution space.
-  // Else use the HostSpace.
+  // The host_memory_space defines a space with host-resident memory.
+  // If the execution space's memory space is host accessible then use that execution space.
+  // else use the HostSpace.
   typedef
-    typename Impl::if_c< Impl::is_same< typename execution_space::memory_space , HostSpace >::value , execution_space ,
-    HostSpace >::type
-      host_mirror_space ;
-};
+      typename Impl::if_c< Impl::is_same< memory_space , HostSpace >::value
+#ifdef KOKKOS_HAVE_CUDA
+                        || Impl::is_same< memory_space , CudaUVMSpace>::value
+                        || Impl::is_same< memory_space , CudaHostPinnedSpace>::value
+#endif
+                          , memory_space , HostSpace >::type
+      host_memory_space ;
 
+  // The host_execution_space defines a space which has access to HostSpace.
+  // If the execution space can access HostSpace then use that execution space.
+  // else use the DefaultHostExecutionSpace.
+#ifdef KOKKOS_HAVE_CUDA
+  typedef
+      typename Impl::if_c< Impl::is_same< execution_space , Cuda >::value
+                          , DefaultHostExecutionSpace , execution_space >::type
+      host_execution_space ;
+#else
+  typedef execution_space host_execution_space;
+#endif
+
+  typedef Device<host_execution_space,host_memory_space> host_mirror_space;
+};
 }
 }
 

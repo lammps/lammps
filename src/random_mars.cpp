@@ -14,10 +14,9 @@
 // Marsaglia random number generator
 // see RANMAR in F James, Comp Phys Comm, 60, 329 (1990)
 
-#include "math.h"
+#include <math.h>
 #include "random_mars.h"
 #include "error.h"
-#include "math_inline.h"
 
 using namespace LAMMPS_NS;
 
@@ -105,8 +104,7 @@ double RanMars::gaussian()
       rsq = v1*v1 + v2*v2;
       if (rsq < 1.0 && rsq != 0.0) again = 0;
     }
-    // fac = sqrt(-2.0*log(rsq)/rsq);
-    fac = MathInline::sqrtlgx2byx(rsq);
+    fac = sqrt(-2.0*log(rsq)/rsq);
     second = v1*fac;
     first = v2*fac;
     save = 1;

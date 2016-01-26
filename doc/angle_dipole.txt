@@ -50,9 +50,13 @@ the potential will tend to align the dipole along the reference
 direction defined by the (bond) vector r_ij (in other words, mu_j is
 restrained to point towards atom 'i').
 
-Note that the angle dipole potential does not give rise to any force, 
-because it does not depend on the distance between i and j (it only 
-depends on the angle between mu_j and r_ij).
+The dipolar torque T_j must be counterbalanced in order to conserve 
+the local angular momentum. This is achieved via an additional force 
+couple generating a torque equivalent to the opposite of T_j:
+
+:c,image(Eqs/angle_dipole_couple.jpg)
+
+where F_i and F_j are applied on atoms i and j, respectively.
 
 The following coefficients must be defined for each angle type via the
 "angle_coeff"_angle_coeff.html command as in the example above, or in
@@ -91,14 +95,14 @@ This angle style can only be used if LAMMPS was built with the
 USER-MISC package.  See the "Making LAMMPS"_Section_start.html#2_3
 section for more info on packages.
 
-IMPORTANT NOTE: In the "Angles" section of the data file, the atom ID
-'j' corresponding to the dipole to restrain must come before the atom
-ID of the reference atom 'i'. A third atom ID 'k' must also be
-provided, although 'k' is just a 'dummy' atom which can be any atom;
-it may be useful to choose a convention (e.g., 'k'='i') and adhere to
-it.  For example, if ID=1 for the dipolar atom to restrain, and ID=2
-for the reference atom, the corresponding line in the "Angles" section
-of the data file would read: X X 1 2 2
+NOTE: In the "Angles" section of the data file, the atom ID 'j'
+corresponding to the dipole to restrain must come before the atom ID
+of the reference atom 'i'. A third atom ID 'k' must also be provided,
+although 'k' is just a 'dummy' atom which can be any atom; it may be
+useful to choose a convention (e.g., 'k'='i') and adhere to it.  For
+example, if ID=1 for the dipolar atom to restrain, and ID=2 for the
+reference atom, the corresponding line in the "Angles" section of the
+data file would read: X X 1 2 2
 
 The "newton" command for intramolecular interactions must be "on"
 (which is the default).

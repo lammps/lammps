@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_ave_atom.h"
 #include "atom.h"
 #include "domain.h"
@@ -120,7 +120,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || peratom_freq <= 0)
     error->all(FLERR,"Illegal fix ave/atom command");
-  if (peratom_freq % nevery || (nrepeat-1)*nevery >= peratom_freq)
+  if (peratom_freq % nevery || nrepeat*nevery > peratom_freq)
     error->all(FLERR,"Illegal fix ave/atom command");
 
   for (int i = 0; i < nvalues; i++) {
@@ -283,7 +283,7 @@ void FixAveAtom::end_of_step()
   // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
     error->all(FLERR,"Invalid timestep reset for fix ave/atom");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
@@ -379,6 +379,8 @@ void FixAveAtom::end_of_step()
   irepeat = 0;
   nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
+
+  if (array == NULL) return;
 
   // average the final result for the Nfreq timestep
 

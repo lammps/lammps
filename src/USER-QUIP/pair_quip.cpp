@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,11 +16,11 @@
                          Aidan Thompson (Sandia, athomps@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_quip.h"
 #include "atom.h"
 #include "update.h"
@@ -79,7 +79,7 @@ void PairQUIP::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   sum_num_neigh = 0;
   quip_num_neigh = new int [inum];
 
@@ -149,8 +149,8 @@ void PairQUIP::compute(int eflag, int vflag)
 
   if (vflag_global) {
       virial[0] = quip_virial[0];
-      virial[1] = quip_virial[4]; 
-      virial[2] = quip_virial[8]; 
+      virial[1] = quip_virial[4];
+      virial[2] = quip_virial[8];
       virial[3] = (quip_virial[3] + quip_virial[1])*0.5;
       virial[4] = (quip_virial[2] + quip_virial[6])*0.5;
       virial[5] = (quip_virial[5] + quip_virial[7])*0.5;
@@ -184,7 +184,7 @@ void PairQUIP::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairQUIP::settings(int narg, char **arg)
@@ -218,13 +218,13 @@ void PairQUIP::coeff(int narg, char **arg)
          setflag[i][j] = 1;
       }
    }
-   
+
    if( narg != (4+n) ) {
       char str[1024];
       sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
       error->all(FLERR,str);
    }
-            
+
    if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
       error->all(FLERR,"Incorrect args for pair coefficients");
 
@@ -244,7 +244,7 @@ void PairQUIP::coeff(int narg, char **arg)
          error->all(FLERR,str);
       }
    }
-      
+
   // Initialise potential
   // First call initialises potential via the fortran code in memory, and returns the necessary size
   // of quip_potential. This behaviour is invoked by setting n_potential_quip to 0.

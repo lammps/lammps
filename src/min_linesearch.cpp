@@ -21,7 +21,7 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "min_linesearch.h"
 #include "atom.h"
 #include "update.h"
@@ -51,10 +51,6 @@ using namespace LAMMPS_NS;
 //#define EMACH 1.0e-8
 #define EMACH 1.0e-8
 #define EPS_QUAD 1.0e-28
-
-// same as in other min classes
-
-enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 

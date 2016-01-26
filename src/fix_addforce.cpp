@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_addforce.h"
 #include "atom.h"
 #include "atom_masks.h"
@@ -112,7 +112,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 
-  maxatom = atom->nmax;
+  maxatom = 1;
   memory->create(sforce,maxatom,4,"addforce:sforce");
 }
 
@@ -371,6 +371,6 @@ double FixAddForce::compute_vector(int n)
 double FixAddForce::memory_usage()
 {
   double bytes = 0.0;
-  if (varflag == ATOM) bytes = atom->nmax*4 * sizeof(double);
+  if (varflag == ATOM) bytes = maxatom*4 * sizeof(double);
   return bytes;
 }

@@ -37,16 +37,17 @@
 
       The LAMMPS binaries contain <b>all</b> optional packages included in
       the source distribution <b>except</b>: GPU, KIM, KOKKOS, REAX, USER-CUDA,
-      USER-INTEL, and USER-QUIP since those depend on libraries that do not
-      exist as
-      regular RPM packages and/or where the license is incompatible with
+      USER-INTEL, USER-H5MD, and USER-QUIP since those depend on libraries that
+      do not exist as regular RPM packages across all supported distributions
+      and/or where the license is incompatible with
       including them in a binary distribution like this one. In addition
       the Fortran variant of ReaxFF support (REAX package) has been omitted,
       since this has long been superseded by the C/C++ implementation in
       the USER-REAXC package.
       The USER-REAXC code has been proven to produce results consistent
       with the Fortran version and to be faster and more flexible.
-      In addition, the serial and python packages do <b>not</b> include
+      In addition, the <b>serial</b> and <b>python</b> packages do
+      <b>not</b> include
       the MPIIO and USER-LB packages, since those depend on MPI-IO functions
       which are not available with the serial MPI stub library in LAMMPS.
     </p>
@@ -124,12 +125,16 @@
       Binary RPMs are currently provided for up-to-date versions of
       <a href="http://www.redhat.com/rhel/" target="_blank">Red Hat Enterprise Linux</a>
       or <a href="http://www.centos.org/" target="_blank">CentOS</a>
-      (version 6.6 or 7.0 at the time of this writing),
+      (version 6.6 or 7.1 at the time of this writing),
       <a href="http://fedoraproject.org" target="_blank">Fedora</a>
-      (versions 18, 19, 20 and 21 at the time of this writing)
+      (versions 19, 20, 21, 22, and 23 at the time of this writing)
       and <a href="http://www.opensuse.org/" target="_blank">OpenSuSE</a>
-      (versions 12.3, 13.1, and 13.2 as of this writing) for 32-bit (i386/i586) and
-      64-bit (x86_64) Intel/AMD x86 CPU versions. Binaries for
+      (versions 12.3, 13.1, 13.2, and 42.1 as of this writing) for 32-bit (i386/i586 only 
+      for versions that still support it, i.e. 12.3 and 13.1) 
+      and 64-bit (x86_64) Intel/AMD x86 CPU versions. RPM packages for
+      older distributions may still be available, but will not be updated
+      and thus it is strongly recommended to upgrade the installation.
+      Binaries for
       additional distributions and versions may be added based on demand
       and available resources. The packages are provided <b>without
       warranty and support</b>. If you notice any problems or would like
@@ -141,7 +146,7 @@
     <ul>
       <li>Browse the CentOS / RedHat Enterprise Linux <a href="centos">repository</a></li>
       <li>Browse the Fedora Linux <a href="fedora">repository</a></li>
-      <li>Browse the openSuSE Linux <a href="suse">repository</a></li>
+      <li>Browse the OpenSuSE Linux <a href="suse">repository</a></li>
     </ul>
     <div style="clear:both;"></div>
     <hr width="100%">
@@ -192,7 +197,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Mon Jan 12 17:14:10 EST 2015
+Last modified: Mon Nov 23 17:14:10 EST 2015
 <!-- hhmts end -->
   </body>
 </html>

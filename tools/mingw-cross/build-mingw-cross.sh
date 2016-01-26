@@ -32,7 +32,7 @@ pushd "${LAMMPS_PATH}"
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc src lib python txt2html lammps.book \
-    examples/{README,ASPHERE,KAPPA,MC,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,deposit,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,intel,balance,snap,USER/{atc,awpmd,misc,phonon,cg-cmm,sph,fep}} \
+    examples/{README,ASPHERE,KAPPA,MC,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,deposit,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,balance,snap,USER/{atc,awpmd,misc,phonon,cg-cmm,sph,fep}} \
     bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp tools/createatoms tools/colvars \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
@@ -61,7 +61,7 @@ popd
 pushd src
 
 # configure installed packages
-make yes-all no-kokkos no-kim no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio no-user-intel no-user-quip no-python
+make yes-all no-kokkos no-kim no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio no-user-intel no-user-quip no-python no-user-h5md
 make -j${NUMCPU} mingw32-cross OMP=yes || exit 4
 make -j${NUMCPU} mingw64-cross OMP=yes || exit 4
 make yes-user-lb yes-mpiio
@@ -124,8 +124,15 @@ cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices mingw32/ocl_get_devices.ex
 cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices mingw64/ocl_get_devices.exe
 
 # determine os vendor and release for installer tweaks.
-vendor=$(grep  release /etc/issue | cut -d \  -f 1)
-release=$(grep  release /etc/issue | cut -d \  -f 3)
+if [ -f /etc/os-release ]
+then \
+  . /etc/os-release
+  vendor="${NAME}"
+  release="${VERSION_ID}"
+else
+  vendor=$(grep  release /etc/issue | cut -d \  -f 1)
+  release=$(grep  release /etc/issue | cut -d \  -f 3)
+fi
 arch=$(uname -m)
 
 # convert text files into CR/LF format.

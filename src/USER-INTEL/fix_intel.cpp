@@ -60,6 +60,8 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   int ncops = force->inumeric(FLERR,arg[3]);
 
+  _nbor_pack_width = 1;
+
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = 1.0;
   _overflow_flag[LMP_OVERFLOW] = 0;
@@ -95,11 +97,11 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      if (strcmp(arg[iarg+1],"single") == 0) 
+      if (strcmp(arg[iarg+1],"single") == 0)
         _precision_mode = PREC_MODE_SINGLE;
-      else if (strcmp(arg[iarg+1],"mixed") == 0) 
+      else if (strcmp(arg[iarg+1],"mixed") == 0)
         _precision_mode = PREC_MODE_MIXED;
-      else if (strcmp(arg[iarg+1],"double") == 0) 
+      else if (strcmp(arg[iarg+1],"double") == 0)
         _precision_mode = PREC_MODE_DOUBLE;
       else error->all(FLERR,"Illegal package intel command");
       iarg += 2;
@@ -176,8 +178,11 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // set OpenMP threads
   // nomp is user setting, default = 0
-  
+
   #if defined(_OPENMP)
+  #if defined(__INTEL_COMPILER)
+  kmp_set_blocktime(0);
+  #endif
   if (nomp != 0) {
     omp_set_num_threads(nomp);
     comm->nthreads = nomp;
@@ -229,7 +234,7 @@ FixIntel::~FixIntel()
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance != 0.0 && time1 != NULL && time2 != NULL && 
+    if (_offload_balance != 0.0 && time1 != NULL && time2 != NULL &&
 	overflow != NULL) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(time1,time2,overflow:alloc_if(0) free_if(1))
@@ -304,11 +309,17 @@ void FixIntel::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::pair_init_check()
+void FixIntel::pair_init_check(const bool cdmessage)
 {
+  #ifdef INTEL_VMASK
+  atom->sortfreq = 1;
+  #endif
+
+  _nbor_pack_width = 1;
+
   #ifdef _LMP_INTEL_OFFLOAD
   if (_offload_balance != 0.0) atom->sortfreq = 1;
-  
+
   if (force->newton_pair == 0)
     _offload_noghost = 0;
   else if (_offload_ghost == 0)
@@ -320,7 +331,7 @@ void FixIntel::pair_init_check()
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance !=0.0 && time1 != NULL && time2 != NULL && 
+    if (_offload_balance !=0.0 && time1 != NULL && time2 != NULL &&
 	overflow != NULL) {
       #pragma offload_transfer target(mic:_cop)  \
         nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
@@ -364,15 +375,12 @@ void FixIntel::pair_init_check()
   char kmode[80];
   if (_precision_mode == PREC_MODE_SINGLE) {
     strcpy(kmode, "single");
-    get_single_buffers()->free_all_nbor_buffers();
     get_single_buffers()->need_tag(need_tag);
   } else if (_precision_mode == PREC_MODE_MIXED) {
     strcpy(kmode, "mixed");
-    get_mixed_buffers()->free_all_nbor_buffers();
     get_mixed_buffers()->need_tag(need_tag);
   } else {
     strcpy(kmode, "double");
-    get_double_buffers()->free_all_nbor_buffers();
     get_double_buffers()->need_tag(need_tag);
   }
 
@@ -392,6 +400,13 @@ void FixIntel::pair_init_check()
 	fprintf(screen,"Using Intel Package without Coprocessor.\n");
       }
       fprintf(screen,"Precision: %s\n",kmode);
+      if (cdmessage) {
+	#ifdef LMP_USE_AVXCD
+	fprintf(screen,"AVX512 CD Optimizations: Enabled\n");
+	#else
+	fprintf(screen,"AVX512 CD Optimizations: Disabled\n");
+	#endif
+      }
       fprintf(screen,
 	      "----------------------------------------------------------\n");
     }
@@ -412,7 +427,7 @@ void FixIntel::check_neighbor_intel()
     if (_offload_balance != 0.0 && neighbor->requests[i]->intel == 0) {
       _full_host_list = 1;
       _offload_noghost = 0;
-    }	
+    }
     #endif
     if (neighbor->requests[i]->skip)
       error->all(FLERR, "Cannot yet use hybrid styles with Intel package.");
@@ -525,7 +540,7 @@ void FixIntel::output_timing_data() {
         #endif
 	double ht = timers[TIME_HOST_NEIGHBOR] + timers[TIME_HOST_PAIR] +
 	  timers[TIME_OFFLOAD_WAIT];
-	double ct = timers[TIME_OFFLOAD_NEIGHBOR] + 
+	double ct = timers[TIME_OFFLOAD_NEIGHBOR] +
 	  timers[TIME_OFFLOAD_PAIR];
 	double tt = MAX(ht,ct);
 	if (timers[TIME_OFFLOAD_LATENCY] / tt > 0.07 && _separate_coi == 0)
@@ -657,7 +672,7 @@ int FixIntel::set_host_affinity(const int nomp)
   FILE *p;
   char cmd[512];
   char readbuf[INTEL_MAX_HOST_CORE_COUNT*5];
-  sprintf(cmd, "lscpu -p=cpu,core,socket | grep -v '#' |"
+  sprintf(cmd, "lscpu -p | grep -v '#' |"
 	  "sort -t, -k 3,3n -k 2,2n | awk -F, '{print $1}'");
   p = popen(cmd, "r");
   if (p == NULL) return -1;

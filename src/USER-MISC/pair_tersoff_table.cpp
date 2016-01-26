@@ -20,10 +20,10 @@
     1) Tersoff, Phys. Rev. B 39, 5566 (1988)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_tersoff_table.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -306,10 +306,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
         if (r_ik > params[ikparam].cutsq) continue;
 
-        r_ik = sqrt(r_ik);
-
-        invR_ik = 1.0 / r_ik;
-
         gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
 
         cutoffFunctionIK = preCutoffFunction[neighbor_k];
@@ -334,13 +330,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
-
-        r_ik = sqrt(r_ik);
-        invR_ik = 1.0 / r_ik;
-
-        directorCos_ik_x = invR_ik * dr_ik[0];
-        directorCos_ik_y = invR_ik * dr_ik[1];
-        directorCos_ik_z = invR_ik * dr_ik[2];
 
         gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
 
@@ -557,7 +546,7 @@ void PairTersoffTable::deallocateGrids()
 
 void PairTersoffTable::allocateGrids(void)
 {
-  int   i, j, l;
+  int   i, j, k, l;
 
   int     numGridPointsExponential, numGridPointsGtetaFunction, numGridPointsOneCutoffFunction;
   int     numGridPointsNotOneCutoffFunction, numGridPointsCutoffFunction, numGridPointsBetaZetaPower;
@@ -634,9 +623,9 @@ void PairTersoffTable::allocateGrids(void)
     zeta_max = MAX(zeta_max,numGridPointsBetaZetaPower);
 
     for (j=0; j<nelements; j++) {
-      for (j=0; j<nelements; j++) {
+      for (k=0; k<nelements; k++) {
 
-        int ijparam = elem2param[i][j][j];
+        int ijparam = elem2param[i][j][k];
         double cutoffR = params[ijparam].cutoffR;
         double cutoffS = params[ijparam].cutoffS;
 

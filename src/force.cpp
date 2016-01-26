@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "ctype.h"
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "force.h"
 #include "style_bond.h"
 #include "style_angle.h"
@@ -130,6 +130,13 @@ void Force::init()
   if (improper) improper->init();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void Force::setup()
+{
+  if (pair) pair->setup();
+}
+
 /* ----------------------------------------------------------------------
    create a pair style, called from input script or restart file
 ------------------------------------------------------------------------- */
@@ -198,10 +205,11 @@ Pair *Force::pair_creator(LAMMPS *lmp)
    return ptr to Pair class if matches word or matches hybrid sub-style
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
-   return NULL if no match or multiple sub-styles match
+   if nsub > 0, match Nth hybrid sub-style
+   return NULL if no match or if nsub=0 and multiple sub-styles match
 ------------------------------------------------------------------------- */
 
-Pair *Force::pair_match(const char *word, int exact)
+Pair *Force::pair_match(const char *word, int exact, int nsub)
 {
   int iwhich,count;
 
@@ -216,6 +224,7 @@ Pair *Force::pair_match(const char *word, int exact)
           (!exact && strstr(hybrid->keywords[i],word))) {
         iwhich = i;
         count++;
+        if (nsub == count) return hybrid->styles[iwhich];
       }
     if (count == 1) return hybrid->styles[iwhich];
 
@@ -227,6 +236,7 @@ Pair *Force::pair_match(const char *word, int exact)
           (!exact && strstr(hybrid->keywords[i],word))) {
         iwhich = i;
         count++;
+        if (nsub == count) return hybrid->styles[iwhich];
       }
     if (count == 1) return hybrid->styles[iwhich];
   }
@@ -259,7 +269,7 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      
+
       if (0) return NULL;
 
 #define BOND_CLASS
@@ -274,7 +284,7 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-      
+
       if (0) return NULL;
 
 #define BOND_CLASS
@@ -339,7 +349,7 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      
+
       if (0) return NULL;
 
 #define ANGLE_CLASS
@@ -354,7 +364,7 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      
+
       if (0) return NULL;
 
 #define ANGLE_CLASS
@@ -415,7 +425,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
 #undef DIHEDRAL_CLASS
     }
 
-    if (lmp->suffix) {
+    if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
@@ -756,7 +766,7 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
     nhi = atoi(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
+  if (nlo < nmin || nhi > nmax || nlo > nhi)
     error->all(FLERR,"Numeric index is out of bounds");
 }
 
@@ -769,7 +779,7 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
    return nlo,nhi
 ------------------------------------------------------------------------- */
 
-void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi, 
+void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi,
                       bigint nmin)
 {
   char *ptr = strchr(str,'*');
@@ -790,7 +800,7 @@ void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi,
     nhi = ATOBIGINT(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
+  if (nlo < nmin || nhi > nmax || nlo > nhi)
     error->all(FLERR,"Numeric index is out of bounds");
 }
 
@@ -829,11 +839,11 @@ double Force::numeric(const char *file, int line, char *str)
 
 int Force::inumeric(const char *file, int line, char *str)
 {
-  if (!str) 
+  if (!str)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
   int n = strlen(str);
-  if (n == 0) 
+  if (n == 0)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
 
@@ -854,11 +864,11 @@ int Force::inumeric(const char *file, int line, char *str)
 
 bigint Force::bnumeric(const char *file, int line, char *str)
 {
-  if (!str) 
+  if (!str)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
   int n = strlen(str);
-  if (n == 0) 
+  if (n == 0)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
 
@@ -879,11 +889,11 @@ bigint Force::bnumeric(const char *file, int line, char *str)
 
 tagint Force::tnumeric(const char *file, int line, char *str)
 {
-  if (!str) 
+  if (!str)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
   int n = strlen(str);
-  if (n == 0) 
+  if (n == 0)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
 
@@ -912,7 +922,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(name,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
     return fp;
   }
@@ -941,7 +951,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(newpath,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
   }
 
@@ -961,7 +971,7 @@ const char *Force::potential_name(const char *path)
 
 #if defined(_WIN32)
   // skip over the disk drive part of windows pathnames
-  if (isalpha(path[0]) && path[1] == ':') 
+  if (isalpha(path[0]) && path[1] == ':')
     path += 2;
 #endif
 

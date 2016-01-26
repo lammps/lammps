@@ -15,7 +15,7 @@
 #include "atom_masks.h"
 #include "domain_kokkos.h"
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
@@ -844,4 +844,6 @@ void NeighborKokkosExecute<Device>::
     if(n >= new_maxneighs()) new_maxneighs() = n;
   }
   neigh_list.d_ilist(i) = i;
+}
+
 }

@@ -15,10 +15,10 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "stdio.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "pair_gran_hertz_history.h"
 #include "atom.h"
 #include "update.h"
@@ -87,7 +87,6 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -167,13 +166,8 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
         // if I or J part of rigid body, use body mass
         // if I or J is frozen, meff is other particle
 
-        if (rmass) {
-          mi = rmass[i];
-          mj = rmass[j];
-        } else {
-          mi = mass[type[i]];
-          mj = mass[type[j]];
-        }
+        mi = rmass[i];
+        mj = rmass[j];
         if (fix_rigid) {
           if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
           if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
@@ -373,17 +367,11 @@ double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
   // if I or J is frozen, meff is other particle
 
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
 
-  if (rmass) {
-    mi = rmass[i];
-    mj = rmass[j];
-  } else {
-    mi = mass[type[i]];
-    mj = mass[type[j]];
-  }
+  mi = rmass[i];
+  mj = rmass[j];
   if (fix_rigid) {
     // NOTE: insure mass_rigid is current for owned+ghost atoms?
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];

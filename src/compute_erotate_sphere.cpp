@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "compute_erotate_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"

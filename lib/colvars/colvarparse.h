@@ -37,7 +37,7 @@ protected:
   /// \brief Whether or not to accumulate data_begin_pos and
   /// data_end_pos in key_lookup(); it may be useful to disable
   /// this after the constructor is called, because other files may be
-  /// read (e.g. restart) that would mess up with the registry; in any
+  /// read (e.g. restart) that would mess up the registry; in any
   /// case, nothing serious happens until check_keywords() is invoked
   /// (which should happen only right after construction)
   bool save_delimiters;
@@ -143,6 +143,9 @@ public:
   /// of allowed keywords; this will invoke strip_values() first and
   /// then loop over all words
   int check_keywords(std::string &conf, char const *key);
+
+  /// \brief Use this after parsing a config string (note that check_keywords() calls it already)
+  void clear_keyword_registry();
 
 
   /// \brief Return a lowercased copy of the string

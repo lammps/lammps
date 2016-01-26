@@ -14,7 +14,7 @@
 #ifndef LMP_LAMMPS_H
 #define LMP_LAMMPS_H
 
-#include "stdio.h"
+#include <stdio.h>
 
 namespace LAMMPS_NS {
 
@@ -42,8 +42,12 @@ class LAMMPS {
   FILE *screen;                  // screen output
   FILE *logfile;                 // logfile
 
+  double initclock;              // wall clock at instantiation
+
   char *suffix,*suffix2;         // suffixes to add to input script style names
   int suffix_enable;             // 1 if suffixes are enabled, 0 if disabled
+  char ***packargs;              // arguments for cmdline package commands
+  int num_package;               // number of cmdline package commands
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
 
   class Cuda *cuda;              // CUDA accelerator class
@@ -53,9 +57,9 @@ class LAMMPS {
   class CiteMe *citeme;          // citation info
 
   LAMMPS(int, char **, MPI_Comm);
-  ~LAMMPS();
+  virtual ~LAMMPS();
   void create();
-  void post_create(int, int *, int *, char **);
+  void post_create();
   void init();
   void destroy();
 

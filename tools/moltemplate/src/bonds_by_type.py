@@ -185,27 +185,27 @@ def LookupBondTypes(bond_types,
         bondid = bond_ids[ie]
         (atomid1, atomid2) = bond_pairs[ie]
 
+        if atomid1 not in atomids2types:
+            raise ttree_lex.InputError('Error: atom \"'+atomid1+'\" not defined in \"Data Atoms\".\n'
+                                       '       This usually happens when the user mistypes one of the names of the\n'
+                                       '       $atoms in either a \"Data Atoms\" or \"Data Bond List\" section.\n'
+                                       '       To find out where the mistake occured, search the \n'
+                                       '       \"ttree_assignments.txt\" file for:\n'
+                                       '       \"'+atomid1+'\"\n')
+
+        if atomid2 not in atomids2types:
+            raise ttree_lex.InputError('Error: atom \"'+atomid2+'\" not defined in \"Data Atoms\".\n'
+                                       '       This usually happens when the user mistypes one of the names of the\n'
+                                       '       $atoms in either a \"Data Atoms\" or \"Data Bond List\" section.\n'
+                                       '       To find out where the mistake occured, search the \n'
+                                       '       \"ttree_assignments.txt\" file for:\n'
+                                       '       \"'+atomid2+'\"\n')
+
+        atomtype1 = atomids2types[atomid1]
+        atomtype2 = atomids2types[atomid2]
+
         #for n in range(0, len(typepattern_to_coefftypes)):
         for typepattern, coefftype in typepattern_to_coefftypes:
-
-            if atomid1 not in atomids2types:
-                raise ttree_lex.InputError('Error: atom \"'+atomid1+'\" not defined in \"Data Atoms\".\n'
-                                           '       This usually happens when the user mistypes one of the names of the\n'
-                                           '       $atoms in either a \"Data Atoms\" or \"Data Bond List\" section.\n'
-                                           '       To find out where the mistake occured, search the \n'
-                                           '       \"ttree_assignments.txt\" file for:\n'
-                                           '       \"'+atomid1+'\"\n')
-
-            if atomid2 not in atomids2types:
-                raise ttree_lex.InputError('Error: atom \"'+atomid2+'\" not defined in \"Data Atoms\".\n'
-                                           '       This usually happens when the user mistypes one of the names of the\n'
-                                           '       $atoms in either a \"Data Atoms\" or \"Data Bond List\" section.\n'
-                                           '       To find out where the mistake occured, search the \n'
-                                           '       \"ttree_assignments.txt\" file for:\n'
-                                           '       \"'+atomid2+'\"\n')
-
-            atomtype1 = atomids2types[atomid1]
-            atomtype2 = atomids2types[atomid2]
 
             # use string comparisons to check if atom types match the pattern
             if (ttree_lex.MatchesAll((atomtype1, atomtype2), typepattern) or
@@ -216,6 +216,7 @@ def LookupBondTypes(bond_types,
 
     for ie in range(0, len(bond_ids)):
         if not bond_types[ie]:
+            (atomid1, atomid2) = bond_pairs[ie]
             atomtype1 = atomids2types[atomid1]
             atomtype2 = atomids2types[atomid2]
             raise ttree_lex.InputError('Error: No bond types defined for the bond between\n'
@@ -228,8 +229,8 @@ def LookupBondTypes(bond_types,
 if __name__ == "__main__":
 
     g_program_name = __file__.split('/')[-1]  # = 'nbody_by_type.py'
-    g_date_str     = '2013-8-06'
-    g_version_str  = '0.1'
+    g_date_str     = '2015-11-09'
+    g_version_str  = '0.11'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')

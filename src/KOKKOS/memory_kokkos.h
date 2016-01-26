@@ -20,7 +20,7 @@
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array, 
+TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array,
                    int n1, const char *name)
 {
   data = TYPE(name,n1);
@@ -29,8 +29,8 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array,
 }
 
 template <typename TYPE, typename HTYPE>
-  TYPE create_kokkos(TYPE &data, HTYPE &h_data, 
-                     typename TYPE::value_type *&array, int n1, 
+  TYPE create_kokkos(TYPE &data, HTYPE &h_data,
+                     typename TYPE::value_type *&array, int n1,
                      const char *name)
 {
   data = TYPE(std::string(name),n1);
@@ -63,11 +63,11 @@ template <typename TYPE, typename HTYPE>
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-TYPE grow_kokkos(TYPE &data, typename TYPE::value_type *&array, 
+TYPE grow_kokkos(TYPE &data, typename TYPE::value_type *&array,
                  int n1, const char *name)
 {
   if (array == NULL) return create_kokkos(data,array,n1,name);
-  
+
   data.resize(n1);
   array = data.h_view.ptr_on_device();
   return data;
@@ -151,7 +151,7 @@ TYPE create_kokkos(TYPE &data, int n1, int n2, int n3, int n4, int n5 , int n6 ,
 
 
 template <typename TYPE, typename HTYPE>
-  TYPE create_kokkos(TYPE &data, HTYPE &h_data, int n1, int n2, 
+  TYPE create_kokkos(TYPE &data, HTYPE &h_data, int n1, int n2,
                      const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
@@ -164,24 +164,27 @@ template <typename TYPE, typename HTYPE>
 }
 
 template <typename TYPE>
-TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array, 
+TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
                    int n1, int n2, const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
-  
+
   bigint n = 0;
   for (int i = 0; i < n1; i++) {
-    array[i] = &data.h_view(i,0);
+    if(n2==0)
+      array[i] = NULL;
+    else
+      array[i] = &data.h_view(i,0);
     n += n2;
   }
   return data;
 }
 
 template <typename TYPE, typename HTYPE>
-  TYPE create_kokkos(TYPE &data, HTYPE &h_data, 
-                     typename TYPE::value_type **&array, int n1, int n2, 
+  TYPE create_kokkos(TYPE &data, HTYPE &h_data,
+                     typename TYPE::value_type **&array, int n1, int n2,
                      const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
@@ -192,10 +195,13 @@ template <typename TYPE, typename HTYPE>
 #endif
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
-  
+
   bigint n = 0;
   for (int i = 0; i < n1; i++) {
-    array[i] = &h_data(i,0);
+    if(n2==0)
+      array[i] = NULL;
+    else
+      array[i] = &h_data(i,0);
     n += n2;
   }
   return data;
@@ -207,48 +213,57 @@ template <typename TYPE, typename HTYPE>
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array, 
+TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
                  int n1, int n2, const char *name)
 {
   if (array == NULL) return create_kokkos(data,array,n1,n2,name);
   data.resize(n1,n2);
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type**) srealloc(array,nbytes,name);
-  
+
   for (int i = 0; i < n1; i++)
-    array[i] = &data.h_view(i,0);
-  
+    if(n2==0)
+      array[i] = NULL;
+    else
+      array[i] = &data.h_view(i,0);
+
   return data;
 }
 
 template <typename TYPE>
-TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array, 
+TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
                    int n1, const char *name)
 {
   data = TYPE(std::string(name),n1);
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
-  
+
   for (int i = 0; i < n1; i++)
-    array[i] = &data.h_view(i,0);
-  
+    if(data.h_view.dimension_1()==0)
+      array[i] = NULL;
+    else
+      array[i] = &data.h_view(i,0);
+
   return data;
 }
 
 template <typename TYPE>
-TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array, 
+TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
                  int n1, const char *name)
 {
   if (array == NULL) return create_kokkos(data,array,n1,name);
-  
+
   data.resize(n1);
-  
+
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
-  
+
   for (int i = 0; i < n1; i++)
-    array[i] = &data.h_view(i,0);
-  
+    if(data.h_view.dimension_1()==0)
+      array[i] = NULL;
+    else
+      array[i] = &data.h_view(i,0);
+
   return data;
 }
 

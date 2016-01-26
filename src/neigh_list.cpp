@@ -103,7 +103,7 @@ NeighList::~NeighList()
 
 /* ---------------------------------------------------------------------- */
 
-void NeighList::setup_pages(int pgsize_caller, int oneatom_caller, 
+void NeighList::setup_pages(int pgsize_caller, int oneatom_caller,
                             int dnum_caller)
 {
   pgsize = pgsize_caller;
@@ -255,7 +255,7 @@ void NeighList::print_attributes()
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);
   printf("  %d = otherlist\n",rq->otherlist);
-  printf("  %p = listskip\n",listskip);
+  printf("  %p = listskip\n",(void *)listskip);
   printf("\n");
 }
 

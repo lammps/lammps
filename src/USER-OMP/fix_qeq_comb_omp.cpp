@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
+#include <mpi.h>
+#include <math.h>
 #include "fix_qeq_comb_omp.h"
 #include "fix_omp.h"
 #include "atom.h"
@@ -59,7 +59,7 @@ void FixQEQCombOMP::init()
   comb = (PairComb *) force->pair_match("comb/omp",1);
   if (comb == NULL)
     comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL) 
+  if (comb == NULL)
     error->all(FLERR,"Must use pair_style comb or "
                "comb/omp with fix qeq/comb/omp");
 

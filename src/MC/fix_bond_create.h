@@ -71,14 +71,14 @@ class FixBondCreate : public Fix {
 
   class RanMars *random;
   class NeighList *list;
-  
+
   int countflag,commflag;
   int nlevels_respa;
   int nangles,ndihedrals,nimpropers;
 
   void check_ghosts();
   void update_topology();
-  void rebuild_special(int);
+  void rebuild_special_one(int);
   void create_angles(int);
   void create_dihedrals(int);
   void create_impropers(int);

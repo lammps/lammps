@@ -1,0 +1,46 @@
+language: cpp
+
+notifications:
+  email:
+    recipients:
+      - akohlmey@gmail.com
+    on_successs: change
+    on_failure: always
+
+compiler:
+  - gcc
+  - clang
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y gfortran mpi-default-bin mpi-default-dev libfftw3-dev libjpeg-dev libpng12-dev python-dev libblas-dev liblapack-dev libhdf5-serial-dev hdf5-tools
+
+env:
+  - MACH=shlib LMPFLAGS="-sf off" LMP_INC="-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz"
+  - MACH=serial LMPFLAGS="-sf off" LMP_INC="-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz"
+  - MACH=mpi MPICMD="mpirun -np 2" LMPFLAGS="-sf off" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+  - MACH=mpi MPICMD="mpirun -np 4" LMPFLAGS="-pk omp 1 -sf omp" LMP_INC="-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL" JPG_LIB="-ljpeg -lpng -lz"
+  - MACH=mpi MPICMD="mpirun -np 1" LMPFLAGS="-pk omp 4 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_BIGBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
+
+install:
+  - export OMPI_CC=$CC
+  - export OMPI_CXX=$CXX
+  - test "$MACH" = "mpi" && export COMP="mpicxx -fopenmp" || export COMP="$CXX"
+
+script:
+  - make -C src clean-all
+  - make -C src yes-all
+  - make -C src no-lib
+  - make -C src yes-user-smd yes-user-molfile yes-compress yes-python
+  - make -C lib/colvars -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/poems -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/voronoi -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/awpmd -f Makefile.mpicc CC="${COMP}"
+  - make -C lib/meam -f Makefile.gfortran CC=gcc F90=gfortran
+  - make -C src yes-poems yes-voronoi yes-user-colvars yes-user-awpmd yes-meam
+  - make -C lib/h5md
+  - make -C src yes-user-h5md
+  - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
+  - test "$MACH" = shlib || make -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
+  - if [ "$MACH" = shlib ] ; then  make -C src mode=shlib serial MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test python MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
+  - if [ "$MACH" != shlib ] ; then make -C src mode=lib ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test couple MACH="${MACH}" MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi

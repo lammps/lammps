@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_evaporate.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -311,7 +311,7 @@ void FixEvaporate::pre_exchange()
               }
             }
 
-          } else {
+          } else if (molecular == 2) {
             if (molatom[i] == 0) {
               index = molindex[i];
               ndeltopo[0] += onemols[index]->nbonds;

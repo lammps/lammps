@@ -13,9 +13,8 @@
 
 // Park/Miller RNG
 
-#include "math.h"
+#include <math.h>
 #include "random_park.h"
-#include "math_inline.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -65,8 +64,7 @@ double RanPark::gaussian()
       rsq = v1*v1 + v2*v2;
       if (rsq < 1.0 && rsq != 0.0) again = 0;
     }
-    // fac = sqrt(-2.0*log(rsq)/rsq);
-    fac = MathInline::sqrtlgx2byx(rsq);
+    fac = sqrt(-2.0*log(rsq)/rsq);
     second = v1*fac;
     first = v2*fac;
     save = 1;

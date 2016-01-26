@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "lammps.h"
 #include "input.h"
-#include "stdio.h"
+#include <stdio.h>
 
 using namespace LAMMPS_NS;
 
@@ -26,18 +26,10 @@ int main(int argc, char **argv)
 {
   MPI_Init(&argc,&argv);
 
-  try {
-    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+  LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
 
-    lammps->input->file();
-    delete lammps;
-  }
-
-  catch(...) {
-    int me;
-    MPI_Comm_rank(MPI_COMM_WORLD,&me);
-    fprintf(stderr,"Unknown exception caught on rank %d\n",me);
-  }
+  lammps->input->file();
+  delete lammps;
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();

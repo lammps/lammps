@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -84,6 +84,7 @@
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+namespace Experimental {
 namespace Impl {
 
 /** \brief  Base class for all tasks in the Serial execution space */
@@ -155,7 +156,7 @@ public:
   KOKKOS_FUNCTION static
   TaskMember * verify_type( TaskMember * t )
     {
-      enum { check_type = ! Impl::is_same< ResultType , void >::value };
+      enum { check_type = ! Kokkos::Impl::is_same< ResultType , void >::value };
 
       if ( check_type && t != 0 ) {
 
@@ -194,7 +195,8 @@ public:
   template< class DerivedTaskType >
   static
   TaskMember * create( const typename DerivedTaskType::functor_type &  arg_functor
-                     , const unsigned                                  arg_dependence_capacity )
+                     , const unsigned                                  arg_dependence_capacity
+                     )
     {
       typedef typename DerivedTaskType::functor_type  functor_type ;
       typedef typename functor_type::value_type       value_type ;
@@ -215,7 +217,8 @@ public:
   static
   TaskMember * create( const typename DerivedTaskType::policy_type &   arg_policy
                      , const typename DerivedTaskType::functor_type &  arg_functor
-                     , const unsigned                                  arg_dependence_capacity )
+                     , const unsigned                                  arg_dependence_capacity
+                     )
     {
       DerivedTaskType * const task =
         new( allocate( sizeof(DerivedTaskType) , arg_dependence_capacity ) )
@@ -229,9 +232,29 @@ public:
       return static_cast< TaskMember * >( task );
     }
 
+  /** \brief  Allocate and construct a thread-team task */
+  template< class DerivedTaskType >
+  static
+  TaskMember * create_team( const typename DerivedTaskType::functor_type &  arg_functor
+                          , const unsigned                                  arg_dependence_capacity
+                          )
+    {
+      typedef typename DerivedTaskType::functor_type  functor_type ;
+      typedef typename functor_type::value_type       value_type ;
+
+      DerivedTaskType * const task =
+        new( allocate( sizeof(DerivedTaskType) , arg_dependence_capacity ) )
+          DerivedTaskType( & TaskMember::template deallocate< DerivedTaskType >
+                         , & TaskMember::template apply_team< functor_type , value_type >
+                         , sizeof(DerivedTaskType)
+                         , arg_dependence_capacity
+                         , arg_functor );
+
+      return static_cast< TaskMember * >( task );
+    }
+
   void schedule();
   static void execute_ready_tasks();
-  static void wait( const Future< void , Kokkos::Serial > & );
 
   //----------------------------------------
 
@@ -241,7 +264,7 @@ public:
   get_result_type get() const { return get_result_type() ; }
 
   KOKKOS_INLINE_FUNCTION
-  Kokkos::TaskState get_state() const { return Kokkos::TaskState( m_state ); }
+  Kokkos::Experimental::TaskState get_state() const { return Kokkos::Experimental::TaskState( m_state ); }
 
   //----------------------------------------
 
@@ -255,7 +278,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   TaskMember * get_dependence( int i ) const
-    { return ( Kokkos::TASK_STATE_EXECUTING == m_state && 0 <= i && i < m_dep_size ) ? m_dep[i] : (TaskMember*) 0 ; }
+    { return ( Kokkos::Experimental::TASK_STATE_EXECUTING == m_state && 0 <= i && i < m_dep_size ) ? m_dep[i] : (TaskMember*) 0 ; }
 
   KOKKOS_INLINE_FUNCTION
   int get_dependence() const
@@ -271,8 +294,8 @@ public:
   KOKKOS_INLINE_FUNCTION
   void add_dependence( TaskMember * before )
     {
-      if ( ( Kokkos::TASK_STATE_CONSTRUCTING == m_state ||
-             Kokkos::TASK_STATE_EXECUTING    == m_state ) &&
+      if ( ( Kokkos::Experimental::TASK_STATE_CONSTRUCTING == m_state ||
+             Kokkos::Experimental::TASK_STATE_EXECUTING    == m_state ) &&
            m_dep_size < m_dep_capacity ) {
         assign( m_dep + m_dep_size , before );
         ++m_dep_size ;
@@ -286,7 +309,7 @@ public:
 
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
-  void apply_single( typename Impl::enable_if< ! Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
+  void apply_single( typename Kokkos::Impl::enable_if< ! Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
     {
       typedef TaskMember< Kokkos::Serial , ResultType , FunctorType > derived_type ;
 
@@ -297,12 +320,12 @@ public:
 
       derived_type & m = * static_cast< derived_type * >( t );
 
-      Impl::FunctorApply< FunctorType , void , ResultType & >::apply( (FunctorType &) m , & m.m_result );
+      Kokkos::Impl::FunctorApply< FunctorType , void , ResultType & >::apply( (FunctorType &) m , & m.m_result );
     }
 
   template< class FunctorType , class ResultType >
   KOKKOS_INLINE_FUNCTION static
-  void apply_single( typename Impl::enable_if< Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
+  void apply_single( typename Kokkos::Impl::enable_if< Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
     {
       typedef TaskMember< Kokkos::Serial , ResultType , FunctorType > derived_type ;
 
@@ -313,7 +336,43 @@ public:
 
       derived_type & m = * static_cast< derived_type * >( t );
 
-      Impl::FunctorApply< FunctorType , void , void >::apply( (FunctorType &) m );
+      Kokkos::Impl::FunctorApply< FunctorType , void , void >::apply( (FunctorType &) m );
+    }
+
+  //----------------------------------------
+
+  template< class FunctorType , class ResultType >
+  static
+  void apply_team( typename Kokkos::Impl::enable_if< ! Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
+    {
+      typedef TaskMember< Kokkos::Serial , ResultType , FunctorType > derived_type ;
+      typedef Kokkos::Impl::SerialTeamMember                          member_type ;
+
+      // TaskMember< Kokkos::Serial , ResultType , FunctorType >
+      //   : public TaskMember< Kokkos::Serial , ResultType , void >
+      //   , public FunctorType
+      //   { ... };
+
+      derived_type & m = * static_cast< derived_type * >( t );
+
+      m.FunctorType::apply( member_type(0,1,0) , m.m_result );
+    }
+
+  template< class FunctorType , class ResultType >
+  static
+  void apply_team( typename Kokkos::Impl::enable_if< Kokkos::Impl::is_same< ResultType , void >::value , TaskMember * >::type t )
+    {
+      typedef TaskMember< Kokkos::Serial , ResultType , FunctorType > derived_type ;
+      typedef Kokkos::Impl::SerialTeamMember                          member_type ;
+
+      // TaskMember< Kokkos::Serial , ResultType , FunctorType >
+      //   : public TaskMember< Kokkos::Serial , ResultType , void >
+      //   , public FunctorType
+      //   { ... };
+
+      derived_type & m = * static_cast< derived_type * >( t );
+
+      m.FunctorType::apply( member_type(0,1,0) );
     }
 };
 
@@ -358,7 +417,6 @@ protected:
                     , arg_dependence_capacity )
     , m_result()
     {}
-
 };
 
 template< class ResultType , class FunctorType >
@@ -406,8 +464,8 @@ public:
 
 private:
 
-  friend class Kokkos::TaskPolicy< Kokkos::Serial > ;
-  friend class Kokkos::Impl::TaskMember< Kokkos::Serial , void , void > ;
+  friend class Kokkos::Experimental::TaskPolicy< Kokkos::Serial > ;
+  friend class Kokkos::Experimental::Impl::TaskMember< Kokkos::Serial , void , void > ;
 
   typedef TaskMember< Kokkos::Serial , void , void >               task_root_type ;
   typedef TaskMember< Kokkos::Serial , ResultType , FunctorType >  task_base_type ;
@@ -417,7 +475,7 @@ private:
 
   template< class Tag >
   inline
-  typename Impl::enable_if< Impl::is_same<Tag,void>::value >::type
+  typename Kokkos::Impl::enable_if< Kokkos::Impl::is_same<Tag,void>::value >::type
     apply_policy() const
     {
       const typename policy_type::member_type e = m_policy.end();
@@ -428,7 +486,7 @@ private:
 
   template< class Tag >
   inline
-  typename Impl::enable_if< ! Impl::is_same<Tag,void>::value >::type
+  typename Kokkos::Impl::enable_if< ! Kokkos::Impl::is_same<Tag,void>::value >::type
     apply_policy() const
     {
       const Tag tag ;
@@ -484,8 +542,8 @@ public:
 
 private:
 
-  friend class Kokkos::TaskPolicy< Kokkos::Serial > ;
-  friend class Kokkos::Impl::TaskMember< Kokkos::Serial , void , void > ;
+  friend class Kokkos::Experimental::TaskPolicy< Kokkos::Serial > ;
+  friend class Kokkos::Experimental::Impl::TaskMember< Kokkos::Serial , void , void > ;
 
   typedef TaskMember< Kokkos::Serial , void , void >               task_root_type ;
   typedef TaskMember< Kokkos::Serial , ResultType , FunctorType >  task_base_type ;
@@ -495,9 +553,9 @@ private:
 
   template< class Tag >
   inline
-  void apply_policy( typename Impl::enable_if< Impl::is_same<Tag,void>::value , ResultType & >::type result ) const
+  void apply_policy( typename Kokkos::Impl::enable_if< Kokkos::Impl::is_same<Tag,void>::value , ResultType & >::type result ) const
     {
-      Impl::FunctorValueInit< functor_type , Tag >::init( *this , & result );
+      Kokkos::Impl::FunctorValueInit< functor_type , Tag >::init( *this , & result );
       const typename policy_type::member_type e = m_policy.end();
       for ( typename policy_type::member_type i = m_policy.begin() ; i < e ; ++i ) {
         functor_type::operator()( i, result );
@@ -506,9 +564,9 @@ private:
 
   template< class Tag >
   inline
-  void apply_policy( typename Impl::enable_if< ! Impl::is_same<Tag,void>::value , ResultType & >::type result ) const
+  void apply_policy( typename Kokkos::Impl::enable_if< ! Kokkos::Impl::is_same<Tag,void>::value , ResultType & >::type result ) const
     {
-      Impl::FunctorValueInit< functor_type , Tag >::init( *this , & result );
+      Kokkos::Impl::FunctorValueInit< functor_type , Tag >::init( *this , & result );
       const Tag tag ;
       const typename policy_type::member_type e = m_policy.end();
       for ( typename policy_type::member_type i = m_policy.begin() ; i < e ; ++i ) {
@@ -546,25 +604,26 @@ private:
 };
 
 } /* namespace Impl */
+} /* namespace Experimental */
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+namespace Experimental {
 
 template<>
 class TaskPolicy< Kokkos::Serial >
 {
 public:
 
-  typedef Kokkos::Serial execution_space ;
+  typedef Kokkos::Serial                  execution_space ;
+  typedef Kokkos::Impl::SerialTeamMember  member_type ;
 
 private:
 
   typedef Impl::TaskMember< execution_space , void , void > task_root_type ;
-
-  TaskPolicy & operator = ( const TaskPolicy & ) /* = delete */ ;
 
   template< class FunctorType >
   static inline
@@ -582,7 +641,7 @@ private:
       return static_cast< task_root_type * >( static_cast< task_type * >(f) );
     }
 
-  const unsigned m_default_dependence_capacity ;
+  unsigned m_default_dependence_capacity ;
 
 public:
 
@@ -601,6 +660,12 @@ public:
   TaskPolicy( const TaskPolicy &
             , const unsigned arg_default_dependence_capacity )
     : m_default_dependence_capacity( arg_default_dependence_capacity ) {}
+
+  TaskPolicy & operator = ( const TaskPolicy &rhs ) 
+    {
+      m_default_dependence_capacity = rhs.m_default_dependence_capacity;
+      return *this;
+    }
 
   //----------------------------------------
 
@@ -628,6 +693,22 @@ public:
       return Future< value_type , execution_space >(
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
         task_root_type::create< task_type >(
+          functor , ( ~0u == dependence_capacity ? m_default_dependence_capacity : dependence_capacity ) )
+#endif
+        );
+    }
+
+  template< class FunctorType >
+  KOKKOS_INLINE_FUNCTION
+  Future< typename FunctorType::value_type , execution_space >
+  create_team( const FunctorType & functor
+             , const unsigned dependence_capacity = ~0u ) const
+    {
+      typedef typename FunctorType::value_type value_type ;
+      typedef Impl::TaskMember< execution_space , value_type , FunctorType >  task_type ;
+      return Future< value_type , execution_space >(
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+        task_root_type::create_team< task_type >(
           functor , ( ~0u == dependence_capacity ? m_default_dependence_capacity : dependence_capacity ) )
 #endif
         );
@@ -676,10 +757,10 @@ public:
   KOKKOS_INLINE_FUNCTION
   void add_dependence( const Future<A1,A2> & after
                      , const Future<A3,A4> & before
-                     , typename Impl::enable_if
-                        < Impl::is_same< typename Future<A1,A2>::execution_space , execution_space >::value
+                     , typename Kokkos::Impl::enable_if
+                        < Kokkos::Impl::is_same< typename Future<A1,A2>::execution_space , execution_space >::value
                           &&
-                          Impl::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
+                          Kokkos::Impl::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
                         >::type * = 0
                       ) const
     {
@@ -726,8 +807,8 @@ public:
   KOKKOS_INLINE_FUNCTION
   void add_dependence( FunctorType * task_functor
                      , const Future<A3,A4> & before
-                     , typename Impl::enable_if
-                        < Impl::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
+                     , typename Kokkos::Impl::enable_if
+                        < Kokkos::Impl::is_same< typename Future<A3,A4>::execution_space , execution_space >::value
                         >::type * = 0
                       ) const
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
@@ -744,16 +825,17 @@ public:
 #else
     {}
 #endif
+
+  //----------------------------------------
+
+  static member_type & member_single();
 };
 
 inline
 void wait( TaskPolicy< Kokkos::Serial > & )
 { Impl::TaskMember< Kokkos::Serial , void , void >::execute_ready_tasks(); }
 
-inline
-void wait( const Future< void , Kokkos::Serial > & future )
-{ Impl::TaskMember< Kokkos::Serial , void , void >::wait( future ); }
-
+} /* namespace Experimental */
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------

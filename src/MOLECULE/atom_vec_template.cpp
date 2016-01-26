@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "atom_vec_template.h"
 #include "atom.h"
 #include "molecule.h"
@@ -750,7 +750,7 @@ void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
 
   if (molindex[nlocal] < 0 || molindex[nlocal] >= nset)
     error->one(FLERR,"Invalid template index in Atoms section of data file");
-  if (molatom[nlocal] < 0 || 
+  if (molatom[nlocal] < 0 ||
       molatom[nlocal] >= onemols[molindex[nlocal]]->natoms)
     error->one(FLERR,"Invalid template atom in Atoms section of data file");
 
@@ -826,7 +826,7 @@ int AtomVecTemplate::pack_data_hybrid(int i, double *buf)
 void AtomVecTemplate::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT " " TAGINT_FORMAT 
+    fprintf(fp,TAGINT_FORMAT " " TAGINT_FORMAT
             " %d %d %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
             (int) ubuf(buf[i][2]).i,(int) ubuf(buf[i][3]).i,

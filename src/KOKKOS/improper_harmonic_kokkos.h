@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef DIHEDRAL_CLASS
+#ifdef IMPROPER_CLASS
 
 ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>)
 ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>)
@@ -59,9 +59,9 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
                           const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const;
 
  protected:
-  
+
   class NeighborKokkos *neighborKK;
- 
+
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_2d improperlist;

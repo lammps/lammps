@@ -29,6 +29,7 @@ class Pair : protected Pointers {
   friend class FixGPU;
   friend class FixOMP;
   friend class ThrOMP;
+  friend class Info;
 
  public:
   static int instance_total;     // # of Pair classes ever instantiated
@@ -99,6 +100,8 @@ class Pair : protected Pointers {
   unsigned int datamask;
   unsigned int datamask_ext;
 
+  int allocated;                 // 0/1 = whether arrays are allocated
+                                 //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
 
   // KOKKOS host/device flag and data masks
@@ -113,6 +116,7 @@ class Pair : protected Pointers {
 
   void init();
   virtual void reinit();
+  virtual void setup() {}
   double mix_energy(double, double, double, double);
   double mix_distance(double, double);
   void write_file(int, char **);
@@ -141,7 +145,7 @@ class Pair : protected Pointers {
   virtual void compute_outer(int, int) {}
 
   virtual double single(int, int, int, int,
-                        double, double, double, 
+                        double, double, double,
 			double& fforce) {
     fforce = 0.0;
     return 0.0;
@@ -188,7 +192,7 @@ class Pair : protected Pointers {
 
   // management of callbacks to be run from ev_tally()
 
- private:
+ protected:
   int num_tally_compute;
   class Compute **list_tally_compute;
  public:
@@ -202,7 +206,6 @@ class Pair : protected Pointers {
 
   int special_lj[4];           // copied from force->special_lj for Kokkos
 
-  int allocated;               // 0/1 = whether arrays are allocated
   int suffix_flag;             // suffix compatibility flag
 
                                        // pair_modify settings
@@ -234,6 +237,17 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int,
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
+
+  // union data struct for packing 32-bit and 64-bit ints into double bufs
+  // see atom_vec.h for documentation
+
+  union ubuf {
+    double d;
+    int64_t i;
+    ubuf(double arg) : d(arg) {}
+    ubuf(int64_t arg) : i(arg) {}
+    ubuf(int arg) : i(arg) {}
+  };
 
   inline int sbmask(int j) {
     return j >> SBBITS & 3;
@@ -277,10 +291,10 @@ This is likely not what you want to do.  The exclusion settings will
 eliminate neighbors in the neighbor list, which the manybody potential
 needs to calculated its terms correctly.
 
-E: Not all pair coeffs are set
+E: All pair coeffs are not set
 
-Pair coefficients must be set for all pairs of atom types in either the
-data file or by the pair_coeff command before running a simulation.
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
 E: Fix adapt interface to this pair style not supported
 

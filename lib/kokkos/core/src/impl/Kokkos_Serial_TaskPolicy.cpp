@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -55,6 +55,20 @@
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+namespace Experimental {
+
+TaskPolicy< Kokkos::Serial >::member_type &
+TaskPolicy< Kokkos::Serial >::member_single()
+{
+  static member_type s(0,1,0); 
+  return s ;
+}
+
+} // namespace Experimental
+} // namespace Kokkos
+
+namespace Kokkos {
+namespace Experimental {
 namespace Impl {
 
 typedef TaskMember<  Kokkos::Serial , void , void > Task ;
@@ -149,7 +163,7 @@ void Task::throw_error_verify_type()
 
 void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
 {
-  static const char msg_error_header[]      = "Kokkos::Impl::TaskManager<Kokkos::Serial>::assign ERROR" ;
+  static const char msg_error_header[]      = "Kokkos::Experimental::Impl::TaskManager<Kokkos::Serial>::assign ERROR" ;
   static const char msg_error_count[]       = ": negative reference count" ;
   static const char msg_error_complete[]    = ": destroy task that is not complete" ;
   static const char msg_error_dependences[] = ": destroy task that has dependences" ;
@@ -168,7 +182,7 @@ void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
         // Reference count at zero, delete it
 
         // Should only be deallocating a completed task
-        if ( (**lhs).m_state == Kokkos::TASK_STATE_COMPLETE ) {
+        if ( (**lhs).m_state == Kokkos::Experimental::TASK_STATE_COMPLETE ) {
 
           // A completed task should not have dependences...
           for ( int i = 0 ; i < (**lhs).m_dep_size && 0 == msg_error ; ++i ) {
@@ -216,7 +230,7 @@ void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
 namespace {
 
 Task * s_ready = 0 ;
-Task * s_denied = reinterpret_cast<Task*>( ~((unsigned long)0) );
+Task * s_denied = reinterpret_cast<Task*>( ~((uintptr_t)0) );
 
 }
 
@@ -240,7 +254,7 @@ void Task::schedule()
 
     // Will be waiting for execution upon return from this function
 
-    m_state = Kokkos::TASK_STATE_WAITING ;
+    m_state = Kokkos::Experimental::TASK_STATE_WAITING ;
 
     // Insert this task into another dependence that is not complete
 
@@ -259,7 +273,7 @@ void Task::schedule()
     }
   }
   else {
-    throw std::runtime_error(std::string("Kokkos::Impl::Task spawn or respawn state error"));
+    throw std::runtime_error(std::string("Kokkos::Experimental::Impl::Task spawn or respawn state error"));
   }
 }
 
@@ -282,13 +296,13 @@ void Task::execute_ready_tasks()
     // precondition: does not exist T such that T->m_wait = task
     // precondition: does not exist T such that T->m_next = task
 
-    task->m_state = Kokkos::TASK_STATE_EXECUTING ;
+    task->m_state = Kokkos::Experimental::TASK_STATE_EXECUTING ;
 
     (*task->m_apply)( task );
 
-    if ( task->m_state == Kokkos::TASK_STATE_EXECUTING ) {
+    if ( task->m_state == Kokkos::Experimental::TASK_STATE_EXECUTING ) {
       // task did not respawn itself
-      task->m_state = Kokkos::TASK_STATE_COMPLETE ;
+      task->m_state = Kokkos::Experimental::TASK_STATE_COMPLETE ;
 
       // release dependences:
       for ( int i = 0 ; i < task->m_dep_size ; ++i ) {
@@ -315,10 +329,8 @@ void Task::execute_ready_tasks()
   }
 }
 
-void Task::wait( const Future< void , Kokkos::Serial > & )
-{ execute_ready_tasks(); }
-
 } // namespace Impl
+} // namespace Experimental
 } // namespace Kokkos
 
 #endif // defined( KOKKOS_HAVE_SERIAL )

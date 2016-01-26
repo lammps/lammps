@@ -22,7 +22,7 @@
 #define LMP_POINTERS_H
 
 #include "lmptype.h"
-#include "mpi.h"
+#include <mpi.h>
 #include "lammps.h"
 
 namespace LAMMPS_NS {

@@ -129,7 +129,7 @@ public:
   typedef View< typename traits::const_data_type ,
                 typename traits::array_layout ,
                 typename traits::device_type ,
-                MemoryRandomAccess > t_dev_const_randomread ;
+                Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_dev_const_randomread ;
 
   /// \typedef t_host_const_randomread
   /// \brief The type of a const, random-access View host mirror of
@@ -159,6 +159,17 @@ public:
                typename t_host::array_layout,
                typename t_host::device_type,
                MemoryUnmanaged> t_host_const_um;
+
+  //! The type of a const, random-access View on the device.
+  typedef View< typename t_host::const_data_type ,
+                typename t_host::array_layout ,
+                typename t_host::device_type ,
+                Kokkos::MemoryTraits<Kokkos::Unmanaged|Kokkos::RandomAccess> > t_dev_const_randomread_um ;
+
+  /// \typedef t_host_const_randomread
+  /// \brief The type of a const, random-access View host mirror of
+  ///   \c t_dev_const_randomread.
+  typedef typename t_dev_const_randomread::HostMirror t_host_const_randomread_um;
 
   //@}
   //! \name The two View instances.
@@ -253,7 +264,7 @@ public:
 #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
     Impl::assert_shapes_are_equal (d_view.shape (), h_view.shape ());
 #else
-    if ( d_view.rank          != h_view.rank ||
+    if ( int(d_view.rank)     != int(h_view.rank) ||
          d_view.dimension_0() != h_view.dimension_0() ||
          d_view.dimension_1() != h_view.dimension_1() ||
          d_view.dimension_2() != h_view.dimension_2() ||

@@ -118,9 +118,9 @@ void PairTersoffKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairTersoffKokkos<DeviceType>::setup()
+void PairTersoffKokkos<DeviceType>::setup_params()
 {
-  PairTersoff::setup();
+  PairTersoff::setup_params();
 
   int i,j,k,m;
   int n = atom->ntypes;

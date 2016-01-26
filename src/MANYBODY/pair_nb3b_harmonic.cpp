@@ -228,7 +228,7 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
-  setup();
+  setup_params();
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -399,7 +399,7 @@ void PairNb3bHarmonic::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairNb3bHarmonic::setup()
+void PairNb3bHarmonic::setup_params()
 {
   int i,j,k,m,n;
   double rtmp;

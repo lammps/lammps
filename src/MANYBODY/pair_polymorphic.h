@@ -278,7 +278,7 @@ class PairPolymorphic : public Pair {
   void grab(FILE *, int, double *);
 
   virtual void read_file(char *);
-  void setup();
+  void setup_params();
   void write_tables(int);
 
   void attractive(PairParameters *, TripletParameters *, double, double,

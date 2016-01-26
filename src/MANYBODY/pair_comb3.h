@@ -135,7 +135,7 @@ class PairComb3 : public Pair {
   // initialization functions
   void allocate();
   void read_lib();
-  void setup();
+  void setup_params();
   virtual void read_file(char *);
 
   // cutoff functions

@@ -31,7 +31,7 @@ class PairTersoffMOD : public PairTersoff {
 
  protected:
   void read_file(char *);
-  virtual void setup();
+  virtual void setup_params();
   double zeta(Param *, double, double, double *, double *);
 
   double ters_fc(double, Param *);

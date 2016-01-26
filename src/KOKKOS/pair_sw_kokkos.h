@@ -106,7 +106,7 @@ class PairSWKokkos : public PairSW {
 
   t_param_1d d_params;
 
-  virtual void setup();
+  virtual void setup_params();
   void twobody(const Param&, const F_FLOAT&, F_FLOAT&, const int&, F_FLOAT&) const;
   void threebody(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                  F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;

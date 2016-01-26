@@ -68,7 +68,7 @@ class PairTersoffTable : public Pair {
   void allocate();
 
   void read_file(char *);
-  void setup();
+  void setup_params();
 
   // pre-loop coordination functions
 

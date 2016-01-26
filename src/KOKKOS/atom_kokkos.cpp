@@ -253,3 +253,11 @@ void AtomKokkos::sync_modify(ExecutionSpace execution_space,
   sync(execution_space,datamask_read);
   modified(execution_space,datamask_modify);
 }
+
+AtomVec *AtomKokkos::new_avec(const char *style, int trysuffix, int &sflag)
+{
+  AtomVec* avec = Atom::new_avec(style,trysuffix,sflag);
+  if (!avec->kokkosable)
+    error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
+  return avec;
+}

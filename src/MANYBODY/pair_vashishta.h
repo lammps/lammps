@@ -57,7 +57,7 @@ class PairVashishta : public Pair {
 
   virtual void allocate();
   void read_file(char *);
-  void setup();
+  void setup_params();
   void twobody(Param *, double, double &, int, double &);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);

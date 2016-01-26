@@ -512,6 +512,8 @@ void CommKokkos::exchange_device()
 
       k_exchange_copylist.modify<LMPHostType>();
       k_exchange_copylist.sync<DeviceType>();
+      nsend = k_count.h_view(0);
+      if (nsend > maxsend) grow_send_kokkos(nsend,1);
       nsend =
         avec->pack_exchange_kokkos(k_count.h_view(0),k_buf_send,
                                    k_exchange_sendlist,k_exchange_copylist,

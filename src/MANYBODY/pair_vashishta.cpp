@@ -273,7 +273,7 @@ void PairVashishta::coeff(int narg, char **arg)
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
-  setup();
+  setup_params();
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -458,7 +458,7 @@ void PairVashishta::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishta::setup()
+void PairVashishta::setup_params()
 {
   int i,j,k,m,n;
 

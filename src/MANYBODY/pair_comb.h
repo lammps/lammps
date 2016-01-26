@@ -87,7 +87,7 @@ class PairComb : public Pair {
 
   void allocate();
   virtual void read_file(char *);
-  void setup();
+  void setup_params();
   virtual void repulsive(Param *, double, double &, int,
                          double &, double, double);
   double zeta(Param *, double, double, double *, double *);

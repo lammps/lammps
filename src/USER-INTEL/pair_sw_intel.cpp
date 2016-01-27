@@ -559,12 +559,18 @@ void PairSWIntel::eval(const int offload, const int vflag,
         f[i].z += fztmp;
         IP_PRE_ev_tally_atom(EVFLAG, EFLAG, vflag, f, fwtmp);
       } // for ii
-      #if defined(_OPENMP)
-      #pragma omp barrier
+
+      #ifndef _LMP_INTEL_OFFLOAD
+      if (vflag == 2)
       #endif
-      IP_PRE_fdotr_acc_force(1, EVFLAG,  EFLAG, vflag, eatom, nall,
-                             nlocal, minlocal, nthreads, f_start, f_stride,
-                             x);
+      {
+        #if defined(_OPENMP)
+        #pragma omp barrier
+        #endif
+        IP_PRE_fdotr_acc_force(1, EVFLAG,  EFLAG, vflag, eatom, nall,
+			       nlocal, minlocal, nthreads, f_start, f_stride,
+			       x, offload);
+      }
     } // end omp
     if (EVFLAG) {
       if (EFLAG) {
@@ -590,7 +596,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload, eatom);
+    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
 }
@@ -677,7 +683,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
     in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
     in(ccachex,ccachey,ccachez,ccachew:length(0) alloc_if(0) free_if(0)) \
-    in(ccachei,ccachej:length(0) alloc_if(0) free_if(0)) \
+    in(ccachei,ccachej,ccachef:length(0) alloc_if(0) free_if(0)) \
     in(ccache_stride,nthreads,inum,nall,ntypes,vflag,eatom,offload) \
     in(astart,nlocal,f_stride,minlocal,separate_flag,pad_width) \
     in(ccache_stride3)						\
@@ -852,7 +858,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 
 	const int ejnum_max = SIMD_max(ejnum);
 	const int ejnumhalf_max = SIMD_max(ejnumhalf);
-	memset(tf, 0, ejnum_max * sizeof(double) * swidth * 3);
+	memset(tf, 0, ejnum_max * sizeof(acc_t) * swidth * 3);
         for (int jj = 0; jj < ejnum_max; jj++) {
           SIMD_int ijtype;
 	  const int coffset = jj * swidth;
@@ -1006,9 +1012,15 @@ void PairSWIntel::eval(const int offload, const int vflag,
 			    tf + kcoffset * 3, swidth); 
 
 	    if (EVFLAG) {
-	      if (EFLAG)
+	      if (EFLAG) {
+		SIMD_int k;
+		if (eatom) {
+		  k = SIMD_load(tj + kcoffset);
+		  k = k << 4;
+		}
 		SIMD_acc_three(kmask, facrad, eatom, sevdwl, fwtmp, fjtmp,
-			       fwtmp2, fjtmp2);
+			       fwtmp2, fjtmp2, k, &(f[0].x));
+	      }
 	      SIMD_ev_tally_nbor3v(kmask, vflag, fjx, fjy, fjz, fkx, fky, fkz,
 				   delx, dely, delz, delr2x, delr2y, delr2z,
 				   sv0, sv1, sv2, sv3, sv4, sv5);
@@ -1021,8 +1033,15 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	    SIMD_cache3(tf + coffset * 3, swidth, fjxtmp, fjytmp, fjztmp, 
 	                fjxtmp2, fjytmp2, fjztmp2);
 
-	  //if (EFLAG)
-	  //  if (eatom) f[j].w += fjtmp;
+	  if (EFLAG) {
+	    if (eatom) { 
+	      SIMD_int j = SIMD_load(tj + coffset);
+	      j = j << 4;
+	      SIMD_jeng_update(jmask, &(f[0].x) + 3, j, fjtmp);
+	      if (is_same<flt_t,acc_t>::value == 0)
+		SIMD_jeng_update_hi(jmask, &(f[0].x) + 3, j, fjtmp2);
+	    }
+	  }
         } // for jj first loop
 
         for (int jj = 0; jj < ejnum_max; jj++) {
@@ -1066,15 +1085,15 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	  }
 	} // for jj second loop
 
-	SIMD_iforce_update(imask, &(f[i].x), goffset, fxtmp, fytmp, fztmp);
+	SIMD_iforce_update(imask, &(f[i].x), goffset, fxtmp, fytmp, fztmp,
+			   EVFLAG, eatom, fwtmp);
 	if (is_same<flt_t,acc_t>::value == 0) {
 	  imask = imask >> 8;
 	  SIMD_iforce_update(imask, &(f[i+8].x), goffset, fxtmp2, fytmp2, 
-			     fztmp2);
+			     fztmp2, EVFLAG, eatom, fwtmp2);
 	}
 	if (EVFLAG) {
 	  if (EFLAG) oevdwl += SIMD_sum(sevdwl);
-	  // f[i].w
 	  if (vflag == 1) {
 	    ov0 += SIMD_sum(sv0);
 	    ov1 += SIMD_sum(sv1);
@@ -1086,11 +1105,18 @@ void PairSWIntel::eval(const int offload, const int vflag,
 	}
 	ilist = ilist + swidth;
       } // for ii
-      #if defined(_OPENMP)
-      #pragma omp barrier
+
+      #ifndef _LMP_INTEL_OFFLOAD
+      if (vflag == 2)
       #endif
-      IP_PRE_fdotr_acc_force(1, EVFLAG,  EFLAG, vflag, eatom, nall, nlocal, 
-	                     minlocal, nthreads, f_start, f_stride, x);
+      {
+        #if defined(_OPENMP)
+        #pragma omp barrier
+        #endif
+        IP_PRE_fdotr_acc_force(1, EVFLAG,  EFLAG, vflag, eatom, nall, nlocal, 
+			       minlocal, nthreads, f_start, f_stride, x, 
+			       offload);
+      }
     } // end omp
   
     if (EVFLAG) {
@@ -1117,7 +1143,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload, eatom);
+    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
 }

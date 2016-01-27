@@ -60,6 +60,7 @@ NeighborKokkos::~NeighborKokkos()
     delete [] pair_build_device;
     delete [] pair_build_host;
 
+    memory->destroy_kokkos(k_ex_type,ex_type);
     memory->destroy_kokkos(k_ex1_type,ex1_type);
     memory->destroy_kokkos(k_ex2_type,ex2_type);
     memory->destroy_kokkos(k_ex1_group,ex1_group);

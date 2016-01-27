@@ -21,9 +21,7 @@ IntegrateStyle(verlet/intel,VerletIntel)
 #define LMP_VERLET_INTEL_H
 
 #include "integrate.h"
-#ifdef LMP_INTEL_OFFLOAD
 #include "fix_intel.h"
-#endif
 
 namespace LAMMPS_NS {
 
@@ -42,8 +40,9 @@ class VerletIntel : public Integrate {
   int torqueflag,extraflag;
 
   virtual void force_clear();
-  #ifdef _LMP_INTEL_OFFLOAD
+
   FixIntel *fix_intel;
+  #ifdef _LMP_INTEL_OFFLOAD
   int sync_mode;
   #endif
 };

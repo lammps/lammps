@@ -298,7 +298,7 @@ class IntelBuffers {
   quat_t *_host_quat;
   vec3_acc_t *_off_f;
   int _off_map_nmax, _off_map_maxhead, _cop, _off_ccache;
-  int *_off_map_ilist;
+  int *_off_map_ilist, *_off_map_special_flag;
   int *_off_map_stencil, *_off_map_special, *_off_map_nspecial, *_off_map_tag;
   int *_off_map_binhead, *_off_map_bins, *_off_map_numneigh;
   bool _off_list_alloc;

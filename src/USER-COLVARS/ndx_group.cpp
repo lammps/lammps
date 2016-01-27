@@ -120,7 +120,8 @@ void Ndx2Group::command(int narg, char **arg)
         // if we had processed a section, before we need to step back
         if (name != NULL) {
           rewind(fp);
-          find_section(fp,name);
+          char *tmp = find_section(fp,name);
+          delete[] tmp;
           delete[] name;
           name = NULL;
         }
@@ -171,6 +172,7 @@ void Ndx2Group::command(int narg, char **arg)
         len = 0;
 
         // find named section, search from beginning of file
+        if (name != NULL) delete[] name;
         rewind(fp);
         name = find_section(fp,arg[idx]);
         if (name != NULL) len=strlen(name);

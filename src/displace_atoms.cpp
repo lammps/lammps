@@ -232,8 +232,16 @@ void DisplaceAtoms::command(int narg, char **arg)
     runit[2] = axis[2]/len;
 
     double angle = MY_PI*theta/180.0;
-    double sine = sin(angle);
     double cosine = cos(angle);
+    double sine = sin(angle);
+
+    double qcosine = cos(0.5*angle);
+    double qsine = sin(0.5*angle);
+    qrotate[0] = qcosine;
+    qrotate[1] = runit[0]*qsine;
+    qrotate[2] = runit[1]*qsine;
+    qrotate[3] = runit[2]*qsine;
+
     double ddotr;
 
     // flags for additional orientation info stored by some atom styles
@@ -304,10 +312,6 @@ void DisplaceAtoms::command(int narg, char **arg)
           else if (body_flag && body[i] >= 0)
             quat = avec_body->bonus[body[i]].quat;
           if (quat) {
-            qrotate[0] = cosine;
-            qrotate[1] = runit[0]*sine;
-            qrotate[2] = runit[1]*sine;
-            qrotate[3] = runit[2]*sine;
             MathExtra::quatquat(qrotate,quat,qnew);
             quat[0] = qnew[0];
             quat[1] = qnew[1];

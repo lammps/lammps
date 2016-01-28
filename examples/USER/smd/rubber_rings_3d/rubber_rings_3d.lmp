@@ -50,7 +50,7 @@ group           tlsph union left right
 variable        l0 equal 0.3 # we need to set a length scale for the neighbor list skin
 variable        skin equal 4.0*${l0} # Verlet list range
 neighbor        ${skin} bin
-set             group all smd_contact_radius 1.0
+set             group all smd/contact/radius 1.0
 
 
 ####################################################################################################

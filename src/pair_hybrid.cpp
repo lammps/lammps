@@ -42,6 +42,9 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
 
   outerflag = 0;
   respaflag = 0;
+
+  if (lmp->kokkos)
+    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */

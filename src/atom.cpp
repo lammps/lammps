@@ -93,6 +93,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = e = de = cv = NULL;
   vest = NULL;
 
+  // USER-DPD
+
+  uCond = uMech = uChem = uCG = uCGnew = NULL;
+  duCond = duMech = duChem = NULL;
+  dpdTheta = NULL;
+
   // USER-SMD
 
   contact_radius = NULL;
@@ -157,6 +163,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
   rho_flag = e_flag = cv_flag = vest_flag = 0;
+  dpd_flag = 0;
 
   // USER-SMD
 
@@ -272,6 +279,16 @@ Atom::~Atom()
   memory->destroy(eff_plastic_strain);
   memory->destroy(eff_plastic_strain_rate);
   memory->destroy(damage);
+
+  memory->destroy(dpdTheta);
+  memory->destroy(uCond);
+  memory->destroy(uMech);
+  memory->destroy(uChem);
+  memory->destroy(uCG);
+  memory->destroy(uCGnew);
+  memory->destroy(duCond);
+  memory->destroy(duMech);
+  memory->destroy(duChem);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -2104,6 +2121,8 @@ void *Atom::extract(char *name)
   if (strcmp(name, "eff_plastic_strain_rate") == 0)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
+
+  if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
 
   return NULL;
 }

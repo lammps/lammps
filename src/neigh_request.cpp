@@ -48,6 +48,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default is no CUDA neighbor list build
   // default is no multi-threaded neighbor list build
   // default is no Kokkos neighbor list build
+  // default is no Shardlow Splitting Algorithm (SSA) neighbor list build
 
   occasional = 0;
   newton = 0;
@@ -58,6 +59,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   omp = 0;
   intel = 0;
   kokkos_host = kokkos_device = 0;
+  ssa = 0;
 
   // default is no copy or skip
 
@@ -133,6 +135,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (cudable != other->cudable) same = 0;
   if (omp != other->omp) same = 0;
   if (intel != other->intel) same = 0;
+  if (ssa != other->ssa) same = 0;
 
   if (copy != other->copy_original) same = 0;
   if (same_skip(other) == 0) same = 0;
@@ -163,6 +166,7 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (cudable != other->cudable) same = 0;
   if (omp != other->omp) same = 0;
   if (intel != other->intel) same = 0;
+  if (ssa != other->ssa) same = 0;
 
   return same;
 }
@@ -214,4 +218,5 @@ void NeighRequest::copy_request(NeighRequest *other)
   cudable = other->cudable;
   omp = other->omp;
   intel = other->intel;
+  ssa = other->ssa;
 }

@@ -37,6 +37,7 @@ class FixPour : public Fix {
  private:
   int ninsert,ntype,seed;
   int iregion,mode,idnext,dstyle,npoly,rigidflag,shakeflag;
+  int ignoreflag,ignoreline,ignoretri;
   double radius_one,radius_max;
   double radius_lo,radius_hi;
   double *radius_poly,*frac_poly;

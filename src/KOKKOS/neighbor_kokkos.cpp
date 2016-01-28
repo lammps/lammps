@@ -420,7 +420,8 @@ void NeighborKokkos::build_kokkos(int topoflag)
     x = atomKK->k_x;
     int nlocal = atom->nlocal;
     if (includegroup) nlocal = atom->nfirst;
-    if (nlocal > maxhold) {
+    int maxhold_kokkos = xhold.view<DeviceType>().dimension_0();
+    if (nlocal > maxhold || maxhold_kokkos < maxhold) {
       maxhold = atom->nmax;
       xhold = DAT::tdual_x_array("neigh:xhold",maxhold);
     }

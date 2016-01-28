@@ -45,7 +45,8 @@ class DumpImage : public DumpCustom {
   int lcolor,ldiam;                // what determines color/diam of lines
   double ldiamvalue;               // line diameter value
   int triflag;                     // 0/1 for draw atoms as triangles
-  int tcolor;                      // what determines color of tris
+  int tcolor,tstyle;               // what determines color/style of tris
+  double tdiamvalue;               // tri edge diameter value
   int bodyflag;                    // 0/1 for draw atoms as bodies
   int bodycolor;                   // what determines color of bodies
   double bodyflag1,bodyflag2;      // user-specified params for drawing bodies

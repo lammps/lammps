@@ -1350,8 +1350,7 @@ void PairSMTBQ::tabqeq()
   //   ofstream fichier("tabqeq.txt", ios::out | ios::trunc) ;
   // -------------------
 
-  double pi,mu;
-  pi = 4.0*atan(1.0);
+  double mu;
 
   mu = erfc(alf*rc)/rc ;
 
@@ -1366,10 +1365,10 @@ void PairSMTBQ::tabqeq()
       potqn[k] = 14.4*(erfc(alf*r)/r - mu) ;
 
       // $$$ Here is (1/r)*dE/dr
-      dpotqn[k] = -14.4*( (erfc(alf*r)/(r*r) + 2.0*alf/sqrt(pi)/r*exp(-alf*alf*r*r))/r  ) ;
+      dpotqn[k] = -14.4*( (erfc(alf*r)/(r*r) + 2.0*alf/MY_PIS/r*exp(-alf*alf*r*r))/r  ) ;
     }
 
-  Vself = -14.4*(alf/sqrt(pi) + mu*0.5) ;
+  Vself = -14.4*(alf/MY_PIS + mu*0.5) ;
 
   // --------------------
   // default arrays to zero
@@ -1424,7 +1423,7 @@ void PairSMTBQ::tabqeq()
         {
           gam = dgam = dza = dzb = d2zaa = d2zab =
             d2zbb = d2zra = d2zrb = d2gamr2 = 0.0 ;
-          dij = 0.0 ;
+          aCoeff = bCoeff = dij = 0.0 ;
 
           s = static_cast<double>(k)*ds ; r = sqrt(s) ;
           if (k==0) r=10e-30;
@@ -2316,7 +2315,7 @@ void PairSMTBQ::QForce_charge(int loop)
   double rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double iq,jq,fqi,fqj,fqij,fqij2,fqjj;
-  int eflag;
+  int eflag = 0;
 
 
   double **x = atom->x;

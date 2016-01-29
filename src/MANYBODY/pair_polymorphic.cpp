@@ -696,7 +696,7 @@ void PairPolymorphic::read_file(char *file)
     p.P = new tabularFunction(nr,-cutmax,cutmax);
     (p.P)->set_values(nr,-cutmax,cutmax,singletable,epsilon);
   }
-  delete singletable;
+  delete[] singletable;
   singletable = new double[ng];
   for (int i = 0; i < ntriple; i++) { // G
     TripletParameters & p = tripletParameters[i];
@@ -707,7 +707,7 @@ void PairPolymorphic::read_file(char *file)
     p.G = new tabularFunction(ng,-1.0,1.0);
     (p.G)->set_values(ng,-1.0,1.0,singletable,epsilon);
   }
-  delete singletable;
+  delete[] singletable;
   singletable = new double[nx];
   for (int i = 0; i < npair; i++) { // F
     PairParameters & p = pairParameters[i];
@@ -718,7 +718,7 @@ void PairPolymorphic::read_file(char *file)
     p.F = new tabularFunction(nx,0.0,maxX);
     (p.F)->set_values(nx,0.0,maxX,singletable,epsilon);
   }
-  delete singletable;
+  delete[] singletable;
   if (comm->me == 0) {
     fclose(fp);
   }

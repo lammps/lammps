@@ -314,7 +314,7 @@ double FixQEqFire::compute_eneg()
 int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
                           int pbc_flag, int *pbc)
 {
-  int m;
+  int m = 0;
 
   if( pack_flag == 1 )
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];

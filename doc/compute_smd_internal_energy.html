@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute smd/internal_energy command &mdash; LAMMPS documentation</title>
+  <title>compute smd/internal/energy command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute smd/internal_energy command</li>
+    <li>compute smd/internal/energy command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -125,40 +125,42 @@
            <div itemprop="articleBody">
             
   <div class="section" id="compute-smd-internal-energy-command">
-<span id="index-0"></span><h1>compute smd/internal_energy command<a class="headerlink" href="#compute-smd-internal-energy-command" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>compute smd/internal/energy command<a class="headerlink" href="#compute-smd-internal-energy-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/internal_energy
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/internal/energy
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>smd/smd/internal_energy = style name of this compute command</li>
+<li>smd/smd/internal/energy = style name of this compute command</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/internal_energy
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/internal/energy
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation which outputs the per-particle enthalpy, i.e., the sum of potential energy and heat.</p>
-<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth Mach Dynamics in LAMMPS.</p>
+<p>Define a computation which outputs the per-particle enthalpy, i.e.,
+the sum of potential energy and heat.</p>
+<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth
+Mach Dynamics in LAMMPS.</p>
 <p><strong>Output Info:</strong></p>
-<p>This compute calculates a per-particle vector, which can be accessed by
-any command that uses per-particle values from a compute as input.  See
-<a class="reference internal" href="Section_howto.html#howto-15"><span>How-to discussions, section 6.15</span></a>
-for an overview of LAMMPS output options.</p>
+<p>This compute calculates a per-particle vector, which can be accessed
+by any command that uses per-particle values from a compute as input.
+See <a class="reference internal" href="Section_howto.html#howto-15"><span>How-to discussions, section 6.15</span></a> for
+an overview of LAMMPS output options.</p>
 <p>The per-particle vector values will be given in <a class="reference internal" href="units.html"><em>units</em></a> of energy.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
-section for more info. This compute can only be used for particles which interact via the
-updated Lagrangian or total Lagrangian SPH pair styles.</p>
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info. This compute
+can only be used for particles which interact via the updated
+Lagrangian or total Lagrangian SPH pair styles.</p>
 <p><strong>Related Commands:</strong></p>
 </div>
 <div class="section" id="default">

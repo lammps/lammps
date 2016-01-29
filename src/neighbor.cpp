@@ -2017,8 +2017,8 @@ void Neighbor::bin_atoms()
 
   // NOTE: added for USER-DPD, why do we need this?
 
-  if (last_binning_timestep == update->ntimestep) return;
-  last_binning_timestep = update->ntimestep;
+  //if (last_binning_timestep == update->ntimestep) return;
+  //last_binning_timestep = update->ntimestep;
 
   for (i = 0; i < mbins; i++) binhead[i] = -1;
 

@@ -31,8 +31,10 @@ keyword = {atom} or {adiam} or {bond} or {line} or {tri} or {body} or {size} or 
   {line} = color width
     color = {type}
     width = numeric value for line width (distance units)
-  {tri} = color
+  {tri} = color tflag width
     color = {type}
+    tflag = 1 for just triangle, 2 for just tri edges, 3 for both
+    width = numeric value for tringle edge width (distance units)
   {body} = color bflag1 bflag2
     color = {type}
     bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
@@ -317,12 +319,14 @@ is in whatever distance "units"_units.html the input script defines,
 e.g. Angstroms.
 
 The {tri} keyword can be used when "atom_style tri"_atom_style.html is
-used to define particles as triangles, and will draw them as
-triangles.  If this keyword is not used, such particles will be drawn
-as spheres, the same as if they were regular atoms.  The only setting
-currently allowed for the {color} value is {type}, which will color
-the triangles according to the atom type of the particle.  By default
-the mapping of types to colors is as follows:
+used to define particles as triangles, and will draw them as triangles
+or edges (3 lines) or both, depending on the setting for {tflag}.  If
+edges are drawn, the {width} setting determines the diameters of the
+line segments.  If this keyword is not used, triangle particles will
+be drawn as spheres, the same as if they were regular atoms.  The only
+setting currently allowed for the {color} value is {type}, which will
+color the triangles according to the atom type of the particle.  By
+default the mapping of types to colors is as follows:
 
 type 1 = red
 type 2 = green

@@ -54,9 +54,9 @@ variable 	vol_one equal ${l0}^3 # volume of one particle -- assuming unit thickn
 variable 	skin equal 0.1*${h} # Verlet list range
 neighbor        ${skin} bin
 variable        cr equal ${l0}/2
-set             group all smd_contact_radius ${cr}
+set             group all smd/contact/radius ${cr}
 set 		group all volume ${vol_one}
-set             group all smd_mass_density ${rho}
+set             group all smd/mass/density ${rho}
 set 		group all diameter ${h} # set SPH kernel radius
 
 ####################################################################################################

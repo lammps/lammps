@@ -155,8 +155,10 @@
 <em>line</em> = color width
   color = <em>type</em>
   width = numeric value for line width (distance units)
-<em>tri</em> = color
+<em>tri</em> = color tflag width
   color = <em>type</em>
+  tflag = 1 for just triangle, 2 for just tri edges, 3 for both
+  width = numeric value for tringle edge width (distance units)
 <em>body</em> = color bflag1 bflag2
   color = <em>type</em>
   bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
@@ -421,12 +423,14 @@ lines will be drawn as cylinders with that diameter, e.g. 1.0, which
 is in whatever distance <a class="reference internal" href="units.html"><em>units</em></a> the input script defines,
 e.g. Angstroms.</p>
 <p>The <em>tri</em> keyword can be used when <a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> is
-used to define particles as triangles, and will draw them as
-triangles.  If this keyword is not used, such particles will be drawn
-as spheres, the same as if they were regular atoms.  The only setting
-currently allowed for the <em>color</em> value is <em>type</em>, which will color
-the triangles according to the atom type of the particle.  By default
-the mapping of types to colors is as follows:</p>
+used to define particles as triangles, and will draw them as triangles
+or edges (3 lines) or both, depending on the setting for <em>tflag</em>.  If
+edges are drawn, the <em>width</em> setting determines the diameters of the
+line segments.  If this keyword is not used, triangle particles will
+be drawn as spheres, the same as if they were regular atoms.  The only
+setting currently allowed for the <em>color</em> value is <em>type</em>, which will
+color the triangles according to the atom type of the particle.  By
+default the mapping of types to colors is as follows:</p>
 <ul class="simple">
 <li>type 1 = red</li>
 <li>type 2 = green</li>

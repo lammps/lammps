@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(smd/tlsph_stress, ComputeSMDTLSPHStress)
+ComputeStyle(smd/tlsph/stress, ComputeSMDTLSPHStress)
 
 #else
 

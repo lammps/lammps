@@ -147,7 +147,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   int newtonflag = 0;
   double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = 0;
-  exchange_comm_on_host = forward_comm_on_host = 1;
+  exchange_comm_on_host = forward_comm_on_host = 0;
 
   int iarg = 0;
   while (iarg < narg) {

@@ -178,11 +178,13 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"tri") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
       triflag = YES;
       if (strcmp(arg[iarg+1],"type") == 0) tcolor = TYPE;
       else error->all(FLERR,"Illegal dump image command");
-      iarg += 2;
+      tstyle = force->inumeric(FLERR,arg[iarg+2]);
+      tdiamvalue = force->numeric(FLERR,arg[iarg+3]);
+      iarg += 4;
 
     } else if (strcmp(arg[iarg],"body") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
@@ -806,11 +808,18 @@ void DumpImage::create_image()
   }
 
   // render atoms that are triangles
+  // tstyle = 1 for tri only, 2 for edges only, 3 for both
 
   if (triflag) {
+    int tridraw = 1;
+    if (tstyle == 2) tridraw = 0;
+    int edgedraw = 1;
+    if (tstyle == 1) edgedraw = 0;
+
     double **x = atom->x;
     int *tri = atom->tri;
     int *type = atom->type;
+
 
     for (i = 0; i < nchoose; i++) {
       j = clist[i];
@@ -828,7 +837,12 @@ void DumpImage::create_image()
       MathExtra::add3(pt2,x[i],pt2);
       MathExtra::add3(pt3,x[i],pt3);
 
-      image->draw_triangle(pt1,pt2,pt3,color);
+      if (tridraw) image->draw_triangle(pt1,pt2,pt3,color);
+      if (edgedraw) {
+        image->draw_cylinder(pt1,pt2,color,tdiamvalue,3);
+        image->draw_cylinder(pt2,pt3,color,tdiamvalue,3);
+        image->draw_cylinder(pt3,pt1,color,tdiamvalue,3);
+      }
     }
   }
 

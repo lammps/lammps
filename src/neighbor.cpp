@@ -402,8 +402,12 @@ void Neighbor::init()
   else exclude = 1;
 
   if (nex_type) {
-    memory->destroy(ex_type);
-    memory->create(ex_type,n+1,n+1,"neigh:ex_type");
+    if (lmp->kokkos)
+      init_ex_type_kokkos(n);
+    else {
+      memory->destroy(ex_type);
+      memory->create(ex_type,n+1,n+1,"neigh:ex_type");
+    }
 
     for (i = 1; i <= n; i++)
       for (j = 1; j <= n; j++)
@@ -419,10 +423,14 @@ void Neighbor::init()
   }
 
   if (nex_group) {
-    delete [] ex1_bit;
-    delete [] ex2_bit;
-    ex1_bit = new int[nex_group];
-    ex2_bit = new int[nex_group];
+    if (lmp->kokkos)
+      init_ex_bit_kokkos();
+    else {
+      delete [] ex1_bit;
+      delete [] ex2_bit;
+      ex1_bit = new int[nex_group];
+      ex2_bit = new int[nex_group];
+    }
 
     for (i = 0; i < nex_group; i++) {
       ex1_bit[i] = group->bitmask[ex1_group[i]];
@@ -431,8 +439,12 @@ void Neighbor::init()
   }
 
   if (nex_mol) {
-    delete [] ex_mol_bit;
-    ex_mol_bit = new int[nex_mol];
+    if (lmp->kokkos)
+      init_ex_mol_bit_kokkos();
+    else {
+      delete [] ex_mol_bit;
+      ex_mol_bit = new int[nex_mol];
+    }
 
     for (i = 0; i < nex_mol; i++)
       ex_mol_bit[i] = group->bitmask[ex_mol_group[i]];

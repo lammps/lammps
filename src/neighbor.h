@@ -187,6 +187,9 @@ class Neighbor : protected Pointers {
   virtual int init_lists_kokkos() {return 0;}
   virtual void init_list_flags1_kokkos(int) {}
   virtual void init_list_flags2_kokkos(int) {}
+  virtual void init_ex_type_kokkos(int) {}
+  virtual void init_ex_bit_kokkos() {}
+  virtual void init_ex_mol_bit_kokkos() {}
   virtual void init_list_grow_kokkos(int) {}
   virtual void build_kokkos(int) {}
   virtual void setup_bins_kokkos(int) {}

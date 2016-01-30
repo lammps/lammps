@@ -793,10 +793,6 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 			     sizeof(FORCE_T));
       const int two_iito = iito * 2;
 
-      #if defined(_OPENMP)
-      #pragma omp barrier
-      #endif
-
       acc_t *facc = &(f_start[0].x);
       const int sto = two_iito * 4;
       const int fst4 = f_stride * 4;
@@ -882,9 +878,9 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload,eatom);
+    fix->add_result_array(f_start, ev_global, offload, eatom, 0, 2);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, 0, offload, 0, 0, 2);
 }
 
 /* ---------------------------------------------------------------------- */

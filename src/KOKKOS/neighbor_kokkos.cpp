@@ -60,6 +60,7 @@ NeighborKokkos::~NeighborKokkos()
     delete [] pair_build_device;
     delete [] pair_build_host;
 
+    memory->destroy_kokkos(k_ex_type,ex_type);
     memory->destroy_kokkos(k_ex1_type,ex1_type);
     memory->destroy_kokkos(k_ex2_type,ex2_type);
     memory->destroy_kokkos(k_ex1_group,ex1_group);
@@ -419,7 +420,8 @@ void NeighborKokkos::build_kokkos(int topoflag)
     x = atomKK->k_x;
     int nlocal = atom->nlocal;
     if (includegroup) nlocal = atom->nfirst;
-    if (nlocal > maxhold) {
+    int maxhold_kokkos = xhold.view<DeviceType>().dimension_0();
+    if (nlocal > maxhold || maxhold_kokkos < maxhold) {
       maxhold = atom->nmax;
       xhold = DAT::tdual_x_array("neigh:xhold",maxhold);
     }
@@ -518,7 +520,7 @@ void NeighborKokkos::setup_bins_kokkos(int i)
     (this->*stencil_create[slist[i]])(lists_device[slist[i]],sx,sy,sz);
   }
 
-  if (i < nslist-1) return;
+  //if (i < nslist-1) return; // this won't work if a non-kokkos neighbor list is last
 
   if (maxhead > k_bins.d_view.dimension_0()) {
     k_bins = DAT::tdual_int_2d("Neighbor::d_bins",maxhead,atoms_per_bin);

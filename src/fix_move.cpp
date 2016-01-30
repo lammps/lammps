@@ -193,11 +193,6 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
                  "Fix move cannot define z or vz variable for 2d problem");
   }
 
-  if (atom->angmom_flag && comm->me == 0)
-    error->warning(FLERR,"Fix move does not update angular momentum");
-  if (atom->ellipsoid_flag && comm->me == 0)
-    error->warning(FLERR,"Fix move does not update quaternions");
-
   // setup scaling and apply scaling factors to velocity & amplitude
 
   if ((mstyle == LINEAR || mstyle == WIGGLE || mstyle == ROTATE) &&
@@ -609,8 +604,15 @@ void FixMove::initial_integrate(int vflag)
 
   } else if (mstyle == ROTATE) {
     double arg = omega_rotate * delta;
-    double sine = sin(arg);
     double cosine = cos(arg);
+    double sine = sin(arg);
+
+    double qcosine = cos(0.5*arg);
+    double qsine = sin(0.5*arg);
+    qrotate[0] = qcosine;
+    qrotate[1] = runit[0]*qsine;
+    qrotate[2] = runit[1]*qsine;
+    qrotate[3] = runit[2]*qsine;
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -646,12 +648,13 @@ void FixMove::initial_integrate(int vflag)
 
         if (extra_flag) {
 
-          // omega for spheres and lines
+          // omega for spheres, lines, tris
 
           if (omega_flag) {
             flag = 0;
             if (radius_flag && radius[i] > 0.0) flag = 1;
             if (line_flag && line[i] >= 0.0) flag = 1;
+            if (tri_flag && tri[i] >= 0.0) flag = 1;
             if (flag) {
               omega[i][0] = omega_rotate*runit[0];
               omega[i][1] = omega_rotate*runit[1];
@@ -706,13 +709,7 @@ void FixMove::initial_integrate(int vflag)
               quat = avec_tri->bonus[tri[i]].quat;
             else if (body_flag && body[i] >= 0)
               quat = avec_body->bonus[body[i]].quat;
-            if (quat) {
-              qrotate[0] = cosine;
-              qrotate[1] = runit[0]*sine;
-              qrotate[2] = runit[1]*sine;
-              qrotate[3] = runit[2]*sine;
-              MathExtra::quatquat(qrotate,qoriginal[i],quat);
-            }
+            if (quat) MathExtra::quatquat(qrotate,qoriginal[i],quat);
           }
         }
 

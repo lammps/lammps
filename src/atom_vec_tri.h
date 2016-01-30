@@ -92,7 +92,7 @@ class AtomVecTri : public AtomVec {
   double **x,**v,**f;
   tagint *molecule;
   double *rmass,*radius;
-  double **angmom,**torque;
+  double **omega,**angmom,**torque;
   int *tri;
 
   int nlocal_bonus,nghost_bonus,nmax_bonus;

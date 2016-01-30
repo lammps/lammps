@@ -76,10 +76,10 @@ group           tlsph type 2
 variable        h equal 2.5*${l0} # SPH kernel diameter
 variable        vol_one equal ${l0}^2 # initial particle volume for 2d simulation
 set             group all diameter ${h}
-set             group all smd_contact_radius ${l0}
+set             group all smd/contact/radius ${l0}
 set             group all volume  ${vol_one}
-set             group all smd_mass_density ${rho_water}
-set             group solids smd_mass_density ${rho_obj}
+set             group all smd/mass/density ${rho_water}
+set             group solids smd/mass/density ${rho_obj}
 variable        contact_scale equal 1.5 # scale factor to increase contact gap between bodies
 variable        skin equal ${h} # Verlet list range
 neighbor        ${skin} bin

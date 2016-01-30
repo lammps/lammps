@@ -93,6 +93,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Cannot yet use pair hybrid with Kokkos
+
+This feature is not yet supported.
+
 E: Pair style hybrid cannot have hybrid as an argument
 
 Self-explanatory.

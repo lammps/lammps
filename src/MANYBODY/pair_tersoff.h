@@ -62,7 +62,7 @@ class PairTersoff : public Pair {
 
   virtual void allocate();
   virtual void read_file(char *);
-  virtual void setup();
+  virtual void setup_params();
   virtual void repulsive(Param *, double, double &, int, double &);
   virtual double zeta(Param *, double, double, double *, double *);
   virtual void force_zeta(Param *, double, double, double &,

@@ -14,10 +14,10 @@ style_minimize.h
 style_pair.h
 style_region.h
 # deleted on 15 Jan 2016
-pair_line_lj.cpp
-pair_line_lj.h
-pair_tri_lj.cpp
-pair_tri_lj.h
+pair_line_lj_omp.cpp
+pair_line_lj_omp.h
+pair_tri_lj_omp.cpp
+pair_tri_lj_omp.h
 # deleted on 13 May 14
 commgrid.cpp
 commgrid.h

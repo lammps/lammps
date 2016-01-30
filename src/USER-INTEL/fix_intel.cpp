@@ -71,6 +71,12 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _offload_threads = 0;
   _offload_tpc = 4;
 
+  _force_array_s = 0;
+  _force_array_m = 0;
+  _force_array_d = 0;
+  _ev_array_s = 0;
+  _ev_array_d = 0;
+
   #ifdef _LMP_INTEL_OFFLOAD
   if (ncops < 0) error->all(FLERR,"Illegal package intel command");
   _offload_affinity_set = 0;
@@ -293,6 +299,8 @@ void FixIntel::init()
     _mixed_buffers->zero_ev();
   else
     _double_buffers->zero_ev();
+
+  _need_reduce = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -316,6 +324,10 @@ void FixIntel::pair_init_check(const bool cdmessage)
   #endif
 
   _nbor_pack_width = 1;
+
+  if (strstr(update->integrate_style,"intel") == 0)
+    error->all(FLERR,
+	"Specified run_style does not support the Intel package.");
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_offload_balance != 0.0) atom->sortfreq = 1;
@@ -348,9 +360,6 @@ void FixIntel::pair_init_check(const bool cdmessage)
       _sync_at_pair = 2;
   } else {
     _sync_at_pair = 0;
-    if (strstr(update->integrate_style,"intel") == 0)
-      error->all(FLERR,
-		 "Specified run_style does not support the Intel package.");
   }
   #endif
   _nthreads = comm->nthreads;
@@ -415,6 +424,35 @@ void FixIntel::pair_init_check(const bool cdmessage)
 
 /* ---------------------------------------------------------------------- */
 
+void FixIntel::bond_init_check()
+{
+  if (_offload_balance != 0.0 && atom->molecular && 
+      force->newton_pair != force->newton_bond)
+    error->all(FLERR,
+      "USER-INTEL package requires same setting for newton bond and non-bond.");
+
+  int intel_pair = 0;
+  if (force->pair_match("/intel", 0) != NULL)
+    intel_pair = 1;
+  else if (force->pair_match("hybrid", 1) != NULL) {
+    PairHybrid *hybrid = (PairHybrid *) force->pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strstr(hybrid->keywords[i], "/intel") != NULL)
+        intel_pair = 1;
+  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
+    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strstr(hybrid->keywords[i], "/intel") != NULL)
+        intel_pair = 1;
+  }
+
+  if (intel_pair == 0)
+    error->all(FLERR, "Intel styles for bond/angle/dihedral/improper "
+      "require intel pair style.");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixIntel::check_neighbor_intel()
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -431,6 +469,82 @@ void FixIntel::check_neighbor_intel()
     #endif
     if (neighbor->requests[i]->skip)
       error->all(FLERR, "Cannot yet use hybrid styles with Intel package.");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIntel::sync()
+{
+  if (_force_array_m != 0) {
+    if (_need_reduce) {
+      reduce_results(_force_array_m);
+      _need_reduce = 0;
+    }
+    add_results(_force_array_m, _ev_array_d, _results_eatom, _results_vatom, 0);
+    _force_array_m = 0;
+  } else if (_force_array_d != 0) {
+    if (_need_reduce) {
+      reduce_results(_force_array_d);
+      _need_reduce = 0;
+    }
+    add_results(_force_array_d, _ev_array_d, _results_eatom, _results_vatom, 0);
+    _force_array_d = 0;
+  } else if (_force_array_s != 0) {
+    if (_need_reduce) {
+      reduce_results(_force_array_s);
+      _need_reduce = 0;
+    }
+    add_results(_force_array_s, _ev_array_s, _results_eatom, _results_vatom, 0);
+    _force_array_s = 0;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class ft>
+void FixIntel::reduce_results(ft * _noalias const f_start)
+{
+  int o_range, f_stride;
+  if (force->newton_pair)
+    o_range = atom->nlocal + atom->nghost;
+  else		
+    o_range = atom->nlocal;
+  IP_PRE_get_stride(f_stride, o_range, sizeof(ft), lmp->atom->torque);
+
+  #if defined(_OPENMP)
+  #pragma omp parallel default(none) shared(o_range, f_stride)
+  #endif
+  {
+    int iifrom, iito, tid;
+    IP_PRE_omp_range_id_align(iifrom, iito, tid, o_range, _nthreads,
+  			      sizeof(ft));
+
+    int t_off = f_stride;
+    if (_results_eatom) {
+      for (int t = 1; t < _nthreads; t++) {
+        _use_simd_pragma("vector nontemporal")
+        _use_simd_pragma("novector")
+        for (int n = iifrom; n < iito; n++) {
+	  f_start[n].x += f_start[n + t_off].x;
+	  f_start[n].y += f_start[n + t_off].y;
+	  f_start[n].z += f_start[n + t_off].z;
+	  f_start[n].w += f_start[n + t_off].w;
+	}
+	t_off += f_stride;
+      }
+    } else {
+      for (int t = 1; t < _nthreads; t++) {
+	_use_simd_pragma("vector nontemporal")
+	_use_simd_pragma("novector")
+	for (int n = iifrom; n < iito; n++) {
+	  f_start[n].x += f_start[n + t_off].x;
+	  f_start[n].y += f_start[n + t_off].y;
+	  f_start[n].z += f_start[n + t_off].z;
+	}
+	t_off += f_stride;
+      }
+    }
   }
 }
 
@@ -456,6 +570,153 @@ void FixIntel::sync_coprocessor()
 
 /* ---------------------------------------------------------------------- */
 
+template <class ft, class acc_t>
+void FixIntel::add_results(const ft * _noalias const f_in,
+                           const acc_t * _noalias const ev_global,
+                           const int eatom, const int vatom,
+			   const int offload) {
+  start_watch(TIME_PACK);
+  int f_length;
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_separate_buffers) {
+    if (offload) {
+      add_oresults(f_in, ev_global, eatom, vatom, 0, _offload_nlocal);
+      if (force->newton_pair) {
+	const acc_t * _noalias const enull = 0;
+	int offset = _offload_nlocal;
+	if (atom->torque) offset *= 2;
+	add_oresults(f_in + offset, enull, eatom, vatom,
+		     _offload_min_ghost, _offload_nghost);
+      }
+    } else {
+      add_oresults(f_in, ev_global, eatom, vatom,
+		   _host_min_local, _host_used_local);
+      if (force->newton_pair) {
+	const acc_t * _noalias const enull = 0;
+	int offset = _host_used_local;
+	if (atom->torque) offset *= 2;
+	add_oresults(f_in + offset, enull, eatom,
+		     vatom, _host_min_ghost, _host_used_ghost);
+      }
+    }
+    stop_watch(TIME_PACK);
+    return;
+  }
+  if (force->newton_pair && (_offload_noghost == 0 || offload == 0))
+    f_length = atom->nlocal + atom->nghost;
+  else
+    f_length = atom->nlocal;
+  #else
+  if (force->newton_pair)
+    f_length = atom->nlocal + atom->nghost;
+  else
+    f_length = atom->nlocal;
+  #endif
+
+  add_oresults(f_in, ev_global, eatom, vatom, 0, f_length);
+  stop_watch(TIME_PACK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class ft, class acc_t>
+void FixIntel::add_oresults(const ft * _noalias const f_in,
+			    const acc_t * _noalias const ev_global,
+			    const int eatom, const int vatom,
+			    const int out_offset, const int nall) {
+  lmp_ft * _noalias const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
+  if (atom->torque) {
+    if (f_in[1].w)
+      if (f_in[1].w == 1)
+        error->all(FLERR,"Bad matrix inversion in mldivide3");
+      else
+        error->all(FLERR,
+                   "Sphere particles not yet supported for gayberne/intel");
+  }
+
+  #if defined(_OPENMP)
+  #pragma omp parallel default(none)
+  #endif
+  {
+    #if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+    #else
+    const int tid = 0;
+    #endif
+    int ifrom, ito;
+    IP_PRE_omp_range_align(ifrom, ito, tid, nall, _nthreads, sizeof(acc_t));
+    if (atom->torque) {
+      int ii = ifrom * 2;
+      lmp_ft * _noalias const tor = (lmp_ft *) lmp->atom->torque[0] +
+	out_offset;
+      if (eatom) {
+	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
+        for (int i = ifrom; i < ito; i++) {
+          f[i].x += f_in[ii].x;
+          f[i].y += f_in[ii].y;
+          f[i].z += f_in[ii].z;
+          lmp_eatom[i] += f_in[ii].w;
+          tor[i].x += f_in[ii+1].x;
+          tor[i].y += f_in[ii+1].y;
+          tor[i].z += f_in[ii+1].z;
+          ii += 2;
+        }
+      } else {
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
+        for (int i = ifrom; i < ito; i++) {
+          f[i].x += f_in[ii].x;
+          f[i].y += f_in[ii].y;
+          f[i].z += f_in[ii].z;
+          tor[i].x += f_in[ii+1].x;
+          tor[i].y += f_in[ii+1].y;
+          tor[i].z += f_in[ii+1].z;
+          ii += 2;
+        }
+      }
+    } else {
+      if (eatom) {
+	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
+        for (int i = ifrom; i < ito; i++) {
+          f[i].x += f_in[i].x;
+          f[i].y += f_in[i].y;
+          f[i].z += f_in[i].z;
+          lmp_eatom[i] += f_in[i].w;
+        }
+      } else {
+        #if defined(LMP_SIMD_COMPILER)
+	#pragma novector
+	#endif
+        for (int i = ifrom; i < ito; i++) {
+          f[i].x += f_in[i].x;
+          f[i].y += f_in[i].y;
+          f[i].z += f_in[i].z;
+        }
+      }
+    }
+  }
+
+  if (ev_global != NULL) {
+    force->pair->eng_vdwl += ev_global[0];
+    force->pair->eng_coul += ev_global[1];
+    force->pair->virial[0] += ev_global[2];
+    force->pair->virial[1] += ev_global[3];
+    force->pair->virial[2] += ev_global[4];
+    force->pair->virial[3] += ev_global[5];
+    force->pair->virial[4] += ev_global[6];
+    force->pair->virial[5] += ev_global[7];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 double FixIntel::memory_usage()
 {
   double bytes;
@@ -472,6 +733,70 @@ double FixIntel::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 #ifdef _LMP_INTEL_OFFLOAD
+
+/* ---------------------------------------------------------------------- */
+
+template <class ft, class acc_t>
+void FixIntel::add_off_results(const ft * _noalias const f_in,
+                               const acc_t * _noalias const ev_global) {
+  if (_offload_balance < 0.0)
+    _balance_other_time = MPI_Wtime() - _balance_other_time;
+
+  start_watch(TIME_OFFLOAD_WAIT);
+  #ifdef _LMP_INTEL_OFFLOAD
+  #pragma offload_wait target(mic:_cop) wait(f_in)
+  #endif
+  double wait_time = stop_watch(TIME_OFFLOAD_WAIT);
+
+  if (neighbor->ago == 0) {
+    if (_off_overflow_flag[LMP_OVERFLOW])
+      error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    _offload_nlocal = _off_overflow_flag[LMP_LOCAL_MAX] + 1;
+    _offload_min_ghost = _off_overflow_flag[LMP_GHOST_MIN];
+    _offload_nghost = _off_overflow_flag[LMP_GHOST_MAX] + 1 -
+      _offload_min_ghost;
+    if (_offload_nghost < 0) _offload_nghost = 0;
+    _offload_nall = _offload_nlocal + _offload_nghost;
+      _offload_nlocal;
+  }
+
+  int nlocal = atom->nlocal;
+  // Load balance?
+  if (_offload_balance < 0.0) {
+    if (neighbor->ago == 0)
+      _balance_pair = _balance_neighbor;
+    double mic_time;
+    mic_time = *_stopwatch_offload_pair;
+    if (_balance_pair_time + _balance_other_time < mic_time) {
+      double ft = _balance_pair_time + _balance_other_time + wait_time -
+          mic_time;
+      _balance_fixed = (1.0 - INTEL_LB_MEAN_WEIGHT) * _balance_fixed +
+          INTEL_LB_MEAN_WEIGHT * ft;
+    }
+
+    double ctps = _balance_pair_time / (1.0-_balance_pair);
+    double otps = mic_time / _balance_pair;
+    double new_balance = (ctps + _balance_other_time - _balance_fixed) /
+        (otps + ctps);
+    if (new_balance < 0.01) new_balance = 0.01;
+    else if (new_balance > 0.99) new_balance = 0.99;
+    _balance_neighbor = (1.0 - INTEL_LB_MEAN_WEIGHT) *_balance_neighbor +
+        INTEL_LB_MEAN_WEIGHT * new_balance;
+  }
+
+  #ifdef TIME_BALANCE
+  start_watch(TIME_IMBALANCE);
+  MPI_Barrier(_real_space_comm);
+  stop_watch(TIME_IMBALANCE);
+  #endif
+  acc_timers();
+  if (atom->torque)
+    if (f_in[1].w < 0.0)
+      error->all(FLERR, "Bad matrix inversion in mldivide3");
+  add_results(f_in, ev_global, _off_results_eatom, _off_results_vatom, 1);
+}
+
+/* ---------------------------------------------------------------------- */
 
 void FixIntel::output_timing_data() {
   if (_im_real_space_task == 0 || _offload_affinity_set == 0) return;

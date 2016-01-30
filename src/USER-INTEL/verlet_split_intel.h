@@ -21,9 +21,6 @@ IntegrateStyle(verlet/split/intel,VerletSplitIntel)
 #define LMP_VERLET_SPLIT_INTEL_H
 
 #include "verlet_intel.h"
-#ifdef LMP_INTEL_OFFLOAD
-#include "fix_intel.h"
-#endif
 
 namespace LAMMPS_NS {
 

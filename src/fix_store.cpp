@@ -23,7 +23,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{GLOBAL,PERATOM};
+enum{UNKNOWN,GLOBAL,PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -34,10 +34,12 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // 4th arg determines GLOBAL vs PERATOM values
   // syntax: id group style global nrow ncol
   //   Nrow by Ncol array of global values
-  //   Ncol=1 is vector, Nrow>1 is array
-  // syntax: id group style peratom 0/1 nvalue
+  //   Ncol = 1 is vector, Nrow > 1 is array
+  // syntax: id group style peratom 0/1 nvalues
   //   0/1 flag = not-store or store peratom values in restart file
-  //   nvalue = # of peratom values, N=1 is vector, N>1 is array
+  //   nvalues = # of peratom values, N = 1 is vector, N > 1 is array
+  nvalues = vecflag = 0;
+  flavor = UNKNOWN; 
 
   if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
   else if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;
@@ -317,7 +319,7 @@ int FixStore::size_restart(int nlocal)
 
 double FixStore::memory_usage()
 {
-  double bytes;
+  double bytes = 0.0;
   if (flavor == GLOBAL) bytes += nrow*ncol * sizeof(double);
   if (flavor == PERATOM) bytes += atom->nmax*nvalues * sizeof(double);
   return bytes;

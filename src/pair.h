@@ -304,6 +304,10 @@ E: Pair style requires a KSpace style
 
 No kspace style is defined.
 
+E: Cannot yet use compute tally with Kokkos
+
+This feature is not yet supported.
+
 E: Pair style does not support pair_write
 
 The pair style does not have a single() function, so it can

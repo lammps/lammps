@@ -85,6 +85,12 @@ class Atom : protected Pointers {
   double *eff_plastic_strain_rate;
   double *damage;
 
+  // USER-DPD package
+
+  double *uCond, *uMech, *uChem, *uCGnew, *uCG;
+  double *duCond, *duMech, *duChem;
+  double *dpdTheta;
+
   // molecular info
 
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
@@ -133,6 +139,7 @@ class Atom : protected Pointers {
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
+  int dpd_flag;
 
   // USER-SMD package
 
@@ -195,7 +202,7 @@ class Atom : protected Pointers {
 
   void settings(class Atom *);
   void create_avec(const char *, int, char **, int);
-  class AtomVec *new_avec(const char *, int, int &);
+  virtual class AtomVec *new_avec(const char *, int, int &);
   void init();
   void setup();
 

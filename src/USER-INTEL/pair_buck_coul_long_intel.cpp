@@ -410,12 +410,18 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
         f[i].z += fztmp;
 	IP_PRE_ev_tally_atomq(EVFLAG, EFLAG, vflag, f, fwtmp);
       } // for ii
-      #if defined(_OPENMP)
-      #pragma omp barrier
+
+      #ifndef _LMP_INTEL_OFFLOAD
+      if (vflag == 2)
       #endif
-      IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			     nlocal, minlocal, nthreads, f_start, f_stride, 
-			     x);
+      {
+        #if defined(_OPENMP)
+        #pragma omp barrier
+        #endif
+        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
+			       nlocal, minlocal, nthreads, f_start, f_stride, 
+			       x, offload);
+      }
     } // end of omp parallel region
     if (EVFLAG) {
       if (EFLAG) {
@@ -442,7 +448,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload, eatom);
+    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
 }

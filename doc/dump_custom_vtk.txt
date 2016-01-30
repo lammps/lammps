@@ -61,9 +61,7 @@ dump dmpvtk all custom/vtk 100 dump*.myforce.vtk id type vx fx
 dump dmpvtp flow custom/vtk 100 dump*.%.displace.vtp id type c_myD\[1\] c_myD\[2\] c_myD\[3\] v_ke
 dump e_data all custom/vtk 100 dump*.vtu id type spin eradius fx fy fz eforce :pre
 
-[LIGGGHTS vs. LAMMPS Info:]
-
-The new style {custom/vtk} is similar to the "custom"_dump.html style but
+The style {custom/vtk} is similar to the "custom"_dump.html style but
 uses the VTK library to write data to VTK simple legacy or XML format depending
 on the filename extension specified. This can be either {.vtk} for the legacy
 format or {.vtp} and {.vtu}, respectively, for the XML format; see the

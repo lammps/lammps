@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute smd/contact_radius command &mdash; LAMMPS documentation</title>
+  <title>compute smd/contact/radius command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute smd/contact_radius command</li>
+    <li>compute smd/contact/radius command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -125,30 +125,32 @@
            <div itemprop="articleBody">
             
   <div class="section" id="compute-smd-contact-radius-command">
-<span id="index-0"></span><h1>compute smd/contact_radius command<a class="headerlink" href="#compute-smd-contact-radius-command" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>compute smd/contact/radius command<a class="headerlink" href="#compute-smd-contact-radius-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/contact_radius
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/contact/radius
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>smd/contact_radius = style name of this compute command</li>
+<li>smd/contact/radius = style name of this compute command</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/contact_radius
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/contact/radius
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation which outputs the contact radius, i.e., the radius used to prevent particles from penetrating each other.
-The contact radius is used only to prevent particles belonging to different physical bodies from penetrating each other. It is used by the contact pair styles,
-e.g., smd/hertz and smd/tri_surface.</p>
-<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to using Smooth Mach Dynamics in
-LAMMPS.</p>
+<p>Define a computation which outputs the contact radius, i.e., the
+radius used to prevent particles from penetrating each other.  The
+contact radius is used only to prevent particles belonging to
+different physical bodies from penetrating each other. It is used by
+the contact pair styles, e.g., smd/hertz and smd/tri_surface.</p>
+<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to using Smooth
+Mach Dynamics in LAMMPS.</p>
 <p>The value of the contact radius will be 0.0 for particles not in the
 specified compute group.</p>
 <p><strong>Output info:</strong></p>

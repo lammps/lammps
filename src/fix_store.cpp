@@ -38,6 +38,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // syntax: id group style peratom 0/1 nvalues
   //   0/1 flag = not-store or store peratom values in restart file
   //   nvalues = # of peratom values, N = 1 is vector, N > 1 is array
+
   nvalues = vecflag = 0;
   flavor = UNKNOWN; 
 
@@ -104,7 +105,6 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         for (int j = 0; j < nvalues; j++)
           astore[i][j] = 0.0;
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

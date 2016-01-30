@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(smd/tlsph_shape,ComputeSmdTlsphShape)
+ComputeStyle(smd/tlsph/shape,ComputeSmdTlsphShape)
 
 #else
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute smd/hourglass_error command &mdash; LAMMPS documentation</title>
+  <title>compute smd/hourglass/error command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute smd/hourglass_error command</li>
+    <li>compute smd/hourglass/error command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -125,20 +125,20 @@
            <div itemprop="articleBody">
             
   <div class="section" id="compute-smd-hourglass-error-command">
-<span id="index-0"></span><h1>compute smd/hourglass_error command<a class="headerlink" href="#compute-smd-hourglass-error-command" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>compute smd/hourglass/error command<a class="headerlink" href="#compute-smd-hourglass-error-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/hourglass_error
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/hourglass/error
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>smd/hourglass_error = style name of this compute command</li>
+<li>smd/hourglass/error = style name of this compute command</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/hourglass_error
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/hourglass/error
 </pre></div>
 </div>
 </div>
@@ -148,24 +148,28 @@
 relative separation with respect to the actual relative separation of
 the particles i and j. Ideally, if the deformation gradient is exact,
 and there exists a unique mapping between all particles&#8217; positions
-within the neighborhood of the central node and the deformation gradient,
-the approximated relative separation will coincide with the actual relative
-separation of the particles i and j in the deformed configuration.
-This compute is only really useful for debugging the hourglass control mechanim which is part of the Total-Lagrangian SPH pair style.</p>
-<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth Mach Dynamics in LAMMPS.</p>
+within the neighborhood of the central node and the deformation
+gradient, the approximated relative separation will coincide with the
+actual relative separation of the particles i and j in the deformed
+configuration.  This compute is only really useful for debugging the
+hourglass control mechanim which is part of the Total-Lagrangian SPH
+pair style.</p>
+<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth
+Mach Dynamics in LAMMPS.</p>
 <p><strong>Output Info:</strong></p>
 <p>This compute calculates a per-particle vector, which can be accessed by
 any command that uses per-particle values from a compute as input.  See
 <a class="reference internal" href="Section_howto.html#howto-15"><span>How-to discussions, section 6.15</span></a>
 for an overview of LAMMPS output options.</p>
-<p>The per-particle vector values will are dimensionless. See <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+<p>The per-particle vector values will are dimensionless. See
+<a class="reference internal" href="units.html"><em>units</em></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
-section for more info.</p>
-<p>This quantity will be computed only for particles which interact with tlsph pair style.</p>
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This quantity will be computed only for particles which interact with
+tlsph pair style.</p>
 <p><strong>Related Commands:</strong></p>
 <p><a class="reference internal" href="compute_smd_tlsph_defgrad.html"><em>smd/tlsph_defgrad</em></a></p>
 </div>

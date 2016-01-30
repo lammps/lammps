@@ -653,7 +653,7 @@ void ReadData::command(int narg, char **arg)
     if (addflag == NONE) atom->deallocate_topology();
     atom->avec->grow(atom->nmax);
   }
-
+  
   // assign atoms added by this data file to specified group
 
   if (groupbit) {
@@ -1316,7 +1316,6 @@ void ReadData::dihedrals(int firstpass)
                    "too many dihedrals per atom");
     } else atom->dihedral_per_atom = maxall;
 
-    atom->dihedral_per_atom = maxall;
     memory->destroy(count);
     return;
   }

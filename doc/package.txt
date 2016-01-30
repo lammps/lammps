@@ -653,7 +653,7 @@ script or or via the "-pk intel" "command-line
 switch"_Section_start.html#start_7.
 
 For the KOKKOS package, the option defaults neigh = full, newton =
-off, binsize = 0.0, and comm = host.  These settings are made
+off, binsize = 0.0, and comm = device.  These settings are made
 automatically by the required "-k on" "command-line
 switch"_Section_start.html#start_7.  You can change them bu using the
 package kokkos command in your input script or via the "-pk kokkos"

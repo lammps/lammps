@@ -509,9 +509,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       error->all(FLERR,"Cannot use -kokkos on without KOKKOS installed");
   }
 
-  MPI_Comm_rank(world,&me);
-  if (kokkos && me == 0) error->message(FLERR,"KOKKOS mode is enabled");
-
   // allocate CiteMe class if enabled
 
   if (citeflag) citeme = new CiteMe(this);

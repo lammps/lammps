@@ -1,0 +1,12 @@
+# Settings that the LAMMPS build will import when this package library is used
+#
+# Ubuntu 14.04 installation of VTK6 library:
+# ------------------------------------------
+#
+# Execute the following installation command:
+#
+# $ sudo apt-get install libvtk6-dev
+#
+vtk_SYSINC = -I/usr/include/vtk-6.0
+vtk_SYSLIB = -lvtkCommonCore-6.0 -lvtkIOCore-6.0 -lvtkIOXML-6.0 -lvtkIOLegacy-6.0 -lvtkCommonDataModel-6.0
+vtk_SYSPATH =

@@ -155,6 +155,9 @@ DumpCustomVTK::DumpCustomVTK(LAMMPS *lmp, int narg, char **arg) :
   filecurrent = NULL;
   domainfilecurrent = NULL;
   parallelfilecurrent = NULL;
+  header_choice = NULL;
+  write_choice = NULL;
+  boxcorners = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,0 +1,74 @@
+Performance & scalability
+=========================
+
+LAMMPS performance on several prototypical benchmarks and machines is
+discussed on the Benchmarks page of the `LAMMPS WWW Site <lws_>`_ where
+CPU timings and parallel efficiencies are listed.  Here, the
+benchmarks are described briefly and some useful rules of thumb about
+their performance are highlighted.
+
+These are the 5 benchmark problems:
+
+#. LJ = atomic fluid, Lennard-Jones potential with 2.5 sigma cutoff (55
+  neighbors per atom), NVE integration
+#. Chain = bead-spring polymer melt of 100-mer chains, FENE bonds and LJ
+   pairwise interactions with a 2^(1/6) sigma cutoff (5 neighbors per
+   atom), NVE integration
+#. EAM = metallic solid, Cu EAM potential with 4.95 Angstrom cutoff (45
+   neighbors per atom), NVE integration
+#. Chute = granular chute flow, frictional history potential with 1.1
+   sigma cutoff (7 neighbors per atom), NVE integration
+#. Rhodo = rhodopsin protein in solvated lipid bilayer, CHARMM force
+   field with a 10 Angstrom LJ cutoff (440 neighbors per atom),
+   particle-particle particle-mesh (PPPM) for long-range Coulombics, NPT
+   integration
+The input files for running the benchmarks are included in the LAMMPS
+distribution, as are sample output files.  Each of the 5 problems has
+32,000 atoms and runs for 100 timesteps.  Each can be run as a serial
+benchmarks (on one processor) or in parallel.  In parallel, each
+benchmark can be run as a fixed-size or scaled-size problem.  For
+fixed-size benchmarking, the same 32K atom problem is run on various
+numbers of processors.  For scaled-size benchmarking, the model size
+is increased with the number of processors.  E.g. on 8 processors, a
+256K-atom problem is run; on 1024 processors, a 32-million atom
+problem is run, etc.
+
+A useful metric from the benchmarks is the CPU cost per atom per
+timestep.  Since LAMMPS performance scales roughly linearly with
+problem size and timesteps, the run time of any problem using the same
+model (atom style, force field, cutoff, etc) can then be estimated.
+For example, on a 1.7 GHz Pentium desktop machine (Intel icc compiler
+under Red Hat Linux), the CPU run-time in seconds/atom/timestep for
+the 5 problems is
+
++----------------+---------+---------+---------+---------+-----------+
+| Problem:       | LJ      | Chain   | EAM     | Chute   | Rhodopsin |
++----------------+---------+---------+---------+---------+-----------+
+| CPU/atom/step: | 4.55E-6 | 2.18E-6 | 9.38E-6 | 2.18E-6 | 1.11E-4   |
++----------------+---------+---------+---------+---------+-----------+
+| Ratio to LJ:   | 1.0     | 0.48    | 2.06    | 0.48    | 24.5      |
++----------------+---------+---------+---------+---------+-----------+
+
+The ratios mean that if the atomic LJ system has a normalized cost of
+1.0, the bead-spring chains and granular systems run 2x faster, while
+the EAM metal and solvated protein models run 2x and 25x slower
+respectively.  The bulk of these cost differences is due to the
+expense of computing a particular pairwise force field for a given
+number of neighbors per atom.
+
+Performance on a parallel machine can also be predicted from the
+one-processor timings if the parallel efficiency can be estimated.
+The communication bandwidth and latency of a particular parallel
+machine affects the efficiency.  On most machines LAMMPS will give
+fixed-size parallel efficiencies on these benchmarks above 50% so long
+as the atoms/processor count is a few 100 or greater - i.e. on 64 to
+128 processors.  Likewise, scaled-size parallel efficiencies will
+typically be 80% or greater up to very large processor counts.  The
+benchmark data on the `LAMMPS WWW Site <lws_>`_ gives specific examples on
+some different machines, including a run of 3/4 of a billion LJ atoms
+on 1500 processors that ran at 85% parallel efficiency.
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

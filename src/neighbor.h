@@ -94,6 +94,10 @@ class Neighbor : protected Pointers {
   bigint memory_usage();
   int exclude_setting();
 
+  // USER-DPD package
+
+  void assign_ssa_airnums();       // set ssa_airnum values
+
  protected:
   int me,nprocs;
 
@@ -325,7 +329,6 @@ class Neighbor : protected Pointers {
   // SSA neighboring for USER-DPD
 
   int coord2ssa_airnum(double *);  // map atom coord to an AIR number
-  void assign_ssa_airnums();       // set ssa_airnum values
 
   void half_bin_newton_ssa(NeighList *);
   void half_from_full_newton_ssa(class NeighList *);

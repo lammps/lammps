@@ -246,6 +246,8 @@ The current list of user-contributed packages is as follows:
 +------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
 | USER-DIFFRACTION | virutal x-ray and electron diffraction         | Shawn Coleman (ARL)                             | :doc:`compute xrd <compute_xrd>`                        | USER/diffraction | -                    | -           |
 +------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| USER-DPD         | dissipative particle dynamics (DPD)            | Larentzos & Mattox & Brennan (5)                | src/USER-DPD/README                                     | USER/dpd         | -                    | -           |
++------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
 | USER-DRUDE       | Drude oscillators                              | Dequidt & Devemy & Padua (3)                    | :doc:`tutorial <tutorial_drude>`                        | USER/drude       | -                    | -           |
 +------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
 | USER-EFF         | electron force field                           | Andres Jaramillo-Botero (Caltech)               | :doc:`pair_style eff/cut <pair_eff>`                    | USER/eff         | `eff <eff_>`_        | -           |
@@ -323,6 +325,9 @@ Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
 
 (4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
 Olivier Politano, and Robert Tetot (LAAS-CNRS, France).
+
+(4) The USER-DPD package was created by James Larentzos, Timothy
+Mattox, and John Brennan (Army Research Lab (ARL) and Engility Corp).
 
 If the Library is not listed as lib/package, then it is a third-party
 library not included in the LAMMPS distribution.  See the
@@ -552,6 +557,36 @@ See these doc pages and their related commands to get started:
 The person who created this package is Shawn P. Coleman 
 (shawn.p.coleman8.ctr at mail.mil) while at the University of 
 Arkansas.  Contact him directly if you have questions.
+
+
+----------
+
+
+USER-DPD package
+----------------
+
+This package implements the dissipative particle dynamics (DPD) method
+under isothermal, isoenergetic, isobaric and isenthalpic conditions.
+The DPD equations of motion are integrated efficiently through the
+Shardlow splitting algorithm.
+
+See these doc pages and their related commands to get started:
+
+* :doc:`compute dpd <compute_dpd>`
+* :doc:`compute dpd/atom <compute_dpd_atom>`
+* :doc:`fix_eos/cv <fix_eos_table>`
+* :doc:`fix_eos/table <fix_eos_table>`
+* :doc:`fix_shardlow <fix_shardlow>`
+* :doc:`pair_dpd/conservative <pair_dpd_conservative>`
+* :doc:`pair_dpd/fdt <pair_dpd_fdt>`
+* :doc:`pair_dpd/fdt/energy <pair_dpd_fdt>`
+
+There are example scripts for using this package in examples/USER/dpd.
+
+The people who created this package are James Larentzos
+(james.p.larentzos.civ at mail.mil), Timothy Mattox (Timothy.Mattox at
+engilitycorp.com) and John Brennan (john.k.brennan.civ at mail.mil).
+Contact them directly if you have questions.
 
 
 ----------

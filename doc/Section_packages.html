@@ -97,23 +97,24 @@
 <li class="toctree-l2"><a class="reference internal" href="#user-colvars-package">4.17. USER-COLVARS package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-cuda-package">4.18. USER-CUDA package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-diffraction-package">4.19. USER-DIFFRACTION package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-drude-package">4.20. USER-DRUDE package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-eff-package">4.21. USER-EFF package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-fep-package">4.22. USER-FEP package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-h5md-package">4.23. USER-H5MD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-intel-package">4.24. USER-INTEL package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-lb-package">4.25. USER-LB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-mgpt-package">4.26. USER-MGPT package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-misc-package">4.27. USER-MISC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-molfile-package">4.28. USER-MOLFILE package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-omp-package">4.29. USER-OMP package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-phonon-package">4.30. USER-PHONON package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.31. USER-QMMM package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.32. USER-QTB package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.33. USER-REAXC package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.34. USER-SMD package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-smtbq-package">4.35. USER-SMTBQ package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.36. USER-SPH package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-dpd-package">4.20. USER-DPD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-drude-package">4.21. USER-DRUDE package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-eff-package">4.22. USER-EFF package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-fep-package">4.23. USER-FEP package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-h5md-package">4.24. USER-H5MD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-intel-package">4.25. USER-INTEL package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-lb-package">4.26. USER-LB package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-mgpt-package">4.27. USER-MGPT package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-misc-package">4.28. USER-MISC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-molfile-package">4.29. USER-MOLFILE package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-omp-package">4.30. USER-OMP package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-phonon-package">4.31. USER-PHONON package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.32. USER-QMMM package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.33. USER-QTB package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.34. USER-REAXC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-smd-package">4.35. USER-SMD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-smtbq-package">4.36. USER-SMTBQ package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.37. USER-SPH package</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
@@ -741,7 +742,21 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-DRUDE</td>
+<tr class="row-even"><td>USER-DPD</td>
+<td>dissipative particle dynamics (DPD)</td>
+<td>Larentzos &amp; Mattox &amp; Brennan (5)</td>
+<td>src/USER-DPD/README</td>
+<td>USER/dpd</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>USER-DRUDE</td>
 <td>Drude oscillators</td>
 <td>Dequidt &amp; Devemy &amp; Padua (3)</td>
 <td><a class="reference internal" href="tutorial_drude.html"><em>tutorial</em></a></td>
@@ -755,7 +770,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-EFF</td>
+<tr class="row-even"><td>USER-EFF</td>
 <td>electron force field</td>
 <td>Andres Jaramillo-Botero (Caltech)</td>
 <td><a class="reference internal" href="pair_eff.html"><em>pair_style eff/cut</em></a></td>
@@ -766,7 +781,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-FEP</td>
+<tr class="row-odd"><td>USER-FEP</td>
 <td>free energy perturbation</td>
 <td>Agilio Padua (U Blaise Pascal Clermont-Ferrand)</td>
 <td><a class="reference internal" href="compute_fep.html"><em>compute fep</em></a></td>
@@ -780,7 +795,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-H5MD</td>
+<tr class="row-even"><td>USER-H5MD</td>
 <td>dump output via HDF5</td>
 <td>Pierre de Buyl (KU Leuven)</td>
 <td><a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a></td>
@@ -794,7 +809,7 @@ serial.</p>
 </td>
 <td>lib/h5md</td>
 </tr>
-<tr class="row-even"><td>USER-INTEL</td>
+<tr class="row-odd"><td>USER-INTEL</td>
 <td>Vectorized CPU and Intel(R) coprocessor styles</td>
 <td><ol class="first last upperalpha simple" start="23">
 <li>Michael Brown (Intel)</li>
@@ -811,7 +826,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-LB</td>
+<tr class="row-even"><td>USER-LB</td>
 <td>Lattice Boltzmann fluid</td>
 <td>Colin Denniston (U Western Ontario)</td>
 <td><a class="reference internal" href="fix_lb_fluid.html"><em>fix lb/fluid</em></a></td>
@@ -825,7 +840,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-MGPT</td>
+<tr class="row-odd"><td>USER-MGPT</td>
 <td>fast MGPT multi-ion potentials</td>
 <td>Tomas Oppelstrup &amp; John Moriarty (LLNL)</td>
 <td><a class="reference internal" href="pair_mgpt.html"><em>pair_style mgpt</em></a></td>
@@ -839,7 +854,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-MISC</td>
+<tr class="row-even"><td>USER-MISC</td>
 <td>single-file contributions</td>
 <td>USER-MISC/README</td>
 <td>USER-MISC/README</td>
@@ -856,7 +871,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-MOLFILE</td>
+<tr class="row-odd"><td>USER-MOLFILE</td>
 <td><a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molfile plug-ins</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="dump_molfile.html"><em>dump molfile</em></a></td>
@@ -870,7 +885,7 @@ serial.</p>
 </td>
 <td>VMD-MOLFILE</td>
 </tr>
-<tr class="row-odd"><td>USER-OMP</td>
+<tr class="row-even"><td>USER-OMP</td>
 <td>OpenMP threaded styles</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="accelerate_omp.html"><em>Section accelerate</em></a></td>
@@ -887,7 +902,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-PHONON</td>
+<tr class="row-odd"><td>USER-PHONON</td>
 <td>phonon dynamical matrix</td>
 <td>Ling-Ti Kong (Shanghai Jiao Tong U)</td>
 <td><a class="reference internal" href="fix_phonon.html"><em>fix phonon</em></a></td>
@@ -901,7 +916,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-QMMM</td>
+<tr class="row-even"><td>USER-QMMM</td>
 <td>QM/MM coupling</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="fix_qmmm.html"><em>fix qmmm</em></a></td>
@@ -912,7 +927,7 @@ serial.</p>
 </td>
 <td>lib/qmmm</td>
 </tr>
-<tr class="row-even"><td>USER-QTB</td>
+<tr class="row-odd"><td>USER-QTB</td>
 <td>quantum nuclear effects</td>
 <td>Yuan Shen (Stanford)</td>
 <td><a class="reference internal" href="fix_qtb.html"><em>fix qtb</em></a> <a class="reference internal" href="fix_qbmsst.html"><em>fix_qbmsst</em></a></td>
@@ -926,7 +941,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-QUIP</td>
+<tr class="row-even"><td>USER-QUIP</td>
 <td>QUIP/libatoms interface</td>
 <td>Albert Bartok-Partay (U Cambridge)</td>
 <td><a class="reference internal" href="pair_quip.html"><em>pair_style quip</em></a></td>
@@ -937,7 +952,7 @@ serial.</p>
 </td>
 <td>lib/quip</td>
 </tr>
-<tr class="row-even"><td>USER-REAXC</td>
+<tr class="row-odd"><td>USER-REAXC</td>
 <td>C version of ReaxFF</td>
 <td>Metin Aktulga (LBNL)</td>
 <td><a class="reference internal" href="pair_reax_c.html"><em>pair_style reaxc</em></a></td>
@@ -951,7 +966,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-SMD</td>
+<tr class="row-even"><td>USER-SMD</td>
 <td>smoothed Mach dynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -965,7 +980,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-SMTBQ</td>
+<tr class="row-odd"><td>USER-SMTBQ</td>
 <td>Second Moment Tight Binding - QEq potential</td>
 <td>Salles &amp; Maras &amp; Politano &amp; Tetot (4)</td>
 <td><a class="reference internal" href="pair_smtbq.html"><em>pair_style smtbq</em></a></td>
@@ -979,7 +994,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>USER-SPH</td>
+<tr class="row-even"><td>USER-SPH</td>
 <td>smoothed particle hydrodynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -990,7 +1005,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>USER-TALLY</td>
+<tr class="row-odd"><td>USER-TALLY</td>
 <td>Pairwise tallied computes</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><code class="xref doc docutils literal"><span class="pre">compute</span></code></td>
@@ -1004,7 +1019,7 @@ serial.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>&nbsp;</td>
+<tr class="row-even"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -1026,6 +1041,8 @@ Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
 (U Blaise Pascal).</p>
 <p>(4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
 Olivier Politano, and Robert Tetot (LAAS-CNRS, France).</p>
+<p>(4) The USER-DPD package was created by James Larentzos, Timothy
+Mattox, and John Brennan (Army Research Lab (ARL) and Engility Corp).</p>
 <p>If the Library is not listed as lib/package, then it is a third-party
 library not included in the LAMMPS distribution.  See the
 src/package/Makefile.lammps file for info on where to download the
@@ -1200,8 +1217,32 @@ theory.</p>
 Arkansas.  Contact him directly if you have questions.</p>
 </div>
 <hr class="docutils" />
+<div class="section" id="user-dpd-package">
+<h2>4.20. USER-DPD package<a class="headerlink" href="#user-dpd-package" title="Permalink to this headline">¶</a></h2>
+<p>This package implements the dissipative particle dynamics (DPD) method
+under isothermal, isoenergetic, isobaric and isenthalpic conditions.
+The DPD equations of motion are integrated efficiently through the
+Shardlow splitting algorithm.</p>
+<p>See these doc pages and their related commands to get started:</p>
+<ul class="simple">
+<li><a class="reference internal" href="compute_dpd.html"><em>compute dpd</em></a></li>
+<li><a class="reference internal" href="compute_dpd_atom.html"><em>compute dpd/atom</em></a></li>
+<li><a class="reference internal" href="fix_eos_table.html"><em>fix_eos/cv</em></a></li>
+<li><a class="reference internal" href="fix_eos_table.html"><em>fix_eos/table</em></a></li>
+<li><a class="reference internal" href="fix_shardlow.html"><em>fix_shardlow</em></a></li>
+<li><a class="reference internal" href="pair_dpd_conservative.html"><em>pair_dpd/conservative</em></a></li>
+<li><a class="reference internal" href="pair_dpd_fdt.html"><em>pair_dpd/fdt</em></a></li>
+<li><a class="reference internal" href="pair_dpd_fdt.html"><em>pair_dpd/fdt/energy</em></a></li>
+</ul>
+<p>There are example scripts for using this package in examples/USER/dpd.</p>
+<p>The people who created this package are James Larentzos
+(james.p.larentzos.civ at mail.mil), Timothy Mattox (Timothy.Mattox at
+engilitycorp.com) and John Brennan (john.k.brennan.civ at mail.mil).
+Contact them directly if you have questions.</p>
+</div>
+<hr class="docutils" />
 <div class="section" id="user-drude-package">
-<h2>4.20. USER-DRUDE package<a class="headerlink" href="#user-drude-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.21. USER-DRUDE package<a class="headerlink" href="#user-drude-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements methods for simulating polarizable systems
 in LAMMPS using thermalized Drude oscillators.</p>
 <p>See these doc pages and their related commands to get started:</p>
@@ -1221,7 +1262,7 @@ Agilio Padua.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-eff-package">
-<h2>4.21. USER-EFF package<a class="headerlink" href="#user-eff-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.22. USER-EFF package<a class="headerlink" href="#user-eff-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a LAMMPS implementation of the electron Force
 Field (eFF) currently under development at Caltech, as described in
 A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III, JCC,
@@ -1255,7 +1296,7 @@ have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-fep-package">
-<h2>4.22. USER-FEP package<a class="headerlink" href="#user-fep-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.23. USER-FEP package<a class="headerlink" href="#user-fep-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides methods for performing free energy perturbation
 simulations with soft-core pair potentials in LAMMPS.</p>
 <p>See these doc pages and their related commands to get started:</p>
@@ -1270,7 +1311,7 @@ Contact him directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-h5md-package">
-<h2>4.23. USER-H5MD package<a class="headerlink" href="#user-h5md-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.24. USER-H5MD package<a class="headerlink" href="#user-h5md-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a <a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a> command for
 performing a dump of atom properties in HDF5 format.  <a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5 files</a> are binary, portable and self-describing and can be
 examined and used by a variety of auxiliary tools.  The output HDF5
@@ -1284,7 +1325,7 @@ directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-intel-package">
-<h2>4.24. USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.25. USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides options for performing neighbor list and
 non-bonded force calculations in single, mixed, or double precision
 and also a capability for accelerating calculations with an
@@ -1296,7 +1337,7 @@ Intel(R) Xeon Phi(TM) coprocessor.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-lb-package">
-<h2>4.25. USER-LB package<a class="headerlink" href="#user-lb-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.26. USER-LB package<a class="headerlink" href="#user-lb-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a LAMMPS implementation of a background
 Lattice-Boltzmann fluid, which can be used to model MD particles
 influenced by hydrodynamic forces.</p>
@@ -1308,7 +1349,7 @@ Western Ontario.  Contact them directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-mgpt-package">
-<h2>4.26. USER-MGPT package<a class="headerlink" href="#user-mgpt-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.27. USER-MGPT package<a class="headerlink" href="#user-mgpt-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a fast implementation for LAMMPS of
 quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
 derives from first-principles DFT-based generalized pseudopotential
@@ -1331,7 +1372,7 @@ Contact them directly if you have any questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-misc-package">
-<h2>4.27. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.28. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
 pair of files (<a href="#id2"><span class="problematic" id="id3">*</span></a>.cpp and <a href="#id4"><span class="problematic" id="id5">*</span></a>.h).</p>
@@ -1348,7 +1389,7 @@ about the feature or its coding.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-molfile-package">
-<h2>4.28. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.29. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
 <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molecular visualization and
@@ -1367,7 +1408,7 @@ application itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-omp-package">
-<h2>4.29. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.30. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides OpenMP multi-threading support and
 other optimizations of various LAMMPS pair styles, dihedral
 styles, and fix styles.</p>
@@ -1378,7 +1419,7 @@ styles, and fix styles.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-phonon-package">
-<h2>4.30. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.31. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.</p>
@@ -1390,7 +1431,7 @@ if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qmmm-package">
-<h2>4.31. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.32. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a fix qmmm command which allows LAMMPS to be
 used in a QM/MM simulation, currently only in combination with pw.x
 code from the <a class="reference external" href="http://www.quantum-espresso.org">Quantum ESPRESSO</a> package.</p>
@@ -1407,7 +1448,7 @@ without changes to LAMMPS itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qtb-package">
-<h2>4.32. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.33. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a self-consistent quantum treatment of the
 vibrational modes in a classical molecular dynamics simulation.  By
 coupling the MD simulation to a colored thermostat, it introduces zero
@@ -1429,7 +1470,7 @@ have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-reaxc-package">
-<h2>4.33. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.34. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a implementation for LAMMPS of the ReaxFF force
 field.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
@@ -1457,7 +1498,7 @@ questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-smd-package">
-<h2>4.34. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.35. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">
@@ -1481,7 +1522,7 @@ you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-smtbq-package">
-<h2>4.35. USER-SMTBQ package<a class="headerlink" href="#user-smtbq-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.36. USER-SMTBQ package<a class="headerlink" href="#user-smtbq-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
 potential for the description of ionocovalent bonds in oxides.</p>
 <p>There are example scripts for using this package in
@@ -1495,7 +1536,7 @@ them directly if you have any questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-sph-package">
-<h2>4.36. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.37. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">

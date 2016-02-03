@@ -23,7 +23,7 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
 	  {mass} or {density} or {volume} or {image} or \
 	  {bond} or {angle} or {dihedral} or {improper} or \
 	  {meso/e} or {meso/cv} or {meso/rho} or \
-	  {smd/contact/radius} or {smd/mass/density} or \
+	  {smd/contact/radius} or {smd/mass/density} or {dpd/theta} or \
           {i_name} or {d_name} :l
   {type} value = atom type
     value can be an atom-style variable (see below)
@@ -92,6 +92,7 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
     value can be an atom-style variable (see below) 
   {smd/mass/density} = set particle mass based on volume by providing a mass density
     value can be an atom-style variable (see below)
+  {dpd/theta} value = internal temperature of DPD particles (temperature units)
   {i_name} value = value for custom integer vector with name
   {d_name} value = value for custom floating-point vector with name :pre
 :ule
@@ -388,6 +389,9 @@ prevent different individual physical bodies from penetrating each
 other. Note that the SPH smoothing kernel diameter used for computing
 long range, nonlocal interactions, is set using the {diameter}
 keyword.
+
+Keyword {dpd/theta} sets the internal temperature of a DPD particle
+as defined by the USER-DPD package.
 
 Keywords {i_name} and {d_name} refer to custom integer and
 floating-point properties that have been added to each atom via the

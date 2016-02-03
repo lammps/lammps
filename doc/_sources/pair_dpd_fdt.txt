@@ -1,0 +1,161 @@
+.. index:: pair_style dpd/fdt
+
+pair_style dpd/fdt command
+==========================
+
+pair_style dpd/fdt/energy command
+=================================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   pair_style style args
+
+* style = *dpd/fdt* or *dpd/fdt/energy*
+* args = list of arguments for a particular style
+
+.. parsed-literal::
+
+     *dpd/fdt* args = T cutoff seed
+       T = temperature (temperature units)
+       cutoff = global cutoff for DPD interactions (distance units)
+       seed = random # seed (positive integer)
+     *dpd/fdt/energy* args = cutoff seed
+       cutoff = global cutoff for DPD interactions (distance units)
+       seed = random # seed (positive integer)
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   pair_style dpd/fdt 300.0 2.5 34387
+   pair_coeff * * 3.0 1.0 2.5
+
+.. parsed-literal::
+
+   pair_style dpd/fdt/energy 2.5 34387
+   pair_coeff * * 3.0 1.0 0.1 2.5
+
+Description
+"""""""""""
+
+Styles *dpd/fdt* and *dpd/fdt/energy* set the fluctuation-dissipation
+theorem parameters and compute the conservative force for dissipative
+particle dynamics (DPD). The conservative force on atom I due to atom
+J is given by
+
+.. image:: Eqs/pair_dpd_conservative.jpg
+   :align: center
+
+where the weighting factor, omega_ij, varies between 0 and 1, and is
+chosen to have the following functional form:
+
+.. image:: Eqs/pair_dpd_omega.jpg
+   :align: center
+
+where Rij is a unit vector in the direction Ri - Rj, and Rc is the
+cutoff.  Note that alternative definitions of the weighting function
+exist, but would have to be implemented as a separate pair style
+command.
+
+These pair style differ from the other dpd styles in that the
+dissipative and random forces are not computed within the pair style.
+This style can be combined with the :doc:`fix shardlow <fix_shardlow>`
+to perform the stochastic integration of the dissipative and random
+forces through the Shardlow splitting algorithm approach.
+
+The pairwise energy associated with styles *dpd/fdt* and
+*dpd/fdt/energy* is only due to the conservative force term Fc, and is
+shifted to be zero at the cutoff distance Rc.  The pairwise virial is
+calculated using only the conservative term.
+
+For style *dpd/fdt*, the fluctuation-dissipation theorem defines gamma
+to be set equal to sigma*sigma/(2 T), where T is the set point
+temperature specified as a pair style parameter in the above examples.
+This style can be combined with :doc:`fix shardlow <fix_shardlow>` to
+perform DPD simulations under isothermal and isobaric conditions (see
+:ref:`(Lisal) <Lisal>`).  The following coefficients must be defined for
+each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
+as in the examples above, or in the data file or restart files read by
+the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+commands:
+
+* A (force units)
+* sigma (force*time^(1/2) units)
+* cutoff (distance units)
+
+The last coefficient is optional.  If not specified, the global DPD
+cutoff is used.
+
+For style *dpd/fdt/energy*, the fluctuation-dissipation theorem
+defines gamma to be set equal to sigma*sigma/(2 dpdTheta), where
+dpdTheta is the average internal temperature for the pair.
+Furthermore, the fluctuation-dissipation defines alpha*alpha to be set
+equal to 2*kB*kappa, where kappa is the mesoparticle thermal
+conductivity parameter.  This style can be combined with :doc:`fix shardlow <fix_shardlow>` to perform DPD simulations under
+isoenergetic and isoenthalpic conditions (see :ref:`(Lisal) <Lisal>`).  The
+following coefficients must be defined for each pair of atoms types
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
+or in the data file or restart files read by the
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+commands:
+
+* A (force units)
+* sigma (force*time^(1/2) units)
+* kappa (1/time units)
+* cutoff (distance units)
+
+The last coefficient is optional.  If not specified, the global DPD
+cutoff is used.
+
+For style *dpd/fdt/energy*, the particle internal temperature is
+related to the particle internal energy through a mesoparticle
+equation of state.  Thus, an an additional :doc:`fix eos <fix>` must be
+specified.
+
+
+----------
+
+
+Restrictions
+""""""""""""
+
+
+Pair styles *dpd/fdt* and *dpd/fdt/energy* are only available if
+LAMMPS is built with the USER-DPD package.
+
+Pair styles *dpd/fdt* and *dpd/fdt/energy* require use of the
+:doc:`communicate vel yes <communicate>` option so that velocites are
+stored by ghost atoms.
+
+Pair style *dpd/fdt/energy* requires :doc:`atom_style dpd <atom_style>`
+to be used in order to properly account for the particle internal
+energies and temperatures.
+
+Related commands
+""""""""""""""""
+
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix shardlow <fix_shardlow>`
+
+**Default:** none
+
+
+----------
+
+
+.. _Lisal:
+
+
+
+**(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
+particle dynamics as isothermal, isobaric, isoenergetic, and
+isoenthalpic conditions using Shardlow-like splitting algorithms.",
+J. Chem. Phys., 135, 204105 (2011).
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

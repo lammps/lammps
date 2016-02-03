@@ -135,7 +135,7 @@
 <li>style = <em>atom</em> or <em>type</em> or <em>mol</em> or <em>group</em> or <em>region</em></li>
 <li>ID = atom ID range or type range or mol ID range or group ID or region ID</li>
 <li>one or more keyword/value pairs may be appended</li>
-<li>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>theta/random</em> or           <em>angmom</em> or <em>omega</em> or      <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or           <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or        <em>meso/e</em> or <em>meso/cv</em> or <em>meso/rho</em> or          <em>smd/contact/radius</em> or <em>smd/mass/density</em> or           <em>i_name</em> or <em>d_name</em></li>
+<li>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>theta/random</em> or           <em>angmom</em> or <em>omega</em> or      <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or           <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or        <em>meso/e</em> or <em>meso/cv</em> or <em>meso/rho</em> or          <em>smd/contact/radius</em> or <em>smd/mass/density</em> or <em>dpd/theta</em> or           <em>i_name</em> or <em>d_name</em></li>
 </ul>
 <pre class="literal-block">
 <em>type</em> value = atom type
@@ -205,6 +205,7 @@
   value can be an atom-style variable (see below)
 <em>smd/mass/density</em> = set particle mass based on volume by providing a mass density
   value can be an atom-style variable (see below)
+<em>dpd/theta</em> value = internal temperature of DPD particles (temperature units)
 <em>i_name</em> value = value for custom integer vector with name
 <em>d_name</em> value = value for custom floating-point vector with name
 </pre>
@@ -462,6 +463,8 @@ prevent different individual physical bodies from penetrating each
 other. Note that the SPH smoothing kernel diameter used for computing
 long range, nonlocal interactions, is set using the <em>diameter</em>
 keyword.</p>
+<p>Keyword <em>dpd/theta</em> sets the internal temperature of a DPD particle
+as defined by the USER-DPD package.</p>
 <p>Keywords <em>i_name</em> and <em>d_name</em> refer to custom integer and
 floating-point properties that have been added to each atom via the
 <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command.  When that command

@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute temp/body command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute temp/body command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-temp-body-command">
+<span id="index-0"></span><h1>compute temp/body command<a class="headerlink" href="#compute-temp-body-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID temp/body keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>temp/body = style name of this compute command</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>bias</em> or <em>dof</em></li>
+</ul>
+<pre class="literal-block">
+<em>bias</em> value = bias-ID
+  bias-ID = ID of a temperature compute that removes a velocity bias
+<em>dof</em> value = <em>all</em> or <em>rotate</em>
+  all = compute temperature of translational and rotational degrees of freedom
+  rotate = compute temperature of just rotational degrees of freedom
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all temp/body
+compute myTemp mobile temp/body bias tempCOM
+compute myTemp mobile temp/body dof rotate
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates the temperature of a group of
+body particles, including a contribution from both their
+translational and rotational kinetic energy.  This differs from the
+usual <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> command, which assumes point
+particles with only translational kinetic energy.</p>
+<p>Only body particles can be included in the group.  For 3d particles,
+each has 6 degrees of freedom (3 translational, 3 rotational).  For 2d
+body particles, each has 3 degrees of freedom (2 translational, 1
+rotational).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This choice for degrees of freedom (dof) assumes that all body
+particles in your model will freely rotate, sampling all their
+rotational dof.  It is possible to use a combination of interaction
+potentials and fixes that induce no torque or otherwise constrain some
+of all of your particles so that this is not the case.  Then there are
+less dof and you should use the <a class="reference internal" href="compute_modify.html"><em>compute_modify extra</em></a> command to adjust the dof accordingly.</p>
+</div>
+<p>The translational kinetic energy is computed the same as is described
+by the <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> command.  The rotational
+kinetic energy is computed as 1/2 I w^2, where I is the inertia tensor
+for the aspherical particle and w is its angular velocity, which is
+computed from its angular momentum.</p>
+<p>A kinetic energy tensor, stored as a 6-element vector, is also
+calculated by this compute.  The formula for the components of the
+tensor is the same as the above formula, except that v^2 and w^2 are
+replaced by vx*vy and wx*wy for the xy component, and the appropriate
+elements of the inertia tensor are used.  The 6 components of the
+vector are ordered xx, yy, zz, xy, xz, yz.</p>
+<p>The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the <em>dynamic</em> option of the
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command if this is not the case.</p>
+<p>This compute subtracts out translational degrees-of-freedom due to
+fixes that constrain molecular motion, such as <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> and <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a>.  This means the
+temperature of groups of atoms that include these constraints will be
+computed correctly.  If needed, the subtracted degrees-of-freedom can
+be altered using the <em>extra</em> option of the
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command.</p>
+<p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostatting.</p>
+<hr class="docutils" />
+<p>The keyword/value option pairs are used in the following ways.</p>
+<p>For the <em>bias</em> keyword, <em>bias-ID</em> refers to the ID of a temperature
+compute that removes a &#8220;bias&#8221; velocity from each atom.  This allows
+compute temp/sphere to compute its thermal temperature after the
+translational kinetic energy components have been altered in a
+prescribed way, e.g. to remove a flow velocity profile.  Thermostats
+that use this compute will work with this bias term.  See the doc
+pages for individual computes that calculate a temperature and the doc
+pages for fixes that perform thermostatting for more details.</p>
+<p>For the <em>dof</em> keyword, a setting of <em>all</em> calculates a temperature
+that includes both translational and rotational degrees of freedom.  A
+setting of <em>rotate</em> calculates a temperature that includes only
+rotational degrees of freedom.</p>
+<hr class="docutils" />
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The scalar value calculated by this compute is &#8220;intensive&#8221;.  The
+vector values are &#8220;extensive&#8221;.</p>
+<p>The scalar value will be in temperature <a class="reference internal" href="units.html"><em>units</em></a>.  The
+vector values will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the BODY package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This compute requires that atoms store angular momementum and a
+quaternion as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
+command.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_temp.html"><em>compute temp</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

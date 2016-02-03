@@ -10,10 +10,10 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or         *electron* or *ellipsoid* or *full* or *line* or *meso* or 	*molecular* or *peri* or *smd* or *sphere* or *tri* or         *template* or *hybrid*
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or         *dpd* or *electron* or *ellipsoid* or *full* or *line* or *meso* or 	*molecular* or *peri* or *smd* or *sphere* or *tri* or         *template* or *hybrid*
 .. parsed-literal::
 
-     args = none for any style except *body* and *hybrid*
+     args = none for any style except the following
      *body* args = bstyle bstyle-args
        bstyle = style of body particles
        bstyle-args = additional arguments specific to the bstyle
@@ -48,6 +48,12 @@ used before a simulation is setup via a :doc:`read_data <read_data>`,
 :doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
 command.
 
+.. note::
+
+   Many of the atom styles discussed here are only enabled if
+   LAMMPS was built with a specific package, as listed below in the
+   Restrictions section.
+
 Once a style is assigned, it cannot be changed, so use a style general
 enough to encompass all attributes.  E.g. with style *bond*, angular
 terms cannot be used or added later to the model.  It is OK to use a
@@ -77,6 +83,8 @@ quantities.
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *dpd*        | internal temperature and internal energies          | DPD particles                        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *electron*   | charge and spin and eradius                         | electronic force field               |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -146,6 +154,10 @@ position, which is represented by the eradius = electron size.
 
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The *dpd* style is for dissipative particle dynamics (DPD) particles
+which store the particle internal temperature (dpdTheta), internal
+conductive energy (uCond) and internal mechanical energy (uMech).
 
 The *meso* style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
@@ -272,16 +284,30 @@ Restrictions
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
+Many of the styles listed above are only enabled if LAMMPS was built
+with a specific package, as listed below.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+
 The *angle*, *bond*, *full*, *molecular*, and *template* styles are
-part of the MOLECULE package.  The *line* and *tri* styles are part
-of the ASPHERE pacakge.  The *body* style is part of the BODY package.
-The *dipole* style is part of the DIPOLE package.  The *peri* style is
-part of the PERI package for Peridynamics.  The *electron* style is
-part of the USER-EFF package for :doc:`electronic force fields <pair_eff>`.  The *meso* style is part of the USER-SPH
-package for smoothed particle hydrodyanmics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.  The
-*wavepacket* style is part of the USER-AWPMD package for the
-:doc:`antisymmetrized wave packet MD method <pair_awpmd>`.  They are
-only enabled if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+part of the MOLECULE package.
+
+The *line* and *tri* styles are part of the ASPHERE pacakge.
+
+The *body* style is part of the BODY package.
+
+The *dipole* style is part of the DIPOLE package.
+
+The *peri* style is part of the PERI package for Peridynamics.
+
+The *electron* style is part of the USER-EFF package for :doc:`electronic force fields <pair_eff>`.
+
+The *dpd* style is part of the USER-DPD package for dissipative
+particle dynamics (DPD).
+
+The *meso* style is part of the USER-SPH package for smoothed particle
+hydrodyanmics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+
+The *wavepacket* style is part of the USER-AWPMD package for the
+:doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
 
 Related commands
 """"""""""""""""

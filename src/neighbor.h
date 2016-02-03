@@ -71,7 +71,7 @@ class Neighbor : protected Pointers {
 
   int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
 
-  // USER-DPD package - better to make this private?
+  // USER-DPD package
 
   int *ssa_airnum;              // AIR number of each atom for SSA in USER-DPD
 
@@ -121,7 +121,6 @@ class Neighbor : protected Pointers {
 
   int binatomflag;                 // bin atoms or not when build neigh list
                                    // turned off by build_one()
-  bigint last_binning_timestep;	   // last step neighbor binning was done
 
   int nbinx,nbiny,nbinz;           // # of global bins
   int *bins;                       // ptr to next atom in each bin
@@ -180,7 +179,12 @@ class Neighbor : protected Pointers {
 
   // USER-DPD package
 
-  int len_ssa_airnum;           // length of ssa_airnum array
+  int len_ssa_airnum;        // length of ssa_airnum array
+  int *bins_ssa;             // ptr to next atom in each bin used by SSA
+  int maxbin_ssa;            // size of bins array used by SSA
+  int *binhead_ssa;          // ptr to 1st atom in each bin used by SSA
+  int *gbinhead_ssa;         // ptr to 1st ghost atom in each bin used by SSA
+  int maxhead_ssa;           // size of binhead array used by SSA
 
   // methods
 
@@ -320,13 +324,13 @@ class Neighbor : protected Pointers {
 
   // SSA neighboring for USER-DPD
 
-  //int coord2ssa_airnum(double *);  // map atom coord to an AIR number
-  //void assign_ssa_airnums();       // set ssa_airnum values
+  int coord2ssa_airnum(double *);  // map atom coord to an AIR number
+  void assign_ssa_airnums();       // set ssa_airnum values
 
-  void half_bin_newton_ssa(NeighList *) {}
-  void half_from_full_newton_ssa(class NeighList *) {}
-  void stencil_half_bin_2d_ssa(class NeighList *, int, int, int) {}
-  void stencil_half_bin_3d_ssa(class NeighList *, int, int, int) {}
+  void half_bin_newton_ssa(NeighList *);
+  void half_from_full_newton_ssa(class NeighList *);
+  void stencil_half_bin_2d_ssa(class NeighList *, int, int, int);
+  void stencil_half_bin_3d_ssa(class NeighList *, int, int, int);
 
   // find_special: determine if atom j is in special list of atom i
   // if it is not, return 0

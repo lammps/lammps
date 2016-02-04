@@ -11,27 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: 
-   James Larentzos and Timothy I. Mattox (Engility Corporation)
-
-   Martin Lisal (Institute of Chemical Process Fundamentals 
-   of the Czech Academy of Sciences and J. E. Purkinje University)
-
-   John Brennan, Joshua Moore and William Mattson (Army Research Lab)
-
-   Please cite the related publications:
-   J. P. Larentzos, J. K. Brennan, J. D. Moore, M. Lisal, W. D. Mattson,
-   "Parallel implementation of isothermal and isoenergetic Dissipative
-   Particle Dynamics using Shardlow-like splitting algorithms", 
-   Computer Physics Communications, 2014, 185, pp 1987--1998.
-
-   M. Lisal, J. K. Brennan, J. Bonet Avalos, "Dissipative particle dynamics
-   at isothermal, isobaric, isoenergetic, and isoenthalpic conditions using
-   Shardlow-like splitting algorithms", Journal of Chemical Physics, 2011,
-   135, 204105.
-------------------------------------------------------------------------- */
-
 #ifdef FIX_CLASS
 
 FixStyle(shardlow,FixShardlow)

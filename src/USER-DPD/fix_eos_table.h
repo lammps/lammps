@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: James Larentzos (Engility Corporation)
-------------------------------------------------------------------------- */
-
 #ifdef FIX_CLASS
 
 FixStyle(eos/table,FixEOStable)

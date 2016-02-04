@@ -48,9 +48,9 @@ Syntax
          ke = kinetic energy
          etotal = total energy (pe + ke)
          enthalpy = enthalpy (etotal + press*vol)
-         evdwl = VanderWaal pairwise energy
+         evdwl = VanderWaal pairwise energy (includes etail)
          ecoul = Coulombic pairwise energy
-         epair = pairwise energy (evdwl + ecoul + elong + etail)
+         epair = pairwise energy (evdwl + ecoul + elong)
          ebond = bond energy
          eangle = angle energy
          edihed = dihedral energy
@@ -215,9 +215,9 @@ to see which ones contribute.
 
 A long-range tail correction *etail* for the VanderWaal pairwise
 energy will be non-zero only if the :doc:`pair_modify tail <pair_modify>` option is turned on.  The *etail* contribution
-is included in *evdwl*, *pe*, and *etotal*, and the corresponding tail
-correction to the pressure is included in *press* and *pxx*, *pyy*,
-etc.
+is included in *evdwl*, *epair*, *pe*, and *etotal*, and the
+corresponding tail correction to the pressure is included in *press*
+and *pxx*, *pyy*, etc.
 
 
 ----------

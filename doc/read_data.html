@@ -631,74 +631,78 @@ of analysis.</p>
 <tr class="row-even"><td>dipole</td>
 <td>atom-ID atom-type q x y z mux muy muz</td>
 </tr>
-<tr class="row-odd"><td>electron</td>
+<tr class="row-odd"><td>dpd</td>
+<td>atom-ID atom-type theta x y z</td>
+</tr>
+<tr class="row-even"><td>electron</td>
 <td>atom-ID atom-type q spin eradius x y z</td>
 </tr>
-<tr class="row-even"><td>ellipsoid</td>
+<tr class="row-odd"><td>ellipsoid</td>
 <td>atom-ID atom-type ellipsoidflag density x y z</td>
 </tr>
-<tr class="row-odd"><td>full</td>
+<tr class="row-even"><td>full</td>
 <td>atom-ID molecule-ID atom-type q x y z</td>
 </tr>
-<tr class="row-even"><td>line</td>
+<tr class="row-odd"><td>line</td>
 <td>atom-ID molecule-ID atom-type lineflag density x y z</td>
 </tr>
-<tr class="row-odd"><td>meso</td>
+<tr class="row-even"><td>meso</td>
 <td>atom-ID atom-type rho e cv x y z</td>
 </tr>
-<tr class="row-even"><td>molecular</td>
+<tr class="row-odd"><td>molecular</td>
 <td>atom-ID molecule-ID atom-type x y z</td>
 </tr>
-<tr class="row-odd"><td>peri</td>
+<tr class="row-even"><td>peri</td>
 <td>atom-ID atom-type volume density x y z</td>
 </tr>
-<tr class="row-even"><td>smd</td>
-<td>atom-ID atom-type molecule volume mass kernel_radius contact_radius x y z</td>
+<tr class="row-odd"><td>smd</td>
+<td>atom-ID atom-type molecule volume mass kernel-radius contact-radius x y z</td>
 </tr>
-<tr class="row-odd"><td>sphere</td>
+<tr class="row-even"><td>sphere</td>
 <td>atom-ID atom-type diameter density x y z</td>
 </tr>
-<tr class="row-even"><td>template</td>
+<tr class="row-odd"><td>template</td>
 <td>atom-ID molecule-ID template-index template-atom atom-type x y z</td>
 </tr>
-<tr class="row-odd"><td>tri</td>
+<tr class="row-even"><td>tri</td>
 <td>atom-ID molecule-ID atom-type triangleflag density x y z</td>
 </tr>
-<tr class="row-even"><td>wavepacket</td>
+<tr class="row-odd"><td>wavepacket</td>
 <td>atom-ID atom-type charge spin eradius etag cs_re cs_im x y z</td>
 </tr>
-<tr class="row-odd"><td>hybrid</td>
+<tr class="row-even"><td>hybrid</td>
 <td>atom-ID atom-type x y z sub-style1 sub-style2 ...</td>
 </tr>
 </tbody>
 </table>
-<p>The keywords have these meanings:</p>
+<p>The per-atom values have these meanings and units, listed alphabetically:</p>
 <ul class="simple">
 <li>atom-ID = integer ID of atom</li>
-<li>molecule-ID = integer ID of molecule the atom belongs to</li>
 <li>atom-type = type of atom (1-Ntype)</li>
-<li>q = charge on atom (charge units)</li>
-<li>diameter = diameter of spherical atom (distance units)</li>
-<li>ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles</li>
-<li>lineflag = 1 for line segment particles, 0 for point particles</li>
-<li>triangleflag = 1 for triangular particles, 0 for point particles</li>
 <li>bodyflag = 1 for body particles, 0 for point particles</li>
-<li>template-index = which molecule within the molecule template the atom is part of</li>
-<li>template-atom = which atom within a template molecule the atom is</li>
-<li>density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)</li>
-<li>mass = mass of particle (mass units)</li>
-<li>volume = volume of particle (distance^3 units)</li>
-<li>x,y,z = coordinates of atom</li>
-<li>mux,muy,muz = components of dipole moment of atom (dipole units)</li>
-<li>rho = density (need units) for SPH particles</li>
-<li>e = energy (need units) for SPH particles</li>
+<li>contact-radius = ??? (distance units)</li>
+<li>cs_re,cs_im = real/imaginary parts of wavepacket coefficients</li>
 <li>cv = heat capacity (need units) for SPH particles</li>
-<li>spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)</li>
+<li>density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)</li>
+<li>diameter = diameter of spherical atom (distance units)</li>
+<li>e = energy (need units) for SPH particles</li>
+<li>ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles</li>
 <li>eradius = electron radius (or fixed-core radius)</li>
 <li>etag = integer ID of electron that each wavepacket belongs to</li>
-<li>cs_re,cs_im = real/imaginary parts of wavepacket coefficients</li>
-<li>kernel_radius = ??? (distance units)</li>
-<li>contact_radius = ??? (distance units)</li>
+<li>kernel-radius = ??? (distance units)</li>
+<li>lineflag = 1 for line segment particles, 0 for point or spherical particles</li>
+<li>mass = mass of particle (mass units)</li>
+<li>molecule-ID = integer ID of molecule the atom belongs to</li>
+<li>mux,muy,muz = components of dipole moment of atom (dipole units)</li>
+<li>q = charge on atom (charge units)</li>
+<li>rho = density (need units) for SPH particles</li>
+<li>spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)</li>
+<li>template-atom = which atom within a template molecule the atom is</li>
+<li>template-index = which molecule within the molecule template the atom is part of</li>
+<li>theta = internal temperature of a DPD particle</li>
+<li>triangleflag = 1 for triangular particles, 0 for point or sperhical particles</li>
+<li>volume = volume of Peridynamic particle (distance^3 units)</li>
+<li>x,y,z = coordinates of atom (distance units)</li>
 </ul>
 <p>The units for these quantities depend on the unit style; see the
 <a class="reference internal" href="units.html"><em>units</em></a> command for details.</p>

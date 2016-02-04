@@ -527,6 +527,7 @@ body: atom-ID atom-type bodyflag mass x y z
 bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 dipole: atom-ID atom-type q x y z mux muy muz
+dpd: atom-ID atom-type theta x y z
 electron: atom-ID atom-type q spin eradius x y z
 ellipsoid: atom-ID atom-type ellipsoidflag density x y z
 full: atom-ID molecule-ID atom-type q x y z
@@ -534,40 +535,41 @@ line: atom-ID molecule-ID atom-type lineflag density x y z
 meso: atom-ID atom-type rho e cv x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
-smd: atom-ID atom-type molecule volume mass kernel_radius contact_radius x y z
+smd: atom-ID atom-type molecule volume mass kernel-radius contact-radius x y z
 sphere: atom-ID atom-type diameter density x y z
 template: atom-ID molecule-ID template-index template-atom atom-type x y z
 tri: atom-ID molecule-ID atom-type triangleflag density x y z
 wavepacket: atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
 hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
 
-The keywords have these meanings:
+The per-atom values have these meanings and units, listed alphabetically:
 
 atom-ID = integer ID of atom
-molecule-ID = integer ID of molecule the atom belongs to
 atom-type = type of atom (1-Ntype)
-q = charge on atom (charge units)
-diameter = diameter of spherical atom (distance units)
-ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
-lineflag = 1 for line segment particles, 0 for point particles
-triangleflag = 1 for triangular particles, 0 for point particles
 bodyflag = 1 for body particles, 0 for point particles
-template-index = which molecule within the molecule template the atom is part of
-template-atom = which atom within a template molecule the atom is
-density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
-mass = mass of particle (mass units)
-volume = volume of particle (distance^3 units)
-x,y,z = coordinates of atom
-mux,muy,muz = components of dipole moment of atom (dipole units)
-rho = density (need units) for SPH particles
-e = energy (need units) for SPH particles
+contact-radius = ??? (distance units)
+cs_re,cs_im = real/imaginary parts of wavepacket coefficients 
 cv = heat capacity (need units) for SPH particles
-spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
+density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
+diameter = diameter of spherical atom (distance units)
+e = energy (need units) for SPH particles
+ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 eradius = electron radius (or fixed-core radius)
 etag = integer ID of electron that each wavepacket belongs to
-cs_re,cs_im = real/imaginary parts of wavepacket coefficients 
-kernel_radius = ??? (distance units)
-contact_radius = ??? (distance units) :ul
+kernel-radius = ??? (distance units)
+lineflag = 1 for line segment particles, 0 for point or spherical particles
+mass = mass of particle (mass units)
+molecule-ID = integer ID of molecule the atom belongs to
+mux,muy,muz = components of dipole moment of atom (dipole units)
+q = charge on atom (charge units)
+rho = density (need units) for SPH particles
+spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
+template-atom = which atom within a template molecule the atom is
+template-index = which molecule within the molecule template the atom is part of
+theta = internal temperature of a DPD particle
+triangleflag = 1 for triangular particles, 0 for point or sperhical particles
+volume = volume of Peridynamic particle (distance^3 units)
+x,y,z = coordinates of atom (distance units) :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.

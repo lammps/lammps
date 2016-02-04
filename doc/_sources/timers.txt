@@ -1,0 +1,85 @@
+.. index:: timestep
+
+timestep command
+================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   timers args
+
+* *args* = one or more of *off* or *loop* or *normal* or *full* or *sync* or *nosync*
+.. parsed-literal::
+
+     *off* = do not collect and print timing information
+     *loop* = collect only the total time for the simulation loop
+     *normal* = collect timer information broken down in sections (default)
+     *full* = like *normal* but also include CPU and thread utilzation 
+     *sync* = explicitly synchronize MPI tasks between sections
+     *nosync* = do not synchronize MPI tasks when collecting timer info (default)
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   timers full sync
+   timers loop
+
+Description
+"""""""""""
+
+Select to which level of detail LAMMPS is performing internal profiling.
+
+During regular runs LAMMPS will collect information about how much time is
+spent in different sections of the code and thus can provide valuable
+information for determining performance and load imbalance problems.  This
+can be done at different levels of detail and accuracy.  For more 
+information about the timing output, please have a look at the :ref:`discussion of screen output <start_8>`.
+
+The *off* setting will turn all time measurements off. The *loop* setting
+will only measure the total time of run loop and not collect any detailed
+per section information. With the *normal* setting, timing information for
+individual sections of the code are collected and also information about
+load imbalances inside those sections presented. The *full* setting adds
+information about CPU utilization and thread utilization, when multi-threading
+is enabled.
+
+With the *sync* setting, all MPI tasks are synchronized at each timer call
+and thus allowing to study load imbalance more accuractly, but this usually
+has some performance impact. Using the *nosync* setting this can be turned
+off (which is the default).
+
+Multiple keywords can be provided and for keywords that are mutually
+exclusive, the last one in that group is taking effect.
+
+.. warning::
+
+   Using the *full* and *sync* options provides the most
+   detailed and accurate timing information, but also can have a significant
+   negative performance impact due to the overhead of the many required system
+   calls. It is thus recommended to use these settings only when making tests
+   to identify the performance. For calculations with few atoms or a very
+   large number of performance, even using the *normal* setting can have
+   a measurable performance impact. It is recommended in those cases to use
+   the *loop* or *off* setting.
+
+Restrictions
+""""""""""""
+ none
+
+Related commands
+""""""""""""""""
+:doc:`run post no <run>`, :doc:`kspace_modify fftbench <kspace_modify>`
+
+Default
+"""""""
+
+timers normal nosync
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

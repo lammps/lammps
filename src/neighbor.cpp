@@ -162,7 +162,6 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   improperlist = NULL;
 
   copymode = 0;
-  last_binning_timestep = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2014,11 +2013,6 @@ void Neighbor::modify_params(int narg, char **arg)
 void Neighbor::bin_atoms()
 {
   int i,ibin;
-
-  // NOTE: added for USER-DPD, why do we need this?
-
-  //if (last_binning_timestep == update->ntimestep) return;
-  //last_binning_timestep = update->ntimestep;
 
   for (i = 0; i < mbins; i++) binhead[i] = -1;
 

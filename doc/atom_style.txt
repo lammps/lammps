@@ -13,10 +13,10 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
-        {electron} or {ellipsoid} or {full} or {line} or {meso} or \
+        {dpd} or {electron} or {ellipsoid} or {full} or {line} or {meso} or \
 	{molecular} or {peri} or {smd} or {sphere} or {tri} or \
         {template} or {hybrid} :ulb,l
-  args = none for any style except {body} and {hybrid}
+  args = none for any style except the following
   {body} args = bstyle bstyle-args
     bstyle = style of body particles
     bstyle-args = additional arguments specific to the bstyle
@@ -47,6 +47,10 @@ used before a simulation is setup via a "read_data"_read_data.html,
 "read_restart"_read_restart.html, or "create_box"_create_box.html
 command.
 
+NOTE: Many of the atom styles discussed here are only enabled if
+LAMMPS was built with a specific package, as listed below in the
+Restrictions section.
+
 Once a style is assigned, it cannot be changed, so use a style general
 enough to encompass all attributes.  E.g. with style {bond}, angular
 terms cannot be used or added later to the model.  It is OK to use a
@@ -70,6 +74,7 @@ quantities.
 {bond} | bonds | bead-spring polymers |
 {charge} | charge | atomic system with charges |
 {dipole} | charge and dipole moment | system with dipolar particles |
+{dpd} | internal temperature and internal energies | DPD particles |
 {electron} | charge and spin and eradius | electronic force field |
 {ellipsoid} | shape, quaternion, angular momentum | aspherical particles |
 {full} | molecular + charge | bio-molecules |
@@ -127,6 +132,10 @@ position, which is represented by the eradius = electron size.
 
 For the {peri} style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The {dpd} style is for dissipative particle dynamics (DPD) particles
+which store the particle internal temperature (dpdTheta), internal
+conductive energy (uCond) and internal mechanical energy (uMech).
 
 The {meso} style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
@@ -247,19 +256,33 @@ more instructions on how to use the accelerated styles effectively.
 This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
-The {angle}, {bond}, {full}, {molecular}, and {template} styles are
-part of the MOLECULE package.  The {line} and {tri} styles are part
-of the ASPHERE pacakge.  The {body} style is part of the BODY package.
-The {dipole} style is part of the DIPOLE package.  The {peri} style is
-part of the PERI package for Peridynamics.  The {electron} style is
-part of the USER-EFF package for "electronic force
-fields"_pair_eff.html.  The {meso} style is part of the USER-SPH
-package for smoothed particle hydrodyanmics (SPH).  See "this PDF
-guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.  The
-{wavepacket} style is part of the USER-AWPMD package for the
-"antisymmetrized wave packet MD method"_pair_awpmd.html.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
+Many of the styles listed above are only enabled if LAMMPS was built
+with a specific package, as listed below.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
+
+The {angle}, {bond}, {full}, {molecular}, and {template} styles are
+part of the MOLECULE package.
+
+The {line} and {tri} styles are part of the ASPHERE pacakge.
+
+The {body} style is part of the BODY package.
+
+The {dipole} style is part of the DIPOLE package.  
+
+The {peri} style is part of the PERI package for Peridynamics.
+
+The {electron} style is part of the USER-EFF package for "electronic
+force fields"_pair_eff.html.
+
+The {dpd} style is part of the USER-DPD package for dissipative
+particle dynamics (DPD).
+
+The {meso} style is part of the USER-SPH package for smoothed particle
+hydrodyanmics (SPH).  See "this PDF
+guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.
+
+The {wavepacket} style is part of the USER-AWPMD package for the
+"antisymmetrized wave packet MD method"_pair_awpmd.html.
 
 [Related commands:]
 

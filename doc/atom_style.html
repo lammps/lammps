@@ -132,10 +132,10 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>style = <em>angle</em> or <em>atomic</em> or <em>body</em> or <em>bond</em> or <em>charge</em> or <em>dipole</em> or         <em>electron</em> or <em>ellipsoid</em> or <em>full</em> or <em>line</em> or <em>meso</em> or         <em>molecular</em> or <em>peri</em> or <em>smd</em> or <em>sphere</em> or <em>tri</em> or         <em>template</em> or <em>hybrid</em></li>
+<li>style = <em>angle</em> or <em>atomic</em> or <em>body</em> or <em>bond</em> or <em>charge</em> or <em>dipole</em> or         <em>dpd</em> or <em>electron</em> or <em>ellipsoid</em> or <em>full</em> or <em>line</em> or <em>meso</em> or        <em>molecular</em> or <em>peri</em> or <em>smd</em> or <em>sphere</em> or <em>tri</em> or         <em>template</em> or <em>hybrid</em></li>
 </ul>
 <pre class="literal-block">
-args = none for any style except <em>body</em> and <em>hybrid</em>
+args = none for any style except the following
 <em>body</em> args = bstyle bstyle-args
   bstyle = style of body particles
   bstyle-args = additional arguments specific to the bstyle
@@ -168,6 +168,12 @@ what attributes are associated with the atoms.  This command must be
 used before a simulation is setup via a <a class="reference internal" href="read_data.html"><em>read_data</em></a>,
 <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>, or <a class="reference internal" href="create_box.html"><em>create_box</em></a>
 command.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Many of the atom styles discussed here are only enabled if
+LAMMPS was built with a specific package, as listed below in the
+Restrictions section.</p>
+</div>
 <p>Once a style is assigned, it cannot be changed, so use a style general
 enough to encompass all attributes.  E.g. with style <em>bond</em>, angular
 terms cannot be used or added later to the model.  It is OK to use a
@@ -213,51 +219,55 @@ quantities.</p>
 <td>charge and dipole moment</td>
 <td>system with dipolar particles</td>
 </tr>
-<tr class="row-odd"><td><em>electron</em></td>
+<tr class="row-odd"><td><em>dpd</em></td>
+<td>internal temperature and internal energies</td>
+<td>DPD particles</td>
+</tr>
+<tr class="row-even"><td><em>electron</em></td>
 <td>charge and spin and eradius</td>
 <td>electronic force field</td>
 </tr>
-<tr class="row-even"><td><em>ellipsoid</em></td>
+<tr class="row-odd"><td><em>ellipsoid</em></td>
 <td>shape, quaternion, angular momentum</td>
 <td>aspherical particles</td>
 </tr>
-<tr class="row-odd"><td><em>full</em></td>
+<tr class="row-even"><td><em>full</em></td>
 <td>molecular + charge</td>
 <td>bio-molecules</td>
 </tr>
-<tr class="row-even"><td><em>line</em></td>
+<tr class="row-odd"><td><em>line</em></td>
 <td>end points, angular velocity</td>
 <td>rigid bodies</td>
 </tr>
-<tr class="row-odd"><td><em>meso</em></td>
+<tr class="row-even"><td><em>meso</em></td>
 <td>rho, e, cv</td>
 <td>SPH particles</td>
 </tr>
-<tr class="row-even"><td><em>molecular</em></td>
+<tr class="row-odd"><td><em>molecular</em></td>
 <td>bonds, angles, dihedrals, impropers</td>
 <td>uncharged molecules</td>
 </tr>
-<tr class="row-odd"><td><em>peri</em></td>
+<tr class="row-even"><td><em>peri</em></td>
 <td>mass, volume</td>
 <td>mesocopic Peridynamic models</td>
 </tr>
-<tr class="row-even"><td><em>smd</em></td>
+<tr class="row-odd"><td><em>smd</em></td>
 <td>volume, kernel diameter, contact radius, mass</td>
 <td>solid and fluid SPH particles</td>
 </tr>
-<tr class="row-odd"><td><em>sphere</em></td>
+<tr class="row-even"><td><em>sphere</em></td>
 <td>diameter, mass, angular velocity</td>
 <td>granular models</td>
 </tr>
-<tr class="row-even"><td><em>template</em></td>
+<tr class="row-odd"><td><em>template</em></td>
 <td>template index, template atom</td>
 <td>small molecules with fixed topology</td>
 </tr>
-<tr class="row-odd"><td><em>tri</em></td>
+<tr class="row-even"><td><em>tri</em></td>
 <td>corner points, angular momentum</td>
 <td>rigid bodies</td>
 </tr>
-<tr class="row-even"><td><em>wavepacket</em></td>
+<tr class="row-odd"><td><em>wavepacket</em></td>
 <td>charge, spin, eradius, etag, cs_re, cs_im</td>
 <td>AWPMD</td>
 </tr>
@@ -300,6 +310,9 @@ Gaussians with a specified position and bandwidth or uncertainty in
 position, which is represented by the eradius = electron size.</p>
 <p>For the <em>peri</em> style, the particles are spherical and each stores a
 per-particle mass and volume.</p>
+<p>The <em>dpd</em> style is for dissipative particle dynamics (DPD) particles
+which store the particle internal temperature (dpdTheta), internal
+conductive energy (uCond) and internal mechanical energy (uMech).</p>
 <p>The <em>meso</em> style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
 (cv).</p>
@@ -399,16 +412,21 @@ more instructions on how to use the accelerated styles effectively.</p>
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>This command cannot be used after the simulation box is defined by a
 <a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="create_box.html"><em>create_box</em></a> command.</p>
+<p>Many of the styles listed above are only enabled if LAMMPS was built
+with a specific package, as listed below.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 <p>The <em>angle</em>, <em>bond</em>, <em>full</em>, <em>molecular</em>, and <em>template</em> styles are
-part of the MOLECULE package.  The <em>line</em> and <em>tri</em> styles are part
-of the ASPHERE pacakge.  The <em>body</em> style is part of the BODY package.
-The <em>dipole</em> style is part of the DIPOLE package.  The <em>peri</em> style is
-part of the PERI package for Peridynamics.  The <em>electron</em> style is
-part of the USER-EFF package for <a class="reference internal" href="pair_eff.html"><em>electronic force fields</em></a>.  The <em>meso</em> style is part of the USER-SPH
-package for smoothed particle hydrodyanmics (SPH).  See <a class="reference external" href="USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</a> to using SPH in LAMMPS.  The
-<em>wavepacket</em> style is part of the USER-AWPMD package for the
-<a class="reference internal" href="pair_awpmd.html"><em>antisymmetrized wave packet MD method</em></a>.  They are
-only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+part of the MOLECULE package.</p>
+<p>The <em>line</em> and <em>tri</em> styles are part of the ASPHERE pacakge.</p>
+<p>The <em>body</em> style is part of the BODY package.</p>
+<p>The <em>dipole</em> style is part of the DIPOLE package.</p>
+<p>The <em>peri</em> style is part of the PERI package for Peridynamics.</p>
+<p>The <em>electron</em> style is part of the USER-EFF package for <a class="reference internal" href="pair_eff.html"><em>electronic force fields</em></a>.</p>
+<p>The <em>dpd</em> style is part of the USER-DPD package for dissipative
+particle dynamics (DPD).</p>
+<p>The <em>meso</em> style is part of the USER-SPH package for smoothed particle
+hydrodyanmics (SPH).  See <a class="reference external" href="USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</a> to using SPH in LAMMPS.</p>
+<p>The <em>wavepacket</em> style is part of the USER-AWPMD package for the
+<a class="reference internal" href="pair_awpmd.html"><em>antisymmetrized wave packet MD method</em></a>.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>

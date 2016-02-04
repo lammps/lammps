@@ -155,11 +155,13 @@ in the pair section of :ref:`this page <cmd_5>`.
 * :doc:`pair_style lj/class2 <pair_class2>` - COMPASS (class 2) force field with no Coulomb
 * :doc:`pair_style lj/class2/coul/cut <pair_class2>` - COMPASS with cutoff Coulomb
 * :doc:`pair_style lj/class2/coul/long <pair_class2>` - COMPASS with long-range Coulomb
+* :doc:`pair_style lj/cubic <pair_lj_cubic>` - LJ with cubic after inflection point
 * :doc:`pair_style lj/cut <pair_lj>` - cutoff Lennard-Jones potential with no Coulomb
 * :doc:`pair_style lj/cut/coul/cut <pair_lj>` - LJ with cutoff Coulomb
 * :doc:`pair_style lj/cut/coul/debye <pair_lj>` - LJ with Debye screening added to Coulomb
 * :doc:`pair_style lj/cut/coul/dsf <pair_lj>` - LJ with Coulombics via damped shifted forces
 * :doc:`pair_style lj/cut/coul/long <pair_lj>` - LJ with long-range Coulombics
+* :doc:`pair_style lj/cut/coul/long/cs <pair_lj>` - LJ with long-range Coulombics and core/shell
 * :doc:`pair_style lj/cut/coul/msm <pair_lj>` - LJ with long-range MSM Coulombics
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald

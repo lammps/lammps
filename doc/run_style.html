@@ -165,10 +165,10 @@
    cut2 = outer cutoff between pair middle and pair outer (distance units)
     <em>outer</em> value = M
       M = which level (1-N) to compute pair outer forces in
-    <em>hybrid</em> values = M1 [M2 ...] (as many values as there are hybrid sub-styles
+    <em>hybrid</em> values = M1 M2 ... (as many values as there are hybrid sub-styles
       M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
       M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
-      ...
+      M3,etc
     <em>kspace</em> value = M
       M = which level (1-N) to compute kspace forces in
 </pre>
@@ -280,15 +280,16 @@ and <em>outer</em> keywords.  If not, only the <em>pair</em> keyword can be used
 with that pair style, meaning all pairwise forces are computed at the
 same rRESPA level.  See the doc pages for individual pair styles for
 details.i</p>
-<p>Another variant to use pair potentials in rRESPA is with the <em>hybrid</em>
-keyword, which requires the use of a <a class="reference internal" href="pair_hybrid.html"><em>hybrid pair_style</em></a>
-In this scenario, different sub-styles of the hybrid pair style are
-evaluated at different rRESPA levels. Thus the hybrid keyword requires
-as many level assignments as there are hybrid substyles which designate
-the respective sub-styles to the rRESPA level according to their order
-of definition in the pair_style command. Since the <em>hybrid</em> designates
-pair force computations, it is mututally exclusive with either the <em>pair</em>
-or the <em>inner</em>/<em>middle</em>/<em>outer</em> keywords.</p>
+<p>Another option for using pair potentials with rRESPA is with the
+<em>hybrid</em> keyword, which requires the use of the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid or hybrid/overlay</em></a> command.  In this scenario, different
+sub-styles of the hybrid pair style are evaluated at different rRESPA
+levels.  This can be useful, for example, to set different timesteps
+for hybrid coarse-grained/all-atom models.  The <em>hybrid</em> keyword
+requires as many level assignments as there are hybrid substyles,
+which assigns each sub-style to a rRESPA level, following their order
+of definition in the pair_style command. Since the <em>hybrid</em> keyword
+operates on pair style computations, it is mututally exclusive with
+either the <em>pair</em> or the <em>inner</em>/<em>middle</em>/<em>outer</em> keywords.</p>
 <p>When using rRESPA (or for any MD simulation) care must be taken to
 choose a timestep size(s) that insures the Hamiltonian for the chosen
 ensemble is conserved.  For the constant NVE ensemble, total energy

@@ -699,6 +699,7 @@ void Pair::compute_dummy(int eflag, int vflag)
    additional properties during the pair computation from within
    Pair::ev_tally(). ensure each compute instance is registered only once
 ---------------------------------------------------------------------- */
+
 void Pair::add_tally_callback(Compute *ptr)
 {
   if (lmp->kokkos)
@@ -725,6 +726,7 @@ void Pair::add_tally_callback(Compute *ptr)
 /* -------------------------------------------------------------------
    unregister a callback to a fix for additional pairwise tallying
 ---------------------------------------------------------------------- */
+
 void Pair::del_tally_callback(Compute *ptr)
 {
   int i,found=-1;

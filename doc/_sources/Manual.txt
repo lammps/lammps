@@ -5,8 +5,8 @@
 LAMMPS Documentation
 ====================
 
-29 Jan 2016 version
--------------------
+3 Feb 2016 version
+------------------
 
 Version info:
 -------------

@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: 
-   James Larentzos and Timothy I. Mattox (Engility Corporation)
+   James Larentzos (U.S. Army Research Laboratory)
+   and Timothy I. Mattox (Engility Corporation)
 
    Martin Lisal (Institute of Chemical Process Fundamentals 
    of the Czech Academy of Sciences and J. E. Purkinje University)

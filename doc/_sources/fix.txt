@@ -170,8 +170,10 @@ of :ref:`this page <cmd_5>`.
 * :doc:`adapt <fix_adapt>` - change a simulation parameter over time
 * :doc:`addforce <fix_addforce>` - add a force to each atom
 * :doc:`append/atoms <fix_append_atoms>` - append atoms to a running simulation
+* :doc:`atom/swap <fix_atom_swap>` - Monte Carlo atom type swapping
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`ave/atom <fix_ave_atom>` - compute per-atom time-averaged quantities
+* :doc:`ave/chunk <fix_ave_chunk>` - compute per-chunk time-averaged quantities
 * :doc:`ave/correlate <fix_ave_correlate>` - compute/output time correlations
 * :doc:`ave/histo <fix_ave_histo>` - compute/output time-averaged histograms
 * :doc:`ave/spatial <fix_ave_spatial>` - compute/output time-averaged per-atom quantities by layer
@@ -221,6 +223,7 @@ of :ref:`this page <cmd_5>`.
 * :doc:`nvt/asphere <fix_nvt_asphere>` - NVT for aspherical particles
 * :doc:`nvt/sllod <fix_nvt_sllod>` - NVT for NEMD with SLLOD equations
 * :doc:`nvt/sphere <fix_nvt_sphere>` - NVT for spherical particles
+* :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
 * :doc:`orient/fcc <fix_orient_fcc>` - add grain boundary migration force
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move   as coupled rigid bodies
@@ -228,7 +231,7 @@ of :ref:`this page <cmd_5>`.
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by      Berendsen barostat
 * :doc:`print <fix_print>` - print text and variables during a simulation
 * :doc:`property/atom <fix_property_atom>` - add customized per-atom values
-* :doc:`qeq/comb <fix_qeq_comb>` - charge equilibration for COMB potential :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method :doc:`qeq/point <fix_qeq>` - charge equilibration via point method :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method :doc:`reax/bonds <fix_reax_bonds>` - write out ReaxFF bond information :doc:`recenter <fix_recenter>` - constrain the center-of-mass position   of a group of atoms
+* :doc:`qeq/comb <fix_qeq_comb>` - charge equilibration for COMB potential :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer :doc:`qeq/point <fix_qeq>` - charge equilibration via point method :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method :doc:`reax/bonds <fix_reax_bonds>` - write out ReaxFF bond information :doc:`recenter <fix_recenter>` - constrain the center-of-mass position   of a group of atoms
 * :doc:`restrain <fix_restrain>` - constrain a bond, angle, dihedral
 * :doc:`rigid <fix_rigid>` - constrain one or more clusters of atoms to      move as a rigid body with NVE integration
 * :doc:`rigid/nph <fix_rigid>` - constrain one or more clusters of atoms to      move as a rigid body with NPH integration
@@ -236,6 +239,10 @@ of :ref:`this page <cmd_5>`.
 * :doc:`rigid/nve <fix_rigid>` - constrain one or more clusters of atoms to      move as a rigid body with alternate NVE integration
 * :doc:`rigid/nvt <fix_rigid>` - constrain one or more clusters of atoms to      move as a rigid body with NVT integration
 * :doc:`rigid/small <fix_rigid>` - constrain many small clusters of atoms to      move as a rigid body with NVE integration
+* :doc:`rigid/small/nph <fix_rigid>` - constrain many small clusters of atoms to      move as a rigid body with NPH integration
+* :doc:`rigid/small/npt <fix_rigid>` - constrain many small clusters of atoms to      move as a rigid body with NPT integration
+* :doc:`rigid/small/nve <fix_rigid>` - constrain many small clusters of atoms to      move as a rigid body with alternate NVE integration
+* :doc:`rigid/small/nvt <fix_rigid>` - constrain many small clusters of atoms to      move as a rigid body with NVT integration
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles
 * :doc:`spring <fix_spring>` - apply harmonic spring force to group of atoms
@@ -245,7 +252,10 @@ of :ref:`this page <cmd_5>`.
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
 * :doc:`temp/berendsen <fix_temp_berendsen>` - temperature control by      Berendsen thermostat
+* :doc:`temp/csld <fix_temp_csvr>` - canonical sampling thermostat with Langevin dynamics
+* :doc:`temp/csvr <fix_temp_csvr>` - canonical sampling thermostat with Hamiltonian dynamics
 * :doc:`temp/rescale <fix_temp_rescale>` - temperature control by      velocity rescaling
+* :doc:`tfmc <fix_tfmc>` - perform force-bias Monte Carlo with time-stamped method
 * :doc:`thermal/conductivity <fix_thermal_conductivity>` - Muller-Plathe kinetic energy exchange for      thermal conductivity calculation
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration
 * :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling

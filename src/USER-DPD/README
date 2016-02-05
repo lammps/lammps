@@ -1,7 +1,7 @@
 This package implements the dissipative particle dynamics (DPD) method
 under isothermal, isoenergetic, isobaric and isenthalpic conditions.
-The DPD equations of motion are integrated through the Shardlow
-splitting algorithm.
+The DPD equations of motion are integrated efficiently through the
+Shardlow splitting algorithm.
 
 Currently, the package has the following features:
 

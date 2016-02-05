@@ -43,10 +43,10 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
 	cut2 = outer cutoff between pair middle and pair outer (distance units)
       {outer} value = M
         M = which level (1-N) to compute pair outer forces in
-      {hybrid} values = M1 \[M2 ...\] (as many values as there are hybrid sub-styles 
+      {hybrid} values = M1 M2 ... (as many values as there are hybrid sub-styles 
         M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
         M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
-        ...
+        M3,etc
       {kspace} value = M
         M = which level (1-N) to compute kspace forces in :pre
 :ule
@@ -170,15 +170,17 @@ with that pair style, meaning all pairwise forces are computed at the
 same rRESPA level.  See the doc pages for individual pair styles for
 details.i
 
-Another variant to use pair potentials in rRESPA is with the {hybrid}
-keyword, which requires the use of a "hybrid pair_style"_pair_hybrid.html
-In this scenario, different sub-styles of the hybrid pair style are
-evaluated at different rRESPA levels. Thus the hybrid keyword requires
-as many level assignments as there are hybrid substyles which designate
-the respective sub-styles to the rRESPA level according to their order
-of definition in the pair_style command. Since the {hybrid} designates
-pair force computations, it is mututally exclusive with either the {pair}
-or the {inner}/{middle}/{outer} keywords.
+Another option for using pair potentials with rRESPA is with the
+{hybrid} keyword, which requires the use of the "pair_style hybrid or
+hybrid/overlay"_pair_hybrid.html command.  In this scenario, different
+sub-styles of the hybrid pair style are evaluated at different rRESPA
+levels.  This can be useful, for example, to set different timesteps
+for hybrid coarse-grained/all-atom models.  The {hybrid} keyword
+requires as many level assignments as there are hybrid substyles,
+which assigns each sub-style to a rRESPA level, following their order
+of definition in the pair_style command. Since the {hybrid} keyword
+operates on pair style computations, it is mututally exclusive with
+either the {pair} or the {inner}/{middle}/{outer} keywords.
 
 When using rRESPA (or for any MD simulation) care must be taken to
 choose a timestep size(s) that insures the Hamiltonian for the chosen

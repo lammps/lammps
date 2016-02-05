@@ -29,6 +29,7 @@ class DomainKokkos : public Domain {
   DomainKokkos(class LAMMPS *);
   ~DomainKokkos() {}
   void init();
+  void reset_box();
   void pbc();
   void remap_all();
   void image_flip(int, int, int);

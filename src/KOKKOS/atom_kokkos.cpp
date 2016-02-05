@@ -97,6 +97,7 @@ void AtomKokkos::allocate_type_arrays()
     mass = k_mass.h_view.ptr_on_device();
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
+    k_mass.modify<LMPHostType>();
   }
 }
 

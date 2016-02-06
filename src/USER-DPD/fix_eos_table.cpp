@@ -395,7 +395,7 @@ double FixEOStable::splint(double *xa, double *ya, double *y2a, int n, double x)
 void FixEOStable::energy_lookup(double t, double &u)
 {
   int itable;
-  double fraction,a,b;
+  double fraction;
 
   Table *tb = &tables[0];
   if(t < tb->lo || t > tb->hi){
@@ -417,7 +417,7 @@ void FixEOStable::energy_lookup(double t, double &u)
 void FixEOStable::temperature_lookup(double u, double &t)
 {
   int itable;
-  double fraction,a,b;
+  double fraction;
 
   Table *tb = &tables[1];
   if(u < tb->lo || u > tb->hi){ 

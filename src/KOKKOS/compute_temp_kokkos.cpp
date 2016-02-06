@@ -44,6 +44,7 @@ template<class DeviceType>
 double ComputeTempKokkos<DeviceType>::compute_scalar()
 {
   atomKK->sync(execution_space,datamask_read);
+  atomKK->k_mass.sync<DeviceType>();
 
   invoked_scalar = update->ntimestep;
 
@@ -72,6 +73,7 @@ double ComputeTempKokkos<DeviceType>::compute_scalar()
   if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
+
   return scalar;
 }
 

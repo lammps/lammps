@@ -75,3 +75,11 @@ class Timer : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+*/

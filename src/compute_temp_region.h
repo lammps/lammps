@@ -63,4 +63,8 @@ E: Region ID for compute temp/region does not exist
 
 Self-explanatory.
 
+E: Temperature compute degrees of freedom < 0
+
+UNDOCUMENTED
+
 */

@@ -63,4 +63,8 @@ class DomainKokkos : public Domain {
 
 /* ERROR/WARNING messages:
 
+E: Illegal simulation box
+
+UNDOCUMENTED
+
 */

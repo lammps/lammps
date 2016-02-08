@@ -76,6 +76,10 @@ E: Compute msd/chunk does not use chunk/atom compute
 
 The style of the specified compute is not chunk/atom.
 
+E: Could not find compute msd/chunk fix ID
+
+UNDOCUMENTED
+
 E: Compute msd/chunk nchunk is not static
 
 This is required because the MSD cannot be computed consistently if

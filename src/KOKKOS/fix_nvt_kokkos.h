@@ -41,4 +41,12 @@ class FixNVTKokkos : public FixNHKokkos<DeviceType> {
 
 /* ERROR/WARNING messages:
 
+E: Temperature control must be used with fix nvt
+
+UNDOCUMENTED
+
+E: Pressure control can not be used with fix nvt
+
+UNDOCUMENTED
+
 */

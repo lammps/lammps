@@ -73,6 +73,10 @@ E: Compute orientorder/atom requires a pair style be defined
 
 Self-explantory.
 
+E: Compute orientorder/atom cutoff is longer than pairwise cutoff
+
+UNDOCUMENTED
+
 W: More than one compute orientorder/atom
 
 It is not efficient to use compute orientorder/atom more than once.

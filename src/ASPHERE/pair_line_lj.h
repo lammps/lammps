@@ -79,4 +79,8 @@ E: Pair line/lj requires atom style line
 
 Self-explanatory.
 
+E: All pair coeffs are not set
+
+UNDOCUMENTED
+
 */

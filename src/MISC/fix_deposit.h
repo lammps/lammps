@@ -153,6 +153,10 @@ E: Fix deposit and fix shake not using same molecule template ID
 
 Self-explanatory.
 
+W: Fix deposit near setting < possible overlap separation %g
+
+UNDOCUMENTED
+
 W: Particle deposition was unsuccessful
 
 The fix deposit command was not able to insert as many atoms as

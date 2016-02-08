@@ -56,7 +56,11 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-W: Should not use fix nve/limit with fix shake
+W: Should not use fix nve/limit with fix shake or fix rattle
+
+UNDOCUMENTED
+
+U: Should not use fix nve/limit with fix shake
 
 This will lead to invalid constraint forces in the SHAKE computation.
 

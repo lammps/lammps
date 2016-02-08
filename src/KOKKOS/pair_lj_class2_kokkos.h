@@ -121,4 +121,16 @@ class PairLJClass2Kokkos : public PairLJClass2 {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+UNDOCUMENTED
+
+E: Cannot use chosen neighbor list style with lj/class2/kk
+
+UNDOCUMENTED
+
 */

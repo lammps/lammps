@@ -125,9 +125,17 @@ E: Fix ave/correlate variable is not equal-style variable
 
 Self-explanatory.
 
+E: Error writing file header
+
+UNDOCUMENTED
+
 E: Invalid timestep reset for fix ave/correlate
 
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
+
+E: Error writing out correlation data
+
+UNDOCUMENTED
 
 */

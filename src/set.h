@@ -98,9 +98,29 @@ E: Cannot set non-zero image flag for non-periodic dimension
 
 Self-explanatory.
 
-E: Cannot set meso_rho for this atom style
+E: Cannot set meso/e for this atom style
 
-Self-explanatory.
+UNDOCUMENTED
+
+E: Cannot set meso/cv for this atom style
+
+UNDOCUMENTED
+
+E: Cannot set meso/rho for this atom style
+
+UNDOCUMENTED
+
+E: Cannot set smd/mass/density for this atom style
+
+UNDOCUMENTED
+
+E: Cannot set smd/contact/radius for this atom style
+
+UNDOCUMENTED
+
+E: Cannot set dpd/theta for this atom style
+
+UNDOCUMENTED
 
 E: Set command integer vector does not exist
 
@@ -146,6 +166,10 @@ E: Cannot set quaternion for atom that has none
 
 Self-explanatory.
 
+E: Cannot set quaternion with xy components for 2d system
+
+UNDOCUMENTED
+
 E: Cannot set theta for atom that is not a line
 
 Self-explanatory.
@@ -186,5 +210,9 @@ Self-explanatory.
 E: Variable for set command is invalid style
 
 Only atom-style variables can be used.
+
+U: Cannot set meso_rho for this atom style
+
+Self-explanatory.
 
 */

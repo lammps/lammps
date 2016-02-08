@@ -282,4 +282,8 @@ E: Cannot open BOP potential file %s
 The specified BOP potential file cannot be opened.  Check that the
 path and name are correct.
 
+E: Incorrect table format check for element types
+
+UNDOCUMENTED
+
 */

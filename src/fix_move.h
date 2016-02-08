@@ -109,14 +109,6 @@ E: Fix move cannot define z or vz variable for 2d problem
 
 Self-explanatory.
 
-W: Fix move does not update angular momentum
-
-Atoms store this quantity, but fix move does not (yet) update it.
-
-W: Fix move does not update quaternions
-
-Atoms store this quantity, but fix move does not (yet) update it.
-
 E: Zero length rotation vector with fix move
 
 Self-explanatory.
@@ -136,5 +128,13 @@ Atoms can not be added afterwards to this fix option.
 E: Resetting timestep size is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
+
+U: Fix move does not update angular momentum
+
+Atoms store this quantity, but fix move does not (yet) update it.
+
+U: Fix move does not update quaternions
+
+Atoms store this quantity, but fix move does not (yet) update it.
 
 */

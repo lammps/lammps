@@ -59,11 +59,6 @@ E: Invalid body nparticle command
 
 Arguments in atom-style command are not correct.
 
-E: Invalid format in Bodies section of data file
-
-The specified number of integer or floating point values does not
-appear.
-
 E: Incorrect # of integer values in Bodies section of data file
 
 See doc page for body style.
@@ -79,5 +74,10 @@ See doc page for body style.
 E: Insufficient Jacobi rotations for body nparticle
 
 Eigensolve for rigid body was not sufficiently accurate.
+
+U: Invalid format in Bodies section of data file
+
+The specified number of integer or floating point values does not
+appear.
 
 */

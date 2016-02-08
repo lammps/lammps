@@ -200,6 +200,14 @@ E: Cannot open print file %s
 
 Self-explanatory.
 
+W: shell command '%s' failed with error '%s'
+
+UNDOCUMENTED
+
+W: shell command returned with non-zero status
+
+UNDOCUMENTED
+
 E: Angle_coeff command before simulation box is defined
 
 The angle_coeff command cannot be used before a read_data,

@@ -180,4 +180,20 @@ E: Cannot use chosen neighbor list style with pair eam/kk/alloy
 
 That style is not supported by Kokkos.
 
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: No matching element in EAM potential file
+
+UNDOCUMENTED
+
+E: Cannot open EAM potential file %s
+
+UNDOCUMENTED
+
+E: Incorrect element names in EAM potential file
+
+UNDOCUMENTED
+
 */

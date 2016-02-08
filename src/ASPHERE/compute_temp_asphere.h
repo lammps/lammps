@@ -84,4 +84,8 @@ E: Bias compute group does not match compute group
 The specified compute must operate on the same group as the parent
 compute.
 
+E: Temperature compute degrees of freedom < 0
+
+UNDOCUMENTED
+
 */

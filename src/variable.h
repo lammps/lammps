@@ -150,6 +150,10 @@ E: Universe/uloop variable count < # of partitions
 A universe or uloop style variable must specify a number of values >= to the
 number of processor partitions.
 
+E: Cannot open temporary file for world counter.
+
+UNDOCUMENTED
+
 E: All universe/uloop variables must have same # of values
 
 Self-explanatory.
@@ -411,6 +415,18 @@ Self-explanatory.
 E: Invalid variable style in special function next
 
 Only file-style or atomfile-style variables can be used with next().
+
+E: Invalid is_active() function in variable formula
+
+UNDOCUMENTED
+
+E: Invalid is_available() function in variable formula
+
+UNDOCUMENTED
+
+E: Invalid is_defined() function in variable formula
+
+UNDOCUMENTED
 
 E: Indexed per-atom vector in variable formula without atom map
 

@@ -65,4 +65,8 @@ E: Compute temp/partial cannot use vz for 2d systemx
 
 Self-explanatory.
 
+E: Temperature compute degrees of freedom < 0
+
+UNDOCUMENTED
+
 */

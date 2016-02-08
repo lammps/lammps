@@ -212,6 +212,14 @@ E: Invalid fix nvt/npt/nph pressure settings
 
 Settings for coupled dimensions must be the same.
 
+E: Using update dipole flag requires atom style sphere
+
+UNDOCUMENTED
+
+E: Using update dipole flag requires atom attribute mu
+
+UNDOCUMENTED
+
 E: Fix nvt/npt/nph damping parameters must be > 0.0
 
 Self-explanatory.

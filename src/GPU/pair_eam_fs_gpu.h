@@ -56,6 +56,14 @@ public:
 
 /* ERROR/WARNING messages:
 
+E: Insufficient memory on accelerator
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with eam/fs/gpu pair style
+
+UNDOCUMENTED
+
 E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.

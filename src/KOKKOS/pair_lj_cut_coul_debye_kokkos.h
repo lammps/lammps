@@ -128,4 +128,16 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+UNDOCUMENTED
+
+E: Cannot use chosen neighbor list style with lj/cut/coul/debye/kk
+
+UNDOCUMENTED
+
 */

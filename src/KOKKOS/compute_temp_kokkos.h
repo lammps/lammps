@@ -98,7 +98,11 @@ class ComputeTempKokkos : public ComputeTemp {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Temperature compute degrees of freedom < 0
+
+UNDOCUMENTED
+
+U: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a

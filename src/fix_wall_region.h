@@ -84,7 +84,11 @@ E: Fix wall/region colloid requires extended particles
 
 One of the particles has radius 0.0.
 
-E: Particle on or inside surface of region used in fix wall/region
+E: Particle outside surface of region used in fix wall/region
+
+UNDOCUMENTED
+
+U: Particle on or inside surface of region used in fix wall/region
 
 Particles must be "exterior" to the region surface in order for
 energy/force to be calculated.

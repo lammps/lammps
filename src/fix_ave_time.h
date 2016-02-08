@@ -88,6 +88,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: No values in fix ave/time command
+
+UNDOCUMENTED
+
 E: Compute ID for fix ave/time does not exist
 
 Self-explanatory.
@@ -165,6 +169,10 @@ E: Fix ave/time cannot use variable with vector mode
 
 Variables produce scalar values.
 
+E: Error writing file header
+
+UNDOCUMENTED
+
 E: Fix ave/time cannot set output array intensive/extensive from these inputs
 
 One of more of the vector inputs has individual elements which are
@@ -175,6 +183,10 @@ E: Invalid timestep reset for fix ave/time
 
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
+
+E: Error writing out time averaged data
+
+UNDOCUMENTED
 
 E: Fix ave/time columns are inconsistent lengths
 

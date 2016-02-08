@@ -11,41 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
-
-FixStyle(nph/kk,FixNPHKokkos<LMPDeviceType>)
-FixStyle(nph/kk/device,FixNPHKokkos<LMPDeviceType>)
-FixStyle(nph/kk/host,FixNPHKokkos<LMPHostType>)
-
-#else
-
-#ifndef LMP_FIX_NPH_KOKKOS_H
-#define LMP_FIX_NPH_KOKKOS_H
-
-#include "fix_nh_kokkos.h"
-
-namespace LAMMPS_NS {
-
-template<class DeviceType>
-class FixNPHKokkos : public FixNHKokkos<DeviceType> {
- public:
-  FixNPHKokkos(class LAMMPS *, int, char **);
-  ~FixNPHKokkos() {}
-};
-
-}
-
-#endif
-#endif
-
 /* ERROR/WARNING messages:
 
-E: Temperature control can not be used with fix nph
+E: Neighbor list overflow, boost neigh_modify one
 
-UNDOCUMENTED
-
-E: Pressure control must be used with fix nph
-
-UNDOCUMENTED
+There are too many neighbors of a single atom.  Use the neigh_modify
+command to increase the max number of neighbors allowed for one atom.
+You may also want to boost the page size.
 
 */

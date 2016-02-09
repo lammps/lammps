@@ -127,4 +127,12 @@ class PairLJCutCoulDSFKokkos : public PairLJCutCoulDSF {
 
 /* ERROR/WARNING messages:
 
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+UNDOCUMENTED
+
+E: Cannot use chosen neighbor list style with lj/cut/coul/cut/kk
+
+UNDOCUMENTED
+
 */

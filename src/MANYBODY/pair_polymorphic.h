@@ -317,3 +317,43 @@ class PairPolymorphic : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: Pair style polymorphic requires atom IDs
+
+UNDOCUMENTED
+
+E: Pair style polymorphic requires newton pair on
+
+UNDOCUMENTED
+
+E: All pair coeffs are not set
+
+UNDOCUMENTED
+
+E: Cannot open polymorphic potential file %s
+
+UNDOCUMENTED
+
+E: Incorrect number of elements in potential file
+
+UNDOCUMENTED
+
+E: Element not defined in potential file
+
+UNDOCUMENTED
+
+E: Test potential tables
+
+UNDOCUMENTED
+
+*/

@@ -90,10 +90,6 @@ E: Timestep must be >= 0
 
 Specified timestep is invalid.
 
-E: Too big a timestep
-
-Specified timestep is too large.
-
 E: Cannot reset timestep with a time-dependent fix defined
 
 You cannot reset the timestep when a fix that keeps track of elapsed
@@ -104,5 +100,9 @@ E: Cannot reset timestep with a dynamic region defined
 Dynamic regions (see the region command) have a time dependence.
 Thus you cannot change the timestep when one or more of these
 are defined.
+
+U: Too big a timestep
+
+Specified timestep is too large.
 
 */

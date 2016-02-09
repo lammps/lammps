@@ -50,4 +50,8 @@ E: Dump cfg/gz only writes compressed files
 
 The dump cfg/gz output file name must have a .gz suffix.
 
+E: Cannot open dump file
+
+UNDOCUMENTED
+
 */

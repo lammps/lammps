@@ -217,4 +217,8 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
 
 /* ERROR/WARNING messages:
 
+E: Cannot use chosen neighbor list style with tersoff/kk
+
+UNDOCUMENTED
+
 */

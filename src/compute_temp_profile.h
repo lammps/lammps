@@ -85,4 +85,8 @@ E: Compute temp/profile cannot bin z for 2d systems
 
 Self-explanatory.
 
+E: Temperature compute degrees of freedom < 0
+
+UNDOCUMENTED
+
 */

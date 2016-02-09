@@ -47,6 +47,14 @@ E: Invalid Kokkos command-line args
 
 Self-explanatory.  See Section 2.7 of the manual for details.
 
+E: GPUs are requested but Kokkos has not been compiled for CUDA
+
+UNDOCUMENTED
+
+E: Kokkos has been compiled for CUDA but no GPUs are requested
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

@@ -87,15 +87,15 @@ class PairHybrid : public Pair {
 
 /* ERROR/WARNING messages:
 
+E: Cannot yet use pair hybrid with Kokkos
+
+This feature is not yet supported.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Cannot yet use pair hybrid with Kokkos
-
-This feature is not yet supported.
 
 E: Pair style hybrid cannot have hybrid as an argument
 
@@ -118,6 +118,14 @@ E: Pair hybrid sub-style is not used
 No pair_coeff command used a sub-style specified in the pair_style
 command.
 
+E: Pair_modify special setting incompatible with global special_bonds setting
+
+UNDOCUMENTED
+
+E: Pair_modify special setting incompatible withglobal special_bonds setting
+
+UNDOCUMENTED
+
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
@@ -133,6 +141,10 @@ E: Pair hybrid sub-style does not support single call
 
 You are attempting to invoke a single() call on a pair style
 that doesn't support it.
+
+E: Pair hybrid single calls do not support per sub-style special bond values
+
+UNDOCUMENTED
 
 E: Unknown pair_modify hybrid sub-style
 

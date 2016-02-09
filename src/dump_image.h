@@ -135,6 +135,18 @@ E: Dump image persp option is not yet supported
 
 Self-explanatory.
 
+E: Dump image line requires atom style line
+
+UNDOCUMENTED
+
+E: Dump image tri requires atom style tri
+
+UNDOCUMENTED
+
+E: Dump image body yes requires atom style body
+
+UNDOCUMENTED
+
 E: Dump image requires one snapshot per file
 
 Use a "*" in the filename.

@@ -149,4 +149,8 @@ E: Assigning body parameters to non-body atom
 
 Self-explanatory.
 
+E: Assigning quat to non-body atom
+
+UNDOCUMENTED
+
 */

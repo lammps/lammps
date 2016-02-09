@@ -127,4 +127,16 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+UNDOCUMENTED
+
+E: Cannot use chosen neighbor list style with lj/class2/coul/cut/kk
+
+UNDOCUMENTED
+
 */

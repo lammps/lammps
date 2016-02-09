@@ -228,4 +228,12 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 
 /* ERROR/WARNING messages:
 
+E: Pair tersoff/zbl/kk requires metal or real units
+
+UNDOCUMENTED
+
+E: Cannot use chosen neighbor list style with tersoff/zbl/kk
+
+UNDOCUMENTED
+
 */

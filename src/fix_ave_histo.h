@@ -213,10 +213,18 @@ E: Variable name for fix ave/histo does not exist
 
 Self-explanatory.
 
+E: Error writing file header
+
+UNDOCUMENTED
+
 E: Invalid timestep reset for fix ave/histo
 
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
+
+E: Error writing out histogram data
+
+UNDOCUMENTED
 
 E: Cannot open fix ave/histo file %s
 

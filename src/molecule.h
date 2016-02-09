@@ -165,6 +165,10 @@ class Molecule : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
 E: Molecule template ID must be alphanumeric or underscore characters
 
 Self-explanatory.
@@ -181,9 +185,29 @@ E: Molecule file z center-of-mass must be 0.0 for 2d
 
 Self-explanatory.
 
-E: No atom count in molecule file
+E: Molecule file requires atom style body
 
-Self-explanatory.
+UNDOCUMENTED
+
+E: No or invalid atom count in molecule file
+
+UNDOCUMENTED
+
+E: Invalid bond count in molecule file
+
+UNDOCUMENTED
+
+E: Invalid angle count in molecule file
+
+UNDOCUMENTED
+
+E: Invalid dihedral count in molecule file
+
+UNDOCUMENTED
+
+E: Invalid improper count in molecule file
+
+UNDOCUMENTED
 
 E: Molecule file has bonds but no nbonds setting
 
@@ -209,6 +233,10 @@ E: Molecule file shake flags not before shake bonds
 
 The order of the two sections is important.
 
+E: Molecule file has body params but no setting for them
+
+UNDOCUMENTED
+
 E: Unknown section in molecule file
 
 Self-explanatory.
@@ -221,29 +249,65 @@ E: Molecule file has special flags but no bonds
 
 Self-explanatory.
 
-E: Molecule file has bonds but no special flags
-
-Self-explanatory.
-
 E: Molecule file shake info is incomplete
 
 All 3 SHAKE sections are needed.
+
+E: Molecule file has no Body Integers section
+
+UNDOCUMENTED
+
+E: Molecule file has no Body Doubles section
+
+UNDOCUMENTED
+
+E: Molecule natoms must be 1 for body particle
+
+UNDOCUMENTED
+
+E: Molecule sizescale must be 1.0 for body particle
+
+UNDOCUMENTED
+
+E: Invalid Coords section in molecule file
+
+UNDOCUMENTED
 
 E: Molecule file z coord must be 0.0 for 2d
 
 Self-explanatory.
 
+E: Invalid Types section in molecule file
+
+UNDOCUMENTED
+
 E: Invalid atom type in molecule file
 
 Atom types must range from 1 to specified # of types.
+
+E: Invalid Charges section in molecule file
+
+UNDOCUMENTED
+
+E: Invalid Diameters section in molecule file
+
+UNDOCUMENTED
 
 E: Invalid atom diameter in molecule file
 
 Diameters must be >= 0.0.
 
+E: Invalid Masses section in molecule file
+
+UNDOCUMENTED
+
 E: Invalid atom mass in molecule file
 
 Masses must be > 0.0.
+
+E: Invalid Bonds section in molecule file
+
+UNDOCUMENTED
 
 E: Invalid atom ID in Bonds section of molecule file
 
@@ -253,6 +317,10 @@ E: Invalid bond type in Bonds section of molecule file
 
 Self-explanatory.
 
+E: Invalid Angles section in molecule file
+
+UNDOCUMENTED
+
 E: Invalid atom ID in Angles section of molecule file
 
 Self-explanatory.
@@ -260,6 +328,10 @@ Self-explanatory.
 E: Invalid angle type in Angles section of molecule file
 
 Self-explanatory.
+
+E: Invalid Dihedrals section in molecule file
+
+UNDOCUMENTED
 
 E: Invalid atom ID in dihedrals section of molecule file
 
@@ -269,6 +341,10 @@ E: Invalid dihedral type in dihedrals section of molecule file
 
 Self-explanatory.
 
+E: Invalid Impropers section in molecule file
+
+UNDOCUMENTED
+
 E: Invalid atom ID in impropers section of molecule file
 
 Self-explanatory.
@@ -277,6 +353,10 @@ E: Invalid improper type in impropers section of molecule file
 
 Self-explanatory.
 
+E: Invalid Special Bond Counts section in molecule file
+
+UNDOCUMENTED
+
 E: Molecule file special list does not match special count
 
 The number of values in an atom's special list does not match count.
@@ -284,6 +364,14 @@ The number of values in an atom's special list does not match count.
 E: Invalid special atom index in molecule file
 
 Self-explanatory.
+
+E: Molecule auto special bond generation overflow
+
+UNDOCUMENTED
+
+E: 
+
+UNDOCUMENTED
 
 E: Invalid shake flag in molecule file
 
@@ -300,6 +388,14 @@ Self-explanatory.
 E: Invalid shake angle type in molecule file
 
 Self-explanatory.
+
+E: Too few values in body section of molecule file
+
+UNDOCUMENTED
+
+E: Too many values in body section of molecule file
+
+UNDOCUMENTED
 
 W: Molecule attributes do not match system attributes
 
@@ -327,5 +423,13 @@ E: Cannot open molecule file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.
+
+U: No atom count in molecule file
+
+Self-explanatory.
+
+U: Molecule file has bonds but no special flags
+
+Self-explanatory.
 
 */

@@ -110,4 +110,8 @@ class SortFunctor {
 
 /* ERROR/WARNING messages:
 
+E: KOKKOS package requires a kokkos enabled atom_style
+
+UNDOCUMENTED
+
 */

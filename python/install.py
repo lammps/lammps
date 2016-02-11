@@ -37,19 +37,27 @@ print "installing lammps.py in Python site-packages dir"
 
 os.chdir('../python')                # in case invoked via make in src dir
 
+# extract version string from header
+fp = open('../src/version.h','r')
+txt=fp.read().split('"')[1].split()
+verstr=txt[0]+txt[1]+txt[2]
+fp.close()
+
 from distutils.core import setup
+from distutils.sysconfig import get_python_lib
 import site
 tryuser=False
 
 try:
   sys.argv = ["setup.py","install"]    # as if had run "python setup.py install"
   setup(name = "lammps",
-        version = "15May15",
+        version = verstr,
         author = "Steve Plimpton",
         author_email = "sjplimp@sandia.gov",
         url = "http://lammps.sandia.gov",
         description = "LAMMPS molecular dynamics library",
-        py_modules = ["lammps"])
+        py_modules = ["lammps"],
+        data_files = [(get_python_lib(), ["../src/liblammps.so"])])
 except:
   tryuser=True
   print "Installation into global site-packages dir failed.\nTrying user site dir %s now." % site.USER_SITE
@@ -59,7 +67,7 @@ if tryuser:
   try:
     sys.argv = ["setup.py","install","--user"]    # as if had run "python setup.py install --user"
     setup(name = "lammps",
-    version = "15May15",
+    version = verstr,
     author = "Steve Plimpton",
     author_email = "sjplimp@sandia.gov",
     url = "http://lammps.sandia.gov",

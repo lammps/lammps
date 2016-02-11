@@ -55,7 +55,7 @@ E: Kokkos has been compiled for CUDA but no GPUs are requested
 
 One or more GPUs must be used when Kokkos is compiled for CUDA.
 
-E: Must use Kokkos half/thread or full neighbor list with threads or GPU
+E: Must use Kokkos half/thread or full neighbor list with threads or GPUs
 
 Using Kokkos half neighbor list with threading is not allowed.
 

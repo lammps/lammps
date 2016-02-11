@@ -27,7 +27,7 @@ class KokkosLMP : protected Pointers {
   int forward_comm_classic;
   int exchange_comm_on_host;
   int forward_comm_on_host;
-  int num_threads;
+  int num_threads,ngpu;
   int numa;
 
   KokkosLMP(class LAMMPS *, int, char **);
@@ -49,11 +49,15 @@ Self-explanatory.  See Section 2.7 of the manual for details.
 
 E: GPUs are requested but Kokkos has not been compiled for CUDA
 
-UNDOCUMENTED
+Recompile Kokkos with CUDA support to use GPUs.
 
 E: Kokkos has been compiled for CUDA but no GPUs are requested
 
-UNDOCUMENTED
+One or more GPUs must be used when Kokkos is compiled for CUDA.
+
+E: Must use Kokkos half/thread or full neighbor list with threads or GPU
+
+Using Kokkos half neighbor list with threading is not allowed.
 
 E: Illegal ... command
 

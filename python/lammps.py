@@ -39,16 +39,20 @@ class lammps:
     
     modpath = dirname(abspath(getsourcefile(lambda:0)))
 
-    # load liblammps.so by default
-    # if name = "g++", load liblammps_g++.so
+    # load liblammps.so unless name is given.
+    # e.g. if name = "g++", load liblammps_g++.so
+    # try loading the LAMMPS shared object from the location
+    # of lammps.py with an absolute path (so that LD_LIBRARY_PATH
+    # does not need to be set for regular installations.
+    # fall back to loading with a relative path, which typically
+    # requires LD_LIBRARY_PATH to be set appropriately.
 
     try:
       if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
       else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
     except:
-      type,value,tb = sys.exc_info()
-      traceback.print_exception(type,value,tb)
-      raise OSError,"Could not load LAMMPS dynamic library from %s" % modpath
+      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
+      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar

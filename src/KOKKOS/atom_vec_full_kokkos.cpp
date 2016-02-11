@@ -764,8 +764,11 @@ struct AtomVecFullKokkos_PackBorder {
   union ubuf {
     double d;
     int64_t i;
+    KOKKOS_INLINE_FUNCTION
     ubuf(double arg) : d(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int64_t arg) : i(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int arg) : i(arg) {}
   };
 
@@ -1030,8 +1033,11 @@ struct AtomVecFullKokkos_UnpackBorder {
   union ubuf {
     double d;
     int64_t i;
+    KOKKOS_INLINE_FUNCTION
     ubuf(double arg) : d(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int64_t arg) : i(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int arg) : i(arg) {}
   };
 
@@ -1177,8 +1183,11 @@ struct AtomVecFullKokkos_PackExchangeFunctor {
   union ubuf {
     double d;
     int64_t i;
+    KOKKOS_INLINE_FUNCTION
     ubuf(double arg) : d(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int64_t arg) : i(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int arg) : i(arg) {}
   };
 
@@ -1527,8 +1536,11 @@ struct AtomVecFullKokkos_UnpackExchangeFunctor {
   union ubuf {
     double d;
     int64_t i;
+    KOKKOS_INLINE_FUNCTION
     ubuf(double arg) : d(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int64_t arg) : i(arg) {}
+    KOKKOS_INLINE_FUNCTION
     ubuf(int arg) : i(arg) {}
   };
 

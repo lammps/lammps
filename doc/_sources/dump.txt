@@ -3,6 +3,9 @@
 dump command
 ============
 
+:doc:`dump custom/vtk <dump_custom_vtk>` command
+================================================
+
 :doc:`dump h5md <dump_h5md>` command
 ====================================
 
@@ -47,6 +50,10 @@ Syntax
 .. parsed-literal::
 
      *xyz/mpiio* args = none
+
+.. parsed-literal::
+
+     *custom/vtk* args = similar to custom args below, discussed on :doc:`dump custom/vtk <dump_custom_vtk>` doc page
 
 .. parsed-literal::
 

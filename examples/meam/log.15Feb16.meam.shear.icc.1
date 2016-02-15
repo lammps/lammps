@@ -1,0 +1,196 @@
+LAMMPS (15 Feb 2016)
+# 3d metal shear simulation
+
+units		metal
+boundary	s s p
+
+atom_style	atomic
+lattice		fcc 3.52
+Lattice spacing in x,y,z = 3.52 3.52 3.52
+region		box block 0 16.0 0 10.0 0 2.828427
+create_box	3 box
+Created orthogonal box = (0 0 0) to (56.32 35.2 9.95606)
+  1 by 1 by 1 MPI processor grid
+
+lattice		fcc 3.52 orient	x 1 0 0 orient y 0 1 1 orient z 0 -1 1 		origin 0.5 0 0
+Lattice spacing in x,y,z = 3.52 4.97803 4.97803
+create_atoms	1 box
+Created 1912 atoms
+
+pair_style	meam
+pair_coeff	* * library.meam Ni4 Ni.meam Ni4 Ni4 Ni4
+Reading potential file library.meam with DATE: 2012-06-29
+Reading potential file Ni.meam with DATE: 2007-06-11
+
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+region		lower block INF INF INF 0.9 INF INF
+region		upper block INF INF 6.1 INF INF INF
+group		lower region lower
+264 atoms in group lower
+group		upper region upper
+264 atoms in group upper
+group		boundary union lower upper
+528 atoms in group boundary
+group		mobile subtract all boundary
+1384 atoms in group mobile
+
+set		group lower type 2
+  264 settings made for type
+set		group upper type 3
+  264 settings made for type
+
+# void
+
+#region		void cylinder z 8 5 2.5 INF INF
+#delete_atoms	region void
+
+# temp controllers
+
+compute		new3d mobile temp
+compute		new2d mobile temp/partial 0 1 1
+
+# equilibrate
+
+velocity	mobile create 300.0 5812775 temp new3d
+fix		1 all nve
+fix		2 boundary setforce 0.0 0.0 0.0
+
+fix		3 mobile temp/rescale 10 300.0 300.0 10.0 1.0
+fix_modify	3 temp new3d
+
+thermo		25
+thermo_modify	temp new3d
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:445)
+
+timestep	0.001
+run		100
+Neighbor list info ...
+  2 neighbor list requests
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 2.15 -> bins = 27 17 5
+Memory usage per processor = 8.55725 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          300   -8232.7767            0   -8179.1466    1386.6643     19547.02 
+      25    222.78953   -8188.1215            0   -8148.2941    9095.9008     19547.02 
+      50          300   -8149.7654            0   -8096.1353    10633.141    19684.382 
+      75    304.80657   -8163.4557            0   -8108.9665     7045.457    19759.745 
+     100          300   -8173.6884            0   -8120.0584     5952.521    19886.589 
+Loop time of 1.81808 on 1 procs for 100 steps with 1912 atoms
+
+Performance: 4.752 ns/day, 5.050 hours/ns, 55.003 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.7962     | 1.7962     | 1.7962     |   0.0 | 98.80
+Neigh   | 0.014991   | 0.014991   | 0.014991   |   0.0 |  0.82
+Comm    | 0.0016303  | 0.0016303  | 0.0016303  |   0.0 |  0.09
+Output  | 6.5804e-05 | 6.5804e-05 | 6.5804e-05 |   0.0 |  0.00
+Modify  | 0.0041728  | 0.0041728  | 0.0041728  |   0.0 |  0.23
+Other   |            | 0.001022   |            |       |  0.06
+
+Nlocal:    1912 ave 1912 max 1912 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1672 ave 1672 max 1672 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    23806 ave 23806 max 23806 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  47612 ave 47612 max 47612 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 47612
+Ave neighs/atom = 24.9017
+Neighbor list builds = 5
+Dangerous builds = 0
+
+# shear
+
+velocity	upper set 1.0 0 0
+velocity	mobile ramp vx 0.0 1.0 y 1.4 8.6 sum yes
+
+unfix		3
+fix		3 mobile temp/rescale 10 300.0 300.0 10.0 1.0
+fix_modify	3 temp new2d
+
+#dump		1 all atom 500 dump.meam.shear
+
+#dump		2 all image 100 image.*.jpg type type #		axes yes 0.8 0.02 view 0 0 zoom 1.5 up 0 1 0 adiam 2.0
+#dump_modify	2 pad 4
+
+#dump		3 all movie 100 movie.mpg type type #		axes yes 0.8 0.02 view 0 0 zoom 1.5 up 0 1 0 adiam 2.0
+#dump_modify	3 pad 4
+
+thermo		100
+thermo_modify	temp new2d
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:445)
+
+reset_timestep	0
+run		3000
+Memory usage per processor = 8.73384 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0    300.50853   -8173.6884            0   -8137.8874    4992.9811    19894.297 
+     100     292.0799   -8177.7235            0   -8142.9266    2566.6872    19871.516 
+     200    306.71233   -8177.1504            0   -8140.6103    872.78764      20047.2 
+     300     295.7806   -8172.9505            0   -8137.7127    -1053.769    20091.657 
+     400    309.18439   -8169.6374            0   -8132.8028   -1784.5443    20122.178 
+     500    304.51122   -8163.9147            0   -8127.6369   -160.26993     20183.44 
+     600          300     -8158.55            0   -8122.8096    1555.2344    20279.887 
+     700    304.32794   -8149.4746            0   -8113.2185    3700.5984    20430.504 
+     800    304.79621   -8138.8368            0   -8102.5249    3721.6015     20510.74 
+     900    303.87706     -8128.16            0   -8091.9576    4387.1435    20638.992 
+    1000          300   -8113.4908            0   -8077.7503    6186.7018    20755.029 
+    1100    306.13486   -8097.1731            0   -8060.7018    8904.6621    20879.616 
+    1200    309.15669   -8081.8589            0   -8045.0276    10523.683    20996.875 
+    1300    304.48415   -8064.5597            0   -8028.2851     10063.03    21126.348 
+    1400          300   -8046.7607            0   -8011.0203    10972.459    21238.721 
+    1500          300   -8041.3546            0   -8005.6142    11939.555    21374.301 
+    1600    309.60207   -8035.2265            0   -7998.3422    11340.176    21530.099 
+    1700          300   -8029.1685            0   -7993.4281    11298.745    21635.488 
+    1800          300   -8034.2271            0   -7998.4867    9629.3065    21738.292 
+    1900    307.84886   -8037.1066            0   -8000.4311    6166.9669    21857.993 
+    2000    307.82172   -8029.9182            0    -7993.246    3178.6607    22013.016 
+    2100          300   -8032.5982            0   -7996.8578    1354.4696    22107.168 
+    2200          300   -8040.9505            0   -8005.2101    1872.6686    22231.755 
+    2300          300   -8044.4439            0   -8008.7035    3214.7865    22355.121 
+    2400    304.60017   -8038.5216            0   -8002.2331    5092.8026    22477.266 
+    2500    308.48504   -8034.0394            0   -7997.2881    7280.4765    22596.967 
+    2600    308.46083   -8037.9984            0     -8001.25    9860.0578     22717.89 
+    2700    305.72597   -8038.4481            0   -8002.0255    10620.389    22837.592 
+    2800    308.33801   -8043.0579            0   -8006.3241    8184.9538    22957.293 
+    2900          300    -8042.671            0   -8006.9306    6691.6548    23085.545 
+    3000    305.66039   -8041.7651            0   -8005.3503    3816.3815    23204.025 
+Loop time of 57.0164 on 1 procs for 3000 steps with 1912 atoms
+
+Performance: 4.546 ns/day, 5.279 hours/ns, 52.616 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 56.168     | 56.168     | 56.168     |   0.0 | 98.51
+Neigh   | 0.64021    | 0.64021    | 0.64021    |   0.0 |  1.12
+Comm    | 0.051842   | 0.051842   | 0.051842   |   0.0 |  0.09
+Output  | 0.00062251 | 0.00062251 | 0.00062251 |   0.0 |  0.00
+Modify  | 0.1245     | 0.1245     | 0.1245     |   0.0 |  0.22
+Other   |            | 0.03095    |            |       |  0.05
+
+Nlocal:    1912 ave 1912 max 1912 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1662 ave 1662 max 1662 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    23535 ave 23535 max 23535 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  47070 ave 47070 max 47070 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 47070
+Ave neighs/atom = 24.6182
+Neighbor list builds = 223
+Dangerous builds = 0
+Total wall time: 0:00:58

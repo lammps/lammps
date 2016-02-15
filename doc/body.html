@@ -305,7 +305,7 @@ The <em>bflag2</em> argument is ignored.</p>
 <p>The <em>rounded/polygon</em> body style represents body particles as a convex
 polygon with a variable number N &gt; 2 of vertices, which can only be
 used for 2d models.  One example use of this body style is for 2d
-discrete element models, as described in <a class="reference internal" href="pair_body_rounded_polygon.html#fraige"><span>Fraige</span></a>.  Similar to
+discrete element models, as described in <a class="reference internal" href="#fraige"><span>Fraige</span></a>.  Similar to
 body style <em>nparticle</em>, the atom_style body command for this body
 style takes two additional arguments:</p>
 <div class="highlight-python"><div class="highlight"><pre>atom_style body rounded/polygon Nmin Nmax
@@ -359,7 +359,7 @@ particles whose edge length is sqrt(2):</p>
 1.0
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="pair_body_rounded_polygon.html"><em>pair_style body/rounded/polygon</em></a> command
+<p>The <code class="xref doc docutils literal"><span class="pre">pair_style</span> <span class="pre">body/rounded/polygon</span></code> command
 can be used with this body style to compute body/body interactions.</p>
 <p>For output purposes via the <a class="reference internal" href="compute_body_local.html"><em>compute body/local</em></a> and <a class="reference internal" href="dump.html"><em>dump local</em></a>
 commands, this body style produces one datum for each of the N

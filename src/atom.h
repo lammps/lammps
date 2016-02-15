@@ -397,7 +397,7 @@ the atom style.
 
 E: Invalid atom type in Atoms section of data file
 
-Atom types can be no larger than defined Ntypes.
+Atom types must range from 1 to specified # of types.
 
 E: Incorrect velocity format in data file
 

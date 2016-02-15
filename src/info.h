@@ -58,15 +58,15 @@ E: Unknown name for info pair category
 
 Self-explanatory.
 
-E: Unknown category info for is_active()
+E: Unknown category for info is_active()
 
 Self-explanatory.
 
-E: Unknown category info for is_available()
+E: Unknown category for info is_available()
 
 Self-explanatory.
 
-E: Unknown category info for is_defined()
+E: Unknown category for info is_defined()
 
 Self-explanatory.
 

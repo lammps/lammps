@@ -118,7 +118,7 @@ E: Pair hybrid sub-style is not used
 No pair_coeff command used a sub-style specified in the pair_style
 command.
 
-E: Pair_modify special setting incompatible with global special_bonds setting
+E: Pair_modify special setting for pair hybrid incompatible with global special_bonds setting
 
 Cannot override a setting of 0.0 or 1.0 or change a setting between
 0.0 and 1.0.

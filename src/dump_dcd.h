@@ -86,8 +86,7 @@ The frequency of writing dump dcd snapshots cannot be changed.
 
 E: Cannot open dump file
 
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
+Self-explanatory.
 
 E: Dump dcd of non-matching # of atoms
 

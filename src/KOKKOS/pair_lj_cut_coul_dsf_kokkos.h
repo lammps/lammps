@@ -133,6 +133,6 @@ Self-explanatory.
 
 E: Cannot use chosen neighbor list style with lj/cut/coul/cut/kk
 
-Self-explanatory.
+That style is not supported by Kokkos.
 
 */

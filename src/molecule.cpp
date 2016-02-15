@@ -1168,7 +1168,7 @@ void Molecule::special_generate()
         }
         if (!dedup) {
           if (count[i] >= maxspecial)
-            error->one(FLERR,"");
+            error->one(FLERR,"Molecule auto special bond generation overflow");
           special[i][count[i]++] = special[special[i][m]-1][j];
           nspecial[i][1]++;
         }
@@ -1192,7 +1192,7 @@ void Molecule::special_generate()
         }
         if (!dedup) {
           if (count[i] >= maxspecial)
-            error->one(FLERR,"");
+            error->one(FLERR,"Molecule auto special bond generation overflow");
           special[i][count[i]++] = special[special[i][m]-1][j];
           nspecial[i][2]++;
         }

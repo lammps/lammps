@@ -89,8 +89,4 @@ E: Temperature compute degrees of freedom < 0
 This should not happen if you are calculating the temperature
 on a valid set of atoms.
 
-U: Compute temp/asphere requires atom style ellipsoid
-
-Self-explanatory.
-
 */

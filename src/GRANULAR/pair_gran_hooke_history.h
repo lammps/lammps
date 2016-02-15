@@ -83,7 +83,7 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair granular requires atom atrributes radius, rmass
+E: Pair granular requires atom attributes radius, rmass
 
 The atom style defined does not have these attributes.
 

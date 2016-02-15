@@ -18,7 +18,7 @@
 #include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
-#include "improper_harmonic_intel.h"
+#include "improper_cvff_intel.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -36,32 +36,31 @@ using namespace MathConst;
 
 #define PTOLERANCE (flt_t)1.05
 #define MTOLERANCE (flt_t)-1.05
-#define SMALL     (flt_t)0.001
 #define SMALL2     (flt_t)0.000001
 #define INVSMALL   (flt_t)1000.0
 typedef struct { int a,b,c,d,t;  } int5_t;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHarmonicIntel::ImproperHarmonicIntel(LAMMPS *lmp) : 
-  ImproperHarmonic(lmp)
+ImproperCvffIntel::ImproperCvffIntel(LAMMPS *lmp) : 
+  ImproperCvff(lmp)
 {
   suffix_flag |= Suffix::INTEL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHarmonicIntel::~ImproperHarmonicIntel()
+ImproperCvffIntel::~ImproperCvffIntel()
 {
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ImproperHarmonicIntel::compute(int eflag, int vflag)
+void ImproperCvffIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
   if (_use_base) {
-    ImproperHarmonic::compute(eflag, vflag);
+    ImproperCvff::compute(eflag, vflag);
     return;
   }
   #endif
@@ -80,7 +79,7 @@ void ImproperHarmonicIntel::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void ImproperHarmonicIntel::compute(int eflag, int vflag,
+void ImproperCvffIntel::compute(int eflag, int vflag,
 				    IntelBuffers<flt_t,acc_t> *buffers,
 				    const ForceConst<flt_t> &fc)
 {
@@ -110,7 +109,7 @@ void ImproperHarmonicIntel::compute(int eflag, int vflag,
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void ImproperHarmonicIntel::eval(const int vflag, 
+void ImproperCvffIntel::eval(const int vflag, 
 				 IntelBuffers<flt_t,acc_t> *buffers,
 				 const ForceConst<flt_t> &fc)
 {
@@ -169,42 +168,52 @@ void ImproperHarmonicIntel::eval(const int vflag,
       const flt_t vb1y = x[i1].y - x[i2].y;
       const flt_t vb1z = x[i1].z - x[i2].z;
 
-      const flt_t vb2x = x[i3].x - x[i2].x;
-      const flt_t vb2y = x[i3].y - x[i2].y;
-      const flt_t vb2z = x[i3].z - x[i2].z;
+      const flt_t vb2xm = x[i2].x - x[i3].x;
+      const flt_t vb2ym = x[i2].y - x[i3].y;
+      const flt_t vb2zm = x[i2].z - x[i3].z;
 
       const flt_t vb3x = x[i4].x - x[i3].x;
       const flt_t vb3y = x[i4].y - x[i3].y;
       const flt_t vb3z = x[i4].z - x[i3].z;
 
-      flt_t ss1 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
-      flt_t ss2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
-      flt_t ss3 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
+      // 1st and 2nd angle
 
-      const flt_t r1 = (flt_t)1.0 / sqrt(ss1);
-      const flt_t r2 = (flt_t)1.0 / sqrt(ss2);
-      const flt_t r3 = (flt_t)1.0 / sqrt(ss3);
+      const flt_t b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
+      const flt_t rb1 = (flt_t)1.0 / sqrt(b1mag2);
+      const flt_t sb1 = (flt_t)1.0 / b1mag2;
 
-      ss1 = (flt_t)1.0 / ss1;
-      ss2 = (flt_t)1.0 / ss2;
-      ss3 = (flt_t)1.0 / ss3;
+      const flt_t b2mag2 = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
+      const flt_t rb2 = (flt_t)1.0 / sqrt(b2mag2);
+      const flt_t sb2 = (flt_t)1.0 / b2mag2;
 
-      // sin and cos of angle
+      const flt_t b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
+      const flt_t rb3 = (flt_t)1.0 / sqrt(b3mag2);
+      const flt_t sb3 = (flt_t)1.0 / b3mag2;
 
-      const flt_t c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * r1 * r3;
-      const flt_t c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
-      const flt_t c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
+      const flt_t c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * rb1 * rb3;
 
-      flt_t s1 = 1.0 - c1*c1;
-      if (s1 < SMALL) s1 = SMALL;
+      flt_t ctmp = -vb1x*vb2xm - vb1y*vb2ym - vb1z*vb2zm;
+      const flt_t r12c1 = rb1 * rb2;
+      const flt_t c1mag = ctmp * r12c1;
 
-      flt_t s2 = (flt_t)1.0 - c2*c2;
-      if (s2 < SMALL) s2 = SMALL;
+      ctmp = vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z;
+      const flt_t r12c2 = rb2 * rb3;
+      const flt_t c2mag = ctmp * r12c2;
 
-      flt_t s12 = (flt_t)1.0 / sqrt(s1*s2);
-      s1 = (flt_t)1.0 / s1;
-      s2 = (flt_t)1.0 / s2;
-      flt_t c = (c1*c2 + c0) * s12;
+      // cos and sin of 2 angles and final c
+
+      const flt_t sd1 = (flt_t)1.0 - c1mag * c1mag;
+      flt_t sc1 = (flt_t)1.0/sqrt(sd1);
+      if (sd1 < SMALL2) sc1 = INVSMALL;
+
+      const flt_t sd2 = (flt_t)1.0 - c2mag * c2mag;
+      flt_t sc2 = (flt_t)1.0/sqrt(sd2);
+      if (sc2 < SMALL2) sc2 = INVSMALL;
+
+      const flt_t s1 = sc1 * sc1;
+      const flt_t s2 = sc2 * sc2;
+      flt_t s12 = sc1 * sc2;
+      flt_t c = (c0 + c1mag*c2mag) * s12;
 
       // error check
 
@@ -233,44 +242,74 @@ void ImproperHarmonicIntel::eval(const int vflag,
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
-      const flt_t sd = (flt_t)1.0 - c * c;
-      flt_t s = (flt_t)1.0 / sqrt(sd);
-      if (sd < SMALL2) s = INVSMALL;
-
       // force & energy
+      // p = 1 + cos(n*phi) for d = 1
+      // p = 1 - cos(n*phi) for d = -1
+      // pd = dp/dc / 2
 
-      const flt_t domega = acos(c) - fc.fc[type].chi;
-      flt_t a;
-      a = fc.fc[type].k * domega;
+      const int m = fc.fc[type].multiplicity;
+
+      flt_t p, pd;
+      if (m == 2) {
+	p = (flt_t)2.0*c*c;
+	pd = (flt_t)2.0*c;
+      } else if (m == 3) {
+	const flt_t rc2 = c*c;
+	p = ((flt_t)4.0*rc2-(flt_t)3.0)*c + (flt_t)1.0;
+	pd = (flt_t)6.0*rc2 - (flt_t)1.5;
+      } else if (m == 4) {
+	const flt_t rc2 = c*c;
+	p = (flt_t)8.0*(rc2-1)*rc2 + (flt_t)2.0;
+	pd = ((flt_t)16.0*rc2-(flt_t)8.0)*c;
+      } else if (m == 6) {
+	const flt_t rc2 = c*c;
+	p = (((flt_t)32.0*rc2-(flt_t)48.0)*rc2 + (flt_t)18.0)*rc2;
+	pd = ((flt_t)96.0*(rc2-(flt_t)1.0)*rc2 + (flt_t)18.0)*c;
+      } else if (m == 1) {
+	p = c + (flt_t)1.0;
+	pd = (flt_t)0.5;
+      } else if (m == 5) {
+	const flt_t rc2 = c*c;
+	p = (((flt_t)16.0*rc2-(flt_t)20.0)*rc2 + (flt_t)5.0)*c + (flt_t)1.0;
+	pd = ((flt_t)40.0*rc2-(flt_t)30.0)*rc2 + (flt_t)2.5;
+      } else if (m == 0) {
+	p = (flt_t)2.0;
+	pd = (flt_t)0.0;
+      }
+
+      if (fc.fc[type].sign == -1) {
+	p = (flt_t)2.0 - p;
+	pd = -pd;
+      }
 
       flt_t eimproper;
-      if (EFLAG) eimproper = a*domega;
+      if (EFLAG) eimproper = fc.fc[type].k * p;
 
-      a = -a * (flt_t)2.0 * s;
+      const flt_t a = (flt_t)2.0 * fc.fc[type].k * pd;
       c = c * a;
       s12 = s12 * a;
-      const flt_t a11 = c*ss1*s1;
-      const flt_t a22 = -ss2 * ((flt_t)2.0*c0*s12 - c*(s1+s2));
-      const flt_t a33 = c*ss3*s2;
-      const flt_t a12 = -r1*r2*(c1*c*s1 + c2*s12);
-      const flt_t a13 = -r1*r3*s12;
-      const flt_t a23 = r2*r3*(c2*c*s2 + c1*s12);
+      const flt_t a11 = c*sb1*s1;
+      const flt_t a22 = -sb2*((flt_t)2.0*c0*s12 - c*(s1+s2));
+      const flt_t a33 = c*sb3*s2;
+      const flt_t a12 = -r12c1*(c1mag*c*s1 + c2mag*s12);
+      const flt_t a13 = -rb1*rb3*s12;
+      const flt_t a23 = r12c2*(c2mag*c*s2 + c1mag*s12);
 
-      const flt_t sx2  = a22*vb2x + a23*vb3x + a12*vb1x;
-      const flt_t sy2  = a22*vb2y + a23*vb3y + a12*vb1y;
-      const flt_t sz2  = a22*vb2z + a23*vb3z + a12*vb1z;
+      const flt_t sx2  = a12*vb1x - a22*vb2xm + a23*vb3x;
+      const flt_t sy2  = a12*vb1y - a22*vb2ym + a23*vb3y;
+      const flt_t sz2  = a12*vb1z - a22*vb2zm + a23*vb3z;
 
-      const flt_t f1x = a12*vb2x + a13*vb3x + a11*vb1x;
-      const flt_t f1y = a12*vb2y + a13*vb3y + a11*vb1y;
-      const flt_t f1z = a12*vb2z + a13*vb3z + a11*vb1z;
+      const flt_t f1x = a11*vb1x - a12*vb2xm + a13*vb3x;
+      const flt_t f1y = a11*vb1y - a12*vb2ym + a13*vb3y;
+      const flt_t f1z = a11*vb1z - a12*vb2zm + a13*vb3z;
 
       const flt_t f2x = -sx2 - f1x;
       const flt_t f2y = -sy2 - f1y;
       const flt_t f2z = -sz2 - f1z;
 
-      const flt_t f4x = a23*vb2x + a33*vb3x + a13*vb1x;
-      const flt_t f4y = a23*vb2y + a33*vb3y + a13*vb1y;
-      const flt_t f4z = a23*vb2z + a33*vb3z + a13*vb1z;
+      const flt_t f4x = a13*vb1x - a23*vb2xm + a33*vb3x;
+      const flt_t f4y = a13*vb1y - a23*vb2ym + a33*vb3y;
+      const flt_t f4z = a13*vb1z - a23*vb2zm + a33*vb3z;
 
       const flt_t f3x = sx2 - f4x;
       const flt_t f3y = sy2 - f4y;
@@ -305,8 +344,8 @@ void ImproperHarmonicIntel::eval(const int vflag,
       if (EVFLAG) {
 	IP_PRE_ev_tally_dihed(EFLAG, eatom, vflag, eimproper, i1, i2, i3, i4, 
                               f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y, f4z, 
-                              vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, 
-                              vb3z, oeimproper, f, NEWTON_BOND, nlocal,
+                              vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm, vb3x, 
+			      vb3y, vb3z, oeimproper, f, NEWTON_BOND, nlocal,
 			      ov0, ov1, ov2, ov3, ov4, ov5);
       }
     } // for n
@@ -325,9 +364,9 @@ void ImproperHarmonicIntel::eval(const int vflag,
 
 /* ---------------------------------------------------------------------- */
 
-void ImproperHarmonicIntel::init()
+void ImproperCvffIntel::init()
 {
-  ImproperHarmonic::init();
+  ImproperCvff::init();
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -356,7 +395,7 @@ void ImproperHarmonicIntel::init()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void ImproperHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
+void ImproperCvffIntel::pack_force_const(ForceConst<flt_t> &fc,
 					     IntelBuffers<flt_t,acc_t> *buffers)
 {
   const int bp1 = atom->nimpropertypes + 1;
@@ -364,14 +403,15 @@ void ImproperHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
 
   for (int i = 0; i < bp1; i++) {
     fc.fc[i].k = k[i];
-    fc.fc[i].chi = chi[i];
+    fc.fc[i].sign = sign[i];
+    fc.fc[i].multiplicity = multiplicity[i];
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
-void ImproperHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nimproper,
+void ImproperCvffIntel::ForceConst<flt_t>::set_ntypes(const int nimproper,
 	                                                  Memory *memory) {
   if (nimproper != _nimpropertypes) {
     if (_nimpropertypes > 0)

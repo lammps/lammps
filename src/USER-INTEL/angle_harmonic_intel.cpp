@@ -17,7 +17,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include "angle_charmm_intel.h"
+#include "angle_harmonic_intel.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -31,30 +31,30 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL2     (flt_t)0.000001
-#define INVSMALL   (flt_t)1000.0
+#define SMALL2 (flt_t)0.000001
+#define INVSMALL (flt_t)1000.0
 typedef struct { int a,b,c,t;  } int4_t;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCharmmIntel::AngleCharmmIntel(LAMMPS *lmp) : AngleCharmm(lmp) 
+AngleHarmonicIntel::AngleHarmonicIntel(LAMMPS *lmp) : AngleHarmonic(lmp) 
 {
   suffix_flag |= Suffix::INTEL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-AngleCharmmIntel::~AngleCharmmIntel()
+AngleHarmonicIntel::~AngleHarmonicIntel()
 {
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AngleCharmmIntel::compute(int eflag, int vflag)
+void AngleHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
   if (_use_base) {
-    AngleCharmm::compute(eflag, vflag);
+    AngleHarmonic::compute(eflag, vflag);
     return;
   }
   #endif
@@ -73,7 +73,7 @@ void AngleCharmmIntel::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void AngleCharmmIntel::compute(int eflag, int vflag,
+void AngleHarmonicIntel::compute(int eflag, int vflag,
 			       IntelBuffers<flt_t,acc_t> *buffers,
 			       const ForceConst<flt_t> &fc)
 {
@@ -103,7 +103,7 @@ void AngleCharmmIntel::compute(int eflag, int vflag,
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-void AngleCharmmIntel::eval(const int vflag, 
+void AngleHarmonicIntel::eval(const int vflag, 
 			    IntelBuffers<flt_t,acc_t> *buffers,
 			    const ForceConst<flt_t> &fc)
 
@@ -163,7 +163,7 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delz1 = x[i1].z - x[i2].z;
 
       const flt_t rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-      flt_t ir12 = (flt_t)1.0/sqrt(rsq1);
+      const flt_t r1 = (flt_t)1.0/sqrt(rsq1);
 
       // 2nd bond
 
@@ -172,39 +172,19 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delz2 = x[i3].z - x[i2].z;
 
       const flt_t rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      ir12 *= (flt_t)1.0/sqrt(rsq2);
-
-      // Urey-Bradley bond
-
-      const flt_t delxUB = x[i3].x - x[i1].x;
-      const flt_t delyUB = x[i3].y - x[i1].y;
-      const flt_t delzUB = x[i3].z - x[i1].z;
-
-      const flt_t rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
-      const flt_t irUB = (flt_t)1.0/sqrt(rsqUB);
-
-      // Urey-Bradley force & energy
-
-      const flt_t dr = (flt_t)1.0/irUB - fc.fc[type].r_ub;
-      const flt_t rk = fc.fc[type].k_ub * dr;
-
-      flt_t forceUB;
-      if (rsqUB > (flt_t)0.0) forceUB = (flt_t)-2.0*rk*irUB;
-      else forceUB = 0.0;
-
-      flt_t eangle;
-      if (EFLAG) eangle = rk*dr;
+      const flt_t r2 = (flt_t)1.0/sqrt(rsq2);
 
       // angle (cos and sin)
 
       flt_t c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-      c *= ir12;
+      const flt_t r1r2 = r1 * r2;
+      c *= r1r2;
 
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
       const flt_t sd = (flt_t)1.0 - c * c;
-      flt_t s = (flt_t)1.0 / sqrt(sd);
+      flt_t s = (flt_t)1.0/sqrt(sd);
       if (sd < SMALL2) s = INVSMALL;
 
       // harmonic force & energy
@@ -212,20 +192,22 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t dtheta = acos(c) - fc.fc[type].theta0;
       const flt_t tk = fc.fc[type].k * dtheta;
 
-      if (EFLAG) eangle += tk*dtheta;
+      flt_t eangle;
+      if (EFLAG) eangle = tk*dtheta;
 
       const flt_t a = (flt_t)-2.0 * tk * s;
-      const flt_t a11 = a*c / rsq1;
-      const flt_t a12 = -a * ir12;
-      const flt_t a22 = a*c / rsq2;
+      const flt_t ac = a*c;
+      const flt_t a11 = ac / rsq1;
+      const flt_t a12 = -a * (r1r2);
+      const flt_t a22 = ac / rsq2;
 
-      const flt_t f1x = a11*delx1 + a12*delx2 - delxUB*forceUB;
-      const flt_t f1y = a11*dely1 + a12*dely2 - delyUB*forceUB;
-      const flt_t f1z = a11*delz1 + a12*delz2 - delzUB*forceUB;
+      const flt_t f1x = a11*delx1 + a12*delx2;
+      const flt_t f1y = a11*dely1 + a12*dely2;
+      const flt_t f1z = a11*delz1 + a12*delz2;
 
-      const flt_t f3x = a22*delx2 + a12*delx1 + delxUB*forceUB;
-      const flt_t f3y = a22*dely2 + a12*dely1 + delyUB*forceUB;
-      const flt_t f3z = a22*delz2 + a12*delz1 + delzUB*forceUB;
+      const flt_t f3x = a22*delx2 + a12*delx1;
+      const flt_t f3y = a22*dely2 + a12*dely1;
+      const flt_t f3z = a22*delz2 + a12*delz1;
 
       // apply force to each of 3 atoms
 
@@ -270,9 +252,9 @@ void AngleCharmmIntel::eval(const int vflag,
 
 /* ---------------------------------------------------------------------- */
 
-void AngleCharmmIntel::init_style()
+void AngleHarmonicIntel::init_style()
 {
-  AngleCharmm::init_style();
+  AngleHarmonic::init_style();
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -301,7 +283,7 @@ void AngleCharmmIntel::init_style()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void AngleCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
+void AngleHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
                                         IntelBuffers<flt_t,acc_t> *buffers)
 {
   const int bp1 = atom->nangletypes + 1;
@@ -310,15 +292,13 @@ void AngleCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
   for (int i = 0; i < bp1; i++) {
     fc.fc[i].k = k[i];
     fc.fc[i].theta0 = theta0[i];
-    fc.fc[i].k_ub = k_ub[i];
-    fc.fc[i].r_ub = r_ub[i];
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
-void AngleCharmmIntel::ForceConst<flt_t>::set_ntypes(const int nangletypes,
+void AngleHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nangletypes,
 	                                             Memory *memory) {
   if (nangletypes != _nangletypes) {
     if (_nangletypes > 0)

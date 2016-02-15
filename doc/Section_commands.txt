@@ -468,7 +468,8 @@ These are additional commands in USER packages, which can be used if
 "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"group2ndx"_group2ndx.html :tb(c=1,ea=c)
+"group2ndx"_group2ndx.html
+"ndx2group"_group2ndx.html :tb(c=2,ea=c)
 
 :line
 

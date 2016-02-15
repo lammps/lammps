@@ -206,9 +206,11 @@ of :ref:`this page <cmd_5>`.
 * :doc:`nph <fix_nh>` - constant NPH time integration via Nose/Hoover
 * :doc:`nphug <fix_nphug>` - constant-stress Hugoniostat integration
 * :doc:`nph/asphere <fix_nph_asphere>` - NPH for aspherical particles
+* :doc:`nph/body <fix_nve_body>` - NPH for body particles
 * :doc:`nph/sphere <fix_nph_sphere>` - NPH for spherical particles
 * :doc:`npt <fix_nh>` - constant NPT time integration via Nose/Hoover
 * :doc:`npt/asphere <fix_npt_asphere>` - NPT for aspherical particles
+* :doc:`npt/body <fix_nve_body>` - NPT for body particles
 * :doc:`npt/sphere <fix_npt_sphere>` - NPT for spherical particles
 * :doc:`nve <fix_nve>` - constant NVE time integration
 * :doc:`nve/asphere <fix_nve_asphere>` - NVE for aspherical particles
@@ -221,6 +223,7 @@ of :ref:`this page <cmd_5>`.
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvt <fix_nh>` - constant NVT time integration via Nose/Hoover
 * :doc:`nvt/asphere <fix_nvt_asphere>` - NVT for aspherical particles
+* :doc:`nvt/body <fix_nve_body>` - NVT for body particles
 * :doc:`nvt/sllod <fix_nvt_sllod>` - NVT for NEMD with SLLOD equations
 * :doc:`nvt/sphere <fix_nvt_sphere>` - NVT for spherical particles
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction

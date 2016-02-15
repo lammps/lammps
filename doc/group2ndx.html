@@ -126,13 +126,17 @@
             
   <div class="section" id="group2ndx-command">
 <span id="index-0"></span><h1>group2ndx command<a class="headerlink" href="#group2ndx-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="ndx2group-command">
+<h1>ndx2group command<a class="headerlink" href="#ndx2group-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>group2ndx file group-ID ...
+ndx2group file group-ID ...
 </pre></div>
 </div>
 <ul class="simple">
-<li>file = name of index file to write out</li>
+<li>file = name of index file to write out or read in</li>
 <li>zero or more group IDs may be appended</li>
 </ul>
 </div>
@@ -140,27 +144,37 @@
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>group2ndx allindex.ndx
 group2ndx someindex.ndx upper lower mobile
+ndx2group someindex.ndx
+ndx2group someindex.ndx mobile
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Write a Gromacs style index file in text format that associates atom IDs
-with the corresponding group definitions. This index file can be used
-with in combination with Gromacs analysis tools or to import group
-definitions into the <a class="reference internal" href="fix_colvars.html"><em>fix colvars</em></a> input file.</p>
-<p>Without specifying any group IDs, all groups will be written to the index
+<p>Write or read a Gromacs style index file in text format that associates
+atom IDs with the corresponding group definitions. This index file can be
+used with in combination with Gromacs analysis tools or to import group
+definitions into the <a class="reference internal" href="fix_colvars.html"><em>fix colvars</em></a> input file. It can
+also be used to save and restore group definitions for static groups.</p>
+<p>The <em>group2ndx</em> command will write group definitions to an index file.
+Without specifying any group IDs, all groups will be written to the index
 file. When specifying group IDs, only those groups will be written to the
 index file. In order to follow the Gromacs conventions, the group <em>all</em>
 will be renamed to <em>System</em> in the index file.</p>
+<p>The <em>ndx2group</em> command will create of update group definitions from those
+stored in an index file. Without specifying any group IDs, all groups except
+<em>System</em> will be read from the index file and the corresponding groups
+recreated. If a group of the same name already exists, it will be completely
+reset. When specifying group IDs, those groups, if present, will be read
+from the index file and restored.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>This command requires that atoms have atom IDs, since this is the
 information that is written to the index file.</p>
-<p>This fix is part of the USER-COLVARS package.  It is only enabled if
-LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>These commands are part of the USER-COLVARS package.  They are only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>

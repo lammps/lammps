@@ -552,6 +552,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "qeq/point"_fix_qeq.html,
 "qeq/shielded"_fix_qeq.html,
 "qeq/slater"_fix_qeq.html,
+"rattle"_fix_shake.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,
 "restrain"_fix_restrain.html,
@@ -609,7 +610,7 @@ package"_Section_start.html#start_3.
 "drude"_fix_drude.html,
 "drude/transform/direct"_fix_drude_transform.html,
 "drude/transform/reverse"_fix_drude_transform.html,
-"eos/cv"_fix_eos_vs.html,
+"eos/cv"_fix_eos_cv.html,
 "eos/table"_fix_eos_table.html,
 "gle"_fix_gle.html,
 "imd"_fix_imd.html,
@@ -1095,4 +1096,5 @@ KOKKOS, o = USER-OMP, t = OPT.
 "pppm/cg (o)"_kspace_style.html,
 "pppm/disp"_kspace_style.html,
 "pppm/disp/tip4p"_kspace_style.html,
+"pppm/stagger"_kspace_style.html,
 "pppm/tip4p (o)"_kspace_style.html :tb(c=4,ea=c)

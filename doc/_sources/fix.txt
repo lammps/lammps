@@ -231,7 +231,8 @@ of :ref:`this page <cmd_5>`.
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by      Berendsen barostat
 * :doc:`print <fix_print>` - print text and variables during a simulation
 * :doc:`property/atom <fix_property_atom>` - add customized per-atom values
-* :doc:`qeq/comb <fix_qeq_comb>` - charge equilibration for COMB potential :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer :doc:`qeq/point <fix_qeq>` - charge equilibration via point method :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method :doc:`reax/bonds <fix_reax_bonds>` - write out ReaxFF bond information :doc:`recenter <fix_recenter>` - constrain the center-of-mass position   of a group of atoms
+* :doc:`qeq/comb <fix_qeq_comb>` - charge equilibration for COMB potential :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer :doc:`qeq/point <fix_qeq>` - charge equilibration via point method :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method :doc:`rattle <fix_shake>` - RATTLE constraints on bonds and/or angles
+* :doc:`reax/bonds <fix_reax_bonds>` - write out ReaxFF bond information :doc:`recenter <fix_recenter>` - constrain the center-of-mass position   of a group of atoms
 * :doc:`restrain <fix_restrain>` - constrain a bond, angle, dihedral
 * :doc:`rigid <fix_rigid>` - constrain one or more clusters of atoms to      move as a rigid body with NVE integration
 * :doc:`rigid/nph <fix_rigid>` - constrain one or more clusters of atoms to      move as a rigid body with NPH integration

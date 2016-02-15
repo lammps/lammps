@@ -337,8 +337,9 @@ void Info::command(int narg, char **arg)
     int *dynamic = group->dynamic;
     fprintf(out,"\nGroup information:\n");
     for (int i=0; i < ngroup; ++i) {
-      fprintf(out,"Group[%2d]: %s (%s)\n",
-              i, names[i], dynamic[i] ? "dynamic" : "static");
+      if (names[i])
+        fprintf(out,"Group[%2d]: %s (%s)\n",
+                i, names[i], dynamic[i] ? "dynamic" : "static");
     }
   }
 

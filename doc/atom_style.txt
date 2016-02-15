@@ -263,7 +263,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 The {angle}, {bond}, {full}, {molecular}, and {template} styles are
 part of the MOLECULE package.
 
-The {line} and {tri} styles are part of the ASPHERE pacakge.
+The {line} and {tri} styles are part of the ASPHERE package.
 
 The {body} style is part of the BODY package.
 

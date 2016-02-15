@@ -36,7 +36,7 @@ package will also not be installed when you include the new one.
 E.g. the pair lj/cut/coul/long/omp command from the USER-OMP package
 will not be installed as part of the USER-OMP package if the KSPACE
 package is not also installed, since it contains the pair
-lj/cut/coul/long command.  If you later install the KSPACE pacakge and
+lj/cut/coul/long command.  If you later install the KSPACE package and
 the USER-OMP package is already installed, both the pair
 lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.
 

@@ -147,7 +147,7 @@ class Comm : protected Pointers {
 W: OMP_NUM_THREADS environment is not set.
 
 This environment variable must be set appropriately to use the
-USER-OMP pacakge.
+USER-OMP package.
 
 E: Illegal ... command
 

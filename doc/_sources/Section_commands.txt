@@ -468,7 +468,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 +--------------------------------------------+-----------------------------------------+--------------------------------------------------------+----------------------------------------+--------------------------------------+------------------------------------------------+------------------------------------------------------+------------------------------------------+
 | :doc:`nph/sphere (o) <fix_nph_sphere>`     | :doc:`npt (ckio) <fix_nh>`              | :doc:`npt/asphere (o) <fix_npt_asphere>`               | :doc:`npt/sphere (o) <fix_npt_sphere>` | :doc:`nve (ckio) <fix_nve>`          | :doc:`nve/asphere (i) <fix_nve_asphere>`       | :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>` | :doc:`nve/body <fix_nve_body>`           |
 +--------------------------------------------+-----------------------------------------+--------------------------------------------------------+----------------------------------------+--------------------------------------+------------------------------------------------+------------------------------------------------------+------------------------------------------+
-| :doc:`nve/limit <fix_nve_limit>`           | :doc:`nve/line <fix_nve_line>`          | :doc:`nve/noforce <fix_nve_noforce>`                   | :doc:`nve/sphere (o) <fix_nve_sphere>` | :doc:`nve/tri <fix_nve_tri>`         | :doc:`nvt (cko) <fix_nh>`                      | :doc:`nvt/asphere (o) <fix_nvt_asphere>`             | :doc:`nvt/sllod (o) <fix_nvt_sllod>`     |
+| :doc:`nve/limit <fix_nve_limit>`           | :doc:`nve/line <fix_nve_line>`          | :doc:`nve/noforce <fix_nve_noforce>`                   | :doc:`nve/sphere (o) <fix_nve_sphere>` | :doc:`nve/tri <fix_nve_tri>`         | :doc:`nvt (ciko) <fix_nh>`                     | :doc:`nvt/asphere (o) <fix_nvt_asphere>`             | :doc:`nvt/sllod (io) <fix_nvt_sllod>`    |
 +--------------------------------------------+-----------------------------------------+--------------------------------------------------------+----------------------------------------+--------------------------------------+------------------------------------------------+------------------------------------------------------+------------------------------------------+
 | :doc:`nvt/sphere (o) <fix_nvt_sphere>`     | :doc:`oneway <fix_oneway>`              | :doc:`orient/fcc <fix_orient_fcc>`                     | :doc:`planeforce <fix_planeforce>`     | :doc:`poems <fix_poems>`             | :doc:`pour <fix_pour>`                         | :doc:`press/berendsen <fix_press_berendsen>`         | :doc:`print <fix_print>`                 |
 +--------------------------------------------+-----------------------------------------+--------------------------------------------------------+----------------------------------------+--------------------------------------+------------------------------------------------+------------------------------------------------------+------------------------------------------+
@@ -713,13 +713,13 @@ LAMMPS is built with the :doc:`appropriate accelerated package <Section_accelera
 letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
-+---------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
-| :doc:`none <angle_none>`              | :doc:`hybrid <angle_hybrid>`                 | :doc:`charmm (ko) <angle_charmm>`                  | :doc:`class2 (o) <angle_class2>`                 |
-+---------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
-| :doc:`cosine (o) <angle_cosine>`      | :doc:`cosine/delta (o) <angle_cosine_delta>` | :doc:`cosine/periodic (o) <angle_cosine_periodic>` | :doc:`cosine/squared (o) <angle_cosine_squared>` |
-+---------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
-| :doc:`harmonic (ko) <angle_harmonic>` | :doc:`table (o) <angle_table>`               |                                                    |                                                  |
-+---------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
++----------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
+| :doc:`none <angle_none>`               | :doc:`hybrid <angle_hybrid>`                 | :doc:`charmm (ko) <angle_charmm>`                  | :doc:`class2 (o) <angle_class2>`                 |
++----------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
+| :doc:`cosine (o) <angle_cosine>`       | :doc:`cosine/delta (o) <angle_cosine_delta>` | :doc:`cosine/periodic (o) <angle_cosine_periodic>` | :doc:`cosine/squared (o) <angle_cosine_squared>` |
++----------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
+| :doc:`harmonic (iko) <angle_harmonic>` | :doc:`table (o) <angle_table>`               |                                                    |                                                  |
++----------------------------------------+----------------------------------------------+----------------------------------------------------+--------------------------------------------------+
 
 These are additional angle styles in USER packages, which can be used
 if :ref:`LAMMPS is built with the appropriate package <start_3>`.
@@ -744,11 +744,11 @@ be used if LAMMPS is built with the :doc:`appropriate accelerated package <Secti
 letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
-+-----------------------------------------+-----------------------------------+-----------------------------------------------------+-------------------------------------+
-| :doc:`none <dihedral_none>`             | :doc:`hybrid <dihedral_hybrid>`   | :doc:`charmm (ko) <dihedral_charmm>`                | :doc:`class2 (o) <dihedral_class2>` |
-+-----------------------------------------+-----------------------------------+-----------------------------------------------------+-------------------------------------+
-| :doc:`harmonic (o) <dihedral_harmonic>` | :doc:`helix (o) <dihedral_helix>` | :doc:`multi/harmonic (o) <dihedral_multi_harmonic>` | :doc:`opls (ko) <dihedral_opls>`    |
-+-----------------------------------------+-----------------------------------+-----------------------------------------------------+-------------------------------------+
++------------------------------------------+-----------------------------------+-----------------------------------------------------+-------------------------------------+
+| :doc:`none <dihedral_none>`              | :doc:`hybrid <dihedral_hybrid>`   | :doc:`charmm (ko) <dihedral_charmm>`                | :doc:`class2 (o) <dihedral_class2>` |
++------------------------------------------+-----------------------------------+-----------------------------------------------------+-------------------------------------+
+| :doc:`harmonic (io) <dihedral_harmonic>` | :doc:`helix (o) <dihedral_helix>` | :doc:`multi/harmonic (o) <dihedral_multi_harmonic>` | :doc:`opls (iko) <dihedral_opls>`   |
++------------------------------------------+-----------------------------------+-----------------------------------------------------+-------------------------------------+
 
 These are additional dihedral styles in USER packages, which can be
 used if :ref:`LAMMPS is built with the appropriate package <start_3>`.
@@ -773,11 +773,11 @@ be used if LAMMPS is built with the :doc:`appropriate accelerated package <Secti
 letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
-+------------------------------------------+-----------------------------------------+-------------------------------------+---------------------------------+
-| :doc:`none <improper_none>`              | :doc:`hybrid <improper_hybrid>`         | :doc:`class2 (o) <improper_class2>` | :doc:`cvff (o) <improper_cvff>` |
-+------------------------------------------+-----------------------------------------+-------------------------------------+---------------------------------+
-| :doc:`harmonic (ko) <improper_harmonic>` | :doc:`umbrella (o) <improper_umbrella>` |                                     |                                 |
-+------------------------------------------+-----------------------------------------+-------------------------------------+---------------------------------+
++------------------------------------------+-----------------------------------------+-------------------------------------+----------------------------------+
+| :doc:`none <improper_none>`              | :doc:`hybrid <improper_hybrid>`         | :doc:`class2 (o) <improper_class2>` | :doc:`cvff (io) <improper_cvff>` |
++------------------------------------------+-----------------------------------------+-------------------------------------+----------------------------------+
+| :doc:`harmonic (ko) <improper_harmonic>` | :doc:`umbrella (o) <improper_umbrella>` |                                     |                                  |
++------------------------------------------+-----------------------------------------+-------------------------------------+----------------------------------+
 
 These are additional improper styles in USER packages, which can be
 used if :ref:`LAMMPS is built with the appropriate package <start_3>`.

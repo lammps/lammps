@@ -3,6 +3,9 @@
 fix nvt/sllod command
 =====================
 
+fix nvt/sllod/intel command
+===========================
+
 fix nvt/sllod/omp command
 =========================
 

@@ -3,6 +3,9 @@
 improper_style cvff command
 ===========================
 
+improper_style cvff/intel command
+=================================
+
 improper_style cvff/omp command
 ===============================
 

@@ -113,10 +113,6 @@ molecule template.
 
 E: Delete_atoms mol yes requires atom attribute molecule
 
-UNDOCUMENTED
-
-U: Cannot delete_atoms mol yes for non-molecular systems
-
-Self-explanatory.
+Cannot use this option with a non-molecular system.
 
 */

@@ -151,6 +151,6 @@ Self-explanatory.
 
 E: Assigning quat to non-body atom
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

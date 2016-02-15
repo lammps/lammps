@@ -90,7 +90,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: No values in fix ave/time command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute ID for fix ave/time does not exist
 
@@ -171,7 +171,7 @@ Variables produce scalar values.
 
 E: Error writing file header
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 E: Fix ave/time cannot set output array intensive/extensive from these inputs
 
@@ -186,7 +186,7 @@ fix needs to process.
 
 E: Error writing out time averaged data
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 E: Fix ave/time columns are inconsistent lengths
 

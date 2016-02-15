@@ -152,7 +152,7 @@ number of processor partitions.
 
 E: Cannot open temporary file for world counter.
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: All universe/uloop variables must have same # of values
 
@@ -418,15 +418,15 @@ Only file-style or atomfile-style variables can be used with next().
 
 E: Invalid is_active() function in variable formula
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid is_available() function in variable formula
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid is_defined() function in variable formula
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Indexed per-atom vector in variable formula without atom map
 

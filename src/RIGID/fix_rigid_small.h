@@ -258,7 +258,8 @@ incorrect.
 
 W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
 
-UNDOCUMENTED
+This means the temperature associated with the rigid bodies may be
+incorrect on this timestep.
 
 W: Computing temperature of portions of rigid bodies
 
@@ -273,7 +274,7 @@ Image flags for non-periodic dimensions should not be set.
 
 E: One or more rigid bodies are a single particle
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Inconsistent use of finite-size particles by molecule template molecules
 
@@ -319,10 +320,5 @@ it is part of, or vice versa.  The solution is to use the communicate
 cutoff command to insure ghost atoms are acquired from far enough away
 to encompass the max distance printed when the fix rigid/small command
 was invoked.
-
-U: Cannot count rigid body degrees-of-freedom before bodies are fully initialized h
-
-This means the temperature associated with the rigid bodies may be
-incorrect on this timestep.
 
 */

@@ -461,7 +461,7 @@ void Molecule::read(int flag)
 
   // error checks
 
-  if (natoms < 1) error->all(FLERR,"No or invalid atom count in molecule file");
+  if (natoms < 1) error->all(FLERR,"No count or invalid atom count in molecule file");
   if (nbonds < 0) error->all(FLERR,"Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR,"Invalid angle count in molecule file");
   if (ndihedrals < 0)
@@ -1145,7 +1145,7 @@ void Molecule::special_generate()
         atom1 = i;
         atom2 = bond_atom[i][j];
         if (count[atom1] >= maxspecial)
-          error->one(FLERR,"");
+          error->one(FLERR,"Molecule auto special bond generation overflow");
         special[i][count[atom1]++] = atom2;
       }
     }

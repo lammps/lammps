@@ -55,14 +55,10 @@ Self-explanatory.
 
 E: Fix nve/sphere dipole requires atom attribute mu
 
-UNDOCUMENTED
+An atom style with this attribute is needed.
 
 E: Fix nve/sphere requires extended particles
 
 This fix can only be used for particles of a finite size.
-
-U: Fix nve/sphere requires atom attribute mu
-
-An atom style with this attribute is needed.
 
 */

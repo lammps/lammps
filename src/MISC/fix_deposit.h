@@ -155,7 +155,9 @@ Self-explanatory.
 
 W: Fix deposit near setting < possible overlap separation %g
 
-UNDOCUMENTED
+This test is performed for finite size particles with a diameter, not
+for point particles.  The near setting is smaller than the particle
+diameter which can lead to overlaps.
 
 W: Particle deposition was unsuccessful
 

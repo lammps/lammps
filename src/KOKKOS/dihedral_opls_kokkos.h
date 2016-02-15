@@ -13,9 +13,9 @@
 
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(opls/kk,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(opls/kk/device,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>)
+DihedralStyle(charmm/kk,DihedralOPLSKokkos<LMPDeviceType>)
+DihedralStyle(charmm/kk/device,DihedralOPLSKokkos<LMPDeviceType>)
+DihedralStyle(charmm/kk/host,DihedralOPLSKokkos<LMPHostType>)
 
 #else
 

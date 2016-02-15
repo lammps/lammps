@@ -57,7 +57,7 @@ One or more GPUs must be used when Kokkos is compiled for CUDA.
 
 E: Must use Kokkos half/thread or full neighbor list with threads or GPUs
 
-Using Kokkos half neighbor list with threading is not allowed.
+Using Kokkos half-neighbor lists with threading is not allowed.
 
 E: Illegal ... command
 

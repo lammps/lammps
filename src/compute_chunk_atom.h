@@ -155,15 +155,15 @@ That discard option only applies to the binning styles.
 
 E: Compute chunk/atom sphere z origin must be 0.0 for 2d
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom cylinder axis must be z for 2d
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute ID for compute chunk /atom does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom compute does not calculate per-atom values
 
@@ -248,11 +248,11 @@ The lo/hi values are inconsistent.
 
 E: Compute chunk/atom bin/sphere radius is too large for periodic box
 
-UNDOCUMENTED
+Radius cannot be bigger than 1/2 of any periodic dimention.
 
 E: Compute chunk/atom bin/cylinder radius is too large for periodic box
 
-UNDOCUMENTED
+Radius cannot be bigger than 1/2 of a non-axis  periodic dimention.
 
 E: Cannot use compute chunk/atom bin z for 2d model
 

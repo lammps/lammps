@@ -52,6 +52,6 @@ The dump atom/gz output file name must have a .gz suffix.
 
 E: Cannot open dump file
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

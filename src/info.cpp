@@ -477,13 +477,13 @@ bool Info::is_active(const char *category, const char *name)
       return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
     } else if (strcmp(name,"omp") == 0) {
       return (modify->find_fix("package_omp") >= 0) ? true : false;
-    } else error->all(FLERR,"Unknown name for package category");
+    } else error->all(FLERR,"Unknown name for info package category");
 
   } else if (strcmp(category,"newton") == 0) {
     if (strcmp(name,"pair") == 0) return (force->newton_pair != 0);
     else if (strcmp(name,"bond") == 0) return (force->newton_bond != 0);
     else if (strcmp(name,"any") == 0) return (force->newton != 0);
-    else error->all(FLERR,"Unknown name for newton category");
+    else error->all(FLERR,"Unknown name for info newton category");
 
   } else if (strcmp(category,"pair") == 0) {
     if (force->pair == NULL) return false;
@@ -492,7 +492,7 @@ bool Info::is_active(const char *category, const char *name)
     else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
     else if (strcmp(name,"tail") == 0) return (force->pair->tail_flag != 0);
     else if (strcmp(name,"shift") == 0) return (force->pair->offset_flag != 0);
-    else error->all(FLERR,"Unknown name for pair category");
+    else error->all(FLERR,"Unknown name for info pair category");
 
   } else if (strcmp(category,"comm_style") == 0) {
     style = commstyles[comm->style];
@@ -514,7 +514,7 @@ bool Info::is_active(const char *category, const char *name)
     style = force->improper_style;
   } else if (strcmp(category,"kspace_style") == 0) {
     style = force->kspace_style;
-  } else error->all(FLERR,"Unknown category for is_active()");
+  } else error->all(FLERR,"Unknown category for info is_active()");
 
   int match = 0;
   if (strcmp(style,name) == 0) match = 1;
@@ -612,7 +612,7 @@ bool Info::is_available(const char *category, const char *name)
         delete[] name_w_suffix;
       }
     }
-  } else error->all(FLERR,"Unknown category for is_available()");
+  } else error->all(FLERR,"Unknown category for info is_available()");
 
   return match ? true : false;
 }
@@ -670,7 +670,7 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(names[i],name) == 0)
         return true;
     }
-  } else error->all(FLERR,"Unknown category for is_defined()");
+  } else error->all(FLERR,"Unknown category for info is_defined()");
 
   return false;
 }

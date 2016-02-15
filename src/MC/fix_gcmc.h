@@ -180,7 +180,7 @@ Self-explanatory.
 
 E: Fix gcmc molecule has charges, but atom style does not
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix gcmc molecule template ID must be same as atom_style template ID
 
@@ -189,7 +189,7 @@ not in that template.
 
 E: Fix gcmc atom has charge, but atom style does not
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use fix gcmc shake and not molecule
 
@@ -267,15 +267,16 @@ than or equal to zero.
 
 E: Cannot do GCMC on atoms in atom_modify first group
 
-UNDOCUMENTED
+This is a restriction due to the way atoms are organized in a list to
+enable the atom_modify first command.
 
 E: Could not find specified fix gcmc group ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix gcmc put atom outside box
 
-UNDOCUMENTED
+This should not normally happen.  Contact the developers.
 
 E: Fix gcmc ran out of available molecule IDs
 
@@ -288,10 +289,5 @@ See the setting for tagint in the src/lmptype.h file.
 E: Too many total atoms
 
 See the setting for bigint in the src/lmptype.h file.
-
-U: Cannot do gcmc on atoms in atom_modify first group
-
-This is a restriction due to the way atoms are organized in a list to
-enable the atom_modify first command.
 
 */

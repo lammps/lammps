@@ -53,10 +53,6 @@ package
 
 E: Cannot use newton pair with lj/cubic/gpu pair style
 
-UNDOCUMENTED
-
-U: Cannot use newton pair with lj/cut/gpu pair style
-
 Self-explanatory.
 
 */

@@ -65,6 +65,6 @@ class DomainKokkos : public Domain {
 
 E: Illegal simulation box
 
-UNDOCUMENTED
+The lower bound of the simulation box is greater than the upper bound.
 
 */

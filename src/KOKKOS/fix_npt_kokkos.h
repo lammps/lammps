@@ -42,10 +42,10 @@ class FixNPTKokkos : public FixNHKokkos<DeviceType> {
 
 E: Temperature control must be used with fix npt
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pressure control must be used with fix npt
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

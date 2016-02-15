@@ -120,11 +120,8 @@ command.
 
 E: Pair_modify special setting incompatible with global special_bonds setting
 
-UNDOCUMENTED
-
-E: Pair_modify special setting incompatible withglobal special_bonds setting
-
-UNDOCUMENTED
+Cannot override a setting of 0.0 or 1.0 or change a setting between
+0.0 and 1.0.
 
 E: All pair coeffs are not set
 
@@ -144,7 +141,7 @@ that doesn't support it.
 
 E: Pair hybrid single calls do not support per sub-style special bond values
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Unknown pair_modify hybrid sub-style
 

@@ -89,7 +89,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: No values in fix ave/chunk command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot open fix ave/chunk file %s
 
@@ -166,7 +166,7 @@ The specified conpute is not for a compute chunk/atom command.
 
 E: Error writing file header
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 E: Fix for fix ave/chunk not computed at compatible time
 
@@ -180,6 +180,6 @@ fix needs to process.
 
 E: Error writing averaged chunk data
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 */

@@ -81,10 +81,10 @@ The command options you have used caused atoms to be lost.
 
 E: Variable name for displace_atoms does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for displace_atoms is invalid style
 
-UNDOCUMENTED
+It must be an equal-style or atom-style variable.
 
 */

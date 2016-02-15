@@ -103,6 +103,7 @@ Could not find or more atoms in the bond pairs.
 
 E: Temperature compute degrees of freedom < 0
 
-UNDOCUMENTED
+This should not happen if you are calculating the temperature
+on a valid set of atoms.
 
 */

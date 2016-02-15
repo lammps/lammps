@@ -764,7 +764,7 @@ void PairPolymorphic::setup_params()
 //   for debugging, call write_tables() to check the tabular functions 
 //   if (comm->me == 0) {
 //     write_tables(51);
-//     error->all(FLERR,"Test potential tables");
+//     error->Xall(FLERR,"Test potential tables");
 //   }
 }  
 

@@ -43,37 +43,31 @@ class Info : protected Pointers {
 
 W: Ignoring unknown or incorrect info command flag
 
-Self-explanatory. The an unknown argument was given to the info command.
+Self-explanatory.  An unknown argument was given to the info command.
 Compare your input with the documentation.
 
-E: Unknown name for package category
+E: Unknown name for info package category
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Unknown name for newton category
+E: Unknown name for info newton category
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Unknown name for pair category
+E: Unknown name for info pair category
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Unknown category for is_active()
+E: Unknown category info for is_active()
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Unknown category for is_available()
+E: Unknown category info for is_available()
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Unknown category for is_defined()
+E: Unknown category info for is_defined()
 
-UNDOCUMENTED
-
-U: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+Self-explanatory.
 
 */

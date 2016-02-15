@@ -56,7 +56,7 @@ package
 
 E: Pair style tersoff/gpu requires atom IDs
 
-UNDOCUMENTED
+This is a requirement to use the tersoff/gpu potential.
 
 E: Pair style tersoff/gpu requires newton pair off
 

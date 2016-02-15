@@ -129,12 +129,4 @@ E: Resetting timestep size is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
 
-U: Fix move does not update angular momentum
-
-Atoms store this quantity, but fix move does not (yet) update it.
-
-U: Fix move does not update quaternions
-
-Atoms store this quantity, but fix move does not (yet) update it.
-
 */

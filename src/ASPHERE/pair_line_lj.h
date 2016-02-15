@@ -81,6 +81,7 @@ Self-explanatory.
 
 E: All pair coeffs are not set
 
-UNDOCUMENTED
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
 */

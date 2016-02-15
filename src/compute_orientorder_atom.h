@@ -75,7 +75,7 @@ Self-explantory.
 
 E: Compute orientorder/atom cutoff is longer than pairwise cutoff
 
-UNDOCUMENTED
+Cannot compute order parameter beyond cutoff.
 
 W: More than one compute orientorder/atom
 

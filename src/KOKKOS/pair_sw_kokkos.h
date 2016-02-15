@@ -149,6 +149,6 @@ class PairSWKokkos : public PairSW {
 
 E: Cannot use chosen neighbor list style with pair sw/kk
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

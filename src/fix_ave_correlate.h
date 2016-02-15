@@ -127,7 +127,7 @@ Self-explanatory.
 
 E: Error writing file header
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 E: Invalid timestep reset for fix ave/correlate
 
@@ -136,6 +136,6 @@ fix needs to process.
 
 E: Error writing out correlation data
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 */

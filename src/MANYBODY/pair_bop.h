@@ -284,6 +284,6 @@ path and name are correct.
 
 E: Incorrect table format check for element types
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

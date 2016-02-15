@@ -138,7 +138,7 @@ A region ID used in the group command does not exist.
 
 E: Illegal range increment value
 
-UNDOCUMENTED
+The increment must be >= 1.
 
 E: Variable name for group does not exist
 

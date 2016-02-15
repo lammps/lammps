@@ -102,7 +102,7 @@ Self-explanatory.
 
 E: Can only use Kokkos supported regions with Kokkos package
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 

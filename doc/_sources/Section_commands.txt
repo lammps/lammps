@@ -437,10 +437,10 @@ in the command's documentation.
 These are additional commands in USER packages, which can be used if
 :ref:`LAMMPS is built with the appropriate package <start_3>`.
 
-+-----------------------------------------------------------+
-| :doc:`group2ndx <group2ndx>`
++------------------------------------------+-----------------------------------------------------------+
+| :doc:`dump custom/vtk <dump_custom_vtk>` | :doc:`group2ndx <group2ndx>`
 :doc:`ndx2group <group2ndx>` |
-+-----------------------------------------------------------+
++------------------------------------------+-----------------------------------------------------------+
 
 
 ----------

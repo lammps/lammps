@@ -200,8 +200,10 @@ flag for this dump style explicitly.</p>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Dump a snapshot of atom quantities to one or more files every N
-timesteps. The timesteps on which dump output is written can also be
-controlled by a variable; see the <code class="xref doc docutils literal"><span class="pre">dump_modify</span> <span class="pre">every</span></code> command for details.</p>
+timesteps in a format readable by the <a class="reference external" href="http://www.vtk.org">VTK visualization toolkit</a> or other visualization tools that use it,
+e.g. <a class="reference external" href="http://www.paraview.org">ParaView</a>.  The timesteps on which dump
+output is written can also be controlled by a variable; see the
+<code class="xref doc docutils literal"><span class="pre">dump_modify</span> <span class="pre">every</span></code> command for details.</p>
 <p>Only information for atoms in the specified group is dumped.  The
 <code class="xref doc docutils literal"><span class="pre">dump_modify</span> <span class="pre">thresh</span> <span class="pre">and</span> <span class="pre">region</span></code> commands can also
 alter what atoms are included; see details below.</p>

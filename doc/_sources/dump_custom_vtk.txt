@@ -83,8 +83,10 @@ Description
 """""""""""
 
 Dump a snapshot of atom quantities to one or more files every N
-timesteps. The timesteps on which dump output is written can also be
-controlled by a variable; see the :doc:`dump_modify every <dump_modify_vtk>` command for details.
+timesteps in a format readable by the `VTK visualization toolkit <http://www.vtk.org>`_ or other visualization tools that use it,
+e.g. `ParaView <http://www.paraview.org>`_.  The timesteps on which dump
+output is written can also be controlled by a variable; see the
+:doc:`dump_modify every <dump_modify_vtk>` command for details.
 
 Only information for atoms in the specified group is dumped.  The
 :doc:`dump_modify thresh and region <dump_modify_vtk>` commands can also

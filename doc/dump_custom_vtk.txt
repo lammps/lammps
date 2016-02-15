@@ -77,9 +77,11 @@ flag for this dump style explicitly.
 [Description:]
 
 Dump a snapshot of atom quantities to one or more files every N
-timesteps. The timesteps on which dump output is written can also be
-controlled by a variable; see the "dump_modify
-every"_dump_modify_vtk.html command for details.
+timesteps in a format readable by the "VTK visualization
+toolkit"_http://www.vtk.org or other visualization tools that use it,
+e.g. "ParaView"_http://www.paraview.org.  The timesteps on which dump
+output is written can also be controlled by a variable; see the
+"dump_modify every"_dump_modify_vtk.html command for details.
 
 Only information for atoms in the specified group is dumped.  The
 "dump_modify thresh and region"_dump_modify_vtk.html commands can also

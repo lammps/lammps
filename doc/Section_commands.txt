@@ -469,7 +469,7 @@ These are additional commands in USER packages, which can be used if
 package"_Section_start.html#start_3.
 
 "dump custom/vtk"_dump_custom_vtk.html,
-"group2ndx"_group2ndx.html
+"group2ndx"_group2ndx.html,
 "ndx2group"_group2ndx.html :tb(c=3,ea=c)
 
 :line

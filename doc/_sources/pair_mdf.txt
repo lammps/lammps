@@ -104,7 +104,7 @@ below:
 
 
 For the *buck/mdf* pair_style, the potential energy, *E(r)*, is the
-standard 12-6 Lennard-Jones written in the epsilon/sigma form:
+standard Buckingham potential:
 
 .. image:: Eqs/pair_mdf-5.jpg
    :align: center

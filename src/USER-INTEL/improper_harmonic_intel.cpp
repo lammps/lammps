@@ -37,6 +37,8 @@ using namespace MathConst;
 #define PTOLERANCE (flt_t)1.05
 #define MTOLERANCE (flt_t)-1.05
 #define SMALL     (flt_t)0.001
+#define SMALL2     (flt_t)0.000001
+#define INVSMALL   (flt_t)1000.0
 typedef struct { int a,b,c,d,t;  } int5_t;
 
 /* ---------------------------------------------------------------------- */
@@ -175,13 +177,17 @@ void ImproperHarmonicIntel::eval(const int vflag,
       const flt_t vb3y = x[i4].y - x[i3].y;
       const flt_t vb3z = x[i4].z - x[i3].z;
 
-      const flt_t ss1 = (flt_t)1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-      const flt_t ss2 = (flt_t)1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-      const flt_t ss3 = (flt_t)1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
+      flt_t ss1 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
+      flt_t ss2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
+      flt_t ss3 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
 
-      const flt_t r1 = sqrt(ss1);
-      const flt_t r2 = sqrt(ss2);
-      const flt_t r3 = sqrt(ss3);
+      const flt_t r1 = (flt_t)1.0 / sqrt(ss1);
+      const flt_t r2 = (flt_t)1.0 / sqrt(ss2);
+      const flt_t r3 = (flt_t)1.0 / sqrt(ss3);
+
+      ss1 = (flt_t)1.0 / ss1;
+      ss2 = (flt_t)1.0 / ss2;
+      ss3 = (flt_t)1.0 / ss3;
 
       // sin and cos of angle
 
@@ -191,13 +197,13 @@ void ImproperHarmonicIntel::eval(const int vflag,
 
       flt_t s1 = 1.0 - c1*c1;
       if (s1 < SMALL) s1 = SMALL;
-      s1 = (flt_t)1.0 / s1;
 
       flt_t s2 = (flt_t)1.0 - c2*c2;
       if (s2 < SMALL) s2 = SMALL;
-      s2 = (flt_t)1.0 / s2;
 
-      flt_t s12 = sqrt(s1*s2);
+      flt_t s12 = (flt_t)1.0 / sqrt(s1*s2);
+      s1 = (flt_t)1.0 / s1;
+      s2 = (flt_t)1.0 / s2;
       flt_t c = (c1*c2 + c0) * s12;
 
       // error check
@@ -227,8 +233,9 @@ void ImproperHarmonicIntel::eval(const int vflag,
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
-      flt_t s = sqrt((flt_t)1.0 - c*c);
-      if (s < SMALL) s = SMALL;
+      const flt_t sd = (flt_t)1.0 - c * c;
+      flt_t s = (flt_t)1.0 / sqrt(sd);
+      if (sd < SMALL2) s = INVSMALL;
 
       // force & energy
 
@@ -239,7 +246,7 @@ void ImproperHarmonicIntel::eval(const int vflag,
       flt_t eimproper;
       if (EFLAG) eimproper = a*domega;
 
-      a = -a * (flt_t)2.0/s;
+      a = -a * (flt_t)2.0 * s;
       c = c * a;
       s12 = s12 * a;
       const flt_t a11 = c*ss1*s1;

@@ -83,9 +83,9 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair granular requires atom atrributes radius, rmass
+E: Pair granular requires atom attributes radius, rmass
 
-UNDOCUMENTED
+The atom style defined does not have these attributes.
 
 E: Pair granular requires ghost atoms store velocity
 
@@ -98,10 +98,7 @@ granular styles with history.
 
 E: Could not find pair fix ID
 
-UNDOCUMENTED
-
-U: Pair granular requires atom style sphere
-
-Self-explanatory.
+A fix is created internally by the pair style to store shear
+history information.  You cannot delete it.
 
 */

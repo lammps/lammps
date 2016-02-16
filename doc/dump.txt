@@ -7,6 +7,7 @@
 :line
    
 dump command :h3
+"dump custom/vtk"_dump_custom_vtk.html command :h3
 "dump h5md"_dump_h5md.html command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
@@ -33,6 +34,8 @@ args = list of arguments for a particular style :l
   {xyz} args = none :pre
   {xyz/gz} args = none :pre
   {xyz/mpiio} args = none :pre
+
+  {custom/vtk} args = similar to custom args below, discussed on "dump custom/vtk"_dump_custom_vtk.html doc page :pre
 
   {h5md} args = discussed on "dump h5md"_dump_h5md.html doc page :pre
 

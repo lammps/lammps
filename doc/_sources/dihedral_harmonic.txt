@@ -3,6 +3,9 @@
 dihedral_style harmonic command
 ===============================
 
+dihedral_style harmonic/intel command
+=====================================
+
 dihedral_style harmonic/omp command
 ===================================
 

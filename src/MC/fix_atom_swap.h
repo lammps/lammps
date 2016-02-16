@@ -135,7 +135,7 @@ Self-explanatory.
 
 E: All atoms of a swapped type must have same charge.
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot do atom/swap on atoms in atom_modify first group
 

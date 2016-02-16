@@ -58,11 +58,12 @@ public:
 
 E: Insufficient memory on accelerator
 
-UNDOCUMENTED
+There is insufficient memory on one of the devices specified for the gpu
+package
 
 E: Cannot use newton pair with eam/alloy/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Incorrect args for pair coefficients
 

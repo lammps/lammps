@@ -83,7 +83,7 @@ r_{cut} (distance units) :ul
 :line
 
 For the {buck/mdf} pair_style, the potential energy, {E(r)}, is the
-standard 12-6 Lennard-Jones written in the epsilon/sigma form:
+standard Buckingham potential:
 
 :c,image(Eqs/pair_mdf-5.jpg)
 

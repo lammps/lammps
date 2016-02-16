@@ -285,13 +285,13 @@ This is probably a bogus thing to do, since tail corrections are
 computed by integrating the density of a periodic system out to
 infinity.
 
-W: Using pair tail corrections with compute set to no
+W: Using pair tail corrections with pair_modify compute no
 
-UNDOCUMENTED
+The tail corrections will thus not be computed.
 
-W: Using pair potential shift with compute set to no
+W: Using pair potential shift with pair_modify compute no
 
-UNDOCUMENTED
+The shift effects will thus not be computed.
 
 W: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions
 

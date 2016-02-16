@@ -86,11 +86,7 @@ One of the particles has radius 0.0.
 
 E: Particle outside surface of region used in fix wall/region
 
-UNDOCUMENTED
-
-U: Particle on or inside surface of region used in fix wall/region
-
-Particles must be "exterior" to the region surface in order for
-energy/force to be calculated.
+Particles must be inside the region for energy/force to be calculated.
+A particle outside the region generates an error.
 
 */

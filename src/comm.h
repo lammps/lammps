@@ -163,21 +163,21 @@ E: Comm_modify group != atom_modify first group
 
 Self-explanatory.
 
-E: Use cutoff/multi flag to set cutoff in multi mode
+E: Use cutoff/multi keyword to set cutoff in multi mode
 
-UNDOCUMENTED
+Mode is multi so cutoff keyword cannot be used.
 
 E: Invalid cutoff in comm_modify command
 
 Specified cutoff must be >= 0.0.
 
-E: Use cutoff flag to set cutoff in single mode
+E: Use cutoff keyword to set cutoff in single mode
 
-UNDOCUMENTED
+Mode is single so cutoff/multi keyword cannot be used.
 
 E: Cannot set cutoff/multi before simulation box is defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Specified processors != physical processors
 

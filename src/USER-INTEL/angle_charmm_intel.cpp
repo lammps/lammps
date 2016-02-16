@@ -31,7 +31,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL (flt_t)0.001
+#define SMALL2     (flt_t)0.000001
+#define INVSMALL   (flt_t)1000.0
 typedef struct { int a,b,c,t;  } int4_t;
 
 /* ---------------------------------------------------------------------- */
@@ -162,7 +163,7 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delz1 = x[i1].z - x[i2].z;
 
       const flt_t rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-      const flt_t r1 = sqrt(rsq1);
+      flt_t ir12 = (flt_t)1.0/sqrt(rsq1);
 
       // 2nd bond
 
@@ -171,7 +172,7 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delz2 = x[i3].z - x[i2].z;
 
       const flt_t rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      const flt_t r2 = sqrt(rsq2);
+      ir12 *= (flt_t)1.0/sqrt(rsq2);
 
       // Urey-Bradley bond
 
@@ -180,15 +181,15 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delzUB = x[i3].z - x[i1].z;
 
       const flt_t rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
-      const flt_t rUB = sqrt(rsqUB);
+      const flt_t irUB = (flt_t)1.0/sqrt(rsqUB);
 
       // Urey-Bradley force & energy
 
-      const flt_t dr = rUB - fc.fc[type].r_ub;
+      const flt_t dr = (flt_t)1.0/irUB - fc.fc[type].r_ub;
       const flt_t rk = fc.fc[type].k_ub * dr;
 
       flt_t forceUB;
-      if (rUB > (flt_t)0.0) forceUB = (flt_t)-2.0*rk/rUB;
+      if (rsqUB > (flt_t)0.0) forceUB = (flt_t)-2.0*rk*irUB;
       else forceUB = 0.0;
 
       flt_t eangle;
@@ -197,14 +198,14 @@ void AngleCharmmIntel::eval(const int vflag,
       // angle (cos and sin)
 
       flt_t c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-      c /= r1*r2;
+      c *= ir12;
 
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
-      flt_t s = sqrt((flt_t)1.0 - c*c);
-      if (s < SMALL) s = SMALL;
-      s = (flt_t)1.0/s;
+      const flt_t sd = (flt_t)1.0 - c * c;
+      flt_t s = (flt_t)1.0 / sqrt(sd);
+      if (sd < SMALL2) s = INVSMALL;
 
       // harmonic force & energy
 
@@ -215,7 +216,7 @@ void AngleCharmmIntel::eval(const int vflag,
 
       const flt_t a = (flt_t)-2.0 * tk * s;
       const flt_t a11 = a*c / rsq1;
-      const flt_t a12 = -a / (r1*r2);
+      const flt_t a12 = -a * ir12;
       const flt_t a22 = a*c / rsq2;
 
       const flt_t f1x = a11*delx1 + a12*delx2 - delxUB*forceUB;
@@ -303,7 +304,7 @@ template <class flt_t, class acc_t>
 void AngleCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
                                         IntelBuffers<flt_t,acc_t> *buffers)
 {
-  const int bp1 = atom->ndihedraltypes + 1;
+  const int bp1 = atom->nangletypes + 1;
   fc.set_ntypes(bp1,memory);
 
   for (int i = 0; i < bp1; i++) {

@@ -215,7 +215,7 @@ Self-explanatory.
 
 E: Error writing file header
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 E: Invalid timestep reset for fix ave/histo
 
@@ -224,7 +224,7 @@ fix needs to process.
 
 E: Error writing out histogram data
 
-UNDOCUMENTED
+Something in the output to the file triggered an error.
 
 E: Cannot open fix ave/histo file %s
 

@@ -201,9 +201,11 @@ of "this page"_Section_commands.html#cmd_5.
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
 "nphug"_fix_nphug.html - constant-stress Hugoniostat integration
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
+"nph/body"_fix_nve_body.html - NPH for body particles
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles
 "npt"_fix_nh.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
+"npt/body"_fix_nve_body.html - NPT for body particles
 "npt/sphere"_fix_npt_sphere.html - NPT for spherical particles
 "nve"_fix_nve.html - constant NVE time integration
 "nve/asphere"_fix_nve_asphere.html - NVE for aspherical particles
@@ -216,6 +218,7 @@ of "this page"_Section_commands.html#cmd_5.
 "nve/tri"_fix_nve_tri.html - NVE for triangles
 "nvt"_fix_nh.html - constant NVT time integration via Nose/Hoover
 "nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
+"nvt/body"_fix_nve_body.html - NVT for body particles
 "nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
 "nvt/sphere"_fix_nvt_sphere.html - NVT for spherical particles
 "oneway"_fix_oneway.html - constrain particles on move in one direction
@@ -235,6 +238,7 @@ of "this page"_Section_commands.html#cmd_5.
 "qeq/shielded"_fix_qeq.html - charge equilibration via shielded method \
 "qeq/slater"_fix_qeq.html - charge equilibration via Slater method \
 "reax/c/bonds"_fix_reaxc_bonds.html - write out ReaxFF bond information \
+"rattle"_fix_shake.html - RATTLE constraints on bonds and/or angles
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
 "restrain"_fix_restrain.html - constrain a bond, angle, dihedral

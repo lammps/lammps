@@ -149,10 +149,10 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 
 E: Cannot use Kokkos pair style with rRESPA inner/middle
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use chosen neighbor list style with lj/charmm/coul/long/kk
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

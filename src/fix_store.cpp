@@ -44,7 +44,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
   else if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;
-  else error->all(FLERR,"Invalid fix store command");
+  else error->all(FLERR,"Illegal fix store command");
 
   // GLOBAL values are always written to restart file
   // PERATOM restart_peratom is set by caller
@@ -54,7 +54,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     nrow = force->inumeric(FLERR,arg[4]);
     ncol = force->inumeric(FLERR,arg[5]);
     if (nrow <= 0 || ncol <= 0)
-      error->all(FLERR,"Invalid fix store command");
+      error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
     if (ncol == 1) vecflag = 1;
   }
@@ -62,7 +62,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     restart_peratom = force->inumeric(FLERR,arg[4]);
     nvalues = force->inumeric(FLERR,arg[5]);
     if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
-      error->all(FLERR,"Invalid fix store command");
+      error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
     if (nvalues == 1) vecflag = 1;
   }

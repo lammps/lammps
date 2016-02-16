@@ -3,6 +3,9 @@
 angle_style harmonic command
 ============================
 
+angle_style harmonic/intel command
+==================================
+
 angle_style harmonic/kk command
 ===============================
 

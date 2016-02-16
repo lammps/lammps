@@ -8,6 +8,7 @@
 
 fix nvt command :h3
 fix nvt/cuda command :h3
+fix nvt/intel command :h3
 fix nvt/kk command :h3
 fix nvt/omp command :h3
 fix npt command :h3

@@ -126,11 +126,12 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Read data add offset is too big
 
-UNDOCUMENTED
+It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
+integer.
 
 E: Non-zero read_data shift z value for 2d simulation
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: No bonds allowed with this atom style
 
@@ -159,23 +160,23 @@ run a 2d simulation.
 
 E: Cannot read_data without add keyword after simulation box is defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use read_data add before simulation box is defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use read_data offset without add flag
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use read_data shift without add flag
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use read_data extra with add flag
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Atom style in data file differs from currently defined atom style
 
@@ -471,7 +472,8 @@ outside a non-periodic simulation box.
 
 E: Subsequent read data induced too many bonds per atom
 
-UNDOCUMENTED
+See the create_box extra/bond/per/atom or read_data "extra bond per
+atom" header value to set this limit larger.
 
 E: Bonds assigned incorrectly
 
@@ -480,7 +482,8 @@ This means there is something invalid about the topology definitions.
 
 E: Subsequent read data induced too many angles per atom
 
-UNDOCUMENTED
+See the create_box extra/angle/per/atom or read_data "extra angle per
+atom" header value to set this limit larger.
 
 E: Angles assigned incorrectly
 
@@ -490,7 +493,8 @@ definitions.
 
 E: Subsequent read data induced too many dihedrals per atom
 
-UNDOCUMENTED
+See the create_box extra/dihedral/per/atom or read_data "extra
+dihedral per atom" header value to set this limit larger.
 
 E: Dihedrals assigned incorrectly
 
@@ -500,7 +504,8 @@ definitions.
 
 E: Subsequent read data induced too many impropers per atom
 
-UNDOCUMENTED
+See the create_box extra/improper/per/atom or read_data "extra
+improper per atom" header value to set this limit larger.
 
 E: Impropers assigned incorrectly
 
@@ -510,11 +515,11 @@ definitions.
 
 E: Too few values in body lines in data file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Too many values in body lines in data file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Too many lines in one body in data file - boost MAXBODY
 
@@ -551,18 +556,5 @@ E: Cannot open file %s
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
-
-U: Cannot read_data after simulation box is defined
-
-The read_data command cannot be used after a read_data,
-read_restart, or create_box command.
-
-U: Cannot read_data add and merge
-
-These options are not yet supported.
-
-U: Cannot use non-zero z offset in read_data for 2d simulation
-
-The offset option is not yet supported.
 
 */

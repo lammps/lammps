@@ -94,7 +94,7 @@ The name for an integer or floating-point vector must be unique.
 
 W: Fix property/atom mol or charge w/out ghost communication
 
-UNDOCUMENTED
+A model typically needs these properties defined for ghost atoms.
 
 E: Atom style was redefined after using fix property/atom
 
@@ -107,7 +107,7 @@ not have the correct number of values per line.
 
 E: Too few lines in %s section of data file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in %s section of data file
 

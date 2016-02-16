@@ -78,7 +78,7 @@ The style of the specified compute is not chunk/atom.
 
 E: Could not find compute msd/chunk fix ID
 
-UNDOCUMENTED
+The compute creates an internal fix, which has been deleted.
 
 E: Compute msd/chunk nchunk is not static
 

@@ -230,10 +230,10 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 
 E: Pair tersoff/zbl/kk requires metal or real units
 
-UNDOCUMENTED
+This is a current restriction of this pair potential.
 
 E: Cannot use chosen neighbor list style with tersoff/zbl/kk
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

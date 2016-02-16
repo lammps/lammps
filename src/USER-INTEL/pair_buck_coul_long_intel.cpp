@@ -284,9 +284,8 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
           const flt_t delz = ztmp - x[j].z;
           const int jtype = x[j].w;
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
-          const flt_t r = sqrt(rsq);
-
           const flt_t r2inv = (flt_t)1.0 / rsq;
+          const flt_t r = (flt_t)1.0 / sqrt(r2inv);
 
           #ifdef INTEL_VMASK
           if (rsq < c_forcei[jtype].cutsq) {
@@ -309,12 +308,12 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
               const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
               forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
               if (EFLAG) ecoul = prefactor * erfc;
-              if (sbindex) {
-                const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
-                  prefactor;
-                forcecoul -= adjust;
-                if (EFLAG) ecoul -= adjust;
-              }
+
+	      const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
+		prefactor;
+	      forcecoul -= adjust;
+	      if (EFLAG) ecoul -= adjust;
+
             #ifdef INTEL_ALLOW_TABLE
             } else {
               float rsq_lookup = rsq;

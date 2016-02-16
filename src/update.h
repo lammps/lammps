@@ -101,8 +101,4 @@ Dynamic regions (see the region command) have a time dependence.
 Thus you cannot change the timestep when one or more of these
 are defined.
 
-U: Too big a timestep
-
-Specified timestep is too large.
-
 */

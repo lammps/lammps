@@ -229,6 +229,7 @@ section of :ref:`this page <cmd_5>`.
 * :doc:`stress/atom <compute_stress_atom>` - stress tensor for each atom
 * :doc:`temp <compute_temp>` - temperature of group of atoms
 * :doc:`temp/asphere <compute_temp_asphere>` - temperature of aspherical particles
+* :doc:`temp/body <compute_temp_body>` - temperature of body particles
 * :doc:`temp/chunk <compute_temp_chunk>` - temperature of each chunk
 * :doc:`temp/com <compute_temp_com>` - temperature after subtracting center-of-mass velocity
 * :doc:`temp/deform <compute_temp_deform>` - temperature excluding box deformation velocity

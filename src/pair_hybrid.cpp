@@ -471,8 +471,8 @@ void PairHybrid::init_style()
       for (i = 1; i < 4; ++i) {
         if (((force->special_lj[i] == 0.0) || (force->special_lj[i] == 1.0))
             && (force->special_lj[i] != special_lj[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting incompatible with"
-                     " global special_bonds setting");
+          error->all(FLERR,"Pair_modify special setting for pair hybrid "
+		     "incompatible with global special_bonds setting");
       }
     }
 
@@ -481,8 +481,8 @@ void PairHybrid::init_style()
         if (((force->special_coul[i] == 0.0)
              || (force->special_coul[i] == 1.0))
             && (force->special_coul[i] != special_coul[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting incompatible with"
-                     "global special_bonds setting");
+          error->all(FLERR,"Pair_modify special setting for pair hybrid "
+		     "incompatible with global special_bonds setting");
       }
     }
   }

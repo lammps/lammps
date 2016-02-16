@@ -171,8 +171,7 @@ files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 E: Cannot open dump file
 
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
+Self-explanatory.
 
 E: Illegal ... command
 

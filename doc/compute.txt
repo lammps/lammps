@@ -224,6 +224,7 @@ section of "this page"_Section_commands.html#cmd_5.
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
+"temp/body"_compute_temp_body.html - temperature of body particles
 "temp/chunk"_compute_temp_chunk.html - temperature of each chunk
 "temp/com"_compute_temp_com.html - temperature after subtracting center-of-mass velocity
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity

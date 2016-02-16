@@ -158,7 +158,7 @@ To run pure Python code from LAMMPS, you only need to build LAMMPS
 with the PYTHON package installed:
 
 make yes-python
-make machine
+make machine :pre
 
 Note that this will link LAMMPS with the Python library on your
 system, which typically requires several auxiliary system libraries to
@@ -183,7 +183,7 @@ Instructions on how to build LAMMPS as a shared library are given in
 that is dynamically loadable, which is what Python requires to wrap
 LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
 
->From the src directory, type
+From the src directory, type
 
 make foo mode=shlib :pre
 
@@ -194,10 +194,11 @@ load by default.  Note that if you are building multiple machine
 versions of the shared library, the soft link is always set to the
 most recently built version.
 
-If this fails, see "Section_start 5"_Section_start.html#start_5 for
-more details, especially if your LAMMPS build uses auxiliary libraries
-like MPI or FFTW which may not be built as shared libraries on your
-system.
+NOTE: If you are building LAMMPS with an MPI or FFT library or other
+auxiliary libraries (used by various packages), then all of these
+extra libraries must also be shared libraries.  If the LAMMPS
+shared-library build fails with an error complaining about this, see
+"Section_start 5"_Section_start.html#start_5 for more details.
 
 :line
 
@@ -609,15 +610,6 @@ lmp.scatter_atoms(name,type,count,data)   # scatter atom attribute of all atoms 
                                           # count = # of per-atom values, 1 or 3, etc :pre
 
 :line
-
-NOTE: Currently, the creation of a LAMMPS object from within lammps.py
-does not take an MPI communicator as an argument.  There should be a
-way to do this, so that the LAMMPS instance runs on a subset of
-processors if desired, but I don't know how to do it from Pypar.  So
-for now, it runs with MPI_COMM_WORLD, which is all the processors.  If
-someone figures out how to do this with one or more of the Python
-wrappers for MPI, like Pypar, please let us know and we will amend
-these doc pages.
 
 The lines
 

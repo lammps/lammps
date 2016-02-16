@@ -167,7 +167,9 @@ class Molecule : protected Pointers {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Molecule template ID must be alphanumeric or underscore characters
 
@@ -187,27 +189,27 @@ Self-explanatory.
 
 E: Molecule file requires atom style body
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: No or invalid atom count in molecule file
+E: No count or invalid atom count in molecule file
 
-UNDOCUMENTED
+The number of atoms must be specified.
 
 E: Invalid bond count in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid angle count in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid dihedral count in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid improper count in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file has bonds but no nbonds setting
 
@@ -235,7 +237,7 @@ The order of the two sections is important.
 
 E: Molecule file has body params but no setting for them
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Unknown section in molecule file
 
@@ -255,23 +257,23 @@ All 3 SHAKE sections are needed.
 
 E: Molecule file has no Body Integers section
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file has no Body Doubles section
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule natoms must be 1 for body particle
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule sizescale must be 1.0 for body particle
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid Coords section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file z coord must be 0.0 for 2d
 
@@ -279,7 +281,7 @@ Self-explanatory.
 
 E: Invalid Types section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom type in molecule file
 
@@ -287,11 +289,11 @@ Atom types must range from 1 to specified # of types.
 
 E: Invalid Charges section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid Diameters section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom diameter in molecule file
 
@@ -299,7 +301,7 @@ Diameters must be >= 0.0.
 
 E: Invalid Masses section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom mass in molecule file
 
@@ -307,7 +309,7 @@ Masses must be > 0.0.
 
 E: Invalid Bonds section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in Bonds section of molecule file
 
@@ -319,7 +321,7 @@ Self-explanatory.
 
 E: Invalid Angles section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in Angles section of molecule file
 
@@ -331,7 +333,7 @@ Self-explanatory.
 
 E: Invalid Dihedrals section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in dihedrals section of molecule file
 
@@ -343,7 +345,7 @@ Self-explanatory.
 
 E: Invalid Impropers section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in impropers section of molecule file
 
@@ -355,7 +357,7 @@ Self-explanatory.
 
 E: Invalid Special Bond Counts section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file special list does not match special count
 
@@ -367,11 +369,7 @@ Self-explanatory.
 
 E: Molecule auto special bond generation overflow
 
-UNDOCUMENTED
-
-E: 
-
-UNDOCUMENTED
+Counts exceed maxspecial setting for other atoms in system.
 
 E: Invalid shake flag in molecule file
 
@@ -391,11 +389,11 @@ Self-explanatory.
 
 E: Too few values in body section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Too many values in body section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Molecule attributes do not match system attributes
 
@@ -423,13 +421,5 @@ E: Cannot open molecule file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.
-
-U: No atom count in molecule file
-
-Self-explanatory.
-
-U: Molecule file has bonds but no special flags
-
-Self-explanatory.
 
 */

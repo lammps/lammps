@@ -15,13 +15,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors:
-   Daniel Queteschiner (DCS, JKU)
-   Christoph Kloss (DCS)
-   Richard Berger (JKU)
-------------------------------------------------------------------------- */
-
 #ifdef DUMP_CLASS
 
 DumpStyle(custom/vtk,DumpCustomVTK)

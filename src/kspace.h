@@ -222,7 +222,7 @@ Self-explanatory.
 
 E: System is not charge neutral, net charge = %g
 
-The total charge on all atoms in the system is not 0.0.
+The total charge on all atoms on the system is not 0.0.
 For some KSpace solvers this is an error.
 
 W: System is not charge neutral, net charge = %g

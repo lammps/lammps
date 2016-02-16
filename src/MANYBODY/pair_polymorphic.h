@@ -322,38 +322,39 @@ class PairPolymorphic : public Pair {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
 E: Pair style polymorphic requires atom IDs
 
-UNDOCUMENTED
+This is a requirement to use the polymorphic potential.
 
 E: Pair style polymorphic requires newton pair on
 
-UNDOCUMENTED
+See the newton command.  This is a restriction to use the polymorphic
+potential.
 
 E: All pair coeffs are not set
 
-UNDOCUMENTED
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
 E: Cannot open polymorphic potential file %s
 
-UNDOCUMENTED
+The specified polymorphic potential file cannot be opened.  Check that
+the path and name are correct.
 
 E: Incorrect number of elements in potential file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Element not defined in potential file
 
-UNDOCUMENTED
-
-E: Test potential tables
-
-UNDOCUMENTED
+The specified element is not in the potential file.
 
 */

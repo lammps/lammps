@@ -66,7 +66,7 @@ Self-explantory.
 
 E: Compute hexorder/atom cutoff is longer than pairwise cutoff
 
-UNDOCUMENTED
+Cannot compute order parameter beyond cutoff.
 
 W: More than one compute hexorder/atom
 

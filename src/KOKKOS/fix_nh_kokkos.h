@@ -85,10 +85,11 @@ class FixNHKokkos : public FixNH {
 
 E: Cannot (yet) use rigid bodies with fix nh and Kokkos
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix npt/nph has tilted box too far in one step - periodic cell is too far from equilibrium state
 
-UNDOCUMENTED
+Self-explanatory.  The change in the box tilt is too extreme
+on a short timescale.
 
 */

@@ -303,7 +303,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               const flt_t EWALD_F = 1.12837917;
               const flt_t INV_EWALD_P = 1.0 / 0.3275911;
 
-              const flt_t r = sqrt(rsq);
+              const flt_t r = (flt_t)1.0 / sqrt(r2inv);
               const flt_t grij = g_ewald * r;
               const flt_t expm2 = exp(-grij * grij);
               const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
@@ -311,12 +311,12 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
               forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
               if (EFLAG) ecoul = prefactor * erfc;
-              if (sbindex) {
-                const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
-                    prefactor;
-                forcecoul -= adjust;
-                if (EFLAG) ecoul -= adjust;
-              }
+
+	      const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
+		prefactor;
+	      forcecoul -= adjust;
+	      if (EFLAG) ecoul -= adjust;
+
             #ifdef INTEL_ALLOW_TABLE
             } else {
               float rsq_lookup = rsq;

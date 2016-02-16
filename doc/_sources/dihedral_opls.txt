@@ -3,6 +3,9 @@
 dihedral_style opls command
 ===========================
 
+dihedral_style opls/intel command
+=================================
+
 dihedral_style opls/kk command
 ==============================
 

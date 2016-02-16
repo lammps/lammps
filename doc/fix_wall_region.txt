@@ -41,9 +41,13 @@ from 1, 2, or 3 faces of the block.
 Regions are defined using the "region"_region.html command.  Note that
 the region volume can be interior or exterior to the bounding surface,
 which will determine in which direction the surface interacts with
-particles, i.e. the direction of the surface normal.  Regions can
-either be primitive shapes (block, sphere, cylinder, etc) or
-combinations of primitive shapes specified via the {union} or
+particles, i.e. the direction of the surface normal.  The surface of
+the region only exerts forces on particles "inside" the region; if a
+particle is "outside" the region it will generate an error, because it
+has moved through the wall.
+
+Regions can either be primitive shapes (block, sphere, cylinder, etc)
+or combinations of primitive shapes specified via the {union} or
 {intersect} region styles.  These latter styles can be used to
 construct particle containers with complex shapes.  Regions can also
 change over time via the "region"_region.html command keywords (move)

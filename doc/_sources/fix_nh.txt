@@ -6,6 +6,9 @@ fix nvt command
 fix nvt/cuda command
 ====================
 
+fix nvt/intel command
+=====================
+
 fix nvt/kk command
 ==================
 

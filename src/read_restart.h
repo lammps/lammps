@@ -174,7 +174,7 @@ Your input script cannot change these restart file settings.
 
 E: Illegal or unset periodicity in restart
 
-UNDOCUMENTED
+This error should not normally occur unless the restart file is invalid.
 
 E: Invalid flag in header section of restart file
 
@@ -222,14 +222,14 @@ contain a recognized byte-orderomg flag at the beginning.
 
 E: Illegal size string or corrupt restart
 
-UNDOCUMENTED
+This error should not normally occur unless the restart file is invalid.
 
 E: Illegal size integer vector read requested
 
-UNDOCUMENTED
+This error should not normally occur unless the restart file is invalid.
 
 E: Illegal size double vector read requested
 
-UNDOCUMENTED
+This error should not normally occur unless the restart file is invalid.
 
 */

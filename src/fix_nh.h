@@ -214,11 +214,11 @@ Settings for coupled dimensions must be the same.
 
 E: Using update dipole flag requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Using update dipole flag requires atom attribute mu
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nvt/npt/nph damping parameters must be > 0.0
 

@@ -19,7 +19,7 @@ N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
   {custom/vtk} args = list of atom attributes
-    possible attributes = id, mol, type, element, mass, density, rho, p
+    possible attributes = id, mol, proc, procp1, type, element, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, 
 			  xsu, ysu, zsu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
@@ -31,6 +31,8 @@ args = list of arguments for a particular style :l
 
       id = atom ID
       mol = molecule ID
+      proc = ID of processor that owns atom
+      procp1 = ID+1 of processor that owns atom
       type = atom type
       element = name of atom element, as defined by "dump_modify"_dump_modify_vtk.html command
       mass = atom mass
@@ -62,42 +64,46 @@ dump dmpvtp flow custom/vtk 100 dump*.%.displace.vtp id type c_myD\[1\] c_myD\[2
 dump e_data all custom/vtk 100 dump*.vtu id type spin eradius fx fy fz eforce :pre
 
 The style {custom/vtk} is similar to the "custom"_dump.html style but
-uses the VTK library to write data to VTK simple legacy or XML format depending
-on the filename extension specified. This can be either {.vtk} for the legacy
-format or {.vtp} and {.vtu}, respectively, for the XML format; see the
-"VTK homepage"_http://www.vtk.org/VTK/img/file-formats.pdf for a detailed
-description of these formats.
-Since this naming convention conflicts with the way binary output is usually
-specified (see below), "dump_modify binary"_dump_modify_vtk.html allows to set
-the binary flag for this dump style explicitly.
+uses the VTK library to write data to VTK simple legacy or XML format
+depending on the filename extension specified. This can be either
+{*.vtk} for the legacy format or {*.vtp} and {*.vtu}, respectively,
+for the XML format; see the "VTK
+homepage"_http://www.vtk.org/VTK/img/file-formats.pdf for a detailed
+description of these formats.  Since this naming convention conflicts
+with the way binary output is usually specified (see below),
+"dump_modify binary"_dump_modify_vtk.html allows to set the binary
+flag for this dump style explicitly.
 
 [Description:]
 
 Dump a snapshot of atom quantities to one or more files every N
-timesteps. The timesteps on which dump output is written can also
-be controlled by a variable; see the "dump_modify
-every"_dump_modify_vtk.html command for details.
+timesteps in a format readable by the "VTK visualization
+toolkit"_http://www.vtk.org or other visualization tools that use it,
+e.g. "ParaView"_http://www.paraview.org.  The timesteps on which dump
+output is written can also be controlled by a variable; see the
+"dump_modify every"_dump_modify_vtk.html command for details.
 
 Only information for atoms in the specified group is dumped.  The
 "dump_modify thresh and region"_dump_modify_vtk.html commands can also
 alter what atoms are included; see details below.
 
-As described below, special characters ("*", "%") in the filename determine the kind of output.
+As described below, special characters ("*", "%") in the filename
+determine the kind of output.
 
 IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
 atom written to a dump file may be slightly outside the simulation
 box.
 
-IMPORTANT NOTE: Unless the "dump_modify sort"_dump_modify_vtk.html option
-is invoked, the lines of atom information written to dump files
-will be in an indeterminate order for each snapshot.
-This is even true when running on a single processor,
-if the "atom_modify sort"_atom_modify.html option is on, which it is
-by default.  In this case atoms are re-ordered periodically during a
-simulation, due to spatial sorting.  It is also true when running in
-parallel, because data for a single snapshot is collected from
-multiple processors, each of which owns a subset of the atoms.
+IMPORTANT NOTE: Unless the "dump_modify sort"_dump_modify_vtk.html
+option is invoked, the lines of atom information written to dump files
+will be in an indeterminate order for each snapshot.  This is even
+true when running on a single processor, if the "atom_modify
+sort"_atom_modify.html option is on, which it is by default.  In this
+case atoms are re-ordered periodically during a simulation, due to
+spatial sorting.  It is also true when running in parallel, because
+data for a single snapshot is collected from multiple processors, each
+of which owns a subset of the atoms.
 
 For the {custom/vtk} style, sorting is off by default. See the
 "dump_modify"_dump_modify_vtk.html doc page for details.
@@ -190,8 +196,8 @@ write out much faster.
 This section explains the atom attributes that can be specified as
 part of the {custom/vtk} style.
 
-The {id}, {mol}, {type}, {element}, {mass}, {vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, {q} attributes are self-explanatory.
+The {id}, {mol}, {proc}, {procp1}, {type}, {element}, {mass}, {vx},
+{vy}, {vz}, {fx}, {fy}, {fz}, {q} attributes are self-explanatory.
 
 {id} is the atom ID.  {mol} is the molecule ID, included in the data
 file for molecular systems.  {type} is the atom type.  {element} is
@@ -203,21 +209,22 @@ atom type.  {mass} is the atom mass.  {vx}, {vy}, {vz}, {fx}, {fy},
 charge.
 
 There are several options for outputting atom coordinates.  The {x},
-{y}, {z} attributes are used to write atom coordinates "unscaled", in the
-appropriate distance "units"_units.html (Angstroms, sigma, etc).  
+{y}, {z} attributes are used to write atom coordinates "unscaled", in
+the appropriate distance "units"_units.html (Angstroms, sigma, etc).
 Additionaly, you can use {xs}, {ys}, {zs} if you want to also save the
-coordinates "scaled" to the box size, so that each value is 0.0 to 1.0.
-If the simulation box is triclinic (tilted), then all atom coords will
-still be between 0.0 and 1.0.  Use {xu}, {yu}, {zu} if you want the
-coordinates "unwrapped" by the image flags for each atom.
-Unwrapped means that if the atom has passed through a periodic boundary
-one or more times, the value is printed for what the coordinate would be
-if it had not been wrapped back into the periodic box.  Note that using
-{xu}, {yu}, {zu} means that the coordinate values may be far outside the
-box bounds printed with the snapshot.  Using {xsu}, {ysu}, {zsu} is similar
-to using {xu}, {yu}, {zu}, except that the unwrapped coordinates are
-scaled by the box size. Atoms that have passed through a periodic boundary
-will have the corresponding cooordinate increased or decreased by 1.0.
+coordinates "scaled" to the box size, so that each value is 0.0 to
+1.0.  If the simulation box is triclinic (tilted), then all atom
+coords will still be between 0.0 and 1.0.  Use {xu}, {yu}, {zu} if you
+want the coordinates "unwrapped" by the image flags for each atom.
+Unwrapped means that if the atom has passed through a periodic
+boundary one or more times, the value is printed for what the
+coordinate would be if it had not been wrapped back into the periodic
+box.  Note that using {xu}, {yu}, {zu} means that the coordinate
+values may be far outside the box bounds printed with the snapshot.
+Using {xsu}, {ysu}, {zsu} is similar to using {xu}, {yu}, {zu}, except
+that the unwrapped coordinates are scaled by the box size. Atoms that
+have passed through a periodic boundary will have the corresponding
+cooordinate increased or decreased by 1.0.
 
 The image flags can be printed directly using the {ix}, {iy}, {iz}
 attributes.  For periodic dimensions, they specify which image of the
@@ -309,20 +316,24 @@ per-atom quantities which could then be output into dump files.
 
 The {custom/vtk} style does not support writing of gzipped dump files.
 
-To be able to use {custom/vtk}, you have to link to the VTK library,
-please adapt your Makefile accordingly. You must compile LAMMPS with the
--DLAMMPS_VTK option - see the "Making LAMMPS"_Section_start.html#start_2
-section of the documentation.
+The {custom/vtk} dump style is part of the USER-VTK package. It is
+only enabled if LAMMPS was built with that package. See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
-The {custom/vtk} dump style neither supports buffering nor custom format strings.
+To use this dump style, you also must link to the VTK library.  See
+the info in lib/vtk/README and insure the Makefile.lammps file in that
+directory is appropriate for your machine.
+
+The {custom/vtk} dump style neither supports buffering nor custom
+format strings.
 
 [Related commands:]
 
-"dump"_dump.html, "dump image"_dump_image.html, "dump_modify"_dump_modify.html,
-"undump"_undump.html
+"dump"_dump.html, "dump image"_dump_image.html,
+"dump_modify"_dump_modify.html, "undump"_undump.html
 
 [Default:]
 
-By default, files are written in ASCII format. If the file extension is not
-one of .vtk, .vtp or .vtu, the legacy VTK file format is used.
+By default, files are written in ASCII format. If the file extension
+is not one of .vtk, .vtp or .vtu, the legacy VTK file format is used.
 

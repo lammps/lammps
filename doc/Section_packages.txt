@@ -10,26 +10,34 @@ Section"_Section_accelerate.html :c
 
 4. Packages :h3
 
-This section gives an overview of the add-on packages that extend
-LAMMPS functionality.  Two tables, for standard and user packages, are
-below.  A brief sub-section for each package follows, with a summary
-of what the package contains, how to install it, and pointers to
-examples of its use or documentation provided in the LAMMPS
-distribution.
+This section gives an overview of the add-on optional packages that
+extend LAMMPS functionality.  Packages are groups of files that enable
+a specific set of features.  For example, force fields for molecular
+systems or granular systems are in packages.  You can see the list of
+all packages by typing "make package" from within the src directory of
+the LAMMPS distribution.
+
+Here are links for two tables below, which list standard and user
+packages.
 
 4.1 "Standard packages"_#pkg_1
 4.2 "User packages"_#pkg_2 :all(b)
 
-LAMMPS includes many optional packages, which are groups of files that
-enable a specific set of features.  For example, force fields for
-molecular systems or granular systems are in packages.  You can see
-the list of all packages by typing "make package" from within the src
-directory of the LAMMPS distribution.
+"Section_start 3"_Section_start.html#start_3 of the manual describes
+the difference between standard packages and user packages.  It also
+has general details on how to include/exclude specific packages as
+part of the LAMMPS build process, and on how to build auxiliary
+libraries or modify a machine Makefile if a package requires it.
 
-See "Section_start 3"_Section_start.html#start_3 of the manual for
-details on how to include/exclude specific packages as part of the
-LAMMPS build process, and for more details about the differences
-between standard packages and user packages.
+Following the two tables below, is a sub-section for each package.  It
+has a summary of what the package contains.  It has specific
+instructions on how to install it, build or obtain any auxiliary
+library it requires, and any Makefile.machine changes it requires.  It
+also lists pointers to examples of its use or documentation provided
+in the LAMMPS distribution.
+
+NOTE: The sub-sections below are still being filled in, as of Feb
+2016.
 
 Unless otherwise noted below, every package is independent of all the
 others.  I.e. any package can be included or excluded in a LAMMPS
@@ -44,17 +52,12 @@ lj/cut/coul/long command.  If you later install the KSPACE pacakge and
 the USER-OMP package is already installed, both the pair
 lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.
 
-The two tables below list currently available packages in LAMMPS, with
-a one-line descriptions of each.  The sub-sections below give more
-details.
-
 :line
 
 4.1 Standard packages :h4,link(pkg_1)
 
 The current list of standard packages is as follows.  Each package
-name links to a sub-section below with more details on how to build
-with the package and pointers to additional info.
+name links to a sub-section below with more details.
 
 Package, Description, Author(s), Doc page, Example, Library
 "ASPHERE"_#ASPHERE, aspherical particles, -, "Section_howto 6.14"_Section_howto.html#howto_14, ellipse, -
@@ -121,10 +124,11 @@ of the LAMMPS distribution.  See the lib/package/README file for info
 on how to build the library.  If it is not listed as lib/package, then
 it is a third-party library not included in the LAMMPS distribution.
 See details on all of this below for individual packages.
+p.s.: are we ever going to get commit messages from you? ;-)
 
 :line
 
-ASPHERE package :link(ASPHERE),h4
+ASPHERE package :link(ASPHERE),h5
 
 Contents: Aspherical particle models for ellipsoids, 2d lines, 3d
 triangles.
@@ -148,7 +152,7 @@ Supporting info: examples/ASPHERE, examples/ellipse, Section howto
 
 :line
 
-BODY package :link(BODY),h4
+BODY package :link(BODY),h5
 
 Contents:
 
@@ -170,7 +174,7 @@ Supporting info: examples/body
 
 :line
  
-CLASS2 package :link(CLASS2),h4
+CLASS2 package :link(CLASS2),h5
 
 Contents:
 
@@ -192,7 +196,7 @@ Supporting info:
  
 :line
  
-COLLOID package :link(COLLOID),h4
+COLLOID package :link(COLLOID),h5
 
 Contents:
 
@@ -214,7 +218,7 @@ Supporting info: examples/colloid, examples/srd
  
 :line
  
-COMPRESS package :link(COMPRESS),h4
+COMPRESS package :link(COMPRESS),h5
  
 Contents:
 
@@ -236,7 +240,7 @@ Supporting info:
 
 :line
  
-CORESHELL package :link(CORESHELL),h4
+CORESHELL package :link(CORESHELL),h5
 
 Contents:
 
@@ -258,7 +262,7 @@ Supporting info: examples/coreshell, Section howto 6.26
 
 :line
  
-DIPOLE package :link(DIPOLE),h4
+DIPOLE package :link(DIPOLE),h5
 
 Contents:
 
@@ -280,7 +284,7 @@ Supporting info: examples/dipole
  
 :line
  
-FLD package :link(FLD),h4
+FLD package :link(FLD),h5
 
 Contents:
 
@@ -302,7 +306,7 @@ Supporting info:
  
 :line
  
-GPU package :link(GPU),h4
+GPU package :link(GPU),h5
 
 Contents:
 
@@ -324,7 +328,7 @@ Supporting info: examples/accelerate, bench/FERMI, bench/KEPLER
  
 :line
  
-GRANULAR package :link(GRANULAR),h4
+GRANULAR package :link(GRANULAR),h5
 
 Contents:
 
@@ -346,7 +350,7 @@ Supporting info: examples/pour, bench/in.chute, Section howto 6.6
  
 :line
  
-KIM package :link(KIM),h4
+KIM package :link(KIM),h5
 
 Contents:
 
@@ -368,7 +372,7 @@ Supporting info: examples/kim
  
 :line
  
-KOKKOS package :link(KOKKOS),h4
+KOKKOS package :link(KOKKOS),h5
 
 Contents:
 
@@ -412,7 +416,7 @@ Examples: examples/accelerate, bench/FERMI, bench/KEPLER
  
 :line
  
-KSPACE package :link(KSPACE),h4
+KSPACE package :link(KSPACE),h5
 
 Contents:
 
@@ -438,7 +442,7 @@ Doc: Section howto 6.7, Section howto 6.8, Section howto 6.9
 
 :line
  
-MANYBODY package :link(MANYBODY),h4
+MANYBODY package :link(MANYBODY),h5
 
 Contents:
 
@@ -462,7 +466,7 @@ Examples: examples/comb, examples/eim, examples/nb3d, examples/vashishta
 
 :line
  
-MC package :link(MC),h4
+MC package :link(MC),h5
 
 Contents:
 
@@ -484,7 +488,7 @@ Supporting info:
  
 :line
  
-MEAM package :link(MEAM),h4
+MEAM package :link(MEAM),h5
 
 Contents:
 
@@ -506,7 +510,7 @@ Supporting info: examples/meam
  
 :line
  
-MISC package :link(MISC),h4
+MISC package :link(MISC),h5
 
 Contents:
 
@@ -528,7 +532,7 @@ Supporting info: examples/misc
  
 :line
  
-MOLECULE package :link(MOLECULE),h4
+MOLECULE package :link(MOLECULE),h5
 
 Contents:
 
@@ -550,7 +554,7 @@ Supporting info: examples/micelle, examples/peptide, bench/in.chain, bench/in.rh
  
 :line
  
-MPIIO package :link(MPIIO),h4
+MPIIO package :link(MPIIO),h5
 
 Contents:
 
@@ -572,7 +576,7 @@ Supporting info:
  
 :line
  
-OPT package :link(OPT),h4
+OPT package :link(OPT),h5
 
 Contents:
 
@@ -599,7 +603,7 @@ CCFLAGS: add -restrict :ul
 
 :line
  
-PERI package :link(PERI),h4
+PERI package :link(PERI),h5
 
 Contents:
 
@@ -621,7 +625,7 @@ Supporting info: examples/peri
  
 :line
  
-POEMS package :link(POEMS),h4
+POEMS package :link(POEMS),h5
 
 Contents:
 
@@ -643,7 +647,7 @@ Supporting info: examples/rigid
 
 :line
  
-PYTHON package :link(PYTHON),h4
+PYTHON package :link(PYTHON),h5
 
 Contents:
 
@@ -665,7 +669,7 @@ Supporting info: examples/python
  
 :line
  
-QEQ package :link(QEQ),h4
+QEQ package :link(QEQ),h5
 
 Contents:
 
@@ -687,7 +691,7 @@ Supporting info: examples/qeq
  
 :line
  
-REAX package :link(REAX),h4
+REAX package :link(REAX),h5
 
 Contents:
 
@@ -709,7 +713,7 @@ Supporting info: examples/reax
  
 :line
  
-REPLICA package :link(REPLICA),h4
+REPLICA package :link(REPLICA),h5
 
 Contents:
 
@@ -731,7 +735,7 @@ Supporting info: examples/neb, examples/prd, examples/tad, Section howto 6.5
 
 :line
  
-RIGID package :link(RIGID),h4
+RIGID package :link(RIGID),h5
 
 Contents:
 
@@ -753,7 +757,7 @@ Supporting info: examples/ASPHERE, examples/rigid
 
 :line
  
-SHOCK package :link(SHOCK),h4
+SHOCK package :link(SHOCK),h5
 
 Contents:
 
@@ -775,7 +779,7 @@ Supporting info: examples/hugoniostat, examples/msst
  
 :line
  
-SNAP package :link(SNAP),h4
+SNAP package :link(SNAP),h5
 
 Contents:
 
@@ -797,7 +801,7 @@ Supporting info: examples/snap
  
 :line
  
-SRD package :link(SRD),h4
+SRD package :link(SRD),h5
 
 Contents:
 
@@ -819,7 +823,7 @@ Supporting info:
  
 :line
  
-VORONOI package :link(VORONOI),h4
+VORONOI package :link(VORONOI),h5
 
 Contents:
 
@@ -841,7 +845,7 @@ Supporting info: examples/voronoi
  
 :line
  
-XTC package :link(XTC),h4
+XTC package :link(XTC),h5
 
 Contents:
 
@@ -946,7 +950,7 @@ See details on all of this below for individual packages.
 
 :line
 
-USER-ATC package :link(USER-ATC),h4
+USER-ATC package :link(USER-ATC),h5
 
 Contents:
  
@@ -981,7 +985,7 @@ Examples: examples/USER/atc
 
 :line
 
-USER-AWPMD package :link(USER-AWPMD),h4
+USER-AWPMD package :link(USER-AWPMD),h5
 
 Contents:
  
@@ -1011,7 +1015,7 @@ Examples: examples/USER/awpmd
 
 :line
 
-USER-CG-CMM package :link(USER-CG-CMM),h4
+USER-CG-CMM package :link(USER-CG-CMM),h5
 
 Contents:
  
@@ -1072,7 +1076,7 @@ Examples: examples/USER/cg-cmm
 
 :line
 
-USER-COLVARS package :link(USER-COLVARS),h4
+USER-COLVARS package :link(USER-COLVARS),h5
 
 Contents:
  
@@ -1124,7 +1128,7 @@ Supporting info:
  
 :line
 
-USER-CUDA package :link(USER-CUDA),h4
+USER-CUDA package :link(USER-CUDA),h5
 
 This package provides acceleration of various LAMMPS pair styles, fix
 styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
@@ -1158,7 +1162,7 @@ Supporting info:
  
 :line
 
-USER-DIFFRACTION package :link(USER-DIFFRACTION),h4
+USER-DIFFRACTION package :link(USER-DIFFRACTION),h5
 
 This package contains the commands neeed to calculate x-ray and
 electron diffraction intensities based on kinematic diffraction 
@@ -1196,7 +1200,7 @@ Supporting info:
  
 :line
 
-USER-DPD package :link(USER-DPD),h4
+USER-DPD package :link(USER-DPD),h5
 
 This package implements the dissipative particle dynamics (DPD) method
 under isothermal, isoenergetic, isobaric and isenthalpic conditions.
@@ -1239,7 +1243,7 @@ Examples: examples/USER/dpd
 
 :line
 
-USER-DRUDE package :link(USER-DRUDE),h4
+USER-DRUDE package :link(USER-DRUDE),h5
 
 Contents:
  
@@ -1288,7 +1292,7 @@ Doc: Section howto 6.27
 
 :line
 
-USER-EFF package :link(USER-EFF),h4
+USER-EFF package :link(USER-EFF),h5
 
 Contents:
  
@@ -1353,7 +1357,7 @@ Examples: examples/USER/eff
 
 :line
 
-USER-FEP package :link(USER-FEP),h4
+USER-FEP package :link(USER-FEP),h5
 
 Contents:
  
@@ -1394,7 +1398,7 @@ Examples: examples/USER/fep
 
 :line
 
-USER-H5MD package :link(USER-H5MD),h4
+USER-H5MD package :link(USER-H5MD),h5
 
 Contents:
  
@@ -1421,7 +1425,7 @@ directly if you have questions.
 
 :line
 
-USER-INTEL package :link(USER-INTEL),h4
+USER-INTEL package :link(USER-INTEL),h5
 
 Contents:
  
@@ -1466,7 +1470,7 @@ Examples: examples/accelerate, bench/KEPLER
 
 :line
 
-USER-LB package :link(USER-LB),h4
+USER-LB package :link(USER-LB),h5
 
 Contents:
  
@@ -1506,7 +1510,7 @@ Examples: examples/USER/lb
 
 :line
 
-USER-MGPT package :link(USER-MGPT),h4
+USER-MGPT package :link(USER-MGPT),h5
 
 Contents:
  
@@ -1558,7 +1562,7 @@ Examples: examples/USER/mgpt
 
 :line
 
-USER-MISC package :link(USER-MISC),h4
+USER-MISC package :link(USER-MISC),h5
 
 Contents:
  
@@ -1605,7 +1609,7 @@ Examples: examples/USER/misc
 
 :line
 
-USER-MOLFILE package :link(USER-MOLFILE),h4
+USER-MOLFILE package :link(USER-MOLFILE),h5
 
 Contents:
  
@@ -1637,7 +1641,7 @@ The person who created this package is Axel Kohlmeyer at Temple U
 
 :line
 
-USER-OMP package :link(USER-OMP),h4
+USER-OMP package :link(USER-OMP),h5
 
 Contents:
  
@@ -1668,7 +1672,7 @@ Examples: examples/accelerate, bench/KEPLER
 
 :line
 
-USER-PHONON package :link(USER-PHONON),h4
+USER-PHONON package :link(USER-PHONON),h5
 
 This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
@@ -1700,7 +1704,7 @@ Examples: examples/USER/phonon
 
 :line
 
-USER-QMMM package :link(USER-QMMM),h4
+USER-QMMM package :link(USER-QMMM),h5
 
 Contents:
  
@@ -1733,7 +1737,7 @@ The person who created this package is Axel Kohlmeyer at Temple U
 
 :line
  
-USER-QTB package :link(USER-QTB),h4
+USER-QTB package :link(USER-QTB),h5
  
 Contents:
  
@@ -1784,7 +1788,7 @@ Examples: examples/USER/qtb
 
 :line
 
-USER-QUIP package :link(USER-QUIP),h4
+USER-QUIP package :link(USER-QUIP),h5
 
 Contents:
  
@@ -1798,7 +1802,7 @@ Examples: examples/USER/quip
 
 :line
 
-USER-REAXC package :link(USER-REAXC),h4
+USER-REAXC package :link(USER-REAXC),h5
 
 Contents:
  
@@ -1853,7 +1857,7 @@ Examples: examples/reax
 
 :line
 
-USER-SMD package :link(USER-SMD),h4
+USER-SMD package :link(USER-SMD),h5
 
 Contents:
  
@@ -1894,7 +1898,7 @@ Examples: examples/USER/smd
 
 :line
 
-USER-SMTBQ package :link(USER-SMTBQ),h4
+USER-SMTBQ package :link(USER-SMTBQ),h5
 
 Contents:
  
@@ -1933,7 +1937,7 @@ Examples: examples/USER/smtbq
 
 :line
 
-USER-SPH package :link(USER-SPH),h4
+USER-SPH package :link(USER-SPH),h5
 
 Contents:
  
@@ -1982,7 +1986,7 @@ Examples: examples/USER/sph
 
 :line
 
-USER-TALLY package :link(USER-TALLY),h4
+USER-TALLY package :link(USER-TALLY),h5
 
 Contents:
 
@@ -2006,7 +2010,7 @@ Examples: examples/USER/tally
 
 :line
 
-USER-VTK package :link(USER-VTK),h4
+USER-VTK package :link(USER-VTK),h5
 
 Contents:
 

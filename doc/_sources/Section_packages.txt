@@ -1,27 +1,37 @@
 Packages
 ========
 
-This section gives an overview of the add-on packages that extend
-LAMMPS functionality.  Two tables, for standard and user packages, are
-below.  A brief sub-section for each package follows, with a summary
-of what the package contains, how to install it, and pointers to
-examples of its use or documentation provided in the LAMMPS
-distribution.
+This section gives an overview of the add-on optional packages that
+extend LAMMPS functionality.  Packages are groups of files that enable
+a specific set of features.  For example, force fields for molecular
+systems or granular systems are in packages.  You can see the list of
+all packages by typing "make package" from within the src directory of
+the LAMMPS distribution.
+
+Here are links for two tables below, which list standard and user
+packages.
 
 | 4.1 :ref:`Standard packages <pkg_1>`
 | 4.2 :ref:`User packages <pkg_2>` 
 | 
 
-LAMMPS includes many optional packages, which are groups of files that
-enable a specific set of features.  For example, force fields for
-molecular systems or granular systems are in packages.  You can see
-the list of all packages by typing "make package" from within the src
-directory of the LAMMPS distribution.
+:ref:`Section_start 3 <start_3>` of the manual describes
+the difference between standard packages and user packages.  It also
+has general details on how to include/exclude specific packages as
+part of the LAMMPS build process, and on how to build auxiliary
+libraries or modify a machine Makefile if a package requires it.
 
-See :ref:`Section_start 3 <start_3>` of the manual for
-details on how to include/exclude specific packages as part of the
-LAMMPS build process, and for more details about the differences
-between standard packages and user packages.
+Following the two tables below, is a sub-section for each package.  It
+has a summary of what the package contains.  It has specific
+instructions on how to install it, build or obtain any auxiliary
+library it requires, and any Makefile.machine changes it requires.  It
+also lists pointers to examples of its use or documentation provided
+in the LAMMPS distribution.
+
+.. note::
+
+   The sub-sections below are still being filled in, as of Feb
+   2016.
 
 Unless otherwise noted below, every package is independent of all the
 others.  I.e. any package can be included or excluded in a LAMMPS
@@ -36,10 +46,6 @@ lj/cut/coul/long command.  If you later install the KSPACE pacakge and
 the USER-OMP package is already installed, both the pair
 lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.
 
-The two tables below list currently available packages in LAMMPS, with
-a one-line descriptions of each.  The sub-sections below give more
-details.
-
 
 ----------
 
@@ -50,8 +56,7 @@ Standard packages
 -----------------------------
 
 The current list of standard packages is as follows.  Each package
-name links to a sub-section below with more details on how to build
-with the package and pointers to additional info.
+name links to a sub-section below with more details.
 
 +------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
 | Package                      | Description                          | Author(s)                              | Doc page                                           | Example   | Library    |
@@ -150,6 +155,7 @@ of the LAMMPS distribution.  See the lib/package/README file for info
 on how to build the library.  If it is not listed as lib/package, then
 it is a third-party library not included in the LAMMPS distribution.
 See details on all of this below for individual packages.
+p.s.: are we ever going to get commit messages from you? ;-)
 
 
 ----------
@@ -158,7 +164,7 @@ See details on all of this below for individual packages.
 .. _ASPHERE:
 
 ASPHERE package
----------------
+^^^^^^^^^^^^^^^
 
 Contents: Aspherical particle models for ellipsoids, 2d lines, 3d
 triangles.
@@ -195,7 +201,7 @@ Supporting info: examples/ASPHERE, examples/ellipse, Section howto
 .. _BODY:
 
 BODY package
-------------
+^^^^^^^^^^^^
 
 Contents:
 
@@ -230,7 +236,7 @@ Supporting info: examples/body
 .. _CLASS2:
 
 CLASS2 package
---------------
+^^^^^^^^^^^^^^
 
 Contents:
 
@@ -265,7 +271,7 @@ Supporting info:
 .. _COLLOID:
 
 COLLOID package
----------------
+^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -300,7 +306,7 @@ Supporting info: examples/colloid, examples/srd
 .. _COMPRESS:
 
 COMPRESS package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -335,7 +341,7 @@ Supporting info:
 .. _CORESHELL:
 
 CORESHELL package
------------------
+^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -370,7 +376,7 @@ Supporting info: examples/coreshell, Section howto 6.26
 .. _DIPOLE:
 
 DIPOLE package
---------------
+^^^^^^^^^^^^^^
 
 Contents:
 
@@ -405,7 +411,7 @@ Supporting info: examples/dipole
 .. _FLD:
 
 FLD package
------------
+^^^^^^^^^^^
 
 Contents:
 
@@ -440,7 +446,7 @@ Supporting info:
 .. _GPU:
 
 GPU package
------------
+^^^^^^^^^^^
 
 Contents:
 
@@ -475,7 +481,7 @@ Supporting info: examples/accelerate, bench/FERMI, bench/KEPLER
 .. _GRANULAR:
 
 GRANULAR package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -510,7 +516,7 @@ Supporting info: examples/pour, bench/in.chute, Section howto 6.6
 .. _KIM:
 
 KIM package
------------
+^^^^^^^^^^^
 
 Contents:
 
@@ -545,7 +551,7 @@ Supporting info: examples/kim
 .. _KOKKOS:
 
 KOKKOS package
---------------
+^^^^^^^^^^^^^^
 
 Contents:
 
@@ -604,7 +610,7 @@ Examples: examples/accelerate, bench/FERMI, bench/KEPLER
 .. _KSPACE:
 
 KSPACE package
---------------
+^^^^^^^^^^^^^^
 
 Contents:
 
@@ -643,7 +649,7 @@ Doc: Section howto 6.7, Section howto 6.8, Section howto 6.9
 .. _MANYBODY:
 
 MANYBODY package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -680,7 +686,7 @@ Examples: examples/comb, examples/eim, examples/nb3d, examples/vashishta
 .. _MC:
 
 MC package
-----------
+^^^^^^^^^^
 
 Contents:
 
@@ -715,7 +721,7 @@ Supporting info:
 .. _MEAM:
 
 MEAM package
-------------
+^^^^^^^^^^^^
 
 Contents:
 
@@ -750,7 +756,7 @@ Supporting info: examples/meam
 .. _MISC:
 
 MISC package
-------------
+^^^^^^^^^^^^
 
 Contents:
 
@@ -785,7 +791,7 @@ Supporting info: examples/misc
 .. _MOLECULE:
 
 MOLECULE package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -820,7 +826,7 @@ Supporting info: examples/micelle, examples/peptide, bench/in.chain, bench/in.rh
 .. _MPIIO:
 
 MPIIO package
--------------
+^^^^^^^^^^^^^
 
 Contents:
 
@@ -855,7 +861,7 @@ Supporting info:
 .. _OPT:
 
 OPT package
------------
+^^^^^^^^^^^
 
 Contents:
 
@@ -895,7 +901,7 @@ settings for CCFLAGS.
 .. _PERI:
 
 PERI package
-------------
+^^^^^^^^^^^^
 
 Contents:
 
@@ -930,7 +936,7 @@ Supporting info: examples/peri
 .. _POEMS:
 
 POEMS package
--------------
+^^^^^^^^^^^^^
 
 Contents:
 
@@ -965,7 +971,7 @@ Supporting info: examples/rigid
 .. _PYTHON:
 
 PYTHON package
---------------
+^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1000,7 +1006,7 @@ Supporting info: examples/python
 .. _QEQ:
 
 QEQ package
------------
+^^^^^^^^^^^
 
 Contents:
 
@@ -1035,7 +1041,7 @@ Supporting info: examples/qeq
 .. _REAX:
 
 REAX package
-------------
+^^^^^^^^^^^^
 
 Contents:
 
@@ -1070,7 +1076,7 @@ Supporting info: examples/reax
 .. _REPLICA:
 
 REPLICA package
----------------
+^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1105,7 +1111,7 @@ Supporting info: examples/neb, examples/prd, examples/tad, Section howto 6.5
 .. _RIGID:
 
 RIGID package
--------------
+^^^^^^^^^^^^^
 
 Contents:
 
@@ -1140,7 +1146,7 @@ Supporting info: examples/ASPHERE, examples/rigid
 .. _SHOCK:
 
 SHOCK package
--------------
+^^^^^^^^^^^^^
 
 Contents:
 
@@ -1175,7 +1181,7 @@ Supporting info: examples/hugoniostat, examples/msst
 .. _SNAP:
 
 SNAP package
-------------
+^^^^^^^^^^^^
 
 Contents:
 
@@ -1210,7 +1216,7 @@ Supporting info: examples/snap
 .. _SRD:
 
 SRD package
------------
+^^^^^^^^^^^
 
 Contents:
 
@@ -1245,7 +1251,7 @@ Supporting info:
 .. _VORONOI:
 
 VORONOI package
----------------
+^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1280,7 +1286,7 @@ Supporting info: examples/voronoi
 .. _XTC:
 
 XTC package
------------
+^^^^^^^^^^^
 
 Contents:
 
@@ -1447,7 +1453,7 @@ See details on all of this below for individual packages.
 .. _USER-ATC:
 
 USER-ATC package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1487,7 +1493,7 @@ Examples: examples/USER/atc
 .. _USER-AWPMD:
 
 USER-AWPMD package
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1522,7 +1528,7 @@ Examples: examples/USER/awpmd
 .. _USER-CG-CMM:
 
 USER-CG-CMM package
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1596,7 +1602,7 @@ Examples: examples/USER/cg-cmm
 .. _USER-COLVARS:
 
 USER-COLVARS package
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1653,7 +1659,7 @@ Supporting info:
 .. _USER-CUDA:
 
 USER-CUDA package
------------------
+^^^^^^^^^^^^^^^^^
 
 This package provides acceleration of various LAMMPS pair styles, fix
 styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
@@ -1692,7 +1698,7 @@ Supporting info:
 .. _USER-DIFFRACTION:
 
 USER-DIFFRACTION package
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 This package contains the commands neeed to calculate x-ray and
 electron diffraction intensities based on kinematic diffraction 
@@ -1743,7 +1749,7 @@ Supporting info:
 .. _USER-DPD:
 
 USER-DPD package
-----------------
+^^^^^^^^^^^^^^^^
 
 This package implements the dissipative particle dynamics (DPD) method
 under isothermal, isoenergetic, isobaric and isenthalpic conditions.
@@ -1799,7 +1805,7 @@ Examples: examples/USER/dpd
 .. _USER-DRUDE:
 
 USER-DRUDE package
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1861,7 +1867,7 @@ Doc: Section howto 6.27
 .. _USER-EFF:
 
 USER-EFF package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1939,7 +1945,7 @@ Examples: examples/USER/eff
 .. _USER-FEP:
 
 USER-FEP package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -1993,7 +1999,7 @@ Examples: examples/USER/fep
 .. _USER-H5MD:
 
 USER-H5MD package
------------------
+^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2026,7 +2032,7 @@ directly if you have questions.
 .. _USER-INTEL:
 
 USER-INTEL package
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2078,7 +2084,7 @@ Examples: examples/accelerate, bench/KEPLER
 .. _USER-LB:
 
 USER-LB package
----------------
+^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2131,7 +2137,7 @@ Examples: examples/USER/lb
 .. _USER-MGPT:
 
 USER-MGPT package
------------------
+^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2196,7 +2202,7 @@ Examples: examples/USER/mgpt
 .. _USER-MISC:
 
 USER-MISC package
------------------
+^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2256,7 +2262,7 @@ Examples: examples/USER/misc
 .. _USER-MOLFILE:
 
 USER-MOLFILE package
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2293,7 +2299,7 @@ The person who created this package is Axel Kohlmeyer at Temple U
 .. _USER-OMP:
 
 USER-OMP package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2329,7 +2335,7 @@ Examples: examples/accelerate, bench/KEPLER
 .. _USER-PHONON:
 
 USER-PHONON package
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
@@ -2374,7 +2380,7 @@ Examples: examples/USER/phonon
 .. _USER-QMMM:
 
 USER-QMMM package
------------------
+^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2414,7 +2420,7 @@ The person who created this package is Axel Kohlmeyer at Temple U
 .. _USER-QTB:
 
 USER-QTB package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2478,7 +2484,7 @@ Examples: examples/USER/qtb
 .. _USER-QUIP:
 
 USER-QUIP package
------------------
+^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2497,7 +2503,7 @@ Examples: examples/USER/quip
 .. _USER-REAXC:
 
 USER-REAXC package
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2565,7 +2571,7 @@ Examples: examples/reax
 .. _USER-SMD:
 
 USER-SMD package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2611,7 +2617,7 @@ Examples: examples/USER/smd
 .. _USER-SMTBQ:
 
 USER-SMTBQ package
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2663,7 +2669,7 @@ Examples: examples/USER/smtbq
 .. _USER-SPH:
 
 USER-SPH package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2725,7 +2731,7 @@ Examples: examples/USER/sph
 .. _USER-TALLY:
 
 USER-TALLY package
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Contents:
 
@@ -2762,7 +2768,7 @@ Examples: examples/USER/tally
 .. _USER-VTK:
 
 USER-VTK package
-----------------
+^^^^^^^^^^^^^^^^
 
 Contents:
 

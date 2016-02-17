@@ -96,7 +96,7 @@ These are the sample problems in the examples sub-directories:
 +-------------+----------------------------------------------------------------------------+
 | prd         | parallel replica dynamics of vacancy diffusion in bulk Si                  |
 +-------------+----------------------------------------------------------------------------+
-| qeq         | use of the QEQ pacakge for charge equilibration                            |
+| qeq         | use of the QEQ package for charge equilibration                            |
 +-------------+----------------------------------------------------------------------------+
 | reax        | RDX and TATB models using the ReaxFF                                       |
 +-------------+----------------------------------------------------------------------------+

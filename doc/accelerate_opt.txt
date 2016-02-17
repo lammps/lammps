@@ -21,7 +21,7 @@ Here is a quick overview of how to use the OPT package.  More details
 follow.
 
 make yes-opt
-make mpi                               # build with the OPT pacakge
+make mpi                               # build with the OPT package
 Make.py -v -p opt -o mpi -a file mpi   # or one-line build via Make.py :pre
 
 lmp_mpi -sf opt -in in.script                # run in serial

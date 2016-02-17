@@ -54,7 +54,8 @@ sub-directories:
 | tools      | pre- and post-processing tools             |
 +------------+--------------------------------------------+
 
-Note that the `download page <download_>`_ also has links to download
+Note that the `download page <http://lammps.sandia.gov/download.html>`_
+also has links to download
 Windows exectubles and installers, as well as pre-built executables
 for a few specific Linux distributions.  It also has instructions for
 how to download/install LAMMPS for Macs (via Homebrew), and to

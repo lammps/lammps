@@ -15,7 +15,7 @@ follow.
 .. parsed-literal::
 
    make yes-opt
-   make mpi                               # build with the OPT pacakge
+   make mpi                               # build with the OPT package
    Make.py -v -p opt -o mpi -a file mpi   # or one-line build via Make.py
 
 .. parsed-literal::

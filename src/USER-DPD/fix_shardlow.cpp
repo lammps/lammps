@@ -156,7 +156,7 @@ void FixShardlow::initial_integrate(int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double xtmp,ytmp,ztmp,delx,dely,delz;
-  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
+  double delvx,delvy,delvz;
   double rsq,r,rinv;
   double dot,wd,wr,randnum,factor_dpd,factor_dpd1;
   double dpx,dpy,dpz;
@@ -170,7 +170,6 @@ void FixShardlow::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
-  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double randPair;
 
@@ -179,7 +178,7 @@ void FixShardlow::initial_integrate(int vflag)
   double *duCond = atom->duCond;
   double *duMech = atom->duMech;
   double *dpdTheta = atom->dpdTheta;
-  double kappa_ij, alpha_ij, theta_ij, gamma_ij, sigma_ij, u_ij;
+  double kappa_ij, alpha_ij, theta_ij, gamma_ij, sigma_ij;
   double vxi, vyi, vzi, vxj, vyj, vzj;
   double vx0i, vy0i, vz0i, vx0j, vy0j, vz0j;
   double dot1, dot2, dot3, dot4;

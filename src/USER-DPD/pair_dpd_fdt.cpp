@@ -212,8 +212,7 @@ void PairDPDfdt::coeff(int narg, char **arg)
   double a0_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double cut_one = cut_global;
-  double kappa_one;
-  
+ 
   if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;

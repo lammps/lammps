@@ -657,6 +657,9 @@ void ImproperClass2::angleangle(int eflag, int vflag)
     i4 = improperlist[n][3];
     type = improperlist[n][4];
 
+    if ((aa_k1[type] == 0.0) && (aa_k2[type] == 0.0)
+        && (aa_k3[type] == 0.0)) continue;
+
     // difference vectors
 
     delxAB = x[i1][0] - x[i2][0];

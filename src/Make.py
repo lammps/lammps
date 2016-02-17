@@ -770,7 +770,7 @@ class Packages:
         yes = 0
       if pkg in all:
         final[pkg] = yes
-      elif pkg == "std":
+      elif pkg == "std" or pkg == "standard":
         for pkg in std: final[pkg] = yes
       elif pkg == "user":
         for pkg in user: final[pkg] = yes

@@ -34,7 +34,7 @@ Syntax
      *slab* value = volfactor or *nozforce*
        volfactor = ratio of the total extended volume used in the
          2d approximation compared with the volume of the simulation domain
-     *nozforce* turns off kspace forces in the z direction
+       *nozforce* turns off kspace forces in the z direction
      *compute* value = *yes* or *no* 
      *cutoff/adjust* value = *yes* or *no* 
      *pressure/scalar* value = *yes* or *no* 

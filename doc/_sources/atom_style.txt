@@ -290,7 +290,7 @@ with a specific package, as listed below.  See the :ref:`Making LAMMPS <start_3>
 The *angle*, *bond*, *full*, *molecular*, and *template* styles are
 part of the MOLECULE package.
 
-The *line* and *tri* styles are part of the ASPHERE pacakge.
+The *line* and *tri* styles are part of the ASPHERE package.
 
 The *body* style is part of the BODY package.
 

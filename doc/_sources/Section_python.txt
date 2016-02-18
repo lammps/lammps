@@ -147,7 +147,7 @@ previous section 11.1.  This means it can issue LAMMPS input script
 commands or query and set internal LAMMPS state.  As an example, this
 can be useful in an input script to create a more complex loop with
 branching logic, than can be created using the simple looping and
-brancing logic enabled by the :doc:`next <next>` and :doc:`if <if>`
+branching logic enabled by the :doc:`next <next>` and :doc:`if <if>`
 commands.
 
 See the :doc:`python <python>` doc page and the :doc:`variable <variable>`

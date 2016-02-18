@@ -21,9 +21,9 @@ damp = damping parameter (time units) :l
 seed = random number seed to use for white noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
 keyword = {angmom} or {omega} or {scale} or {tally} or {zero} :l
-  {angmom} value = {no} or scale
+  {angmom} value = {no} or factor
     {no} = do not thermostat rotational degrees of freedom via the angular momentum
-    factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric factor as discussed below
+    factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below
   {gjf} value = {no} or {yes}
     {no} = use standard formulation
     {yes} = use Gronbech-Jensen/Farago formulation

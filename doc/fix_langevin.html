@@ -145,9 +145,9 @@
 <li>keyword = <em>angmom</em> or <em>omega</em> or <em>scale</em> or <em>tally</em> or <em>zero</em></li>
 </ul>
 <pre class="literal-block">
-<em>angmom</em> value = <em>no</em> or scale
+<em>angmom</em> value = <em>no</em> or factor
   <em>no</em> = do not thermostat rotational degrees of freedom via the angular momentum
-  factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric factor as discussed below
+  factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below
 <em>gjf</em> value = <em>no</em> or <em>yes</em>
   <em>no</em> = use standard formulation
   <em>yes</em> = use Gronbech-Jensen/Farago formulation
@@ -175,7 +175,7 @@ fix 1 all langevin 1.0 1.1 100.0 48279 angmom 3.333
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Apply a Langevin thermostat as described in <a class="reference internal" href="fix_langevin_eff.html#schneider"><span>(Schneider)</span></a>
+<p>Apply a Langevin thermostat as described in <a class="reference internal" href="#schneider"><span>(Schneider)</span></a>
 to a group of atoms which models an interaction with a background
 implicit solvent.  Used with <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>, this command
 performs Brownian dynamics (BD), since the total force on each atom
@@ -203,7 +203,7 @@ dt damp), where Kb is the Boltzmann constant, T is the desired
 temperature, m is the mass of the particle, dt is the timestep size,
 and damp is the damping factor.  Random numbers are used to randomize
 the direction and magnitude of this force as described in
-<a class="reference internal" href="fix_langevin_eff.html#dunweg"><span>(Dunweg)</span></a>, where a uniform random number is used (instead of
+<a class="reference internal" href="#dunweg"><span>(Dunweg)</span></a>, where a uniform random number is used (instead of
 a Gaussian random number) for speed.</p>
 <p>Note that unless you use the <em>omega</em> or <em>angmom</em> keywords, the
 thermostat effect of this fix is applied to only the translational

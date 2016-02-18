@@ -2063,7 +2063,7 @@ while 1:
       if 'o' not in switches:
         switches['o'] = [machine]
         switch_order.insert(-1,'o')
-        output = classes['o'] = Makefile(switches['o'])
+        output = classes['o'] = Output(switches['o'])
         output.check()
 
   # perform actions

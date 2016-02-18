@@ -162,33 +162,29 @@ class Actions:
   
   def check(self):
     if not self.inlist: error("-a args are invalid")
-    alist = []
-    machine = 0
-    nlib = 0
+    libs = []
+    cleans = []
+    files = []
+    exes = []
     for one in self.inlist:
-      if one in alist: error("An action is duplicated")
       if one.startswith("lib-"):
         lib = one[4:]
         if lib != "all" and lib not in libclasses: error("Actions are invalid")
-        alist.insert(nlib,one)
-        nlib += 1
+        libs.append(one)
       elif one == "file":
-        if nlib == 0: alist.insert(0,"file")
-        else: alist.insert(1,"file")
+        files.append(one)
       elif one == "clean":
-        if nlib == 0: alist.insert(0,"clean")
-        elif "file" not in alist: alist.insert(1,"clean")
-        else: alist.insert(2,"clean")
+        cleans.append(one)
       elif one == "exe":
-        if machine == 0: alist.append("exe")
-        else: error("Actions are invalid")
-        machine = 1
+        exes.append(one)
       # one action can be unknown in case is a machine (checked in setup)
-      elif machine == 0:
-        alist.append(one)
-        machine = 1
-      else: error("Actions are invalid")
-    self.alist = alist
+      else:
+        exes.append(one)
+    if len(set(libs)) != len(libs) or \
+       len(cleans) > 1 or len(files) > 1 or len(exes) > 1:
+      error("Actions are invalid")
+    self.alist = [action for actions in [libs,cleans,files,exes] \
+                           for action in actions]
 
   # dedup list of actions concatenated from two lists
   # current self.inlist = specified -a switch + redo command -a switch

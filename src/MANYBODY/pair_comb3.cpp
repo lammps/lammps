@@ -163,11 +163,11 @@ void PairComb3::settings(int narg, char **arg)
 
   if (strcmp(arg[0],"polar_on") == 0) {
     pol_flag = 1;
-    if (comm->me == 0) fprintf(screen,
+    if (comm->me == 0 && screen) fprintf(screen,
 		    "	PairComb3: polarization is on \n");
   } else if (strcmp(arg[0],"polar_off") == 0) {
     pol_flag = 0;
-    if (comm->me == 0) fprintf(screen,
+    if (comm->me == 0 && screen) fprintf(screen,
 		    "	PairComb3: polarization is off \n");
   } else {
     error->all(FLERR,"Illegal pair_style command");
@@ -206,7 +206,7 @@ void PairComb3::coeff(int narg, char **arg)
   nelements = 0;
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
-      if( comm->me == 0) fprintf(screen,
+      if( comm->me == 0 && screen) fprintf(screen,
       "	PairComb3: Found C: reading additional library file\n");
     read_lib();
     cflag = 1;

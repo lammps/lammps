@@ -120,7 +120,7 @@ def link_check(linker,linkflags,warn):
 
 class Actions:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     
   def help(self):
     return """
@@ -528,8 +528,7 @@ class Actions:
 
 class Dir:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
       
   def help(self):
     return """
@@ -588,7 +587,7 @@ Syntax: Make.py switch args ...
   
 class Jmake:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -609,7 +608,7 @@ class Jmake:
 
 class Makefile:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -628,7 +627,7 @@ class Makefile:
 
 class Output:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -645,8 +644,7 @@ class Output:
   
 class Packages:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -814,7 +812,7 @@ class Packages:
     
 class Redo:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -895,7 +893,7 @@ class Redo:
 
 class Settings:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -914,7 +912,7 @@ class Settings:
 
 class Verbose:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -934,8 +932,7 @@ class Verbose:
 
 class ATC:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -986,8 +983,7 @@ class ATC:
 
 class AWPMD:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "mpicc"
     self.lammpsflag = 0
 
@@ -1038,8 +1034,7 @@ class AWPMD:
 
 class COLVARS:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1090,8 +1085,7 @@ class COLVARS:
 
 class CUDA:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "double"
     self.arch = "31"
 
@@ -1148,8 +1142,7 @@ class CUDA:
 
 class GPU:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "linux.double"
     self.lammpsflag = self.modeflag = self.archflag = 0
 
@@ -1223,8 +1216,7 @@ class GPU:
 
 class MEAM:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1275,8 +1267,7 @@ class MEAM:
 
 class POEMS:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1327,8 +1318,7 @@ class POEMS:
 
 class QMMM:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1379,8 +1369,7 @@ class QMMM:
 
 class REAX:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1431,8 +1420,7 @@ class REAX:
 
 class VORONOI:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.install = ""
     
   def help(self):
@@ -1470,8 +1458,7 @@ class VORONOI:
 
 class Intel:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "cpu"
 
   def help(self):
@@ -1492,8 +1479,7 @@ class Intel:
 
 class Kokkos:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = ""
     self.archflag = 0
     
@@ -1532,7 +1518,7 @@ class Kokkos:
 
 class Cc:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.compiler = self.abbrev = ""
     self.wrap = ""
 
@@ -1577,7 +1563,7 @@ class Cc:
 
 class Mpi:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.style = self.dir = ""
                 
   def help(self):
@@ -1610,7 +1596,7 @@ class Mpi:
 
 class Fft:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.dir = self.incdir = self.libdir = ""
 
   def help(self):
@@ -1649,7 +1635,7 @@ class Fft:
 
 class Jpg:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 
@@ -1686,7 +1672,7 @@ class Jpg:
 
 class Png:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 

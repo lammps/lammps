@@ -1988,9 +1988,8 @@ while 1:
   for switch in switches:
     if len(switch) == 1 and switch in abbrevs:
       i = abbrevs.index(switch)
-      capitalized = switchclasses[i][0].upper() + switchclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (switchclasses[i],switch,capitalized,switch)
+          (switchclasses[i],switch,switchclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in libclasses:
       i = libclasses.index(switch)
@@ -1999,15 +1998,13 @@ while 1:
       exec(txt)
     elif switch in buildclasses:
       i = buildclasses.index(switch)
-      capitalized = buildclasses[i][0].upper() + buildclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (buildclasses[i],switch,capitalized,switch)
+          (buildclasses[i],switch,buildclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in makeclasses:
       i = makeclasses.index(switch)
-      capitalized = makeclasses[i][0].upper() + makeclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (makeclasses[i],switch,capitalized,switch)
+          (makeclasses[i],switch,makeclasses[i].capitalize(),switch)
       exec(txt)
     else: error("Unknown command-line switch -%s" % switch)
 
@@ -2032,8 +2029,7 @@ while 1:
     exec(txt)
 
   for one in buildclasses:
-    capitalized = one[0].upper() + one[1:]
-    txt = "if not %s: %s = %s(None)" % (one,one,capitalized)
+    txt = "if not %s: %s = %s(None)" % (one,one,one.capitalize())
     exec(txt)
 
   # error check on args for all classes

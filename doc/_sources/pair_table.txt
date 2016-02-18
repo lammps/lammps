@@ -39,33 +39,41 @@ Examples
 Description
 """""""""""
 
-Style *table* creates interpolation tables of length *N* from pair
-potential and force values listed in a file(s) as a function of
-distance.  The files are read by the :doc:`pair_coeff <pair_coeff>`
-command.
+Style *table* creates interpolation tables from potential energy and
+force values listed in a file(s) as a function of distance.  When
+performing dynamics or minimation, the interpolation tables are used
+to evaluate energy and forces for pairwise interactions between
+particles, similar to how analytic formulas are used for other pair
+styles.
 
-The interpolation tables are created by fitting cubic splines to the
-file values and interpolating energy and force values at each of *N*
-distances.  During a simulation, these tables are used to interpolate
-energy and force values as needed.  The interpolation is done in one
-of 4 styles: *lookup*, *linear*, *spline*, or *bitmap*.
+The interpolation tables are created as a pre-computation by fitting
+cubic splines to the file values and interpolating energy and force
+values at each of *N* distances.  During a simulation, the tables are
+used to interpolate energy and force values as needed for each pair of
+particles separated by a distance *R*.  The interpolation is done in
+one of 4 styles: *lookup*, *linear*, *spline*, or *bitmap*.
 
-For the *lookup* style, the distance between 2 atoms is used to find
-the nearest table entry, which is the energy or force.
+For the *lookup* style, the distance *R* is used to find the nearest
+table entry, which is the energy or force.
 
-For the *linear* style, the pair distance is used to find 2
+For the *linear* style, the distance *R* is used to find the 2
 surrounding table values from which an energy or force is computed by
 linear interpolation.
 
 For the *spline* style, a cubic spline coefficients are computed and
-stored at each of the *N* values in the table.  The pair distance is
-used to find the appropriate set of coefficients which are used to
-evaluate a cubic polynomial which computes the energy or force.
+stored for each of the *N* values in the table, one set of splines for
+energy, another for force.  Note that these splines are different than
+the ones used to pre-compute the *N* values.  Those splines were fit
+to the *Nfile* values in the tabulated file, where often *Nfile* <
+*N*.  The distance *R* is used to find the appropriate set of spline
+coefficients which are used to evaluate a cubic polynomial which
+computes the energy or force.
 
-For the *bitmap* style, the N means to create interpolation tables
-that are 2^N in length.  The pair distance is used to index into the
-table via a fast bit-mapping technique due to :ref:`(Wolff) <Wolff>`, and a
-linear interpolation is performed between adjacent table values.
+For the *bitmap* style, the specified *N* is used to create
+interpolation tables that are 2^N in length.  The distance *R* is used
+to index into the table via a fast bit-mapping technique due to
+:ref:`(Wolff) <Wolff>`, and a linear interpolation is performed between
+adjacent table values.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -110,8 +118,9 @@ best effect:
 * Use *N* in the pair_style command equal to the "N" in the tabulation
   file, and use the "RSQ" or "BITMAP" parameter, so additional interpolation
   is not needed.  See discussion below.
-* Make sure that your tabulated forces and tabulated energies are consistent 
-  (dE/dr = -F) along the entire range of r values.
+* Make sure that your tabulated forces and tabulated energies are
+  consistent (dE/dr = -F) over the entire range of r values.  LAMMPS
+  will warn if this is not the case.
 * Use as large an inner cutoff as possible.  This avoids fitting splines
   to very steep parts of the potential.
 
@@ -150,14 +159,15 @@ specified in the :doc:`pair_style table <pair_style>` command.  Let
 Ntable = *N* in the pair_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
-uses these to interpolate as needed to generate energy and force
-values at Ntable different points.  The resulting tables of length
-Ntable are then used as described above, when computing energy and
-force for individual pair distances.  This means that if you want the
-interpolation tables of length Ntable to match exactly what is in the
-tabulated file (with effectively no preliminary interpolation), you
-should set Ntable = Nfile, and use the "RSQ" or "BITMAP" parameter.
-The internal table abscissa is RSQ (separation distance squared).
+uses these to interpolate energy and force values at Ntable different
+points.  The resulting tables of length Ntable are then used as
+described above, when computing energy and force for individual pair
+distances.  This means that if you want the interpolation tables of
+length Ntable to match exactly what is in the tabulated file (with
+effectively no preliminary interpolation), you should set Ntable =
+Nfile, and use the "RSQ" or "BITMAP" parameter.  This is because the
+internal table abscissa is always RSQ (separation distance squared),
+for efficient lookup.
 
 All other parameters are optional.  If "R" or "RSQ" or "BITMAP" does
 not appear, then the distances in each line of the table are used
@@ -173,6 +183,15 @@ The distance values in the table file are ignored in this case.
 For "R", distances uniformly spaced between *rlo* and *rhi* are
 computed; for "RSQ", squared distances uniformly spaced between
 *rlo*rlo* and *rhi*rhi* are computed.
+
+.. note::
+
+   If you use "R" or "RSQ", the tabulated distance values in the
+   file are effectively ignored, and replaced by new values as described
+   in the previous paragraph.  If the distance value in the table is not
+   very close to the new value (i.e. round-off difference), then you will
+   be assingning energy/force values to a different distance, which is
+   probably not what you want.  LAMMPS will warn if this is occurring.
 
 If used, the parameter "BITMAP" is also followed by 2 values *rlo* and
 *rhi*.  These values, along with the "N" value determine the ordering

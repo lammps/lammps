@@ -811,6 +811,13 @@ that will unwrap atom coordinates, it may be important that a
 continued run (restarted from a data file) begins with image flags
 that are consistent with the previous run.</li>
 </ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If your system is an infinite periodic crystal with bonds then
+it is impossible to have fully consistent image flags.  This is because
+some bonds will cross periodic boundaries and connect two atoms with the
+same image flag.</p>
+</div>
 <p>Atom velocities and other atom quantities not defined above are set to
 0.0 when the <em>Atoms</em> section is read.  Velocities can be set later by
 a <em>Velocities</em> section in the data file or by a

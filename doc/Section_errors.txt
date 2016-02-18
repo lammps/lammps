@@ -11346,7 +11346,11 @@ flags for the 2 atoms in a bond that straddles a periodic boundary.
 They should be different by 1 in that case.  This is a warning because
 inconsistent image flags will not cause problems for dynamics or most
 LAMMPS simulations.  However they can cause problems when such atoms
-are used with the fix rigid or replicate commands. :dd
+are used with the fix rigid or replicate commands.  Note that if you
+have an infinite periodic crystal with bonds then it is impossible to
+have fully consistent image flags, since some bonds will cross
+periodic boundaries and connect two atoms with the same image
+flag. :dd
 
 {KIM Model does not provide `energy'; Potential energy will be zero} :dt
 

@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 enum{NONE,RLINEAR,RSQ,BMP};
 
 #define MAXLINE 1024
+#define EPSILONR 1.0e-6
 
 /* ---------------------------------------------------------------------- */
 
@@ -390,20 +391,23 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   // if rflag not set, use r from file
 
   int itmp;
-  double rtmp;
+  double rfile,rnew;
   union_int_float_t rsq_lookup;
+
+  int rerror = 0;
 
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
     fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg %lg %lg",&itmp,&rtmp,&tb->efile[i],&tb->ffile[i]);
+    sscanf(line,"%d %lg %lg %lg",&itmp,&rfile,&tb->efile[i],&tb->ffile[i]);
+    rnew = rfile;
 
     if (tb->rflag == RLINEAR)
-      rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
+      rnew = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
     else if (tb->rflag == RSQ) {
-      rtmp = tb->rlo*tb->rlo +
+      rnew = tb->rlo*tb->rlo +
         (tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
-      rtmp = sqrt(rtmp);
+      rnew = sqrt(rnew);
     } else if (tb->rflag == BMP) {
       rsq_lookup.i = i << nshiftbits;
       rsq_lookup.i |= masklo;
@@ -411,15 +415,56 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
         rsq_lookup.i = i << nshiftbits;
         rsq_lookup.i |= maskhi;
       }
-      rtmp = sqrtf(rsq_lookup.f);
+      rnew = sqrtf(rsq_lookup.f);
     }
 
-    tb->rfile[i] = rtmp;
+    if (tb->rflag && fabs(rnew-rfile)/rfile > EPSILONR) rerror++;
+    tb->rfile[i] = rnew;
   }
 
   // close file
 
   fclose(fp);
+
+  // warn if force != dE/dr at any point that is not an inflection point
+  // check via secant approximation to dE/dr
+  // skip two end points since do not have surrounding secants
+  // inflection point is where curvature changes sign
+
+  double r,e,f,rprev,rnext,eprev,enext,fleft,fright;
+
+  int ferror = 0;
+  for (int i = 1; i < tb->ninput-1; i++) {
+    r = tb->rfile[i];
+    rprev = tb->rfile[i-1];
+    rnext = tb->rfile[i+1];
+    e = tb->efile[i];
+    eprev = tb->efile[i-1];
+    enext = tb->efile[i+1];
+    f = tb->ffile[i];
+    fleft = - (e-eprev) / (r-rprev);
+    fright = - (enext-e) / (rnext-r);
+    if (f < fleft && f < fright) ferror++;
+    if (f > fleft && f > fright) ferror++;
+    //printf("Values %d: %g %g %g\n",i,r,e,f);
+    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
+  }
+
+  if (ferror) {
+    char str[128];
+    sprintf(str,"%d force values in table are inconsistent with -dE/dr;"
+            "should only happen at inflection points",ferror);
+    error->warning(FLERR,str);
+  }
+
+  // warn if re-computed distance values differ from file values
+
+  if (rerror) {
+    char str[128];
+    sprintf(str,"%d distance values in table differ signifcantly "
+            "from re-computed values",rerror);
+    error->warning(FLERR,str);
+  }
 }
 
 /* ----------------------------------------------------------------------

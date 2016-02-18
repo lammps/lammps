@@ -10,6 +10,8 @@ default:
 test: $(EXE) $(OUTPUTS)
 
 log.%-$(MACH)$(TAG): in.% $(EXE)
+	$(MPICMD) $(EXE) $(LMPFLAGS) -log $@ -screen none -echo log -in $<
+	-rm -f $@
 	$(MPICMD) $(EXE) $(LMPFLAGS) -log none -screen $@ -echo screen -in $<
 
 clean:

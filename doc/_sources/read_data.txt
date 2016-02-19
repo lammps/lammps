@@ -764,6 +764,13 @@ that use unwrapped coordinates internally are as follows:
   that will unwrap atom coordinates, it may be important that a
   continued run (restarted from a data file) begins with image flags
   that are consistent with the previous run.
+.. note::
+
+   If your system is an infinite periodic crystal with bonds then
+   it is impossible to have fully consistent image flags.  This is because
+   some bonds will cross periodic boundaries and connect two atoms with the
+   same image flag.
+
 Atom velocities and other atom quantities not defined above are set to
 0.0 when the *Atoms* section is read.  Velocities can be set later by
 a *Velocities* section in the data file or by a

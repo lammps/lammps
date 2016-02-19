@@ -129,7 +129,7 @@ in the pair section of :ref:`this page <cmd_5>`.
 * :doc:`pair_style coul/long <pair_coul>` - long-range Coulombic potential
 * :doc:`pair_style coul/long/cs <pair_coul>` - long-range Coulombic potential and core/shell
 * :doc:`pair_style coul/msm <pair_coul>` - long-range MSM Coulombics
-* :doc:`pair_style coul/msm <pair_coul_streitz>` - Coulombics via Streitz/Mintmire Slater orbitals
+* :doc:`pair_style coul/streitz <pair_coul>` - Coulombics via Streitz/Mintmire Slater orbitals
 * :doc:`pair_style coul/wolf <pair_coul>` - Coulombics via Wolf potential
 * :doc:`pair_style dpd <pair_dpd>` - dissipative particle dynamics (DPD)
 * :doc:`pair_style dpd/tstat <pair_dpd>` - DPD thermostatting
@@ -205,7 +205,7 @@ in the pair section of :ref:`this page <cmd_5>`.
 * :doc:`pair_style tip4p/cut <pair_coul>` - Coulomb for TIP4P water w/out LJ
 * :doc:`pair_style tip4p/long <pair_coul>` - long-range Coulombics for TIP4P water w/out LJ
 * :doc:`pair_style tri/lj <pair_tri_lj>` - LJ potential between triangles
-* :doc:`pair_style vashishta <pair_vahishta>` - Vashishta 2-body and 3-body potential
+* :doc:`pair_style vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
 * :doc:`pair_style yukawa <pair_yukawa>` - Yukawa potential
 * :doc:`pair_style yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`pair_style zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential

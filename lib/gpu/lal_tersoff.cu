@@ -177,8 +177,8 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
                              const __global numtyp4 *restrict ts4_in,
                              const __global numtyp4 *restrict ts5_in,
                              const __global numtyp *restrict cutsq,
-                             const __global int *restrict map_in,
-                             const __global int *restrict elem2param_in,
+                             const __global int *restrict map,
+                             const __global int *restrict elem2param,
                              const int nelements, const int nparams,
                              __global numtyp4 * zetaij,
                              const __global int * dev_nbor,
@@ -197,16 +197,12 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
   __local numtyp4 ts3[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
   __local numtyp4 ts5[SHARED_SIZE];
-  __local int elem2param[SHARED_SIZE];
-  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
     ts3[tid]=ts3_in[tid];
     ts4[tid]=ts4_in[tid];
     ts5[tid]=ts5_in[tid];
-    elem2param[tid]=elem2param_in[tid];
-    map[tid]=map_in[tid];
   }
 
   numtyp z = (numtyp)0;
@@ -237,6 +233,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute rij
       numtyp4 delr1, delr2;
@@ -245,7 +242,6 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
       delr1.z = jx.z-ix.z;
       numtyp rsq1 = delr1.x*delr1.x+delr1.y*delr1.y+delr1.z*delr1.z;
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       if (rsq1 > cutsq[ijparam]) continue;
 
       // compute zeta_ij
@@ -261,6 +257,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
         numtyp4 kx; fetch4(kx,k,pos_tex); //x_[k];
         int ktype=kx.w;
         ktype=map[ktype];
+        int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
 
         // Compute rik
         delr2.x = kx.x-ix.x;
@@ -268,7 +265,6 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
         delr2.z = kx.z-ix.z;
         numtyp rsq2 = delr2.x*delr2.x+delr2.y*delr2.y+delr2.z*delr2.z;
 
-        int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
         if (rsq2 > cutsq[ijkparam]) continue;
 
         numtyp4 ts1_ijkparam = ts1[ijkparam]; //fetch4(ts1_ijkparam,ijkparam,ts1_tex);
@@ -330,8 +326,8 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
                                   const __global numtyp4 *restrict ts1_in,
                                   const __global numtyp4 *restrict ts2_in,
                                   const __global numtyp *restrict cutsq,
-                                  const __global int *restrict map_in,
-                                  const __global int *restrict elem2param_in,
+                                  const __global int *restrict map,
+                                  const __global int *restrict elem2param,
                                   const int nelements, const int nparams,
                                   const __global int * dev_nbor,
                                   const __global int * dev_packed,
@@ -346,13 +342,9 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
 
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
-  __local int elem2param[SHARED_SIZE];
-  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
-    elem2param[tid]=elem2param_in[tid];
-    map[tid]=map_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -382,7 +374,6 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
@@ -432,8 +423,8 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
                                      const __global numtyp4 *restrict ts2_in,
                                      const __global numtyp4 *restrict ts4_in,
                                      const __global numtyp *restrict cutsq,
-                                     const __global int *restrict map_in,
-                                     const __global int *restrict elem2param_in,
+                                     const __global int *restrict map,
+                                     const __global int *restrict elem2param,
                                      const int nelements, const int nparams,
                                      const __global numtyp4 *restrict zetaij,
                                      const __global int * dev_nbor,
@@ -453,14 +444,10 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
-  __local int elem2param[SHARED_SIZE];
-  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
     ts4[tid]=ts4_in[tid];
-    elem2param[tid]=elem2param_in[tid];
-    map[tid]=map_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -494,6 +481,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -502,7 +490,6 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       if (rsq1 > cutsq[ijparam]) continue;
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
@@ -544,6 +531,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
         ktype=map[ktype];
+        int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
 
         numtyp delr2[3];
         delr2[0] = kx.x-ix.x;
@@ -551,7 +539,6 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
         delr2[2] = kx.z-ix.z;
         numtyp rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
         if (rsq2 > cutsq[ijkparam]) continue;
         numtyp r2 = ucl_sqrt(rsq2);
         numtyp r2inv = ucl_rsqrt(rsq2);
@@ -605,8 +592,8 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
                                   const __global numtyp4 *restrict ts2_in,
                                   const __global numtyp4 *restrict ts4_in,
                                   const __global numtyp *restrict cutsq,
-                                  const __global int *restrict map_in,
-                                  const __global int *restrict elem2param_in,
+                                  const __global int *restrict map,
+                                  const __global int *restrict elem2param,
                                   const int nelements, const int nparams,
                                   const __global numtyp4 *restrict zetaij,
                                   const __global int * dev_nbor,
@@ -626,14 +613,10 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
-  __local int elem2param[SHARED_SIZE];
-  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
     ts4[tid]=ts4_in[tid];
-    elem2param[tid]=elem2param_in[tid];
-    map[tid]=map_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -668,6 +651,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -676,10 +660,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       if (rsq1 > cutsq[ijparam]) continue;
-      numtyp r1 = ucl_sqrt(rsq1);
-      numtyp r1inv = ucl_rsqrt(rsq1);
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -714,6 +695,8 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
         }
       }
 
+      numtyp r1 = ucl_sqrt(rsq1);
+      numtyp r1inv = ucl_rsqrt(rsq1);
       int offset_kf;
       if (ijnum >= 0) {
         offset_kf = offset_k;
@@ -830,8 +813,8 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global numtyp4 *restrict ts2_in,
       	                                const __global numtyp4 *restrict ts4_in,
                                         const __global numtyp *restrict cutsq,
-                                        const __global int *restrict map_in,
-                                        const __global int *restrict elem2param_in,
+                                        const __global int *restrict map,
+                                        const __global int *restrict elem2param,
                                         const int nelements, const int nparams,
                                         const __global numtyp4 *restrict zetaij,
                                         const __global int * dev_nbor,
@@ -851,14 +834,10 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
-  __local int elem2param[SHARED_SIZE];
-  __local int map[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
     ts4[tid]=ts4_in[tid];
-    elem2param[tid]=elem2param_in[tid];
-    map[tid]=map_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -893,6 +872,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
+      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -901,10 +881,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
       if (rsq1 > cutsq[ijparam]) continue;
-      numtyp r1 = ucl_sqrt(rsq1);
-      numtyp r1inv = ucl_rsqrt(rsq1);
 
       numtyp mdelr1[3];
       mdelr1[0] = -delr1[0];
@@ -939,6 +916,8 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         }
       }
 
+      numtyp r1 = ucl_sqrt(rsq1);
+      numtyp r1inv = ucl_rsqrt(rsq1);
       int offset_kf;
       if (ijnum >= 0) {
         offset_kf = offset_k;

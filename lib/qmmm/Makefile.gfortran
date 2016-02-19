@@ -9,11 +9,11 @@ QETOPDIR=$(HOME)/compile/espresso
 # import compiler settings from Quantum ESPRESSO
 sinclude $(QETOPDIR)/make.sys
 
-# FLAGS for c++ OpenMPI when QE was compiled with GNU Fortran 4.x
+# FLAGS for c++ OpenMPI 1.8.x when QE was compiled with GNU Fortran 4.x
 MPICXX=mpicxx
 MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -O2 -Wall -g -fPIC\
 	-I../../src -I$(QETOPDIR)/COUPLE/include
-MPILIBS=-fopenmp -lgfortran -ldl -ljpeg -lpng -lz -lmpi_f77 -lmpi
+MPILIBS=-fopenmp -lgfortran -ldl -ljpeg -lpng -lz -lmpi_mpifh -lmpi
 
 # location of required libraries
 # part 1: hi-level libraries for building pw.x
@@ -54,9 +54,8 @@ libqmmm.a: libqmmm.o
 
 tldeps:
 	( cd $(QETOPDIR) ; $(MAKE) $(MFLAGS) couple || exit 1)
-	$(MAKE) -C ../../src $(MFLAGS) makelib
 	$(MAKE) -C ../../src $(MFLAGS) $(LAMMPSCFG)
-	$(MAKE) -C ../../src $(MFLAGS) -f Makefile.lib $(LAMMPSCFG)
+	$(MAKE) -C ../../src $(MFLAGS) mode=lib $(LAMMPSCFG)
 
 clean :
 	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L

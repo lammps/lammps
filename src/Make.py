@@ -120,7 +120,7 @@ def link_check(linker,linkflags,warn):
 
 class Actions:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     
   def help(self):
     return """
@@ -162,33 +162,29 @@ class Actions:
   
   def check(self):
     if not self.inlist: error("-a args are invalid")
-    alist = []
-    machine = 0
-    nlib = 0
+    libs = []
+    cleans = []
+    files = []
+    exes = []
     for one in self.inlist:
-      if one in alist: error("An action is duplicated")
       if one.startswith("lib-"):
         lib = one[4:]
         if lib != "all" and lib not in libclasses: error("Actions are invalid")
-        alist.insert(nlib,one)
-        nlib += 1
+        libs.append(one)
       elif one == "file":
-        if nlib == 0: alist.insert(0,"file")
-        else: alist.insert(1,"file")
+        files.append(one)
       elif one == "clean":
-        if nlib == 0: alist.insert(0,"clean")
-        elif "file" not in alist: alist.insert(1,"clean")
-        else: alist.insert(2,"clean")
+        cleans.append(one)
       elif one == "exe":
-        if machine == 0: alist.append("exe")
-        else: error("Actions are invalid")
-        machine = 1
+        exes.append(one)
       # one action can be unknown in case is a machine (checked in setup)
-      elif machine == 0:
-        alist.append(one)
-        machine = 1
-      else: error("Actions are invalid")
-    self.alist = alist
+      else:
+        exes.append(one)
+    if len(set(libs)) != len(libs) or \
+       len(cleans) > 1 or len(files) > 1 or len(exes) > 1:
+      error("Actions are invalid")
+    self.alist = [action for actions in [libs,cleans,files,exes] \
+                           for action in actions]
 
   # dedup list of actions concatenated from two lists
   # current self.inlist = specified -a switch + redo command -a switch
@@ -532,8 +528,7 @@ class Actions:
 
 class Dir:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
       
   def help(self):
     return """
@@ -592,7 +587,7 @@ Syntax: Make.py switch args ...
   
 class Jmake:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -613,7 +608,7 @@ class Jmake:
 
 class Makefile:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -632,7 +627,7 @@ class Makefile:
 
 class Output:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -649,8 +644,7 @@ class Output:
   
 class Packages:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -770,7 +764,7 @@ class Packages:
         yes = 0
       if pkg in all:
         final[pkg] = yes
-      elif pkg == "std":
+      elif pkg == "std" or pkg == "standard":
         for pkg in std: final[pkg] = yes
       elif pkg == "user":
         for pkg in user: final[pkg] = yes
@@ -818,7 +812,7 @@ class Packages:
     
 class Redo:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -899,7 +893,7 @@ class Redo:
 
 class Settings:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -918,7 +912,7 @@ class Settings:
 
 class Verbose:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -938,8 +932,7 @@ class Verbose:
 
 class ATC:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -990,8 +983,7 @@ class ATC:
 
 class AWPMD:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "mpicc"
     self.lammpsflag = 0
 
@@ -1042,8 +1034,7 @@ class AWPMD:
 
 class COLVARS:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1094,8 +1085,7 @@ class COLVARS:
 
 class CUDA:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "double"
     self.arch = "31"
 
@@ -1152,8 +1142,7 @@ class CUDA:
 
 class GPU:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "linux.double"
     self.lammpsflag = self.modeflag = self.archflag = 0
 
@@ -1227,8 +1216,7 @@ class GPU:
 
 class MEAM:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1279,8 +1267,7 @@ class MEAM:
 
 class POEMS:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1331,8 +1318,7 @@ class POEMS:
 
 class QMMM:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1383,8 +1369,7 @@ class QMMM:
 
 class REAX:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1435,8 +1420,7 @@ class REAX:
 
 class VORONOI:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.install = ""
     
   def help(self):
@@ -1474,8 +1458,7 @@ class VORONOI:
 
 class Intel:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "cpu"
 
   def help(self):
@@ -1496,8 +1479,7 @@ class Intel:
 
 class Kokkos:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = ""
     self.archflag = 0
     
@@ -1536,7 +1518,7 @@ class Kokkos:
 
 class Cc:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.compiler = self.abbrev = ""
     self.wrap = ""
 
@@ -1581,7 +1563,7 @@ class Cc:
 
 class Mpi:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.style = self.dir = ""
                 
   def help(self):
@@ -1614,7 +1596,7 @@ class Mpi:
 
 class Fft:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.dir = self.incdir = self.libdir = ""
 
   def help(self):
@@ -1653,7 +1635,7 @@ class Fft:
 
 class Jpg:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 
@@ -1690,7 +1672,7 @@ class Jpg:
 
 class Png:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 
@@ -1992,9 +1974,8 @@ while 1:
   for switch in switches:
     if len(switch) == 1 and switch in abbrevs:
       i = abbrevs.index(switch)
-      capitalized = switchclasses[i][0].upper() + switchclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (switchclasses[i],switch,capitalized,switch)
+          (switchclasses[i],switch,switchclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in libclasses:
       i = libclasses.index(switch)
@@ -2003,15 +1984,13 @@ while 1:
       exec(txt)
     elif switch in buildclasses:
       i = buildclasses.index(switch)
-      capitalized = buildclasses[i][0].upper() + buildclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (buildclasses[i],switch,capitalized,switch)
+          (buildclasses[i],switch,buildclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in makeclasses:
       i = makeclasses.index(switch)
-      capitalized = makeclasses[i][0].upper() + makeclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (makeclasses[i],switch,capitalized,switch)
+          (makeclasses[i],switch,makeclasses[i].capitalize(),switch)
       exec(txt)
     else: error("Unknown command-line switch -%s" % switch)
 
@@ -2036,8 +2015,7 @@ while 1:
     exec(txt)
 
   for one in buildclasses:
-    capitalized = one[0].upper() + one[1:]
-    txt = "if not %s: %s = %s(None)" % (one,one,capitalized)
+    txt = "if not %s: %s = %s(None)" % (one,one,one.capitalize())
     exec(txt)
 
   # error check on args for all classes
@@ -2063,7 +2041,7 @@ while 1:
       if 'o' not in switches:
         switches['o'] = [machine]
         switch_order.insert(-1,'o')
-        output = classes['o'] = Makefile(switches['o'])
+        output = classes['o'] = Output(switches['o'])
         output.check()
 
   # perform actions

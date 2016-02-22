@@ -1,0 +1,43 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+improper_style zero command :h3
+
+[Syntax:]
+
+improper_style zero :pre
+
+[Examples:]
+
+improper_style zero
+improper_coeff * :pre
+
+[Description:]
+
+Using an improper style of zero means improper forces and energies are
+not computed, but the geometry of improper quadruplets is still
+accessible to other commands.
+
+As an example, the "compute
+improper/local"_compute_improper_local.html command can be used to
+compute the chi values for the list of quadruplets of improper atoms
+listed in the data file read by the "read_data"_read_data.html
+command.  If no improper style is defined, this command cannot be
+used.
+
+Note that the "improper_coeff"_improper_coeff.html command must be
+used for all improper types, though no additional values are
+specified.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+"improper_style none"_improper_none.html
+
+[Default:] none

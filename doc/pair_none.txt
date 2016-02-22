@@ -33,8 +33,13 @@ distance is small, then these data structures can consume a large
 amount of memory.  So you should either set the neighbor style to
 {nsq} or set the skin distance to a larger value.
 
+See the "pair_style zero"_pair_zero.html for a way to trigger the
+building of a neighbor lists, but compute no pairwise interactions.
+
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"pair_style zero"_pair_zero.html
 
 [Default:] none

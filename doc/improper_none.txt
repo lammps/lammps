@@ -18,12 +18,17 @@ improper_style none :pre
 
 [Description:]
 
-Using an improper style of none means improper forces are not
-computed, even if quadruplets of improper atoms were listed in the
+Using an improper style of none means imroper forces and energies are
+not computed, even if quadruplets of improper atoms were listed in the
 data file read by the "read_data"_read_data.html command.
+
+See the "improper_style zero"_improper_zero.html command for a way to
+calculate improper statistics, but compute no improper interactions.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"improper_style zero"_improper_zero.html
 
 [Default:] none

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bond_style none command &mdash; LAMMPS documentation</title>
+  <title>dihedral_style zero command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>bond_style none command</li>
+    <li>dihedral_style zero command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,34 +124,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="bond-style-none-command">
-<span id="index-0"></span><h1>bond_style none command<a class="headerlink" href="#bond-style-none-command" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="dihedral-style-zero-command">
+<span id="index-0"></span><h1>dihedral_style zero command<a class="headerlink" href="#dihedral-style-zero-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>bond_style none
+<div class="highlight-python"><div class="highlight"><pre>dihedral_style zero
 </pre></div>
 </div>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>bond_style none
+<div class="highlight-python"><div class="highlight"><pre>dihedral_style zero
+dihedral_coeff *
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Using a bond style of none means bond forces and energies are not
-computed, even if pairs of bonded atoms were listed in the data file
-read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.</p>
-<p>See the <a class="reference internal" href="bond_zero.html"><em>bond_style zero</em></a> command for a way to
-calculate bond statistics, but compute no bond interactions.</p>
+<p>Using a dihedral style of zero means dihedral forces and energies are
+not computed, but the geometry of dihedral quadruplets is still
+accessible to other commands.</p>
+<p>As an example, the <a class="reference internal" href="compute_dihedral_local.html"><em>compute dihedral/local</em></a> command can be used to
+compute the theta values for the list of quadruplets of dihderal atoms
+listed in the data file read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
+command.  If no dihedral style is defined, this command cannot be used.</p>
+<p>Note that the <a class="reference internal" href="dihedral_coeff.html"><em>dihedral_coeff</em></a> command must be
+used for all dihedral types, though no additional values are
+specified.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>none</div></blockquote>
 <p><strong>Related commands:</strong> none</p>
-<p><a class="reference internal" href="bond_zero.html"><em>bond_style zero</em></a></p>
+<p><a class="reference internal" href="dihedral_none.html"><em>dihedral_style none</em></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>

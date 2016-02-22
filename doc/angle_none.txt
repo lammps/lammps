@@ -24,6 +24,8 @@ if triplets of angle atoms were listed in the data file read by the
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"angle_style zero"_angle_zero.html
 
 [Default:] none

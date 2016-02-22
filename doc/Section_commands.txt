@@ -798,6 +798,7 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_pair_none.html,
+"zero"_pair_zero.html,
 "hybrid"_pair_hybrid.html,
 "hybrid/overlay"_pair_hybrid.html,
 "adp (o)"_pair_adp.html,
@@ -971,6 +972,7 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_bond_none.html,
+"zero"_bond_zero.html,
 "hybrid"_bond_hybrid.html,
 "class2 (o)"_bond_class2.html,
 "fene (ko)"_bond_fene.html,
@@ -1001,6 +1003,7 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_angle_none.html,
+"zero"_angle_zero.html,
 "hybrid"_angle_hybrid.html,
 "charmm (ko)"_angle_charmm.html,
 "class2 (o)"_angle_class2.html,
@@ -1036,6 +1039,7 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_dihedral_none.html,
+"zero"_dihedral_zero.html,
 "hybrid"_dihedral_hybrid.html,
 "charmm (ko)"_dihedral_charmm.html,
 "class2 (o)"_dihedral_class2.html,
@@ -1067,6 +1071,7 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_improper_none.html,
+"zero"_improper_zero.html,
 "hybrid"_improper_hybrid.html,
 "class2 (o)"_improper_class2.html,
 "cvff (io)"_improper_cvff.html,

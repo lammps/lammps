@@ -51,8 +51,8 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -I/home/sjplimp/fftw/fftw
-FFT_PATH = 	-L/home/sjplimp/fftw/fftw/.libs
+FFT_INC =       -DFFT_FFTW
+FFT_PATH = 	
 FFT_LIB =	-lfftw
 
 # JPEG and/or PNG library

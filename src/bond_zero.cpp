@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Carsten Svaneborg (SDU)
+------------------------------------------------------------------------- */
+
 #include <math.h>
 #include <stdlib.h>
 #include "bond_zero.h"

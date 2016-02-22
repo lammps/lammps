@@ -78,6 +78,7 @@ which are included in the LAMMPS distribution.  The list of these with
 links to the individual styles are given in the bond section of :ref:`this page <cmd_5>`.
 
 * :doc:`bond_style none <bond_none>` - turn off bonded interactions
+* :doc:`bond_style zero <bond_zero>` - topology but no interactions
 * :doc:`bond_style hybrid <bond_hybrid>` - define multiple styles of bond interactions
 
 * :doc:`bond_style class2 <bond_class2>` - COMPASS (class 2) bond

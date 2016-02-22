@@ -25,8 +25,8 @@ Description
 """""""""""
 
 Define a global cutoff length for the purpose of building a neighbor
-list and acquiring ghost atoms, but do not compute any pairwise
-forces.
+list and acquiring ghost atoms, but do not compute any pairwise forces
+or energies.
 
 This can be useful for fixes or computes which require a neighbor list
 to enumerate pairs of atoms within some cutoff distance, but when

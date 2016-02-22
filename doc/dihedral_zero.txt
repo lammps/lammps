@@ -25,9 +25,10 @@ accessible to other commands.
 
 As an example, the "compute
 dihedral/local"_compute_dihedral_local.html command can be used to
-compute the theta values for the list of quadruplets of dihderal atoms
+compute the theta values for the list of quadruplets of dihedral atoms
 listed in the data file read by the "read_data"_read_data.html
-command.  If no dihedral style is defined, this command cannot be used.
+command.  If no dihedral style is defined, this command cannot be
+used.
 
 Note that the "dihedral_coeff"_dihedral_coeff.html command must be
 used for all dihedral types, though no additional values are

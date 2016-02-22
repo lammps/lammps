@@ -20,7 +20,8 @@ Examples
 Description
 """""""""""
 
-Using a pair style of none means pair forces are not computed.
+Using a pair style of none means pair forces and energies are not
+computed.
 
 With this choice, the force cutoff is 0.0, which means that only atoms
 within the neighbor skin distance (see the :doc:`neighbor <neighbor>`

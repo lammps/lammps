@@ -18,9 +18,12 @@ angle_style none :pre
 
 [Description:]
 
-Using an angle style of none means angle forces are not computed, even
-if triplets of angle atoms were listed in the data file read by the
-"read_data"_read_data.html command.
+Using an angle style of none means angle forces and energies are not
+computed, even if triplets of angle atoms were listed in the data file
+read by the "read_data"_read_data.html command.
+
+See the "angle_style zero"_angle_zero.html command for a way to
+calculate angle statistics, but compute no angle interactions.
 
 [Restrictions:] none
 

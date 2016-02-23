@@ -42,6 +42,10 @@ Likewise, the interaction force calculated by this compute will
 include the force on the compute group atoms due to pairwise
 interactions with atoms in the specified group2.
 
+NOTE: The energies computed by the {pair} keyword do not include tail
+corrections, even if they are enabled via the
+"pair_modify"_pair_modify.html command.
+
 If the {kspace} keyword is set to {yes}, which is not the default, and
 if a "kspace_style"_kspace_style.html is defined, then the interaction
 energy will include a Kspace component which is the long-range

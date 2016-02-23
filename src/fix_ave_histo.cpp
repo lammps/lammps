@@ -62,6 +62,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   size_array_cols = 3;
   extarray = 0;
+  dynamic_group_allow = 1;
 
   lo = force->numeric(FLERR,arg[6]);
   hi = force->numeric(FLERR,arg[7]);
@@ -718,7 +719,7 @@ void FixAveHisto::end_of_step()
                      fix->size_local_cols);
       }
 
-      // evaluate equal-style variable
+    // evaluate equal-style or atom-style variable
 
     } else if (which[i] == VARIABLE && kind == GLOBAL) {
       bin_one(input->variable->compute_equal(m));

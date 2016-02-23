@@ -71,6 +71,7 @@ links to the individual styles are given in the bond section of "this
 page"_Section_commands.html#cmd_5.
 
 "bond_style none"_bond_none.html - turn off bonded interactions
+"bond_style zero"_bond_zero.html - topology but no interactions
 "bond_style hybrid"_bond_hybrid.html - define multiple styles of bond interactions :ul
 
 "bond_style class2"_bond_class2.html - COMPASS (class 2) bond

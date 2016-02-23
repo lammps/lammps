@@ -86,6 +86,7 @@ links to the individual styles are given in the dihedral section of
 "this page"_Section_commands.html#cmd_5.
 
 "dihedral_style none"_dihedral_none.html - turn off dihedral interactions
+"dihedral_style zero"_dihedral_zero.html - topology but no interactions
 "dihedral_style hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
 
 "dihedral_style charmm"_dihedral_charmm.html - CHARMM dihedral

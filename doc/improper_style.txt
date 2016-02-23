@@ -65,6 +65,7 @@ links to the individual styles are given in the improper section of
 "this page"_Section_commands.html#cmd_5.
 
 "improper_style none"_improper_none.html - turn off improper interactions
+"improper_style zero"_improper_zero.html - topology but no interactions
 "improper_style hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
 
 "improper_style class2"_improper_class2.html - COMPASS (class 2) improper

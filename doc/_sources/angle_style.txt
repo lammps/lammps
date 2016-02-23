@@ -67,6 +67,7 @@ which are included in the LAMMPS distribution.  The list of these with
 links to the individual styles are given in the angle section of :ref:`this page <cmd_5>`.
 
 * :doc:`angle_style none <angle_none>` - turn off angle interactions
+* :doc:`angle_style zero <angle_zero>` - topology but no interactions
 * :doc:`angle_style hybrid <angle_hybrid>` - define multiple styles of angle interactions
 
 * :doc:`angle_style charmm <angle_charmm>` - CHARMM angle

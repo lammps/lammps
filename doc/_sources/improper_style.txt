@@ -71,6 +71,7 @@ links to the individual styles are given in the improper section of
 :ref:`this page <cmd_5>`.
 
 * :doc:`improper_style none <improper_none>` - turn off improper interactions
+* :doc:`improper_style zero <improper_zero>` - topology but no interactions
 * :doc:`improper_style hybrid <improper_hybrid>` - define multiple styles of improper interactions
 
 * :doc:`improper_style class2 <improper_class2>` - COMPASS (class 2) improper

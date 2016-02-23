@@ -452,8 +452,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   if (ferror) {
     char str[128];
-    sprintf(str,"%d force values in table are inconsistent with -dE/dr;"
-            "should only happen at inflection points",ferror);
+    sprintf(str,"%d force values in table are inconsistent with -dE/dr; "
+            "should only be mistakenly flagged at inflection points",ferror);
     error->warning(FLERR,str);
   }
 

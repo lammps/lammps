@@ -97,7 +97,8 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 
 "pair_style none"_pair_none.html - turn off pairwise interactions
 "pair_style hybrid"_pair_hybrid.html - multiple styles of pairwise interactions
-"pair_style hybrid/overlay"_pair_hybrid.html - multiple styles of superposed pairwise interactions :ul
+"pair_style hybrid/overlay"_pair_hybrid.html - multiple styles of superposed pairwise interactions
+"pair_style zero"_pair_zero.html - neighbor list but no interactions :ul
 
 "pair_style adp"_pair_adp.html - angular dependent potential (ADP) of Mishin
 "pair_style airebo"_pair_airebo.html - AIREBO potential of Stuart

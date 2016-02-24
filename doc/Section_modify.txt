@@ -513,11 +513,14 @@ Region_sphere.cpp is an example of a spherical region.
 Here is a brief description of methods you define in your new derived
 class.  See region.h for details.
 
-match: determine whether a point is in the region :tb(s=:)
+inside: determine whether a point is in the region
+surface_interior: determine if a point is within a cutoff distance inside of surc
+surface_exterior: determine if a point is within a cutoff distance outside of surf
+shape_update : change region shape if set by time-depedent variable :tb(s=:)
 
 :line
 
-10.11 Body styles :link(mod_12),h4
+10.12 Body styles :link(mod_12),h4
 
 Classes that define body particles are derived from the Body class.
 Body particles can represent complex entities, such as surface meshes

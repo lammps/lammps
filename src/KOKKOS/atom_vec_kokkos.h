@@ -16,6 +16,7 @@
 
 #include "atom_vec.h"
 #include "kokkos_type.h"
+#include <type_traits>
 
 namespace LAMMPS_NS {
 

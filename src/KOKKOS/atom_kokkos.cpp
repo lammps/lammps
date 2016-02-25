@@ -88,6 +88,10 @@ void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
   ((AtomVecKokkos *) avec)->modified(space,mask);
 }
 
+void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
+{
+  ((AtomVecKokkos *) avec)->sync_overlapping_device(space,mask);
+}
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()

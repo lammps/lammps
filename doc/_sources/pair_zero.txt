@@ -48,6 +48,29 @@ commands, or by mixing as described below:
 This coefficient is optional.  If not specified, the global cutoff
 specified in the pair_style command is used.
 
+
+----------
+
+
+**Mixing, shift, table, tail correction, restart, rRESPA info**:
+
+The cutoff distance for this pair style can be mixed.  The default mix
+value is *geometric*.  See the "pair_modify" command for details.
+
+This pair style does not support the :doc:`pair_modify <pair_modify>`
+shift, table, and tail options.
+
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+This pair style can only be used via the *pair* keyword of the
+:doc:`run_style respa <run_style>` command.  It does not support the
+*inner*, *middle*, *outer* keywords.
+
+
+----------
+
+
 Restrictions
 """"""""""""
  none

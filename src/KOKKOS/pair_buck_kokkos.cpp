@@ -280,7 +280,10 @@ double PairBuckKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairBuckKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckKokkos<LMPHostType>;
 #endif
+}
+

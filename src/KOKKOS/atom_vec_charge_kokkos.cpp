@@ -1520,3 +1520,4 @@ void AtomVecChargeKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & Q_MASK) atomKK->k_q.modify<LMPHostType>();
   }
 }
+

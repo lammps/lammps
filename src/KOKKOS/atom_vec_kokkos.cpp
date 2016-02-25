@@ -21,3 +21,4 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 {
   kokkosable = 1;
 }
+

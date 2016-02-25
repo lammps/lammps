@@ -511,7 +511,10 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
 }
 
 
+namespace LAMMPS_NS {
 template class PairBuckCoulLongKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckCoulLongKokkos<LMPHostType>;
 #endif
+}
+

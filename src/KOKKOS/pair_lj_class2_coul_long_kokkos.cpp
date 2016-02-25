@@ -501,3 +501,5 @@ template class PairLJClass2CoulLongKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJClass2CoulLongKokkos<LMPHostType>;
 #endif
+}
+

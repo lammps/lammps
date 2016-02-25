@@ -369,7 +369,10 @@ double PairLJCutCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCutCoulDebyeKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCutCoulDebyeKokkos<LMPHostType>;
 #endif
+}
+

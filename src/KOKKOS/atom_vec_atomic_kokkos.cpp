@@ -1397,3 +1397,4 @@ void AtomVecAtomicKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & IMAGE_MASK) atomKK->k_image.modify<LMPHostType>();
   }
 }
+

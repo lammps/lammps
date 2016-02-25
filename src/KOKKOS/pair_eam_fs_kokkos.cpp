@@ -1180,7 +1180,10 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class PairEAMFSKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairEAMFSKokkos<LMPHostType>;
 #endif
+}
+

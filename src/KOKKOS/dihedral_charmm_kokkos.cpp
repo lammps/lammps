@@ -739,7 +739,10 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class DihedralCharmmKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class DihedralCharmmKokkos<LMPHostType>;
 #endif
+}
+

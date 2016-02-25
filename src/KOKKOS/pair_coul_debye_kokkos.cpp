@@ -307,7 +307,10 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairCoulDebyeKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairCoulDebyeKokkos<LMPHostType>;
 #endif
+}
+

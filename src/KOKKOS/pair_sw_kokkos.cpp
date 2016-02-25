@@ -902,7 +902,10 @@ void PairSWKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
   }
 }
 
+namespace LAMMPS_NS {
 template class PairSWKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairSWKokkos<LMPHostType>;
 #endif
+}
+

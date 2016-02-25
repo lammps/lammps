@@ -2237,3 +2237,4 @@ void AtomVecMolecularKokkos::modified(ExecutionSpace space, unsigned int mask)
     }
   }
 }
+

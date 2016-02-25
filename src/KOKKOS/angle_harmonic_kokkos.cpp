@@ -385,7 +385,10 @@ void AngleHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const 
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class AngleHarmonicKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class AngleHarmonicKokkos<LMPHostType>;
 #endif
+}
+

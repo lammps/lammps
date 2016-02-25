@@ -1171,7 +1171,10 @@ void PairEAMAlloyKokkos<DeviceType>::file2array_alloy()
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class PairEAMAlloyKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairEAMAlloyKokkos<LMPHostType>;
 #endif
+}
+

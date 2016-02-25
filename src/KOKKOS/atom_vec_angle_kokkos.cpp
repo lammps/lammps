@@ -1886,3 +1886,4 @@ void AtomVecAngleKokkos::modified(ExecutionSpace space, unsigned int mask)
     }
   }
 }
+

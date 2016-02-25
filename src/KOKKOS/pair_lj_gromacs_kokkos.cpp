@@ -327,7 +327,10 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairLJGromacsKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJGromacsKokkos<LMPHostType>;
 #endif
+}
+

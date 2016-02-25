@@ -279,3 +279,5 @@ template class PairLJClass2Kokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJClass2Kokkos<LMPHostType>;
 #endif
+}
+

@@ -112,7 +112,10 @@ void NeighListKokkos<Device>::stencil_allocate(int smax, int style)
   }
 }
 
+namespace LAMMPS_NS {
 template class NeighListKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class NeighListKokkos<LMPHostType>;
 #endif
+}
+

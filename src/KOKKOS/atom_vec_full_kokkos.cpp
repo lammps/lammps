@@ -2334,3 +2334,4 @@ void AtomVecFullKokkos::modified(ExecutionSpace space, unsigned int mask)
     }
   }
 }
+

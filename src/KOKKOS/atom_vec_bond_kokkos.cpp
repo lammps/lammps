@@ -1713,3 +1713,4 @@ void AtomVecBondKokkos::modified(ExecutionSpace space, unsigned int mask)
     }
   }
 }
+

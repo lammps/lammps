@@ -179,7 +179,10 @@ void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceNonConstant, const 
   }
 }
 
+namespace LAMMPS_NS {
 template class FixSetForceKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class FixSetForceKokkos<LMPHostType>;
 #endif
+}
+

@@ -506,3 +506,5 @@ void VerletKokkos::force_clear()
     }
   }
 }
+}
+

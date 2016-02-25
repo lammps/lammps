@@ -466,7 +466,10 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class ImproperHarmonicKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class ImproperHarmonicKokkos<LMPHostType>;
 #endif
+}
+

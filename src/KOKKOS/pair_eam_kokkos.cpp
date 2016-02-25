@@ -894,7 +894,10 @@ void PairEAMKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
   }
 }
 
+namespace LAMMPS_NS {
 template class PairEAMKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairEAMKokkos<LMPHostType>;
 #endif
+}
+

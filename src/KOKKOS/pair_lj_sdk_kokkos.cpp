@@ -308,7 +308,10 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJSDKKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJSDKKokkos<LMPHostType>;
 #endif
+}
+

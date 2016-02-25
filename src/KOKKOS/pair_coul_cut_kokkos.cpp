@@ -259,7 +259,10 @@ double PairCoulCutKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairCoulCutKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairCoulCutKokkos<LMPHostType>;
 #endif
+}
+

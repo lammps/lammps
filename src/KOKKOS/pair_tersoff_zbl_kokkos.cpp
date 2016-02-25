@@ -1296,7 +1296,10 @@ int PairTersoffZBLKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
 }
 
+namespace LAMMPS_NS {
 template class PairTersoffZBLKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairTersoffZBLKokkos<LMPHostType>;
 #endif
+}
+

@@ -1673,6 +1673,75 @@ void AtomVecBondKokkos::sync(ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
+void AtomVecBondKokkos::sync_overlapping_device(ExecutionSpace space, unsigned int mask)
+{
+  if (space == Device) {
+    if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_x_array>(atomKK->k_x,space);
+    if ((mask & V_MASK) && atomKK->k_v.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
+    if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
+    if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
+    if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_type,space);
+    if ((mask & MASK_MASK) && atomKK->k_mask.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
+    if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+    if ((mask & MOLECULE_MASK) && atomKK->k_molecule.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_molecule,space);
+    if (mask & SPECIAL_MASK) {
+      if (atomKK->k_nspecial.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_nspecial,space);
+      if (atomKK->k_special.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_special,space);
+    }
+    if (mask & BOND_MASK) {
+      if (atomKK->k_num_bond.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_int_1d>(atomKK->k_num_bond,space);
+      if (atomKK->k_bond_type.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_bond_type,space);
+      if (atomKK->k_bond_atom.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_bond_atom,space);
+    }
+  } else {
+    if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_x_array>(atomKK->k_x,space);
+    if ((mask & V_MASK) && atomKK->k_v.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
+    if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
+    if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
+    if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_type,space);
+    if ((mask & MASK_MASK) && atomKK->k_mask.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
+    if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+    if ((mask & MOLECULE_MASK) && atomKK->k_molecule.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_molecule,space);
+    if (mask & SPECIAL_MASK) {
+      if (atomKK->k_nspecial.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_nspecial,space);
+      if (atomKK->k_special.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_special,space);
+    }
+    if (mask & BOND_MASK) {
+      if (atomKK->k_num_bond.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_int_1d>(atomKK->k_num_bond,space);
+      if (atomKK->k_bond_type.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_bond_type,space);
+      if (atomKK->k_bond_atom.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_bond_atom,space);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecBondKokkos::modified(ExecutionSpace space, unsigned int mask)
 {
   if (space == Device) {

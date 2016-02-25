@@ -451,6 +451,7 @@ void VerletKokkos::run(int n)
     }
 
 
+    Kokkos::Impl::Timer ktimer;
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
@@ -459,59 +460,44 @@ void VerletKokkos::run(int n)
         Kokkos::Impl::Timer ktimer;
       force->pair->compute(eflag,vflag);
       timer->stamp(Timer::PAIR);
-        printf("Pair Time: %e (%i %i %i)\n",ktimer.seconds(),execute_on_host,atomKK->molecular,force->bond->execution_space==Host);
-      }
-      Kokkos::Impl::Timer ktimer;
+    }
 
       if(execute_on_host) {
         if(force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
           Kokkos::fence();
-        printf("Outer Time A0: %e %u %u %u %u %u (%p %p)\n",ktimer.seconds(),datamask_read_host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)),~((~datamask_read_host)|(F_MASK | ENERGY_MASK | VIRIAL_MASK)),datamask_read_host&X_MASK,atomKK->k_x.modified_host(),atomKK->k_x.modified_device(),atomKK->k_x.d_view.ptr_on_device(),atomKK->k_x.h_view.ptr_on_device());
         atomKK->sync_overlapping_device(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-        printf("Outer Time A1: %e %u %u %u\n",ktimer.seconds(),datamask_read_host,~((~datamask_read_host)|(F_MASK | ENERGY_MASK | VIRIAL_MASK)),~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         if(pair_compute_flag && force->pair->execution_space!=Host) {
-          //Kokkos::deep_copy(LMPHostType(),atomKK->k_f.h_view,0.0);
-          //Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.h_view.dimension_0()),[=](const int& i) {
-          for(int i=0;i<atomKK->k_f.h_view.dimension_0();i++) {
-            atomKK->k_f.h_view(i,0) = 0.0;
-            atomKK->k_f.h_view(i,1) = 0.0;
-            atomKK->k_f.h_view(i,2) = 0.0;
-          }
-          //});
-          printf("ForceZero\n");
+          Kokkos::deep_copy(LMPHostType(),atomKK->k_f.h_view,0.0);
         }
     }
 
     if (atomKK->molecular) {
       if (force->bond) {
-            atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-            atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-            printf("Outer Time B0: %e\n",ktimer.seconds());
+        atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->bond->compute(eflag,vflag);
-            printf("Outer Time B: %e\n",ktimer.seconds());
       }
       if (force->angle) {
-            atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-            atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-            printf("Outer Time C: %e\n",ktimer.seconds());
+        atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->angle->compute(eflag,vflag);
       }
       if (force->dihedral) {
-            atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-            atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->dihedral->compute(eflag,vflag);
       }
       if (force->improper) {
-            atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-            atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->improper->compute(eflag,vflag);
       }
       timer->stamp(Timer::BOND);
     }
 
     if (kspace_compute_flag) {
-          atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-          atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
     }
@@ -522,17 +508,9 @@ void VerletKokkos::run(int n)
       }
       f = atomKK->k_f.d_view;
       Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
-      //Kokkos::parallel_for(atomKK->k_f.dimension_0(),*this);
       Kokkos::parallel_for(atomKK->k_f.dimension_0(),
-          ForceAdder<DAT::t_f_array,DAT::t_f_array>(atomKK->k_f.d_view,f_merge_copy));
+        ForceAdder<DAT::t_f_array,DAT::t_f_array>(atomKK->k_f.d_view,f_merge_copy));
       atomKK->k_f.template modify<LMPDeviceType>();
-    }
-    //atomKK->k_f.template sync<LMPHostType>();
-    for(int i=0;i<5;i++) {
-      printf("%i %e %e %e",atomKK->k_f.h_view(i,0),atomKK->k_f.h_view(i,1),atomKK->k_f.h_view(i,2));
-      //if(execute_on_host) printf(" %e %e %e",f_merge_copy(i,0),f_merge_copy(i,1),f_merge_copy(i,2));
-      printf("\n");
-
     }
 
 

@@ -1377,6 +1377,43 @@ void AtomVecAtomicKokkos::sync(ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
+void AtomVecAtomicKokkos::sync_overlapping_device(ExecutionSpace space, unsigned int mask)
+{
+  if (space == Device) {
+    if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_x_array>(atomKK->k_x,space);
+    if ((mask & V_MASK) && atomKK->k_v.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
+    if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
+    if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
+    if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_type,space);
+    if ((mask & MASK_MASK) && atomKK->k_mask.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
+    if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+  } else {
+    if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_x_array>(atomKK->k_x,space);
+    if ((mask & V_MASK) && atomKK->k_v.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
+    if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
+    if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
+    if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_type,space);
+    if ((mask & MASK_MASK) && atomKK->k_mask.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
+    if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecAtomicKokkos::modified(ExecutionSpace space, unsigned int mask)
 {
   if (space == Device) {

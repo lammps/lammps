@@ -378,6 +378,8 @@ void VerletSplitIntel::run(int n)
         timer->stamp(Timer::BOND);
       }
 
+      if (fix_intel) fix_intel->sync();
+
       #ifdef _LMP_INTEL_OFFLOAD
       if (sync_mode == 1) {
 	fix_intel->sync_coprocessor();

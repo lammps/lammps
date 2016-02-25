@@ -39,13 +39,14 @@ class PairLJCutIntel : public PairLJCut {
 
  private:
   FixIntel *fix;
-  int _cop;
+  int _cop, _onetype;
 
   template <class flt_t> class ForceConst;
   template <class flt_t, class acc_t>
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+  template <int ONETYPE, int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, 
+	    class acc_t>
   void eval(const int offload, const int vflag,
             IntelBuffers<flt_t,acc_t> * buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);

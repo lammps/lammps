@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(smd/ulsph_num_neighs,ComputeSMDULSPHNumNeighs)
+ComputeStyle(smd/ulsph/num/neighs,ComputeSMDULSPHNumNeighs)
 
 #else
 

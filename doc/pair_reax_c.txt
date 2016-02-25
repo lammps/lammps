@@ -60,11 +60,11 @@ can use other ffield files for specific chemical systems that may be
 available elsewhere (but note that their accuracy may not have been
 tested).
 
-IMPORTANT NOTE: We do not distribute a wide variety of ReaxFF force
-field files with LAMMPS.  Adri van Duin's group at PSU is the central
-repository for this kind of data as they are continuously deriving and
-updating parameterizations for different classes of materials.  You
-can visit their WWW site at
+NOTE: We do not distribute a wide variety of ReaxFF force field files
+with LAMMPS.  Adri van Duin's group at PSU is the central repository
+for this kind of data as they are continuously deriving and updating
+parameterizations for different classes of materials.  You can visit
+their WWW site at
 "http://www.engr.psu.edu/adri"_http://www.engr.psu.edu/adri, register
 as a "new user", and then submit a request to their group describing
 material(s) you are interested in modeling with ReaxFF.  They can tell
@@ -80,11 +80,10 @@ Each line in the control file specifies the value for
 a control variable.  The format of the control file is described
 below. 
 
-IMPORTANT NOTE: The LAMMPS default values for the ReaxFF global parameters 
-correspond to those used by
-Adri van Duin's stand-alone serial code. If these are changed by
-setting control variables in the control file, the results from
-LAMMPS and the serial code will not agree.
+NOTE: The LAMMPS default values for the ReaxFF global parameters
+correspond to those used by Adri van Duin's stand-alone serial
+code. If these are changed by setting control variables in the control
+file, the results from LAMMPS and the serial code will not agree.
 
 Two examples using {pair_style reax/c} are provided in the examples/reax
 sub-directory, along with corresponding examples for 

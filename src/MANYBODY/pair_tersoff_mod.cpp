@@ -185,7 +185,7 @@ void PairTersoffMOD::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairTersoffMOD::setup()
+void PairTersoffMOD::setup_params()
 {
   int i,j,k,m,n;
 

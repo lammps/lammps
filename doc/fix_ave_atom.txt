@@ -87,12 +87,12 @@ inputs to this fix by using the "compute
 property/atom"_compute_property_atom.html command and then specifying
 an input value from that compute.
 
-IMPORTANT NOTE: The x,y,z attributes are values that are re-wrapped
-inside the periodic box whenever an atom crosses a periodic boundary.
-Thus if you time average an atom that spends half its time on either
-side of the periodic box, you will get a value in the middle of the
-box.  If this is not what you want, consider averaging unwrapped
-coordinates, which can be provided by the "compute
+NOTE: The x,y,z attributes are values that are re-wrapped inside the
+periodic box whenever an atom crosses a periodic boundary.  Thus if
+you time average an atom that spends half its time on either side of
+the periodic box, you will get a value in the middle of the box.  If
+this is not what you want, consider averaging unwrapped coordinates,
+which can be provided by the "compute
 property/atom"_compute_property_atom.html command via its xu,yu,zu
 attributes.
 

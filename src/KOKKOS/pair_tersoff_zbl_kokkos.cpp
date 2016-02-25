@@ -128,9 +128,9 @@ void PairTersoffZBLKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairTersoffZBLKokkos<DeviceType>::setup()
+void PairTersoffZBLKokkos<DeviceType>::setup_params()
 {
-  PairTersoffZBL::setup();
+  PairTersoffZBL::setup_params();
 
   int i,j,k,m;
   int n = atom->ntypes;

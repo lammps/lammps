@@ -143,8 +143,8 @@ solver/pair style.
 
 W: System is not charge neutral, net charge = %g
 
-The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
+The total charge on all atoms on the system is not 0.0.
+For some KSpace solvers this is only a warning.
 
 W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
 

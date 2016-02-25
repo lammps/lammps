@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(meso_rho/atom,ComputeMesoRhoAtom)
+ComputeStyle(meso/rho/atom,ComputeMesoRhoAtom)
 
 #else
 

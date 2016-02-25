@@ -122,9 +122,9 @@ styles and their energy formulas for the meaning of these parameters:
 "gauss"_pair_gauss.html: a: type pairs:
 "soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
 
-IMPORTANT NOTE: It is easy to add new potentials and their parameters
-to this list.  All it typically takes is adding an extract() method to
-the pair_*.cpp file associated with the potential.
+NOTE: It is easy to add new potentials and their parameters to this
+list.  All it typically takes is adding an extract() method to the
+pair_*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.

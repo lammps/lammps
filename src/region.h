@@ -15,6 +15,7 @@
 #define LMP_REGION_H
 
 #include "pointers.h"
+#include "accelerator_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -30,6 +31,8 @@ class Region : protected Pointers {
   int bboxflag;                     // 1 if bounding box is computable
   int varshape;                     // 1 if region shape changes over time
   int dynamic;                      // 1 if position/orient changes over time
+
+  int copymode;                     // 1 if copy of original class
 
   // contact = particle near region surface
 
@@ -59,11 +62,14 @@ class Region : protected Pointers {
   virtual void shape_update() {}
   virtual void pretransform();
 
+  // Kokkos function, implemented by each Kokkos region
+
+  virtual void match_all_kokkos(int, DAT::t_int_1d);
+
  protected:
   void add_contact(int, double *, double, double, double);
   void options(int, char **);
 
- private:
   int moveflag,rotateflag;         // 1 if position/orientation changes
 
   double point[3],axis[3],runit[3];
@@ -91,6 +97,10 @@ E: Variable for region is invalid style
 Only equal-style variables can be used.
 
 E: Variable for region is not equal style
+
+Self-explanatory.
+
+E: Can only use Kokkos supported regions with Kokkos package
 
 Self-explanatory.
 

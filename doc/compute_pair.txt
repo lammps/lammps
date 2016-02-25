@@ -47,6 +47,10 @@ of the total energy contributed by one sub-style.  If {evalue} is
 specfied as {evdwl} or {ecoul}, then just that portion of the energy
 is stored as a global scalar.
 
+NOTE: The energy returned by the {evdwl} keyword does not include tail
+corrections, even if they are enabled via the
+"pair_modify"_pair_modify.html command.
+
 Some pair styles tally additional quantities, e.g. a breakdown of
 potential energy into a dozen or so components is tallied by the
 "pair_style reax"_pair_reax.html commmand.  These values (1 or more)

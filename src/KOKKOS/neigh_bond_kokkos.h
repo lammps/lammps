@@ -77,7 +77,7 @@ class NeighBondKokkos : protected Pointers  {
   unsigned int datamask_read,datamask_modify;
 
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
-  int me;
+  int me,nprocs;
 
  private:
 

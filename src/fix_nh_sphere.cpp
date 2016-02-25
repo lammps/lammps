@@ -92,6 +92,42 @@ void FixNHSphere::nve_v()
 }
 
 /* ----------------------------------------------------------------------
+   perform full-step update of position with dipole orientation, if requested
+-----------------------------------------------------------------------*/
+
+void FixNHSphere::nve_x()
+{
+  // standard nve_x position update
+
+  FixNH::nve_x();
+
+  // update mu for dipoles
+  // d_mu/dt = omega cross mu
+  // renormalize mu to dipole length
+
+  if (dipole_flag) {
+    double msq,scale,g[3];
+    double **mu = atom->mu;
+    double **omega = atom->omega;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+        if (mu[i][3] > 0.0) {
+          g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
+          g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
+          g[2] = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
+          msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+          scale = mu[i][3]/sqrt(msq);
+          mu[i][0] = g[0]*scale;
+          mu[i][1] = g[1]*scale;
+          mu[i][2] = g[2]*scale;
+        }
+  }
+}
+
+/* ----------------------------------------------------------------------
    perform half-step scaling of rotatonal velocities
 -----------------------------------------------------------------------*/
 

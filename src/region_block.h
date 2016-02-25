@@ -34,7 +34,7 @@ class RegBlock : public Region {
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
 
- private:
+ protected:
   double xlo,xhi,ylo,yhi,zlo,zhi;
 };
 

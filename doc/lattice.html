@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>lattice command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>lattice command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -284,14 +284,14 @@ direction, and similarly for y and z.  The 3 lattice directions you
 specify do not have to be unit vectors, but they must be mutually
 orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
 the Z direction.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The preceding paragraph describing lattice directions
-is only valid for orthogonal cubic unit cells (or square in 2d).  If
-you are using a <em>hcp</em> or <em>hex</em> lattice or the more general lattice
-style <em>custom</em> with non-orthogonal a1,a2,a3 vectors, then you should
-think of the 3 <em>orient</em> vectors as creating a 3x3 rotation matrix
-which is applied to a1,a2,a3 to rotate the original unit cell to a new
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The preceding paragraph describing lattice directions is only
+valid for orthogonal cubic unit cells (or square in 2d).  If you are
+using a <em>hcp</em> or <em>hex</em> lattice or the more general lattice style
+<em>custom</em> with non-orthogonal a1,a2,a3 vectors, then you should think
+of the 3 <em>orient</em> vectors as creating a 3x3 rotation matrix which is
+applied to a1,a2,a3 to rotate the original unit cell to a new
 orientation in the simulation box.</p>
 </div>
 <hr class="docutils" />
@@ -299,15 +299,14 @@ orientation in the simulation box.</p>
 inferred from &#8220;lattice spacings&#8221; in the x,y,z box directions.
 E.g. the <a class="reference internal" href="region.html"><em>region</em></a> command can create a block of size
 10x20x20, where 10 means 10 lattice spacings in the x direction.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Though they are called lattice spacings, all the
-commands that have a &#8220;units lattice&#8221; option, simply use the 3 values
-as scale factors on the distance units defined by the
-<a class="reference internal" href="units.html"><em>units</em></a> command.  Thus if you do not like the lattice
-spacings computed by LAMMPS (e.g. for a non-orthogonal or rotated unit
-cell), you can define the 3 values to be whatever you wish, via the
-<em>spacing</em> option.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Though they are called lattice spacings, all the commands that
+have a &#8220;units lattice&#8221; option, simply use the 3 values as scale
+factors on the distance units defined by the <a class="reference internal" href="units.html"><em>units</em></a>
+command.  Thus if you do not like the lattice spacings computed by
+LAMMPS (e.g. for a non-orthogonal or rotated unit cell), you can
+define the 3 values to be whatever you wish, via the <em>spacing</em> option.</p>
 </div>
 <p>If the <em>spacing</em> option is not specified, the lattice spacings are
 computed by LAMMPS in the following way.  A unit cell of the lattice
@@ -323,18 +322,18 @@ dimension are simply the scale factor (described above) multiplied by
 the length of a1,a2,a3.  Thus a <em>hex</em> style lattice with a scale
 factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
 3*sqrt(3.0) in y.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For non-orthogonal unit cells and/or when a rotation
-is applied via the <em>orient</em> keyword, then the lattice spacings
-computed by LAMMPS are typically less intuitive.  In particular, in
-these cases, there is no guarantee that a particular lattice spacing
-is an integer multiple of the periodicity of the lattice in that
-direction.  Thus, if you create an orthogonal periodic simulation box
-whose size in a dimension is a multiple of the lattice spacing, and
-then fill it with atoms via the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>
-command, you will NOT necessarily create a periodic system.
-I.e. atoms may overlap incorrectly at the faces of the simulation box.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For non-orthogonal unit cells and/or when a rotation is applied
+via the <em>orient</em> keyword, then the lattice spacings computed by LAMMPS
+are typically less intuitive.  In particular, in these cases, there is
+no guarantee that a particular lattice spacing is an integer multiple
+of the periodicity of the lattice in that direction.  Thus, if you
+create an orthogonal periodic simulation box whose size in a dimension
+is a multiple of the lattice spacing, and then fill it with atoms via
+the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command, you will NOT necessarily
+create a periodic system.  I.e. atoms may overlap incorrectly at the
+faces of the simulation box.</p>
 </div>
 <p>The <em>spacing</em> option sets the 3 lattice spacings directly.  All must
 be non-zero (use 1.0 for dz in a 2d simulation).  The specified values
@@ -414,7 +413,7 @@ a2 = 0 1 0, and a3 = 0 0 1.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -435,7 +434,7 @@ a2 = 0 1 0, and a3 = 0 0 1.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

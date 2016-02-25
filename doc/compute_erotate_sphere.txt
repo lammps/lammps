@@ -27,9 +27,9 @@ a group of spherical particles.
 The rotational energy is computed as 1/2 I w^2, where I is the moment
 of inertia for a sphere and w is the particle's angular velocity.
 
-IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
-as spheres, not disks, meaning their moment of inertia will be the
-same as in 3d.
+NOTE: For "2d models"_dimension.html, particles are treated as
+spheres, not disks, meaning their moment of inertia will be the same
+as in 3d.
 
 [Output info:]
 

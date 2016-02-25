@@ -64,10 +64,10 @@ the "run"_run.html command.
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.
 
-IMPORTANT NOTE: If you want the per-atom spring energy to be included
-in the total potential energy of the system (the quantity being
-minimized), you MUST enable the "fix_modify"_fix_modify.html {energy}
-option for this fix.
+NOTE: If you want the per-atom spring energy to be included in the
+total potential energy of the system (the quantity being minimized),
+you MUST enable the "fix_modify"_fix_modify.html {energy} option for
+this fix.
 
 [Restrictions:] none
 

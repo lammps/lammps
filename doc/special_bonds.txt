@@ -55,7 +55,7 @@ specified by the bond, angle, dihedral potentials, and thus the
 non-bonded Lennard-Jones or Coulombic interaction between the pair of
 atoms should be excluded (or reduced by a weighting factor).
 
-IMPORTANT NOTE: These weighting factors are NOT used by "pair
+NOTE: These weighting factors are NOT used by "pair
 styles"_pair_style.html that compute many-body interactions, since the
 "bonds" that result from such interactions are not permanent, but are
 created and broken dynamically as atom conformations change.  Examples
@@ -67,13 +67,12 @@ e.g. when using the "pair_style hybrid"_pair_hybrid.html command.
 Thus LAMMPS ignores special_bonds settings when manybody potentials
 are calculated.
 
-IMPORTANT NOTE: Unlike some commands in LAMMPS, you cannot use this
-command multiple times in an incremental fashion: e.g. to first set
-the LJ settings and then the Coulombic ones.  Each time you use this
-command it sets all the coefficients to default values and only
-overrides the one you specify, so you should set all the options you
-need each time you use it.  See more details at the bottom of this
-page.
+NOTE: Unlike some commands in LAMMPS, you cannot use this command
+multiple times in an incremental fashion: e.g. to first set the LJ
+settings and then the Coulombic ones.  Each time you use this command
+it sets all the coefficients to default values and only overrides the
+one you specify, so you should set all the options you need each time
+you use it.  See more details at the bottom of this page.
 
 The Coulomb factors are applied to any Coulomb (charge interaction)
 term that the potential calculates.  The LJ factors are applied to the
@@ -94,16 +93,16 @@ to 0.0, then the pairwise interaction is effectively turned off for
 all pairs of atoms bonded to each other.  If it is set to 1.0, then
 that interaction will be at full strength.
 
-IMPORTANT NOTE: For purposes of computing weighted pairwise
-interactions, 1-3 and 1-4 interactions are not defined from the list
-of angles or dihedrals used by the simulation.  Rather, they are
-inferred topologically from the set of bonds specified when the
-simulation is defined from a data or restart file (see
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands).  Thus the set of 1-2,1-3,1-4 interactions that the weights
-apply to is the same whether angle and dihedral potentials are
-computed or not, and remains the same even if bonds are constrained,
-or turned off, or removed during a simulation.
+NOTE: For purposes of computing weighted pairwise interactions, 1-3
+and 1-4 interactions are not defined from the list of angles or
+dihedrals used by the simulation.  Rather, they are inferred
+topologically from the set of bonds specified when the simulation is
+defined from a data or restart file (see "read_data"_read_data.html or
+"read_restart"_read_restart.html commands).  Thus the set of
+1-2,1-3,1-4 interactions that the weights apply to is the same whether
+angle and dihedral potentials are computed or not, and remains the
+same even if bonds are constrained, or turned off, or removed during a
+simulation.
 
 The two exceptions to this rule are (a) if the {angle} or {dihedral}
 keywords are set to {yes} (see below), or (b) if the
@@ -183,23 +182,23 @@ current system has.
 
 :line 
 
-IMPORTANT NOTE: LAMMPS stores and maintains a data structure with a
-list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
-topology of the system).  If new bonds are created (or molecules added
-containing atoms with more special neighbors), the size of this list
-needs to grow.  Note that adding a single bond always adds a new 1st
-neighbor but may also induce *many* new 2nd and 3rd neighbors,
-depending on the molecular topology of your system.  Using the {extra}
-keyword leaves empty space in the list for this N additional 1st, 2nd,
-or 3rd neighbors to be added.  If you do not do this, you may get an
-error when bonds (or molecules) are added.
+NOTE: LAMMPS stores and maintains a data structure with a list of the
+1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+the system).  If new bonds are created (or molecules added containing
+atoms with more special neighbors), the size of this list needs to
+grow.  Note that adding a single bond always adds a new 1st neighbor
+but may also induce *many* new 2nd and 3rd neighbors, depending on the
+molecular topology of your system.  Using the {extra} keyword leaves
+empty space in the list for this N additional 1st, 2nd, or 3rd
+neighbors to be added.  If you do not do this, you may get an error
+when bonds (or molecules) are added.
 
 :line 
 
-IMPORTANT NOTE: If you reuse this command in an input script, you
-should set all the options you need each time.  This command cannot be
-used a 2nd time incrementally, e.g. to add some extra storage
-locations via the {extra} keyword.  E.g. these two commands:
+NOTE: If you reuse this command in an input script, you should set all
+the options you need each time.  This command cannot be used a 2nd
+time incrementally, e.g. to add some extra storage locations via the
+{extra} keyword.  E.g. these two commands:
 
 special_bonds lj 0.0 1.0 1.0
 special_bonds coul 0.0 0.0 1.0

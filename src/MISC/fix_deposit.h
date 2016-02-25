@@ -153,6 +153,12 @@ E: Fix deposit and fix shake not using same molecule template ID
 
 Self-explanatory.
 
+W: Fix deposit near setting < possible overlap separation %g
+
+This test is performed for finite size particles with a diameter, not
+for point particles.  The near setting is smaller than the particle
+diameter which can lead to overlaps.
+
 W: Particle deposition was unsuccessful
 
 The fix deposit command was not able to insert as many atoms as

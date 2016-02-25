@@ -113,11 +113,11 @@ are available, such as single-topology or double-topology strategies
 "(Pearlman)"_#Pearlman. The latter does not require modification of
 bond lengths, angles or other internal coordinates.
 
-IMPORTANT NOTES: This compute command does not take kinetic energy
-into account, therefore the masses of the particles should not be
-modified between the reference and perturbed states, or along the
-alchemical transformation route.  This compute command does not change
-bond lengths or other internal coordinates "(Boresch,
+NOTES: This compute command does not take kinetic energy into account,
+therefore the masses of the particles should not be modified between
+the reference and perturbed states, or along the alchemical
+transformation route.  This compute command does not change bond
+lengths or other internal coordinates "(Boresch,
 Karplus)"_#BoreschKarplus.
 
 :line

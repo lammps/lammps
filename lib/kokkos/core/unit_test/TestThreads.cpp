@@ -134,6 +134,16 @@ TEST_F( threads , init ) {
   ;
 }
 
+TEST_F( threads , dispatch )
+{
+  const int repeat = 100 ;
+  for ( int i = 0 ; i < repeat ; ++i ) {
+  for ( int j = 0 ; j < repeat ; ++j ) {
+    Kokkos::parallel_for( Kokkos::RangePolicy< Kokkos::Threads >(0,j)
+                        , KOKKOS_LAMBDA( int ) {} );
+  }}
+}
+
 TEST_F( threads , impl_shared_alloc ) {
   test_shared_alloc< Kokkos::HostSpace , Kokkos::Threads >();
 }

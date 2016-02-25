@@ -487,7 +487,7 @@ void PairComb::coeff(int narg, char **arg)
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
-  setup();
+  setup_params();
 
   n = atom->ntypes;
 
@@ -772,7 +772,7 @@ void PairComb::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::setup()
+void PairComb::setup_params()
 {
   int i,j,k,m,n;
 
@@ -1790,7 +1790,6 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
     if (mask[i] & groupbit)
       eneg += qf[i];
   }
-  double enegtot;
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);
   return enegtot;
 }

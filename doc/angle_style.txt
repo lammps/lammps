@@ -43,7 +43,7 @@ command for details on how to do this.  The one exception is that
 angle_style {hybrid} only stores the list of sub-styles in the restart
 file; angle coefficients need to be re-specified.
 
-IMPORTANT NOTE: When both an angle and pair style is defined, the
+NOTE: When both an angle and pair style is defined, the
 "special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between 3 bonded atoms.
@@ -63,6 +63,7 @@ links to the individual styles are given in the angle section of "this
 page"_Section_commands.html#cmd_5.
 
 "angle_style none"_angle_none.html - turn off angle interactions
+"angle_style zero"_angle_zero.html - topology but no interactions
 "angle_style hybrid"_angle_hybrid.html - define multiple styles of angle interactions :ul
 
 "angle_style charmm"_angle_charmm.html - CHARMM angle

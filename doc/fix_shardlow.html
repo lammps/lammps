@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix shardlow command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix shardlow command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-shardlow-command">
+<span id="index-0"></span><h1>fix shardlow command<a class="headerlink" href="#fix-shardlow-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID shardlow
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>shardlow = style name of this fix command</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all shardlow
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Specifies that the Shardlow splitting algorithm (SSA) is to be used to
+integrate the DPD equations of motion.  The SSA splits the integration
+into a stochastic and deterministic integration step.  The fix
+<em>shardlow</em> performs the stochastic integration step and must be used
+in conjunction with a deterministic integrator (e.g. <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">nph</span></code>).  The stochastic
+integration of the dissipative and random forces is performed prior to
+the deterministic integration of the conservative force. Further
+details regarding the method are provided in <a class="reference internal" href="pair_dpd_fdt.html#lisal"><span>(Lisal)</span></a> and
+<a class="reference internal" href="fix_eos_cv.html#larentzos"><span>(Larentzos)</span></a>.</p>
+<p>The fix <em>shardlow</em> must be used with the <a class="reference internal" href="pair_style.html"><em>pair_style dpd/fdt</em></a> or <a class="reference internal" href="pair_style.html"><em>pair_style dpd/fdt/energy</em></a> command to properly initialize the
+fluctuation-dissipation theorem parameter(s) sigma (and kappa, if
+necessary).</p>
+<p>Note that numerous variants of DPD can be specified by choosing an
+appropriate combination of the integrator and <a class="reference internal" href="pair_style.html"><em>pair_style dpd/fdt</em></a> command.  DPD under isothermal conditions can
+be specified by using fix <em>shardlow</em>, fix <em>nve</em> and pair_style
+<em>dpd/fdt</em>.  DPD under isoenergetic conditions can be specified by
+using fix <em>shardlow</em>, fix <em>nve</em> and pair_style <em>dpd/fdt/energy</em>.  DPD
+under isobaric conditions can be specified by using fix shardlow, fix
+<em>nph</em> and pair_style <em>dpd/fdt</em>.  DPD under isoenthalpic conditions can
+be specified by using fix shardlow, fix <em>nph</em> and pair_style
+<em>dpd/fdt/energy</em>.  Examples of each DPD variant are provided in the
+examples/USER/dpd directory.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is only available if LAMMPS is built with the USER-DPD
+package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section
+for more info.</p>
+<p>This fix is currently limited to orthogonal simulation cell
+geometries.</p>
+<p>This fix must be used with an additional fix that specifies time
+integration, e.g. <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>.</p>
+<p>The Shardlow splitting algorithm requires the sizes of the sub-domain
+lengths to be larger than twice the cutoff+skin.  Generally, the
+domain decomposition is dependant on the number of processors
+requested.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_dpd_fdt.html"><em>pair_style dpd/fdt</em></a>, <a class="reference internal" href="fix_eos_cv.html"><em>fix eos/cv</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="lisal"><strong>(Lisal)</strong> M. Lisal, J.K. Brennan, J. Bonet Avalos, &#8220;Dissipative
+particle dynamics as isothermal, isobaric, isoenergetic, and
+isoenthalpic conditions using Shardlow-like splitting algorithms.&#8221;,
+J. Chem. Phys., 135, 204105 (2011).</p>
+<p id="larentzos"><strong>(Larentzos)</strong> J.P. Larentzos, J.K. Brennan, J.D. Moore, M. Lisal and
+W.D. Mattson, &#8220;Parallel Implementation of Isothermal and Isoenergetic
+Dissipative Particle Dynamics Using Shardlow-Like Splitting
+Algorithms&#8221;, Comput. Phys. Commun., 185, 1987-1998 (2014).</p>
+<p id="id1"><strong>(Larentzos)</strong> J.P. Larentzos, J.K. Brennan, J.D. Moore, and
+W.D. Mattson, &#8220;LAMMPS Implementation of Constant Energy Dissipative
+Particle Dynamics (DPD-E)&#8221;, ARL-TR-6863, U.S. Army Research
+Laboratory, Aberdeen Proving Ground, MD (2014).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -42,11 +42,10 @@ calculated by the simple formula above. For thermodynamic output, the
 with 1/2 Kb T of energy for each (nuclear-only) degree of freedom in
 eFF.
 
-IMPORTANT NOTE: The temperature in eFF should be monitored via the
-"compute temp/eff"_compute_temp_eff.html command, which can be printed
-with thermodynamic output by using the
-"thermo_modify"_thermo_modify.html command, as shown in the following
-example:
+NOTE: The temperature in eFF should be monitored via the "compute
+temp/eff"_compute_temp_eff.html command, which can be printed with
+thermodynamic output by using the "thermo_modify"_thermo_modify.html
+command, as shown in the following example:
 
 compute         effTemp all temp/eff
 thermo_style    custom step etotal pe ke temp press 

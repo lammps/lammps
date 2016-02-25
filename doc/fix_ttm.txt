@@ -161,11 +161,11 @@ atoms.  The fixes should not normally be used on atoms that have their
 temperature controlled by another fix - e.g. "fix nvt"_fix_nh.html or
 "fix langevin"_fix_langevin.html.
 
-IMPORTANT NOTE: The current implementations of these fixes create a
-copy of the electron grid that overlays the entire simulation domain,
-for each processor.  Values on the grid are summed across all
-processors.  Thus you should insure that this grid is not too large,
-else your simulation could incur high memory and communication costs.
+NOTE: The current implementations of these fixes create a copy of the
+electron grid that overlays the entire simulation domain, for each
+processor.  Values on the grid are summed across all processors.  Thus
+you should insure that this grid is not too large, else your
+simulation could incur high memory and communication costs.
 
 :line
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix qtb command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix qtb command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -235,14 +235,14 @@ spectrum while consumes more memory.  With fixed <em>f_max</em> and
 temperature &lt;i&gt;T&lt;/i&gt;&lt;sup&gt;cl&lt;/sup&gt; as a function of target quantum bath
 temperature. Memory usage per processor could be from 10 to 100
 Mbytes.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which
-performs Nose/Hoover thermostatting AND time integration, this fix
-does NOT perform time integration. It only modifies forces to a
-colored thermostat. Thus you must use a separate time integration fix,
-like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> to actually
-update the velocities and positions of atoms (as shown in the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command which performs
+Nose/Hoover thermostatting AND time integration, this fix does NOT
+perform time integration. It only modifies forces to a colored
+thermostat. Thus you must use a separate time integration fix, like
+<a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> to actually update the
+velocities and positions of atoms (as shown in the
 examples). Likewise, this fix should not normally be used with other
 fixes or commands that also specify system temperatures , e.g. <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> and <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>.</p>
 </div>
@@ -287,7 +287,7 @@ Lett, 103, 190601 (2009).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -308,7 +308,7 @@ Lett, 103, 190601 (2009).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

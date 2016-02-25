@@ -131,12 +131,12 @@ constant-volume calculations and simulations.  It is strongly
 recommended that the user work through and understand these examples
 before proceeding to more complex simulations.
 
-IMPORTANT NOTE: For good performance, LAMMPS should be built with the
-compiler flags "-O3 -msse3 -funroll-loops" when including this pair
-style.  The src/MAKE/OPTIONS/Makefile.mpi_fastmgpt is an example
-machine Makefile with these options included as part of a standard MPI
-build.  Note that as-is it will build with whatever low-level compiler
-(g++, icc, etc) is the default for your MPI installation.
+NOTE: For good performance, LAMMPS should be built with the compiler
+flags "-O3 -msse3 -funroll-loops" when including this pair style.  The
+src/MAKE/OPTIONS/Makefile.mpi_fastmgpt is an example machine Makefile
+with these options included as part of a standard MPI build.  Note
+that as-is it will build with whatever low-level compiler (g++, icc,
+etc) is the default for your MPI installation.
 
 :line
 

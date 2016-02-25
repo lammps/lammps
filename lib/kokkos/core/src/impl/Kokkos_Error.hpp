@@ -46,7 +46,10 @@
 
 #include <string>
 #include <iosfwd>
+#include <KokkosCore_config.h>
+#ifdef KOKKOS_HAVE_CUDA
 #include <Cuda/Kokkos_Cuda_abort.hpp>
+#endif
 
 namespace Kokkos {
 namespace Impl {

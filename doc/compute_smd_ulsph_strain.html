@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute smd/ulsph_strain command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute smd/ulsph/strain command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute smd/ulsph_strain command</li>
+    <li>compute smd/ulsph/strain command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -125,46 +125,49 @@
            <div itemprop="articleBody">
             
   <div class="section" id="compute-smd-ulsph-strain-command">
-<span id="index-0"></span><h1>compute smd/ulsph_strain command<a class="headerlink" href="#compute-smd-ulsph-strain-command" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>compute smd/ulsph/strain command<a class="headerlink" href="#compute-smd-ulsph-strain-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/ulsph_strain
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/ulsph/strain
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>smd/ulsph_strain = style name of this compute command</li>
+<li>smd/ulsph/strain = style name of this compute command</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/ulsph_strain
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/ulsph/strain
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that outputs the logarithmic strain tensor.
-for particles interacting via the updated Lagrangian SPH pair style.</p>
-<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to using Smooth Mach Dynamics in LAMMPS.</p>
+<p>Define a computation that outputs the logarithmic strain tensor.  for
+particles interacting via the updated Lagrangian SPH pair style.</p>
+<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to using Smooth
+Mach Dynamics in LAMMPS.</p>
 <p><strong>Output info:</strong></p>
-<p>This compute calculates a per-particle tensor, which can be accessed by
-any command that uses per-particle values from a compute as input.  See
-<a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of
+<p>This compute calculates a per-particle tensor, which can be accessed
+by any command that uses per-particle values from a compute as input.
+See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of
 LAMMPS output options.</p>
-<p>The per-particle vector has 6 entries, corresponding to the xx, yy, zz, xy, xz, yz components
-of the symmetric strain rate tensor.</p>
-<p>The per-particle tensor values will be given dimensionless, see <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+<p>The per-particle vector has 6 entries, corresponding to the xx, yy,
+zz, xy, xz, yz components of the symmetric strain rate tensor.</p>
+<p>The per-particle tensor values will be given dimensionless, see
+<a class="reference internal" href="units.html"><em>units</em></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
-section for more info. This compute can only be used for particles which interact with the updated Lagrangian SPH pair style.</p>
+LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info. This compute
+can only be used for particles which interact with the updated
+Lagrangian SPH pair style.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p>smd/tlsph_strain</p>
+<p><a class="reference internal" href="compute_smd_tlsph_strain.html"><em>compute smd/tlsph/strain</em></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>
@@ -179,7 +182,7 @@ section for more info. This compute can only be used for particles which interac
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -200,7 +203,7 @@ section for more info. This compute can only be used for particles which interac
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -9,17 +9,20 @@
 pair_style buck command :h3
 pair_style buck/cuda command :h3
 pair_style buck/gpu command :h3
+pair_style buck/intel command :h3
 pair_style buck/kk command :h3
 pair_style buck/omp command :h3
 pair_style buck/coul/cut command :h3
 pair_style buck/coul/cut/cuda command :h3
 pair_style buck/coul/cut/gpu command :h3
+pair_style buck/coul/cut/intel command :h3
 pair_style buck/coul/cut/kk command :h3
 pair_style buck/coul/cut/omp command :h3
 pair_style buck/coul/long command :h3
 pair_style buck/coul/long/cs command :h3
 pair_style buck/coul/long/cuda command :h3
 pair_style buck/coul/long/gpu command :h3
+pair_style buck/coul/long/intel command :h3
 pair_style buck/coul/long/kk command :h3
 pair_style buck/coul/long/omp command :h3
 pair_style buck/coul/msm command :h3
@@ -100,11 +103,11 @@ to allow charges on core and shell particles to be separated by r =
 Note that these potentials are related to the "Born-Mayer-Huggins
 potential"_pair_born.html.
 
-IMPORTANT NOTE: For all these pair styles, the terms with A and C are
-always cutoff.  The additional Coulombic term can be cutoff or
-long-range (no cutoff) depending on whether the style name includes
-coul/cut or coul/long or coul/msm.  If you wish the C/r^6 term to be
-long-range (no cutoff), then see the "pair_style
+NOTE: For all these pair styles, the terms with A and C are always
+cutoff.  The additional Coulombic term can be cutoff or long-range (no
+cutoff) depending on whether the style name includes coul/cut or
+coul/long or coul/msm.  If you wish the C/r^6 term to be long-range
+(no cutoff), then see the "pair_style
 buck/long/coul/long"_pair_buck_long.html command.
 
 The following coefficients must be defined for each pair of atoms

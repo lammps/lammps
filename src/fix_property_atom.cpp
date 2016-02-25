@@ -222,8 +222,21 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    for (j = 1; j < nwords; j++)
+    if (values[0] == NULL) {
+      char str[128];
+      sprintf(str,"Too few lines in %s section of data file",keyword);
+      error->one(FLERR,str);
+    }
+    int format_ok = 1;
+    for (j = 1; j < nwords; j++) {
       values[j] = strtok(NULL," \t\n\r\f");
+      if (values[j] == NULL) format_ok = 0;
+    }
+    if (!format_ok) {
+      char str[128];
+      sprintf(str,"Incorrect %s format in data file",keyword);
+      error->all(FLERR,str);
+    }
 
     itag = ATOTAGINT(values[0]) + id_offset;
     if (itag <= 0 || itag > map_tag_max) {

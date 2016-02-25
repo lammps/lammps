@@ -100,6 +100,8 @@ class Pair : protected Pointers {
   unsigned int datamask;
   unsigned int datamask_ext;
 
+  int allocated;                 // 0/1 = whether arrays are allocated
+                                 //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
 
   // KOKKOS host/device flag and data masks
@@ -114,6 +116,7 @@ class Pair : protected Pointers {
 
   void init();
   virtual void reinit();
+  virtual void setup() {}
   double mix_energy(double, double, double, double);
   double mix_distance(double, double);
   void write_file(int, char **);
@@ -203,7 +206,6 @@ class Pair : protected Pointers {
 
   int special_lj[4];           // copied from force->special_lj for Kokkos
 
-  int allocated;               // 0/1 = whether arrays are allocated
   int suffix_flag;             // suffix compatibility flag
 
                                        // pair_modify settings
@@ -235,6 +237,17 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int,
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
+
+  // union data struct for packing 32-bit and 64-bit ints into double bufs
+  // see atom_vec.h for documentation
+
+  union ubuf {
+    double d;
+    int64_t i;
+    ubuf(double arg) : d(arg) {}
+    ubuf(int64_t arg) : i(arg) {}
+    ubuf(int arg) : i(arg) {}
+  };
 
   inline int sbmask(int j) {
     return j >> SBBITS & 3;
@@ -272,6 +285,14 @@ This is probably a bogus thing to do, since tail corrections are
 computed by integrating the density of a periodic system out to
 infinity.
 
+W: Using pair tail corrections with pair_modify compute no
+
+The tail corrections will thus not be computed.
+
+W: Using pair potential shift with pair_modify compute no
+
+The shift effects will thus not be computed.
+
 W: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions
 
 This is likely not what you want to do.  The exclusion settings will
@@ -290,6 +311,10 @@ New coding for the pair style would need to be done.
 E: Pair style requires a KSpace style
 
 No kspace style is defined.
+
+E: Cannot yet use compute tally with Kokkos
+
+This feature is not yet supported.
 
 E: Pair style does not support pair_write
 

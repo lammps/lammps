@@ -32,8 +32,8 @@ using namespace FixConst;
 
 enum{V,F,DENSITY_NUMBER,DENSITY_MASS,MASS,TEMPERATURE,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
-enum{ONE,RUNNING,WINDOW};
 enum{NOSCALE,ATOM};
+enum{ONE,RUNNING,WINDOW};
 
 #define INVOKED_PERATOM 8
 
@@ -137,8 +137,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   normflag = ALL;
-  ave = ONE;
   scaleflag = ATOM;
+  ave = ONE;
   fp = NULL;
   nwindow = 0;
   biasflag = 0;
@@ -155,9 +155,16 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
-      else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
-      else error->all(FLERR,"Illegal fix ave/chunk command");
+      if (strcmp(arg[iarg+1],"all") == 0) {
+	normflag = ALL;
+	scaleflag = ATOM;
+      } else if (strcmp(arg[iarg+1],"sample") == 0) {
+	normflag = SAMPLE;
+	scaleflag = ATOM;
+      } else if (strcmp(arg[iarg+1],"none") == 0) {
+	normflag = SAMPLE;
+	scaleflag = NOSCALE;
+      } else error->all(FLERR,"Illegal fix ave/chunk command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
@@ -172,12 +179,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
-    } else if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (strcmp(arg[iarg+1],"none") == 0) scaleflag = NOSCALE;
-      else if (strcmp(arg[iarg+1],"atom") == 0) scaleflag = ATOM;
-      else error->all(FLERR,"Illegal fix ave/chunk command");
-      iarg += 2;
 
     } else if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg)
@@ -829,13 +830,20 @@ void FixAveChunk::end_of_step()
   }
 
   // DENSITYs are additionally normalized by chunk volume
-  // only relevant if chunks are spatial bins
+  // use scalar or vector values for volume(s)
+  // if chunks are not spatial bins, chunk_volume_scalar = 1.0
 
   for (j = 0; j < nvalues; j++)
     if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS) {
-      double chunk_volume = cchunk->chunk_volume_scalar;
-      for (m = 0; m < nchunk; m++)
-        values_sum[m][j] /= chunk_volume;
+      if (cchunk->chunk_volume_vec) {
+        double *chunk_volume_vec = cchunk->chunk_volume_vec;
+        for (m = 0; m < nchunk; m++)
+          values_sum[m][j] /= chunk_volume_vec[m];
+      } else {
+        double chunk_volume_scalar = cchunk->chunk_volume_scalar;
+        for (m = 0; m < nchunk; m++)
+          values_sum[m][j] /= chunk_volume_scalar;
+      }
     }
 
   // if ave = ONE, only single Nfreq timestep value is needed

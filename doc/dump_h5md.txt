@@ -69,10 +69,9 @@ box information (edges in each dimension) is stored at the same
 interval than the {position} element, if present. Else it is stored
 every N steps.
 
-IMPORTANT NOTE: Because periodic boundary conditions are enforced only
-on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom written to a dump file may be slightly outside the simulation
-box.
+NOTE: Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.
 
 [Use from write_dump:]
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -208,6 +208,7 @@ in the pair section of <a class="reference internal" href="Section_commands.html
 <li><a class="reference internal" href="pair_none.html"><em>pair_style none</em></a> - turn off pairwise interactions</li>
 <li><a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> - multiple styles of pairwise interactions</li>
 <li><a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a> - multiple styles of superposed pairwise interactions</li>
+<li><a class="reference internal" href="pair_zero.html"><em>pair_style zero</em></a> - neighbor list but no interactions</li>
 <li><a class="reference internal" href="pair_adp.html"><em>pair_style adp</em></a> - angular dependent potential (ADP) of Mishin</li>
 <li><a class="reference internal" href="pair_airebo.html"><em>pair_style airebo</em></a> - AIREBO potential of Stuart</li>
 <li><a class="reference internal" href="pair_beck.html"><em>pair_style beck</em></a> - Beck potential</li>
@@ -235,7 +236,7 @@ in the pair section of <a class="reference internal" href="Section_commands.html
 <li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/long</em></a> - long-range Coulombic potential</li>
 <li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/long/cs</em></a> - long-range Coulombic potential and core/shell</li>
 <li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/msm</em></a> - long-range MSM Coulombics</li>
-<li><code class="xref doc docutils literal"><span class="pre">pair_style</span> <span class="pre">coul/msm</span></code> - Coulombics via Streitz/Mintmire Slater orbitals</li>
+<li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/streitz</em></a> - Coulombics via Streitz/Mintmire Slater orbitals</li>
 <li><a class="reference internal" href="pair_coul.html"><em>pair_style coul/wolf</em></a> - Coulombics via Wolf potential</li>
 <li><a class="reference internal" href="pair_dpd.html"><em>pair_style dpd</em></a> - dissipative particle dynamics (DPD)</li>
 <li><a class="reference internal" href="pair_dpd.html"><em>pair_style dpd/tstat</em></a> - DPD thermostatting</li>
@@ -261,11 +262,13 @@ in the pair section of <a class="reference internal" href="Section_commands.html
 <li><a class="reference internal" href="pair_class2.html"><em>pair_style lj/class2</em></a> - COMPASS (class 2) force field with no Coulomb</li>
 <li><a class="reference internal" href="pair_class2.html"><em>pair_style lj/class2/coul/cut</em></a> - COMPASS with cutoff Coulomb</li>
 <li><a class="reference internal" href="pair_class2.html"><em>pair_style lj/class2/coul/long</em></a> - COMPASS with long-range Coulomb</li>
+<li><a class="reference internal" href="pair_lj_cubic.html"><em>pair_style lj/cubic</em></a> - LJ with cubic after inflection point</li>
 <li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut</em></a> - cutoff Lennard-Jones potential with no Coulomb</li>
 <li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/cut</em></a> - LJ with cutoff Coulomb</li>
 <li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/debye</em></a> - LJ with Debye screening added to Coulomb</li>
 <li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/dsf</em></a> - LJ with Coulombics via damped shifted forces</li>
 <li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/long</em></a> - LJ with long-range Coulombics</li>
+<li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/long/cs</em></a> - LJ with long-range Coulombics and core/shell</li>
 <li><a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/msm</em></a> - LJ with long-range MSM Coulombics</li>
 <li><a class="reference internal" href="pair_dipole.html"><em>pair_style lj/cut/dipole/cut</em></a> - point dipoles with cutoff</li>
 <li><a class="reference internal" href="pair_dipole.html"><em>pair_style lj/cut/dipole/long</em></a> - point dipoles with long-range Ewald</li>
@@ -309,7 +312,7 @@ in the pair section of <a class="reference internal" href="Section_commands.html
 <li><a class="reference internal" href="pair_coul.html"><em>pair_style tip4p/cut</em></a> - Coulomb for TIP4P water w/out LJ</li>
 <li><a class="reference internal" href="pair_coul.html"><em>pair_style tip4p/long</em></a> - long-range Coulombics for TIP4P water w/out LJ</li>
 <li><a class="reference internal" href="pair_tri_lj.html"><em>pair_style tri/lj</em></a> - LJ potential between triangles</li>
-<li><code class="xref doc docutils literal"><span class="pre">pair_style</span> <span class="pre">vashishta</span></code> - Vashishta 2-body and 3-body potential</li>
+<li><a class="reference internal" href="pair_vashishta.html"><em>pair_style vashishta</em></a> - Vashishta 2-body and 3-body potential</li>
 <li><a class="reference internal" href="pair_yukawa.html"><em>pair_style yukawa</em></a> - Yukawa potential</li>
 <li><a class="reference internal" href="pair_yukawa_colloid.html"><em>pair_style yukawa/colloid</em></a> - screened Yukawa potential for finite-size particles</li>
 <li><a class="reference internal" href="pair_zbl.html"><em>pair_style zbl</em></a> - Ziegler-Biersack-Littmark potential</li>
@@ -350,7 +353,7 @@ package.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -371,7 +374,7 @@ package.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

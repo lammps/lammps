@@ -172,7 +172,7 @@ class PairTersoffKokkos : public PairTersoff {
 		F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
   void allocate();
-  void setup();
+  void setup_params();
 
  protected:
   void cleanup_copy();
@@ -216,5 +216,9 @@ class PairTersoffKokkos : public PairTersoff {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Cannot use chosen neighbor list style with tersoff/kk
+
+Self-explanatory.
 
 */

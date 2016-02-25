@@ -42,6 +42,9 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
 
   outerflag = 0;
   respaflag = 0;
+
+  if (lmp->kokkos)
+    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -468,8 +471,8 @@ void PairHybrid::init_style()
       for (i = 1; i < 4; ++i) {
         if (((force->special_lj[i] == 0.0) || (force->special_lj[i] == 1.0))
             && (force->special_lj[i] != special_lj[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting incompatible with"
-                     " global special_bonds setting");
+          error->all(FLERR,"Pair_modify special setting for pair hybrid "
+		     "incompatible with global special_bonds setting");
       }
     }
 
@@ -478,8 +481,8 @@ void PairHybrid::init_style()
         if (((force->special_coul[i] == 0.0)
              || (force->special_coul[i] == 1.0))
             && (force->special_coul[i] != special_coul[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting incompatible with"
-                     "global special_bonds setting");
+          error->all(FLERR,"Pair_modify special setting for pair hybrid "
+		     "incompatible with global special_bonds setting");
       }
     }
   }
@@ -603,6 +606,15 @@ double PairHybrid::init_one(int i, int j)
   }
 
   return cutmax;
+}
+
+/* ----------------------------------------------------------------------
+   invoke setup for each sub-style
+------------------------------------------------------------------------- */
+
+void PairHybrid::setup()
+{
+  for (int m = 0; m < nstyles; m++) styles[m]->setup();
 }
 
 /* ----------------------------------------------------------------------

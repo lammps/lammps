@@ -468,8 +468,8 @@ These tools were written by Aidan Thompson at Sandia.
 
 restart2data tool :h4,link(restart)
 
-IMPORTANT NOTE: This tool is now obsolete and is not included in the
-current LAMMPS distribution.  This is becaues there is now a
+NOTE: This tool is now obsolete and is not included in the current
+LAMMPS distribution.  This is becaues there is now a
 "write_data"_write_data.html command, which can create a data file
 from within an input script.  Running LAMMPS with the "-r"
 "command-line switch"_Section_start.html#start_7 as follows:

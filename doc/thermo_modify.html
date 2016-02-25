@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>thermo_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>thermo_modify command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -160,13 +160,13 @@ thermo_modify line multi format float %g
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Set options for how thermodynamic information is computed and printed
 by LAMMPS.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">These options apply to the currently defined thermo
-style.  When you specify a <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command,
-all thermodynamic settings are restored to their default values,
-including those previously reset by a thermo_modify command.  Thus if
-your input script specifies a thermo_style command, you should use the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These options apply to the currently defined thermo style.  When
+you specify a <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command, all
+thermodynamic settings are restored to their default values, including
+those previously reset by a thermo_modify command.  Thus if your input
+script specifies a thermo_style command, you should use the
 thermo_modify command after it.</p>
 </div>
 <p>The <em>lost</em> keyword determines whether LAMMPS checks for lost atoms
@@ -226,8 +226,8 @@ numeric value M (e.g. format 5 %10.4g) sets the format of the Mth
 value printed in each output line, e.g. the 5th column of output in
 this case.  If the format for a specific column has been set, it will
 take precedent over the <em>int</em> or <em>float</em> setting.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">The thermo output values <em>step</em> and <em>atoms</em> are stored
 internally as 8-byte signed integers, rather than the usual 4-byte
 signed integers.  When specifying the &#8220;format int&#8221; keyword you can use
@@ -255,18 +255,17 @@ calculates a pressure.  As described in the
 <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command, thermo output uses a default
 compute for pressure with ID = <em>thermo_press</em>.  This option allows the
 user to override the default.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If both the <em>temp</em> and <em>press</em> keywords are used in a
-single thermo_modify command (or in two separate commands), then the
-order in which the keywords are specified is important.  Note that a
-<a class="reference internal" href="compute_pressure.html"><em>pressure compute</em></a> defines its own temperature
-compute as an argument when it is specified.  The <em>temp</em> keyword will
-override this (for the pressure compute being used by thermodynamics),
-but only if the <em>temp</em> keyword comes after the <em>press</em> keyword.  If
-the <em>temp</em> keyword comes before the <em>press</em> keyword, then the new
-pressure compute specified by the <em>press</em> keyword will be unaffected
-by the <em>temp</em> setting.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If both the <em>temp</em> and <em>press</em> keywords are used in a single
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a <a class="reference internal" href="compute_pressure.html"><em>pressure compute</em></a> defines its own temperature compute as
+an argument when it is specified.  The <em>temp</em> keyword will override
+this (for the pressure compute being used by thermodynamics), but only
+if the <em>temp</em> keyword comes after the <em>press</em> keyword.  If the <em>temp</em>
+keyword comes before the <em>press</em> keyword, then the new pressure
+compute specified by the <em>press</em> keyword will be unaffected by the
+<em>temp</em> setting.</p>
 </div>
 </div>
 <div class="section" id="restrictions">
@@ -300,7 +299,7 @@ format defaults are &#8220;multi&#8221;, &#8220;%8d&#8221;, and &#8220;%14.4f&#8
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -321,7 +320,7 @@ format defaults are &#8220;multi&#8221;, &#8220;%8d&#8221;, and &#8220;%14.4f&#8
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -51,10 +51,12 @@ class ComputeChunkAtom : public Compute {
   int which,binflag;
   int regionflag,nchunksetflag,nchunkflag,discard;
   int limit,limitstyle,limitfirst;
-  int scaleflag;
+  int scaleflag,pbcflag;
   double xscale,yscale,zscale;
   int argindex;
   char *cfvid;
+
+  // xyz spatial bins
 
   int ndim;
   int dim[3],originflag[3],nlayers[3];
@@ -62,6 +64,23 @@ class ComputeChunkAtom : public Compute {
   double origin[3],delta[3];
   double offset[3],invdelta[3];
   double minvalue[3],maxvalue[3];
+
+  // spherical spatial bins
+
+  double sorigin_user[3];
+  double sorigin[3];
+  double sradmin_user,sradmax_user;
+  double sradmin,sradmax,sinvrad;
+  int nsbin;
+
+  // cylindrical spatial bins
+
+  double corigin_user[3];
+  double corigin[3];
+  double cradmin_user,cradmax_user;
+  double cradmin,cradmax,cinvrad;
+  int cdim1,cdim2;
+  int ncbin,ncplane;
 
   char *idregion;
   class Region *region;
@@ -97,11 +116,15 @@ class ComputeChunkAtom : public Compute {
   void assign_chunk_ids();
   void compress_chunk_ids();
   void check_molecules();
-  int setup_bins();
+  int setup_xyz_bins();
+  int setup_sphere_bins();
+  int setup_cylinder_bins();
   void bin_volumes();
   void atom2bin1d();
   void atom2bin2d();
   void atom2bin3d();
+  void atom2binsphere();
+  void atom2bincylinder();
   void readdim(int, char **, int, int);
 };
 
@@ -130,7 +153,15 @@ E: Compute chunk/atom without bins cannot use discard mixed
 
 That discard option only applies to the binning styles.
 
-E: Compute ID for compute chunk/atom does not exist
+E: Compute chunk/atom sphere z origin must be 0.0 for 2d
+
+Self-explanatory.
+
+E: Compute chunk/atom cylinder axis must be z for 2d
+
+Self-explanatory.
+
+E: Compute ID for compute chunk /atom does not exist
 
 Self-explanatory.
 
@@ -182,6 +213,10 @@ E: Compute chunk/atom for triclinic boxes requires units reduced
 
 Self-explanatory.
 
+E: Compute ID for compute chunk/atom does not exist
+
+Self-explanatory.
+
 E: Molecule IDs too large for compute chunk/atom
 
 The IDs must not be larger than can be stored in a 32-bit integer
@@ -210,6 +245,14 @@ This may not be what you intended.
 E: Invalid bin bounds in compute chunk/atom
 
 The lo/hi values are inconsistent.
+
+E: Compute chunk/atom bin/sphere radius is too large for periodic box
+
+Radius cannot be bigger than 1/2 of any periodic dimention.
+
+E: Compute chunk/atom bin/cylinder radius is too large for periodic box
+
+Radius cannot be bigger than 1/2 of a non-axis  periodic dimention.
 
 E: Cannot use compute chunk/atom bin z for 2d model
 

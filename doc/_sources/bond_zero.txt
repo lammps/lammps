@@ -1,0 +1,50 @@
+.. index:: bond_style zero
+
+bond_style zero command
+=======================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   bond_style zero
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   bond_style zero
+   bond_coeff *
+
+Description
+"""""""""""
+
+Using an bond style of zero means bond forces and energies are not
+computed, but the geometry of bond pairs is still accessible to other
+commands.
+
+As an example, the :doc:`compute bond/local <compute_bond_local>`
+command can be used to compute distances for the list of pairs of bond
+atoms listed in the data file read by the :doc:`read_data <read_data>`
+command.  If no bond style is defined, this command cannot be used.
+
+Note that the :doc:`bond_coeff <bond_coeff>` command must be used for
+all bond types, though no additional values are specified.
+
+Restrictions
+""""""""""""
+ none
+
+Related commands
+""""""""""""""""
+
+:doc:`bond_style none <bond_none>`
+
+**Default:** none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

@@ -118,13 +118,13 @@ per-atom values from a file rather than from a formula.  Variables can
 be hooked to Python functions using code you provide, so that the
 variable gets its value from the evaluation of the Python code.
 
-IMPORTANT NOTE: As discussed in "Section 3.2"_Section_commands.html#cmd_2
-of the manual, an input script can use "immediate" variables, specified
-as $(formula) with parenthesis, where the formula has the same syntax
-as equal-style variables described on this page.  This is a convenient
-way to evaluate a formula immediately without using the variable command
-to define a named variable and then evaluate that variable. See below
-for a more detailed discussion of this feature.
+NOTE: As discussed in "Section 3.2"_Section_commands.html#cmd_2 of the
+manual, an input script can use "immediate" variables, specified as
+$(formula) with parenthesis, where the formula has the same syntax as
+equal-style variables described on this page.  This is a convenient
+way to evaluate a formula immediately without using the variable
+command to define a named variable and then evaluate that
+variable. See below for a more detailed discussion of this feature.
 
 In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
@@ -137,35 +137,35 @@ evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
 simulation.
 
-IMPORTANT NOTE: When the input script line is encountered that defines
-a variable of style {equal} or {atom} or {python} that contains a
-formula or Python code, the formula is NOT immediately evaluated.
-It will be evaluated every time when the variable is [used] instead.
-If you simply want to evaluate a formula in place you can use as
-so-called. See the section below about "Immediate Evaluation
-of Variables" for more details on the topic.  This is also true of
-a {format} style variable since it evaluates another variable when
-it is invoked.
+NOTE: When the input script line is encountered that defines a
+variable of style {equal} or {atom} or {python} that contains a
+formula or Python code, the formula is NOT immediately evaluated.  It
+will be evaluated every time when the variable is [used] instead.  If
+you simply want to evaluate a formula in place you can use as
+so-called. See the section below about "Immediate Evaluation of
+Variables" for more details on the topic.  This is also true of a
+{format} style variable since it evaluates another variable when it is
+invoked.
 
-IMPORTANT NOTE: Variables of style {equal} and {atom} can be used as
-inputs to various other LAMMPS commands which evaluate their formulas
-as needed, e.g. at different timesteps during a "run"_run.html.
-Variables of style {python} can be used in place of an equal-style
-variable so long as the associated Python function, as defined by the
+NOTE: Variables of style {equal} and {atom} can be used as inputs to
+various other LAMMPS commands which evaluate their formulas as needed,
+e.g. at different timesteps during a "run"_run.html.  Variables of
+style {python} can be used in place of an equal-style variable so long
+as the associated Python function, as defined by the
 "python"_python.html command, returns a numeric value.  Thus any
 command that states it can use an equal-style variable as an argument,
 can also use such a python-style variable.  This means that when the
 LAMMPS command evaluates the variable, the Python function will be
 executed.
 
-IMPORTANT NOTE: When a variable command is encountered in the input
-script and the variable name has already been specified, the command
-is ignored.  This means variables can NOT be re-defined in an input
-script (with two exceptions, read further).  This is to allow an input
-script to be processed multiple times without resetting the variables;
-see the "jump"_jump.html or "include"_include.html commands.  It also
-means that using the "command-line switch"_Section_start.html#start_7
--var will override a corresponding index variable setting in the input
+NOTE: When a variable command is encountered in the input script and
+the variable name has already been specified, the command is ignored.
+This means variables can NOT be re-defined in an input script (with
+two exceptions, read further).  This is to allow an input script to be
+processed multiple times without resetting the variables; see the
+"jump"_jump.html or "include"_include.html commands.  It also means
+that using the "command-line switch"_Section_start.html#start_7 -var
+will override a corresponding index variable setting in the input
 script.
 
 There are two exceptions to this rule.  First, variables of style
@@ -350,9 +350,9 @@ ID value :pre
 where ID is an atom ID and value is the per-atom numeric value that
 will be assigned to that atom.  IDs can be listed in any order.
 
-IMPORTANT NOTE: Every time a set of per-atom lines is read, the value
-for all atoms is first set to 0.0.  Thus values for atoms whose ID
-does not appear in the set, will remain 0.0.
+NOTE: Every time a set of per-atom lines is read, the value for all
+atoms is first set to 0.0.  Thus values for atoms whose ID does not
+appear in the set, will remain 0.0.
 
 For the {python} style a Python function name is provided.  This needs
 to match a function name specified in a "python"_python.html command
@@ -507,11 +507,11 @@ OR operator "||" has the lowest precedence.  Parenthesis can be used
 to group one or more portions of a formula and/or enforce a different
 order of evaluation than what would occur with the default precedence.
 
-IMPORTANT NOTE: Because a unary minus is higher precedence than
-exponentiation, the formula "-2^2" will evaluate to 4, not -4.  This
-convention is compatible with some programming languages, but not
-others.  As mentioned, this behavior can be easily overridden with
-parenthesis; the formula "-(2^2)" will evaluate to -4.
+NOTE: Because a unary minus is higher precedence than exponentiation,
+the formula "-2^2" will evaluate to 4, not -4.  This convention is
+compatible with some programming languages, but not others.  As
+mentioned, this behavior can be easily overridden with parenthesis;
+the formula "-(2^2)" will evaluate to -4.
 
 The 6 relational operators return either a 1.0 or 0.0 depending on
 whether the relationship between x and y is TRUE or FALSE.  For
@@ -557,13 +557,12 @@ variables, a unique seed is created for each processor, based on the
 specified seed.  This effectively generates a different random number
 for each atom being looped over in the atom-style variable.
 
-IMPORTANT NOTE: Internally, there is just one random number generator
-for all equal-style variables and one for all atom-style variables.
-If you define multiple variables (of each style) which use the
-random() or normal() math functions, then the internal random number
-generators will only be initialized once, which means only one of the
-specified seeds will determine the sequence of generated random
-numbers.
+NOTE: Internally, there is just one random number generator for all
+equal-style variables and one for all atom-style variables.  If you
+define multiple variables (of each style) which use the random() or
+normal() math functions, then the internal random number generators
+will only be initialized once, which means only one of the specified
+seeds will determine the sequence of generated random numbers.
 
 The ceil(), floor(), and round() functions are those in the C math
 library.  Ceil() is the smallest integer not less than its argument.

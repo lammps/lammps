@@ -486,6 +486,32 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     Kokkos::Impl::throw_runtime_exception( msg.str() );
   }
 
+  #ifdef KOKKOS_CUDA_USE_UVM
+    if(!cuda_launch_blocking()) {
+      std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
+      std::cout << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
+      std::cout << "                                  The code must call Cuda::fence() after each kernel" << std::endl;
+      std::cout << "                                  or will likely crash when accessing data on the host." << std::endl; 
+    }
+
+    const char * env_force_device_alloc = getenv("CUDA_MANAGED_FORCE_DEVICE_ALLOC");
+    bool force_device_alloc;
+    if (env_force_device_alloc == 0) force_device_alloc=false;
+    else force_device_alloc=atoi(env_force_device_alloc)!=0;
+  
+    const char * env_visible_devices = getenv("CUDA_VISIBLE_DEVICES");
+    bool visible_devices_one=true;
+    if (env_visible_devices == 0) visible_devices_one=false;
+    
+    if(!visible_devices_one && !force_device_alloc) {
+      std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
+      std::cout << "                                  without setting CUDA_MANAGED_FORCE_DEVICE_ALLOC=1 or " << std::endl;
+      std::cout << "                                  setting CUDA_VISIBLE_DEVICES." << std::endl;
+      std::cout << "                                  This could on multi GPU systems lead to severe performance" << std::endl;
+      std::cout << "                                  penalties." << std::endl;
+    }
+  #endif
+
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_cuda_space();
 

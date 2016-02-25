@@ -36,6 +36,7 @@ class PairComb3 : public Pair {
   double init_one(int, int);
   double memory_usage();
   virtual double combqeq(double *, int &);
+  double enegtot;
 
  // general potential parameters
  protected:
@@ -134,7 +135,7 @@ class PairComb3 : public Pair {
   // initialization functions
   void allocate();
   void read_lib();
-  void setup();
+  void setup_params();
   virtual void read_file(char *);
 
   // cutoff functions

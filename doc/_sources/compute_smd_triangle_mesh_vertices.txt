@@ -1,0 +1,68 @@
+compute smd/triangle/mesh/vertices
+==================================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   compute ID group-ID smd/triangle/mesh/vertices
+
+* ID, group-ID are documented in :doc:`compute <compute>` command
+* smd/triangle/mesh/vertices = style name of this compute command
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   compute 1 all smd/triangle/mesh/vertices
+
+Description
+"""""""""""
+
+Define a computation that returns the coordinates of the vertices
+corresponding to the triangle-elements of a mesh created by the `fix smd/wall_surface <ls_>`_.
+
+See `this PDF guide <USER/smd/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
+Mach Dynamics in LAMMPS.
+
+**Output info:**
+
+This compute returns a per-particle vector of vectors, which can be
+accessed by any command that uses per-particle values from a compute as
+input. See :ref:`How-to discussions, section 6.15 <howto_15>`
+for an overview of LAMMPS output options.
+
+The per-particle vector has nine entries, (x1/y1/z1), (x2/y2/z2), and
+(x3/y3/z3) corresponding to the first, second, and third vertex of
+each triangle.
+
+It is only meaningful to use this compute for a group of particles
+which is created via the `fix smd/wall_surface <ls_>`_ command.
+
+The output of this compute can be used with the dump2vtk_tris tool to
+generate a VTK representation of the smd/wall_surace mesh for
+visualization purposes.
+
+The values will be given in :doc:`units <units>` of distance.
+
+Restrictions
+""""""""""""
+
+
+This compute is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+
+Related commands
+""""""""""""""""
+
+:doc:`compute smd/move/tri/surf <fix_smd_move_triangulated_surface>`,
+`compute smd/wall/surface <ls_>`_
+
+**Default:** none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

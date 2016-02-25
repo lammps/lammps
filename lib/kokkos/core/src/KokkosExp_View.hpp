@@ -74,7 +74,7 @@ template< class DataType , class ArrayLayout
 struct ViewDataAnalysis ;
 
 template< class , class ... >
-class ViewMapping { enum { is_assignable = false }; };
+class ViewMapping { public: enum { is_assignable = false }; };
 
 template< class MemorySpace >
 struct ViewOperatorBoundsErrorAbort ;
@@ -1002,8 +1002,10 @@ public:
         , typename SrcType::traits
         , Arg0 , Args... > Mapping ;
 
-      static_assert( std::is_same< View , typename Mapping::type >::value
-                   , "Subview construction requires compatible view and subview arguments" );
+      typedef typename Mapping::type DstType ;
+
+      static_assert( Kokkos::Experimental::Impl::ViewMapping< View , DstType , void >::is_assignable
+        , "Subview construction requires compatible view and subview arguments" );
 
       Mapping::assign( m_map, src_view.m_map, arg0 , args... );
     }
@@ -1243,12 +1245,38 @@ typename Kokkos::Experimental::Impl::ViewMapping
   >::type
 subview( const View< D, P... > & src , Args ... args )
 {
+  static_assert( View< D , P... >::Rank == sizeof...(Args) , 
+    "subview requires one argument for each source View rank" );
+
   return typename
     Kokkos::Experimental::Impl::ViewMapping
       < void /* deduce subview type from source view traits */
       , ViewTraits< D , P ... >
       , Args ... >::type( src , args ... ); 
 }
+
+template< class MemoryTraits , class D, class ... P , class ... Args >
+KOKKOS_INLINE_FUNCTION
+typename Kokkos::Experimental::Impl::ViewMapping
+  < void /* deduce subview type from source view traits */
+  , ViewTraits< D , P... >
+  , Args ...
+  >::template apply< MemoryTraits >::type
+subview( const View< D, P... > & src , Args ... args )
+{
+  static_assert( View< D , P... >::Rank == sizeof...(Args) , 
+    "subview requires one argument for each source View rank" );
+
+  return typename
+    Kokkos::Experimental::Impl::ViewMapping
+      < void /* deduce subview type from source view traits */
+      , ViewTraits< D , P ... >
+      , Args ... >
+      ::template apply< MemoryTraits >
+      ::type( src , args ... ); 
+}
+
+
 
 } /* namespace Experimental */
 } /* namespace Kokkos */
@@ -1449,13 +1477,17 @@ namespace Experimental {
 /** \brief  Deep copy a value from Host memory into a view.  */
 template< class DT , class ... DP >
 inline
-void deep_copy( const View<DT,DP...> & dst
-              , typename ViewTraits<DT,DP...>::const_value_type & value )
+void deep_copy
+  ( const View<DT,DP...> & dst
+  , typename ViewTraits<DT,DP...>::const_value_type & value
+  , typename std::enable_if<
+    std::is_same< typename ViewTraits<DT,DP...>::specialize , void >::value
+    >::type * = 0 )
 {
   static_assert(
     std::is_same< typename ViewTraits<DT,DP...>::non_const_value_type ,
                   typename ViewTraits<DT,DP...>::value_type >::value
-    , "ERROR: Incompatible deep_copy( View , value )" );
+    , "deep_copy requires non-const type" );
 
   Kokkos::Experimental::Impl::ViewFill< View<DT,DP...> >( dst , value );
 }
@@ -1463,7 +1495,12 @@ void deep_copy( const View<DT,DP...> & dst
 /** \brief  Deep copy into a value in Host memory from a view.  */
 template< class ST , class ... SP >
 inline
-void deep_copy( ST & dst , const View<ST,SP...> & src )
+void deep_copy
+  ( ST & dst
+  , const View<ST,SP...> & src
+  , typename std::enable_if<
+    std::is_same< typename ViewTraits<ST,SP...>::specialize , void >::value
+    >::type * = 0 )
 {
   static_assert( ViewTraits<ST,SP...>::rank == 0 
                , "ERROR: Non-rank-zero view in deep_copy( value , View )" );
@@ -1477,17 +1514,21 @@ void deep_copy( ST & dst , const View<ST,SP...> & src )
 /** \brief  A deep copy between views of compatible type, and rank zero.  */
 template< class DT , class ... DP , class ST , class ... SP >
 inline
-void deep_copy( const View<DT,DP...> & dst ,
-                const View<ST,SP...> & src ,
-                typename std::enable_if<(
-                  // Rank zero:
-                  ( unsigned(ViewTraits<DT,DP...>::rank) == unsigned(0) ) &&
-                  ( unsigned(ViewTraits<ST,SP...>::rank) == unsigned(0) ) &&
-                  // Same type and destination is not constant:
-                  std::is_same< typename ViewTraits<DT,DP...>::value_type ,
-                                typename ViewTraits<ST,SP...>::non_const_value_type >::value
-                )>::type * = 0 )
+void deep_copy
+  ( const View<DT,DP...> & dst
+  , const View<ST,SP...> & src
+  , typename std::enable_if<(
+    std::is_same< typename ViewTraits<DT,DP...>::specialize , void >::value &&
+    std::is_same< typename ViewTraits<ST,SP...>::specialize , void >::value &&
+    ( unsigned(ViewTraits<DT,DP...>::rank) == unsigned(0) &&
+      unsigned(ViewTraits<ST,SP...>::rank) == unsigned(0) )
+  )>::type * = 0 )
 {
+  static_assert(
+    std::is_same< typename ViewTraits<DT,DP...>::value_type ,
+                  typename ViewTraits<ST,SP...>::non_const_value_type >::value
+    , "deep_copy requires matching non-const destination type" );
+
   typedef View<DT,DP...>  dst_type ;
   typedef View<ST,SP...>  src_type ;
 
@@ -1506,25 +1547,26 @@ void deep_copy( const View<DT,DP...> & dst ,
  */
 template< class DT , class ... DP , class ST , class ... SP >
 inline
-void deep_copy( const View<DT,DP...> & dst ,
-                const View<ST,SP...> & src ,
-                typename std::enable_if<(
-                  // destination is non-const.
-                  std::is_same< typename ViewTraits<DT,DP...>::value_type ,
-                                typename ViewTraits<DT,DP...>::non_const_value_type >::value
-                  &&
-                  // Same non-zero rank:
-                  ( unsigned(ViewTraits<DT,DP...>::rank) != 0 )
-                  &&
-                  ( unsigned(ViewTraits<DT,DP...>::rank) ==
-                    unsigned(ViewTraits<ST,SP...>::rank) )
-                  &&
-                  // Not specialized, default ViewMapping
-                  std::is_same< typename ViewTraits<DT,DP...>::specialize , void >::value
-                  &&
-                  std::is_same< typename ViewTraits<ST,SP...>::specialize , void >::value
-                )>::type * = 0 )
+void deep_copy
+  ( const View<DT,DP...> & dst
+  , const View<ST,SP...> & src
+  , typename std::enable_if<(
+    std::is_same< typename ViewTraits<DT,DP...>::specialize , void >::value &&
+    std::is_same< typename ViewTraits<ST,SP...>::specialize , void >::value &&
+    ( unsigned(ViewTraits<DT,DP...>::rank) != 0 ||
+      unsigned(ViewTraits<ST,SP...>::rank) != 0 )
+  )>::type * = 0 )
 {
+  static_assert(
+    std::is_same< typename ViewTraits<DT,DP...>::value_type ,
+                  typename ViewTraits<DT,DP...>::non_const_value_type >::value
+    , "deep_copy requires non-const destination type" );
+
+  static_assert(
+    ( unsigned(ViewTraits<DT,DP...>::rank) ==
+      unsigned(ViewTraits<ST,SP...>::rank) )
+    , "deep_copy requires Views of equal rank" );
+
   typedef View<DT,DP...>  dst_type ;
   typedef View<ST,SP...>  src_type ;
 

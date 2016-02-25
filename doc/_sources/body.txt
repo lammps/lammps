@@ -1,0 +1,301 @@
+Body particles
+==============
+
+**Overview:**
+
+This doc page is not about a LAMMPS input script command, but about
+body particles, which are generalized finite-size particles.
+Individual body particles can represent complex entities, such as
+surface meshes of discrete points, collections of sub-particles,
+deformable objects, etc.  Note that other kinds of finite-size
+spherical and aspherical particles are also supported by LAMMPS, such
+as spheres, ellipsoids, line segments, and triangles, but they are
+simpler entities that body particles.  See :ref:`Section_howto 14 <howto_14>` for a general overview of all these
+particle types.
+
+Body particles are used via the :doc:`atom_style body <atom_style>`
+command.  It takes a body style as an argument.  The current body
+styles supported by LAMMPS are as follows.  The name in the first
+column is used as the *bstyle* argument for the :doc:`atom_style body <atom_style>` command.
+
++-------------------+-----------------------------------+
+| *nparticle*       | rigid body with N sub-particles   |
++-------------------+-----------------------------------+
+| *rounded/polygon* | 2d convex polygon with N vertices |
++-------------------+-----------------------------------+
+
+The body style determines what attributes are stored for each body and
+thus how they can be used to compute pairwise body/body or
+bond/non-body (point particle) interactions.  More details of each
+style are described below.
+
+.. note::
+
+   The rounded/polygon style listed in the table above and
+   described below has not yet been relesed in LAMMPS.  It will be soon.
+
+We hope to add more styles in the future.  See :ref:`Section_modify 12 <mod_12>` for details on how to add a new body
+style to the code.
+
+
+----------
+
+
+**When to use body particles:**
+
+You should not use body particles to model a rigid body made of
+simpler particles (e.g. point, sphere, ellipsoid, line segment,
+triangular particles), if the interaction between pairs of rigid
+bodies is just the summation of pairwise interactions between the
+simpler particles.  LAMMPS already supports this kind of model via the
+:doc:`fix rigid <fix_rigid>` command.  Any of the numerous pair styles
+that compute interactions between simpler particles can be used.  The
+:doc:`fix rigid <fix_rigid>` command time integrates the motion of the
+rigid bodies.  All of the standard LAMMPS commands for thermostatting,
+adding constraints, performing output, etc will operate as expected on
+the simple particles.
+
+By contrast, when body particles are used, LAMMPS treats an entire
+body as a single particle for purposes of computing pairwise
+interactions, building neighbor lists, migrating particles between
+processors, outputting particles to a dump file, etc.  This means that
+interactions between pairs of bodies or between a body and non-body
+(point) particle need to be encoded in an appropriate pair style.  If
+such a pair style were to mimic the :doc:`fix rigid <fix_rigid>` model,
+it would need to loop over the entire collection of interactions
+between pairs of simple particles within the two bodies, each time a
+single body/body interaction was computed.
+
+Thus it only makes sense to use body particles and develop such a pair
+style, when particle/particle interactions are more complex than what
+the :doc:`fix rigid <fix_rigid>` command can already calculate.  For
+example, if particles have one or more of the following attributes:
+
+* represented by a surface mesh
+* represented by a collection of geometric entities (e.g. planes + spheres)
+* deformable
+* internal stress that induces fragmentation
+
+then the interaction between pairs of particles is likely to be more
+complex than the summation of simple sub-particle interactions.  An
+example is contact or frictional forces between particles with planar
+sufaces that inter-penetrate.
+
+These are additional LAMMPS commands that can be used with body
+particles of different styles
+
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`fix nve/body <fix_nve_body>`             | integrate motion of a body particle in NVE ensemble |
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`fix nvt/body <fix_nvt_body>`             | ditto for NVT ensemble                              |
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`fix npt/body <fix_npt_body>`             | ditto for NPT ensemble                              |
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`fix nph/body <fix_nph_body>`             | ditto for NPH ensemble                              |
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`compute body/local <compute_body_local>` | store sub-particle attributes of a body particle    |
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`compute temp/body <compute_temp_body>`   | compute temperature of body particles               |
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`dump local <dump>`                       | output sub-particle attributes of a body particle   |
++------------------------------------------------+-----------------------------------------------------+
+| :doc:`dump image <dump_image>`                 | output body particle attributes as an image         |
++------------------------------------------------+-----------------------------------------------------+
+
+The pair styles defined for use with specific body styles are listed
+in the sections below.
+
+
+----------
+
+
+**Specifics of body style nparticle:**
+
+The *nparticle* body style represents body particles as a rigid body
+with a variable number N of sub-particles.  It is provided as a
+vanillia, prototypical example of a body particle, although as
+mentioned above, the :doc:`fix rigid <fix_rigid>` command already
+duplicates its functionality.
+
+The atom_style body command for this body style takes two additional
+arguments:
+
+.. parsed-literal::
+
+   atom_style body nparticle Nmin Nmax
+   Nmin = minimum # of sub-particles in any body in the system
+   Nmax = maximum # of sub-particles in any body in the system
+
+The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.
+
+When the :doc:`read_data <read_data>` command reads a data file for this
+body style, the following information must be provided for each entry
+in the *Bodies* section of the data file:
+
+.. parsed-literal::
+
+   atom-ID 1 M
+   N
+   ixx iyy izz ixy ixz iyz 
+   x1 y1 z1
+   ...
+   xN yN zN
+
+N is the number of sub-particles in the body particle.  M = 6 + 3*N.
+The integer line has a single value N.  The floating point line(s)
+list 6 moments of inertia followed by the coordinates of the N
+sub-particles (x1 to zN) as 3N values.  These values can be listed on
+as many lines as you wish; see the :doc:`read_data <read_data>` command
+for more details.
+
+The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
+values consistent with the current orientation of the rigid body
+around its center of mass.  The values are with respect to the
+simulation box XYZ axes, not with respect to the prinicpal axes of the
+rigid body itself.  LAMMPS performs the latter calculation internally.
+The coordinates of each sub-particle are specified as its x,y,z
+displacement from the center-of-mass of the body particle.  The
+center-of-mass position of the particle is specified by the x,y,z
+values in the *Atoms* section of the data file, as is the total mass
+of the body particle.
+
+The :doc:`pair_style body <pair_body>` command can be used with this
+body style to compute body/body and body/non-body interactions.
+
+For output purposes via the :doc:`compute body/local <compute_body_local>` and :doc:`dump local <dump>`
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:
+
+.. parsed-literal::
+
+   1 = x position of sub-particle
+   2 = y position of sub-particle
+   3 = z position of sub-particle
+
+These values are the current position of the sub-particle within the
+simulation domain, not a displacement from the center-of-mass (COM) of
+the body particle itself.  These values are calculated using the
+current COM and orientation of the body particle.
+
+For images created by the :doc:`dump image <dump_image>` command, if the
+*body* keyword is set, then each body particle is drawn as a
+collection of spheres, one for each sub-particle.  The size of each
+sphere is determined by the *bflag1* parameter for the *body* keyword.
+The *bflag2* argument is ignored.
+
+
+----------
+
+
+**Specifics of body style rounded/polygon:**
+
+The *rounded/polygon* body style represents body particles as a convex
+polygon with a variable number N > 2 of vertices, which can only be
+used for 2d models.  One example use of this body style is for 2d
+discrete element models, as described in :ref:`Fraige <Fraige>`.  Similar to
+body style *nparticle*, the atom_style body command for this body
+style takes two additional arguments:
+
+.. parsed-literal::
+
+   atom_style body rounded/polygon Nmin Nmax
+   Nmin = minimum # of vertices in any body in the system
+   Nmax = maximum # of vertices in any body in the system
+
+The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.
+
+When the :doc:`read_data <read_data>` command reads a data file for this
+body style, the following information must be provided for each entry
+in the *Bodies* section of the data file:
+
+.. parsed-literal::
+
+   atom-ID 1 M
+   N
+   ixx iyy izz ixy ixz iyz 
+   x1 y1 z1
+   ...
+   xN yN zN
+   i j j k k ... 
+   radius
+
+N is the number of vertices in the body particle.  M = 6 + 3*N + 2*N +
+1.  The integer line has a single value N.  The floating point line(s)
+list 6 moments of inertia followed by the coordinates of the N
+vertices (x1 to zN) as 3N values, followed by 2N vertex indices
+corresponding to the end points of the N edges, followed by a single
+radius value = the smallest circle encompassing the polygon.  That
+last value is used to facilitate the body/body contact detection.
+These floating-point values can be listed on as many lines as you
+wish; see the :doc:`read_data <read_data>` command for more details.
+
+The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
+values consistent with the current orientation of the rigid body
+around its center of mass.  The values are with respect to the
+simulation box XYZ axes, not with respect to the prinicpal axes of the
+rigid body itself.  LAMMPS performs the latter calculation internally.
+The coordinates of each vertex are specified as its x,y,z displacement
+from the center-of-mass of the body particle.  The center-of-mass
+position of the particle is specified by the x,y,z values in the
+*Atoms* section of the data file.
+
+For example, the following information would specify a square
+particles whose edge length is sqrt(2):
+
+.. parsed-literal::
+
+   3 1 27
+   4
+   1 1 4 0 0 0 
+   -0.7071 -0.7071 0 
+   -0.7071 0.7071 0 
+   0.7071 0.7071 0 
+   0.7071 -0.7071 0 
+   0 1 1 2 2 3 3 0
+   1.0
+
+The :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>` command
+can be used with this body style to compute body/body interactions.
+
+For output purposes via the :doc:`compute body/local <compute_body_local>` and :doc:`dump local <dump>`
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:
+
+.. parsed-literal::
+
+   1 = x position of vertex
+   2 = y position of vertex
+   3 = z position of vertex
+
+These values are the current position of the vertex within the
+simulation domain, not a displacement from the center-of-mass (COM) of
+the body particle itself.  These values are calculated using the
+current COM and orientation of the body particle.
+
+For images created by the :doc:`dump image <dump_image>` command, if the
+*body* keyword is set, then each body particle is drawn as a convex
+polygon consisting of N line segments.  Note that the line segments
+are drawn between the N vertices, which does not correspond exactly to
+the physical extent of the body (because the `pair_style rounded/polygon <pair_body_rounded_polygon.cpp>`_ defines finite-size
+spheres at those point and the line segments between the spheres are
+tangent to the spheres).  The drawn diameter of each line segment is
+determined by the *bflag1* parameter for the *body* keyword.  The
+*bflag2* argument is ignored.
+
+
+----------
+
+
+.. _Fraige:
+
+
+
+**(Fraige)** F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
+Particuology, 6, 455 (2008).
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

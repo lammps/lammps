@@ -174,7 +174,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
-  setup();
+  setup_params();
   n = atom->ntypes;
 
   // clear setflag since coeff() called once with I,J = * *
@@ -353,7 +353,7 @@ void PairCoulStreitz::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulStreitz::setup()
+void PairCoulStreitz::setup_params()
 {
   int i,m,n;
 

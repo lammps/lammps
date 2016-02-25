@@ -54,11 +54,11 @@ potentials dir, each called potentials/ffield.reax.label.  These are
 documented in potentials/README.reax.  The default ffield.reax
 contains parameterizations for the following elements: C, H, O, N, S.
 
-IMPORTANT NOTE: We do not distribute a wide variety of ReaxFF force
-field files with LAMMPS.  Adri van Duin's group at PSU is the central
-repository for this kind of data as they are continuously deriving and
-updating parameterizations for different classes of materials.  You
-can visit their WWW site at
+NOTE: We do not distribute a wide variety of ReaxFF force field files
+with LAMMPS.  Adri van Duin's group at PSU is the central repository
+for this kind of data as they are continuously deriving and updating
+parameterizations for different classes of materials.  You can visit
+their WWW site at
 "http://www.engr.psu.edu/adri"_http://www.engr.psu.edu/adri, register
 as a "new user", and then submit a request to their group describing
 material(s) you are interested in modeling with ReaxFF.  They can tell
@@ -160,9 +160,9 @@ performed.  This can be used when a ReaxFF potential is used as part
 of the {hybrid} pair style.  The NULL values are placeholders for atom
 types that will be used with other potentials.
 
-IMPORTANT NOTE: Currently the reax pair style cannot be used as part
-of the {hybrid} pair style.  Some additional changes still need to be
-made to enable this.
+NOTE: Currently the reax pair style cannot be used as part of the
+{hybrid} pair style.  Some additional changes still need to be made to
+enable this.
 
 As an example, say your LAMMPS simulation has 4 atom types and the
 elements are ordered as C, H, O, N in the {ffield} file.  If you want

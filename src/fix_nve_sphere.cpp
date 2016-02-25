@@ -57,7 +57,7 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix nve/sphere requires atom style sphere");
   if (extra == DIPOLE && !atom->mu_flag)
-    error->all(FLERR,"Fix nve/sphere requires atom attribute mu");
+    error->all(FLERR,"Fix nve/sphere dipole requires atom attribute mu");
 }
 
 /* ---------------------------------------------------------------------- */

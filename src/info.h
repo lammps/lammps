@@ -41,15 +41,33 @@ class Info : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
 W: Ignoring unknown or incorrect info command flag
 
-Self-explanatory. The an unknown argument was given to the info command.
+Self-explanatory.  An unknown argument was given to the info command.
 Compare your input with the documentation.
+
+E: Unknown name for info package category
+
+Self-explanatory.
+
+E: Unknown name for info newton category
+
+Self-explanatory.
+
+E: Unknown name for info pair category
+
+Self-explanatory.
+
+E: Unknown category for info is_active()
+
+Self-explanatory.
+
+E: Unknown category for info is_available()
+
+Self-explanatory.
+
+E: Unknown category for info is_defined()
+
+Self-explanatory.
 
 */

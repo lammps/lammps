@@ -133,6 +133,10 @@ E: At least one atom of each swapped type must be present to define charges.
 
 Self-explanatory.
 
+E: All atoms of a swapped type must have same charge.
+
+Self-explanatory.
+
 E: Cannot do atom/swap on atoms in atom_modify first group
 
 This is a restriction due to the way atoms are organized in a list to

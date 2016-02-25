@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dump h5md command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>dump h5md command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -186,12 +186,11 @@ subinterval is needed as it must be present at the same interval as
 box information (edges in each dimension) is stored at the same
 interval than the <em>position</em> element, if present. Else it is stored
 every N steps.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because periodic boundary conditions are enforced only
-on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom written to a dump file may be slightly outside the simulation
-box.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.</p>
 </div>
 <p><strong>Use from write_dump:</strong></p>
 <p>It is possible to use this dump style with the
@@ -244,7 +243,7 @@ Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -265,7 +264,7 @@ Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

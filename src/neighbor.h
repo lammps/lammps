@@ -69,6 +69,14 @@ class Neighbor : protected Pointers {
   int nimproperlist;               // list of impropers to compute
   int **improperlist;
 
+  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
+
+  // USER-DPD package
+
+  int *ssa_airnum;              // AIR number of each atom for SSA in USER-DPD
+
+  // methods
+
   Neighbor(class LAMMPS *);
   virtual ~Neighbor();
   virtual void init();
@@ -79,13 +87,16 @@ class Neighbor : protected Pointers {
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int topoflag=1);  // create all neighbor lists (pair,bond)
   virtual void build_topology();    // create all topology neighbor lists
-  void build_one(class NeighList *list, int preflag=0);  // create a single neighbor list
+  void build_one(class NeighList *list,
+                 int preflag=0);    // create a single one-time neigh list
   void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   int exclude_setting();
 
-  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
+  // USER-DPD package
+
+  void assign_ssa_airnums();       // set ssa_airnum values
 
  protected:
   int me,nprocs;
@@ -170,6 +181,17 @@ class Neighbor : protected Pointers {
   int *glist;                  // lists to grow atom arrays every reneigh
   int *slist;                  // lists to grow stencil arrays every reneigh
 
+  // USER-DPD package
+
+  int len_ssa_airnum;        // length of ssa_airnum array
+  int *bins_ssa;             // ptr to next atom in each bin used by SSA
+  int maxbin_ssa;            // size of bins array used by SSA
+  int *binhead_ssa;          // ptr to 1st atom in each bin used by SSA
+  int *gbinhead_ssa;         // ptr to 1st ghost atom in each bin used by SSA
+  int maxhead_ssa;           // size of binhead array used by SSA
+
+  // methods
+
   void bin_atoms();                     // bin all atoms
   double bin_distance(int, int, int);   // distance between binx
   int coord2bin(double *);              // mapping atom coord to a bin
@@ -187,6 +209,9 @@ class Neighbor : protected Pointers {
   virtual int init_lists_kokkos() {return 0;}
   virtual void init_list_flags1_kokkos(int) {}
   virtual void init_list_flags2_kokkos(int) {}
+  virtual void init_ex_type_kokkos(int) {}
+  virtual void init_ex_bit_kokkos() {}
+  virtual void init_ex_mol_bit_kokkos() {}
   virtual void init_list_grow_kokkos(int) {}
   virtual void build_kokkos(int) {}
   virtual void setup_bins_kokkos(int) {}
@@ -300,6 +325,15 @@ class Neighbor : protected Pointers {
   void improper_all();                // improper list with all impropers
   void improper_template();           // improper list with templated bonds
   void improper_partial();            // exclude certain impropers
+
+  // SSA neighboring for USER-DPD
+
+  int coord2ssa_airnum(double *);  // map atom coord to an AIR number
+
+  void half_bin_newton_ssa(NeighList *);
+  void half_from_full_newton_ssa(class NeighList *);
+  void stencil_half_bin_2d_ssa(class NeighList *, int, int, int);
+  void stencil_half_bin_3d_ssa(class NeighList *, int, int, int);
 
   // find_special: determine if atom j is in special list of atom i
   // if it is not, return 0

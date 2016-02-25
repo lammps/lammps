@@ -52,7 +52,7 @@ using namespace LAMMPS_NS;
 #define LB_FACTOR 1.1
 #define CHUNK 1024
 #define DELTA 4            // must be 2 or larger
-#define MAXBODY 20         // max # of lines in one body, also in Atom class
+#define MAXBODY 32         // max # of lines in one body
 
                            // customize for new sections
 #define NSECTIONS 25       // change when add to header::section_keywords
@@ -73,6 +73,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   line = new char[MAXLINE];
+  copy = new char[MAXLINE];
   keyword = new char[MAXLINE];
   style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
@@ -98,6 +99,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 ReadData::~ReadData()
 {
   delete [] line;
+  delete [] copy;
   delete [] keyword;
   delete [] style;
   delete [] buffer;
@@ -651,7 +653,7 @@ void ReadData::command(int narg, char **arg)
     if (addflag == NONE) atom->deallocate_topology();
     atom->avec->grow(atom->nmax);
   }
-
+  
   // assign atoms added by this data file to specified group
 
   if (groupbit) {
@@ -1314,7 +1316,6 @@ void ReadData::dihedrals(int firstpass)
                    "too many dihedrals per atom");
     } else atom->dihedral_per_atom = maxall;
 
-    atom->dihedral_per_atom = maxall;
     memory->destroy(count);
     return;
   }
@@ -1462,12 +1463,12 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
    read all body data
    variable amount of info per body, described by ninteger and ndouble
    to find atoms, must build atom map if not a molecular system
-   if not firstpass, just read but no processing of data
+   if not firstpass, just read past data, but no processing of data
 ------------------------------------------------------------------------- */
 
 void ReadData::bodies(int firstpass)
 {
-  int i,m,nchunk,nline,nmax,ninteger,ndouble,tmp,onebody;
+  int i,m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp;
   char *eof;
 
   int mapflag = 0;
@@ -1498,18 +1499,42 @@ void ReadData::bodies(int firstpass)
         sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
         m += strlen(&buffer[m]);
 
+        // read lines one at a time into buffer and count words
+        // count to ninteger and ndouble until have enough lines
+
         onebody = 0;
-        if (ninteger) onebody += (ninteger-1)/10 + 1;
-        if (ndouble) onebody += (ndouble-1)/10 + 1;
+
+        nword = 0;
+        while (nword < ninteger) {
+          eof = fgets(&buffer[m],MAXLINE,fp);
+          if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
+          ncount = atom->count_words(&buffer[m],copy);
+	  if (ncount == 0)
+	    error->one(FLERR,"Too few values in body lines in data file");
+	  nword += ncount;
+          m += strlen(&buffer[m]);
+          onebody++;
+        }
+        if (nword > ninteger) 
+          error->one(FLERR,"Too many values in body lines in data file");
+
+        nword = 0;
+        while (nword < ndouble) {
+          eof = fgets(&buffer[m],MAXLINE,fp);
+          if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
+          ncount = atom->count_words(&buffer[m],copy);
+	  if (ncount == 0)
+	    error->one(FLERR,"Too few values in body lines in data file");
+	  nword += ncount;
+          m += strlen(&buffer[m]);
+          onebody++;
+        }
+        if (nword > ndouble) 
+          error->one(FLERR,"Too many values in body lines in data file");
+
         if (onebody+1 > MAXBODY)
           error->one(FLERR,
                      "Too many lines in one body in data file - boost MAXBODY");
-
-        for (i = 0; i < onebody; i++) {
-          eof = fgets(&buffer[m],MAXLINE,fp);
-          if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          m += strlen(&buffer[m]);
-        }
 
         nchunk++;
         nline += onebody+1;

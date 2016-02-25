@@ -79,4 +79,12 @@ W: Lost atoms via displace_atoms: original %ld current %ld
 
 The command options you have used caused atoms to be lost.
 
+E: Variable name for displace_atoms does not exist
+
+Self-explanatory.
+
+E: Variable for displace_atoms is invalid style
+
+It must be an equal-style or atom-style variable.
+
 */

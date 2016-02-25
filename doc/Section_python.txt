@@ -110,10 +110,10 @@ check which version of Python you have installed, by simply typing
 
 11.2 Overview of using Python from a LAMMPS script :link(py_2),h4
 
-IMPORTANT NOTE: It is not currently possible to use the
-"python"_python.html command described in this section with Python 3,
-only with Python 2.  The C API changed from Python 2 to 3 and the
-LAMMPS code is not compatible with both.
+NOTE: It is not currently possible to use the "python"_python.html
+command described in this section with Python 3, only with Python 2.
+The C API changed from Python 2 to 3 and the LAMMPS code is not
+compatible with both.
 
 LAMMPS has a "python"_python.html command which can be used in an
 input script to define and execute a Python function that you write
@@ -146,7 +146,7 @@ previous section 11.1.  This means it can issue LAMMPS input script
 commands or query and set internal LAMMPS state.  As an example, this
 can be useful in an input script to create a more complex loop with
 branching logic, than can be created using the simple looping and
-brancing logic enabled by the "next"_next.html and "if"_if.html
+branching logic enabled by the "next"_next.html and "if"_if.html
 commands.
 
 See the "python"_python.html doc page and the "variable"_variable.html
@@ -158,7 +158,7 @@ To run pure Python code from LAMMPS, you only need to build LAMMPS
 with the PYTHON package installed:
 
 make yes-python
-make machine
+make machine :pre
 
 Note that this will link LAMMPS with the Python library on your
 system, which typically requires several auxiliary system libraries to
@@ -183,7 +183,7 @@ Instructions on how to build LAMMPS as a shared library are given in
 that is dynamically loadable, which is what Python requires to wrap
 LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
 
->From the src directory, type
+From the src directory, type
 
 make foo mode=shlib :pre
 
@@ -194,10 +194,11 @@ load by default.  Note that if you are building multiple machine
 versions of the shared library, the soft link is always set to the
 most recently built version.
 
-If this fails, see "Section_start 5"_Section_start.html#start_5 for
-more details, especially if your LAMMPS build uses auxiliary libraries
-like MPI or FFTW which may not be built as shared libraries on your
-system.
+NOTE: If you are building LAMMPS with an MPI or FFT library or other
+auxiliary libraries (used by various packages), then all of these
+extra libraries must also be shared libraries.  If the LAMMPS
+shared-library build fails with an error complaining about this, see
+"Section_start 5"_Section_start.html#start_5 for more details.
 
 :line
 
@@ -303,10 +304,18 @@ incomplete and I had trouble with their installation.  It's not clear
 if some of the packages are still being actively developed and
 supported.
 
-The one I recommend, since I have successfully used it with LAMMPS, is
-Pypar.  Pypar requires the ubiquitous "Numpy
-package"_http://numpy.scipy.org be installed in your Python.  After
-launching python, type
+The packages Pypar and mpi4py have both been successfully tested with
+LAMMPS.  Pypar is simpler and easy to set up and use, but supports
+only a subset of MPI.  Mpi4py is more MPI-feature complete, but also a
+bit more complex to use.  As of version 2.0.0, mpi4py is the only
+python MPI wrapper that allows passing a custom MPI communicator to
+the LAMMPS constructor, which means one can easily run one or more
+LAMMPS instances on subsets of the total MPI ranks.
+
+:line
+
+Pypar requires the ubiquitous "Numpy package"_http://numpy.scipy.org
+be installed in your Python.  After launching Python, type
 
 import numpy :pre
 
@@ -346,17 +355,62 @@ print "Proc %d out of %d procs" % (pypar.rank(),pypar.size()) :pre
 
 and see one line of output for each processor you run on.
 
-IMPORTANT NOTE: To use Pypar and LAMMPS in parallel from Python, you
-must insure both are using the same version of MPI.  If you only have
-one MPI installed on your system, this is not an issue, but it can be
-if you have multiple MPIs.  Your LAMMPS build is explicit about which
-MPI it is using, since you specify the details in your lo-level
+NOTE: To use Pypar and LAMMPS in parallel from Python, you must insure
+both are using the same version of MPI.  If you only have one MPI
+installed on your system, this is not an issue, but it can be if you
+have multiple MPIs.  Your LAMMPS build is explicit about which MPI it
+is using, since you specify the details in your lo-level
 src/MAKE/Makefile.foo file.  Pypar uses the "mpicc" command to find
 information about the MPI it uses to build against.  And it tries to
 load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
 the MPI library that LAMMPS is using.  If you have problems running
 both Pypar and LAMMPS together, this is an issue you may need to
 address, e.g. by moving other MPI installations so that Pypar finds
+the right one.
+
+:line
+
+To install mpi4py (version mpi4py-2.0.0 as of Oct 2015), unpack it
+and from its main directory, type
+
+python setup.py build
+sudo python setup.py install :pre
+
+Again, the "sudo" is only needed if required to copy mpi4py files into
+your Python distribution's site-packages directory. To install with
+user privilege into the user local directory type
+
+python setup.py install --user :pre
+
+If you have successully installed mpi4py, you should be able to run
+Python and type
+
+from mpi4py import MPI :pre
+
+without error.  You should also be able to run python in parallel
+on a simple test script
+
+% mpirun -np 4 python test.py :pre
+
+where test.py contains the lines
+
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+print "Proc %d out of %d procs" % (comm.Get_rank(),comm.Get_size()) :pre
+
+and see one line of output for each processor you run on.
+
+NOTE: To use mpi4py and LAMMPS in parallel from Python, you must
+insure both are using the same version of MPI.  If you only have one
+MPI installed on your system, this is not an issue, but it can be if
+you have multiple MPIs.  Your LAMMPS build is explicit about which MPI
+it is using, since you specify the details in your lo-level
+src/MAKE/Makefile.foo file.  Mpi4py uses the "mpicc" command to find
+information about the MPI it uses to build against.  And it tries to
+load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
+the MPI library that LAMMPS is using.  If you have problems running
+both mpi4py and LAMMPS together, this is an issue you may need to
+address, e.g. by moving other MPI installations so that mpi4py finds
 the right one.
 
 :line
@@ -413,8 +467,8 @@ lmp_g++ -in in.lj :pre
 [Test LAMMPS and Python in parallel:] :h5
 
 To run LAMMPS in parallel, assuming you have installed the
-"Pypar"_http://datamining.anu.edu.au/~ole/pypar package as discussed
-above, create a test.py file containing these lines:
+"Pypar"_Pypar package as discussed above, create a test.py file
+containing these lines:
 
 import pypar
 from lammps import lammps
@@ -423,7 +477,20 @@ lmp.file("in.lj")
 print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()),lmp
 pypar.finalize() :pre
 
-You can then run it in parallel as:
+To run LAMMPS in parallel, assuming you have installed the
+"mpi4py"_mpi4py package as discussed above, create a test.py file
+containing these lines:
+
+from mpi4py import MPI
+from lammps import lammps
+lmp = lammps()
+lmp.file("in.lj")
+me = MPI.COMM_WORLD.Get_rank()
+nprocs = MPI.COMM_WORLD.Get_size()
+print "Proc %d out of %d procs has" % (me,nprocs),lmp
+MPI.Finalize() :pre
+
+You can either script in parallel as:
 
 % mpirun -np 4 python test.py :pre
 
@@ -491,10 +558,11 @@ correspond one-to-one with calls you can make to the LAMMPS library
 from a C++ or C or Fortran program.
 
 lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
-lmp = lammps(ptr=lmpptr) # ditto, but use lmpptr as previously created LAMMPS object
-lmp = lammps("g++")      # create a LAMMPS object using the liblammps_g++.so library
-lmp = lammps("",list)    # ditto, with command-line args, e.g. list = \["-echo","screen"\]
-lmp = lammps("g++",list) :pre
+                         4 optional args are allowed: name, cmdargs, ptr, comm
+lmp = lammps(ptr=lmpptr) # use lmpptr as previously created LAMMPS object
+lmp = lammps(comm=split) # create a LAMMPS object with a custom communicator, requires mpi4py 2.0.0 or later
+lmp = lammps(name="g++")   # create a LAMMPS object using the liblammps_g++.so library
+lmp = lammps(name="g++",cmdargs=list)    # add LAMMPS command-line args, e.g. list = \["-echo","screen"\] :pre
 
 lmp.close()              # destroy a LAMMPS object :pre
 
@@ -542,15 +610,6 @@ lmp.scatter_atoms(name,type,count,data)   # scatter atom attribute of all atoms 
                                           # count = # of per-atom values, 1 or 3, etc :pre
 
 :line
-
-IMPORTANT NOTE: Currently, the creation of a LAMMPS object from within
-lammps.py does not take an MPI communicator as an argument.  There
-should be a way to do this, so that the LAMMPS instance runs on a
-subset of processors if desired, but I don't know how to do it from
-Pypar.  So for now, it runs with MPI_COMM_WORLD, which is all the
-processors.  If someone figures out how to do this with one or more of
-the Python wrappers for MPI, like Pypar, please let us know and we
-will amend these doc pages.
 
 The lines
 
@@ -717,7 +776,8 @@ distribution.
 
 trivial.py, read/run a LAMMPS input script thru Python,
 demo.py, invoke various LAMMPS library interface routines,
-simple.py, mimic operation of couple/simple/simple.cpp in Python,
+simple.py, run in parallel, similar to examples/COUPLE/simple/simple.cpp,
+split.py, same as simple.py but running in parallel on a subset of procs,
 gui.py, GUI go/stop/temperature-slider to control LAMMPS,
 plot.py, real-time temeperature plot with GnuPlot via Pizza.py,
 viz_tool.py, real-time viz via some viz package,

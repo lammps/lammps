@@ -1010,9 +1010,13 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   // if keyword requires a compute, error if thermo doesn't use the compute
   // if inbetween runs and needed compute is not current, error
   // if in middle of run and needed compute is not current, invoke it
-  // for keywords that use pe indirectly (evdwl, ebond, etc):
+  // for keywords that use energy (evdwl, ebond, etc):
   //   check if energy was tallied on this timestep and set pe->invoked_flag
   //   this will trigger next timestep for energy tallying via addstep()
+  //   this means keywords that use pe (pe, etotal, enthalpy)
+  //     need to always invoke it even if invoked_flag is set,
+  //     because evdwl/etc may have set invoked_flag w/out 
+  //       actually invoking pe->compute_scalar()
 
   if (strcmp(word,"step") == 0) {
     compute_step();
@@ -1106,7 +1110,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
+    } else {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
@@ -1134,7 +1138,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
+    } else {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
@@ -1159,7 +1163,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
+    } else {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
@@ -1271,10 +1275,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"etail") == 0) {
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
     compute_etail();
 
   } else if (strcmp(word,"vol") == 0) compute_vol();

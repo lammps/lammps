@@ -31,8 +31,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   kokkos_exists = 1;
   lmp->kokkos = this;
 
+  int me = 0;
+  MPI_Comm_rank(world,&me);
+  if (me == 0) error->message(FLERR,"KOKKOS mode is enabled");
+
   // process any command-line args that invoke Kokkos settings
 
+  ngpu = 0;
   int device = 0;
   num_threads = 1;
   numa = 1;
@@ -46,8 +51,11 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
+#ifndef KOKKOS_HAVE_CUDA
+      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA");
+#endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
-      int ngpu = atoi(arg[iarg+1]);
+      ngpu = atoi(arg[iarg+1]);
 
       int skip_gpu = 9999;
       if (iarg+2 < narg && isdigit(arg[iarg+2][0])) {
@@ -88,7 +96,15 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // initialize Kokkos
 
+  if (me == 0) {
+    if (screen) fprintf(screen,"  using %d GPU(s)\n",ngpu);
+    if (logfile) fprintf(logfile,"  using %d GPU(s)\n",ngpu);
+  }
+
 #ifdef KOKKOS_HAVE_CUDA
+  if (ngpu <= 0)
+    error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
+
   Kokkos::HostSpace::execution_space::initialize(num_threads,numa);
   Kokkos::Cuda::SelectDevice select_device(device);
   Kokkos::Cuda::initialize(select_device);
@@ -131,7 +147,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   int newtonflag = 0;
   double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = 0;
-  exchange_comm_on_host = forward_comm_on_host = 1;
+  exchange_comm_on_host = forward_comm_on_host = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -143,6 +159,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
       else if (strcmp(arg[iarg+1],"full/cluster") == 0) neighflag = FULLCLUSTER;
       else error->all(FLERR,"Illegal package kokkos command");
+      if (neighflag == HALF && (num_threads > 1 || ngpu > 0))
+        error->all(FLERR,"Must use Kokkos half/thread or full neighbor list with threads or GPUs");
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");

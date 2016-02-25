@@ -1,0 +1,189 @@
+.. index:: fix ti/spring
+
+fix ti/spring command
+=====================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   fix ID group-ID ti/spring K t_switch t_equil keyword value ...
+
+* ID, group-ID are documented in :doc:`fix <fix>` command
+* ti/spring = style name of this fix command
+* K = spring constant (force/distance units)
+* t_switch/t_equil = number of steps of the switching/equilibration procedure
+* zero or more keyword/value pairs may be appended to args
+* keyword = *function*
+.. parsed-literal::
+
+     *function* value = function-ID 
+       function-ID = ID of the switching function (1 or 2)
+
+
+
+**Example:**
+
+.. parsed-literal::
+
+   fix ref all ti/spring 50.0 2000 1000 function 2
+
+Description
+"""""""""""
+
+This fix allows you to compute the free energy of solids by performing
+a thermodynamic integration between the solid of interest and an
+Einstein crystal :ref:`(Frenkel) <Frenkel>`. The thermodynamic integration
+is performed using the nonequilibrium method of Adiabatic Switching
+:ref:`(Watanabe, <Watanabe>` :ref:`de Koning96) <deKoning96>`.
+
+A spring force is applied independently to each atom in the group to
+tether it to its initial position. The initial position for each atom
+is its location at the time the fix command was issued. More details
+about the springs are available in :doc:`fix spring/self <fix_spring_self>`. The forces on the atoms are
+dynamically scaled during the simulation, the rescaling is done in the
+following manner:
+
+.. image:: Eqs/fix_ti_spring_force.jpg
+   :align: center
+
+where F_harm is the force due to the springs, F_solid is the total
+force on the atoms due to the interatomic potential and lambda is the
+coupling parameter of the thermodynamic integration.
+
+The fix acts as follows: during the first *t_equil* steps after the
+fix is defined the value of lambda is zero, this is the period to
+equilibrate the system in the lambda = 0 state. After this the value
+of lambda changes continuously from 0 to 1 according to the function
+defined using the keyword *function* (described below), this is done
+in *t_switch* steps. Then comes the second equilibration period of
+*t_equil* to equilibrate the system in the lambda = 1 state. After
+that the switching back to the lambda = 0 state is made using
+*t_switch* timesteps and following the same switching function. After
+this period the value of lambda is kept equal to zero and the fix has
+no action in the dynamics of the system anymore.
+
+The description of thermodynamic integration in both directions is
+done in :ref:`de Koning97 <deKoning97>`, the main reason is to try to
+eliminate the dissipated heat due to the nonequilibrium process.
+
+The *function* keyword allows the use of two different switching
+rates, the option *1* results in a constant rescaling where the lambda
+parameter changes at a constant rate during the switching time
+according to the switching function
+
+.. image:: Eqs/fix_ti_spring_function_1.jpg
+   :align: center
+
+where tau is the scaled time variable t/t_switch. The option number
+*2* performs the switching at a rate defined by the following
+switching function
+
+.. image:: Eqs/fix_ti_spring_function_2.jpg
+   :align: center
+
+This function has zero slope as lambda approaches its extreme values
+(0 and 1), according to (:ref:`de Koning96) <deKoning96>` this results in
+smaller fluctuations on the integral to be computed on the
+thermodynamic integration.
+
+.. note::
+
+   It is importante to keep the center of mass fixed during the
+   thermodynamic integration, a non-zero total velocity will result in
+   divergencies during the integration due to the fact that the atoms are
+   'attatched' to its equilibrium positions by the Einstein
+   crystal. Check the option *zero* of `fix langevin <fix_langevin_html>`_
+   and :doc:`velocity <velocity>`. The use of the Nose-Hoover thermostat
+   (:doc:`fix nvt <fix_nvt>`) is NOT recommended due to its well documented
+   issues with the canonical sampling of harmonic degrees of freedom
+   (notice that the *chain* option will NOT solve this problem). The
+   Langevin thermostat (`fix langevin <fix_langevin.html">`_) works fine.
+
+Restart, fix_modify, output, run start/stop, minimize info
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This fix writes the original coordinates of tethered atoms to :doc:`binary restart files <restart>`, so that the spring effect will be the
+same in a restarted simulation. See the :doc:`read restart <read_restart>` command for info on how to re-specify a fix
+in an input script that reads a restart file, so that the operation of
+the fix continues in an uninterrupted fashion.
+
+The :doc:`fix modify <fix_modify>` *energy* option is supported by this
+fix to add the energy stored in the per-atom springs to the system's
+potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+
+This fix computes a global scalar and a global vector quantities which
+can be accessed by various :ref:`output commands <howto_15>`.  The scalar is an energy which
+is the sum of the spring energy for each atom, where the per-atom
+energy is 0.5 * K * r^2. The vector has 2 positions, the first one is
+the coupling parameter lambda and the second one is the time
+derivative of lambda. The scalar and vector values calculated by this
+fix are "extensive".
+
+No parameter of this fix can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the :doc:`minimize <minimize>` command.
+
+.. note::
+
+   If you want the per-atom spring energy to be included in the
+   total potential energy of the system (the quantity being minimized),
+   you MUST enable the :doc:`fix modify <fix_modify>` *energy* option for
+   this fix.
+
+An example script using this command is provided in the
+examples/USER/misc/ti directory.
+
+Related commands
+""""""""""""""""
+
+:doc:`fix spring <fix_spring>`, :doc:`fix ti/rs <fix_ti_rs>`
+
+Restrictions
+""""""""""""
+
+
+This command is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with those packages.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+
+Default
+"""""""
+
+The keyword default is function = 1.
+
+
+----------
+
+
+.. _Frenkel:
+
+
+
+**(Frenkel)** Daan Frenkel and Anthony J. C. Ladd, J. Chem. Phys. 81, 3188
+(1984).
+
+.. _Watanabe:
+
+
+
+**(Watanabe)** M. Watanabe and W. P. Reinhardt, Phys Rev Lett, 65, 3301 (1990).
+
+.. _deKoning96:
+
+
+
+**(de Koning 96)** M. de Koning and A. Antonelli, Phys Rev E, 53, 465 (1996).
+
+.. _deKoning97:
+
+
+
+**(de Koning 97)** M. de Koning and A. Antonelli, Phys Rev B, 55, 735 (1997).
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

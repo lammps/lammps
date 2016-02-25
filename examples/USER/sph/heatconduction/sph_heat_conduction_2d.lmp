@@ -17,16 +17,16 @@ mass            1 1.0e-5
 
 region          left  block EDGE 49.9  EDGE EDGE EDGE EDGE
 region          right block 50 EDGE EDGE EDGE EDGE EDGE
-set             region left  meso_e 1.0 # internal energies
-set             region right meso_e 2.0
-set             group all meso_rho 0.1 # mesoscopic density is also needed for this pair style
+set             region left  meso/e 1.0 # internal energies
+set             region right meso/e 2.0
+set             group all meso/rho 0.1 # mesoscopic density is also needed for this pair style
 #               For correct temperature profiles, mescoscopic density and mass * number density must coincide!
 
 pair_style      sph/heatconduction
 #               i j diffusion coeff. cutoff
 pair_coeff      1 1 1.0e-4           2.0e-2
 
-compute         ie_atom all meso_e/atom
+compute         ie_atom all meso/e/atom
 compute         ie all reduce sum c_ie_atom
 
 thermo		10

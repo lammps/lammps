@@ -43,9 +43,9 @@ underscores.
 
 Fixes can be deleted with the "unfix"_unfix.html command.
 
-IMPORTANT NOTE: The "unfix"_unfix.html command is the only way to turn
-off a fix; simply specifying a new fix with a similar style will not
-turn off the first one.  This is especially important to realize for
+NOTE: The "unfix"_unfix.html command is the only way to turn off a
+fix; simply specifying a new fix with a similar style will not turn
+off the first one.  This is especially important to realize for
 integration fixes.  For example, using a "fix nve"_fix_nve.html
 command for a second run after using a "fix nvt"_fix_nh.html command
 for the first run, will not cancel out the NVT time integration
@@ -165,8 +165,10 @@ of "this page"_Section_commands.html#cmd_5.
 "adapt"_fix_adapt.html - change a simulation parameter over time
 "addforce"_fix_addforce.html - add a force to each atom
 "append/atoms"_fix_append_atoms.html - append atoms to a running simulation
+"atom/swap"_fix_atom_swap.html - Monte Carlo atom type swapping
 "aveforce"_fix_aveforce.html - add an averaged force to each atom
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
+"ave/chunk"_fix_ave_chunk.html - compute per-chunk time-averaged quantities
 "ave/correlate"_fix_ave_correlate.html - compute/output time correlations
 "ave/histo"_fix_ave_histo.html - compute/output time-averaged histograms
 "ave/spatial"_fix_ave_spatial.html - compute/output time-averaged per-atom quantities by layer
@@ -199,9 +201,11 @@ of "this page"_Section_commands.html#cmd_5.
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
 "nphug"_fix_nphug.html - constant-stress Hugoniostat integration
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
+"nph/body"_fix_nve_body.html - NPH for body particles
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles
 "npt"_fix_nh.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
+"npt/body"_fix_nve_body.html - NPT for body particles
 "npt/sphere"_fix_npt_sphere.html - NPT for spherical particles
 "nve"_fix_nve.html - constant NVE time integration
 "nve/asphere"_fix_nve_asphere.html - NVE for aspherical particles
@@ -214,8 +218,10 @@ of "this page"_Section_commands.html#cmd_5.
 "nve/tri"_fix_nve_tri.html - NVE for triangles
 "nvt"_fix_nh.html - constant NVT time integration via Nose/Hoover
 "nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
+"nvt/body"_fix_nve_body.html - NVT for body particles
 "nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
 "nvt/sphere"_fix_nvt_sphere.html - NVT for spherical particles
+"oneway"_fix_oneway.html - constrain particles on move in one direction
 "orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
 "planeforce"_fix_planeforce.html - constrain atoms to move in a plane
 "poems"_fix_poems.html - constrain clusters of atoms to move \
@@ -227,9 +233,11 @@ of "this page"_Section_commands.html#cmd_5.
 "property/atom"_fix_property_atom.html - add customized per-atom values
 "qeq/comb"_fix_qeq_comb.html - charge equilibration for COMB potential \
 "qeq/dynamic"_fix_qeq.html - charge equilibration via dynamic method \
+"qeq/fire"_fix_qeq.html - charge equilibration via FIRE minimizer \
 "qeq/point"_fix_qeq.html - charge equilibration via point method \
 "qeq/shielded"_fix_qeq.html - charge equilibration via shielded method \
 "qeq/slater"_fix_qeq.html - charge equilibration via Slater method \
+"rattle"_fix_shake.html - RATTLE constraints on bonds and/or angles
 "reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
@@ -246,6 +254,14 @@ of "this page"_Section_commands.html#cmd_5.
      move as a rigid body with NVT integration
 "rigid/small"_fix_rigid.html - constrain many small clusters of atoms to \
      move as a rigid body with NVE integration
+"rigid/small/nph"_fix_rigid.html - constrain many small clusters of atoms to \
+     move as a rigid body with NPH integration
+"rigid/small/npt"_fix_rigid.html - constrain many small clusters of atoms to \
+     move as a rigid body with NPT integration
+"rigid/small/nve"_fix_rigid.html - constrain many small clusters of atoms to \
+     move as a rigid body with alternate NVE integration
+"rigid/small/nvt"_fix_rigid.html - constrain many small clusters of atoms to \
+     move as a rigid body with NVT integration
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
 "spring"_fix_spring.html - apply harmonic spring force to group of atoms
@@ -257,8 +273,11 @@ of "this page"_Section_commands.html#cmd_5.
 "store/state"_fix_store_state.html - store attributes for each atom
 "temp/berendsen"_fix_temp_berendsen.html - temperature control by \
      Berendsen thermostat
+"temp/csld"_fix_temp_csvr.html - canonical sampling thermostat with Langevin dynamics
+"temp/csvr"_fix_temp_csvr.html - canonical sampling thermostat with Hamiltonian dynamics
 "temp/rescale"_fix_temp_rescale.html - temperature control by \
      velocity rescaling
+"tfmc"_fix_tfmc.html - perform force-bias Monte Carlo with time-stamped method
 "thermal/conductivity"_fix_thermal_conductivity.html - Muller-Plathe kinetic energy exchange for \
      thermal conductivity calculation
 "tmd"_fix_tmd.html - guide a group of atoms to a new configuration

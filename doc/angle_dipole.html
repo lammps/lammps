@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>angle_style dipole command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>angle_style dipole command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -165,9 +165,11 @@ potential using the &#8216;chain rule&#8217; as in appendix C.3 of
 the potential will tend to align the dipole along the reference
 direction defined by the (bond) vector r_ij (in other words, mu_j is
 restrained to point towards atom &#8216;i&#8217;).</p>
-<p>Note that the angle dipole potential does not give rise to any force,
-because it does not depend on the distance between i and j (it only
-depends on the angle between mu_j and r_ij).</p>
+<p>The dipolar torque T_j must be counterbalanced in order to conserve
+the local angular momentum. This is achieved via an additional force
+couple generating a torque equivalent to the opposite of T_j:</p>
+<img alt="_images/angle_dipole_couple.jpg" class="align-center" src="_images/angle_dipole_couple.jpg" />
+<p>where F_i and F_j are applied on atoms i and j, respectively.</p>
 <p>The following coefficients must be defined for each angle type via the
 <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a> command as in the example above, or in
 the data file or restart files read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
@@ -198,16 +200,16 @@ more instructions on how to use the accelerated styles effectively.</p>
 <p>This angle style can only be used if LAMMPS was built with the
 USER-MISC package.  See the <span class="xref std std-ref">Making LAMMPS</span>
 section for more info on packages.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">In the &#8220;Angles&#8221; section of the data file, the atom ID
-&#8216;j&#8217; corresponding to the dipole to restrain must come before the atom
-ID of the reference atom &#8216;i&#8217;. A third atom ID &#8216;k&#8217; must also be
-provided, although &#8216;k&#8217; is just a &#8216;dummy&#8217; atom which can be any atom;
-it may be useful to choose a convention (e.g., &#8216;k&#8217;=&#8217;i&#8217;) and adhere to
-it.  For example, if ID=1 for the dipolar atom to restrain, and ID=2
-for the reference atom, the corresponding line in the &#8220;Angles&#8221; section
-of the data file would read: X X 1 2 2</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the &#8220;Angles&#8221; section of the data file, the atom ID &#8216;j&#8217;
+corresponding to the dipole to restrain must come before the atom ID
+of the reference atom &#8216;i&#8217;. A third atom ID &#8216;k&#8217; must also be provided,
+although &#8216;k&#8217; is just a &#8216;dummy&#8217; atom which can be any atom; it may be
+useful to choose a convention (e.g., &#8216;k&#8217;=&#8217;i&#8217;) and adhere to it.  For
+example, if ID=1 for the dipolar atom to restrain, and ID=2 for the
+reference atom, the corresponding line in the &#8220;Angles&#8221; section of the
+data file would read: X X 1 2 2</p>
 </div>
 <p>The &#8220;newton&#8221; command for intramolecular interactions must be &#8220;on&#8221;
 (which is the default).</p>
@@ -235,7 +237,7 @@ Clarendon Press, Oxford, 1987.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -256,7 +258,7 @@ Clarendon Press, Oxford, 1987.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

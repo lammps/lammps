@@ -1,0 +1,39 @@
+# Si and C mixture, parameterized for Tersoff potential
+# this file is from Rutuparna.Narulkar @ okstate.edu
+# values are from Phys Rev B, 39, 5566-5568 (1989)
+# and errata (PRB 41, 3248)
+
+# Tersoff parameters for various elements and mixtures
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# these entries are in LAMMPS "metal" units:
+#   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms
+#   other quantities are unitless
+
+# format of a single entry (one or more lines):
+#   element 1, element 2, element 3,
+#               m, gamma, lambda3, c, d, costheta0, n,
+#               beta, lambda2, B, R, D, lambda1, A
+
+C   C    C   3.0 1.0 0.0 38049  4.3484   -.57058 .72751
+             0.00000015724 2.2119  346.7   1.95   0.15   3.4879  1393.6
+
+Si  Si  Si  3.0 1.0 0.0  100390  16.217   -.59825 .78734
+            0.0000011     1.73222  471.18  2.85   0.15    2.4799  1830.8
+
+Si  Si  C   3.0 1.0 0.0 100390  16.217   -.59825 0.0
+            0.0 0.0 0.0 2.36   0.15 0.0 0.0
+
+Si  C   C   3.0 1.0 0.0 100390 16.217 -.59825 .787340
+            0.0000011     1.97205 395.126  2.36  0.15    2.9839  1597.3111
+
+C   Si  Si  3.0 1.0 0.0 38049  4.3484  -.57058 .72751
+            0.00000015724 1.97205 395.126  2.36  0.15   2.9839   1597.3111
+
+C   Si  C   3.0 1.0 0.0 38049  4.3484   -.57058 0.0
+            0.0 0.0 0.0 1.95   0.15 0.0 0.0
+
+C   C   Si  3.0 1.0 0.0 38049  4.3484   -.57058 0.0
+            0.0 0.0 0.0 2.36   0.15 0.0 0.0
+
+Si  C   Si  3.0 1.0 0.0 100390 16.217 -.59825 0.0
+            0.0 0.0 0.0 2.85   0.15 0.0 0.0

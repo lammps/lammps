@@ -50,6 +50,9 @@ void Minimize::command(int narg, char **arg)
   if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
 
+  if (lmp->kokkos)
+    error->all(FLERR,"Cannot yet use minimize with Kokkos");
+
   lmp->init();
   update->minimize->setup();
 

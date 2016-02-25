@@ -205,12 +205,14 @@ private:
   inline
   bool team_fan_in() const
     {
+      memory_fence();
       for ( int n = 1 , j ; ( ( j = m_team_rank_rev + n ) < m_team_size ) && ! ( m_team_rank_rev & n ) ; n <<= 1 ) {
         m_exec.pool_rev( m_team_base_rev + j )->state_wait( Active );
       }
 
       if ( m_team_rank_rev ) {
         m_exec.state_set( Rendezvous );
+        memory_fence();
         m_exec.state_wait( Rendezvous );
       }
 
@@ -220,8 +222,10 @@ private:
   inline
   void team_fan_out() const
     {
+      memory_fence();
       for ( int n = 1 , j ; ( ( j = m_team_rank_rev + n ) < m_team_size ) && ! ( m_team_rank_rev & n ) ; n <<= 1 ) {
         m_exec.pool_rev( m_team_base_rev + j )->state_set( Active );
+        memory_fence();
       }
     }
 
@@ -277,6 +281,7 @@ public:
     { return ValueType(); }
   #else
     {
+      memory_fence();
       typedef ValueType value_type;
       const JoinLambdaAdapter<value_type,JoinOp> op(op_in);
   #endif
@@ -313,6 +318,7 @@ public:
         for ( int i = 1 ; i < m_team_size ; ++i ) {
           op.join( *team_value , *((type*) m_exec.pool_rev( m_team_base_rev + i )->scratch_thread()) );
         }
+        memory_fence();
 
         // The base team member may "lap" the other team members,
         // copy to their local value before proceeding.

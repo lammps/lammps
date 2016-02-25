@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix srd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix srd command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -326,11 +326,11 @@ if the ratio of any 2 bin dimensions exceeds (1 +/- tolerance) then an
 error or warning is generated.  Similarly, if the ratio of any bin
 dimension with <em>hgrid</em> exceeds (1 +/- tolerance), then an error or
 warning is generated.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The fix srd command can be used with simluations the
-size and/or shape of the simulation box changes.  This can be due to
-non-periodic boundary conditions or the use of fixes such as the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> or <a class="reference internal" href="fix_wall_srd.html"><em>fix wall/srd</em></a> commands
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The fix srd command can be used with simluations the size and/or
+shape of the simulation box changes.  This can be due to non-periodic
+boundary conditions or the use of fixes such as the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> or <a class="reference internal" href="fix_wall_srd.html"><em>fix wall/srd</em></a> commands
 to impose a shear on an SRD fluid or an interaction with an external
 wall.  If the box size changes then the size of SRD bins must be
 recalculated every reneighboring.  This is not necessary if only the
@@ -399,14 +399,13 @@ rescaling off during collisions and the per-bin velocity rotation
 operation.  The <em>collide</em> and <em>rotate</em> values turn it on for
 one of the operations and off for the other.</p>
 <hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This fix is normally used for simulations with a huge
-number of SRD particles relative to the number of big particles,
-e.g. 100 to 1.  In this scenario, computations that involve only big
-particles (neighbor list creation, communication, time integration)
-can slow down dramatically due to the large number of background SRD
-particles.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This fix is normally used for simulations with a huge number of
+SRD particles relative to the number of big particles, e.g. 100 to 1.
+In this scenario, computations that involve only big particles
+(neighbor list creation, communication, time integration) can slow
+down dramatically due to the large number of background SRD particles.</p>
 </div>
 <p>Three other input script commands will largely overcome this effect,
 speeding up an SRD simulation by a significant amount.  These are the
@@ -522,7 +521,7 @@ Chem Phys, 132, 174106 (2010).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -543,7 +542,7 @@ Chem Phys, 132, 174106 (2010).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

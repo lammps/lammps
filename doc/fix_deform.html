@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix deform command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix deform command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -553,25 +553,25 @@ appropriate for fluids, where you want the atoms to respond to the
 change in box size/shape on their own and acquire a velocity that
 matches the box change, so that their motion will naturally track the
 box without explicit remapping of their coordinates.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When non-equilibrium MD (NEMD) simulations are
-performed using this fix, the option &#8220;remap v&#8221; should normally be
-used.  This is because <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a> adjusts the
-atom positions and velocities to induce a velocity profile that
-matches the changing box size/shape.  Thus atom coordinates should NOT
-be remapped by fix deform, but velocities SHOULD be when atoms cross
-periodic boundaries, since that is consistent with maintaining the
-velocity profile already created by fix nvt/sllod.  LAMMPS will warn
-you if the <em>remap</em> setting is not consistent with fix nvt/sllod.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When non-equilibrium MD (NEMD) simulations are performed using
+this fix, the option &#8220;remap v&#8221; should normally be used.  This is
+because <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a> adjusts the atom positions
+and velocities to induce a velocity profile that matches the changing
+box size/shape.  Thus atom coordinates should NOT be remapped by fix
+deform, but velocities SHOULD be when atoms cross periodic boundaries,
+since that is consistent with maintaining the velocity profile already
+created by fix nvt/sllod.  LAMMPS will warn you if the <em>remap</em> setting
+is not consistent with fix nvt/sllod.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For non-equilibrium MD (NEMD) simulations using &#8220;remap
-v&#8221; it is usually desirable that the fluid (or flowing material,
-e.g. granular particles) stream with a velocity profile consistent
-with the deforming box.  As mentioned above, using a thermostat such
-as <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a> or <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">lavgevin</span></code> (with a bias provided by <a class="reference internal" href="compute_temp_deform.html"><em>compute temp/deform</em></a>), will typically accomplish
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For non-equilibrium MD (NEMD) simulations using &#8220;remap v&#8221; it is
+usually desirable that the fluid (or flowing material, e.g. granular
+particles) stream with a velocity profile consistent with the
+deforming box.  As mentioned above, using a thermostat such as <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a> or <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">lavgevin</span></code>
+(with a bias provided by <a class="reference internal" href="compute_temp_deform.html"><em>compute temp/deform</em></a>), will typically accomplish
 that.  If you do not use a thermostat, then there is no driving force
 pushing the atoms to flow in a manner consistent with the deforming
 box.  E.g. for a shearing system the box deformation velocity may vary
@@ -584,14 +584,14 @@ command, that matches the box deformation rate.  This also typically
 helps the system come to equilibrium more quickly, even if a
 thermostat is used.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If a <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> is defined for rigid
-bodies, and <em>remap</em> is set to <em>x</em>, then the center-of-mass coordinates
-of rigid bodies will be remapped to the changing simulation box.  This
-will be done regardless of whether atoms in the rigid bodies are in
-the fix deform group or not.  The velocity of the centers of mass are
-not remapped even if <em>remap</em> is set to <em>v</em>, since <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a> does not currently do anything special
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> is defined for rigid bodies, and
+<em>remap</em> is set to <em>x</em>, then the center-of-mass coordinates of rigid
+bodies will be remapped to the changing simulation box.  This will be
+done regardless of whether atoms in the rigid bodies are in the fix
+deform group or not.  The velocity of the centers of mass are not
+remapped even if <em>remap</em> is set to <em>v</em>, since <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a> does not currently do anything special
 for rigid particles.  If you wish to perform a NEMD simulation of
 rigid particles, you can either thermostat them independently or
 include a background fluid and thermostat the fluid via <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a>.</p>
@@ -671,7 +671,7 @@ xy) that is shrink-wrapped via the <a class="reference internal" href="boundary.
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -692,7 +692,7 @@ xy) that is shrink-wrapped via the <a class="reference internal" href="boundary.
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute pair command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute pair command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -166,6 +166,12 @@ as a global scalar by this compute.  This is useful when using
 of the total energy contributed by one sub-style.  If <em>evalue</em> is
 specfied as <em>evdwl</em> or <em>ecoul</em>, then just that portion of the energy
 is stored as a global scalar.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The energy returned by the <em>evdwl</em> keyword does not include tail
+corrections, even if they are enabled via the
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> command.</p>
+</div>
 <p>Some pair styles tally additional quantities, e.g. a breakdown of
 potential energy into a dozen or so components is tallied by the
 <a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> commmand.  These values (1 or more)
@@ -209,7 +215,7 @@ see the doc page for the pair style for details.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -230,7 +236,7 @@ see the doc page for the pair style for details.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

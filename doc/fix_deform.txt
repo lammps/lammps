@@ -473,22 +473,22 @@ change in box size/shape on their own and acquire a velocity that
 matches the box change, so that their motion will naturally track the
 box without explicit remapping of their coordinates.
 
-IMPORTANT NOTE: When non-equilibrium MD (NEMD) simulations are
-performed using this fix, the option "remap v" should normally be
-used.  This is because "fix nvt/sllod"_fix_nvt_sllod.html adjusts the
-atom positions and velocities to induce a velocity profile that
-matches the changing box size/shape.  Thus atom coordinates should NOT
-be remapped by fix deform, but velocities SHOULD be when atoms cross
-periodic boundaries, since that is consistent with maintaining the
-velocity profile already created by fix nvt/sllod.  LAMMPS will warn
-you if the {remap} setting is not consistent with fix nvt/sllod.
+NOTE: When non-equilibrium MD (NEMD) simulations are performed using
+this fix, the option "remap v" should normally be used.  This is
+because "fix nvt/sllod"_fix_nvt_sllod.html adjusts the atom positions
+and velocities to induce a velocity profile that matches the changing
+box size/shape.  Thus atom coordinates should NOT be remapped by fix
+deform, but velocities SHOULD be when atoms cross periodic boundaries,
+since that is consistent with maintaining the velocity profile already
+created by fix nvt/sllod.  LAMMPS will warn you if the {remap} setting
+is not consistent with fix nvt/sllod.
 
-IMPORTANT NOTE: For non-equilibrium MD (NEMD) simulations using "remap
-v" it is usually desirable that the fluid (or flowing material,
-e.g. granular particles) stream with a velocity profile consistent
-with the deforming box.  As mentioned above, using a thermostat such
-as "fix nvt/sllod"_fix_nvt_sllod.html or "fix
-lavgevin"_doc/fix_langevin.html (with a bias provided by "compute
+NOTE: For non-equilibrium MD (NEMD) simulations using "remap v" it is
+usually desirable that the fluid (or flowing material, e.g. granular
+particles) stream with a velocity profile consistent with the
+deforming box.  As mentioned above, using a thermostat such as "fix
+nvt/sllod"_fix_nvt_sllod.html or "fix lavgevin"_doc/fix_langevin.html
+(with a bias provided by "compute
 temp/deform"_compute_temp_deform.html), will typically accomplish
 that.  If you do not use a thermostat, then there is no driving force
 pushing the atoms to flow in a manner consistent with the deforming
@@ -505,12 +505,12 @@ command, that matches the box deformation rate.  This also typically
 helps the system come to equilibrium more quickly, even if a
 thermostat is used.
 
-IMPORTANT NOTE: If a "fix rigid"_fix_rigid.html is defined for rigid
-bodies, and {remap} is set to {x}, then the center-of-mass coordinates
-of rigid bodies will be remapped to the changing simulation box.  This
-will be done regardless of whether atoms in the rigid bodies are in
-the fix deform group or not.  The velocity of the centers of mass are
-not remapped even if {remap} is set to {v}, since "fix
+NOTE: If a "fix rigid"_fix_rigid.html is defined for rigid bodies, and
+{remap} is set to {x}, then the center-of-mass coordinates of rigid
+bodies will be remapped to the changing simulation box.  This will be
+done regardless of whether atoms in the rigid bodies are in the fix
+deform group or not.  The velocity of the centers of mass are not
+remapped even if {remap} is set to {v}, since "fix
 nvt/sllod"_fix_nvt_sllod.html does not currently do anything special
 for rigid particles.  If you wish to perform a NEMD simulation of
 rigid particles, you can either thermostat them independently or

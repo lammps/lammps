@@ -56,10 +56,8 @@ class FixSRP : public Fix {
   double **array;
 
  private:
-  double xone[3];
   int btype;
   int bptype;
-  int setup;
 };
 
 }

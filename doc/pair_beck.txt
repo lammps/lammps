@@ -74,7 +74,7 @@ more instructions on how to use the accelerated styles effectively.
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 For atom type pairs I,J and I != J, coeffiecients must be specified.
-No default miture rules are used.
+No default mixing rules are used.
 
 This pair style does not support the "pair_modify"_pair_modify.html shift
 option for the energy of the pair interaction.

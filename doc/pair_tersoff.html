@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style tersoff command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style tersoff command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -136,6 +136,9 @@
 <div class="section" id="pair-style-tersoff-gpu">
 <h1>pair_style tersoff/gpu<a class="headerlink" href="#pair-style-tersoff-gpu" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="pair-style-tersoff-intel">
+<h1>pair_style tersoff/intel<a class="headerlink" href="#pair-style-tersoff-intel" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="pair-style-tersoff-kk">
 <h1>pair_style tersoff/kk<a class="headerlink" href="#pair-style-tersoff-kk" title="Permalink to this headline">¶</a></h1>
 </div>
@@ -166,7 +169,7 @@ pair_coeff * * SiCGe.tersoff Si(D)
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>The <em>tersoff</em> style computes a 3-body Tersoff potential
-<a class="reference internal" href="#tersoff-1"><span>(Tersoff_1)</span></a> for the energy E of a system of atoms as</p>
+<a class="reference internal" href="pair_tersoff_zbl.html#tersoff-1"><span>(Tersoff_1)</span></a> for the energy E of a system of atoms as</p>
 <img alt="_images/pair_tersoff_1.jpg" class="align-center" src="_images/pair_tersoff_1.jpg" />
 <p>where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
@@ -259,15 +262,15 @@ be set to 0.0 if desired.</p>
 <p>Note that the twobody parameters in entries such as SiCC and CSiSi
 are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
-Tersoff_2 <a class="reference internal" href="#tersoff-2"><span>(Tersoff_2)</span></a> are not symmetric.</p>
+Tersoff_2 <a class="reference internal" href="pair_tersoff_zbl.html#tersoff-2"><span>(Tersoff_2)</span></a> are not symmetric.</p>
 <p>We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff potential.  In particular, our form
 reduces to the original Tersoff form when m = 3 and gamma = 1, while
-it reduces to the form of <a class="reference internal" href="#albe"><span>Albe et al.</span></a> when beta = 1 and m = 1.
+it reduces to the form of <a class="reference internal" href="pair_tersoff_zbl.html#albe"><span>Albe et al.</span></a> when beta = 1 and m = 1.
 Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff_2
-potential <a class="reference internal" href="#tersoff-2"><span>(Tersoff_2)</span></a>. The <em>tersoff/table</em> style implements
+potential <a class="reference internal" href="pair_tersoff_zbl.html#tersoff-2"><span>(Tersoff_2)</span></a>. The <em>tersoff/table</em> style implements
 Tersoff_2 parameterization only.</p>
 <p>LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 gamma_ijk = omega_ik, lambda3 = 0 and the value of
@@ -356,7 +359,7 @@ Condens. Matter, 15, 5649(2003).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -377,7 +380,7 @@ Condens. Matter, 15, 5649(2003).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

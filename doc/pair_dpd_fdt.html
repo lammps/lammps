@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style dpd/fdt command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style dpd/fdt command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-dpd-fdt-command">
+<span id="index-0"></span><h1>pair_style dpd/fdt command<a class="headerlink" href="#pair-style-dpd-fdt-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-dpd-fdt-energy-command">
+<h1>pair_style dpd/fdt/energy command<a class="headerlink" href="#pair-style-dpd-fdt-energy-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>dpd/fdt</em> or <em>dpd/fdt/energy</em></li>
+<li>args = list of arguments for a particular style</li>
+</ul>
+<pre class="literal-block">
+<em>dpd/fdt</em> args = T cutoff seed
+  T = temperature (temperature units)
+  cutoff = global cutoff for DPD interactions (distance units)
+  seed = random # seed (positive integer)
+<em>dpd/fdt/energy</em> args = cutoff seed
+  cutoff = global cutoff for DPD interactions (distance units)
+  seed = random # seed (positive integer)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style dpd/fdt 300.0 2.5 34387
+pair_coeff * * 3.0 1.0 2.5
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style dpd/fdt/energy 2.5 34387
+pair_coeff * * 3.0 1.0 0.1 2.5
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Styles <em>dpd/fdt</em> and <em>dpd/fdt/energy</em> set the fluctuation-dissipation
+theorem parameters and compute the conservative force for dissipative
+particle dynamics (DPD). The conservative force on atom I due to atom
+J is given by</p>
+<img alt="_images/pair_dpd_conservative.jpg" class="align-center" src="_images/pair_dpd_conservative.jpg" />
+<p>where the weighting factor, omega_ij, varies between 0 and 1, and is
+chosen to have the following functional form:</p>
+<img alt="_images/pair_dpd_omega.jpg" class="align-center" src="_images/pair_dpd_omega.jpg" />
+<p>where Rij is a unit vector in the direction Ri - Rj, and Rc is the
+cutoff.  Note that alternative definitions of the weighting function
+exist, but would have to be implemented as a separate pair style
+command.</p>
+<p>These pair style differ from the other dpd styles in that the
+dissipative and random forces are not computed within the pair style.
+This style can be combined with the <a class="reference internal" href="fix_shardlow.html"><em>fix shardlow</em></a>
+to perform the stochastic integration of the dissipative and random
+forces through the Shardlow splitting algorithm approach.</p>
+<p>The pairwise energy associated with styles <em>dpd/fdt</em> and
+<em>dpd/fdt/energy</em> is only due to the conservative force term Fc, and is
+shifted to be zero at the cutoff distance Rc.  The pairwise virial is
+calculated using only the conservative term.</p>
+<p>For style <em>dpd/fdt</em>, the fluctuation-dissipation theorem defines gamma
+to be set equal to sigma*sigma/(2 T), where T is the set point
+temperature specified as a pair style parameter in the above examples.
+This style can be combined with <a class="reference internal" href="fix_shardlow.html"><em>fix shardlow</em></a> to
+perform DPD simulations under isothermal and isobaric conditions (see
+<a class="reference internal" href="#lisal"><span>(Lisal)</span></a>).  The following coefficients must be defined for
+each pair of atoms types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command
+as in the examples above, or in the data file or restart files read by
+the <a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands:</p>
+<ul class="simple">
+<li>A (force units)</li>
+<li>sigma (force*time^(1/2) units)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The last coefficient is optional.  If not specified, the global DPD
+cutoff is used.</p>
+<p>For style <em>dpd/fdt/energy</em>, the fluctuation-dissipation theorem
+defines gamma to be set equal to sigma*sigma/(2 dpdTheta), where
+dpdTheta is the average internal temperature for the pair.
+Furthermore, the fluctuation-dissipation defines alpha*alpha to be set
+equal to 2*kB*kappa, where kappa is the mesoparticle thermal
+conductivity parameter.  This style can be combined with <a class="reference internal" href="fix_shardlow.html"><em>fix shardlow</em></a> to perform DPD simulations under
+isoenergetic and isoenthalpic conditions (see <a class="reference internal" href="#lisal"><span>(Lisal)</span></a>).  The
+following coefficients must be defined for each pair of atoms types
+via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples above,
+or in the data file or restart files read by the
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands:</p>
+<ul class="simple">
+<li>A (force units)</li>
+<li>sigma (force*time^(1/2) units)</li>
+<li>kappa (1/time units)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The last coefficient is optional.  If not specified, the global DPD
+cutoff is used.</p>
+<p>For style <em>dpd/fdt/energy</em>, the particle internal temperature is
+related to the particle internal energy through a mesoparticle
+equation of state.  Thus, an an additional <a class="reference internal" href="fix.html"><em>fix eos</em></a> must be
+specified.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Pair styles <em>dpd/fdt</em> and <em>dpd/fdt/energy</em> are only available if
+LAMMPS is built with the USER-DPD package.</p>
+<p>Pair styles <em>dpd/fdt</em> and <em>dpd/fdt/energy</em> require use of the
+<code class="xref doc docutils literal"><span class="pre">communicate</span> <span class="pre">vel</span> <span class="pre">yes</span></code> option so that velocites are
+stored by ghost atoms.</p>
+<p>Pair style <em>dpd/fdt/energy</em> requires <a class="reference internal" href="atom_style.html"><em>atom_style dpd</em></a>
+to be used in order to properly account for the particle internal
+energies and temperatures.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, <a class="reference internal" href="fix_shardlow.html"><em>fix shardlow</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="lisal"><strong>(Lisal)</strong> M. Lisal, J.K. Brennan, J. Bonet Avalos, &#8220;Dissipative
+particle dynamics as isothermal, isobaric, isoenergetic, and
+isoenthalpic conditions using Shardlow-like splitting algorithms.&#8221;,
+J. Chem. Phys., 135, 204105 (2011).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

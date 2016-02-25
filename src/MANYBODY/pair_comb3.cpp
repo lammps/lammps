@@ -229,7 +229,7 @@ void PairComb3::coeff(int narg, char **arg)
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
-  setup();
+  setup_params();
 
   n = atom->ntypes;
 
@@ -604,7 +604,7 @@ void PairComb3::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
+    fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open COMB3 potential file %s",file);
@@ -795,7 +795,7 @@ void PairComb3::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb3::setup()
+void PairComb3::setup_params()
 {
   int i,j,k,m,n;
 
@@ -3426,7 +3426,6 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
     }
   }
 
-  double enegtot;
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Bcast(&enegtot,1,MPI_DOUBLE,0,world);
   return enegtot;

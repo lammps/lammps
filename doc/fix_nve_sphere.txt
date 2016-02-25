@@ -39,8 +39,9 @@ assumes point particles and only updates their position and velocity.
 If the {update} keyword is used with the {dipole} value, then the
 orientation of the dipole moment of each particle is also updated
 during the time integration.  This option should be used for models
-where a dipole moment is assigned to particles via use of the
-"atom_style dipole"_atom_style.html command.
+where a dipole moment is assigned to finite-size particles,
+e.g. spheroids via use of the "atom_style hybrid sphere
+dipole"_atom_style.html command.
 
 :line
 

@@ -50,6 +50,7 @@ Primary tested compilers are:
 Secondary tested compilers are:
   CUDA 6.5 (with gcc 4.7.2)
   CUDA 7.0 (with gcc 4.7.2)
+  CUDA 7.5 (with gcc 4.7.2)
 
 Other compilers working:
   PGI 15.4

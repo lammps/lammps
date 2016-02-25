@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style tri/lj command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style tri/lj command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -126,9 +126,6 @@
             
   <div class="section" id="pair-style-tri-lj-command">
 <span id="index-0"></span><h1>pair_style tri/lj command<a class="headerlink" href="#pair-style-tri-lj-command" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="pair-style-tri-lj-omp-command">
-<h1>pair_style tri/lj/omp command<a class="headerlink" href="#pair-style-tri-lj-omp-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>pair_style tri/lj cutoff
@@ -197,22 +194,6 @@ commands:</p>
 <p>The last coefficient is optional.  If not specified, the global cutoff
 is used.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
-KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
-use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
-more instructions on how to use the accelerated styles effectively.</p>
-<hr class="docutils" />
 <p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
 <p>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of this pair style can be mixed.  The
@@ -250,7 +231,7 @@ tri/particle interactions requires the use the <a class="reference internal" hre
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -271,7 +252,7 @@ tri/particle interactions requires the use the <a class="reference internal" hre
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

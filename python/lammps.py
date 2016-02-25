@@ -19,24 +19,44 @@ from os.path import dirname,abspath,join
 from inspect import getsourcefile
 
 class lammps:
-  def __init__(self,name="",cmdargs=None,ptr=None):
+  
+  # detect if Python is using version of mpi4py that can pass a communicator
+  
+  has_mpi4py_v2 = False
+  try:
+    from mpi4py import MPI
+    from mpi4py import __version__ as mpi4py_version
+    if mpi4py_version.split('.')[0] == '2':
+      has_mpi4py_v2 = True
+  except:
+    pass
+
+  # create instance of LAMMPS
+  
+  def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
 
     # determine module location
+    
     modpath = dirname(abspath(getsourcefile(lambda:0)))
 
-    # load liblammps.so by default
-    # if name = "g++", load liblammps_g++.so
+    # load liblammps.so unless name is given.
+    # e.g. if name = "g++", load liblammps_g++.so
+    # try loading the LAMMPS shared object from the location
+    # of lammps.py with an absolute path (so that LD_LIBRARY_PATH
+    # does not need to be set for regular installations.
+    # fall back to loading with a relative path, which typically
+    # requires LD_LIBRARY_PATH to be set appropriately.
 
     try:
       if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
       else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
     except:
-      type,value,tb = sys.exc_info()
-      traceback.print_exception(type,value,tb)
-      raise OSError,"Could not load LAMMPS dynamic library from %s" % modpath
-
+      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
+      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+        
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
+    #   but we can pass an MPI communicator from mpi4py v2.0.0 and later
     #   no_mpi call lets LAMMPS use MPI_COMM_WORLD
     #   cargs = array of C strings from args
     # if ptr, then are embedding Python in LAMMPS input script
@@ -44,18 +64,49 @@ class lammps:
     #   just convert it to ctypes ptr and store in self.lmp
     
     if not ptr:
-      self.opened = 1
-      if cmdargs:
-        cmdargs.insert(0,"lammps.py")
-        narg = len(cmdargs)
-        cargs = (c_char_p*narg)(*cmdargs)
+      # with mpi4py v2, can pass MPI communicator to LAMMPS
+      # need to adjust for type of MPI communicator object
+      # allow for int (like MPICH) or void* (like OpenMPI)
+      
+      if lammps.has_mpi4py_v2 and comm != None:
+        if lammps.MPI._sizeof(lammps.MPI.Comm) == sizeof(c_int):
+          MPI_Comm = c_int
+        else:
+          MPI_Comm = c_void_p
+
+        narg = 0
+        cargs = 0
+        if cmdargs:
+          cmdargs.insert(0,"lammps.py")
+          narg = len(cmdargs)
+          cargs = (c_char_p*narg)(*cmdargs)
+          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
+                                           MPI_Comm, c_void_p()]
+        else:
+          self.lib.lammps_open.argtypes = [c_int, c_int, \
+                                           MPI_Comm, c_void_p()]
+
+        self.lib.lammps_open.restype = None
+        self.opened = 1
         self.lmp = c_void_p()
-        self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
+        comm_ptr = lammps.MPI._addressof(comm)
+        comm_val = MPI_Comm.from_address(comm_ptr)
+        self.lib.lammps_open(narg,cargs,comm_val,byref(self.lmp))
+
       else:
-        self.lmp = c_void_p()
-        self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
-        # could use just this if LAMMPS lib interface supported it
-        # self.lmp = self.lib.lammps_open_no_mpi(0,None)
+        self.opened = 1
+        if cmdargs:
+          cmdargs.insert(0,"lammps.py")
+          narg = len(cmdargs)
+          cargs = (c_char_p*narg)(*cmdargs)
+          self.lmp = c_void_p()
+          self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
+        else:
+          self.lmp = c_void_p()
+          self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
+          # could use just this if LAMMPS lib interface supported it
+          # self.lmp = self.lib.lammps_open_no_mpi(0,None)
+          
     else:
       self.opened = 0
       # magic to convert ptr to ctypes ptr

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>set command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>set command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -131,20 +131,11 @@
 <div class="highlight-python"><div class="highlight"><pre>set style ID keyword values ...
 </pre></div>
 </div>
-<ul>
-<li><p class="first">style = <em>atom</em> or <em>type</em> or <em>mol</em> or <em>group</em> or <em>region</em></p>
-</li>
-<li><p class="first">ID = atom ID range or type range or mol ID range or group ID or region ID</p>
-</li>
-<li><p class="first">one or more keyword/value pairs may be appended</p>
-</li>
-<li><dl class="first docutils">
-<dt>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>angmom</em> or <em>omega</em> or          <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or</dt>
-<dd><p class="first last"><em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or
-<em>meso_e</em> or <em>meso_cv</em> or <em>meso_rho</em> or          <em>smd_contact_radius</em> or <em>smd_mass_density</em> or           <em>i_name</em> or <em>d_name</em></p>
-</dd>
-</dl>
-</li>
+<ul class="simple">
+<li>style = <em>atom</em> or <em>type</em> or <em>mol</em> or <em>group</em> or <em>region</em></li>
+<li>ID = atom ID range or type range or mol ID range or group ID or region ID</li>
+<li>one or more keyword/value pairs may be appended</li>
+<li>keyword = <em>type</em> or <em>type/fraction</em> or <em>mol</em> or <em>x</em> or <em>y</em> or <em>z</em> or           <em>charge</em> or <em>dipole</em> or <em>dipole/random</em> or <em>quat</em> or     <em>quat/random</em> or <em>diameter</em> or <em>shape</em> or       <em>length</em> or <em>tri</em> or <em>theta</em> or <em>theta/random</em> or           <em>angmom</em> or <em>omega</em> or      <em>mass</em> or <em>density</em> or <em>volume</em> or <em>image</em> or           <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or        <em>meso/e</em> or <em>meso/cv</em> or <em>meso/rho</em> or          <em>smd/contact/radius</em> or <em>smd/mass/density</em> or <em>dpd/theta</em> or           <em>i_name</em> or <em>d_name</em></li>
 </ul>
 <pre class="literal-block">
 <em>type</em> value = atom type
@@ -184,6 +175,8 @@
 <em>theta</em> value = angle (degrees)
   angle = orientation of line segment with respect to x-axis
   angle can be an atom-style variable (see below)
+<em>theta/random</em> value = seed
+  seed = random # seed (positive integer) for line segment orienations
 <em>angmom</em> values = Lx Ly Lz
   Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
   any of Lx,Ly,Lz can be an atom-style variable (see below)
@@ -202,16 +195,17 @@
 <em>angle</em> value = angle type for all angles between selected atoms
 <em>dihedral</em> value = dihedral type for all dihedrals between selected atoms
 <em>improper</em> value = improper type for all impropers between selected atoms
-<em>meso_e</em> value = energy of SPH particles (need units)
+<em>meso/e</em> value = energy of SPH particles (need units)
   value can be an atom-style variable (see below)
-<em>meso_cv</em> value = heat capacity of SPH particles (need units)
+<em>meso/cv</em> value = heat capacity of SPH particles (need units)
   value can be an atom-style variable (see below)
-<em>meso_rho</em> value = density of SPH particles (need units)
+<em>meso/rho</em> value = density of SPH particles (need units)
   value can be an atom-style variable (see below)
-<em>smd_contact_radius</em> = radius for short range interactions, i.e. contact and friction
+<em>smd/contact/radius</em> = radius for short range interactions, i.e. contact and friction
   value can be an atom-style variable (see below)
-<em>smd_mass_density</em> = set particle mass based on volume by providing a mass density
+<em>smd/mass/density</em> = set particle mass based on volume by providing a mass density
   value can be an atom-style variable (see below)
+<em>dpd/theta</em> value = internal temperature of DPD particles (temperature units)
 <em>i_name</em> value = value for custom integer vector with name
 <em>d_name</em> value = value for custom floating-point vector with name
 </pre>
@@ -290,13 +284,12 @@ spatially-dependent set of per-atom values.  As explained on the
 used in place of atom-style variables, and thus as arguments to the
 set command.  Atomfile-style variables read their per-atoms values
 from a file.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Atom-style and atomfile-style variables return
-floating point per-atom values.  If the values are assigned to an
-integer variable, such as the molecule ID, then the floating point
-value is truncated to its integer portion, e.g. a value of 2.6 would
-become 2.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Atom-style and atomfile-style variables return floating point
+per-atom values.  If the values are assigned to an integer variable,
+such as the molecule ID, then the floating point value is truncated to
+its integer portion, e.g. a value of 2.6 would become 2.</p>
 </div>
 <p>Keyword <em>type</em> sets the atom type for all selected atoms.  The
 specified value must be from 1 to ntypes, where ntypes was set by the
@@ -319,19 +312,20 @@ vector to set as the orientation of the dipole moment vectors of the
 selected atoms.  The magnitude of the dipole moment is set
 by the length of this orientation vector.</p>
 <p>Keyword <em>dipole/random</em> randomizes the orientation of the dipole
-moment vectors of the selected atoms and sets the magnitude of each to
-the specified <em>Dlen</em> value.  For 2d systems, the z component of the
+moment vectors for the selected atoms and sets the magnitude of each
+to the specified <em>Dlen</em> value.  For 2d systems, the z component of the
 orientation is set to 0.0.  Random numbers are used in such a way that
 the orientation of a particular atom is the same, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.</p>
 <p>Keyword <em>quat</em> uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The
-particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> command or triangles as defined by the
-<a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> command.  Note that particles defined
-by <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> have 3 shape parameters.
-The 3 values must be non-zero for each particle set by this command.
-They are used to specify the aspect ratios of an ellipsoidal particle,
+particles must define a quaternion for their orientation
+(e.g. ellipsoids, triangles, body particles) as defined by the
+<a class="reference internal" href="atom_style.html"><em>atom_style</em></a> command.  Note that particles defined by
+<a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> have 3 shape parameters.  The 3
+values must be non-zero for each particle set by this command.  They
+are used to specify the aspect ratios of an ellipsoidal particle,
 which is oriented by default with its x-axis along the simulation
 box&#8217;s x-axis, and similarly for y and z.  If this body is rotated (via
 the right-hand rule) by an angle theta around a unit rotation vector
@@ -341,16 +335,16 @@ c*sin(theta/2)).  The theta and a,b,c values are the arguments to the
 <em>quat</em> keyword.  LAMMPS normalizes the quaternion in case (a,b,c) was
 not specified as a unit vector.  For 2d systems, the a,b,c values are
 ignored, since a rotation vector of (0,0,1) is the only valid choice.</p>
-<p>Keyword <em>quat/random</em> randomizes the orientation of the quaternion of
-the selected atoms.  The particles must be ellipsoids as defined by
-the <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> command or triangles as
-defined by the <a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> command.  Random
-numbers are used in such a way that the orientation of a particular
-atom is the same, regardless of how many processors are being used.
-For 2d systems, only orientations in the xy plane are generated.  As
-with keyword <em>quat</em>, for ellipsoidal particles, the 3 shape values
-must be non-zero for each particle set by this command.  This keyword
-does not allow use of an atom-style variable.</p>
+<p>Keyword <em>quat/random</em> randomizes the orientation of the quaternion for
+the selected atoms.  The particles must define a quaternion for their
+orientation (e.g. ellipsoids, triangles, body particles) as defined by
+the <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> command.  Random numbers are used in
+such a way that the orientation of a particular atom is the same,
+regardless of how many processors are being used.  For 2d systems,
+only orientations in the xy plane are generated.  As with keyword
+<em>quat</em>, for ellipsoidal particles, the 3 shape values must be non-zero
+for each particle set by this command.  This keyword does not allow
+use of an atom-style variable.</p>
 <p>Keyword <em>diameter</em> sets the size of the selected atoms.  The particles
 must be finite-size spheres as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style sphere</em></a> command.  The diameter of a particle can be
 set to 0.0, which means they will be treated as point particles.  Note
@@ -386,6 +380,12 @@ density, e.g. via the <a class="reference internal" href="read_data.html"><em>re
 <p>Keyword <em>theta</em> sets the orientation of selected atoms.  The particles
 must be line segments as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style line</em></a> command.  The specified value is used to set the
 orientation angle of the line segments with respect to the x axis.</p>
+<p>Keyword <em>theta/random</em> randomizes the orientation of theta for the
+selected atoms.  The particles must be line segments as defined by the
+<a class="reference internal" href="atom_style.html"><em>atom_style line</em></a> command.  Random numbers are used in
+such a way that the orientation of a particular atom is the same,
+regardless of how many processors are being used.  This keyword does
+not allow use of an atom-style variable.</p>
 <p>Keyword <em>angmom</em> sets the angular momentum of selected atoms.  The
 particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style ellipsoid</em></a> command or triangles as defined by the
 <a class="reference internal" href="atom_style.html"><em>atom_style tri</em></a> command.  The angular momentum vector
@@ -414,18 +414,6 @@ mass is set from the density and triangle area (the input density is
 assumed to be in mass/distance^2 units).  If none of these cases are
 valid, then the mass is set to the density value directly (the input
 density is assumed to be in mass units).</p>
-<p>Keyword <em>smd_mass_density</em> also sets the mass of all selected
-particles, but it is only applicable to the Smooth Mach Dynamics
-package USER-SMD.  This command assumes that the particle volume has
-already been correctly set and calculates particle mass from the
-provided mass density value.</p>
-<p>Keyword <em>smd_contact_radius</em> only applies to simulations with the
-Smooth Mach Dynamics package USER-SMD. This command sets an
-interaction radius for computing short-range interactions,
-e.g. repulsive forces to prevent different individual physical bodies
-from penetrating each other. Note that the SPH smoothing kernel
-diameter used for computing long range, nonlocal interactions, is set
-using the <em>diameter</em> keyword.</p>
 <p>Keyword <em>volume</em> sets the volume of all selected particles.
 Currently, only the <a class="reference internal" href="atom_style.html"><em>atom_style peri</em></a> command defines
 particles with a volume attribute.  Note that this command does not
@@ -459,10 +447,24 @@ order for the change to be made.  The value of nbondtype (nangletypes,
 etc) was set by the <em>bond types</em> (<em>angle types</em>, etc) field in the
 header of the data file read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
 command.  These keywords do not allow use of an atom-style variable.</p>
-<p>Keywords <em>meso_e</em>, <em>meso_cv</em>, and <em>meso_rho</em> set the energy, heat
+<p>Keywords <em>meso/e</em>, <em>meso/cv</em>, and <em>meso/rho</em> set the energy, heat
 capacity, and density of smmothed particle hydrodynamics (SPH)
 particles.  See <a class="reference external" href="USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</a> to
 using SPH in LAMMPS.</p>
+<p>Keyword <em>smd/mass/density</em> sets the mass of all selected particles,
+but it is only applicable to the Smooth Mach Dynamics package
+USER-SMD.  It assumes that the particle volume has already been
+correctly set and calculates particle mass from the provided mass
+density value.</p>
+<p>Keyword <em>smd/contact/radius</em> only applies to simulations with the
+Smooth Mach Dynamics package USER-SMD.  Itsets an interaction radius
+for computing short-range interactions, e.g. repulsive forces to
+prevent different individual physical bodies from penetrating each
+other. Note that the SPH smoothing kernel diameter used for computing
+long range, nonlocal interactions, is set using the <em>diameter</em>
+keyword.</p>
+<p>Keyword <em>dpd/theta</em> sets the internal temperature of a DPD particle
+as defined by the USER-DPD package.</p>
 <p>Keywords <em>i_name</em> and <em>d_name</em> refer to custom integer and
 floating-point properties that have been added to each atom via the
 <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command.  When that command
@@ -502,7 +504,7 @@ coordinates outside the simulation box if they are ghost atoms.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -523,7 +525,7 @@ coordinates outside the simulation box if they are ghost atoms.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

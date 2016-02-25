@@ -863,6 +863,7 @@ struct TestViewMappingSubview {
 
   enum { AN = 10 };
   typedef Kokkos::Experimental::View<int*,ExecSpace>  AT ;
+  typedef Kokkos::Experimental::View<const int*,ExecSpace>  ACT ;
   typedef Kokkos::Experimental::Subview< AT , range >  AS ;
 
   enum { BN0 = 10 , BN1 = 11 , BN2 = 12 };
@@ -892,6 +893,7 @@ struct TestViewMappingSubview {
 
   AT Aa ;
   AS Ab ;
+  ACT Ac ;
   BT Ba ;
   BS Bb ;
   CT Ca ;
@@ -902,6 +904,7 @@ struct TestViewMappingSubview {
   TestViewMappingSubview()
     : Aa("Aa",AN)
     , Ab( Kokkos::Experimental::subview( Aa , std::pair<int,int>(1,AN-1) ) )
+    , Ac( Aa , std::pair<int,int>(1,AN-1) )
     , Ba("Ba",BN0,BN1,BN2)
     , Bb( Kokkos::Experimental::subview( Ba
                                         , std::pair<int,int>(1,BN0-1)
@@ -931,7 +934,11 @@ struct TestViewMappingSubview {
   KOKKOS_INLINE_FUNCTION
   void operator()( const int , long & error_count ) const
     {
+      auto Ad = Kokkos::Experimental::subview< Kokkos::MemoryUnmanaged >( Aa , Kokkos::pair<int,int>(1,AN-1) );
+
       for ( int i = 1 ; i < AN-1 ; ++i ) if( & Aa[i] != & Ab[i-1] ) ++error_count ;
+      for ( int i = 1 ; i < AN-1 ; ++i ) if( & Aa[i] != & Ac[i-1] ) ++error_count ;
+      for ( int i = 1 ; i < AN-1 ; ++i ) if( & Aa[i] != & Ad[i-1] ) ++error_count ;
 
       for ( int i2 = 1 ; i2 < BN2-1 ; ++i2 ) {
       for ( int i1 = 1 ; i1 < BN1-1 ; ++i1 ) {
@@ -958,6 +965,7 @@ struct TestViewMappingSubview {
 
     ASSERT_EQ( self.Aa.dimension_0() , AN );
     ASSERT_EQ( self.Ab.dimension_0() , AN - 2 );
+    ASSERT_EQ( self.Ac.dimension_0() , AN - 2 );
     ASSERT_EQ( self.Ba.dimension_0() , BN0 );
     ASSERT_EQ( self.Ba.dimension_1() , BN1 );
     ASSERT_EQ( self.Ba.dimension_2() , BN2 );

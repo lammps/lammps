@@ -1,0 +1,70 @@
+LAMMPS (15 Feb 2016)
+# REAX potential for AuO system
+# .....
+
+units		real
+
+atom_style	charge
+read_data	data.AuO
+  orthogonal box = (0 0 0) to (26.1562 21.5425 24.0025)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  960 atoms
+
+pair_style	reax/c lmp_control
+pair_coeff	* * ffield.reax.AuO O Au
+Reading potential file ffield.reax.AuO with DATE: 2011-02-18
+
+neighbor	2 bin
+neigh_modify	every 10 delay 0 check no
+
+fix		1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
+fix             3 all temp/berendsen 500.0 500.0 100.0
+
+timestep	0.25
+
+#dump		1 all atom 30 dump.reax.auo
+
+run		100
+Neighbor list info ...
+  2 neighbor list requests
+  update every 10 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6 -> bins = 5 4 5
+Memory usage per processor = 144.382 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -72201.743            0   -72201.743    -166.1947 
+     100    69.043346    -72076.31            0   -71878.943    22702.308 
+Loop time of 18.2931 on 1 procs for 100 steps with 960 atoms
+
+Performance: 0.118 ns/day, 203.257 hours/ns, 5.467 timesteps/s
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 15.586     | 15.586     | 15.586     |   0.0 | 85.20
+Neigh   | 0.50122    | 0.50122    | 0.50122    |   0.0 |  2.74
+Comm    | 0.0077791  | 0.0077791  | 0.0077791  |   0.0 |  0.04
+Output  | 1.4782e-05 | 1.4782e-05 | 1.4782e-05 |   0.0 |  0.00
+Modify  | 2.197      | 2.197      | 2.197      |   0.0 | 12.01
+Other   |            | 0.001302   |            |       |  0.01
+
+Nlocal:    960 ave 960 max 960 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    6708 ave 6708 max 6708 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    369128 ave 369128 max 369128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 369128
+Ave neighs/atom = 384.508
+Neighbor list builds = 10
+Dangerous builds not checked
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:18

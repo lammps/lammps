@@ -1,0 +1,67 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute dpd command :h3
+
+[Syntax:]
+
+compute ID group-ID dpd :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+dpd = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all dpd :pre
+
+[Description:]
+
+Define a computation that accumulates the total internal conductive
+energy (U_cond), the total internal mechanical energy (U_mech), the
+total internal energy (U) and the {harmonic} average of the internal
+temperature (dpdTheta) for the entire system of particles.  See the
+"compute dpd/atom"_compute_dpd_atom.html command if you want
+per-particle internal energies and internal temperatures.
+
+The system internal properties are computed according to the following
+relations:
+
+:c,image(Eqs/compute_dpd.jpg)
+
+where N is the number of particles in the system
+
+:line
+
+[Output info:]
+
+This compute calculates a global vector of length 5 (U_cond, U_mech,
+U, dpdTheta, N_particles), which can be accessed by indices 1-5.  See
+"this section"_Section_howto.html#howto_15 for an overview of LAMMPS
+output options.
+
+The vector values will be in energy and temperature "units"_units.html.
+
+[Restrictions:] 
+
+The compute {dpd} is only available if LAMMPS is built with the
+USER-DPD package and requires the "atom_style dpd"_atom_style.html.
+
+[Related commands:]
+
+"compute dpd/atom"_compute_dpd_atom.html,
+"thermo_style"_thermo_style.html
+
+[Default:] none
+
+:line
+
+:link(Larentzos) 
+[(Larentzos)] J.P. Larentzos, J.K. Brennan, J.D. Moore, and
+W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
+Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
+Laboratory, Aberdeen Proving Ground, MD (2014).

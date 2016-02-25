@@ -201,9 +201,9 @@ void Pair::init()
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
   if (!compute_flag && tail_flag)
-    error->warning(FLERR,"Using pair tail corrections with compute set to no");
+    error->warning(FLERR,"Using pair tail corrections with pair_modify compute no");
   if (!compute_flag && offset_flag)
-    error->warning(FLERR,"Using pair potential shift with compute set to no");
+    error->warning(FLERR,"Using pair potential shift with pair_modify compute no");
 
   // for manybody potentials
   // check if bonded exclusions could invalidate the neighbor list
@@ -699,8 +699,12 @@ void Pair::compute_dummy(int eflag, int vflag)
    additional properties during the pair computation from within
    Pair::ev_tally(). ensure each compute instance is registered only once
 ---------------------------------------------------------------------- */
+
 void Pair::add_tally_callback(Compute *ptr)
 {
+  if (lmp->kokkos)
+    error->all(FLERR,"Cannot yet use compute tally with Kokkos");
+
   int i,found=-1;
 
   for (i=0; i < num_tally_compute; ++i) {
@@ -722,6 +726,7 @@ void Pair::add_tally_callback(Compute *ptr)
 /* -------------------------------------------------------------------
    unregister a callback to a fix for additional pairwise tallying
 ---------------------------------------------------------------------- */
+
 void Pair::del_tally_callback(Compute *ptr)
 {
   int i,found=-1;

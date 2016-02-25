@@ -84,14 +84,14 @@ below the z = 0 center plane of the pore (umbrella sampling).  The
 last example holds the ion a distance 5 away from the pore axis
 (assuming the center-of-mass of the pore in x,y is the pore axis).
 
-IMPORTANT NOTE: The center of mass of a group of atoms is calculated
-in "unwrapped" coordinates using atom image flags, which means that
-the group can straddle a periodic boundary.  See the "dump"_dump.html
-doc page for a discussion of unwrapped coordinates.  It also means
-that a spring connecting two groups or a group and the tether point
-can cross a periodic boundary and its length be calculated correctly.
-One exception is for rigid bodies, which should not be used with the
-fix spring command, if the rigid body will cross a periodic boundary.
+NOTE: The center of mass of a group of atoms is calculated in
+"unwrapped" coordinates using atom image flags, which means that the
+group can straddle a periodic boundary.  See the "dump"_dump.html doc
+page for a discussion of unwrapped coordinates.  It also means that a
+spring connecting two groups or a group and the tether point can cross
+a periodic boundary and its length be calculated correctly.  One
+exception is for rigid bodies, which should not be used with the fix
+spring command, if the rigid body will cross a periodic boundary.
 This is because image flags for rigid bodies are used in a different
 way, as explained on the "fix rigid"_fix_rigid.html doc page.
 
@@ -127,10 +127,10 @@ the "run"_run.html command.
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.
 
-IMPORTANT NOTE: If you want the spring energy to be included in the
-total potential energy of the system (the quantity being minimized),
-you MUST enable the "fix_modify"_fix_modify.html {energy} option for
-this fix.
+NOTE: If you want the spring energy to be included in the total
+potential energy of the system (the quantity being minimized), you
+MUST enable the "fix_modify"_fix_modify.html {energy} option for this
+fix.
 
 [Restrictions:] none
 

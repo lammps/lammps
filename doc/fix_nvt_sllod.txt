@@ -7,6 +7,7 @@
 :line
 
 fix nvt/sllod command :h3
+fix nvt/sllod/intel command :h3
 fix nvt/sllod/omp command :h3
 
 [Syntax:]
@@ -42,15 +43,15 @@ box (low y) have a small x velocity, while points at the top of the
 box (hi y) have a large x velocity.  These velocities do not
 contribute to the thermal "temperature" of the atom.
 
-IMPORTANT NOTE: "Fix deform"_fix_deform.html has an option for
-remapping either atom coordinates or velocities to the changing
-simulation box.  To use fix nvt/sllod, fix deform should NOT remap
-atom positions, because fix nvt/sllod adjusts the atom positions and
-velocities to create a velocity profile that matches the changing box
-size/shape.  Fix deform SHOULD remap atom velocities when atoms cross
-periodic boundaries since that is consistent with maintaining the
-velocity profile created by fix nvt/sllod.  LAMMPS will give an
-error if this setting is not consistent.
+NOTE: "Fix deform"_fix_deform.html has an option for remapping either
+atom coordinates or velocities to the changing simulation box.  To use
+fix nvt/sllod, fix deform should NOT remap atom positions, because fix
+nvt/sllod adjusts the atom positions and velocities to create a
+velocity profile that matches the changing box size/shape.  Fix deform
+SHOULD remap atom velocities when atoms cross periodic boundaries
+since that is consistent with maintaining the velocity profile created
+by fix nvt/sllod.  LAMMPS will give an error if this setting is not
+consistent.
 
 The SLLOD equations of motion, originally proposed by Hoover and Ladd
 (see "(Evans and Morriss)"_#Evans), were proven to be equivalent to

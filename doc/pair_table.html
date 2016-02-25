@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style table command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style table command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -160,28 +160,36 @@ pair_coeff * 3 morse.table ENTRY1 7.0
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Style <em>table</em> creates interpolation tables of length <em>N</em> from pair
-potential and force values listed in a file(s) as a function of
-distance.  The files are read by the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>
-command.</p>
-<p>The interpolation tables are created by fitting cubic splines to the
-file values and interpolating energy and force values at each of <em>N</em>
-distances.  During a simulation, these tables are used to interpolate
-energy and force values as needed.  The interpolation is done in one
-of 4 styles: <em>lookup</em>, <em>linear</em>, <em>spline</em>, or <em>bitmap</em>.</p>
-<p>For the <em>lookup</em> style, the distance between 2 atoms is used to find
-the nearest table entry, which is the energy or force.</p>
-<p>For the <em>linear</em> style, the pair distance is used to find 2
+<p>Style <em>table</em> creates interpolation tables from potential energy and
+force values listed in a file(s) as a function of distance.  When
+performing dynamics or minimation, the interpolation tables are used
+to evaluate energy and forces for pairwise interactions between
+particles, similar to how analytic formulas are used for other pair
+styles.</p>
+<p>The interpolation tables are created as a pre-computation by fitting
+cubic splines to the file values and interpolating energy and force
+values at each of <em>N</em> distances.  During a simulation, the tables are
+used to interpolate energy and force values as needed for each pair of
+particles separated by a distance <em>R</em>.  The interpolation is done in
+one of 4 styles: <em>lookup</em>, <em>linear</em>, <em>spline</em>, or <em>bitmap</em>.</p>
+<p>For the <em>lookup</em> style, the distance <em>R</em> is used to find the nearest
+table entry, which is the energy or force.</p>
+<p>For the <em>linear</em> style, the distance <em>R</em> is used to find the 2
 surrounding table values from which an energy or force is computed by
 linear interpolation.</p>
 <p>For the <em>spline</em> style, a cubic spline coefficients are computed and
-stored at each of the <em>N</em> values in the table.  The pair distance is
-used to find the appropriate set of coefficients which are used to
-evaluate a cubic polynomial which computes the energy or force.</p>
-<p>For the <em>bitmap</em> style, the N means to create interpolation tables
-that are 2^N in length.  The pair distance is used to index into the
-table via a fast bit-mapping technique due to <a class="reference internal" href="#wolff"><span>(Wolff)</span></a>, and a
-linear interpolation is performed between adjacent table values.</p>
+stored for each of the <em>N</em> values in the table, one set of splines for
+energy, another for force.  Note that these splines are different than
+the ones used to pre-compute the <em>N</em> values.  Those splines were fit
+to the <em>Nfile</em> values in the tabulated file, where often <em>Nfile</em> &lt;
+<em>N</em>.  The distance <em>R</em> is used to find the appropriate set of spline
+coefficients which are used to evaluate a cubic polynomial which
+computes the energy or force.</p>
+<p>For the <em>bitmap</em> style, the specified <em>N</em> is used to create
+interpolation tables that are 2^N in length.  The distance <em>R</em> is used
+to index into the table via a fast bit-mapping technique due to
+<a class="reference internal" href="#wolff"><span>(Wolff)</span></a>, and a linear interpolation is performed between
+adjacent table values.</p>
 <p>The following coefficients must be defined for each pair of atoms
 types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
 above.</p>
@@ -220,8 +228,9 @@ interpolation &#8220;features&#8221; you may not like.</li>
 <li>Use <em>N</em> in the pair_style command equal to the &#8220;N&#8221; in the tabulation
 file, and use the &#8220;RSQ&#8221; or &#8220;BITMAP&#8221; parameter, so additional interpolation
 is not needed.  See discussion below.</li>
-<li>Make sure that your tabulated forces and tabulated energies are consistent
-(dE/dr = -F) along the entire range of r values.</li>
+<li>Make sure that your tabulated forces and tabulated energies are
+consistent (dE/dr = -F) over the entire range of r values.  LAMMPS
+will warn if this is not the case.</li>
 <li>Use as large an inner cutoff as possible.  This avoids fitting splines
 to very steep parts of the potential.</li>
 </ul>
@@ -254,14 +263,15 @@ specified in the <a class="reference internal" href="pair_style.html"><em>pair_s
 Ntable = <em>N</em> in the pair_style command, and Nfile = &#8220;N&#8221; in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
-uses these to interpolate as needed to generate energy and force
-values at Ntable different points.  The resulting tables of length
-Ntable are then used as described above, when computing energy and
-force for individual pair distances.  This means that if you want the
-interpolation tables of length Ntable to match exactly what is in the
-tabulated file (with effectively no preliminary interpolation), you
-should set Ntable = Nfile, and use the &#8220;RSQ&#8221; or &#8220;BITMAP&#8221; parameter.
-The internal table abscissa is RSQ (separation distance squared).</p>
+uses these to interpolate energy and force values at Ntable different
+points.  The resulting tables of length Ntable are then used as
+described above, when computing energy and force for individual pair
+distances.  This means that if you want the interpolation tables of
+length Ntable to match exactly what is in the tabulated file (with
+effectively no preliminary interpolation), you should set Ntable =
+Nfile, and use the &#8220;RSQ&#8221; or &#8220;BITMAP&#8221; parameter.  This is because the
+internal table abscissa is always RSQ (separation distance squared),
+for efficient lookup.</p>
 <p>All other parameters are optional.  If &#8220;R&#8221; or &#8220;RSQ&#8221; or &#8220;BITMAP&#8221; does
 not appear, then the distances in each line of the table are used
 as-is to perform spline interpolation.  In this case, the table values
@@ -275,6 +285,15 @@ The distance values in the table file are ignored in this case.
 For &#8220;R&#8221;, distances uniformly spaced between <em>rlo</em> and <em>rhi</em> are
 computed; for &#8220;RSQ&#8221;, squared distances uniformly spaced between
 <em>rlo*rlo</em> and <em>rhi*rhi</em> are computed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you use &#8220;R&#8221; or &#8220;RSQ&#8221;, the tabulated distance values in the
+file are effectively ignored, and replaced by new values as described
+in the previous paragraph.  If the distance value in the table is not
+very close to the new value (i.e. round-off difference), then you will
+be assingning energy/force values to a different distance, which is
+probably not what you want.  LAMMPS will warn if this is occurring.</p>
+</div>
 <p>If used, the parameter &#8220;BITMAP&#8221; is also followed by 2 values <em>rlo</em> and
 <em>rhi</em>.  These values, along with the &#8220;N&#8221; value determine the ordering
 of the N lines that follow and what distance is associated with each.
@@ -357,7 +376,7 @@ commands do need to be specified in the restart input script.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -378,7 +397,7 @@ commands do need to be specified in the restart input script.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

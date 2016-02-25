@@ -274,9 +274,9 @@ remapping procedure described in the previous paragraph will then
 change images flags for all atoms (old and new) if periodic boundary
 conditions are applied to remap an atom back into the simulation box.
 
-IMPORTANT NOTE: If you get a warning about inconsistent image flags
-after reading in a dump snapshot, it means one or more pairs of bonded
-atoms now have inconsistent image flags.  As discussed in "Section
+NOTE: If you get a warning about inconsistent image flags after
+reading in a dump snapshot, it means one or more pairs of bonded atoms
+now have inconsistent image flags.  As discussed in "Section
 errors"_Section_errors.html this may or may not cause problems for
 subsequent simulations, One way this can happen is if you read image
 flag fields from the dump file but do not also use the dump file box

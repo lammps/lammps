@@ -103,6 +103,8 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
 RegBlock::~RegBlock()
 {
+  if (copymode) return;
+
   delete [] contact;
 }
 

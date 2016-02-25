@@ -301,6 +301,13 @@ void FixDeposit::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c inserting atoms will overwrite ghost atoms
+
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
+
   // compute current offset = bottom of insertion volume
 
   double offset = 0.0;
@@ -524,8 +531,10 @@ void FixDeposit::pre_exchange()
         atom->v[n][0] = vnew[0];
         atom->v[n][1] = vnew[1];
         atom->v[n][2] = vnew[2];
-        if (mode == MOLECULE)
+        if (mode == MOLECULE) {
+	  onemols[imol]->quat_external = quat;
           atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
+	}
         modify->create_attribute(n);
       }
     }
@@ -559,7 +568,8 @@ void FixDeposit::pre_exchange()
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
   // if global map exists, reset it now instead of waiting for comm
-  // since adding atoms messes up ghosts
+  //   since other pre-exchange fixes may use it
+  //   invoke map_init() b/c atom count has grown
 
   if (success) {
     atom->natoms += natom;
@@ -576,7 +586,6 @@ void FixDeposit::pre_exchange()
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
     if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
     if (atom->map_style) {
-      atom->nghost = 0;
       atom->map_init();
       atom->map_set();
     }
@@ -811,23 +820,24 @@ void *FixDeposit::extract(const char *str, int &itype)
 
     } else {
 
-      // find a molecule in template with matching type
+      // loop over onemols molecules
+      // skip a molecule with no atoms as large as itype
 
+      oneradius = 0.0;
       for (int i = 0; i < nmol; i++) {
-        if (itype-ntype > onemols[i]->ntypes) continue;
+        if (itype > ntype+onemols[i]->ntypes) continue;
         double *radius = onemols[i]->radius;
         int *type = onemols[i]->type;
         int natoms = onemols[i]->natoms;
 
-        // check radii of matching types in Molecule
+        // check radii of atoms in Molecule with matching types
         // default to 0.5, if radii not defined in Molecule
         //   same as atom->avec->create_atom(), invoked in pre_exchange()
 
-        oneradius = 0.0;
         for (int i = 0; i < natoms; i++)
-          if (type[i] == itype-ntype) {
+          if (type[i]+ntype == itype) {
             if (radius) oneradius = MAX(oneradius,radius[i]);
-            else oneradius = 0.5;
+            else oneradius = MAX(oneradius,0.5);
           }
       }
     }

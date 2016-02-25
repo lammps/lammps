@@ -116,8 +116,8 @@ rule-of-thumb is to use a colloid-solvent cutoff that is half the big
 diameter + 4 times the small diameter.  I.e. 9 = 5 + 4 for the
 colloid-solvent cutoff in this case.
 
-IMPORTANT NOTE: When using pair_style colloid for a mixture with 2 (or
-more) widely different particles sizes (e.g. sigma=10 colloids in a
+NOTE: When using pair_style colloid for a mixture with 2 (or more)
+widely different particles sizes (e.g. sigma=10 colloids in a
 background sigam=1 LJ fluid), you will likely want to use these
 commands for efficiency: "neighbor multi"_neighbor.html and
 "comm_modify multi"_comm_modify.html.

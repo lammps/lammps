@@ -13,10 +13,10 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
-        {electron} or {ellipsoid} or {full} or {line} or {meso} or \
+        {dpd} or {electron} or {ellipsoid} or {full} or {line} or {meso} or \
 	{molecular} or {peri} or {smd} or {sphere} or {tri} or \
         {template} or {hybrid} :ulb,l
-  args = none for any style except {body} and {hybrid}
+  args = none for any style except the following
   {body} args = bstyle bstyle-args
     bstyle = style of body particles
     bstyle-args = additional arguments specific to the bstyle
@@ -47,6 +47,10 @@ used before a simulation is setup via a "read_data"_read_data.html,
 "read_restart"_read_restart.html, or "create_box"_create_box.html
 command.
 
+NOTE: Many of the atom styles discussed here are only enabled if
+LAMMPS was built with a specific package, as listed below in the
+Restrictions section.
+
 Once a style is assigned, it cannot be changed, so use a style general
 enough to encompass all attributes.  E.g. with style {bond}, angular
 terms cannot be used or added later to the model.  It is OK to use a
@@ -70,6 +74,7 @@ quantities.
 {bond} | bonds | bead-spring polymers |
 {charge} | charge | atomic system with charges |
 {dipole} | charge and dipole moment | system with dipolar particles |
+{dpd} | internal temperature and internal energies | DPD particles |
 {electron} | charge and spin and eradius | electronic force field |
 {ellipsoid} | shape, quaternion, angular momentum | aspherical particles |
 {full} | molecular + charge | bio-molecules |
@@ -83,8 +88,8 @@ quantities.
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
-IMPORTANT NOTE: It is possible to add some attributes, such as a
-molecule ID, to atom styles that do not have them via the "fix
+NOTE: It is possible to add some attributes, such as a molecule ID, to
+atom styles that do not have them via the "fix
 property/atom"_fix_property_atom.html command.  This command also
 allows new custom attributes consisting of extra integer or
 floating-point values to be added to atoms.  See the "fix
@@ -114,12 +119,23 @@ a point particle.  If it is an ellipsoid, it also stores a shape
 vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
+For the {dipole} style, a point dipole is defined for each point
+particle.  Note that if you wish the particles to be finite-size
+spheres as in a Stockmayer potential for a dipolar fluid, so that the
+particles can rotate due to dipole-dipole interactions, then you need
+to use atom_style hybrid sphere dipole, which will assign both a
+diameter and dipole moment to each particle.
+
 For the {electron} style, the particles representing electrons are 3d
 Gaussians with a specified position and bandwidth or uncertainty in
 position, which is represented by the eradius = electron size.
 
 For the {peri} style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The {dpd} style is for dissipative particle dynamics (DPD) particles
+which store the particle internal temperature (dpdTheta), internal
+conductive energy (uCond) and internal mechanical energy (uMech).
 
 The {meso} style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
@@ -158,7 +174,7 @@ molecules, all of a single type (or small number of types).  See the
 paper by Grime and Voth, in "(Grime)"_#Grime, for examples of how this
 can be advantageous for large-scale coarse-grained systems.
 
-IMPORTANT NOTE: When using the {template} style with a "molecule
+NOTE: When using the {template} style with a "molecule
 template"_molecule.html that contains multiple molecules, you should
 insure the atom types, bond types, angle_types, etc in all the
 molecules are consistent.  E.g. if one molecule represents H2O and
@@ -197,10 +213,10 @@ If some atoms have bonds, but others do not, use the {bond} style.
 
 The only scenario where the {hybrid} style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want dipolar particles which will rotate due to
-torque, you would need to use "atom_style hybrid sphere dipole".  When
-a hybrid style is used, atoms store and communicate the union of all
-quantities implied by the individual styles.
+example, as mentioned above, if you want dipolar particles which will
+rotate due to torque, you need to use "atom_style hybrid sphere
+dipole".  When a hybrid style is used, atoms store and communicate the
+union of all quantities implied by the individual styles.
 
 When using the {hybrid} style, you cannot combine the {template} style
 with another molecular style that stores bond,angle,etc info on a
@@ -240,19 +256,33 @@ more instructions on how to use the accelerated styles effectively.
 This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
-The {angle}, {bond}, {full}, {molecular}, and {template} styles are
-part of the MOLECULE package.  The {line} and {tri} styles are part
-of the ASPHERE pacakge.  The {body} style is part of the BODY package.
-The {dipole} style is part of the DIPOLE package.  The {peri} style is
-part of the PERI package for Peridynamics.  The {electron} style is
-part of the USER-EFF package for "electronic force
-fields"_pair_eff.html.  The {meso} style is part of the USER-SPH
-package for smoothed particle hydrodyanmics (SPH).  See "this PDF
-guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.  The
-{wavepacket} style is part of the USER-AWPMD package for the
-"antisymmetrized wave packet MD method"_pair_awpmd.html.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
+Many of the styles listed above are only enabled if LAMMPS was built
+with a specific package, as listed below.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
+
+The {angle}, {bond}, {full}, {molecular}, and {template} styles are
+part of the MOLECULE package.
+
+The {line} and {tri} styles are part of the ASPHERE package.
+
+The {body} style is part of the BODY package.
+
+The {dipole} style is part of the DIPOLE package.  
+
+The {peri} style is part of the PERI package for Peridynamics.
+
+The {electron} style is part of the USER-EFF package for "electronic
+force fields"_pair_eff.html.
+
+The {dpd} style is part of the USER-DPD package for dissipative
+particle dynamics (DPD).
+
+The {meso} style is part of the USER-SPH package for smoothed particle
+hydrodyanmics (SPH).  See "this PDF
+guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.
+
+The {wavepacket} style is part of the USER-AWPMD package for the
+"antisymmetrized wave packet MD method"_pair_awpmd.html.
 
 [Related commands:]
 

@@ -128,12 +128,12 @@ temperature <i>T</i><sup>cl</sup> as a function of target quantum bath
 temperature. Memory usage per processor could be from 10 to 100
 Mbytes.
 
-IMPORTANT NOTE: Unlike the "fix nvt"_fix_nh.html command which
-performs Nose/Hoover thermostatting AND time integration, this fix
-does NOT perform time integration. It only modifies forces to a
-colored thermostat. Thus you must use a separate time integration fix,
-like "fix nve"_fix_nve.html or "fix nph"_fix_nh.html to actually
-update the velocities and positions of atoms (as shown in the
+NOTE: Unlike the "fix nvt"_fix_nh.html command which performs
+Nose/Hoover thermostatting AND time integration, this fix does NOT
+perform time integration. It only modifies forces to a colored
+thermostat. Thus you must use a separate time integration fix, like
+"fix nve"_fix_nve.html or "fix nph"_fix_nh.html to actually update the
+velocities and positions of atoms (as shown in the
 examples). Likewise, this fix should not normally be used with other
 fixes or commands that also specify system temperatures , e.g. "fix
 nvt"_fix_nh.html and "fix temp/rescale"_fix_temp_rescale.html.

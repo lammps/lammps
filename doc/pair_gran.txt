@@ -26,14 +26,14 @@ gamma_t = damping coefficient for collisions in tangential direction (1/time uni
 xmu = static yield criterion (unitless value between 0.0 and 1.0e4) :l
 dampflag = 0 or 1 if tangential damping force is excluded or included :l,ule
 
-IMPORTANT NOTE: Versions of LAMMPS before 9Jan09 had different style
-names for granular force fields.  This is to emphasize the fact that
-the Hertzian equation has changed to model polydispersity more
-accurately.  A side effect of the change is that the Kn, Kt, gamma_n,
-and gamma_t coefficients in the pair_style command must be specified
-with different values in order to reproduce calculations made with
-earlier versions of LAMMPS, even for monodisperse systems.  See the
-NOTE below for details.
+NOTE: Versions of LAMMPS before 9Jan09 had different style names for
+granular force fields.  This is to emphasize the fact that the
+Hertzian equation has changed to model polydispersity more accurately.
+A side effect of the change is that the Kn, Kt, gamma_n, and gamma_t
+coefficients in the pair_style command must be specified with
+different values in order to reproduce calculations made with earlier
+versions of LAMMPS, even for monodisperse systems.  See the NOTE below
+for details.
 
 [Examples:]
 
@@ -128,16 +128,16 @@ that is appropriate for the absolute size of particles in the model.
 Since relative particle sizes are not accounted for, the Hookean
 styles may not be a suitable model for polydisperse systems.
 
-IMPORTANT NOTE: In versions of LAMMPS before 9Jan09, the equation for
-Hertzian interactions did not include the sqrt(RiRj/Ri+Rj) term and
-thus was not as accurate for polydisperse systems.  For monodisperse
-systems, sqrt(RiRj/Ri+Rj) is a constant factor that effectively scales
-all 4 coefficients: Kn, Kt, gamma_n, gamma_t.  Thus you can set the
-values of these 4 coefficients appropriately in the current code to
-reproduce the results of a previous Hertzian monodisperse calculation.
-For example, for the common case of a monodisperse system with
-particles of diameter 1, all 4 of these coefficients should now be set
-2x larger than they were previously.
+NOTE: In versions of LAMMPS before 9Jan09, the equation for Hertzian
+interactions did not include the sqrt(RiRj/Ri+Rj) term and thus was
+not as accurate for polydisperse systems.  For monodisperse systems,
+sqrt(RiRj/Ri+Rj) is a constant factor that effectively scales all 4
+coefficients: Kn, Kt, gamma_n, gamma_t.  Thus you can set the values
+of these 4 coefficients appropriately in the current code to reproduce
+the results of a previous Hertzian monodisperse calculation.  For
+example, for the common case of a monodisperse system with particles
+of diameter 1, all 4 of these coefficients should now be set 2x larger
+than they were previously.
 
 Xmu is also specified in the pair_style command and is the upper limit
 of the tangential force through the Coulomb criterion Ft = xmu*Fn,
@@ -148,10 +148,10 @@ dash-pot model until Ft/Fn = xmu and is then held at Ft = Fn*xmu until
 the particles lose contact.  In the Hertzian case, a similar analogy
 holds, though the spring is no longer linear.
 
-IMPORTANT NOTE: Normally, xmu should be specified as a fractional
-value between 0.0 and 1.0, however LAMMPS allows large values (up to
-1.0e4) to allow for modeling of systems which can sustain very large
-tangential forces.
+NOTE: Normally, xmu should be specified as a fractional value between
+0.0 and 1.0, however LAMMPS allows large values (up to 1.0e4) to allow
+for modeling of systems which can sustain very large tangential
+forces.
 
 For granular styles there are no additional coefficients to set for
 each pair of atom types via the "pair_coeff"_pair_coeff.html command.

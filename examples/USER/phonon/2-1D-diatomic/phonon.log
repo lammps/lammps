@@ -5,7 +5,7 @@
 # number of atoms per unit cell            : 2
 # dimension of the FFT mesh                : 32 x 1 x 1
 # number of wait steps before measurement  : 500000
-# frequency of GFC measurement             : 10
+# frequency of the measurement             : 10
 # output result after this many measurement: 50000
 # number of processors used by this run    : 1
 ############################################################

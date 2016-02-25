@@ -172,7 +172,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 		F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
   void allocate();
-  void setup();
+  void setup_params();
 
   KOKKOS_INLINE_FUNCTION
   double fermi_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
@@ -227,5 +227,13 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Pair tersoff/zbl/kk requires metal or real units
+
+This is a current restriction of this pair potential.
+
+E: Cannot use chosen neighbor list style with tersoff/zbl/kk
+
+Self-explanatory.
 
 */

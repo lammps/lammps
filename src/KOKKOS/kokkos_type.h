@@ -30,7 +30,7 @@
   struct lmp_float3 {
     float x,y,z;
     KOKKOS_INLINE_FUNCTION
-    lmp_float3():x(0.0f),z(0.0f),y(0.0f) {}
+    lmp_float3():x(0.0f),y(0.0f),z(0.0f) {}
 
     KOKKOS_INLINE_FUNCTION
     void operator += (const lmp_float3& tmp) {
@@ -61,7 +61,7 @@
   struct lmp_double3 {
     double x,y,z;
     KOKKOS_INLINE_FUNCTION
-    lmp_double3():x(0.0),z(0.0),y(0.0) {}
+    lmp_double3():x(0.0),y(0.0),z(0.0) {}
 
     KOKKOS_INLINE_FUNCTION
     void operator += (const lmp_double3& tmp) {
@@ -753,5 +753,9 @@ void memset_kokkos (ViewType &view) {
   ViewType::execution_space::fence();
 }
 
+#if defined(KOKKOS_HAVE_CXX11)
+#undef ISFINITE
+#define ISFINITE(x) std::isfinite(x)
+#endif
 
 #endif

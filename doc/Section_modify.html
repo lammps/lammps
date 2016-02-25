@@ -929,12 +929,21 @@ styles can be created to add new region shapes to LAMMPS.</p>
 class.  See region.h for details.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="86%" />
+<col width="21%" />
+<col width="79%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>match</td>
+<tr class="row-odd"><td>inside</td>
 <td>determine whether a point is in the region</td>
+</tr>
+<tr class="row-even"><td>surface_interior</td>
+<td>determine if a point is within a cutoff distance inside of surc</td>
+</tr>
+<tr class="row-odd"><td>surface_exterior</td>
+<td>determine if a point is within a cutoff distance outside of surf</td>
+</tr>
+<tr class="row-even"><td>shape_update</td>
+<td>change region shape if set by time-depedent variable</td>
 </tr>
 </tbody>
 </table>

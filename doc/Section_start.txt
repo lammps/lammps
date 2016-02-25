@@ -45,8 +45,7 @@ potentials: embedded atom method (EAM) potential files
 src: source files
 tools: pre- and post-processing tools :tb(s=:)
 
-Note that the "download page"_http://lammps.sandia.gov/download.html
-also has links to download
+Note that the "download page"_download also has links to download
 Windows exectubles and installers, as well as pre-built executables
 for a few specific Linux distributions.  It also has instructions for
 how to download/install LAMMPS for Macs (via Homebrew), and to
@@ -655,15 +654,20 @@ are always included, plus optional packages.  Packages are groups of
 files that enable a specific set of features.  For example, force
 fields for molecular systems or granular systems are in packages.
 
+"Section packages"_Section_packages.html in the manual has details
+about all the packages, including specific instructions for building
+LAMMPS with each package, which are covered in a more general manner
+below.
+
 You can see the list of all packages by typing "make package" from
 within the src directory of the LAMMPS distribution.  This also lists
 various make commands that can be used to manipulate packages.
 
-If you use a command in a LAMMPS input script that is specific to a
-particular package, you must have built LAMMPS with that package, else
-you will get an error that the style is invalid or the command is
-unknown.  Every command's doc page specfies if it is part of a
-package.  You can also type
+If you use a command in a LAMMPS input script that is part of a
+package, you must have built LAMMPS with that package, else you will
+get an error that the style is invalid or the command is unknown.
+Every command's doc page specfies if it is part of a package.  You can
+also type
 
 lmp_machine -h :pre
 
@@ -694,9 +698,6 @@ package, you may need to contact the contributor directly to get help.
 Information on how to submit additions you make to LAMMPS as single
 files or either a standard or user-contributed package are given in
 "this section"_Section_modify.html#mod_15 of the documentation.
-
-Some packages (both standard and user) require additional auxiliary
-libraries when building LAMMPS.  See more details below.
 
 :line
 
@@ -733,18 +734,18 @@ libraries (see below), and will also produce a smaller executable
 which may run a bit faster.
 
 When you download a LAMMPS tarball, these packages are pre-installed
-in the src directory: KSPACE, MANYBODY,MOLECULE.  When you download
-LAMMPS source files from the SVN or Git repositories, no packages are
-pre-installed.
+in the src directory: KSPACE, MANYBODY,MOLECULE, because they are so
+commonly used.  When you download LAMMPS source files from the SVN or
+Git repositories, no packages are pre-installed.
 
 Packages are included or excluded by typing "make yes-name" or "make
 no-name", where "name" is the name of the package in lower-case, e.g.
 name = kspace for the KSPACE package or name = user-atc for the
 USER-ATC package.  You can also type "make yes-standard", "make
 no-standard", "make yes-std", "make no-std", "make yes-user", "make
-no-user", "make yes-all" or "make no-all" to include/exclude various
-sets of packages.  Type "make package" to see the all of the
-package-related make options.
+no-user", "make yes-lib", "make no-lib", "make yes-all", or "make
+no-all" to include/exclude various sets of packages.  Type "make
+package" to see all of the package-related make options.
 
 NOTE: Inclusion/exclusion of a package works by simply moving files
 back and forth between the main src directory and sub-directories with
@@ -766,11 +767,11 @@ files.  Typing "make package-overwrite" will overwrite files in the
 package sub-directories with src files.
 
 Typing "make package-status" or "make ps" will show which packages are
-currently included. Of those that are included, it will list files
-that are different in the src directory and package sub-directory.
-Typing "make package-diff" lists all differences between these files.
-Again, type "make package" to see all of the package-related make
-options.
+currently included. For those that are included, it will list any
+files that are different in the src directory and package
+sub-directory.  Typing "make package-diff" lists all differences
+between these files.  Again, type "make package" to see all of the
+package-related make options.
 
 :line
 
@@ -805,7 +806,9 @@ where to find them.
 
 For libraries with provided code, the sub-directory README file
 (e.g. lib/atc/README) has instructions on how to build that library.
-Typically this is done by typing something like:
+This information is also summarized in "Section
+packages"_Section_packages.html.  Typically this is done by typing
+something like:
 
 make -f Makefile.g++ :pre
 
@@ -820,12 +823,13 @@ directory:
 libpackage.a
 Makefile.lammps :pre
 
-The Makefile.lammps file will be a copy of the EXTRAMAKE file setting
-specified in the library Makefile.* you used.
+The Makefile.lammps file will typically be a copy of one of the
+Makefile.lammps.* files in the library directory.  
 
 Note that you must insure that the settings in Makefile.lammps are
-appropriate for your system.  If they are not, the LAMMPS build will
-fail.
+appropriate for your system.  If they are not, the LAMMPS build may
+fail.  To fix this, you can edit or create a new Makefile.lammps.*
+file for your system, and copy it to Makefile.lammps.
 
 As explained in the lib/package/README files, the settings in
 Makefile.lammps are used to specify additional system libraries and
@@ -860,79 +864,37 @@ the LAMMPS build will typically fail.
 
 A few packages require specific settings in Makefile.machine, to
 either build or use the package effectively.  These are the
-USER-INTEL, KOKKOS, USER-OMP, and OPT packages.  The details of what
-flags to add or what variables to define are given on the doc pages
-that describe each of these accelerator packages in detail:
+USER-INTEL, KOKKOS, USER-OMP, and OPT packages, used for accelerating
+code performance on CPUs or other hardware, as discussed in "Section
+acclerate"_Section_accelerate.html. 
+
+A summary of what Makefile.machine changes are needed for each of
+these packages is given in "Section packages"_Section_packages.html.
+The details are given on the doc pages that describe each of these
+accelerator packages in detail:
 
 "USER-INTEL package"_accelerate_intel.html
 "KOKKOS package"_accelerate_kokkos.html
 "USER-OMP package"_accelerate_omp.html
 "OPT package"_accelerate_opt.html :ul
 
-Here is a brief summary of what Makefile.machine changes are needed.
-Note that the Make.py tool, described in the next "Section
-2.4"_#start_4 can automatically add the needed info to an existing
-machine Makefile, using simple command-line arguments.
-
-In src/MAKE/OPTIONS see the following Makefiles for examples of the
-changes described below:
+You can also look at the following machine Makefiles in
+src/MAKE/OPTIONS, which include the changes.  Note that the USER-INTEL
+and KOKKOS packages allow for settings that build LAMMPS for different
+hardware.  The USER-INTEL package builds for CPU and the Xeon Phi, the
+KOKKOS package builds for OpenMP, GPUs (Cuda), and the Xeon Phi.
 
 Makefile.intel_cpu
 Makefile.intel_phi
 Makefile.kokkos_omp
 Makefile.kokkos_cuda
 Makefile.kokkos_phi
-Makefile.omp :ul
+Makefile.omp
+Makefile.opt :ul
 
-For the USER-INTEL package, you have 2 choices when building.  You can
-build with CPU or Phi support.  The latter uses Xeon Phi chips in
-"offload" mode.  Each of these modes requires additional settings in
-your Makefile.machine for CCFLAGS and LINKFLAGS.
-
-For CPU mode (if using an Intel compiler):
-
-CCFLAGS: add -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost, -fno-alias, -ansi-alias, -override-limits
-LINKFLAGS: add -fopenmp :ul
-
-For Phi mode add the following in addition to the CPU mode flags:
-
-CCFLAGS: add -DLMP_INTEL_OFFLOAD and 
-LINKFLAGS: add -offload :ul
-
-And also add this to CCFLAGS:
-
--offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\"" :pre
-
-For the KOKKOS package, you have 3 choices when building.  You can
-build with OMP or Cuda or Phi support.  Phi support uses Xeon Phi
-chips in "native" mode.  This can be done by setting the following
-variables in your Makefile.machine:
-
-for OMP support, set OMP = yes
-for Cuda support, set OMP = yes and CUDA = yes
-for Phi support, set OMP = yes and MIC = yes :ul
-
-These can also be set as additional arguments to the make command, e.g.
-
-make g++ OMP=yes MIC=yes :pre
-
-Building the KOKKOS package with CUDA support requires a Makefile
-machine that uses the NVIDIA "nvcc" compiler, as well as an
-appropriate "arch" setting appropriate to the GPU hardware and NVIDIA
-software you have on your machine.  See
-src/MAKE/OPTIONS/Makefile.kokkos_cuda for an example of such a machine
-Makefile.
-
-For the USER-OMP package, your Makefile.machine needs additional
-settings for CCFLAGS and LINKFLAGS.
-
-CCFLAGS: add -fopenmp and -restrict
-LINKFLAGS: add -fopenmp :ul
-
-For the OPT package, your Makefile.machine needs an additional
-settings for CCFLAGS.
-
-CCFLAGS: add -restrict :ul
+Also note that the Make.py tool, described in the next "Section
+2.4"_#start_4 can automatically add the needed info to an existing
+machine Makefile, using simple command-line arguments.
 
 :line
 

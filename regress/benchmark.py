@@ -56,7 +56,7 @@ def run_test(test):
   msg = "==== comparing "+log+" with "+ref+" ====\n"
   if (os.path.isfile(log)): os.remove(log)
   if (os.path.isfile(stdout)): os.remove(stdout)
-  os.system(lmps+input+" >& "+stdout);
+  os.system(lmps+input+" > "+stdout+" 2>&1");
   if (not os.path.isfile(log)) :
     msg += "!!! no "+log+"\n";
     msg += "!!! test "+test+" FAILED\n"
@@ -186,14 +186,14 @@ def init() :
 ### build executable
 #====================================================
 def build(arch):
-  os.system("cd ..; svn update >& svn_update.log")
-  os.system("cd ../src; make no-atc >& /dev/null")
-  os.system("cd ../src; make clean-all >& /dev/null")
-  #os.system("cd ../src; make yes-all >& /dev/null")
-  os.system("cd ../src; make yes-dipole >& /dev/null")
+  os.system("cd ..; svn update > svn_update.log 2>&1")
+  os.system("cd ../src; make no-atc > /dev/null 2>&1")
+  os.system("cd ../src; make clean-all > /dev/null 2>&1")
+  #os.system("cd ../src; make yes-all > /dev/null 2>&1")
+  os.system("cd ../src; make yes-dipole > /dev/null 2>&1")
   sys.stdout.flush()
   print "** building ",arch,"...",
-  os.system("cd "+src_path+"; make -j "+str(np)+" "+arch+" >& build_"+arch+".log")
+  os.system("cd "+src_path+"; make -j "+str(np)+" "+arch+" > build_"+arch+".log 2>&1")
   if (not os.path.isfile(src_path+"lmp_"+arch)) :
     print "!!! build ",arch," FAILED"
     sys.exit()

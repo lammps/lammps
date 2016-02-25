@@ -7,19 +7,18 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-g -Wall -Werror=return-type -std=c++11 -fopenmp \
-	-DHAVE_SSE2 -DGOT_NLOPT -DHAVE_MODERN_COMPILER
+CCFLAGS =	-g -Wall -Werror=return-type -std=c++11
 SHFLAGS =	-fopenmp
 DEPFLAGS =	-M
 
 LINK =		g++
-LINKFLAGS =	-O -g -fopenmp -larmadillo
-LIB =           -fopenmp
+LINKFLAGS =	-O -g
+LIB =           
 SIZE =		size
 
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SHLIBFLAGS =	-fPIC -shared -fopenmp
+SHLIBFLAGS =	-fPIC -shared
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

@@ -211,28 +211,24 @@ void PairTersoffMODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeHalf<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeHalf<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else if (neighflag == HALFTHREAD) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeHalf<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeHalf<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else if (neighflag == FULL) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeFullA<FULL,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeFullA<FULL,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
 
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeFullB<FULL,1> >(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffMODComputeFullB<FULL,0> >(0,ignum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
 

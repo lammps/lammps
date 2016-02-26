@@ -114,7 +114,6 @@ void PairLJClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   EV_FLOAT ev = pair_compute<PairLJClass2Kokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {

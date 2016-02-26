@@ -172,7 +172,6 @@ void PairCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_coul += ev.ecoul;
   if (vflag_global) {

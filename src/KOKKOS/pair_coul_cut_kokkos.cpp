@@ -114,8 +114,6 @@ void PairCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev = pair_compute<PairCoulCutKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  DeviceType::fence();
-
   if (eflag) eng_coul += ev.ecoul;
   if (vflag_global) {
     virial[0] += ev.v[0];

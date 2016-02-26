@@ -153,8 +153,6 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;

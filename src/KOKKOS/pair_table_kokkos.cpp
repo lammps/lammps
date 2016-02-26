@@ -192,7 +192,6 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       else Kokkos::parallel_for(config,f);
     }
   }
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {

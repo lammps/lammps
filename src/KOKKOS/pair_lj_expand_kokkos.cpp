@@ -115,7 +115,6 @@ void PairLJExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 1;
 
   EV_FLOAT ev = pair_compute<PairLJExpandKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {

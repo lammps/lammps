@@ -166,7 +166,19 @@ commands, or by mixing as described below:</p>
 </ul>
 <p>This coefficient is optional.  If not specified, the global cutoff
 specified in the pair_style command is used.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>The cutoff distance for this pair style can be mixed.  The default mix
+value is <em>geometric</em>.  See the &#8220;pair_modify&#8221; command for details.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+shift, table, and tail options.</p>
+<p>This pair style writes its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
 </div>
+<hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <blockquote>

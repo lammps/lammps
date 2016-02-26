@@ -48,6 +48,26 @@ cutoff (distance units) :ul
 This coefficient is optional.  If not specified, the global cutoff
 specified in the pair_style command is used.
 
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+The cutoff distance for this pair style can be mixed.  The default mix
+value is {geometric}.  See the "pair_modify" command for details.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
 [Restrictions:] none
 
 [Related commands:]

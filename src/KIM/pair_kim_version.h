@@ -19,7 +19,7 @@
 #define LMP_PAIR_KIM_VERSION_H
 
 //
-// Release: This file is part of the pair-kim-v1.7.2 package.
+// Release: This file is part of the pair-kim-v1.7.2+1 package.
 //
 
 //
@@ -59,6 +59,6 @@
 #define PAIR_KIM_VERSION_MINOR 7
 #define PAIR_KIM_VERSION_PATCH 2
 //#define PAIR_KIM_VERSION_PRERELEASE
-//#define PAIR_KIM_VERSION_BUILD_METADATA
+#define PAIR_KIM_VERSION_BUILD_METADATA "1"
 
 #endif  /* PAIR_KIM_VERSION_H */

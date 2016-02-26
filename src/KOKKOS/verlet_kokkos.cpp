@@ -374,10 +374,6 @@ void VerletKokkos::run(int n)
 
     timer->stamp();
 
-    // added for debug
-    //atomKK->k_x.sync<LMPHostType>();
-    //atomKK->k_f.sync<LMPHostType>();
-    //atomKK->k_f.modify<LMPHostType>();
     if (n_pre_force) {
       modify->pre_force(vflag);
       timer->stamp(Timer::MODIFY);
@@ -451,7 +447,6 @@ void VerletKokkos::run(int n)
     }
 
 
-    Kokkos::Impl::Timer ktimer;
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
@@ -496,13 +491,13 @@ void VerletKokkos::run(int n)
     }
 
     if (kspace_compute_flag) {
-      atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-      atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
     }
 
-    if(execute_on_host) {
+    if(execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
       if(f_merge_copy.dimension_0()<atomKK->k_f.dimension_0()) {
         f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
       }
@@ -521,14 +516,10 @@ void VerletKokkos::run(int n)
 
     // force modifications, final time integration, diagnostics
 
-    ktimer.reset();
-
     if (n_post_force) modify->post_force(vflag);
     modify->final_integrate();
     if (n_end_of_step) modify->end_of_step();
     timer->stamp(Timer::MODIFY);
-
-    time += ktimer.seconds();
 
     // all output
 
@@ -613,5 +604,5 @@ void VerletKokkos::force_clear()
     }
   }
 }
-}
+
 

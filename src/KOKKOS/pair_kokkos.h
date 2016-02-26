@@ -610,7 +610,7 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
 // By having the enable_if with a ! and without it, exactly one of the two versions of the functions
 // pair_compute_neighlist and pair_compute_fullcluster will match - either the dummy version
 // or the real one further below.
-/*template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
+template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<!(NEIGHFLAG&PairStyle::EnabledNeighFlags), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   (void) fpair;
@@ -626,16 +626,11 @@ EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enab
   (void) list;
   printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",FULLCLUSTER,PairStyle::EnabledNeighFlags);
   return ev;
-}*/
+}
 
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL,N2
 template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
-EV_FLOAT pair_compute_neighlist (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
-  if(!(NEIGHFLAG&PairStyle::EnabledNeighFlags)) {
-    printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",NEIGHFLAG,PairStyle::EnabledNeighFlags);
-    return EV_FLOAT();
-  }
-
+EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<NEIGHFLAG&PairStyle::EnabledNeighFlags, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
     PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
@@ -651,12 +646,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, NeighListKokkos<typename Pair
 
 // Submit ParallelFor for NEIGHFLAG=FULLCLUSTER
 template<class PairStyle, class Specialisation>
-EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
-  if(!(FULLCLUSTER&PairStyle::EnabledNeighFlags)) {
-    printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",FULLCLUSTER,PairStyle::EnabledNeighFlags);
-    return EV_FLOAT();
-  }
-
+EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enable_if<FULLCLUSTER&PairStyle::EnabledNeighFlags, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
     typedef PairComputeFunctor<PairStyle,FULLCLUSTER,false,Specialisation >

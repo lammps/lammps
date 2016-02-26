@@ -120,11 +120,18 @@ class AtomVecKokkos : public AtomVec {
       Kokkos::deep_copy(LMPHostType(),src.d_view,tmp_view);
       src.modified_device() = src.modified_host();
     } else {
-      printf("DeepCopy A %p %u %p %u\n",tmp_view.ptr_on_device(),tmp_view.dimension_0(),src.d_view.ptr_on_device(),src.d_view.dimension_0());
       Kokkos::deep_copy(LMPHostType(),tmp_view,src.d_view),
       Kokkos::deep_copy(LMPHostType(),src.h_view,tmp_view);
       src.modified_device() = src.modified_host();
     }
+  }
+  #else
+  template<class ViewType>
+  void perform_async_copy(ViewType& src, unsigned int space) {
+    if(space == Device)
+      src.template sync<LMPDeviceType>();
+    else
+      src.template sync<LMPHostType>();
   }
   #endif
 };

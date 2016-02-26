@@ -2263,6 +2263,8 @@ void AtomVecFullKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+    if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
     if ((mask & MOLECULE_MASK) && atomKK->k_molecule.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_molecule,space);
     if (mask & SPECIAL_MASK) {
@@ -2291,6 +2293,32 @@ void AtomVecFullKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
       if (atomKK->k_angle_atom3.need_sync<LMPDeviceType>())
         perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_angle_atom3,space);
     }
+    if (mask & DIHEDRAL_MASK) {
+      if (atomKK->k_num_dihedral.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_int_1d>(atomKK->k_num_dihedral,space);
+      if (atomKK->k_dihedral_type.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_dihedral_type,space);
+      if (atomKK->k_dihedral_atom1.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_dihedral_atom1,space);
+      if (atomKK->k_dihedral_atom2.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_dihedral_atom2,space);
+      if (atomKK->k_dihedral_atom3.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_dihedral_atom3,space);
+    }
+    if (mask & IMPROPER_MASK) {
+      if (atomKK->k_num_improper.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_int_1d>(atomKK->k_num_improper,space);
+      if (atomKK->k_improper_type.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_improper_type,space);
+      if (atomKK->k_improper_atom1.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom1,space);
+      if (atomKK->k_improper_atom2.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom2,space);
+      if (atomKK->k_improper_atom3.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom3,space);
+      if (atomKK->k_improper_atom4.need_sync<LMPDeviceType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom4,space);
+    }
   } else {
     if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_x_array>(atomKK->k_x,space);
@@ -2306,6 +2334,8 @@ void AtomVecFullKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+    if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
     if ((mask & MOLECULE_MASK) && atomKK->k_molecule.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_molecule,space);
     if (mask & SPECIAL_MASK) {
@@ -2333,6 +2363,34 @@ void AtomVecFullKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
         perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_angle_atom2,space);
       if (atomKK->k_angle_atom3.need_sync<LMPHostType>())
         perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_angle_atom3,space);
+    }
+    if (mask & DIHEDRAL_MASK) {
+      if (atomKK->k_num_dihedral.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_int_1d>(atomKK->k_num_dihedral,space);
+      if (atomKK->k_dihedral_type.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_dihedral_type,space);
+      if (atomKK->k_dihedral_atom1.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_dihedral_atom1,space);
+      if (atomKK->k_dihedral_atom2.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_dihedral_atom2,space);
+      if (atomKK->k_dihedral_atom3.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_dihedral_atom3,space);
+      if (atomKK->k_dihedral_atom4.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_dihedral_atom4,space);
+    }
+    if (mask & IMPROPER_MASK) {
+      if (atomKK->k_num_improper.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_int_1d>(atomKK->k_num_improper,space);
+      if (atomKK->k_improper_type.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_int_2d>(atomKK->k_improper_type,space);
+      if (atomKK->k_improper_atom1.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom1,space);
+      if (atomKK->k_improper_atom2.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom2,space);
+      if (atomKK->k_improper_atom3.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom3,space);
+      if (atomKK->k_improper_atom4.need_sync<LMPHostType>())
+        perform_async_copy<DAT::tdual_tagint_2d>(atomKK->k_improper_atom4,space);
     }
   }
 }

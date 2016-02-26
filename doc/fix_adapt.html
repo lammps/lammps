@@ -224,9 +224,9 @@ pages for individual pair styles and their energy formulas for the
 meaning of these parameters:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="51%" />
-<col width="31%" />
-<col width="18%" />
+<col width="49%" />
+<col width="35%" />
+<col width="17%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="pair_born.html"><em>born</em></a></td>
@@ -273,6 +273,10 @@ meaning of these parameters:</p>
 <td>a</td>
 <td>type pairs</td>
 </tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_kim.html"><em>kim</em></a></td>
+<td>PARAM_FREE_*&amp;#58i,j,...</td>
+<td>global</td>
+</tr>
 </tbody>
 </table>
 <div class="admonition note">
@@ -283,6 +287,12 @@ pair_*.cpp file associated with the potential.</p>
 </div>
 <p>Some parameters are global settings for the pair style, e.g. the
 viscosity setting &#8220;mu&#8221; for <a class="reference internal" href="pair_lubricate.html"><em>pair_style lubricate</em></a>.
+For <a class="reference internal" href="pair_kim.html"><em>pair_kim</em></a>, all free parameters supported by the
+KIM Model are available (e.g., PARAM_FREE_sigmas provided by the
+LennardJones612_Universal__MO_826355984548_001 Model).  If the free
+parameter corresponds to an array, then the particular array element
+to be adapted must be specified (e.g., &#8220;PARAM_FREE_sigmas:10&#8221;, to
+adapt the tenth entry of the sigmas array).
 Other parameters apply to atom type pairs within the pair style,
 e.g. the prefactor &#8220;a&#8221; for <a class="reference internal" href="pair_soft.html"><em>pair_style soft</em></a>.</p>
 <p>Note that for many of the potentials, the parameter that can be varied

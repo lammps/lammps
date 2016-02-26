@@ -112,29 +112,31 @@ styles and parameters that can be varied by this fix.  See the doc
 pages for individual pair styles and their energy formulas for the
 meaning of these parameters:
 
-+-----------------------------------+---------------------+------------+
-| :doc:`born <pair_born>`           | a,b,c               | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`buck <pair_buck>`           | a,c                 | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`coul/cut <pair_coul>`       | scale               | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`coul/debye <pair_coul>`     | scale               | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`coul/long <pair_coul>`      | scale               | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`lj/cut <pair_lj>`           | epsilon,sigma       | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`lj/expand <pair_lj_expand>` | epsilon,sigma,delta | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`lubricate <pair_lubricate>` | mu                  | global     |
-+-----------------------------------+---------------------+------------+
-| :doc:`gauss <pair_gauss>`         | a                   | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`morse <pair_morse>`         | d0,r0,alpha         | type pairs |
-+-----------------------------------+---------------------+------------+
-| :doc:`soft <pair_soft>`           | a                   | type pairs |
-+-----------------------------------+---------------------+------------+
++-----------------------------------+-------------------------+------------+
+| :doc:`born <pair_born>`           | a,b,c                   | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`buck <pair_buck>`           | a,c                     | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`coul/cut <pair_coul>`       | scale                   | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`coul/debye <pair_coul>`     | scale                   | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`coul/long <pair_coul>`      | scale                   | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`lj/cut <pair_lj>`           | epsilon,sigma           | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`lj/expand <pair_lj_expand>` | epsilon,sigma,delta     | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`lubricate <pair_lubricate>` | mu                      | global     |
++-----------------------------------+-------------------------+------------+
+| :doc:`gauss <pair_gauss>`         | a                       | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`morse <pair_morse>`         | d0,r0,alpha             | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`soft <pair_soft>`           | a                       | type pairs |
++-----------------------------------+-------------------------+------------+
+| :doc:`kim <pair_kim>`             | PARAM_FREE_*&#58i,j,... | global     |
++-----------------------------------+-------------------------+------------+
 
 .. note::
 
@@ -144,6 +146,12 @@ meaning of these parameters:
 
 Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for :doc:`pair_style lubricate <pair_lubricate>`.
+For :doc:`pair_kim <pair_kim>`, all free parameters supported by the
+KIM Model are available (e.g., PARAM_FREE_sigmas provided by the
+LennardJones612_Universal__MO_826355984548_001 Model).  If the free
+parameter corresponds to an array, then the particular array element
+to be adapted must be specified (e.g., "PARAM_FREE_sigmas:10", to
+adapt the tenth entry of the sigmas array).
 Other parameters apply to atom type pairs within the pair style,
 e.g. the prefactor "a" for :doc:`pair_style soft <pair_soft>`.
 

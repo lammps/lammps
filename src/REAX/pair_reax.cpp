@@ -45,9 +45,10 @@ using namespace LAMMPS_NS;
 
 PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 {
-  error->warning(FLERR,"pair style reax is now deprecated "
-		 "and will soon be retired. Users "
-		 "should switch to pair_style reax/c");
+  if (comm->me == 0)
+    error->warning(FLERR,"The pair_style reax command will be deprecated "
+                   "soon - users should switch to pair_style reax/c");
+
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

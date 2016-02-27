@@ -122,7 +122,7 @@ dep : .depend mkdep.exe
 mkdep.exe: ../../tools/mkdep.c
 	cc -o $@ $<
 
-.depend : $(OBJ:.o=.cpp)
+.depend : mkdep.exe $(SRC) $(INC)
 	./mkdep.exe $(EXTRA_INC) -- $^ > .depend
 
 sinclude .depend

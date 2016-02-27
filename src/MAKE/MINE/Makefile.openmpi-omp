@@ -91,16 +91,16 @@ vpath %.h ..
 
 # Link target
 
-$(EXE):	$(OBJ) $(EXTRA_LINK_DEPENDS)
+$(EXE):	dep $(OBJ) $(EXTRA_LINK_DEPENDS)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library targets
 
-lib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
+lib:	dep $(OBJ) $(EXTRA_LINK_DEPENDS)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
-shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
+shlib:	dep $(OBJ) $(EXTRA_LINK_DEPENDS)
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
         $(OBJ) $(EXTRA_LIB) $(LIB)
 
@@ -117,5 +117,12 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+dep : .depend mkdep.exe
+
+mkdep.exe: ../../tools/mkdep.c
+	cc -o $@ $<
+
+.depend : $(OBJ:.o=.cpp)
+	./mkdep.exe $(EXTRA_INC) -- $^ > .depend
+
+sinclude .depend

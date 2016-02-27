@@ -133,8 +133,7 @@
 </div>
 <ul class="simple">
 <li>name = name of variable to define</li>
-<li>style = <em>delete</em> or <em>index</em> or <em>loop</em> or <em>world</em> or <em>universe</em> or
-<em>uloop</em> or <em>string</em> or <em>format</em> or <em>getenv</em> or <em>file</em> or <em>atomfile</em> or <em>python</em> or <em>equal</em> or <em>atom</em></li>
+<li>style = <em>delete</em> or <em>index</em> or <em>loop</em> or <em>world</em> or <em>universe</em> or <em>uloop</em> or <em>string</em> or <em>format</em> or <em>getenv</em> or <em>file</em> or <em>atomfile</em> or <em>python</em> or <em>equal</em> or <em>atom</em></li>
 </ul>
 <pre class="literal-block">
 <em>delete</em> = no args
@@ -505,11 +504,60 @@ valid (though strange) variable formula:</p>
 <div class="highlight-python"><div class="highlight"><pre>variable x equal &quot;pe + c_MyTemp / vol^(1/3)&quot;
 </pre></div>
 </div>
-<p>Specifically, an formula can contain numbers, thermo keywords, math
-operators, math functions, group functions, region functions, atom
-values, atom vectors, compute references, fix references, and
-references to other variables.</p>
-<hr class="docutils" />
+<p>Specifically, a formula can contain numbers, constants, thermo
+keywords, math operators, math functions, group functions, region
+functions, atom values, atom vectors, compute references, fix
+references, and references to other variables.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="6%" />
+<col width="94%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Number</td>
+<td>0.2, 100, 1.0e20, -15.4, etc</td>
+</tr>
+<tr class="row-even"><td>Constant</td>
+<td>PI, version, on, off, true, false, yes, no</td>
+</tr>
+<tr class="row-odd"><td>Thermo keywords</td>
+<td>vol, pe, ebond, etc</td>
+</tr>
+<tr class="row-even"><td>Math operators</td>
+<td>(), -x, x+y, x-y, x*y, x/y, x^y, x%y,</td>
+</tr>
+<tr class="row-odd"><td>Math operators</td>
+<td>(), -x, x+y, x-y, x*y, x/y, x^y, x%y,      x == y, x != y, x &amp;lt y, x &amp;lt= y, x &amp;gt y, x &amp;gt= y, x &amp;&amp; y, x || y, !x</td>
+</tr>
+<tr class="row-even"><td>Math functions</td>
+<td>sqrt(x), exp(x), ln(x), log(x), abs(x),      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x),      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),      stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y),      swiggle(x,y,z), cwiggle(x,y,z)</td>
+</tr>
+<tr class="row-odd"><td>Group functions</td>
+<td>count(ID), mass(ID), charge(ID), xcm(ID,dim),      vcm(ID,dim), fcm(ID,dim), bound(ID,dir),      gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim),      inertia(ID,dimdim), omega(ID,dim)</td>
+</tr>
+<tr class="row-even"><td>Region functions</td>
+<td>count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</td>
+</tr>
+<tr class="row-odd"><td>Special functions</td>
+<td>sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x)</td>
+</tr>
+<tr class="row-even"><td>Atom values</td>
+<td>id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]</td>
+</tr>
+<tr class="row-odd"><td>Atom vectors</td>
+<td>id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q</td>
+</tr>
+<tr class="row-even"><td>Compute references</td>
+<td>c_ID, c_ID[i], c_ID[i][j]</td>
+</tr>
+<tr class="row-odd"><td>Fix references</td>
+<td>f_ID, f_ID[i], f_ID[i][j]</td>
+</tr>
+<tr class="row-even"><td>Other variables</td>
+<td>v_name, v_name[i]</td>
+</tr>
+</tbody>
+</table>
 <p>Most of the formula elements produce a scalar value.  A few produce a
 per-atom vector of values.  These are the atom vectors, compute
 references that represent a per-atom vector, fix references that
@@ -526,6 +574,11 @@ that define a <a class="reference internal" href="group.html"><em>group</em></a>
 When they invoke the atom-style variable, only atoms in the group are
 inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
 atoms not in the group.</p>
+<hr class="docutils" />
+<div class="section" id="numers-constants-and-thermo-keywords">
+<h3>Numers, constants, and thermo keywords<a class="headerlink" href="#numers-constants-and-thermo-keywords" title="Permalink to this headline">¶</a></h3>
+<p>Numbers can contain digits, scientific notation
+(3.0e20,3.0e-20,3.0E20,3.0E-20), and leading minus signs.</p>
 <p>Constants are set at compile time and cannot be changed. <em>PI</em> will
 return the number 3.14159265358979323846; <em>on</em>, <em>true</em> or <em>yes</em> will
 return 1.0; <em>off</em>, <em>false</em> or <em>no</em> will return 0.0; <em>version</em> will
@@ -552,6 +605,7 @@ enthalpy keyword uses temp, pe, and pressure).  If a variable is
 evaluated directly in an input script (not during a run), then the
 values accessed by the thermo keyword must be current.  See the
 discussion below about &#8220;Variable Accuracy&#8221;.</p>
+</div>
 <hr class="docutils" />
 <div class="section" id="math-operators">
 <h3>Math Operators<a class="headerlink" href="#math-operators" title="Permalink to this headline">¶</a></h3>

@@ -576,16 +576,9 @@ void do_depend(const char * filename, const char * command)
 int main(int argc, char **argv)
 {
 	int len;
-	const char *hpath;
 
-	hpath = getenv("HPATH");
-	if (!hpath) {
-		fputs("mkdep: HPATH not set in environment.  "
-		      "Don't bypass the top level Makefile.\n", stderr);
-		return 1;
-	}
-
-	add_path(".");		/* for #include "..." */
+	add_path(".");	    /* for #include "..." */
+	add_path("..");	    /* since we use vpath %.h .. */
 
 	while (++argv, --argc > 0) {
 		if (strncmp(*argv, "-I", 2) == 0) {
@@ -602,8 +595,6 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-
-	add_path(hpath);	/* must be last entry, for config files */
 
 	while (--argc > 0) {
 		const char * filename = *++argv;

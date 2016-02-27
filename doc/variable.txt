@@ -13,8 +13,7 @@ variable command :h3
 variable name style args ... :pre
 
 name = name of variable to define :ulb,l
-style = {delete} or {index} or {loop} or {world} or {universe} or
-{uloop} or {string} or {format} or {getenv} or {file} or {atomfile} or {python} or {equal} or {atom} :l
+style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {string} or {format} or {getenv} or {file} or {atomfile} or {python} or {equal} or {atom} :l
   {delete} = no args
   {index} args = one or more strings
   {loop} args = N
@@ -410,35 +409,40 @@ valid (though strange) variable formula:
 
 variable x equal "pe + c_MyTemp / vol^(1/3)" :pre
 
-Specifically, an formula can contain numbers, thermo keywords, math
-operators, math functions, group functions, region functions, atom
-values, atom vectors, compute references, fix references, and
-references to other variables.
+Specifically, a formula can contain numbers, constants, thermo
+keywords, math operators, math functions, group functions, region
+functions, atom values, atom vectors, compute references, fix
+references, and references to other variables.
 
 Number: 0.2, 100, 1.0e20, -15.4, etc
 Constant: PI, version, on, off, true, false, yes, no
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, 
-Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
-Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, \
+     x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
+Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), \
+     sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), \
+     random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), \
+     ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), \
+     stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), \
+     swiggle(x,y,z), cwiggle(x,y,z)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
-                 vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
-		 gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), \
-		 inertia(ID,dimdim), omega(ID,dim)
+     vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
+     gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), \
+     inertia(ID,dimdim), omega(ID,dim)
 Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), \
-		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), \
-		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), \
-		  angmom(ID,dim,IDR), torque(ID,dim,IDR), \
-                  inertia(ID,dimdim,IDR), omega(ID,dim,IDR)
-Special functions: sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
+     xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), \
+     bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), \
+     angmom(ID,dim,IDR), torque(ID,dim,IDR), \
+     inertia(ID,dimdim,IDR), omega(ID,dim,IDR)
+Special functions: sum(x), min(x), max(x), ave(x), trap(x), \
+     slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
 Atom values: id\[i\], mass\[i\], type\[i\], mol\[i\], x\[i\], y\[i\], z\[i\], \
              vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\], q\[i\]
 Atom vectors: id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
 Compute references: c_ID, c_ID\[i\], c_ID\[i\]\[j\]
 Fix references: f_ID, f_ID\[i\], f_ID\[i\]\[j\]
 Other variables: v_name, v_name\[i\] :tb(s=:)
-
-:line
 
 Most of the formula elements produce a scalar value.  A few produce a
 per-atom vector of values.  These are the atom vectors, compute
@@ -457,6 +461,13 @@ that define a "group"_group.html on which they operate, e.g. a
 When they invoke the atom-style variable, only atoms in the group are
 inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
 atoms not in the group.
+
+:line
+
+Numers, constants, and thermo keywords :h4
+
+Numbers can contain digits, scientific notation
+(3.0e20,3.0e-20,3.0E20,3.0E-20), and leading minus signs.
 
 Constants are set at compile time and cannot be changed. {PI} will
 return the number 3.14159265358979323846; {on}, {true} or {yes} will

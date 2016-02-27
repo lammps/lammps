@@ -192,7 +192,10 @@ test-%:
 # Create Makefile.list
 
 makelist:
-	@$(SHELL) Make.sh Makefile.list
+	@list=`ls -1 *.cpp | tr "[:cntrl:]" " "`; \
+	  sed -i -e "s/SRC =	.*/SRC =	$$list/" Makefile.list
+	@list=`ls -1 *.h | tr "[:cntrl:]" " "`; \
+	  sed -i -e "s/INC =	.*/INC =	$$list/" Makefile.list
 
 # Make MPI STUBS library
 

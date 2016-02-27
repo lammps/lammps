@@ -117,12 +117,12 @@ shlib:	dep $(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-dep : .depend mkdep.exe
+dep : mkdep.exe .depend
 
 mkdep.exe: ../../tools/mkdep.c
 	cc -o $@ $<
 
-.depend : $(OBJ:.o=.cpp)
-	./mkdep.exe $(EXTRA_INC) -- $^ > .depend
+.depend : mkdep.exe $(OBJ:.o=.cpp)
+	./mkdep.exe $(EXTRA_INC) -- $^ > .depend || rm .depend
 
 sinclude .depend

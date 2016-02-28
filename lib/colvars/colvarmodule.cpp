@@ -100,8 +100,6 @@ int colvarmodule::read_config_string(std::string const &config_str)
 
 int colvarmodule::parse_config(std::string &conf)
 {
-  int error_code = COLVARS_OK;
-
   // parse global options
   if (catch_input_errors(parse_global_params(conf))) {
     return get_error();

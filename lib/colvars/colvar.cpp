@@ -1102,6 +1102,7 @@ int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
     if (cvm::debug())
       cvm::log("Done calculating system force of colvar \""+this->name+"\".\n");
   }
+  return COLVARS_OK;
 }
 
 
@@ -1143,6 +1144,8 @@ int colvar::calc_colvar_properties()
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\".\n");
+
+  return COLVARS_OK;
 }
 
 

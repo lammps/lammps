@@ -11,6 +11,7 @@ pair_style morse/cuda command :h3
 pair_style morse/gpu command :h3
 pair_style morse/omp command :h3
 pair_style morse/opt command :h3
+pair_style morse/smooth/linear command :h3
 
 [Syntax:]
 
@@ -44,7 +45,16 @@ r0 (distance units)
 cutoff (distance units) :ul
 
 The last coefficient is optional.  If not specified, the global morse
-cutoff is used.
+cutoff is used. :ul
+
+:line
+
+The {smooth/linear} variant is similar to the lj/smooth/linear variant
+in that it adds to the potential a shift and a linear term to make both
+the potential energy and force go to zero at the cut-off:
+
+:c,image(Eqs/pair_morse_smooth_linear.jpg)
+
 
 :line
 
@@ -96,7 +106,11 @@ These pair styles can only be used via the {pair} keyword of the
 
 :line
 
-[Restrictions:] none
+[Restrictions:] 
+
+The {morse/smooth/linear} pair style is only enabled if LAMMPS was
+built with the USER-MISC package.  See the 
+"Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

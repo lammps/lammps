@@ -111,5 +111,10 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+depend : mkdep.exe $(SRC) $(INC)
+	@./mkdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+mkdep.exe: ../../tools/mkdep.c
+	cc -o $@ $<
+
+sinclude .depend

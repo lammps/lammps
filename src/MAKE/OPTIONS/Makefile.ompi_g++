@@ -10,7 +10,7 @@ OMPI_CXX :=     g++
 CC =		mpicxx
 CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
-DEPFLAGS =	-M
+DEPFLAGS =	-M -MG
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O
@@ -72,6 +72,7 @@ JPG_LIB =
 
 include	Makefile.package.settings
 include	Makefile.package
+include	Makefile.style
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
@@ -113,4 +114,4 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+include $(DEPENDS)

@@ -132,7 +132,6 @@ help:
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
-	@$(SHELL) Make.sh style
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \
@@ -145,7 +144,7 @@ help:
 	  then cp Makefile.package.empty Makefile.package; fi
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
-	@cp Makefile.package Makefile.package.settings $(objdir)
+	@cp Makefile.style Makefile.package Makefile.package.settings $(objdir)
 ifeq ($(mode),exe)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
@@ -193,8 +192,10 @@ test-%:
 # Create Makefile.list
 
 makelist:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.list
+	@list=`ls -1 *.cpp | tr "[:cntrl:]" " "`; \
+	  sed -i -e "s/SRC =	.*/SRC =	$$list/" Makefile.list
+	@list=`ls -1 *.h | tr "[:cntrl:]" " "`; \
+	  sed -i -e "s/INC =	.*/INC =	$$list/" Makefile.list
 
 # Make MPI STUBS library
 

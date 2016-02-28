@@ -12,7 +12,7 @@ CCFLAGS =	-g -O3 -openmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
                 -xHost -fno-alias -ansi-alias -restrict \
                 -override-limits $(MIC_OPT)
 SHFLAGS =	-fPIC
-DEPFLAGS =	-M
+DEPFLAGS =	-M -MG
 
 LINK =		mpiicpc
 LINKFLAGS =	-g -O3 -xHost -openmp -offload
@@ -74,6 +74,7 @@ JPG_LIB =	-ljpeg
 
 include	Makefile.package.settings
 include	Makefile.package
+include	Makefile.style
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
@@ -115,4 +116,4 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+include $(DEPENDS)

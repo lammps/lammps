@@ -9,7 +9,7 @@ SHELL = /bin/sh
 CC =		g++
 CCFLAGS =	-g -O # -Wunused
 SHFLAGS =	-fPIC
-DEPFLAGS =	-M
+DEPFLAGS =	-M -MG
 
 LINK =		g++
 LINKFLAGS =	-g -O
@@ -69,6 +69,7 @@ JPG_LIB =	-ljpeg
 
 include	Makefile.package.settings
 include	Makefile.package
+include	Makefile.style
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
@@ -108,4 +109,4 @@ shlib:	$(OBJ)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+include $(DEPENDS)

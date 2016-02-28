@@ -24,14 +24,14 @@ CC       = /bgsys/drivers/ppcfloor/comm/gcc.legacy/bin/mpicxx
 CCFLAGS  = -O3 -fopenmp
 FC       = /bgsys/drivers/ppcfloor/comm/gcc.legacy/bin/mpif90
 FFLAGS   = -O3 -fopenmp
-DEPFLAGS = -M
+DEPFLAGS = -M -MG
 endif
 
 ifeq ($(COMPILER),LLVM)
 #CC       = bgclang++
 CC       = /home/projects/llvm/mpi/bgclang/bin/mpiclang++
 CCFLAGS  = -O3 -fopenmp
-DEPFLAGS = -M
+DEPFLAGS = -M -MG
 FC	 = /bin/false
 FFLAGS   = LLVM does not have a Fortran front-end!
 endif

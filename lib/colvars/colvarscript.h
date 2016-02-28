@@ -9,6 +9,7 @@
 #include "colvarbias.h"
 #include "colvarproxy.h"
 
+// TODO merge these into colvarmodule.h
 #define COLVARSCRIPT_ERROR -1
 #define COLVARSCRIPT_OK 0
 

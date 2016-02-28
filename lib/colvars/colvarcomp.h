@@ -670,6 +670,49 @@ public:
                                   colvarvalue const &x2) const;
 };
 
+/// \brief Colvar component: angle between the dipole of a molecule and an axis
+/// formed by two groups of atoms(colvarvalue::type_scalar type, range [0:PI])
+class colvar::dipole_angle
+  : public colvar::cvc
+{
+protected:
+
+  /// Dipole atom group
+  cvm::atom_group group1;
+  /// Atom group
+  cvm::atom_group group2;
+  /// Atom group
+  cvm::atom_group group3;
+
+  /// Inter site vectors
+  cvm::rvector r21, r23;
+  /// Inter site vector norms
+  cvm::real r21l, r23l;
+  /// Derivatives wrt group centers of mass
+  cvm::rvector dxdr1, dxdr3;
+
+  /// Compute system force on first site only to avoid unwanted
+  /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
+  /// (or to allow dummy atoms)
+  bool b_1site_force;
+public:
+
+  /// Initialize by parsing the configuration
+  dipole_angle (std::string const &conf);
+  /// \brief Initialize the three groups after three atoms
+  dipole_angle (cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3);
+  dipole_angle();
+  virtual inline ~dipole_angle() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force (colvarvalue const &force);
+  virtual cvm::real dist2 (colvarvalue const &x1,
+                           colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+};
 
 /// \brief Colvar component: dihedral between the centers of mass of
 /// four groups (colvarvalue::type_scalar type, range [-PI:PI])
@@ -1190,6 +1233,7 @@ simple_scalar_dist_functions(distance)
 simple_scalar_dist_functions(distance_xy)
 simple_scalar_dist_functions(distance_inv)
 simple_scalar_dist_functions(angle)
+simple_scalar_dist_functions(dipole_angle)
 simple_scalar_dist_functions(coordnum)
 simple_scalar_dist_functions(selfcoordnum)
 simple_scalar_dist_functions(h_bond)

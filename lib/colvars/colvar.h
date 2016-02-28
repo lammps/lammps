@@ -310,8 +310,11 @@ public:
   /// quantities
   void calc();
 
-  /// \brief Calculate just the value, and store it in the argument
-  void calc_value(colvarvalue &xn);
+  /// \brief Calculate a given subset of colvar components (CVCs) (default: all CVCs)
+  int calc_cvcs(int first = 0, size_t num_cvcs = 0);
+
+  /// \brief Calculate the quantities associated to the colvar (but not to the CVCs)
+  int calc_colvar_properties();
 
   /// Set the total biasing force to zero
   void reset_bias_force();
@@ -331,6 +334,12 @@ public:
 
   /// \brief Enables and disables individual CVCs based on flags
   int set_cvc_flags(std::vector<bool> const &flags);
+
+  /// \brief Updates the flags in the CVC objects
+  int update_cvc_flags();
+
+  /// \brief Return the number of CVC objects with an active flag
+  int num_active_cvcs() const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
@@ -486,6 +495,7 @@ public:
   class distance_inv;
   class distance_pairs;
   class angle;
+  class dipole_angle;
   class dihedral;
   class coordnum;
   class selfcoordnum;

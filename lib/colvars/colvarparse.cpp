@@ -110,8 +110,8 @@ size_t      colvarparse::dummy_pos = 0;
         data_count++;                                                   \
       }                                                                 \
       if (data_count == 0)                                              \
-        cvm::fatal_error("Error: in parsing \""+                        \
-                         std::string(key)+"\".\n");                     \
+        cvm::error("Error: in parsing \""+                              \
+                   std::string(key)+"\".\n", INPUT_ERROR);              \
       if (data_count > 1) {                                             \
         cvm::error("Error: multiple values "                            \
                    "are not allowed for keyword \""+                    \
@@ -283,8 +283,8 @@ bool colvarparse::get_keyval(std::string const &conf,
                 (data == std::string("false")) ) {
       value = false;
     } else
-      cvm::fatal_error("Error: boolean values only are allowed "
-                       "for \""+std::string(key)+"\".\n");
+      cvm::error("Error: boolean values only are allowed "
+                 "for \""+std::string(key)+"\".\n", INPUT_ERROR);
     if (parse_mode != parse_silent) {
       cvm::log("# "+std::string(key)+" = "+
                (value ? "on" : "off")+"\n");
@@ -398,10 +398,9 @@ int colvarparse::check_keywords(std::string &conf, char const *key)
       }
     }
     if (!found_keyword) {
-      cvm::log("Error: keyword \""+uk+"\" is not supported, "
-               "or not recognized in this context.\n");
-      cvm::set_error_bits(INPUT_ERROR);
-      return COLVARS_ERROR;
+      cvm::error("Error: keyword \""+uk+"\" is not supported, "
+                 "or not recognized in this context.\n", INPUT_ERROR);
+      return INPUT_ERROR;
     }
   }
 
@@ -527,10 +526,10 @@ bool colvarparse::key_lookup(std::string const &conf,
         while (brace == std::string::npos) {
           // add a new line
           if (line_end >= conf.size()) {
-            cvm::fatal_error("Parse error: reached the end while "
-                             "looking for closing brace; until now "
-                             "the following was parsed: \"\n"+
-                             line+"\".\n");
+            cvm::error("Parse error: reached the end while "
+                       "looking for closing brace; until now "
+                       "the following was parsed: \"\n"+
+                       line+"\".\n", INPUT_ERROR);
             return false;
           }
           size_t const old_end = line.size();

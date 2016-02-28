@@ -88,9 +88,6 @@ colvar::orientation::orientation()
 
 void colvar::orientation::calc_value()
 {
-  // atoms.reset_atoms_data();
-  // atoms.read_positions();
-
   atoms_cog = atoms.center_of_geometry();
 
   rot.calc_optimal_rotation(ref_pos, atoms.positions_shifted(-1.0 * atoms_cog));
@@ -145,9 +142,6 @@ colvar::orientation_angle::orientation_angle()
 
 void colvar::orientation_angle::calc_value()
 {
-  // atoms.reset_atoms_data();
-  // atoms.read_positions();
-
   atoms_cog = atoms.center_of_geometry();
 
   rot.calc_optimal_rotation(ref_pos, atoms.positions_shifted(-1.0 * atoms_cog));
@@ -261,9 +255,6 @@ colvar::tilt::tilt()
 
 void colvar::tilt::calc_value()
 {
-  // atoms.reset_atoms_data();
-  // atoms.read_positions();
-
   atoms_cog = atoms.center_of_geometry();
 
   rot.calc_optimal_rotation(ref_pos, atoms.positions_shifted(-1.0 * atoms_cog));
@@ -331,9 +322,6 @@ colvar::spin_angle::spin_angle()
 
 void colvar::spin_angle::calc_value()
 {
-  // atoms.reset_atoms_data();
-  // atoms.read_positions();
-
   atoms_cog = atoms.center_of_geometry();
 
   rot.calc_optimal_rotation(ref_pos, atoms.positions_shifted(-1.0 * atoms_cog));

@@ -147,6 +147,7 @@ public:
   /// \brief Use this after parsing a config string (note that check_keywords() calls it already)
   void clear_keyword_registry();
 
+  inline void reset() { clear_keyword_registry(); }
 
   /// \brief Return a lowercased copy of the string
   static inline std::string to_lower_cppstr(std::string const &in)

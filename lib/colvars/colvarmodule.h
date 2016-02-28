@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2015-10-22"
+#define COLVARS_VERSION "2016-02-24"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -31,6 +31,7 @@
 #define MEMORY_ERROR    (-1<<5)
 #define FATAL_ERROR     (-1<<6) // Should be set, or not, together with other bits
 #define DELETE_COLVARS  (-1<<7) // Instruct the caller to delete cvm
+#define COLVARS_NO_SUCH_FRAME (-1<<8) // Cannot load the requested frame
 
 
 #include <iostream>
@@ -109,6 +110,7 @@ public:
   static inline void set_error_bits(int code)
   {
     errorCode |= code;
+    errorCode |= COLVARS_ERROR;
   }
   static inline int get_error()
   {
@@ -226,6 +228,12 @@ public:
   /// Test error condition and keyword parsing
   /// on error, delete new bias
   bool check_new_bias(std::string &conf, char const *key);
+
+private:
+  /// Useful wrapper to interrupt parsing if any error occurs
+  int catch_input_errors(int result);
+
+public:
 
   // "Setup" functions (change internal data based on related data
   // from the proxy that may change during program execution)
@@ -420,17 +428,17 @@ public:
   /// \param pdb_field (optiona) if "filename" is a PDB file, use this
   /// field to determine which are the atoms to be set
   static int load_atoms(char const *filename,
-                          std::vector<atom> &atoms,
-                          std::string const &pdb_field,
-                          double const pdb_field_value = 0.0);
+                        atom_group &atoms,
+                        std::string const &pdb_field,
+                        double const pdb_field_value = 0.0);
 
   /// \brief Load the coordinates for a group of atoms from a file
   /// (PDB or XYZ)
   static int load_coords(char const *filename,
-                           std::vector<atom_pos> &pos,
-                           const std::vector<int> &indices,
-                           std::string const &pdb_field,
-                           double const pdb_field_value = 0.0);
+                         std::vector<atom_pos> &pos,
+                         const std::vector<int> &indices,
+                         std::string const &pdb_field,
+                         double const pdb_field_value = 0.0);
 
   /// \brief Load the coordinates for a group of atoms from an
   /// XYZ file

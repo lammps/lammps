@@ -367,6 +367,11 @@ FixGCMC::~FixGCMC()
       delete [] grouptypestrings[igroup];
     memory->sfree(grouptypestrings);
   }
+  if (full_flag) {
+    int igroupall = group->find("all");
+    neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -468,10 +473,14 @@ void FixGCMC::init()
     error->all(FLERR,"Cannot use fix gcmc in a 2d simulation");
 
   // create a new group for interaction exclusions
+  // used for attempted atom or molecule deletions
+  // skip if already exists from previous init()
 
-  if (full_flag) {
+  if (full_flag && !exclusion_group_bit) {
     char **group_arg = new char*[4];
+
     // create unique group name for atoms to be excluded
+
     int len = strlen(id) + 30;
     group_arg[0] = new char[len];
     sprintf(group_arg[0],"FixGCMC:gcmc_exclusion_group:%s",id);

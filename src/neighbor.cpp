@@ -2062,7 +2062,7 @@ void Neighbor::bin_atoms()
 
 int Neighbor::coord2bin(double *x)
 {
-  int ix,iy,iz,ibin;
+  int ix,iy,iz;
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
@@ -2088,9 +2088,11 @@ int Neighbor::coord2bin(double *x)
   } else
     iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - 1;
 
-  ibin = (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
-  if (0 <= ibin && ibin < mbins) return ibin;
-  else error->one(FLERR,"Invalid neighor bin");
+  return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
+
+  //int ibin = (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
+  //if (0 <= ibin && ibin < mbins) return ibin;
+  //else error->one(FLERR,"Invalid neighor bin");
 }
 
 /* ----------------------------------------------------------------------
@@ -2099,7 +2101,6 @@ int Neighbor::coord2bin(double *x)
 
 int Neighbor::coord2bin(double *x, int &ix, int &iy, int &iz)
 {
-  int ibin;
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
   else if (x[0] >= bboxlo[0]) {
@@ -2127,9 +2128,11 @@ int Neighbor::coord2bin(double *x, int &ix, int &iy, int &iz)
   ix -= mbinxlo;
   iy -= mbinylo;
   iz -= mbinzlo;
-  ibin = iz*mbiny*mbinx + iy*mbinx + ix;
-  if (0 <= ibin && ibin < mbins) return ibin;
-  else error->one(FLERR,"Invalid neighor bin");
+  return iz*mbiny*mbinx + iy*mbinx + ix;
+
+  //int ibin = iz*mbiny*mbinx + iy*mbinx + ix;
+  //if (0 <= ibin && ibin < mbins) return ibin;
+  //else error->one(FLERR,"Invalid neighor bin");
 }
 
 /* ----------------------------------------------------------------------
@@ -2158,6 +2161,30 @@ int Neighbor::exclusion(int i, int j, int itype, int jtype,
   }
 
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   remove the first group-group exclusion matching group1, group2
+------------------------------------------------------------------------- */
+
+void Neighbor::exclusion_group_group_delete(int group1, int group2)
+{
+  int m, mlast;
+  for (m = 0; m < nex_group; m++)
+    if (ex1_group[m] == group1 && ex2_group[m] == group2 )
+      break;
+
+  mlast = m;
+  if (mlast == nex_group) 
+    error->all(FLERR,"Unable to find group-group exclusion");
+  
+  for (m = mlast+1; m < nex_group; m++) {
+    ex1_group[m-1] = ex1_group[m];
+    ex2_group[m-1] = ex2_group[m];
+    ex1_bit[m-1] = ex1_bit[m];
+    ex2_bit[m-1] = ex2_bit[m];
+  }
+  nex_group--;
 }
 
 /* ----------------------------------------------------------------------
@@ -2194,32 +2221,5 @@ bigint Neighbor::memory_usage()
 int Neighbor::exclude_setting()
 {
   return exclude;
-}
-
-  void exclusion_group_group_delete(int, int); // remove a group-group exclusion
-
-/* ----------------------------------------------------------------------
-   remove the first group-group exclusion matching group1, group2
-------------------------------------------------------------------------- */
-
-void Neighbor::exclusion_group_group_delete(int group1, int group2)
-{
-  int m, mlast;
-  for (m = 0; m < nex_group; m++)
-    if (ex1_group[m] == group1 && ex2_group[m] == group2 )
-      break;
-
-  mlast = m;
-  if (mlast == nex_group) 
-    error->all(FLERR,"Unable to find group-group exclusion");
-  
-  for (m = mlast+1; m < nex_group; m++) {
-    ex1_group[m-1] = ex1_group[m];
-    ex2_group[m-1] = ex2_group[m];
-    ex1_bit[m-1] = ex1_bit[m];
-    ex2_bit[m-1] = ex2_bit[m];
-  }
-  nex_group--;
-
 }
 

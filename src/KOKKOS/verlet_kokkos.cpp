@@ -483,8 +483,8 @@ void VerletKokkos::run(int n)
         force->dihedral->compute(eflag,vflag);
       }
       if (force->improper) {
-        atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-        atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->improper->compute(eflag,vflag);
       }
       timer->stamp(Timer::BOND);

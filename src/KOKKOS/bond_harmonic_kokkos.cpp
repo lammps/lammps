@@ -67,18 +67,20 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"bond:eatom");
-    d_eatom = k_eatom.template view<DeviceType>();
+    if(k_eatom.dimension_0()<maxeatom) {
+      memory->destroy_kokkos(k_eatom,eatom);
+      memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
+      d_eatom = k_eatom.d_view;
+    }
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"bond:vatom");
-    d_vatom = k_vatom.template view<DeviceType>();
+    if(k_vatom.dimension_0()<maxvatom) {
+      memory->destroy_kokkos(k_vatom,vatom);
+      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      d_vatom = k_vatom.d_view;
+    }
   }
 
-  k_k.template sync<DeviceType>();
-  k_r0.template sync<DeviceType>();
 //  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
 //  else atomKK->modified(execution_space,F_MASK);
 
@@ -139,9 +141,6 @@ template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
-  // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
-
   const int i1 = bondlist(n,0);
   const int i2 = bondlist(n,1);
   const int type = bondlist(n,2);
@@ -167,15 +166,15 @@ void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BO
   // apply force to each of 2 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    a_f(i1,0) += delx*fbond;
-    a_f(i1,1) += dely*fbond;
-    a_f(i1,2) += delz*fbond;
+    f(i1,0) += delx*fbond;
+    f(i1,1) += dely*fbond;
+    f(i1,2) += delz*fbond;
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    a_f(i2,0) -= delx*fbond;
-    a_f(i2,1) -= dely*fbond;
-    a_f(i2,2) -= delz*fbond;
+    f(i2,0) -= delx*fbond;
+    f(i2,1) -= dely*fbond;
+    f(i2,2) -= delz*fbond;
   }
 
   if (EVFLAG) ev_tally(ev,i1,i2,ebond,fbond,delx,dely,delz);
@@ -195,13 +194,6 @@ template<class DeviceType>
 void BondHarmonicKokkos<DeviceType>::allocate()
 {
   BondHarmonic::allocate();
-
-  int n = atom->nbondtypes;
-  k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("BondHarmonic::k",n+1);
-  k_r0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("BondHarmonic::r0",n+1);
-
-  d_k = k_k.template view<DeviceType>();
-  d_r0 = k_r0.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -214,6 +206,12 @@ void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
   BondHarmonic::coeff(narg, arg);
 
   int n = atom->nbondtypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("BondHarmonic::k",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_r0("BondHarmonic::r0",n+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
+
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];
     k_r0.h_view[i] = r0[i];
@@ -240,10 +238,6 @@ void BondHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
   E_FLOAT ebondhalf;
   F_FLOAT v[6];
 
-  // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.template view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.template view<DeviceType>();
-
   if (eflag_either) {
     if (eflag_global) {
       if (newton_bond) ev.evdwl += ebond;
@@ -255,8 +249,8 @@ void BondHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
     }
     if (eflag_atom) {
       ebondhalf = 0.5*ebond;
-      if (newton_bond || i < nlocal) v_eatom[i] += ebondhalf;
-      if (newton_bond || j < nlocal) v_eatom[j] += ebondhalf;
+      if (newton_bond || i < nlocal) d_eatom[i] += ebondhalf;
+      if (newton_bond || j < nlocal) d_eatom[j] += ebondhalf;
     }
   }
 
@@ -298,20 +292,20 @@ void BondHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        v_vatom(i,0) += 0.5*v[0];
-        v_vatom(i,1) += 0.5*v[1];
-        v_vatom(i,2) += 0.5*v[2];
-        v_vatom(i,3) += 0.5*v[3];
-        v_vatom(i,4) += 0.5*v[4];
-        v_vatom(i,5) += 0.5*v[5];
+        d_vatom(i,0) += 0.5*v[0];
+        d_vatom(i,1) += 0.5*v[1];
+        d_vatom(i,2) += 0.5*v[2];
+        d_vatom(i,3) += 0.5*v[3];
+        d_vatom(i,4) += 0.5*v[4];
+        d_vatom(i,5) += 0.5*v[5];
       }
       if (newton_bond || j < nlocal) {
-        v_vatom(j,0) += 0.5*v[0];
-        v_vatom(j,1) += 0.5*v[1];
-        v_vatom(j,2) += 0.5*v[2];
-        v_vatom(j,3) += 0.5*v[3];
-        v_vatom(j,4) += 0.5*v[4];
-        v_vatom(j,5) += 0.5*v[5];
+        d_vatom(j,0) += 0.5*v[0];
+        d_vatom(j,1) += 0.5*v[1];
+        d_vatom(j,2) += 0.5*v[2];
+        d_vatom(j,3) += 0.5*v[3];
+        d_vatom(j,4) += 0.5*v[4];
+        d_vatom(j,5) += 0.5*v[5];
       }
     }
   }

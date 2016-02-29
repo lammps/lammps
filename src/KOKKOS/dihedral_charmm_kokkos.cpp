@@ -45,8 +45,8 @@ DihedralCharmmKokkos<DeviceType>::DihedralCharmmKokkos(LAMMPS *lmp) : DihedralCh
   datamask_read = X_MASK | F_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK | TYPE_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
-  k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
-  d_warning_flag = k_warning_flag.view<DeviceType>();
+  k_warning_flag = Kokkos::DualView<int,DeviceType>("Dihedral:warning_flag");
+  d_warning_flag = k_warning_flag.template view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
 }
 
@@ -80,30 +80,26 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
-    d_eatom = k_eatom.d_view;
+    if(k_eatom.dimension_0()<maxeatom) {
+      memory->destroy_kokkos(k_eatom,eatom);
+      memory->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
+      d_eatom = k_eatom.d_view;
+      k_eatom_pair = Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType>("dihedral:eatom_pair",maxeatom);
+      d_eatom_pair = k_eatom.d_view;
+    }
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
-    d_vatom = k_vatom.d_view;
+    if(k_vatom.dimension_0()<maxvatom) {
+      memory->destroy_kokkos(k_vatom,vatom);
+      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
+      d_vatom = k_vatom.d_view;
+      k_vatom_pair = Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType>("dihedral:vatom_pair",maxvatom);
+      d_vatom_pair = k_vatom.d_view;
+    }
   }
 
-  k_eatom_pair = DAT::tdual_efloat_1d("dihedral:eatom_pair",maxeatom);
-  k_vatom_pair = DAT::tdual_virial_array("dihedral:vatom_pair",maxvatom);
 
-  atomKK->sync(execution_space,datamask_read);
-  k_lj14_1.template sync<DeviceType>();
-  k_lj14_2.template sync<DeviceType>();
-  k_lj14_3.template sync<DeviceType>();
-  k_lj14_4.template sync<DeviceType>();
-  k_k.template sync<DeviceType>();
-  k_multiplicity.template sync<DeviceType>();
-  k_shift.template sync<DeviceType>();
-  k_cos_shift.template sync<DeviceType>();
-  k_sin_shift.template sync<DeviceType>();
-  k_weight.template sync<DeviceType>();
+  //atomKK->sync(execution_space,datamask_read);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
@@ -423,32 +419,6 @@ template<class DeviceType>
 void DihedralCharmmKokkos<DeviceType>::allocate()
 {
   DihedralCharmm::allocate();
-
-  int n = atom->ntypes;
-  k_lj14_1 = DAT::tdual_ffloat_2d("DihedralCharmm:lj14_1",n+1,n+1);
-  k_lj14_2 = DAT::tdual_ffloat_2d("DihedralCharmm:lj14_2",n+1,n+1);
-  k_lj14_3 = DAT::tdual_ffloat_2d("DihedralCharmm:lj14_3",n+1,n+1);
-  k_lj14_4 = DAT::tdual_ffloat_2d("DihedralCharmm:lj14_4",n+1,n+1);
-
-  d_lj14_1 = k_lj14_1.d_view;
-  d_lj14_2 = k_lj14_2.d_view;
-  d_lj14_3 = k_lj14_3.d_view;
-  d_lj14_4 = k_lj14_4.d_view;
-
-  int nd = atom->ndihedraltypes;
-  k_k = DAT::tdual_ffloat_1d("DihedralCharmm::k",nd+1);
-  k_multiplicity = DAT::tdual_ffloat_1d("DihedralCharmm::multiplicity",nd+1);
-  k_shift = DAT::tdual_ffloat_1d("DihedralCharmm::shift",nd+1);
-  k_cos_shift = DAT::tdual_ffloat_1d("DihedralCharmm::cos_shift",nd+1);
-  k_sin_shift = DAT::tdual_ffloat_1d("DihedralCharmm::sin_shift",nd+1);
-  k_weight = DAT::tdual_ffloat_1d("DihedralCharmm::weight",nd+1);
-
-  d_k = k_k.d_view;
-  d_multiplicity = k_multiplicity.d_view;
-  d_shift = k_shift.d_view;
-  d_cos_shift = k_cos_shift.d_view;
-  d_sin_shift = k_sin_shift.d_view;
-  d_weight = k_weight.d_view;
 }
 
 /* ----------------------------------------------------------------------
@@ -459,6 +429,21 @@ template<class DeviceType>
 void DihedralCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   DihedralCharmm::coeff(narg, arg);
+
+  int nd = atom->ndihedraltypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("DihedralCharmm::k",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_multiplicity("DihedralCharmm::multiplicity",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_shift("DihedralCharmm::shift",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_cos_shift("DihedralCharmm::cos_shift",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_sin_shift("DihedralCharmm::sin_shift",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_weight("DihedralCharmm::weight",nd+1);
+
+  d_k = k_k.d_view;
+  d_multiplicity = k_multiplicity.d_view;
+  d_shift = k_shift.d_view;
+  d_cos_shift = k_cos_shift.d_view;
+  d_sin_shift = k_sin_shift.d_view;
+  d_weight = k_weight.d_view;
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
@@ -476,6 +461,13 @@ void DihedralCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   k_cos_shift.template modify<LMPHostType>();
   k_sin_shift.template modify<LMPHostType>();
   k_weight.template modify<LMPHostType>();
+
+  k_k.template sync<DeviceType>();
+  k_multiplicity.template sync<DeviceType>();
+  k_shift.template sync<DeviceType>();
+  k_cos_shift.template sync<DeviceType>();
+  k_sin_shift.template sync<DeviceType>();
+  k_weight.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -486,6 +478,18 @@ template<class DeviceType>
 void DihedralCharmmKokkos<DeviceType>::init_style()
 {
   DihedralCharmm::init_style();
+
+  int n = atom->ntypes;
+  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_1("DihedralCharmm:lj14_1",n+1,n+1);
+  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_2("DihedralCharmm:lj14_2",n+1,n+1);
+  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_3("DihedralCharmm:lj14_3",n+1,n+1);
+  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_4("DihedralCharmm:lj14_4",n+1,n+1);
+
+  d_lj14_1 = k_lj14_1.d_view;
+  d_lj14_2 = k_lj14_2.d_view;
+  d_lj14_3 = k_lj14_3.d_view;
+  d_lj14_4 = k_lj14_4.d_view;
+
 
   if (weightflag) {
     int n = atom->ntypes;
@@ -503,6 +507,12 @@ void DihedralCharmmKokkos<DeviceType>::init_style()
   k_lj14_2.template modify<LMPHostType>();
   k_lj14_3.template modify<LMPHostType>();
   k_lj14_4.template modify<LMPHostType>();
+
+  k_lj14_1.template sync<DeviceType>();
+  k_lj14_2.template sync<DeviceType>();
+  k_lj14_3.template sync<DeviceType>();
+  k_lj14_4.template sync<DeviceType>();
+
 }
 
 /* ----------------------------------------------------------------------
@@ -524,10 +534,6 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i1, co
   E_FLOAT edihedralquarter;
   F_FLOAT v[6];
 
-  // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
-
   if (eflag_either) {
     if (eflag_global) {
       if (newton_bond) evm.emol += edihedral;
@@ -541,10 +547,10 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i1, co
     }
     if (eflag_atom) {
       edihedralquarter = 0.25*edihedral;
-      if (newton_bond || i1 < nlocal) v_eatom[i1] += edihedralquarter;
-      if (newton_bond || i2 < nlocal) v_eatom[i2] += edihedralquarter;
-      if (newton_bond || i3 < nlocal) v_eatom[i3] += edihedralquarter;
-      if (newton_bond || i4 < nlocal) v_eatom[i4] += edihedralquarter;
+      if (newton_bond || i1 < nlocal) d_eatom[i1] += edihedralquarter;
+      if (newton_bond || i2 < nlocal) d_eatom[i2] += edihedralquarter;
+      if (newton_bond || i3 < nlocal) d_eatom[i3] += edihedralquarter;
+      if (newton_bond || i4 < nlocal) d_eatom[i4] += edihedralquarter;
     }
   }
 
@@ -602,36 +608,36 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i1, co
 
     if (vflag_atom) {
       if (newton_bond || i1 < nlocal) {
-        v_vatom(i1,0) += 0.25*v[0];
-        v_vatom(i1,1) += 0.25*v[1];
-        v_vatom(i1,2) += 0.25*v[2];
-        v_vatom(i1,3) += 0.25*v[3];
-        v_vatom(i1,4) += 0.25*v[4];
-        v_vatom(i1,5) += 0.25*v[5];
+        d_vatom(i1,0) += 0.25*v[0];
+        d_vatom(i1,1) += 0.25*v[1];
+        d_vatom(i1,2) += 0.25*v[2];
+        d_vatom(i1,3) += 0.25*v[3];
+        d_vatom(i1,4) += 0.25*v[4];
+        d_vatom(i1,5) += 0.25*v[5];
       }
       if (newton_bond || i2 < nlocal) {
-        v_vatom(i2,0) += 0.25*v[0];
-        v_vatom(i2,1) += 0.25*v[1];
-        v_vatom(i2,2) += 0.25*v[2];
-        v_vatom(i2,3) += 0.25*v[3];
-        v_vatom(i2,4) += 0.25*v[4];
-        v_vatom(i2,5) += 0.25*v[5];
+        d_vatom(i2,0) += 0.25*v[0];
+        d_vatom(i2,1) += 0.25*v[1];
+        d_vatom(i2,2) += 0.25*v[2];
+        d_vatom(i2,3) += 0.25*v[3];
+        d_vatom(i2,4) += 0.25*v[4];
+        d_vatom(i2,5) += 0.25*v[5];
       }
       if (newton_bond || i3 < nlocal) {
-        v_vatom(i3,0) += 0.25*v[0];
-        v_vatom(i3,1) += 0.25*v[1];
-        v_vatom(i3,2) += 0.25*v[2];
-        v_vatom(i3,3) += 0.25*v[3];
-        v_vatom(i3,4) += 0.25*v[4];
-        v_vatom(i3,5) += 0.25*v[5];
+        d_vatom(i3,0) += 0.25*v[0];
+        d_vatom(i3,1) += 0.25*v[1];
+        d_vatom(i3,2) += 0.25*v[2];
+        d_vatom(i3,3) += 0.25*v[3];
+        d_vatom(i3,4) += 0.25*v[4];
+        d_vatom(i3,5) += 0.25*v[5];
       }
       if (newton_bond || i4 < nlocal) {
-        v_vatom(i4,0) += 0.25*v[0];
-        v_vatom(i4,1) += 0.25*v[1];
-        v_vatom(i4,2) += 0.25*v[2];
-        v_vatom(i4,3) += 0.25*v[3];
-        v_vatom(i4,4) += 0.25*v[4];
-        v_vatom(i4,5) += 0.25*v[5];
+        d_vatom(i4,0) += 0.25*v[0];
+        d_vatom(i4,1) += 0.25*v[1];
+        d_vatom(i4,2) += 0.25*v[2];
+        d_vatom(i4,3) += 0.25*v[3];
+        d_vatom(i4,4) += 0.25*v[4];
+        d_vatom(i4,5) += 0.25*v[5];
       }
     }
   }
@@ -651,9 +657,6 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
   E_FLOAT evdwlhalf,ecoulhalf,epairhalf;
   F_FLOAT v[6];
 
-  // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom_pair = k_eatom_pair.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom_pair = k_vatom_pair.view<DeviceType>();
 
   if (eflag_either) {
     if (eflag_global) {
@@ -675,8 +678,8 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
     }
     if (eflag_atom) {
       epairhalf = 0.5 * (evdwl + ecoul);
-      if (newton_bond || i < nlocal) v_eatom_pair[i] += epairhalf;
-      if (newton_bond || j < nlocal) v_eatom_pair[j] += epairhalf;
+      if (newton_bond || i < nlocal) d_eatom_pair[i] += epairhalf;
+      if (newton_bond || j < nlocal) d_eatom_pair[j] += epairhalf;
     }
   }
 
@@ -718,20 +721,20 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        v_vatom_pair(i,0) += 0.5*v[0];
-        v_vatom_pair(i,1) += 0.5*v[1];
-        v_vatom_pair(i,2) += 0.5*v[2];
-        v_vatom_pair(i,3) += 0.5*v[3];
-        v_vatom_pair(i,4) += 0.5*v[4];
-        v_vatom_pair(i,5) += 0.5*v[5];
+        d_vatom_pair(i,0) += 0.5*v[0];
+        d_vatom_pair(i,1) += 0.5*v[1];
+        d_vatom_pair(i,2) += 0.5*v[2];
+        d_vatom_pair(i,3) += 0.5*v[3];
+        d_vatom_pair(i,4) += 0.5*v[4];
+        d_vatom_pair(i,5) += 0.5*v[5];
       }
       if (newton_bond || j < nlocal) {
-        v_vatom_pair(j,0) += 0.5*v[0];
-        v_vatom_pair(j,1) += 0.5*v[1];
-        v_vatom_pair(j,2) += 0.5*v[2];
-        v_vatom_pair(j,3) += 0.5*v[3];
-        v_vatom_pair(j,4) += 0.5*v[4];
-        v_vatom_pair(j,5) += 0.5*v[5];
+        d_vatom_pair(j,0) += 0.5*v[0];
+        d_vatom_pair(j,1) += 0.5*v[1];
+        d_vatom_pair(j,2) += 0.5*v[2];
+        d_vatom_pair(j,3) += 0.5*v[3];
+        d_vatom_pair(j,4) += 0.5*v[4];
+        d_vatom_pair(j,5) += 0.5*v[5];
       }
     }
   }

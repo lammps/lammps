@@ -60,23 +60,21 @@ class BondHarmonicKokkos : public BondHarmonic {
 
   class NeighborKokkos *neighborKK;
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_2d bondlist;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_x_array_randomread x;
+  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typename AT::t_int_2d bondlist;
 
-  typename ArrayTypes<DeviceType>::tdual_efloat_1d k_eatom;
-  typename ArrayTypes<DeviceType>::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType> k_eatom;
+  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType> k_vatom;
+  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
+  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_r0;
-
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_r0;
+  typename AT::t_ffloat_1d d_k;
+  typename AT::t_ffloat_1d d_r0;
 
   virtual void allocate();
 };

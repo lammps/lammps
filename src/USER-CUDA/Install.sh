@@ -25,6 +25,7 @@ action () {
 # force rebuild of files with LMP_USER_CUDA switch
 
 touch ../accelerator_cuda.h
+touch ../neighbor.cpp
 
 # list of files with optional dependencies
 

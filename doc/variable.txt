@@ -390,10 +390,15 @@ each time the variable is used.  If you want spaces in the string,
 enclose it in double quotes so the parser will treat it as a single
 argument.  For {equal}-style variables the formula computes a scalar
 quantity, which becomes the value of the variable whenever it is
-evaluated.  For {vector}-style variables the formula computes a vector
-of quantities, which becomes the value of the variable whenever it is
-evaluated.  For {atom}-style variables the formula computes one
-quantity for each atom whenever it is evaluated.
+evaluated.  For {vector}-style variables the formula must compute a
+vector of quantities, which becomes the value of the variable whenever
+it is evaluated.  The calculated vector can be on length one, but it
+cannot be a simple scalar value like that produced by an equal-style
+compute.  I.e. the formula for a vector-style variable must have at
+least one quantity in it that refers to a global vector produced by a
+compute, fix, or other vector-style variable.  For {atom}-style
+variables the formula computes one quantity for each atom whenever it
+is evaluated.
 
 Note that {equal}, {vector}, and {atom} variables can produce
 different values at different stages of the input script or at
@@ -924,11 +929,10 @@ produce a scalar, vector, or array.
 An equal-style variable can only use scalar values, which means a
 global scalar, or an element of a global or per-atom vector or array.
 A vector-style variable can use scalar values or a global vector of
-values, or a column of a global array of values, Atom-style variables
+values, or a column of a global array of values.  Atom-style variables
 can use global scalar values.  They can also use per-atom vector
-values.  A vector value can be a per-atom vector itself, or a column
-of a per-atom array.  See the doc pages for individual computes to see
-what kind of values they produce.
+values, or a column of a per-atom array.  See the doc pages for
+individual computes to see what kind of values they produce.
 
 Examples of different kinds of compute references are as follows.
 There is typically no ambiguity (see exception below) as to what a
@@ -1030,22 +1034,25 @@ As discussed on this doc page, equal-style variables generate a single
 global numeric value, vector-style variables gerarate a vector of
 global numeric values, and atom-style and atomfile-style variables
 generate a per-atom vector of numeric values.  All other variables
-store one or more strings.  A vector-style variable can be referenced
-wtih a
+store one or more strings.
 
 The formula for an equal-style variable can use any style of variable
-including a vector_style or atom-style or atomfile-style.  In these
-latter cases, a subscript must be used to access a single value from
+including a vector_style or atom-style or atomfile-style.  For these
+3 styles, a subscript must be used to access a single value from
 the vector-, atom-, or atomfile-style variable.  If a string-storing
 variable is used, the string is converted to a numeric value.  Note
 that this will typically produce a 0.0 if the string is not a numeric
 string, which is likely not what you want.
 
-The formula for an atom-style variable can use any style of variable,
-including other atom-style or atomfile-style variables.
+The formula for a vector-style variable can use any style of variable,
+including atom-style or atomfile-style variables.  For these 2 styles,
+a subscript must be used to access a single value from the atom-, or
+atomfile-style variable.
 
 The formula for an atom-style variable can use any style of variable,
-including other atom-style or atomfile-style variables.
+including other atom-style or atomfile-style variables.  If it uses a
+vector-style variable, a subscript must be used to access a single
+value from the vector-style variable.
 
 Examples of different kinds of variable references are as follows.
 There is no ambiguity as to what a reference means, since variables

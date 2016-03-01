@@ -653,11 +653,13 @@ void CommBrick::exchange()
     if (procgrid[dim] == 1) nrecv = 0;
     else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
+                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,
+                   MPI_STATUS_IGNORE);
       nrecv = nrecv1;
       if (procgrid[dim] > 2) {
         MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
+                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,
+                     MPI_STATUS_IGNORE);
         nrecv += nrecv2;
       }
       if (nrecv > maxrecv) grow_recv(nrecv);

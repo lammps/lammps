@@ -243,6 +243,10 @@ void PairKIM::allocate()
 
    // allocate standard Pair class arrays
    memory->create(setflag,n+1,n+1,"pair:setflag");
+   for (int i = 1; i <= n; i++)
+     for (int j = i; j <= n; j++)
+       setflag[i][j] = 0;
+
    memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
    // allocate mapping array
@@ -281,6 +285,9 @@ void PairKIM::settings(int narg, char **arg)
    for (int i = 1; i <= n; i++)
       for (int j = i; j <= n; j++)
          setflag[i][j] = 0;
+
+    // set lmps_* bool flags
+   set_lmps_flags();
 
    // set virial handling
    if (strcmp(arg[0],"LAMMPSvirial") == 0)
@@ -335,10 +342,9 @@ void PairKIM::coeff(int narg, char **arg)
    if (narg != 2 + atom->ntypes)
       error->all(FLERR,"Incorrect args for pair coefficients");
 
-   // ensure I,J args are * *
-
-   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-      error->all(FLERR,"Incorrect args for pair coefficients");
+   int ilo,ihi,jlo,jhi;
+   force->bounds(arg[0],atom->ntypes,ilo,ihi);
+   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
    // read args that map atom species to KIM elements
    // lmps_map_species_to_unique[i] =
@@ -374,21 +380,17 @@ void PairKIM::coeff(int narg, char **arg)
       }
    }
 
-   // clear setflag since coeff() called once with I,J = * *
-   n = atom->ntypes;
-   for (int i = 1; i <= n; i++)
-      for (int j = i; j <= n; j++)
-         setflag[i][j] = 0;
-
-   // set setflag i,j for type pairs where both are mapped to elements
    int count = 0;
-   for (int i = 1; i <= n; i++)
-      for (int j = i; j <= n; j++)
-         if (lmps_map_species_to_unique[i] >= 0 &&
-             lmps_map_species_to_unique[j] >= 0) {
-            setflag[i][j] = 1;
-            count++;
-         }
+   for (int i = ilo; i <= ihi; i++) {
+     for (int j = MAX(jlo,i); j <= jhi; j++) {
+       if (lmps_map_species_to_unique[i] >= 0 &&
+           lmps_map_species_to_unique[j] >= 0) {
+         setflag[i][j] = 1;
+         count++;
+       }
+     }
+   }
+
    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
    return;
@@ -405,9 +407,6 @@ void PairKIM::init_style()
 
    if (domain->dimension != 3)
       error->all(FLERR,"PairKIM only works with 3D problems");
-
-   // set lmps_* bool flags
-   set_lmps_flags();
 
    int kimerror;
    // KIM and Model initialization (only once)
@@ -474,6 +473,21 @@ double PairKIM::init_one(int i, int j)
    if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
    return kim_global_cutoff;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairKIM::reinit()
+{
+  // This is called by fix-adapt
+
+  // Call parent class implementation
+  Pair::reinit();
+
+  // Then reinit KIM model
+  int kimerror;
+  kimerror = pkim->model_reinit();
+  kim_error(__LINE__,"model_reinit unsuccessful", kimerror);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1254,4 +1268,162 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
       "#\n");
 
    return;
+}
+
+void *PairKIM::extract(const char *str, int &dim)
+{
+  void *paramData;
+  int kimerror=0;
+  int ier;
+  int dummyint;
+  int isIndexed = 0;
+  int maxLine = 1024;
+  int rank;
+  int validParam = 0;
+  int numParams;
+  int *speciesIndex = new int[maxLine];
+  char *paramStr = new char[maxLine];
+  char *paramName;
+  char *indexStr;
+  char message[maxLine];
+  int offset;
+  double* paramPtr;
+
+  // set dim to 0, we will always deal with scalars to circumvent lammps species
+  // indexing
+  dim = 0;
+
+  // copy the input str into paramStr for parsing
+  strcpy(paramStr, str);
+  // get the name of the parameter (whatever is before ":")
+  paramName = strtok(paramStr, ":");
+  if (0 == strcmp(paramName, str))
+    paramName = (char*) str;
+  else
+    isIndexed = 1;
+
+  // parse the rest of the string into tokens deliminated by "," and convert
+  // them to integers, saving them into speciesIndex
+  int count = -1;
+  if (isIndexed == 1)
+  {
+    while((indexStr = strtok(NULL, ",")) != NULL)
+    {
+      count++;
+      ier = sscanf(indexStr, "%d", &speciesIndex[count]);
+      if (ier != 1)
+      {
+        ier = -1;
+        break;
+      }
+    }
+  }
+  if (ier == -1)
+  {
+    delete [] speciesIndex, speciesIndex = 0;
+    delete [] paramStr, paramStr = 0;
+    kim_error(__LINE__,"error in PairKIM::extract(), invalid parameter-indicie format", KIM_STATUS_FAIL);
+  }
+
+  // check to make sure that the requested parameter is a valid free parameter
+
+  kimerror = pkim->get_num_params(&numParams, &dummyint);
+  kim_error(__LINE__, "get_num_free_params", kimerror);
+  char **freeParamNames = new char*[numParams];
+  for (int k = 0; k < numParams; k++)
+  {
+    kimerror = pkim->get_free_parameter(k, (const char**) &freeParamNames[k]);
+    kim_error(__LINE__, "get_free_parameter", kimerror);
+    if (0 == strcmp(paramName, freeParamNames[k]))
+    {
+      validParam = 1;
+      break;
+    }
+  }
+  delete [] freeParamNames, freeParamNames = 0;
+  if (validParam == 0)
+  {
+    sprintf(message, "Invalid parameter to adapt: \"%s\" is not a FREE_PARAM", paramName);
+    delete [] speciesIndex, speciesIndex = 0;
+    delete [] paramStr, paramStr = 0;
+    kim_error(__LINE__, message, KIM_STATUS_FAIL);
+  }
+
+  // get the parameter arry from pkim object
+  paramData = pkim->get_data(paramName, &kimerror);
+  if (kimerror == KIM_STATUS_FAIL)
+  {
+    delete [] speciesIndex, speciesIndex = 0;
+    delete [] paramStr, paramStr = 0;
+  }
+  kim_error(__LINE__,"get_data",kimerror);
+
+  // get rank and shape of parameter
+  rank = (*pkim).get_rank(paramName, &kimerror);
+  if (kimerror == KIM_STATUS_FAIL)
+  {
+    delete [] speciesIndex, speciesIndex = 0;
+    delete [] paramStr, paramStr = 0;
+  }
+  kim_error(__LINE__,"get_rank",kimerror);
+
+  int *shape = new int[maxLine];
+  dummyint = (*pkim).get_shape(paramName, shape, &kimerror);
+  if (kimerror == KIM_STATUS_FAIL)
+  {
+    delete [] speciesIndex, speciesIndex = 0;
+    delete [] paramStr, paramStr = 0;
+    delete [] shape, shape = 0;
+  }
+  kim_error(__LINE__,"get_shape",kimerror);
+
+  delete [] paramStr, paramStr = 0;
+  // check that number of inputs is rank, and that input indicies are less than
+  // their respective dimensions in shape
+  if ((count+1) != rank)
+  {
+    sprintf(message, "Number of input indicies not equal to rank of specified parameter (%d)", rank);
+    kimerror = KIM_STATUS_FAIL;
+    delete [] speciesIndex, speciesIndex = 0;
+    delete [] shape, shape = 0;
+    kim_error(__LINE__,message, kimerror);
+  }
+  if (isIndexed == 1)
+  {
+    for (int i=0; i <= count; i++)
+    {
+      if (shape[i] <= speciesIndex[i] || speciesIndex[i] < 0)
+      {
+        kimerror = KIM_STATUS_FAIL;
+        break;
+      }
+    }
+  }
+  delete [] shape, shape = 0;
+  if (kimerror == KIM_STATUS_FAIL)
+  {
+    sprintf(message, "One or more parameter indicies out of bounds");
+    delete [] speciesIndex, speciesIndex = 0;
+    kim_error(__LINE__, message, kimerror);
+  }
+
+  // Cast it to a double
+  paramPtr = static_cast<double*>(paramData);
+
+  // If it is indexed (not just a scalar for the whole model), then get pointer
+  // corresponding to specified indicies by calculating the adress offset using
+  // specified indicies and the shape
+  if (isIndexed == 1)
+  {
+     offset = 0;
+     for (int i = 0; i < (rank-1); i++)
+     {
+       offset = (offset + speciesIndex[i]) * shape[i+1];
+     }
+     offset = offset + speciesIndex[(rank - 1)];
+     paramPtr = (paramPtr + offset);
+  }
+  delete [] speciesIndex, speciesIndex = 0;
+
+  return ((void*) paramPtr);
 }

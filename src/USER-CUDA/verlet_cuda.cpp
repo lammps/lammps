@@ -63,6 +63,10 @@ using namespace LAMMPS_NS;
 
 VerletCuda::VerletCuda(LAMMPS* lmp, int narg, char** arg) : Verlet(lmp, narg, arg)
 {
+  if (comm->me == 0)
+    error->warning(FLERR,"The USER-CUDA pacakge will be deprecated "
+                   "soon - users should switch to the GPU or KOKKOS packages");
+
   cuda = lmp->cuda;
 
   if(cuda == NULL)

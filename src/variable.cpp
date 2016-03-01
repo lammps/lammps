@@ -52,7 +52,7 @@ using namespace MathConst;
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,PYTHON};
+     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -65,7 +65,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
      IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
-     VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY};
+     VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
 // customize by adding a special function
 
@@ -92,6 +92,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   pad = NULL;
   reader = NULL;
   data = NULL;
+  vecs = NULL;
 
   eval_in_progress = NULL;
 
@@ -125,6 +126,7 @@ Variable::~Variable()
     if (style[i] == LOOP || style[i] == ULOOP) delete [] data[i][0];
     else for (int j = 0; j < num[i]; j++) delete [] data[i][j];
     delete [] data[i];
+    if (style[i] == VECTOR) memory->destroy(vecs[i].values);
   }
   memory->sfree(names);
   memory->destroy(style);
@@ -133,6 +135,7 @@ Variable::~Variable()
   memory->destroy(pad);
   memory->sfree(reader);
   memory->sfree(data);
+  memory->sfree(vecs);
 
   memory->destroy(eval_in_progress);
 
@@ -428,6 +431,30 @@ void Variable::set(int narg, char **arg)
       copy(1,&arg[2],data[nvar]);
     }
 
+  // VECTOR
+  // replace pre-existing var if also style VECTOR (allows it to be reset)
+  // num = 1, which = 1st value
+  // data = 1 value, string to eval
+
+  } else if (strcmp(arg[1],"vector") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != VECTOR)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      delete [] data[ivar][0];
+      copy(1,&arg[2],data[ivar]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = VECTOR;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      copy(1,&arg[2],data[nvar]);
+    }
+
   // PYTHON
   // replace pre-existing var if also style PYTHON (allows it to be reset)
   // num = 2, which = 1st value
@@ -530,12 +557,12 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must be same style");
   }
 
-  // invalid styles: STRING, EQUAL, WORLD, ATOM, GETENV, FORMAT, PYTHON
+  // invalid styles: STRING, EQUAL, WORLD, ATOM, VECTOR, GETENV, FORMAT, PYTHON
 
   int istyle = style[find(arg[0])];
   if (istyle == STRING || istyle == EQUAL || istyle == WORLD ||
-      istyle == GETENV || istyle == ATOM || istyle == FORMAT ||
-      istyle == PYTHON)
+      istyle == GETENV || istyle == ATOM || istyle == VECTOR || 
+      istyle == FORMAT || istyle == PYTHON)
     error->all(FLERR,"Invalid variable style with next command");
 
   // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
@@ -713,6 +740,17 @@ int Variable::atomstyle(int ivar)
 }
 
 /* ----------------------------------------------------------------------
+   return 1 if variable is VECTOR style, 0 if not
+   this is checked before call to compute_vector() to return a vector of doubles
+------------------------------------------------------------------------- */
+
+int Variable::vectorstyle(int ivar)
+{
+  if (style[ivar] == VECTOR) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    check if variable with name is PYTHON and matches funcname
    called by Python class before it invokes a Python function
    return data storage so Python function can return a value for this variable
@@ -737,7 +775,7 @@ char *Variable::pythonstyle(char *name, char *funcname)
    if FORMAT, evaluate its variable and put formatted result in str
    if GETENV, query environment and put result in str
    if PYTHON, evaluate Python function, it will put result in str
-   if ATOM or ATOMFILE, return NULL
+   if ATOM or ATOMFILE or VECTOR, return NULL
    return NULL if no variable with name, or which value is bad,
      caller must respond
 ------------------------------------------------------------------------- */
@@ -797,8 +835,9 @@ char *Variable::retrieve(char *name)
       error->all(FLERR,"Python variable does not match Python function");
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
-  } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return NULL;
-
+  } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
+	     style[ivar] == VECTOR) return NULL;
+  
   eval_in_progress[ivar] = 0;
 
   return str;
@@ -859,6 +898,7 @@ void Variable::compute_atom(int ivar, int igroup,
   eval_in_progress[ivar] = 1;
 
   if (style[ivar] == ATOM) {
+    treetype = ATOM;
     evaluate(data[ivar][0],&tree);
     collapse_tree(tree);
   } else vstore = reader[ivar]->fixstore->vstore;
@@ -908,8 +948,56 @@ void Variable::compute_atom(int ivar, int igroup,
   }
 
   if (style[ivar] == ATOM) free_tree(tree);
-
   eval_in_progress[ivar] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   compute result of vector-style variable evaluation
+   return length of vector and result pointer to vector values
+     if length == 0 or -1 (mismatch), generate an error
+   if variable already computed on this timestep, just return
+   else evaulate the formula and its length, store results in VecVar entry
+------------------------------------------------------------------------- */
+
+int Variable::compute_vector(int ivar, double **result)
+{
+  Tree *tree;
+  if (vecs[ivar].currentstep == update->ntimestep) {
+    *result = vecs[ivar].values;
+    return vecs[ivar].n;
+  }
+
+  if (eval_in_progress[ivar])
+    error->all(FLERR,"Variable has circular dependency");
+  eval_in_progress[ivar] = 1;
+
+  treetype = VECTOR;
+  evaluate(data[ivar][0],&tree);
+  collapse_tree(tree);
+  int nlen = size_tree_vector(tree);
+  if (nlen == 0) error->all(FLERR,"Vector-style variable has zero length");
+  if (nlen < 0) error->all(FLERR,
+                           "Inconsistent lengths in vector-style variable");
+
+  // (re)allocate space for results if necessary
+
+  if (nlen > vecs[ivar].nmax) {
+    memory->destroy(vecs[ivar].values);
+    vecs[ivar].nmax = nlen;
+    memory->create(vecs[ivar].values,vecs[ivar].nmax,"variable:values");
+  }
+
+  vecs[ivar].n = nlen;
+  vecs[ivar].currentstep = update->ntimestep;
+  double *vec = vecs[ivar].values;
+  for (int i = 0; i < nlen; i++)
+    vec[i] = eval_tree(tree,i);
+
+  free_tree(tree);
+  eval_in_progress[ivar] = 0;
+
+  *result = vec;
+  return nlen;
 }
 
 /* ----------------------------------------------------------------------
@@ -997,6 +1085,13 @@ void Variable::grow()
 
   data = (char ***) memory->srealloc(data,maxvar*sizeof(char **),"var:data");
 
+  vecs = (VecVar *) memory->srealloc(vecs,maxvar*sizeof(VecVar),"var:vecvar");
+  for (int i = old; i < maxvar; i++) {
+    vecs[i].nmax = 0;
+    vecs[i].currentstep = -1;
+    vecs[i].values = NULL;
+  }
+
   memory->grow(eval_in_progress,maxvar,"var:eval_in_progress");
   for (int i = 0; i < maxvar; i++) eval_in_progress[i] = 0;
 }
@@ -1017,7 +1112,8 @@ void Variable::copy(int narg, char **from, char **to)
 
 /* ----------------------------------------------------------------------
    recursive evaluation of a string str
-   str is an equal-style or atom-style formula containing one or more items:
+   str is an equal-style or atom-style or vector-style formula
+     containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
      constant = PI, version, yes, no, on, off
      thermo keyword = ke, vol, atoms, ...
@@ -1034,7 +1130,7 @@ void Variable::copy(int narg, char **from, char **to)
      variable = v_name, v_name[i]
    equal-style variables passes in tree = NULL:
      evaluate the formula, return result as a double
-   atom-style variable passes in tree = non-NULL:
+   atom-style and vector-style variables pass in tree = non-NULL:
      parse the formula but do not evaluate it
      create a parse tree and return it
 ------------------------------------------------------------------------- */
@@ -1145,10 +1241,16 @@ double Variable::evaluate(char *str, Tree **tree)
       // compute
       // ----------------
 
-      if (strncmp(word,"c_",2) == 0) {
+      if (strncmp(word,"c_",2) == 0 || strncmp(word,"C_",2) == 0) {
         if (domain->box_exist == 0)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
+
+	// uppercase used to force access of 
+	// global vector vs global scalar, and global array vs global vector
+
+	int lowercase = 1;
+	if (word[0] == 'C') lowercase = 0;
 
         int icompute = modify->find_compute(word+2);
         if (icompute < 0)
@@ -1176,9 +1278,9 @@ double Variable::evaluate(char *str, Tree **tree)
           }
         }
 
-        // c_ID = scalar from global scalar
+        // c_ID = scalar from global scalar, must be lowercase
 
-        if (nbracket == 0 && compute->scalar_flag) {
+        if (nbracket == 0 && compute->scalar_flag && lowercase) {
 
           if (update->whichflag == 0) {
             if (compute->invoked_scalar != update->ntimestep)
@@ -1199,9 +1301,9 @@ double Variable::evaluate(char *str, Tree **tree)
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // c_ID[i] = scalar from global vector
+        // c_ID[i] = scalar from global vector, must be lowercase
 
-        } else if (nbracket == 1 && compute->vector_flag) {
+        } else if (nbracket == 1 && compute->vector_flag && lowercase) {
 
           if (index1 > compute->size_vector &&
               compute->size_vector_variable == 0)
@@ -1228,9 +1330,9 @@ double Variable::evaluate(char *str, Tree **tree)
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // c_ID[i][j] = scalar from global array
+        // c_ID[i][j] = scalar from global array, must be lowercase
 
-        } else if (nbracket == 2 && compute->array_flag) {
+        } else if (nbracket == 2 && compute->array_flag && lowercase) {
 
           if (index1 > compute->size_array_rows &&
               compute->size_array_rows_variable == 0)
@@ -1259,6 +1361,68 @@ double Variable::evaluate(char *str, Tree **tree)
             newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
+
+        // c_ID = vector from global vector, lowercase or uppercase
+	
+        } else if (nbracket == 0 && compute->vector_flag) {
+
+          if (tree == NULL)
+            error->all(FLERR,
+                       "Compute global vector in equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,
+                       "Compute global vector in atom-style variable formula");
+	  if (compute->size_vector == 0) 
+            error->all(FLERR,"Variable formula compute vector is zero length");
+          if (update->whichflag == 0) {
+            if (compute->invoked_vector != update->ntimestep)
+              error->all(FLERR,"Compute used in variable between runs "
+                         "is not current");
+          } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+            compute->compute_vector();
+            compute->invoked_flag |= INVOKED_VECTOR;
+          }
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = compute->vector;
+	  newtree->nvector = compute->size_vector;
+          newtree->nstride = 1;
+          newtree->selfalloc = 0;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
+
+        // c_ID[i] = vector from global array, lowercase or uppercase
+	
+        } else if (nbracket == 1 && compute->array_flag) {
+
+          if (tree == NULL)
+            error->all(FLERR,
+                       "Compute global vector in equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,
+                       "Compute global vector in atom-style variable formula");
+	  if (compute->size_array_rows == 0) 
+            error->all(FLERR,"Variable formula compute array is zero length");
+          if (update->whichflag == 0) {
+            if (compute->invoked_array != update->ntimestep)
+              error->all(FLERR,"Compute used in variable between runs "
+                         "is not current");
+          } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+            compute->compute_array();
+            compute->invoked_flag |= INVOKED_ARRAY;
+          }
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = &compute->array[0][index1-1];
+	  newtree->nvector = compute->size_array_rows;
+          newtree->nstride = compute->size_array_cols;
+          newtree->selfalloc = 0;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
 
         // c_ID[i] = scalar from per-atom vector
 
@@ -1311,6 +1475,9 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,
                        "Per-atom compute in equal-style variable formula");
+          if (treetype == VECTOR)
+            error->all(FLERR,
+                       "Per-atom compute in vector-style variable formula");
           if (update->whichflag == 0) {
             if (compute->invoked_peratom != update->ntimestep)
               error->all(FLERR,"Compute used in variable between runs "
@@ -1337,6 +1504,9 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,
                        "Per-atom compute in equal-style variable formula");
+          if (treetype == VECTOR)
+            error->all(FLERR,
+                       "Per-atom compute in vector-style variable formula");
           if (index1 > compute->size_peratom_cols)
             error->all(FLERR,"Variable formula compute array "
                        "is accessed out-of-range");
@@ -1367,10 +1537,16 @@ double Variable::evaluate(char *str, Tree **tree)
       // fix
       // ----------------
 
-      } else if (strncmp(word,"f_",2) == 0) {
+      } else if (strncmp(word,"f_",2) == 0 || strncmp(word,"F_",2) == 0) {
         if (domain->box_exist == 0)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
+
+	// uppercase used to force access of 
+	// global vector vs global scalar, and global array vs global vector
+
+	int lowercase = 1;
+	if (word[0] == 'F') lowercase = 0;
 
         int ifix = modify->find_fix(word+2);
         if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
@@ -1397,9 +1573,9 @@ double Variable::evaluate(char *str, Tree **tree)
           }
         }
 
-        // f_ID = scalar from global scalar
+        // f_ID = scalar from global scalar, must be lowercase
 
-        if (nbracket == 0 && fix->scalar_flag) {
+        if (nbracket == 0 && fix->scalar_flag && lowercase) {
 
           if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
             error->all(FLERR,"Fix in variable not computed at compatible time");
@@ -1414,9 +1590,9 @@ double Variable::evaluate(char *str, Tree **tree)
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // f_ID[i] = scalar from global vector
+        // f_ID[i] = scalar from global vector, must be lowercase
 
-        } else if (nbracket == 1 && fix->vector_flag) {
+        } else if (nbracket == 1 && fix->vector_flag && lowercase) {
 
           if (index1 > fix->size_vector &&
               fix->size_vector_variable == 0)
@@ -1435,9 +1611,9 @@ double Variable::evaluate(char *str, Tree **tree)
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // f_ID[i][j] = scalar from global array
+        // f_ID[i][j] = scalar from global array, must be lowercase
 
-        } else if (nbracket == 2 && fix->array_flag) {
+        } else if (nbracket == 2 && fix->array_flag && lowercase) {
 
           if (index1 > fix->size_array_rows &&
               fix->size_array_rows_variable == 0)
@@ -1458,6 +1634,68 @@ double Variable::evaluate(char *str, Tree **tree)
             newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
+
+        // f_ID = vector from global vector, lowercase or uppercase
+
+        } else if (nbracket == 0 && fix->vector_flag) {
+
+          if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+            error->all(FLERR,"Fix in variable not computed at compatible time");
+          if (tree == NULL)
+            error->all(FLERR,"Fix global vector in "
+                       "equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,"Fix global vector in "
+                       "atom-style variable formula");
+	  if (fix->size_vector == 0) 
+            error->all(FLERR,"Variable formula fix vector is zero length");
+
+	  int nvec = fix->size_vector;
+	  double *vec;
+	  memory->create(vec,nvec,"variable:values");
+	  for (int m = 0; m < nvec; m++)
+	    vec[m] = fix->compute_vector(m);
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = vec;
+	  newtree->nvector = nvec;
+          newtree->nstride = 1;
+          newtree->selfalloc = 1;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
+
+        // f_ID[i] = vector from global array, lowercase or uppercase
+
+        } else if (nbracket == 1 && fix->array_flag) {
+
+          if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+            error->all(FLERR,"Fix in variable not computed at compatible time");
+          if (tree == NULL)
+            error->all(FLERR,"Fix global vector in "
+                       "equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,"Fix global vector in "
+                       "atom-style variable formula");
+	  if (fix->size_array_rows == 0) 
+            error->all(FLERR,"Variable formula fix array is zero length");
+
+	  int nvec = fix->size_array_rows;
+	  double *vec;
+	  memory->create(vec,nvec,"variable:values");
+	  for (int m = 0; m < nvec; m++)
+	    vec[m] = fix->compute_array(m,index1-1);
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = vec;
+	  newtree->nvector = nvec;
+          newtree->nstride = 1;
+          newtree->selfalloc = 1;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
 
         // f_ID[i] = scalar from per-atom vector
 
@@ -1568,9 +1806,10 @@ double Variable::evaluate(char *str, Tree **tree)
           i = ptr-str+1;
         }
 
-        // v_name = scalar from non atom/atomfile variable
+        // v_name = scalar from non atom/atomfile and non vector-style variable
 
-        if (nbracket == 0 && style[ivar] != ATOM && style[ivar] != ATOMFILE) {
+        if (nbracket == 0 && style[ivar] != ATOM && style[ivar] != ATOMFILE &&
+	    style[ivar] != VECTOR) {
 
           char *var = retrieve(word+2);
           if (var == NULL)
@@ -1592,6 +1831,10 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,
                        "Atom-style variable in equal-style variable formula");
+	  if (treetype == VECTOR)
+            error->all(FLERR,
+                       "Atom-style variable in vector-style variable formula");
+
           Tree *newtree;
           evaluate(data[ivar][0],&newtree);
           treestack[ntreestack++] = newtree;
@@ -1603,6 +1846,10 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,"Atomfile-style variable in "
                        "equal-style variable formula");
+	  if (treetype == VECTOR)
+            error->all(FLERR,
+                       "Atomfile-style variable in vector-style variable formula");
+
           Tree *newtree = new Tree();
           newtree->type = ATOMARRAY;
           newtree->array = reader[ivar]->fixstore->vstore;
@@ -1611,6 +1858,31 @@ double Variable::evaluate(char *str, Tree **tree)
           newtree->first = newtree->second = NULL;
           newtree->nextra = 0;
           treestack[ntreestack++] = newtree;
+
+        // v_name = vector from vector-style variable
+        // evaluate the vector-style variable, put result in newtree
+
+	} else if (nbracket == 0 && style[ivar] == VECTOR) {
+
+          if (tree == NULL)
+            error->all(FLERR,
+                       "Vector-style variable in equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,
+                       "Vector-style variable in atom-style variable formula");
+
+	  double *vec;
+	  int nvec = compute_vector(ivar,&vec);
+
+	  Tree *newtree = new Tree();
+	  newtree->type = VECTORARRAY;
+	  newtree->array = vec;
+	  newtree->nvector = nvec;
+	  newtree->nstride = 1;
+	  newtree->selfalloc = 0;
+	  newtree->first = newtree->second = NULL;
+	  newtree->nextra = 0;
+	  treestack[ntreestack++] = newtree;
 
         // v_name[N] = scalar from atom-style variable
         // compute the per-atom variable in result
@@ -1631,6 +1903,26 @@ double Variable::evaluate(char *str, Tree **tree)
 
           peratom2global(1,NULL,reader[ivar]->fixstore->vstore,1,index,
                          tree,treestack,ntreestack,argstack,nargstack);
+
+        // v_name[N] = scalar from vector-style variable
+        // compute the vector-style variable, extract single value
+
+        } else if (nbracket && style[ivar] == VECTOR) {
+
+	  double *vec;
+	  int nvec = compute_vector(ivar,&vec);
+	  if (index <= 0 || index > nvec)
+	    error->all(FLERR,"Invalid index into vector-style variable");
+	  int m = index;   // convert from tagint to int
+
+          if (tree) {
+            Tree *newtree = new Tree();
+            newtree->type = VALUE;
+            newtree->value = vec[m-1];
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
+            treestack[ntreestack++] = newtree;
+          } else argstack[nargstack++] = vec[m-1];
 
         } else error->all(FLERR,"Mismatched variable in variable formula");
 
@@ -1892,7 +2184,7 @@ double Variable::evaluate(char *str, Tree **tree)
    one-time collapse of an atom-style variable parse tree
    tree was created by one-time parsing of formula string via evaluate()
    only keep tree nodes that depend on
-     ATOMARRAY, TYPEARRAY, INTARRAY, BIGINTARRAY
+     ATOMARRAY, TYPEARRAY, INTARRAY, BIGINTARRAY, VECTOR
    remainder is converted to single VALUE
    this enables optimal eval_tree loop over atoms
    customize by adding a function:
@@ -1912,6 +2204,7 @@ double Variable::collapse_tree(Tree *tree)
   if (tree->type == TYPEARRAY) return 0.0;
   if (tree->type == INTARRAY) return 0.0;
   if (tree->type == BIGINTARRAY) return 0.0;
+  if (tree->type == VECTORARRAY) return 0.0;
 
   if (tree->type == ADD) {
     arg1 = collapse_tree(tree->first);
@@ -2403,7 +2696,8 @@ double Variable::collapse_tree(Tree *tree)
 }
 
 /* ----------------------------------------------------------------------
-   evaluate an atom-style variable parse tree for atom I
+   evaluate an atom-style or vector-style variable parse tree
+   index I = atom I or vector index I
    tree was created by one-time parsing of formula string via evaulate()
    customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
@@ -2422,6 +2716,7 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == TYPEARRAY) return tree->array[atom->type[i]];
   if (tree->type == INTARRAY) return (double) tree->iarray[i*tree->nstride];
   if (tree->type == BIGINTARRAY) return (double) tree->barray[i*tree->nstride];
+  if (tree->type == VECTORARRAY) return tree->array[i*tree->nstride];
 
   if (tree->type == ADD)
     return eval_tree(tree->first,i) + eval_tree(tree->second,i);
@@ -2728,6 +3023,40 @@ double Variable::eval_tree(Tree *tree, int i)
   return 0.0;
 }
 
+/* ----------------------------------------------------------------------
+   scan entire tree, find size of vectors for vector-style variable
+   return N for consistent vector size
+   return 0 for no vector size, caller flags as error
+   return -1 for inconsistent vector size, caller flags as error
+------------------------------------------------------------------------- */
+
+int Variable::size_tree_vector(Tree *tree)
+{
+  int nsize = 0;
+  if (tree->type == VECTORARRAY) nsize = tree->nvector;
+  if (tree->first) nsize = compare_tree_vector(nsize,size_tree_vector(tree->first));
+  if (tree->second) nsize = compare_tree_vector(nsize,size_tree_vector(tree->second));
+  if (tree->nextra) {
+    for (int i = 0; i < tree->nextra; i++) 
+      nsize = compare_tree_vector(nsize,size_tree_vector(tree->extra[i]));
+  }
+  return nsize;
+}
+
+/* ----------------------------------------------------------------------
+   compare size of two vectors for vector-style variable
+   return positive size if same or one has no size 0
+   return -1 error if one is already error or not same positive size
+------------------------------------------------------------------------- */
+
+int Variable::compare_tree_vector(int i, int j)
+{
+  if (i < 0 || j < 0) return -1;
+  if (i == 0 || j == 0) return MAX(i,j);
+  if (i != j) return -1;
+  return i;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void Variable::free_tree(Tree *tree)
@@ -2739,9 +3068,7 @@ void Variable::free_tree(Tree *tree)
     delete [] tree->extra;
   }
 
-  if (tree->type == ATOMARRAY && tree->selfalloc)
-    memory->destroy(tree->array);
-
+  if (tree->selfalloc) memory->destroy(tree->array);
   delete tree;
 }
 
@@ -3532,8 +3859,11 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     Compute *compute = NULL;
     Fix *fix = NULL;
+    int ivar = -1;
     int index,nvec,nstride;
     char *ptr1,*ptr2;
+
+    // argument is compute
 
     if (strstr(args[0],"c_") == args[0]) {
       ptr1 = strchr(args[0],'[');
@@ -3574,6 +3904,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         nstride = compute->size_array_cols;
       } else error->all(FLERR,"Mismatched compute in variable formula");
 
+    // argument is fix
+
     } else if (strstr(args[0],"f_") == args[0]) {
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
@@ -3599,6 +3931,28 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         nvec = fix->size_array_rows;
         nstride = fix->size_array_cols;
       } else error->all(FLERR,"Mismatched fix in variable formula");
+
+    // argument is vector-style variable
+
+    } else if (strstr(args[0],"v_") == args[0]) {
+      ptr1 = strchr(args[0],'[');
+      if (ptr1) {
+        ptr2 = ptr1;
+        index = (int) int_between_brackets(ptr2,0);
+        *ptr1 = '\0';
+      } else index = 0;
+
+      if (index) 
+	error->all(FLERR,"Invalid special function in variable formula");
+      ivar = find(&args[0][2]);
+      if (ivar < 0) error->all(FLERR,"Invalid special function in variable formula");
+      if (style[ivar] != VECTOR) 
+	error->all(FLERR,"Mis-matched special function variable in variable formula");
+      if (eval_in_progress[ivar]) error->all(FLERR,"Variable has circular dependency");
+
+      double *vec;
+      nvec = compute_vector(ivar,&vec);
+      nstride = 1;
 
     } else error->all(FLERR,"Invalid special function in variable formula");
 
@@ -3659,6 +4013,28 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else value -= 0.5*fix->compute_vector(0) +
                0.5*fix->compute_vector(nvec-1);
       }
+    }
+
+    if (ivar >= 0) {
+      double one;
+      double *vec = vecs[ivar].values;
+      for (int i = 0; i < nvec; i++) {
+	one = vec[i];
+        if (method == SUM) value += one;
+        else if (method == XMIN) value = MIN(value,one);
+        else if (method == XMAX) value = MAX(value,one);
+        else if (method == AVE) value += one;
+        else if (method == TRAP) value += one;
+        else if (method == SLOPE) {
+          if (nvec > 1) xvalue = (double) i / (nvec-1);
+          else xvalue = 0.0;
+          sx += xvalue;
+          sy += one;
+          sxx += xvalue*xvalue;
+          sxy += xvalue*one;
+        }
+      }
+      if (method == TRAP) value -= 0.5*vec[0] + 0.5*vec[nvec-1];
     }
 
     if (method == AVE) value /= nvec;

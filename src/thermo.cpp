@@ -911,11 +911,14 @@ void Thermo::parse_fields(char *str)
         n = input->variable->find(id);
         if (n < 0)
           error->all(FLERR,"Could not find thermo custom variable name");
-        if (input->variable->equalstyle(n) == 0)
+        if (argindex1[nfield] == 0 && input->variable->equalstyle(n) == 0)
           error->all(FLERR,
                      "Thermo custom variable is not equal-style variable");
-        if (argindex1[nfield])
-          error->all(FLERR,"Thermo custom variable cannot be indexed");
+        if (argindex1[nfield] && input->variable->vectorstyle(n) == 0)
+          error->all(FLERR,
+                     "Thermo custom variable is not vector-style variable");
+        if (argindex2[nfield])
+          error->all(FLERR,"Thermo custom variable cannot have two indices");
 
         field2index[nfield] = add_variable(id);
         addfield(copy,&Thermo::compute_variable,FLOAT);
@@ -1474,7 +1477,17 @@ void Thermo::compute_fix()
 
 void Thermo::compute_variable()
 {
-  dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
+  int iarg = argindex1[ifield];
+
+  if (iarg == 0)
+    dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
+  else {
+    double *varvec;
+    int nvec = 
+      input->variable->compute_vector(variables[field2index[ifield]],&varvec);
+    if (nvec < iarg) dvalue = 0.0;
+    else dvalue = varvec[iarg-1];
+  }
 }
 
 /* ----------------------------------------------------------------------

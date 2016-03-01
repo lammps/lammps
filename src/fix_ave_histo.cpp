@@ -422,15 +422,32 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == VARIABLE && kind == GLOBAL) {
+    } else if (which[i] == VARIABLE && kind == GLOBAL && mode == SCALAR) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
+      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not equal-style variable");
+      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not vector-style variable");
+
+    } else if (which[i] == VARIABLE && kind == GLOBAL && mode == VECTOR) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for fix ave/histo does not exist");
+      if (argindex[i] == 0 && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not vector-style variable");
+      if (argindex[i]) 
+        error->all(FLERR,"Fix ave/histo variable cannot be indexed");
 
     } else if (which[i] == VARIABLE && kind == PERATOM) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
+      if (argindex[i] == 0 && input->variable->atomstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not atom-style variable");
+      if (argindex[i]) 
+        error->all(FLERR,"Fix ave/histo variable cannot be indexed");
     }
   }
 
@@ -719,19 +736,32 @@ void FixAveHisto::end_of_step()
                      fix->size_local_cols);
       }
 
-    // evaluate equal-style or atom-style variable
+    // evaluate equal-style or vector-style or atom-style variable
 
-    } else if (which[i] == VARIABLE && kind == GLOBAL) {
-      bin_one(input->variable->compute_equal(m));
+    } else if (which[i] == VARIABLE) {
+      if (kind == GLOBAL && mode == SCALAR) {
+        if (j == 0) bin_one(input->variable->compute_equal(m));
+        else {
+          double *varvec;
+          int nvec = input->variable->compute_vector(m,&varvec);
+          if (nvec < j) bin_one(0.0);
+          else bin_one(varvec[j-1]);
+        }
 
-    } else if (which[i] == VARIABLE && kind == PERATOM) {
-      if (atom->nlocal > maxatom) {
-        memory->destroy(vector);
-        maxatom = atom->nmax;
-        memory->create(vector,maxatom,"ave/histo:vector");
+      } else if (kind == GLOBAL && mode == VECTOR) {
+        double *varvec;
+        int nvec = input->variable->compute_vector(m,&varvec);
+        bin_vector(nvec,varvec,1);
+
+      } else if (which[i] == VARIABLE && kind == PERATOM) {
+        if (atom->nlocal > maxatom) {
+          memory->destroy(vector);
+          maxatom = atom->nmax;
+          memory->create(vector,maxatom,"ave/histo:vector");
+        }
+        input->variable->compute_atom(m,igroup,vector,1,0);
+        bin_atoms(vector,1);
       }
-      input->variable->compute_atom(m,igroup,vector,1,0);
-      bin_atoms(vector,1);
     }
   }
 

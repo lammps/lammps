@@ -1515,7 +1515,7 @@ int Neighbor::check_distance()
 }
 
 /* ----------------------------------------------------------------------
-   build perpetuals neighbor lists
+   build perpetual neighbor lists
    called at setup and every few timesteps during run or minimization
    topology lists also built if topoflag = 1, USER-CUDA calls with topoflag = 0
 ------------------------------------------------------------------------- */
@@ -2089,10 +2089,6 @@ int Neighbor::coord2bin(double *x)
     iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - 1;
 
   return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
-
-  //int ibin = (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
-  //if (0 <= ibin && ibin < mbins) return ibin;
-  //else error->one(FLERR,"Invalid neighor bin");
 }
 
 /* ----------------------------------------------------------------------
@@ -2129,10 +2125,6 @@ int Neighbor::coord2bin(double *x, int &ix, int &iy, int &iz)
   iy -= mbinylo;
   iz -= mbinzlo;
   return iz*mbiny*mbinx + iy*mbinx + ix;
-
-  //int ibin = iz*mbiny*mbinx + iy*mbinx + ix;
-  //if (0 <= ibin && ibin < mbins) return ibin;
-  //else error->one(FLERR,"Invalid neighor bin");
 }
 
 /* ----------------------------------------------------------------------

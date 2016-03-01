@@ -450,15 +450,15 @@ void VerletKokkos::run(int n)
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-        atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-        atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-        Kokkos::Impl::Timer ktimer;
+      atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      Kokkos::Impl::Timer ktimer;
       force->pair->compute(eflag,vflag);
       timer->stamp(Timer::PAIR);
     }
 
       if(execute_on_host) {
-        if(force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
+        if(pair_compute_flag && force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
           Kokkos::fence();
         atomKK->sync_overlapping_device(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         if(pair_compute_flag && force->pair->execution_space!=Host) {

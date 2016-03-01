@@ -3034,8 +3034,10 @@ int Variable::size_tree_vector(Tree *tree)
 {
   int nsize = 0;
   if (tree->type == VECTORARRAY) nsize = tree->nvector;
-  if (tree->first) nsize = compare_tree_vector(nsize,size_tree_vector(tree->first));
-  if (tree->second) nsize = compare_tree_vector(nsize,size_tree_vector(tree->second));
+  if (tree->first) nsize = compare_tree_vector(nsize,
+                                               size_tree_vector(tree->first));
+  if (tree->second) nsize = compare_tree_vector(nsize,
+                                                size_tree_vector(tree->second));
   if (tree->nextra) {
     for (int i = 0; i < tree->nextra; i++) 
       nsize = compare_tree_vector(nsize,size_tree_vector(tree->extra[i]));
@@ -3945,10 +3947,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       if (index) 
 	error->all(FLERR,"Invalid special function in variable formula");
       ivar = find(&args[0][2]);
-      if (ivar < 0) error->all(FLERR,"Invalid special function in variable formula");
+      if (ivar < 0) 
+        error->all(FLERR,"Invalid special function in variable formula");
       if (style[ivar] != VECTOR) 
-	error->all(FLERR,"Mis-matched special function variable in variable formula");
-      if (eval_in_progress[ivar]) error->all(FLERR,"Variable has circular dependency");
+	error->all(FLERR,
+                   "Mis-matched special function variable in variable formula");
+      if (eval_in_progress[ivar]) 
+        error->all(FLERR,"Variable has circular dependency");
 
       double *vec;
       nvec = compute_vector(ivar,&vec);

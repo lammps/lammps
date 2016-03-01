@@ -839,7 +839,7 @@ void Thermo::parse_fields(char *str)
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
 
       char *ptr = strchr(id,'[');
-      if (ptr == NULL) argindex1[nfield] = 0;
+      if (ptr == NULL) argindex1[nfield] = argindex2[nfield] = 0;
       else {
         *ptr = '\0';
         argindex1[nfield] =

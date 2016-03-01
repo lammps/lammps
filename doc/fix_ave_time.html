@@ -144,7 +144,8 @@
 c_ID[I] = Ith component of global vector or Ith column of global array calculated by a compute with ID
 f_ID = global scalar, vector, or array calculated by a fix with ID
 f_ID[I] = Ith component of global vector or Ith column of global array calculated by a fix with ID
-v_name = global value calculated by an equal-style variable with name
+v_name = value(s) calculated by an equal-style or vector-style variable with name
+v_name[I] = value calculated by a vector-style variable with name
 </pre></div>
 </div>
 <ul class="simple">
@@ -198,7 +199,7 @@ a file.</p>
 specified values may represent calculations performed by computes and
 fixes which store their own &#8220;group&#8221; definitions.</p>
 <p>Each listed value can be the result of a <a class="reference internal" href="compute.html"><em>compute</em></a> or
-<a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an equal-style
+<a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an equal-style or vector-style
 <a class="reference internal" href="variable.html"><em>variable</em></a>.  In each case, the compute, fix, or variable
 must produce a global quantity, not a per-atom or local quantity.  If
 you wish to spatial- or time-average or histogram per-atom quantities
@@ -209,9 +210,9 @@ per-atom quantity into a single global quantity, see the <a class="reference int
 do not have the word <em>atom</em> in their style name.  Only a few
 <a class="reference internal" href="fix.html"><em>fixes</em></a> produce global quantities.  See the doc pages for
 individual fixes for info on which ones produce such values.
-<a class="reference internal" href="variable.html"><em>Variables</em></a> of style <em>equal</em> are the only ones that can
-be used with this fix.  Variables of style <em>atom</em> cannot be used,
-since they produce per-atom values.</p>
+<a class="reference internal" href="variable.html"><em>Variables</em></a> of style <em>equal</em> and <em>vector</em> are the only
+ones that can be used with this fix.  Variables of style <em>atom</em> cannot
+be used, since they produce per-atom values.</p>
 <p>The input values must either be all scalars or all vectors (or
 arrays), depending on the setting of the <em>mode</em> keyword.  In both
 cases, the averaging is performed independently on each input value.
@@ -277,14 +278,18 @@ Ith column of the global array calculated by the fix is used.</p>
 which must be compatible with <em>Nevery</em>, else an error will result.
 Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
 <p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
-been previously defined in the input script.  Variables can only be
-used as input for <em>mode</em> = scalar.  Only equal-style variables can be
-referenced.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> command for details.
-Note that variables of style <em>equal</em> define a formula which can
-reference individual atom properties or thermodynamic keywords, or
-they can invoke other computes, fixes, or variables when they are
-evaluated, so this is a very general means of specifying quantities to
-time average.</p>
+been previously defined in the input script.  If <em>mode</em> = scalar, then
+only equal-style or vector-style variables can be used, which both
+produce global values.  In this mode, a vector-style variable requires
+a bracketed term to specify the Ith element of the vector calculated
+by the variable.  If <em>mode</em> = vector, then only a vector-style
+variable can be used, without a bracketed term.  See the
+<a class="reference internal" href="variable.html"><em>variable</em></a> command for details.</p>
+<p>Note that variables of style <em>equal</em> and <em>vector</em> define a formula
+which can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+they are evaluated, so this is a very general means of specifying
+quantities to time average.</p>
 <hr class="docutils" />
 <p>Additional optional keywords also affect the operation of this fix.</p>
 <p>If the <em>mode</em> keyword is set to <em>scalar</em>, then all input values must

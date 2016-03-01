@@ -30,7 +30,7 @@ Syntax
    			cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
    			c_ID, c_ID[I], c_ID[I][J],
                            f_ID, f_ID[I], f_ID[I][J],
-                           v_name
+                           v_name, v_name[I]
          step = timestep
          elapsed = timesteps since start of this run
          elaplong = timesteps since start of initial run in a series of runs
@@ -78,7 +78,8 @@ Syntax
          f_ID = global scalar value calculated by a fix with ID
          f_ID[I] = Ith component of global vector calculated by a fix with ID
          f_ID[I][J] = I,J component of global array calculated by a fix with ID
-         v_name = scalar value calculated by an equal-style variable with name
+         v_name = value calculated by an equal-style variable with name
+         v_name[I] = value calculated by a vector-style variable with name
 
 
 
@@ -348,16 +349,18 @@ option being used.
 The *v_name* keyword allow the current value of a variable to be
 output.  The name in the keyword should be replaced by the variable
 name that has been defined elsewhere in the input script.  Only
-equal-style variables can be referenced.  See the
-:doc:`variable <variable>` command for details.  Variables of style
-*equal* can reference per-atom properties or thermodynamic keywords,
-or they can invoke other computes, fixes, or variables when evaluated,
-so this is a very general means of creating thermodynamic output.
+equal-style and vector-style variables can be referenced; the latter
+requires a bracketed term to specify the Ith element of the vector
+calculated by the variable.  See the :doc:`variable <variable>` command
+for details.  Variables of style *equal* and *vector* define a formula
+which can reference per-atom properties or thermodynamic keywords, or
+they can invoke other computes, fixes, or variables when evaluated, so
+this is a very general means of creating thermodynamic output.
 
-Note that equal-style variables are assumed to be "intensive" global
-quantities, which are thus printed as-is, without normalization by
-thermo_style custom.  You can include a division by "natoms" in the
-variable formula if this is not the case.
+Note that equal-style and vector-style variables are assumed to
+produce "intensive" global quantities, which are thus printed as-is,
+without normalization by thermo_style custom.  You can include a
+division by "natoms" in the variable formula if this is not the case.
 
 
 ----------

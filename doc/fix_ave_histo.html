@@ -150,7 +150,8 @@ c_ID = scalar or vector calculated by a compute with ID
 c_ID[I] = Ith component of vector or Ith column of array calculated by a compute with ID
 f_ID = scalar or vector calculated by a fix with ID
 f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID
-v_name = value(s) calculated by an equal-style or atom-style variable with name
+v_name = value(s) calculated by an equal-style or vector-style or atom-style variable with name
+v_name[I] = value calculated by a vector-style variable with name
 </pre></div>
 </div>
 <ul class="simple">
@@ -210,12 +211,13 @@ and <em>hi</em>.  Values that fall outside the lo/hi bounds can be treated in
 different ways; see the discussion of the <em>beyond</em> keyword below.</p>
 <p>Each input value can be an atom attribute (position, velocity, force
 component) or can be the result of a <a class="reference internal" href="compute.html"><em>compute</em></a> or
-<a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an equal-style or atom-style
-<a class="reference internal" href="variable.html"><em>variable</em></a>.  The set of input values can be either all
-global, all per-atom, or all local quantities.  Inputs of different
-kinds (e.g. global and per-atom) cannot be mixed.  Atom attributes are
-per-atom vector values.  See the doc page for individual &#8220;compute&#8221; and
-&#8220;fix&#8221; commands to see what kinds of quantities they generate.</p>
+<a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an equal-style or vector-style or
+atom-style <a class="reference internal" href="variable.html"><em>variable</em></a>.  The set of input values can be
+either all global, all per-atom, or all local quantities.  Inputs of
+different kinds (e.g. global and per-atom) cannot be mixed.  Atom
+attributes are per-atom vector values.  See the doc page for
+individual &#8220;compute&#8221; and &#8220;fix&#8221; commands to see what kinds of
+quantities they generate.</p>
 <p>The input values must either be all scalars or all vectors (or
 arrays), depending on the setting of the <em>mode</em> keyword.</p>
 <p>Note that the output of this command is a single histogram for all
@@ -293,10 +295,14 @@ which must be compatible with <em>Nevery</em>, else an error will result.
 Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
 <p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
 been previously defined in the input script.  If <em>mode</em> = scalar, then
-only equal-style variables can be used, which produce a global value.
-If <em>mode</em> = vector, then only atom-style variables can be used, which
-produce a per-atom vector.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> command
-for details.  Note that variables of style <em>equal</em> and <em>atom</em> define a
+only equal-style or vector-style variables can be used, which both
+produce global values.  In this mode, a vector-style variable requires
+a bracketed term to specify the Ith element of the vector calculated
+by the variable.  If <em>mode</em> = vector, then only vector-style or
+atom-style variables can be used, which produce a global or per-atom
+vector respectively.  The vector-style variable must be used without a
+bracketed term.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> command for details.</p>
+<p>Note that variables of style <em>equal</em>, <em>vector</em>, and <em>atom</em> define a
 formula which can reference individual atom properties or
 thermodynamic keywords, or they can invoke other computes, fixes, or
 variables when they are evaluated, so this is a very general means of
@@ -400,7 +406,7 @@ values in that histogram bin, and the 3rd column has the bin count
 divided by the total count (not including missing counts), so that the
 values in the 3rd column sum to 1.0.</p>
 <p>The vector and array values calculated by this fix are all treated as
-&#8220;intensive&#8221;.  If this is not the case, e.g. due to histogramming
+intensive.  If this is not the case, e.g. due to histogramming
 per-atom input values, then you will need to account for that when
 interpreting the values produced by this fix.</p>
 <p>No parameter of this fix can be used with the <em>start/stop</em> keywords of

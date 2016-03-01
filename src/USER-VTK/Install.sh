@@ -32,7 +32,6 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*vtk[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/vtk\/include |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/vtk |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(vtk_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(vtk_SYSLIB) |' ../Makefile.package

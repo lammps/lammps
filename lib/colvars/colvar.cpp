@@ -112,22 +112,23 @@ colvar::colvar(std::string const &conf)
   initialize_components("distance vector",  "distanceVec",    distance_vec);
   initialize_components("Cartesian coordinates", "cartesian",  cartesian);
   initialize_components("distance vector "
-                         "direction",        "distanceDir",    distance_dir);
+                        "direction",        "distanceDir",    distance_dir);
   initialize_components("distance projection "
-                         "on an axis",       "distanceZ",      distance_z);
+                        "on an axis",       "distanceZ",      distance_z);
   initialize_components("distance projection "
-                         "on a plane",       "distanceXY",     distance_xy);
+                        "on a plane",       "distanceXY",     distance_xy);
   initialize_components("average distance weighted by inverse power",
-                         "distanceInv", distance_inv);
+                        "distanceInv", distance_inv);
   initialize_components("N1xN2-long vector of pairwise distances",
-                         "distancePairs", distance_pairs);
+                        "distancePairs", distance_pairs);
 
   initialize_components("coordination "
-                         "number",           "coordNum",       coordnum);
+                        "number",           "coordNum",       coordnum);
   initialize_components("self-coordination "
-                         "number",           "selfCoordNum",   selfcoordnum);
+                        "number",           "selfCoordNum",   selfcoordnum);
 
   initialize_components("angle",            "angle",          angle);
+  initialize_components("dipole angle",     "dipoleAngle",    dipole_angle);
   initialize_components("dihedral",         "dihedral",       dihedral);
 
   initialize_components("hydrogen bond",    "hBond",          h_bond);
@@ -136,13 +137,13 @@ colvar::colvar(std::string const &conf)
   initialize_components("alpha helix",      "alpha",          alpha_angles);
 
   initialize_components("dihedral principal "
-                         "component",        "dihedralPC",     dihedPC);
+                        "component",        "dihedralPC",     dihedPC);
 
   initialize_components("orientation",      "orientation",    orientation);
   initialize_components("orientation "
-                         "angle",            "orientationAngle",orientation_angle);
+                        "angle",            "orientationAngle",orientation_angle);
   initialize_components("orientation "
-                         "projection",       "orientationProj",orientation_proj);
+                        "projection",       "orientationProj",orientation_proj);
   initialize_components("tilt",             "tilt",           tilt);
   initialize_components("spin angle",       "spinAngle",      spin_angle);
 
@@ -151,17 +152,17 @@ colvar::colvar(std::string const &conf)
   //  initialize_components ("logarithm of MSD", "logmsd",         logmsd);
 
   initialize_components("radius of "
-                         "gyration",         "gyration",       gyration);
+                        "gyration",         "gyration",       gyration);
   initialize_components("moment of "
-                         "inertia",          "inertia",        inertia);
+                        "inertia",          "inertia",        inertia);
   initialize_components("moment of inertia around an axis",
-                                             "inertiaZ",       inertia_z);
+                        "inertiaZ",       inertia_z);
   initialize_components("eigenvector",      "eigenvector",    eigenvector);
 
   if (!cvcs.size()) {
     cvm::error("Error: no valid components were provided "
-                      "for this collective variable.\n",
-              INPUT_ERROR);
+               "for this collective variable.\n",
+               INPUT_ERROR);
     return;
   }
 
@@ -520,7 +521,8 @@ void colvar::build_atom_list(void)
   for (size_t i = 0; i < cvcs.size(); i++) {
     for (size_t j = 0; j < cvcs[i]->atom_groups.size(); j++) {
       for (size_t k = 0; k < cvcs[i]->atom_groups[j]->size(); k++) {
-        temp_id_list.push_back(cvcs[i]->atom_groups[j]->at(k).id);
+        cvm::atom_group &ag = *(cvcs[i]->atom_groups[j]);
+        temp_id_list.push_back(ag[k].id);
       }
     }
   }
@@ -830,8 +832,9 @@ void colvar::setup() {
   for (size_t i = 0; i < cvcs.size(); i++) {
     for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
       cvm::atom_group &atoms = *(cvcs[i]->atom_groups[ig]);
-      atoms.read_positions();
+      atoms.setup();
       atoms.reset_mass(name,i,ig);
+      atoms.read_positions();
     }
   }
 }
@@ -861,37 +864,40 @@ colvar::~colvar()
 
 void colvar::calc()
 {
-  size_t i, ig;
   if (cvm::debug())
     cvm::log("Calculating colvar \""+this->name+"\".\n");
+  update_cvc_flags();
+  calc_cvcs();
+  calc_colvar_properties();
+}
+
+
+int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
+{
+  size_t i, ig;
+  size_t cvc_count;
+  size_t const cvc_max_count = num_cvcs ? num_cvcs : num_active_cvcs();
 
   // prepare atom groups for calculation
   if (cvm::debug())
     cvm::log("Collecting data from atom groups.\n");
 
-  // Update the enabled/disabled status of cvcs if necessary
-  if (cvc_flags.size()) {
-    bool any = false;
-    for (i = 0; i < cvcs.size(); i++) {
-      cvcs[i]->b_enabled = cvc_flags[i];
-      any = any || cvc_flags[i];
-    }
-    if (!any) {
-      cvm::error("ERROR: All CVCs are disabled for colvar " + this->name +"\n");
-      return;
-    }
-    cvc_flags.resize(0);
+  if (first_cvc >= cvcs.size()) {
+    cvm::error("Error: trying to address a component outside the "
+               "range defined for colvar \""+name+"\".\n", BUG_ERROR);
+    return BUG_ERROR;
   }
 
-  for (i = 0; i < cvcs.size(); i++) {
+  for (i = first_cvc, cvc_count = 0;
+       (i < cvcs.size()) && (cvc_count < cvc_max_count);
+       i++) {
     if (!cvcs[i]->b_enabled) continue;
+    cvc_count++;
     for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
       cvm::atom_group &atoms = *(cvcs[i]->atom_groups[ig]);
       atoms.reset_atoms_data();
       atoms.read_positions();
-      if (atoms.b_center || atoms.b_rotate) {
-        atoms.calc_apply_roto_translation();
-      }
+      atoms.calc_required_properties();
       // each atom group will take care of its own ref_pos_group, if defined
     }
   }
@@ -906,7 +912,11 @@ void colvar::calc()
 //   }
 
   if (tasks[task_system_force]) {
-    for (i = 0; i < cvcs.size(); i++) {
+    for (i = first_cvc, cvc_count = 0;
+         (i < cvcs.size()) && (cvc_count < cvc_max_count);
+         i++) {
+      if (!cvcs[i]->b_enabled) continue;
+      cvc_count++;
       for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
         cvcs[i]->atom_groups[ig]->read_system_forces();
       }
@@ -919,9 +929,12 @@ void colvar::calc()
     cvm::log("Calculating colvar components.\n");
   x.reset();
 
-  // First, update component values
-  for (i = 0; i < cvcs.size(); i++) {
+  // First, calculate component values
+  for (i = first_cvc, cvc_count = 0;
+       (i < cvcs.size()) && (cvc_count < cvc_max_count);
+       i++) {
     if (!cvcs[i]->b_enabled) continue;
+    cvc_count++;
     cvm::increase_depth();
     (cvcs[i])->calc_value();
     cvm::decrease_depth();
@@ -932,22 +945,25 @@ void colvar::calc()
                 cvm::cv_width, cvm::cv_prec)+".\n");
   }
 
-  // Then combine them appropriately
+  // Then combine them appropriately, using either a scripted function or a polynomial
   if (tasks[task_scripted]) {
     // cvcs combined by user script
     int res = cvm::proxy->run_colvar_callback(scripted_function, sorted_cvc_values, x);
     if (res == COLVARS_NOT_IMPLEMENTED) {
       cvm::error("Scripted colvars are not implemented.");
-      return;
+      return COLVARS_NOT_IMPLEMENTED;
     }
     if (res != COLVARS_OK) {
       cvm::error("Error running scripted colvar");
-      return;
+      return COLVARS_OK;
     }
   } else if (x.type() == colvarvalue::type_scalar) {
     // polynomial combination allowed
-    for (i = 0; i < cvcs.size(); i++) {
+    for (i = first_cvc, cvc_count = 0;
+        (i < cvcs.size()) && (cvc_count < cvc_max_count);
+        i++) {
       if (!cvcs[i]->b_enabled) continue;
+      cvc_count++;
       x += (cvcs[i])->sup_coeff *
       ( ((cvcs[i])->sup_np != 1) ?
         std::pow((cvcs[i])->value().real_value, (cvcs[i])->sup_np) :
@@ -955,8 +971,11 @@ void colvar::calc()
     }
   } else {
     // only linear combination allowed
-    for (i = 0; i < cvcs.size(); i++) {
+    for (i = first_cvc, cvc_count = 0;
+        (i < cvcs.size()) && (cvc_count < cvc_max_count);
+        i++) {
       if (!cvcs[i]->b_enabled) continue;
+      cvc_count++;
       x += (cvcs[i])->sup_coeff * (cvcs[i])->value();
     }
   }
@@ -970,9 +989,12 @@ void colvar::calc()
     if (cvm::debug())
       cvm::log("Calculating gradients of colvar \""+this->name+"\".\n");
 
-    for (i = 0; i < cvcs.size(); i++) {
-      // calculate the gradients of each component
+    // calculate the gradients of each component
+    for (i = first_cvc, cvc_count = 0;
+        (i < cvcs.size()) && (cvc_count < cvc_max_count);
+        i++) {
       if (!cvcs[i]->b_enabled) continue;
+      cvc_count++;
       cvm::increase_depth();
       (cvcs[i])->calc_gradients();
       // if requested, propagate (via chain rule) the gradients above
@@ -991,21 +1013,26 @@ void colvar::calc()
 
       if (tasks[task_scripted]) {
         cvm::error("Collecting atomic gradients is not implemented for "
-          "scripted colvars.");
-        return;
+                   "scripted colvars.", COLVARS_NOT_IMPLEMENTED);
+        return COLVARS_NOT_IMPLEMENTED;
       }
 
       // Collect the atomic gradients inside colvar object
       for (unsigned int a = 0; a < atomic_gradients.size(); a++) {
         atomic_gradients[a].reset();
       }
-      for (i = 0; i < cvcs.size(); i++) {
+      for (i = first_cvc, cvc_count = 0;
+          (i < cvcs.size()) && (cvc_count < cvc_max_count);
+          i++) {
         if (!cvcs[i]->b_enabled) continue;
+        cvc_count++;
         // Coefficient: d(a * x^n) = a * n * x^(n-1) * dx
         cvm::real coeff = (cvcs[i])->sup_coeff * cvm::real((cvcs[i])->sup_np) *
           std::pow((cvcs[i])->value().real_value, (cvcs[i])->sup_np-1);
 
         for (size_t j = 0; j < cvcs[i]->atom_groups.size(); j++) {
+
+          cvm::atom_group &ag = *(cvcs[i]->atom_groups[j]);
 
           // If necessary, apply inverse rotation to get atomic
           // gradient in the laboratory frame
@@ -1013,18 +1040,17 @@ void colvar::calc()
             cvm::rotation const rot_inv = cvcs[i]->atom_groups[j]->rot.inverse();
 
             for (size_t k = 0; k < cvcs[i]->atom_groups[j]->size(); k++) {
-              int a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                  cvcs[i]->atom_groups[j]->at(k).id) - atom_ids.begin();
-              atomic_gradients[a] += coeff *
-                rot_inv.rotate(cvcs[i]->atom_groups[j]->at(k).grad);
+              size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                          ag[k].id) - atom_ids.begin();
+              atomic_gradients[a] += coeff * rot_inv.rotate(ag[k].grad);
             }
 
           } else {
 
             for (size_t k = 0; k < cvcs[i]->atom_groups[j]->size(); k++) {
-              int a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                  cvcs[i]->atom_groups[j]->at(k).id) - atom_ids.begin();
-              atomic_gradients[a] += coeff * cvcs[i]->atom_groups[j]->at(k).grad;
+              size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                          ag[k].id) - atom_ids.begin();
+              atomic_gradients[a] += coeff * ag[k].grad;
             }
           }
         }
@@ -1040,8 +1066,8 @@ void colvar::calc()
       // TODO see if this could reasonably be done in a generic way
       // from generic inverse gradients
       cvm::error("System force is not implemented for "
-        "scripted colvars.");
-      return;
+                 "scripted colvars.", COLVARS_NOT_IMPLEMENTED);
+      return COLVARS_NOT_IMPLEMENTED;
     }
     if (cvm::debug())
       cvm::log("Calculating system force of colvar \""+this->name+"\".\n");
@@ -1054,7 +1080,11 @@ void colvar::calc()
 
     if (cvm::step_relative() > 0) {
       // get from the cvcs the system forces from the PREVIOUS step
-      for (i = 0; i < cvcs.size(); i++) {
+      for (i = first_cvc, cvc_count = 0;
+          (i < cvcs.size()) && (cvc_count < cvc_max_count);
+          i++) {
+        if (!cvcs[i]->b_enabled) continue;
+        cvc_count++;
         (cvcs[i])->calc_force_invgrads();
         // linear combination is assumed
         cvm::increase_depth();
@@ -1072,7 +1102,12 @@ void colvar::calc()
     if (cvm::debug())
       cvm::log("Done calculating system force of colvar \""+this->name+"\".\n");
   }
+  return COLVARS_OK;
+}
 
+
+int colvar::calc_colvar_properties()
+{
   if (tasks[task_fdiff_velocity]) {
     // calculate the velocity by finite differences
     if (cvm::step_relative() == 0)
@@ -1109,6 +1144,8 @@ void colvar::calc()
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\".\n");
+
+  return COLVARS_OK;
 }
 
 
@@ -1243,6 +1280,7 @@ void colvar::communicate_forces()
 
   if (tasks[task_scripted]) {
     std::vector<cvm::matrix2d<cvm::real> > func_grads;
+    func_grads.reserve(cvcs.size());
     for (i = 0; i < cvcs.size(); i++) {
       if (!cvcs[i]->b_enabled) continue;
       func_grads.push_back(cvm::matrix2d<cvm::real> (x.size(),
@@ -1252,7 +1290,7 @@ void colvar::communicate_forces()
 
     if (res != COLVARS_OK) {
       if (res == COLVARS_NOT_IMPLEMENTED) {
-        cvm::error("Colvar gradient scripts are not implemented.");
+        cvm::error("Colvar gradient scripts are not implemented.", COLVARS_NOT_IMPLEMENTED);
       } else {
         cvm::error("Error running colvar gradient script");
       }
@@ -1296,8 +1334,8 @@ void colvar::communicate_forces()
 }
 
 
-int colvar::set_cvc_flags(std::vector<bool> const &flags) {
-
+int colvar::set_cvc_flags(std::vector<bool> const &flags)
+{
   if (flags.size() != cvcs.size()) {
     cvm::error("ERROR: Wrong number of CVC flags provided.");
     return COLVARS_ERROR;
@@ -1306,6 +1344,36 @@ int colvar::set_cvc_flags(std::vector<bool> const &flags) {
   // so we store the flags that will be enforced at the next call to calc()
   cvc_flags = flags;
   return COLVARS_OK;
+}
+
+
+int colvar::update_cvc_flags()
+{
+  size_t i;
+  // Update the enabled/disabled status of cvcs if necessary
+  if (cvc_flags.size()) {
+    bool any = false;
+    for (i = 0; i < cvcs.size(); i++) {
+      cvcs[i]->b_enabled = cvc_flags[i];
+      any = any || cvc_flags[i];
+    }
+    if (!any) {
+      cvm::error("ERROR: All CVCs are disabled for colvar " + this->name +"\n");
+      return COLVARS_ERROR;
+    }
+    cvc_flags.resize(0);
+  }
+  return COLVARS_OK;
+}
+
+
+int colvar::num_active_cvcs() const
+{
+  int result = 0;
+  for (size_t i = 0; i < cvcs.size(); i++) {
+    if (cvcs[i]->b_enabled) result++;
+  }
+  return result;
 }
 
 

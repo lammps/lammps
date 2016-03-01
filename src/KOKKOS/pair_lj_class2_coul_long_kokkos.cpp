@@ -494,7 +494,7 @@ double PairLJClass2CoulLongKokkos<DeviceType>::init_one(int i, int j)
 }
 
 
-
+namespace LAMMPS_NS {
 template class PairLJClass2CoulLongKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJClass2CoulLongKokkos<LMPHostType>;

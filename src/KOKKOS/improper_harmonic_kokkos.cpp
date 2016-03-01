@@ -77,14 +77,18 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-    d_eatom = k_eatom.d_view;
+    if(k_eatom.dimension_0()<maxeatom) {
+      memory->destroy_kokkos(k_eatom,eatom);
+      memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
+      d_eatom = k_eatom.d_view;
+    }
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-    d_vatom = k_vatom.d_view;
+    if(k_vatom.dimension_0()<maxvatom) {
+      memory->destroy_kokkos(k_vatom,vatom);
+      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      d_vatom = k_vatom.d_view;
+    }
   }
 
   //atomKK->sync(execution_space,datamask_read);

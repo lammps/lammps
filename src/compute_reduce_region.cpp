@@ -28,7 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};
+enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};          // also in ComputeReduce
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{PERATOM,LOCAL};
 

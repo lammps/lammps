@@ -93,7 +93,7 @@ class Neighbor : protected Pointers {
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   int exclude_setting();
-  void exclusion_group_group_delete(int, int); // remove a group-group exclusion
+  void exclusion_group_group_delete(int, int);  // rm a group-group exclusion
 
   // USER-DPD package
 

@@ -1565,7 +1565,7 @@ Command: Input: Output:
 "fix ave/chunk"_fix_ave_chunk.html: per-atom vectors: global array, file:
 "fix ave/histo"_fix_ave_histo.html: global/per-atom/local scalars and vectors: global array, file:
 "fix ave/correlate"_fix_ave_correlate.html: global scalars: global array, file:
-"fix store/state"_fix_store_state.html: per-atom vectors: per-atom vector/array :tb(s=:)
+"fix store/state"_fix_store_state.html: per-atom vectors: per-atom vector/array :tb(c=3,s=:)
 
 :line
 

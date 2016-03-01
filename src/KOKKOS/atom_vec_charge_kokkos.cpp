@@ -939,6 +939,7 @@ void AtomVecChargeKokkos::unpack_border_vel(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     if (i == nmax) grow(0);
+    modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1330,11 +1331,10 @@ void AtomVecChargeKokkos::create_atom(int itype, double *coord)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) {
-    //if(nlocal>2) printf("typeA: %i %i\n",type[0],type[1]);
     atomKK->modified(Host,ALL_MASK);
     grow(0);
-    //if(nlocal>2) printf("typeB: %i %i\n",type[0],type[1]);
   }
+  atomKK->sync(Host,ALL_MASK);
   atomKK->modified(Host,ALL_MASK);
 
   tag[nlocal] = 0;

@@ -1110,10 +1110,9 @@ void AtomVecFullKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  if(n > 0)
-    modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
   for (i = first; i < last; i++) {
     if (i == nmax) grow(0);
+    modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1140,7 +1139,7 @@ void AtomVecFullKokkos::unpack_border_vel(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     if (i == nmax) grow(0);
-    modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
+    modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1879,7 +1878,9 @@ int AtomVecFullKokkos::unpack_restart(double *buf)
     if (atom->nextra_store)
       memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
-
+  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+       MASK_MASK | IMAGE_MASK | Q_MASK | MOLECULE_MASK | BOND_MASK |
+       ANGLE_MASK | DIHEDRAL_MASK | IMPROPER_MASK | SPECIAL_MASK);
   modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK | Q_MASK | MOLECULE_MASK | BOND_MASK |
            ANGLE_MASK | DIHEDRAL_MASK | IMPROPER_MASK | SPECIAL_MASK);
@@ -1955,6 +1956,7 @@ void AtomVecFullKokkos::create_atom(int itype, double *coord)
     atomKK->modified(Host,ALL_MASK);
     grow(0);
   }
+  atomKK->sync(Host,ALL_MASK);
   atomKK->modified(Host,ALL_MASK);
 
   tag[nlocal] = 0;

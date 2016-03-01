@@ -96,7 +96,6 @@ void DeepCopyAsyncCuda( void * dst , const void * src , size_t n) {
   cudaStream_t s = get_deep_copy_stream();
   CUDA_SAFE_CALL( cudaMemcpyAsync( dst , src , n , cudaMemcpyDefault , s ) );
   cudaStreamSynchronize(s);
-  printf("DeepCopy: %p %p %lu\n",dst,src,n);
 }
 
 } // namespace Impl

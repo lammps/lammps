@@ -83,6 +83,7 @@ class AtomVecMolecularKokkos : public AtomVecKokkos {
 
   void sync(ExecutionSpace space, unsigned int mask);
   void modified(ExecutionSpace space, unsigned int mask);
+  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
 
  protected:
 

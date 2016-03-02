@@ -994,3 +994,4 @@ void CommKokkos::grow_swap(int n)
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i=0;i<maxswap;i++) maxsendlist[i]=size;
 }
+

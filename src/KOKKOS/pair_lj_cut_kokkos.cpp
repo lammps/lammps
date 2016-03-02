@@ -127,7 +127,6 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   EV_FLOAT ev = pair_compute<PairLJCutKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -293,7 +292,10 @@ double PairLJCutKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCutKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCutKokkos<LMPHostType>;
 #endif
+}
+

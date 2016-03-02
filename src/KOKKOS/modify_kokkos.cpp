@@ -583,3 +583,4 @@ int ModifyKokkos::min_reset_ref()
   }
   return itmpall;
 }
+

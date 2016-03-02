@@ -16,6 +16,7 @@
 
 #include "atom_vec.h"
 #include "kokkos_type.h"
+#include <type_traits>
 
 namespace LAMMPS_NS {
 
@@ -26,6 +27,7 @@ class AtomVecKokkos : public AtomVec {
 
   virtual void sync(ExecutionSpace space, unsigned int mask) = 0;
   virtual void modified(ExecutionSpace space, unsigned int mask) = 0;
+  virtual void sync_overlapping_device(ExecutionSpace space, unsigned int mask) {};
 
   virtual int
     pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
@@ -65,6 +67,73 @@ class AtomVecKokkos : public AtomVec {
  protected:
 
   class CommKokkos *commKK;
+  size_t buffer_size;
+  void* buffer;
+
+  #ifdef KOKKOS_HAVE_CUDA
+  template<class ViewType>
+  Kokkos::View<typename ViewType::data_type,
+               typename ViewType::array_layout,
+               Kokkos::CudaHostPinnedSpace,
+               Kokkos::MemoryTraits<Kokkos::Unmanaged> >
+  create_async_copy(const ViewType& src) {
+    typedef Kokkos::View<typename ViewType::data_type,
+                 typename ViewType::array_layout,
+                 typename std::conditional<
+                   std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
+                   Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
+                 Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
+    if(buffer_size < src.capacity())
+       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity());
+    return mirror_type( buffer ,
+                             src.dimension_0() ,
+                             src.dimension_1() ,
+                             src.dimension_2() ,
+                             src.dimension_3() ,
+                             src.dimension_4() ,
+                             src.dimension_5() ,
+                             src.dimension_6() ,
+                             src.dimension_7() );
+  }
+
+  template<class ViewType>
+  void perform_async_copy(const ViewType& src, unsigned int space) {
+    typedef Kokkos::View<typename ViewType::data_type,
+                 typename ViewType::array_layout,
+                 typename std::conditional<
+                   std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
+                   Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
+                 Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
+    if(buffer_size < src.capacity())
+       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity()*sizeof(typename ViewType::value_type));
+    mirror_type tmp_view( (typename ViewType::value_type*)buffer ,
+                             src.dimension_0() ,
+                             src.dimension_1() ,
+                             src.dimension_2() ,
+                             src.dimension_3() ,
+                             src.dimension_4() ,
+                             src.dimension_5() ,
+                             src.dimension_6() ,
+                             src.dimension_7() );
+    if(space == Device) {
+      Kokkos::deep_copy(LMPHostType(),tmp_view,src.h_view),
+      Kokkos::deep_copy(LMPHostType(),src.d_view,tmp_view);
+      src.modified_device() = src.modified_host();
+    } else {
+      Kokkos::deep_copy(LMPHostType(),tmp_view,src.d_view),
+      Kokkos::deep_copy(LMPHostType(),src.h_view,tmp_view);
+      src.modified_device() = src.modified_host();
+    }
+  }
+  #else
+  template<class ViewType>
+  void perform_async_copy(ViewType& src, unsigned int space) {
+    if(space == Device)
+      src.template sync<LMPDeviceType>();
+    else
+      src.template sync<LMPHostType>();
+  }
+  #endif
 };
 
 }

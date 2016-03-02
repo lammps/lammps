@@ -141,8 +141,6 @@ void PairBuckCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev = pair_compute<PairBuckCoulCutKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -367,7 +365,10 @@ double PairBuckCoulCutKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairBuckCoulCutKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckCoulCutKokkos<LMPHostType>;
 #endif
+}
+

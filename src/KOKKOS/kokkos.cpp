@@ -274,3 +274,4 @@ int KokkosLMP::neigh_count(int m)
 
   return nneigh;
 }
+

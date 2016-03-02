@@ -147,8 +147,6 @@ void PairLJCutCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev = pair_compute<PairLJCutCoulDSFKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -360,7 +358,10 @@ double PairLJCutCoulDSFKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCutCoulDSFKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCutCoulDSFKokkos<LMPHostType>;
 #endif
+}
+

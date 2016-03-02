@@ -116,13 +116,13 @@ Users can also write code for their own fix styles and :doc:`add them to LAMMPS 
 If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  An equal-style or
 vector-style variable can be referenced; the latter requires a
-bracketed term to use the Ith element of the vector calculated by the
-variable.  See the :doc:`variable <variable>` command for details.  Note
-that variables of style *equal* and *vector* define a formula which
-can reference individual atom properties or thermodynamic keywords, or
-they can invoke other computes, fixes, or variables when they are
-evaluated, so this is a very general means of specifying quantities to
-be stored by fix vector.
+bracketed term to specify the Ith element of the vector calculated by
+the variable.  See the :doc:`variable <variable>` command for details.
+Note that variables of style *equal* and *vector* define a formula
+which can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+they are evaluated, so this is a very general means of specifying
+quantities to be stored by fix vector.
 
 
 ----------

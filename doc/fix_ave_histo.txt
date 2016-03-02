@@ -27,7 +27,8 @@ value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_nam
   c_ID\[I\] = Ith component of vector or Ith column of array calculated by a compute with ID
   f_ID = scalar or vector calculated by a fix with ID
   f_ID\[I\] = Ith component of vector or Ith column of array calculated by a fix with ID
-  v_name = value(s) calculated by an equal-style or atom-style variable with name :pre
+  v_name = value(s) calculated by an equal-style or vector-style or atom-style variable with name
+  v_name\[I\] = value calculated by a vector-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
 keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {title1} or {title2} or {title3} :l
@@ -85,12 +86,13 @@ different ways; see the discussion of the {beyond} keyword below.
 
 Each input value can be an atom attribute (position, velocity, force
 component) or can be the result of a "compute"_compute.html or
-"fix"_fix.html or the evaluation of an equal-style or atom-style
-"variable"_variable.html.  The set of input values can be either all
-global, all per-atom, or all local quantities.  Inputs of different
-kinds (e.g. global and per-atom) cannot be mixed.  Atom attributes are
-per-atom vector values.  See the doc page for individual "compute" and
-"fix" commands to see what kinds of quantities they generate.
+"fix"_fix.html or the evaluation of an equal-style or vector-style or
+atom-style "variable"_variable.html.  The set of input values can be
+either all global, all per-atom, or all local quantities.  Inputs of
+different kinds (e.g. global and per-atom) cannot be mixed.  Atom
+attributes are per-atom vector values.  See the doc page for
+individual "compute" and "fix" commands to see what kinds of
+quantities they generate.
 
 The input values must either be all scalars or all vectors (or
 arrays), depending on the setting of the {mode} keyword.
@@ -187,10 +189,15 @@ LAMMPS"_Section_modify.html.
 
 If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  If {mode} = scalar, then
-only equal-style variables can be used, which produce a global value.
-If {mode} = vector, then only atom-style variables can be used, which
-produce a per-atom vector.  See the "variable"_variable.html command
-for details.  Note that variables of style {equal} and {atom} define a
+only equal-style or vector-style variables can be used, which both
+produce global values.  In this mode, a vector-style variable requires
+a bracketed term to specify the Ith element of the vector calculated
+by the variable.  If {mode} = vector, then only vector-style or
+atom-style variables can be used, which produce a global or per-atom
+vector respectively.  The vector-style variable must be used without a
+bracketed term.  See the "variable"_variable.html command for details.
+
+Note that variables of style {equal}, {vector}, and {atom} define a
 formula which can reference individual atom properties or
 thermodynamic keywords, or they can invoke other computes, fixes, or
 variables when they are evaluated, so this is a very general means of
@@ -311,7 +318,7 @@ divided by the total count (not including missing counts), so that the
 values in the 3rd column sum to 1.0.
 
 The vector and array values calculated by this fix are all treated as
-"intensive".  If this is not the case, e.g. due to histogramming
+intensive.  If this is not the case, e.g. due to histogramming
 per-atom input values, then you will need to account for that when
 interpreting the values produced by this fix.
 

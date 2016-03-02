@@ -498,6 +498,19 @@ void Domain::pbc()
   int *mask = atom->mask;
   imageint *image = atom->image;
 
+  // verify owned atoms have valid numerical coords
+  // may not if computed pairwise force between 2 atoms at same location
+
+  double *coord;
+  int n3 = 3*nlocal;
+  if (x) coord = &x[0][0];
+  int flag = 0;
+  for (i = 0; i < n3; i++)
+    if (!ISFINITE(*coord++)) flag = 1;
+  if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable");
+
+  // setup for PBC checks
+
   if (triclinic == 0) {
     lo = boxlo;
     hi = boxhi;
@@ -507,6 +520,8 @@ void Domain::pbc()
     hi = boxhi_lamda;
     period = prd_lamda;
   }
+
+  // apply PBC to each owned atom
 
   for (i = 0; i < nlocal; i++) {
     if (xperiodic) {

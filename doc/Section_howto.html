@@ -1323,7 +1323,7 @@ particles are computed via a command like <a class="reference internal" href="pa
 of quantities printed every few timesteps to the screen and logfile.</li>
 <li><a class="reference internal" href="dump.html"><em>Dump files</em></a>, which contain snapshots of atoms and various
 per-atom values and are written at a specified frequency.</li>
-<li>Certain fixes can output user-specified quantities to files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> for time averaging, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a> for spatial averaging, and <a class="reference internal" href="fix_print.html"><em>fix print</em></a> for single-line output of
+<li>Certain fixes can output user-specified quantities to files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> for time averaging, <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> for spatial or other averaging, and <a class="reference internal" href="fix_print.html"><em>fix print</em></a> for single-line output of
 <a class="reference internal" href="variable.html"><em>variables</em></a>.  Fix print can also output to the
 screen.</li>
 <li><a class="reference internal" href="restart.html"><em>Restart files</em></a>.</li>
@@ -1444,7 +1444,7 @@ command.</p>
 <div class="section" id="fixes-that-write-output-files">
 <span id="fixoutput"></span><h3>6.15.5. Fixes that write output files<a class="headerlink" href="#fixes-that-write-output-files" title="Permalink to this headline">¶</a></h3>
 <p>Several fixes take various quantities as input and can write output
-files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>,
+files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>, <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>,
 <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a>, and <a class="reference internal" href="fix_print.html"><em>fix print</em></a>.</p>
 <p>The <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command enables direct output to
 a file and/or time-averaging of global scalars or vectors.  The user
@@ -1459,29 +1459,29 @@ or more scalar values, then the fix generate a global scalar or vector
 of output.  If the inputs are one or more vector values, then the fix
 generates a global vector or array of output.  The time-averaged
 output of this fix can also be used as input to other output commands.</p>
-<p>The <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a> command enables direct
-output to a file of spatial-averaged per-atom quantities like those
-output in dump files, within 1d layers of the simulation box.  The
-per-atom quantities can be atom density (mass or number) or atom
-attributes such as position, velocity, force.  They can also be
-per-atom quantities calculated by a <a class="reference internal" href="compute.html"><em>compute</em></a>, by a
-<a class="reference internal" href="fix.html"><em>fix</em></a>, or by an atom-style <a class="reference internal" href="variable.html"><em>variable</em></a>.  The
-spatial-averaged output of this fix can also be used as input to other
-output commands.</p>
+<p>The <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command enables direct output
+to a file of chunk-averaged per-atom quantities like those output in
+dump files.  Chunks can represent spatial bins or other collections of
+atoms, e.g. individual molecules.  The per-atom quantities can be atom
+density (mass or number) or atom attributes such as position,
+velocity, force.  They can also be per-atom quantities calculated by a
+<a class="reference internal" href="compute.html"><em>compute</em></a>, by a <a class="reference internal" href="fix.html"><em>fix</em></a>, or by an atom-style
+<a class="reference internal" href="variable.html"><em>variable</em></a>.  The chunk-averaged output of this fix can
+also be used as input to other output commands.</p>
 <p>The <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a> command enables direct output
 to a file of histogrammed quantities, which can be global or per-atom
 or local quantities.  The histogram output of this fix can also be
 used as input to other output commands.</p>
 <p>The <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> command enables direct
 output to a file of time-correlated quantities, which can be global
-scalars.  The correlation matrix output of this fix can also be used
-as input to other output commands.</p>
+values.  The correlation matrix output of this fix can also be used as
+input to other output commands.</p>
 <p>The <a class="reference internal" href="fix_print.html"><em>fix print</em></a> command can generate a line of output
 written to the screen and log file or to a separate file, periodically
 during a running simulation.  The line can contain one or more
-<a class="reference internal" href="variable.html"><em>variable</em></a> values for any style variable except the atom
-style).  As explained above, variables themselves can contain
-references to global values generated by <a class="reference internal" href="thermo_style.html"><em>thermodynamic keywords</em></a>, <a class="reference internal" href="compute.html"><em>computes</em></a>,
+<a class="reference internal" href="variable.html"><em>variable</em></a> values for any style variable except the
+vector or atom styles).  As explained above, variables themselves can
+contain references to global values generated by <a class="reference internal" href="thermo_style.html"><em>thermodynamic keywords</em></a>, <a class="reference internal" href="compute.html"><em>computes</em></a>,
 <a class="reference internal" href="fix.html"><em>fixes</em></a>, or other <a class="reference internal" href="variable.html"><em>variables</em></a>, or to per-atom
 values for a specific atom.  Thus the <a class="reference internal" href="fix_print.html"><em>fix print</em></a>
 command is a means to output a wide variety of quantities separate
@@ -1549,13 +1549,15 @@ describes them.</p>
 </div>
 <div class="section" id="variables-that-generate-values-to-output">
 <span id="variable"></span><h3>6.15.10. Variables that generate values to output<a class="headerlink" href="#variables-that-generate-values-to-output" title="Permalink to this headline">¶</a></h3>
-<p>Every <a class="reference internal" href="variable.html"><em>variables</em></a> defined in an input script generates
-either a global scalar value or a per-atom vector (only atom-style
-variables) when it is accessed.  The formulas used to define equal-
-and atom-style variables can contain references to the thermodynamic
-keywords and to global and per-atom data generated by computes, fixes,
-and other variables.  The values generated by variables can be output
-using the other commands described in this section.</p>
+<p><a class="reference internal" href="variable.html"><em>Variables</em></a> defined in an input script can store one or
+more strings.  But equal-style, vector-style, and atom-style or
+atomfile-style variables generate a global scalar value, global vector
+or values, or a per-atom vector, resepctively, when accessed.  The
+formulas used to define these variables can contain references to the
+thermodynamic keywords and to global and per-atom data generated by
+computes, fixes, and other variables.  The values generated by
+variables can be used as input to and thus output by the other
+commands described in this section.</p>
 </div>
 <div class="section" id="summary-table-of-output-options-and-data-flow-between-commands">
 <span id="table"></span><h3>6.15.11. Summary table of output options and data flow between commands<a class="headerlink" href="#summary-table-of-output-options-and-data-flow-between-commands" title="Permalink to this headline">¶</a></h3>
@@ -1574,115 +1576,89 @@ vector input could be a column of an array.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="39%" />
+<col width="32%" />
 <col width="30%" />
-<col width="30%" />
-<col width="1%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>Command</td>
 <td>Input</td>
 <td>Output</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a></td>
 <td>global scalars</td>
 <td>screen, log file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="dump.html"><em>dump custom</em></a></td>
 <td>per-atom vectors</td>
 <td>dump file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="dump.html"><em>dump local</em></a></td>
 <td>local vectors</td>
 <td>dump file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="fix_print.html"><em>fix print</em></a></td>
 <td>global scalar from variable</td>
 <td>screen, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="print.html"><em>print</em></a></td>
 <td>global scalar from variable</td>
 <td>screen</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="compute.html"><em>computes</em></a></td>
 <td>N/A</td>
 <td>global/per-atom/local scalar/vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix.html"><em>fixes</em></a></td>
 <td>N/A</td>
 <td>global/per-atom/local scalar/vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="variable.html"><em>variables</em></a></td>
-<td>global scalars, per-atom vectors</td>
-<td>global scalar, per-atom vector</td>
-<td>&nbsp;</td>
+<td>global scalars and vectors, per-atom vectors</td>
+<td>global scalar and vector, per-atom vector</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a></td>
 <td>per-atom/local vectors</td>
 <td>global scalar/vector</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="compute_slice.html"><em>compute slice</em></a></td>
 <td>global vectors/arrays</td>
 <td>global vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a></td>
 <td>per-atom vectors</td>
 <td>per-atom vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="compute_property_local.html"><em>compute property/local</em></a></td>
 <td>local vectors</td>
 <td>local vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_vector.html"><em>fix vector</em></a></td>
 <td>global scalars</td>
 <td>global vector</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a></td>
 <td>per-atom vectors</td>
 <td>per-atom vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a></td>
 <td>global scalars/vectors</td>
 <td>global scalar/vector/array, file</td>
-<td>&nbsp;</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a></td>
 <td>per-atom vectors</td>
 <td>global array, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a></td>
 <td>global/per-atom/local scalars and vectors</td>
 <td>global array, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a></td>
 <td>global scalars</td>
 <td>global array, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_store_state.html"><em>fix store/state</em></a></td>
 <td>per-atom vectors</td>
 <td>per-atom vector/array</td>
-<td>&nbsp;</td>
-</tr>
-<tr class="row-odd"><td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>

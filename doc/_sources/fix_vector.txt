@@ -21,7 +21,8 @@ Syntax
      c_ID[I] = Ith component of global vector calculated by a compute with ID
      f_ID = global scalar calculated by a fix with ID
      f_ID[I] = Ith component of global vector calculated by a fix with ID
-     v_name = global value calculated by an equal-style variable with name
+     v_name = value calculated by an equal-style variable with name
+     v_name[I] = Ith component of vector-style variable with name
 
 
 
@@ -60,18 +61,18 @@ specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 
 Each listed value can be the result of a :doc:`compute <compute>` or
-:doc:`fix <fix>` or the evaluation of an equal-style
+:doc:`fix <fix>` or the evaluation of an equal-style or vector-style
 :doc:`variable <variable>`.  In each case, the compute, fix, or variable
-must produce a global quantity, not a per-atom or local quantity.
-And the global quantity must be a scalar, not a vector or array.
+must produce a global quantity, not a per-atom or local quantity.  And
+the global quantity must be a scalar, not a vector or array.
 
 :doc:`Computes <compute>` that produce global quantities are those which
 do not have the word *atom* in their style name.  Only a few
 :doc:`fixes <fix>` produce global quantities.  See the doc pages for
 individual fixes for info on which ones produce such values.
-:doc:`Variables <variable>` of style *equal* are the only ones that can
-be used with this fix.  Variables of style *atom* cannot be used,
-since they produce per-atom values.
+:doc:`Variables <variable>` of style *equal* or *vector* are the only
+ones that can be used with this fix.  Variables of style *atom* cannot
+be used, since they produce per-atom values.
 
 The *Nevery* argument specifies on what timesteps the input values
 will be used in order to be stored.  Only timesteps that are a
@@ -113,9 +114,11 @@ which must be compatible with *Nevery*, else an error will result.
 Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Section_modify>`.
 
 If a value begins with "v_", a variable name must follow which has
-been previously defined in the input script.  Only equal-style
-variables can be referenced.  See the :doc:`variable <variable>` command
-for details.  Note that variables of style *equal* define a formula
+been previously defined in the input script.  An equal-style or
+vector-style variable can be referenced; the latter requires a
+bracketed term to specify the Ith element of the vector calculated by
+the variable.  See the :doc:`variable <variable>` command for details.
+Note that variables of style *equal* and *vector* define a formula
 which can reference individual atom properties or thermodynamic
 keywords, or they can invoke other computes, fixes, or variables when
 they are evaluated, so this is a very general means of specifying

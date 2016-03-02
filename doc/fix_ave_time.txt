@@ -23,7 +23,8 @@ value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   c_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a compute with ID
   f_ID = global scalar, vector, or array calculated by a fix with ID
   f_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a fix with ID
-  v_name = global value calculated by an equal-style variable with name :pre
+  v_name = value(s) calculated by an equal-style or vector-style variable with name
+  v_name\[I\] = value calculated by a vector-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
 keyword = {mode} or {file} or {ave} or {start} or {off} or {overwrite} or {title1} or {title2} or {title3} :l
@@ -73,7 +74,7 @@ specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 
 Each listed value can be the result of a "compute"_compute.html or
-"fix"_fix.html or the evaluation of an equal-style
+"fix"_fix.html or the evaluation of an equal-style or vector-style
 "variable"_variable.html.  In each case, the compute, fix, or variable
 must produce a global quantity, not a per-atom or local quantity.  If
 you wish to spatial- or time-average or histogram per-atom quantities
@@ -87,9 +88,9 @@ reduce"_compute_reduce.html command.
 do not have the word {atom} in their style name.  Only a few
 "fixes"_fix.html produce global quantities.  See the doc pages for
 individual fixes for info on which ones produce such values.
-"Variables"_variable.html of style {equal} are the only ones that can
-be used with this fix.  Variables of style {atom} cannot be used,
-since they produce per-atom values.
+"Variables"_variable.html of style {equal} and {vector} are the only
+ones that can be used with this fix.  Variables of style {atom} cannot
+be used, since they produce per-atom values.
 
 The input values must either be all scalars or all vectors (or
 arrays), depending on the setting of the {mode} keyword.  In both
@@ -169,14 +170,19 @@ Users can also write code for their own fix styles and "add them to
 LAMMPS"_Section_modify.html.
 
 If a value begins with "v_", a variable name must follow which has
-been previously defined in the input script.  Variables can only be
-used as input for {mode} = scalar.  Only equal-style variables can be
-referenced.  See the "variable"_variable.html command for details.
-Note that variables of style {equal} define a formula which can
-reference individual atom properties or thermodynamic keywords, or
-they can invoke other computes, fixes, or variables when they are
-evaluated, so this is a very general means of specifying quantities to
-time average.
+been previously defined in the input script.  If {mode} = scalar, then
+only equal-style or vector-style variables can be used, which both
+produce global values.  In this mode, a vector-style variable requires
+a bracketed term to specify the Ith element of the vector calculated
+by the variable.  If {mode} = vector, then only a vector-style
+variable can be used, without a bracketed term.  See the
+"variable"_variable.html command for details.
+
+Note that variables of style {equal} and {vector} define a formula
+which can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+they are evaluated, so this is a very general means of specifying
+quantities to time average.
 
 :line
 

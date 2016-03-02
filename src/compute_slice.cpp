@@ -18,13 +18,15 @@
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
+#include "input.h"
+#include "variable.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
 
 using namespace LAMMPS_NS;
 
-enum{COMPUTE,FIX};
+enum{COMPUTE,FIX,VARIABLE};
 
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
@@ -55,9 +57,11 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
 
   for (int iarg = 6; iarg < narg; iarg++) {
     if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0) {
+        strncmp(arg[iarg],"f_",2) == 0 ||
+        strncmp(arg[iarg],"v_",2) == 0) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
+      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -89,36 +93,53 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute ID for compute slice does not exist");
       if (modify->compute[icompute]->vector_flag) {
         if (argindex[i])
-          error->all(FLERR,"Compute slice compute does not calculate a global array");
+          error->all(FLERR,"Compute slice compute does not "
+                     "calculate a global array");
         if (nstop > modify->compute[icompute]->size_vector)
-          error->all(FLERR,"Compute slice compute vector is accessed out-of-range");
+          error->all(FLERR,"Compute slice compute vector is "
+                     "accessed out-of-range");
       } else if (modify->compute[icompute]->array_flag) {
         if (argindex[i] == 0)
-          error->all(FLERR,"Compute slice compute does not calculate a global vector");
+          error->all(FLERR,"Compute slice compute does not "
+                     "calculate a global vector");
         if (argindex[i] > modify->compute[icompute]->size_array_cols)
-          error->all(FLERR,"Compute slice compute array is accessed out-of-range");
+          error->all(FLERR,"Compute slice compute array is "
+                     "accessed out-of-range");
         if (nstop > modify->compute[icompute]->size_array_rows)
-          error->all(FLERR,"Compute slice compute array is accessed out-of-range");
+          error->all(FLERR,"Compute slice compute array is "
+                     "accessed out-of-range");
       } else error->all(FLERR,"Compute slice compute does not calculate "
                         "global vector or array");
+
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute slice does not exist");
       if (modify->fix[ifix]->vector_flag) {
         if (argindex[i])
-          error->all(FLERR,"Compute slice fix does not calculate a global array");
+          error->all(FLERR,"Compute slice fix does not "
+                     "calculate a global array");
         if (nstop > modify->fix[ifix]->size_vector)
           error->all(FLERR,"Compute slice fix vector is accessed out-of-range");
       } else if (modify->fix[ifix]->array_flag) {
         if (argindex[i] == 0)
-          error->all(FLERR,"Compute slice fix does not calculate a global vector");
+          error->all(FLERR,"Compute slice fix does not "
+                     "calculate a global vector");
         if (argindex[i] > modify->fix[ifix]->size_array_cols)
           error->all(FLERR,"Compute slice fix array is accessed out-of-range");
         if (nstop > modify->fix[ifix]->size_array_rows)
           error->all(FLERR,"Compute slice fix array is accessed out-of-range");
       } else error->all(FLERR,"Compute slice fix does not calculate "
                         "global vector or array");
+
+    } else if (which[i] == VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for compute slice does not exist");
+      if (argindex[i] == 0 && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Compute slice variable is not vector-style variable");
+      if (argindex[i])
+        error->all(FLERR,"Compute slice vector variable cannot be indexed");
     }
   }
 
@@ -157,6 +178,8 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
             extlist[j++] = modify->fix[ifix]->extlist[i-1];
         }
       } else extvector = modify->fix[ifix]->extarray;
+    } else if (which[0] == VARIABLE) {
+      extvector = 0;
     }
 
   } else {
@@ -189,6 +212,8 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
         } else {
           if (modify->fix[ifix]->extarray) extarray = 1;
         }
+      } else if (which[i] == VARIABLE) {
+        // variable is always intensive, does not change extarray
       }
     }
   }
@@ -225,6 +250,11 @@ void ComputeSlice::init()
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute slice does not exist");
       value2index[m] = ifix;
+    } else if (which[m] == VARIABLE) {
+      int ivariable = input->variable->find(ids[m]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for compute slice does not exist");
+      value2index[m] = ivariable;
     }
   }
 }
@@ -292,7 +322,8 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
 
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[value2index[m]]->global_freq)
-      error->all(FLERR,"Fix used in compute slice not computed at compatible time");
+      error->all(FLERR,"Fix used in compute slice not "
+                 "computed at compatible time");
     Fix *fix = modify->fix[value2index[m]];
 
     if (argindex[m] == 0) {
@@ -308,6 +339,19 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
         vec[j] = fix->compute_array(i-1,icol);
         j += stride;
       }
+    }
+
+    // invoke vector-style variable
+
+  } else if (which[m] == VARIABLE) {
+    double *varvec;
+    int nvec = input->variable->compute_vector(value2index[m],&varvec);
+    if (nvec < nstop) 
+      error->all(FLERR,"Compute slice variable is not long enough");
+    j = 0;
+    for (i = nstart; i < nstop; i += nskip) {
+      vec[j] = varvec[i-1];
+      j += stride;
     }
   }
 }

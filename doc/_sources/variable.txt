@@ -11,7 +11,7 @@ Syntax
    variable name style args ...
 
 * name = name of variable to define
-* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *equal* or *atom*
+* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *equal* or *vector* or *atom*
 .. parsed-literal::
 
      *delete* = no args
@@ -41,7 +41,7 @@ Syntax
      *file* arg = filename
      *atomfile* arg = filename
      *python* arg = function
-     *equal* or *atom* args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
+     *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
        numbers = 0.0, 100, -5.4, 2.8e-4, etc
        constants = PI, version, on, off, true, false, yes, no
        thermo keywords = vol, ke, press, etc from :doc:`thermo_style <thermo_style>`
@@ -67,8 +67,8 @@ Syntax
        feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
        atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
        atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
-       compute references = c_ID, c_ID[i], c_ID[i][j]
-       fix references = f_ID, f_ID[i], f_ID[i][j]
+       compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
+       fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
        variable references = v_name, v_name[i]
 
 
@@ -109,15 +109,19 @@ string is assigned to the variable.  Variables of style *equal* store
 a formula which when evaluated produces a single numeric value which
 can be output either directly (see the :doc:`print <print>`, :doc:`fix print <fix_print>`, and :doc:`run every <run>` commands) or as part
 of thermodynamic output (see the :doc:`thermo_style <thermo_style>`
-command), or used as input to an averaging fix (see the :doc:`fix ave/time <fix_ave_time>` command).  Variables of style *atom* store
-a formula which when evaluated produces one numeric value per atom
-which can be output to a dump file (see the :doc:`dump custom <dump>`
-command) or used as input to an averaging fix (see the :doc:`fix ave/spatial <fix_ave_spatial>` and :doc:`fix ave/atom <fix_ave_atom>`
+command), or used as input to an averaging fix (see the :doc:`fix ave/time <fix_ave_time>` command).  Variables of style *vector*
+store a formula which produces a vector of such values which can be
+used as input to various averaging fixes, or elements of which can be
+part of thermodynamic output.  Variables of style *atom* store a
+formula which when evaluated produces one numeric value per atom which
+can be output to a dump file (see the :doc:`dump custom <dump>` command)
+or used as input to an averaging fix (see the :doc:`fix ave/chunk <fix_ave_chunk>` and :doc:`fix ave/atom <fix_ave_atom>`
 commands).  Variables of style *atomfile* can be used anywhere in an
 input script that atom-style variables are used; they get their
-per-atom values from a file rather than from a formula.  Variables can
-be hooked to Python functions using code you provide, so that the
-variable gets its value from the evaluation of the Python code.
+per-atom values from a file rather than from a formula.  Variables of
+style *python* can be hooked to Python functions using code you
+provide, so that the variable gets its value from the evaluation of
+the Python code.
 
 .. note::
 
@@ -143,27 +147,27 @@ simulation.
 .. note::
 
    When the input script line is encountered that defines a
-   variable of style *equal* or *atom* or *python* that contains a
-   formula or Python code, the formula is NOT immediately evaluated.  It
-   will be evaluated every time when the variable is **used** instead.  If
-   you simply want to evaluate a formula in place you can use as
-   so-called. See the section below about "Immediate Evaluation of
-   Variables" for more details on the topic.  This is also true of a
-   *format* style variable since it evaluates another variable when it is
-   invoked.
+   variable of style *equal* or *vector* or *atom* or *python* that
+   contains a formula or Python code, the formula is NOT immediately
+   evaluated.  It will be evaluated every time when the variable is
+   **used** instead.  If you simply want to evaluate a formula in place you
+   can use as so-called. See the section below about "Immediate
+   Evaluation of Variables" for more details on the topic.  This is also
+   true of a *format* style variable since it evaluates another variable
+   when it is invoked.
 
 .. note::
 
-   Variables of style *equal* and *atom* can be used as inputs to
-   various other LAMMPS commands which evaluate their formulas as needed,
-   e.g. at different timesteps during a :doc:`run <run>`.  Variables of
-   style *python* can be used in place of an equal-style variable so long
-   as the associated Python function, as defined by the
-   :doc:`python <python>` command, returns a numeric value.  Thus any
-   command that states it can use an equal-style variable as an argument,
-   can also use such a python-style variable.  This means that when the
-   LAMMPS command evaluates the variable, the Python function will be
-   executed.
+   Variables of style *equal* and *vector* and *atom* can be used
+   as inputs to various other LAMMPS commands which evaluate their
+   formulas as needed, e.g. at different timesteps during a
+   :doc:`run <run>`.  Variables of style *python* can be used in place of
+   an equal-style variable so long as the associated Python function, as
+   defined by the :doc:`python <python>` command, returns a numeric value.
+   Thus any command that states it can use an equal-style variable as an
+   argument, can also use such a python-style variable.  This means that
+   when the LAMMPS command evaluates the variable, the Python function
+   will be executed.
 
 .. note::
 
@@ -178,12 +182,12 @@ simulation.
    script.
 
 There are two exceptions to this rule.  First, variables of style
-*string*, *getenv*, *equal*, *atom*, and *python* ARE redefined each
-time the command is encountered.  This allows these style of variables
-to be redefined multiple times in an input script.  In a loop, this
-means the formula associated with an *equal* or *atom* style variable
-can change if it contains a substitution for another variable, e.g. $x
-or v_x.
+*string*, *getenv*, *equal*, *vector*, *atom*, and *python* ARE
+redefined each time the command is encountered.  This allows these
+style of variables to be redefined multiple times in an input script.
+In a loop, this means the formula associated with an *equal* or *atom*
+style variable can change if it contains a substitution for another
+variable, e.g. $x or v_x.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the :doc:`next <next>` command, it is removed
@@ -232,8 +236,8 @@ commands before the variable would become exhausted.  For example,
 
 
 This section describes how all the various variable styles are defined
-and what they store.  Except for the *equal* and *atom* styles,
-which are explaine in the next section.
+and what they store.  Except for the *equal* and *vector* and *atom*
+styles, which are explained in the next section.
 
 Many of the styles store one or more strings.  Note that a single
 string can contain spaces (multiple words), if it is enclosed in
@@ -402,31 +406,39 @@ that allows for equal-style variables.
 ----------
 
 
-For the *equal* and *atom* styles, a single string is specified which
-represents a formula that will be evaluated afresh each time the
-variable is used.  If you want spaces in the string, enclose it in
-double quotes so the parser will treat it as a single argument.  For
-*equal* style variables the formula computes a scalar quantity, which
-becomes the value of the variable whenever it is evaluated.  For
-*atom* style variables the formula computes one quantity for each
-atom whenever it is evaluated.
+For the *equal* and *vector* and *atom* styles, a single string is
+specified which represents a formula that will be evaluated afresh
+each time the variable is used.  If you want spaces in the string,
+enclose it in double quotes so the parser will treat it as a single
+argument.  For *equal*-style variables the formula computes a scalar
+quantity, which becomes the value of the variable whenever it is
+evaluated.  For *vector*-style variables the formula must compute a
+vector of quantities, which becomes the value of the variable whenever
+it is evaluated.  The calculated vector can be on length one, but it
+cannot be a simple scalar value like that produced by an equal-style
+compute.  I.e. the formula for a vector-style variable must have at
+least one quantity in it that refers to a global vector produced by a
+compute, fix, or other vector-style variable.  For *atom*-style
+variables the formula computes one quantity for each atom whenever it
+is evaluated.
 
-Note that *equal* and *atom* variables can produce different values at
-different stages of the input script or at different times during a
-run.  For example, if an *equal* variable is used in a :doc:`fix print <fix_print>` command, different values could be printed each
-timestep it was invoked.  If you want a variable to be evaluated
-immediately, so that the result is stored by the variable instead of
-the string, see the section below on "Immediate Evaluation of
-Variables".
+Note that *equal*, *vector*, and *atom* variables can produce
+different values at different stages of the input script or at
+different times during a run.  For example, if an *equal* variable is
+used in a :doc:`fix print <fix_print>` command, different values could
+be printed each timestep it was invoked.  If you want a variable to be
+evaluated immediately, so that the result is stored by the variable
+instead of the string, see the section below on "Immediate Evaluation
+of Variables".
 
-The next command cannot be used with *equal* or *atom* style
-variables, since there is only one string.
+The next command cannot be used with *equal* or *vector* or *atom*
+style variables, since there is only one string.
 
-The formula for an *equal* or *atom* variable can contain a variety
-of quantities.  The syntax for each kind of quantity is simple, but
-multiple quantities can be nested and combined in various ways to
-build up formulas of arbitrary complexity.  For example, this is a
-valid (though strange) variable formula:
+The formula for an *equal*, *vector*, or *atom* variable can contain a
+variety of quantities.  The syntax for each kind of quantity is
+simple, but multiple quantities can be nested and combined in various
+ways to build up formulas of arbitrary complexity.  For example, this
+is a valid (though strange) variable formula:
 
 .. parsed-literal::
 
@@ -460,30 +472,36 @@ references, and references to other variables.
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                  |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references | c_ID, c_ID[i], c_ID[i][j]                                                                                                                                                                                                                                                                                                                |
+| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                 |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references     | f_ID, f_ID[i], f_ID[i][j]                                                                                                                                                                                                                                                                                                                |
+| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                 |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                        |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-Most of the formula elements produce a scalar value.  A few produce a
-per-atom vector of values.  These are the atom vectors, compute
-references that represent a per-atom vector, fix references that
-represent a per-atom vector, and variables that are atom-style
-variables.  Math functions that operate on scalar values produce a
-scalar value; math function that operate on per-atom vectors do so
-element-by-element and produce a per-atom vector.
+Most of the formula elements produce a scalar value.  Some produce a
+global or per-atom vector of values.  Global vectors can be produced
+by computes or fixes or by other vector-style variables.  Per-atom
+vectors are produced by atom vectors, compute references that
+represent a per-atom vector, fix references that represent a per-atom
+vector, and variables that are atom-style variables.  Math functions
+that operate on scalar values produce a scalar value; math function
+that operate on global or per-atom vectors do so element-by-element
+and produce a global or per-atom vector.
 
 A formula for equal-style variables cannot use any formula element
-that produces a per-atom vector.  A formula for an atom-style variable
-can use formula elements that produce either a scalar value or a
-per-atom vector.  Atom-style variables are evaluated by other commands
-that define a :doc:`group <group>` on which they operate, e.g. a
-:doc:`dump <dump>` or :doc:`compute <compute>` or :doc:`fix <fix>` command.
-When they invoke the atom-style variable, only atoms in the group are
-inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
-atoms not in the group.
+that produces a global or per-atom vector.  A formula for a
+vector-style variable can use formula elements that produce either a
+scalar value or a global vector value, but cannot use a formula
+element that produces a per-atom vector.  A formula for an atom-style
+variable can use formula elements that produce either a scalar value
+or a per-atom vector, but not one that produces a global vector.
+Atom-style variables are evaluated by other commands that define a
+:doc:`group <group>` on which they operate, e.g. a :doc:`dump <dump>` or
+:doc:`compute <compute>` or :doc:`fix <fix>` command.  When they invoke
+the atom-style variable, only atoms in the group are included in the
+formula evaluation.  The variable evaluates to 0.0 for atoms not in
+the group.
 
 
 ----------
@@ -583,11 +601,11 @@ Math Functions
 Math functions are specified as keywords followed by one or more
 parenthesized arguments "x", "y", "z", each of which can themselves be
 arbitrarily complex formulas.  In this syntax, the arguments can
-represent scalar values or per-atom vectors.  In the latter case, the
-math operation is performed on each element of the vector.  For
-example, "sqrt(natoms)" is the sqrt() of a scalar, where "sqrt(y*z)"
-yields a per-atom vector with each element being the sqrt() of the
-product of one atom's y and z coordinates.
+represent scalar values or global vectors or per-atom vectors.  In the
+latter case, the math operation is performed on each element of the
+vector.  For example, "sqrt(natoms)" is the sqrt() of a scalar, where
+"sqrt(y*z)" yields a per-atom vector with each element being the
+sqrt() of the product of one atom's y and z coordinates.
 
 Most of the math functions perform obvious operations.  The ln() is
 the natural log; log() is the base 10 log.
@@ -598,20 +616,22 @@ normal(x,y,z) function also takes 3 arguments: x = mu, y = sigma, and
 z = seed.  It generates a Gaussian variate centered on mu with
 variance sigma^2.  In both cases the seed is used the first time the
 internal random number generator is invoked, to initialize it.  For
-equal-style variables, every processor uses the same seed so that they
-each generate the same sequence of random numbers.  For atom-style
-variables, a unique seed is created for each processor, based on the
-specified seed.  This effectively generates a different random number
-for each atom being looped over in the atom-style variable.
+equal-style and vector-style variables, every processor uses the same
+seed so that they each generate the same sequence of random numbers.
+For atom-style variables, a unique seed is created for each processor,
+based on the specified seed.  This effectively generates a different
+random number for each atom being looped over in the atom-style
+variable.
 
 .. note::
 
    Internally, there is just one random number generator for all
-   equal-style variables and one for all atom-style variables.  If you
-   define multiple variables (of each style) which use the random() or
-   normal() math functions, then the internal random number generators
-   will only be initialized once, which means only one of the specified
-   seeds will determine the sequence of generated random numbers.
+   equal-style and vector-style variables and another one for all
+   atom-style variables.  If you define multiple variables (of each
+   style) which use the random() or normal() math functions, then the
+   internal random number generators will only be initialized once, which
+   means only one of the specified seeds will determine the sequence of
+   generated random numbers.
 
 The ceil(), floor(), and round() functions are those in the C math
 library.  Ceil() is the smallest integer not less than its argument.
@@ -785,19 +805,21 @@ arguments cannot be formulas themselves.
 
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
 each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
-"f_ID" or "f_ID[N]".  The first two are computes and the second two
-are fixes; the ID in the reference should be replaced by the ID of a
-compute or fix defined elsewhere in the input script.  The compute or
-fix must produce either a global vector or array.  If it produces a
-global vector, then the notation without "[N]" should be used.  If
-it produces a global array, then the notation with "[N]" should be
-used, when N is an integer, to specify which column of the global
-array is being referenced.
+"f_ID" or "f_ID[N]" or "v_name".  The first two are computes and the
+second two are fixes; the ID in the reference should be replaced by
+the ID of a compute or fix defined elsewhere in the input script.  The
+compute or fix must produce either a global vector or array.  If it
+produces a global vector, then the notation without "[N]" should be
+used.  If it produces a global array, then the notation with "[N]"
+should be used, when N is an integer, to specify which column of the
+global array is being referenced.  The last form of argument "v_name"
+is for a vector-style variable where "name" is replaced by the name of
+the variable.
 
-These functions operate on the global vector of inputs and reduce it
-to a single scalar value.  This is analagous to the operation of the
-:doc:`compute reduce <compute_reduce>` command, which invokes the same
-functions on per-atom and local vectors.
+These functions operate on a global vector of inputs and reduce it to
+a single scalar value.  This is analagous to the operation of the
+:doc:`compute reduce <compute_reduce>` command, which performs similar
+operations on per-atom and local vectors.
 
 The sum() function calculates the sum of all the vector elements.  The
 min() and max() functions find the minimum and maximum element
@@ -935,13 +957,13 @@ Atom values take an integer argument I from 1 to N, where I is the
 atom-ID, e.g. x[243], which means use the x coordinate of the atom
 with ID = 243.  Or they can take a variable name, specified as v_name,
 where name is the name of the variable, like x[v_myIndex].  The
-variable can be of any style except atom or atom-file variables.  The
-variable is evaluated and the result is expected to be numeric and is
-cast to an integer (i.e. 3.4 becomes 3), to use an an index, which
-must be a value from 1 to N.  Note that a "formula" cannot be used as
-the argument between the brackets, e.g. x[243+10] or
-x[v_myIndex+1] are not allowed.  To do this a single variable can be
-defined that contains the needed formula.
+variable can be of any style except *vector* or *atom* or *atomfile*
+variables.  The variable is evaluated and the result is expected to be
+numeric and is cast to an integer (i.e. 3.4 becomes 3), to use an an
+index, which must be a value from 1 to N.  Note that a "formula"
+cannot be used as the argument between the brackets, e.g. x[243+10]
+or x[v_myIndex+1] are not allowed.  To do this a single variable can
+be defined that contains the needed formula.
 
 Note that the 0 < atom-ID <= N, where N is the largest atom ID
 in the system.  If an ID is specified for an atom that does not
@@ -952,7 +974,7 @@ Atom vectors generate one value per atom, so that a reference like
 evaluating the variable.
 
 The meaning of the different atom values and vectors is mostly
-self-explanatory.  Mol refers to the molecule ID of an atom, and is
+self-explanatory.  *Mol* refers to the molecule ID of an atom, and is
 only defined if an :doc:`atom_style <atom_style>` is being used that
 defines molecule IDs.
 
@@ -973,17 +995,20 @@ the ID of a compute defined elsewhere in the input script.  As
 discussed in the doc page for the :doc:`compute <compute>` command,
 computes can produce global, per-atom, or local values.  Only global
 and per-atom values can be used in a variable.  Computes can also
-produce a scalar, vector, or array.  An equal-style variable can only
-use scalar values, which means a global scalar, or an element of a
-global or per-atom vector or array.  Atom-style variables can use the
-same scalar values.  They can also use per-atom vector values.  A
-vector value can be a per-atom vector itself, or a column of an
-per-atom array.  See the doc pages for individual computes to see what
-kind of values they produce.
+produce a scalar, vector, or array.
+
+An equal-style variable can only use scalar values, which means a
+global scalar, or an element of a global or per-atom vector or array.
+A vector-style variable can use scalar values or a global vector of
+values, or a column of a global array of values.  Atom-style variables
+can use global scalar values.  They can also use per-atom vector
+values, or a column of a per-atom array.  See the doc pages for
+individual computes to see what kind of values they produce.
 
 Examples of different kinds of compute references are as follows.
-There is no ambiguity as to what a reference means, since computes
-only produce global or per-atom quantities, never both.
+There is typically no ambiguity (see exception below) as to what a
+reference means, since computes only produce either global or per-atom
+quantities, never both.
 
 +------------+-------------------------------------------------------------------------------------------------------+
 | c_ID       | global scalar, or per-atom vector                                                                     |
@@ -993,14 +1018,33 @@ only produce global or per-atom quantities, never both.
 | c_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
 +------------+-------------------------------------------------------------------------------------------------------+
 
-For I and J, integers can be specified or a variable name, specified
-as v_name, where name is the name of the variable.  The rules for this
-syntax are the same as for the "Atom Values and Vectors" discussion
-above.
+For I and J indices, integers can be specified or a variable name,
+specified as v_name, where name is the name of the variable.  The
+rules for this syntax are the same as for the "Atom Values and
+Vectors" discussion above.
 
-If a variable containing a compute is evaluated directly in an input
-script (not during a run), then the values accessed by the compute
-must be current.  See the discussion below about "Variable Accuracy".
+One source of ambiguity for compute references is when a vector-style
+variable refers to a compute that produces both a global scalar and a
+global vector.  Consider a compute with ID "foo" that does this,
+referenced as follows by variable "a", where "myVec" is another
+vector-style variable:
+
+.. parsed-literal::
+
+   variable a vector c_foo*v_myVec
+
+The reference "c_foo" could refer to either the global scalar or
+global vector produced by compute "foo".  In this case, "c_foo" will
+always refer to the global scalar, and "C_foo" can be used to
+reference the global vector.  Similarly if the compute produces both a
+global vector and global array, then "c_foo[I]" will always refer to
+an element of the global vector, and "C_foo[I]" can be used to
+reference the Ith column of the global array.
+
+Note that if a variable containing a compute is evaluated directly in
+an input script (not during a run), then the values accessed by the
+compute must be current.  See the discussion below about "Variable
+Accuracy".
 
 
 ----------
@@ -1024,8 +1068,9 @@ to see what kind of values they produce.
 
 The different kinds of fix references are exactly the same as the
 compute references listed in the above table, where "c_" is replaced
-by "f_".  Again, there is no ambiguity as to what a reference means,
-since fixes only produce global or per-atom quantities, never both.
+by "f_".  Again, there is typically no ambiguity (see exception below)
+as to what a reference means, since fixes only produce either global
+or per-atom quantities, never both.
 
 +------------+-------------------------------------------------------------------------------------------------------+
 | f_ID       | global scalar, or per-atom vector                                                                     |
@@ -1035,14 +1080,24 @@ since fixes only produce global or per-atom quantities, never both.
 | f_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                  |
 +------------+-------------------------------------------------------------------------------------------------------+
 
-For I and J, integers can be specified or a variable name, specified
-as v_name, where name is the name of the variable.  The rules for this
-syntax are the same as for the "Atom Values and Vectors" discussion
-above.
+For I and J indices, integers can be specified or a variable name,
+specified as v_name, where name is the name of the variable.  The
+rules for this syntax are the same as for the "Atom Values and
+Vectors" discussion above.
 
-If a variable containing a fix is evaluated directly in an input
-script (not during a run), then the values accessed by the fix should
-be current.  See the discussion below about "Variable Accuracy".
+One source of ambiguity for fix references is the same ambiguity
+discussed for compute references above.  Namely when a vector-style
+variable refers to a fix that produces both a global scalar and a
+global vector.  The solution is the same as for compute references.
+For a fix with ID "foo", "f_foo" will always refer to the global
+scalar, and "F_foo" can be used to reference the global vector.  And
+similarly for distinguishing between a fix's global vector versus
+global array with "f_foo[I]" versus "F_foo[I]".
+
+Note that if a variable containing a fix is evaluated directly in an
+input script (not during a run), then the values accessed by the fix
+should be current.  See the discussion below about "Variable
+Accuracy".
 
 Note that some fixes only generate quantities on certain timesteps.
 If a variable attempts to access the fix on non-allowed timesteps, an
@@ -1062,32 +1117,50 @@ variables, which will cause those variables to be evaluated.  The name
 in the reference should be replaced by the name of a variable defined
 elsewhere in the input script.
 
-As discussed on this doc page, equal-style variables generate a global
-scalar numeric value; atom-style and atomfile-style variables generate
-a per-atom vector of numeric values; all other variables store a
-string.  The formula for an equal-style variable can use any style of
-variable except an atom-style or atomfile-style (unless only a single
-value from the variable is accessed via a subscript).  If a
-string-storing variable is used, the string is converted to a numeric
-value.  Note that this will typically produce a 0.0 if the string is
-not a numeric string, which is likely not what you want.  The formula
-for an atom-style variable can use any style of variable, including
-other atom-style or atomfile-style variables.
+As discussed on this doc page, equal-style variables generate a single
+global numeric value, vector-style variables gerarate a vector of
+global numeric values, and atom-style and atomfile-style variables
+generate a per-atom vector of numeric values.  All other variables
+store one or more strings.
+
+The formula for an equal-style variable can use any style of variable
+including a vector_style or atom-style or atomfile-style.  For these
+3 styles, a subscript must be used to access a single value from
+the vector-, atom-, or atomfile-style variable.  If a string-storing
+variable is used, the string is converted to a numeric value.  Note
+that this will typically produce a 0.0 if the string is not a numeric
+string, which is likely not what you want.
+
+The formula for a vector-style variable can use any style of variable,
+including atom-style or atomfile-style variables.  For these 2 styles,
+a subscript must be used to access a single value from the atom-, or
+atomfile-style variable.
+
+The formula for an atom-style variable can use any style of variable,
+including other atom-style or atomfile-style variables.  If it uses a
+vector-style variable, a subscript must be used to access a single
+value from the vector-style variable.
 
 Examples of different kinds of variable references are as follows.
 There is no ambiguity as to what a reference means, since variables
-produce only a global scalar or a per-atom vector, never both.
+produce only a global scalar or global vector or per-atom vector.
 
-+-----------+-----------------------------------+
-| v_name    | scalar, or per-atom vector        |
-+-----------+-----------------------------------+
-| v_name[I] | atom I's value in per-atom vector |
-+-----------+-----------------------------------+
++-----------+----------------------------------------------------------------------+
+| v_name    | global scalar from equal-style variable                              |
++-----------+----------------------------------------------------------------------+
+| v_name    | global vector from vector-style variable                             |
++-----------+----------------------------------------------------------------------+
+| v_name    | per-atom vector from atom-style or atomfile-style variable           |
++-----------+----------------------------------------------------------------------+
+| v_name[I] | Ith element of a global vector from vector-style variable            |
++-----------+----------------------------------------------------------------------+
+| v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable |
++-----------+----------------------------------------------------------------------+
 
-For I, an integer can be specified or a variable name, specified as
-v_name, where name is the name of the variable.  The rules for this
-syntax are the same as for the "Atom Values and Vectors" discussion
-above.
+For the I index, an integer can be specified or a variable name,
+specified as v_name, where name is the name of the variable.  The
+rules for this syntax are the same as for the "Atom Values and
+Vectors" discussion above.
 
 
 ----------
@@ -1308,9 +1381,10 @@ Restrictions
 
 
 Indexing any formula element by global atom ID, such as an atom value,
-requires the atom style to use a global mapping in order to look up
-the vector indices.  By default, only atom styles with molecular
-information create global maps.  The :doc:`atom_modify map <atom_modify>` command can override the default.
+requires the :doc:`atom style <atom_style>` to use a global mapping in
+order to look up the vector indices.  By default, only atom styles
+with molecular information create global maps.  The :doc:`atom_modify map <atom_modify>` command can override the default, e.g. for
+atomic-style atom styles.
 
 All *universe*- and *uloop*-style variables defined in an input script
 must have the same number of values.

@@ -35,12 +35,14 @@ class Variable : protected Pointers {
 
   int equalstyle(int);
   int atomstyle(int);
+  int vectorstyle(int);
   char *pythonstyle(char *, char *);
 
   char *retrieve(char *);
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
+  int compute_vector(int, double **);
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
@@ -63,7 +65,15 @@ class Variable : protected Pointers {
   class VarReader **reader;   // variable that reads from file
   char ***data;            // str value of each variable's values
 
-  int *eval_in_progress;   // flag if evaluation of variable is in progress
+  struct VecVar {
+    int n,nmax;
+    bigint currentstep;
+    double *values;
+  };
+  VecVar *vecs;
+
+  int *eval_in_progress;       // flag if evaluation of variable is in progress
+  int treetype;                // ATOM or VECTOR flag for formula evaluation
 
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
@@ -73,12 +83,13 @@ class Variable : protected Pointers {
 
   class Python *python;    // ptr to embedded Python interpreter
 
-  struct Tree {            // parse tree for atom-style variables
+  struct Tree {            // parse tree for atom-style or vector-style variables
     double value;          // single scalar
     double *array;         // per-atom or per-type list of doubles
     int *iarray;           // per-atom list of ints
     bigint *barray;        // per-atom list of bigints
     int type;              // operation, see enum{} in variable.cpp
+    int nvector;           // length of array for vector-style variable
     int nstride;           // stride between atoms if array is a 2d array
     int selfalloc;         // 1 if array is allocated here, else 0
     int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
@@ -94,6 +105,8 @@ class Variable : protected Pointers {
   double evaluate(char *, Tree **);
   double collapse_tree(Tree *);
   double eval_tree(Tree *, int);
+  int size_tree_vector(Tree *);
+  int compare_tree_vector(int, int);
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&);
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);

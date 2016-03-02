@@ -243,14 +243,24 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/time not computed at compatible time");
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == VARIABLE && mode == SCALAR) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/time does not exist");
-      if (input->variable->equalstyle(ivariable) == 0)
+      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
         error->all(FLERR,"Fix ave/time variable is not equal-style variable");
-      if (mode == VECTOR)
-        error->all(FLERR,"Fix ave/time cannot use variable with vector mode");
+      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/time variable is not vector-style variable");
+
+    } else if (which[i] == VARIABLE && mode == VECTOR) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for fix ave/time does not exist");
+      if (argindex[i] == 0 && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/time variable is not vector-style variable");
+      if (argindex[i])
+        error->all(FLERR,"Fix ave/time mode vector variable cannot be indexed");
+      varlen[i] = 1;
     }
   }
 
@@ -282,7 +292,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (any_variable_length &&
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
     for (int i = 0; i < nvalues; i++)
-      if (varlen[i]) {
+      if (varlen[i] && which[i] == COMPUTE) {
         int icompute = modify->find_compute(ids[i]);
         modify->compute[icompute]->lock_enable();
       }
@@ -358,8 +368,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
         if (argindex[0] == 0) extscalar = fix->extscalar;
         else if (fix->extvector >= 0) extscalar = fix->extvector;
         else extscalar = fix->extlist[argindex[0]-1];
-      } else if (which[0] == VARIABLE)
+      } else if (which[0] == VARIABLE) {
         extscalar = 0;
+      }
 
     } else {
       vector_flag = 1;
@@ -377,8 +388,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
           if (argindex[i] == 0) extlist[i] = fix->extscalar;
           else if (fix->extvector >= 0) extlist[i] = fix->extvector;
           else extlist[i] = fix->extlist[argindex[i]-1];
-        } else if (which[i] == VARIABLE)
+        } else if (which[i] == VARIABLE) {
           extlist[i] = 0;
+        }
       }
     }
 
@@ -405,6 +417,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
             for (int i = 0; i < nrows; i++) extlist[i] = fix->extlist[i];
           }
         } else extvector = fix->extarray;
+      } else if (which[0] == VARIABLE) {
+        extlist = new int[nrows];
+        for (int i = 0; i < nrows; i++) extlist[i] = 0;
       }
 
     } else {
@@ -422,6 +437,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
           Fix *fix = modify->fix[modify->find_fix(ids[i])];
           if (argindex[i] == 0) value = fix->extvector;
           else value = fix->extarray;
+        } else if (which[i] == VARIABLE) {
+          value = 0;
         }
         if (value == -1)
           error->all(FLERR,"Fix ave/time cannot set output array "
@@ -518,13 +535,11 @@ void FixAveTime::init()
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/time does not exist");
       value2index[i] = icompute;
-
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/time does not exist");
       value2index[i] = ifix;
-
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
@@ -576,8 +591,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   double scalar;
 
   // zero if first sample within single Nfreq epoch
-  // NOTE: doc this
-  // are not checking for returned length, just initialize it
+  // if any input is variable length, initialize current length
   // check for exceeding length is done below
 
   if (irepeat == 0) {
@@ -599,6 +613,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
     m = value2index[i];
 
     // invoke compute if not previously invoked
+    // insure no out-of-range access to variable-length compute vector
 
     if (which[i] == COMPUTE) {
       Compute *compute = modify->compute[m];
@@ -614,9 +629,6 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
           compute->compute_vector();
           compute->invoked_flag |= INVOKED_VECTOR;
         }
-
-        // insure no out-of-range access to variable-length compute vector
-
         if (varlen[i] && compute->size_vector < argindex[i]) scalar = 0.0;
         else scalar = compute->vector[argindex[i]-1];
       }
@@ -629,10 +641,19 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       else
         scalar = modify->fix[m]->compute_vector(argindex[i]-1);
 
-    // evaluate equal-style variable
+    // evaluate equal-style or vector-style variable
+    // insure no out-of-range access to vector-style variable
 
-    } else if (which[i] == VARIABLE)
-      scalar = input->variable->compute_equal(m);
+    } else if (which[i] == VARIABLE) {
+      if (argindex[i] == 0)
+        scalar = input->variable->compute_equal(m);
+      else {
+        double *varvec;
+        int nvec = input->variable->compute_vector(m,&varvec);
+        if (nvec < argindex[i]) scalar = 0.0;
+        else scalar = varvec[argindex[i]-1];
+      }
+    }
 
     // add value to vector or just set directly if offcol is set
 
@@ -750,7 +771,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       bigint ntimestep = update->ntimestep;
       int lockforever_flag = 0;
       for (i = 0; i < nvalues; i++) {
-        if (!varlen[i]) continue;
+        if (!varlen[i] || which[i] != COMPUTE) continue;
         if (nrepeat > 1 && ave == ONE) {
           Compute *compute = modify->compute[value2index[i]];
           compute->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
@@ -812,6 +833,18 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         for (i = 0; i < nrows; i++)
           column[i] = fix->compute_array(i,icol);
       }
+
+    // evaluate vector-style variable
+    // insure nvec = nrows, else error
+    // could be different on this timestep than when column_length(1) set nrows
+
+    } else if (which[j] == VARIABLE) {
+      double *varvec;
+      int nvec = input->variable->compute_vector(m,&varvec);
+      if (nvec != nrows) 
+        error->all(FLERR,"Fix ave/time vector-style variable changed length");
+      for (i = 0; i < nrows; i++)
+        column[i] = varvec[i];
     }
 
     // add columns of values to array or just set directly if offcol is set
@@ -935,7 +968,9 @@ int FixAveTime::column_length(int dynamic)
         int ifix = modify->find_fix(ids[i]);
         if (argindex[i] == 0) lengthone = modify->fix[ifix]->size_vector;
         else lengthone = modify->fix[ifix]->size_array_rows;
-      }
+      } else if (which[i] == VARIABLE) {
+        // variables are always varlen = 1, so dynamic
+      } 
       if (length == 0) length = lengthone;
       else if (lengthone != length)
         error->all(FLERR,"Fix ave/time columns are inconsistent lengths");
@@ -945,15 +980,20 @@ int FixAveTime::column_length(int dynamic)
   // determine new nrows for dynamic values
   // either all must be the same
   // or must match other static values
-  // don't need to check if not MODE = VECTOR, just inovke lock_length()
+  // don't need to check if not MODE = VECTOR, just invoke lock_length()
 
   if (dynamic) {
     length = 0;
     for (int i = 0; i < nvalues; i++) {
       if (varlen[i] == 0) continue;
       m = value2index[i];
-      Compute *compute = modify->compute[m];
-      lengthone = compute->lock_length();
+      if (which[i] == COMPUTE) {
+        Compute *compute = modify->compute[m];
+        lengthone = compute->lock_length();
+      } else if (which[i] == VARIABLE) {
+        double *varvec;
+        lengthone = input->variable->compute_vector(m,&varvec);
+      }
       if (mode == SCALAR) continue;
       if (all_variable_length) {
         if (length == 0) length = lengthone;

@@ -1,0 +1,75 @@
+# Simple virus model.
+#
+
+units lj
+dimension 3
+boundary f f f
+
+atom_style angle
+pair_style lj/cut 4.0
+pair_modify shift yes
+bond_style harmonic
+angle_style harmonic
+
+neigh_modify binsize 5.0
+
+read_data init.data
+
+group NC    type 1
+group rest  type 2 3 4
+group CA    type 3
+
+
+timestep 0.0001
+variable R equal "ramp(v_R0,v_R1)"
+
+variable RF equal ${R1}
+variable Rw equal "v_RF - 0.5"
+
+print "**** R scales from ${R0} to ${R1} and wall is at ${Rw} ****"
+
+variable rr   atom "sqrt( x*x + y*y + z*z )"
+compute  ravg CA reduce ave v_rr
+
+region my_sphere sphere 0 0 0 v_Rw side out
+fix wall all wall/region my_sphere lj126 1.0 1.0 1.1225
+
+
+variable U equal pe
+variable epair equal epair
+fix U all ave/time 2000 1 2000 v_U v_R v_epair
+variable t equal time
+variable ravg equal c_ravg
+
+variable T equal 0.25
+
+variable pU equal f_U[1]
+variable pE equal f_U[3]
+
+fix out all print 2000 "$t    ${pU}    $R    ${ravg}    ${pE}" file thermo.${DATA}.dat screen no
+
+fix step1 rest nvt temp $T $T 1.0
+fix step2 NC   nvt/manifold/rattle 1e-4 10 sphere v_R temp $T $T 1.0
+
+special_bonds lj 0 0 0
+
+angle_coeff 1 250.0 180.0
+
+thermo_style custom time step pe v_pU ke etotal epair temp v_R
+thermo 10000
+
+
+
+compute pe         all pe/atom
+fix     pe_avg     all ave/atom 100 50 5000 c_pe
+
+
+dump traj_all   all  custom 5000 virus.dump id type x   y   z f_pe_avg
+
+run 2500000
+unfix out
+
+fix step1 rest nvt temp $T $T 1.0
+fix step2 NC   nvt/manifold/rattle 1e-4 10 sphere ${R1} temp $T $T 1.0
+
+run 1000000

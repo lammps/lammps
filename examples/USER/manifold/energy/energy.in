@@ -1,0 +1,28 @@
+units lj
+dimension 3
+
+include ${manifold}.setup
+
+fix step all nve/manifold/rattle 1e-6 10 ${manifold} ${manifold_params} 
+pair_style lj/smooth/linear 2.5
+pair_coeff * * 1.0 1.0
+pair_modify shift yes
+
+# Rebalance:
+fix load all balance 1000 1.0 shift "xyz" 10 1.05
+
+timestep 0.0005
+
+variable t equal time
+variable U equal pe
+variable K equal ke
+variable E equal "v_U + v_K"
+
+fix therm all print 25000 "$t  $U  $K  $E" file thermo.${manifold}.dat screen no
+
+dump traj all custom 1000000 dump.${manifold}.gz id type x y z
+
+thermo_style custom time step temp pe ke etotal
+thermo 10000
+run ${STEPS}
+

@@ -2,17 +2,8 @@
 #define MANIFOLD_THYLAKOID_SHARED_H
 
 
+#include "lmptype.h"
 #include <vector>
-#include <cassert>
-#include "math.h"
-
-
-#include "pointers.h"
-#include "error.h"
-#include "lammps.h"
-#include "manifold.h"
-
-
 
 namespace LAMMPS_NS {
 
@@ -63,15 +54,10 @@ namespace user_manifold {
   }; // struct thyla_part_geom
 
 
+} // namespace user_manifold
+
+
 } // namespace LAMMPS_NS
-
-
-inline double sign( const double x )
-{
-  return (x > 0.0) ? 1.0 : -1.0;
-}
-
-}
 
 
 #endif // MANIFOLD_THYLAKOID_SHARED_H

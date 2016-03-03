@@ -37,6 +37,7 @@
 
 
 #include "manifold.h"
+#include <string.h>
 
 /*
  * Defining USE_PHONY_LAMMPS makes sure that none of the LAMMPS classes are

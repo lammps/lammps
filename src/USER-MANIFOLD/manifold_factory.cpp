@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------- */
 
 #include "manifold_factory.h"
-#include "manifold.h"
 
 #include "manifold_cylinder.h"
 #include "manifold_cylinder_dent.h"
@@ -45,8 +44,6 @@
 #include "manifold_spine.h"
 #include "manifold_thylakoid.h"
 #include "manifold_torus.h"
-
-
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;

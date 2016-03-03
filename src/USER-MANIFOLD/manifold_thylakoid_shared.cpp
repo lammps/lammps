@@ -1,7 +1,7 @@
 #include "manifold_thylakoid_shared.h"
+#include <math.h>
 
 using namespace LAMMPS_NS;
-
 using namespace user_manifold;
 
 
@@ -122,7 +122,6 @@ double thyla_part::g(const double *x)
       double X0 = params[0];
       double R0 = params[1];
       double R  = params[2];
-      double s  = sign(params[6]);
       
       // Determine the centre of the sphere.
       double dx   = (x[0] - X0);
@@ -171,7 +170,6 @@ void   thyla_part::n( const double *x, double *n )
       double X0 = params[3];
       double Y0 = params[4];
       double Z0 = params[5];
-      double R  = params[6];
       double dx = x[0] - X0;
       double dy = x[1] - Y0;
       double dz = x[2] - Z0;
@@ -185,7 +183,7 @@ void   thyla_part::n( const double *x, double *n )
       double X0 = params[0];
       double R0 = params[1];
       double R  = params[2];
-      double s  = sign(params[6]);
+      double s  = (params[6] > 0.0) ? 1.0 : -1.0;
       
       // Determine the centre of the sphere.
       double dx   = s*(x[0] - X0);
@@ -193,10 +191,6 @@ void   thyla_part::n( const double *x, double *n )
       // Maybe sign is important here...
       // Normalize g and n so that the normal is continuous:
       double norm = 1.0 / (2.0 * R);
-      double x0[3];
-      x0[0] = X0-R;
-      x0[1] = 0;
-      x0[2] = R0+R;
       
       n[0] = s*2*dx*norm;
       

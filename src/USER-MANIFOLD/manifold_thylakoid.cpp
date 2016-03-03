@@ -1,8 +1,9 @@
 #include "manifold_thylakoid.h"
-#include "math.h"
+#include <math.h>
 
 #include "comm.h"
 #include "domain.h" // For some checks regarding the simulation box.
+#include "error.h"
 
 
 #define MANIFOLD_THYLAKOID_DEBUG
@@ -88,7 +89,7 @@ double manifold_thylakoid::g( const double *x )
     return con_val;
   }else{
     char msg[2048];
-    sprintf(msg,"Error, thyla_part of type %s returned %f as constraint val!",
+    sprintf(msg,"Error, thyla_part of type %d returned %f as constraint val!",
             p->type, con_val);
     error->one(FLERR,msg);
     return 0;
@@ -110,7 +111,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
     return;
   }else{
     char msg[2048];
-    sprintf(msg,"Error, thyla_part of type %s returned (%f,%f,%f) as gradient!",
+    sprintf(msg,"Error, thyla_part of type %d returned (%f,%f,%f) as gradient!",
             p->type, n[0], n[1], n[2]);
     error->one(FLERR,msg);
   }
@@ -522,14 +523,11 @@ int manifold_thylakoid::is_in_domain( thyla_part *part, const double *x )
 
     double R0 = part->params[1];
     double R  = part->params[2];
-    double X0 = part->params[0];
     double y = x[1];
     double z = x[2];
     double dist2 = y*y + z*z;
     double RR = R0+R;
     double RR2 = RR*RR;
-    double s = part->params[6];
-
     
     
     if( dist2 < RR2 ){

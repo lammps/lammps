@@ -2,9 +2,8 @@
 #define LMP_MANIFOLD_THYLAKOID_H
 
 #include "manifold.h"
-
-#include <cassert>
 #include <vector>
+#include <stdio.h>
 
 #include "manifold_thylakoid_shared.h"
 
@@ -50,39 +49,11 @@ namespace user_manifold {
     void set_domain( thyla_part *p, const std::vector<double> &lo,
                      const std::vector<double> &hi );
 
-    void add_part( thyla_part *part, double x0, double y0,
-                   double z0, double x1, double y1, double z1 )
-    {
-      int me = -1;
-      MPI_Comm_rank(world, &me);
-
-      std::vector<double> lo(3), hi(3);
-      lo[0] = x0; lo[1] = y0; lo[2] = z0;
-      hi[0] = x1; hi[1] = y1; hi[2] = z1;
-      
-      set_domain(part, lo, hi);
-      parts.push_back( part );
-      
-      fprintf(my_screen,"This is proc %d: Added part %p of type %d, "
-              "size is now %lu.\n", me, part, part->type, parts.size());
-      fflush(my_screen);
-    }
-	  
-    
     void print_part_data( FILE *fp_doms, FILE *fp_coms );
-
-    void assert_part_ok( const thyla_part *part ){
-      if( !part ) error->one(FLERR,"Error! Part was NULL!");
-    }
-
-	  
 
     // Coefficients for the thylakoid model. At the moment it is just
     // a cylinder, we slowly expand it.
     double pad;  // Padding to make sure periodic images are mapped back properly.
-    FILE *my_screen;
-
-
     double LB, lT, lB, wB, LT;
 
     // Domain size:

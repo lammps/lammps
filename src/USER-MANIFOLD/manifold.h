@@ -38,10 +38,7 @@
 #define LMP_MANIFOLD_H
 
 #include "pointers.h"
-#include "error.h"
-#include "math.h"
-#include "string.h"
-#include "lmptype.h"
+#include <math.h>
 
 namespace LAMMPS_NS {
 namespace user_manifold {

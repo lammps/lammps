@@ -1,5 +1,6 @@
-#include "manifold_torus.h"
 #include <math.h>
+#include "manifold_torus.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;

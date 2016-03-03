@@ -64,7 +64,7 @@ namespace LAMMPS_NS {
       int dofs_removed;
       bigint last_out;
     };
-	  
+
     FixNVEManifoldRattle(LAMMPS *, int &, char **, int = 1);
     virtual ~FixNVEManifoldRattle();
     // All this stuff is interface, so you DO need to implement them.
@@ -95,7 +95,7 @@ namespace LAMMPS_NS {
     statistics stats;
     int update_style;
     int nvars;
-	  
+
     user_manifold::manifold *ptr_m;
 
 
@@ -124,7 +124,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: There is no manifold named ... 
+E: There is no manifold named ...
 
 Self-explanatory.  You requested a manifold whose name was not
 registered at the factory.

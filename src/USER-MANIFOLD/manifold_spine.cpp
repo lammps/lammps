@@ -11,7 +11,7 @@ manifold_spine::manifold_spine( LAMMPS *lmp, int argc, char **argv ) : manifold(
 
 /*
  * Equation for spine is:
- * 
+ *
  * -x^2 - y^2 + (a^2 - (z/c)^2)*( 1 + A*sin(const(z) *z^2) )^4
  * const(z) = (z < 0) ? B2 : B
  * params[5] = { a, A, B, B2, c }
@@ -43,7 +43,7 @@ void manifold_spine::n( const double *x, double *nn )
     nn[0] = -2.0*x[0];
     nn[1] = -2.0*x[1];
     nn[2] = 8.0*A*A*A*A*B*x[2]*(a*a-(x[2]*x[2]/(c*c)))*cos(B*x[2]*x[2]) *
-	   pow(sin(B*x[2]*x[2]),3)-2*x[2]*(1+pow(A*sin(B*x[2]*x[2]),4))/(c*c);
+           pow(sin(B*x[2]*x[2]),3)-2*x[2]*(1+pow(A*sin(B*x[2]*x[2]),4))/(c*c);
   }else{
     nn[0] = -2.0*x[0];
     nn[1] = -2.0*x[1];

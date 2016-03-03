@@ -12,7 +12,7 @@ manifold_dumbbell::manifold_dumbbell( LAMMPS *lmp, int argc, char **argv ) : man
 
 /*
  * Equation for dumbbell is:
- * 
+ *
  * -x^2 - y^2 + (a^2 - (z/c)^2)*( 1 + A*sin(const(z) *z^2) )^4
  * const(z) = (z < 0) ? B2 : B
  * params[4] = { a, A, B, c }
@@ -37,7 +37,7 @@ void manifold_dumbbell::n( const double *x, double *nn )
   nn[0] = -2.0*x[0];
   nn[1] = -2.0*x[1];
   nn[2] = 8.0*A*A*A*A*B*x[2]*(a*a-(x[2]*x[2]/(c*c)))*cos(B*x[2]*x[2]) *
-	  pow(sin(B*x[2]*x[2]),3)-2*x[2]*(1+pow(A*sin(B*x[2]*x[2]),4))/(c*c);
+          pow(sin(B*x[2]*x[2]),3)-2*x[2]*(1+pow(A*sin(B*x[2]*x[2]),4))/(c*c);
 }
 
 

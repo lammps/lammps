@@ -18,8 +18,8 @@ namespace user_manifold {
 
     static const char* type(){ return "ellipsoid"; }
     virtual const char *id(){ return type(); }
-    static int expected_argc(){ return NPARAMS; }	
-    virtual int nparams(){ return NPARAMS; }  
+    static int expected_argc(){ return NPARAMS; }
+    virtual int nparams(){ return NPARAMS; }
   };
 }
 

@@ -67,13 +67,13 @@ namespace LAMMPS_NS {
     virtual double memory_usage();
 
 
-  
+
    protected:
 
     void compute_temp_target();
     void nhc_temp_integrate();
     void nh_v_temp();
-	  
+
     double dthalf, dt4, dt8;
 
     char *id_temp;
@@ -107,7 +107,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: There is no manifold named ... 
+E: There is no manifold named ...
 
 Self-explanatory.  You requested a manifold whose name was not
 registered at the factory.

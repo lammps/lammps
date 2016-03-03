@@ -3,7 +3,7 @@
 
 #include "manifold.h"
 
-namespace LAMMPS_NS { 
+namespace LAMMPS_NS {
 
 namespace user_manifold {
 
@@ -29,7 +29,7 @@ namespace user_manifold {
       nn[0] = 2*x[0];
       nn[1] = 2*x[1];
       nn[2] = 2*x[2];
-      
+
       return r2 - R*R;
     }
 
@@ -39,7 +39,7 @@ namespace user_manifold {
       nn[1] = 2*x[1];
       nn[2] = 2*x[2];
     }
-	  
+
     virtual void   H( double *x, double h[3][3] )
     {
       h[0][1] = h[0][2] = h[1][0] = h[1][2] = h[2][0] = h[2][1] = 0.0;
@@ -49,7 +49,7 @@ namespace user_manifold {
     static const char* type(){ return "sphere"; }
     virtual const char *id(){ return type(); }
     static int expected_argc(){ return NPARAMS; }
-    virtual int nparams(){ return NPARAMS; }  
+    virtual int nparams(){ return NPARAMS; }
   };
 }
 

@@ -90,10 +90,10 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   // Set all bits/settings:
   dof_flag = 1;
   dthalf = dt4 = dt8 = 0;
-	
+
   t_start = t_stop = t_period = t_current = t_target = ke_target = 0.0;
   t_freq = drag = tdrag_factor = 0;
-  
+
   boltz = force->boltz, nktv2p = force->nktv2p;
   tdof = 0;
   mtchain = 3;
@@ -117,11 +117,11 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
     }else if( strcmp( arg[argi], "tchain" ) == 0 ){
       if( argi+1 >= narg )
         error->all(FLERR,"Keyword 'tchain' needs 1 argument");
-    
+
       mtchain = force->inumeric(FLERR, arg[argi+1]);
       argi += 2;
     }else if( error_on_unknown_keyword ){
-      char msg[2048]; 
+      char msg[2048];
       sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
       error->all(FLERR, msg);
     }else{
@@ -148,7 +148,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   newarg[1] = group->names[igroup];
   newarg[2] = (char*) "temp";
 
-  
+
   modify->add_compute(3,newarg);
   delete [] newarg;
   int icompute = modify->find_compute(id_temp);
@@ -159,7 +159,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   temperature = modify->compute[icompute];
   if( temperature->tempbias ) which = BIAS;
   else                        which = NOBIAS;
-  
+
   // Set t_freq from t_period
   t_freq = 1.0 / t_period;
 
@@ -174,8 +174,8 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   for( int ich = 0; ich < mtchain; ++ich ){
     eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
   }
-  
-  
+
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -201,7 +201,7 @@ int FixNVTManifoldRattle::setmask()
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
   if( nevery > 0 ) mask |= END_OF_STEP;
-  
+
   return mask;
 }
 
@@ -241,9 +241,9 @@ void FixNVTManifoldRattle::setup(int vflag)
   for( int ich = 1; ich < mtchain; ++ich ){
     eta_mass[ich] = boltz * t_target * inv_t_freq2;
   }
-  
+
   for( int ich = 1; ich < mtchain; ++ich ){
-    eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] - 
+    eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
                        boltz * t_target ) / eta_mass[ich];
   }
 }
@@ -252,7 +252,7 @@ void FixNVTManifoldRattle::compute_temp_target()
 {
 
   t_current = temperature->compute_scalar();
-  tdof      = temperature->dof;	
+  tdof      = temperature->dof;
 
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0){
@@ -270,7 +270,7 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
   // t_current = temperature->compute_scalar();
   // tdof = temperature->dof;
   compute_temp_target();
-  
+
   double expfac, kecurrent = tdof * boltz * t_current;
   double inv_t_freq2 = 1.0 / (t_freq*t_freq);
   eta_mass[0] = tdof * boltz * t_target * inv_t_freq2;
@@ -298,7 +298,7 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
   eta_dot[0] *= tdrag_factor * expfac;
 
   factor_eta = exp(-dthalf*eta_dot[0]);
-  
+
   if( factor_eta == 0 ){
     char msg[2048];
     sprintf(msg, "WTF, factor_eta is 0! dthalf = %f, eta_dot[0] = %f",
@@ -344,7 +344,7 @@ void FixNVTManifoldRattle::nh_v_temp()
 
 
 
-  
+
   if( which == NOBIAS ){
     for( int i = 0; i < nlocal; ++i ){
       if( mask[i] & groupbit ){
@@ -363,7 +363,7 @@ void FixNVTManifoldRattle::nh_v_temp()
         temperature->restore_bias(i,v[i]);
       }
     }
-  }  
+  }
 }
 
 
@@ -394,7 +394,7 @@ void FixNVTManifoldRattle::final_integrate()
 void FixNVTManifoldRattle::reset_dt()
 {
   FixNVEManifoldRattle::reset_dt();
-  
+
   dthalf = 0.5 * update->dt;
   dt4 = 0.25 * update->dt;
   dt8 = 0.125 * update->dt;
@@ -410,6 +410,6 @@ double FixNVTManifoldRattle::memory_usage()
 {
   double bytes = FixNVEManifoldRattle::memory_usage();
   bytes += (4*mtchain+1)*sizeof(double);
-  
+
   return bytes;
 }

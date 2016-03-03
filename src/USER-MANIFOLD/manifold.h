@@ -71,7 +71,7 @@ namespace user_manifold {
    protected:
     double *params;
   };
-		
+
 
 
   // Some utility functions that are templated, so I implement them
@@ -90,7 +90,7 @@ namespace user_manifold {
   inline double dot( double *a, double *b ){
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
   }
-	
+
 
 } // namespace LAMMPS_NS
 

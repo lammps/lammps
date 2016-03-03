@@ -60,7 +60,7 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
        *
        * As params it takes X0, R0, R, and a sign that determines whether it is
        * "left" (args[3] < 0) or "right" (args[3] > 0).
-       * 
+       *
        * The args are: X0, R0, R, x0, y0, z0, sign.
        */
       params[0] = args[0];
@@ -114,7 +114,7 @@ double thyla_part::g(const double *x)
       double dx = x[0] - X0;
       double dy = x[1] - Y0;
       double dz = x[2] - Z0;
-      
+
       return a*dx*dx + b*dy*dy + c*dz*dz - R*R;
       break;
     }
@@ -122,7 +122,7 @@ double thyla_part::g(const double *x)
       double X0 = params[0];
       double R0 = params[1];
       double R  = params[2];
-      
+
       // Determine the centre of the sphere.
       double dx   = (x[0] - X0);
       double dyz  = sqrt( x[1]*x[1] + x[2]*x[2] );
@@ -184,16 +184,16 @@ void   thyla_part::n( const double *x, double *n )
       double R0 = params[1];
       double R  = params[2];
       double s  = (params[6] > 0.0) ? 1.0 : -1.0;
-      
+
       // Determine the centre of the sphere.
       double dx   = s*(x[0] - X0);
       double ryz  = sqrt( x[1]*x[1] + x[2]*x[2] );
       // Maybe sign is important here...
       // Normalize g and n so that the normal is continuous:
       double norm = 1.0 / (2.0 * R);
-      
+
       n[0] = s*2*dx*norm;
-      
+
       double const_part = 1.0 - (R0 + R) / ryz;
       n[1] = 2*x[1]*const_part*norm;
       n[2] = 2*x[2]*const_part*norm;

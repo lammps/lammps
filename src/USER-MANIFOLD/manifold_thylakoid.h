@@ -17,16 +17,16 @@ namespace user_manifold {
     enum { NPARAMS = 3 };
     manifold_thylakoid( LAMMPS *lmp, int, char ** );
     virtual ~manifold_thylakoid();
-    
+
     virtual double g( const double *x );
     virtual void   n( const double *x, double *n );
 
     static const char* type(){ return "thylakoid"; }
     virtual const char *id(){ return type(); }
-    static int expected_argc(){ return NPARAMS; }	
+    static int expected_argc(){ return NPARAMS; }
     virtual int nparams(){ return NPARAMS; }
 
-    
+
     virtual void post_param_init();
     virtual void checkup(); // Some diagnostics...
    private:

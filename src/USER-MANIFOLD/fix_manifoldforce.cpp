@@ -57,7 +57,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
     error->warning(FLERR,"Minimizing with fix manifoldforce without hftn or quickmin is fishy");
   }
 
-  
+
   // Command is given as
   // fix <name> <group> manifoldforce manifold_name manifold_args
   if( narg < 5 ){
@@ -65,7 +65,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   }
   const char *m_name = arg[3];
   ptr_m = create_manifold(m_name,lmp,narg,arg);
-  
+
   // Construct manifold from factory:
   if( !ptr_m ){
     char msg[2048];
@@ -165,7 +165,7 @@ void FixManifoldForce::post_force(int vflag)
       f[i][0] -= dot*n[0] * invn2;
       f[i][1] -= dot*n[1] * invn2;
       f[i][2] -= dot*n[2] * invn2;
-      
+
     }
   }
 }

@@ -83,7 +83,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
 {
   if( lmp->citeme) lmp->citeme->add(cite_fix_nve_manifold_rattle);
   if( narg < 6 ) error->all(FLERR, "Illegal fix nve/manifold/rattle command");
-  
+
   // Set all bits/settings:
   time_integrate = 1;
   dynamic_group_allow = 1;
@@ -110,7 +110,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   if( !tstrs || !tvars || !tstyle || !is_var ){
     error->all(FLERR, "Error creating manifold arg arrays");
   }
-  
+
   // Loop over manifold args:
   for( int i = 0; i < nvars; ++i ){
     int len = 0, offset = 0;
@@ -136,7 +136,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   }
   ptr_m->post_param_init();
 
-    
+
   // Loop over rest of args:
   int argi = 6 + nvars;
   while( argi < narg ){
@@ -144,14 +144,14 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       nevery = force->inumeric(FLERR,arg[argi+1]);
       argi += 2;
     }else if( error_on_unknown_keyword ){
-      char msg[2048]; 
+      char msg[2048];
       sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
       error->all(FLERR, msg);
     }else{
       argi += 1;
     }
   }
-  
+
 }
 
 
@@ -182,7 +182,7 @@ void FixNVEManifoldRattle::reset_dt()
   dtf = 0.5 * update->dt * force->ftm2v;
 
 
-  
+
 }
 
 void FixNVEManifoldRattle::print_stats( const char *header )
@@ -241,7 +241,7 @@ int FixNVEManifoldRattle::setmask()
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
   if( nevery > 0 ) mask |= END_OF_STEP;
-  
+
   return mask;
 }
 
@@ -266,7 +266,7 @@ void FixNVEManifoldRattle::update_var_params()
     stats.x_iters_per_atom = 0.0;
     stats.v_iters_per_atom = 0.0;
   }
-	
+
   double **ptr_params = ptr_m->get_params();
   for( int i = 0; i < nvars; ++i ){
     if( is_var[i] ){
@@ -309,7 +309,7 @@ int FixNVEManifoldRattle::dof(int igroup)
   // centre of mass corrections:
   if( dofs <= 1 ) dofs = 0;
   stats.dofs_removed = dofs;
-  
+
   return dofs;
 }
 
@@ -371,11 +371,11 @@ void FixNVEManifoldRattle::nve_x_rattle(int igroup, int groupbit)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int natoms = 0;
-  
+
   if (igroup == atom->firstgroup){
     nlocal = atom->nfirst;
   }
-  
+
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++){
@@ -470,7 +470,7 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
   vo[0] = v[0];
   vo[1] = v[1];
   vo[2] = v[2];
-  
+
   xo[0] = x[0];
   xo[1] = x[1];
   xo[2] = x[2];
@@ -490,10 +490,10 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
   no_dt[2] = dtfm*no[2];
 
   // Assume that no_nn is roughly constant during iteration:
-  
+
   const double c_inv = 1.0 / c;
 
-  
+
   while ( 1 ) {
     v[0] = vt[0] - l*no_dt[0];
     v[1] = vt[1] - l*no_dt[1];
@@ -530,7 +530,7 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
     ++iters;
 
     if( (res < tolerance) || (iters >= max_iter) ) break;
-    
+
     // Update nn and g.
     gg = ptr_m->g(x);
     ptr_m->n(x,nn);
@@ -543,7 +543,7 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
             tagi, x[0], x[1], x[2], res, iters);
     error->one(FLERR,msg);
   }
-  
+
   // "sync" x and v:
   v[0] = vt[0] - l*no_dt[0];
   v[1] = vt[1] - l*no_dt[1];
@@ -564,7 +564,7 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
     v[i][0] += dtfm * f[i][0];
     v[i][1] += dtfm * f[i][1];
     v[i][2] += dtfm * f[i][2];
-    
+
     Now you add the rattle-like update:
     vold - vnew + dtfm * F + mu * n_new = 0
     dot( vnew, n_new ) = 0
@@ -604,7 +604,7 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
 
   const double n_inv = 1.0 / nn2;
   const double c_inv = 1.0 / c;
-  
+
   do{
     R[0] = vt[0] - v[0]  - l * no_dt[0];
     R[1] = vt[1] - v[1]  - l * no_dt[1];
@@ -613,28 +613,28 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
 
     // Analytic solution to system J*(dx,dy,dz,dl)^T = R
     nn_R = n[0]*R[0] + n[1]*R[1] + n[2]*R[2];
-    
+
     dv[3] = -nn_R - R[3];
     dv[3] *= n_inv;
     dv[0] = -n[0]*dv[3] - R[0];
     dv[1] = -n[1]*dv[3] - R[1];
     dv[2] = -n[2]*dv[3] - R[2];
     dv[3] *= c_inv;
-        
+
     v[0] -= dv[0];
     v[1] -= dv[1];
     v[2] -= dv[2];
     l    -= dv[3];
-    
+
     res = infnorm<4>(R);
     ++iters;
   }while( (res > tolerance) && (iters < max_iter) );
 
   if( iters >= max_iter && res >= tolerance ){
-	  char msg[2048];
-	  sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
-	          tagi, x[0], x[1], x[2], res, iters);
-	  error->all(FLERR,msg);
+          char msg[2048];
+          sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
+                  tagi, x[0], x[1], x[2], res, iters);
+          error->all(FLERR,msg);
   }
 
   stats.v_iters += iters;

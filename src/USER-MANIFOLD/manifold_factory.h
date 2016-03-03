@@ -101,7 +101,7 @@ namespace user_manifold {
 
   manifold* create_manifold(const char *, LAMMPS *,
                             int , char ** );
-  
+
 } // namespace user_manifold
 
 } // namespace LAMMPS_NS

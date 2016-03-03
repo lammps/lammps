@@ -119,7 +119,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
 
 thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int *err_flag, std::size_t *idx )
 {
-  
+
   for( std::size_t i = 0; i < parts.size(); ++i ){
     thyla_part *p = parts[i];
     if( is_in_domain(p,x) ){
@@ -146,8 +146,8 @@ void manifold_thylakoid::init_domains()
             "wB = %f and lB = %f! %f > %f\n", LT, wB, lB, wB + 2*lB, LT);
     error->one(FLERR,msg);
   }
-  
-  // Determine some constant coordinates:	
+
+  // Determine some constant coordinates:
   x0 = -( 0.5*LB + lB + lT + LT + lT + pad);
   y0 = -( 0.5*LT + lT + pad );
   z0 = -15;
@@ -168,7 +168,7 @@ void manifold_thylakoid::init_domains()
     char msg[2048];
     sprintf(msg,"Thylakoid expects ylo of at most %f, but found %f",
             y0, domain->boxlo[1]);
-    error->one(FLERR,msg);	  
+    error->one(FLERR,msg);
   }
 #endif
 
@@ -178,7 +178,7 @@ void manifold_thylakoid::init_domains()
   x1 = -x0;
   y1 = -y0;
   z1 = -z0;
-  
+
   Lx = x1 - x0;
   Ly = y1 - y0;
   Lz = z1 - z0;
@@ -204,7 +204,7 @@ void manifold_thylakoid::init_domains()
 
   // Create and add the manifold parts to the array.
   thyla_part *p;
-  
+
 
   // Determine coordinates of domain boundaries and centres of "mass":
   thyla_part_geom cllb, cllt, clrb, clrt;      // Left thylakoid cylinder parts
@@ -216,9 +216,9 @@ void manifold_thylakoid::init_domains()
   thyla_part_geom bl, br, bc; // Bridge left, right connectors and cylinder.
 
 
-  
 
-  
+
+
   // The bridge is three parts.
   // 1. A connector between the right face of the left  grana and a cylinder
   // 2. A connector between the left  face of the right grana and a cylinder
@@ -250,7 +250,7 @@ void manifold_thylakoid::init_domains()
   p = make_cyl_to_plane_part(bl.pt[0], rB, lB, -1, bl.pt);
   set_domain(p, bl.lo, bl.hi);
   parts.push_back(p);
-  
+
   // 2.:
   br.pt[0] = 0.5*LB;
   br.pt[1] = 0;
@@ -273,9 +273,9 @@ void manifold_thylakoid::init_domains()
   p = make_cyl_to_plane_part(br.pt[0], rB, lB,  1, br.pt);
   set_domain(p, br.lo, br.hi);
   parts.push_back(p);
-  
 
-  
+
+
   // 3.:
   // Cylinder in between:
   bc.pt[0] = 0;
@@ -285,7 +285,7 @@ void manifold_thylakoid::init_domains()
   bc.lo[0] = bl.pt[0];
   bc.lo[1] = -Reff;
   bc.lo[2] = -Reff;
-  
+
   bc.hi[0] = br.pt[0];
   bc.hi[1] = Reff;
   bc.hi[2] = Reff;
@@ -298,7 +298,7 @@ void manifold_thylakoid::init_domains()
             bc.lo[0], bc.hi[0], bc.lo[1], bc.hi[1], bc.lo[2], bc.hi[2]);
   }
 #endif // MANIFOLD_THYLAKOID_DEBUG
-  
+
   parts.push_back(p);
 
 
@@ -312,17 +312,17 @@ void manifold_thylakoid::init_domains()
   cllb.hi[0] = cllb.pt[0];
   cllb.hi[1] = cllb.pt[1];
   cllb.hi[2] = z1;
-  
+
   p = make_cyl_part(1,1,0,cllb.pt,lT);
   set_domain(p, cllb.lo, cllb.hi);
   parts.push_back(p);
-  
+
   // left left top cylinder
   cllt = cllb;
   cllt.lo[1] = y1 - pad - lT;
   cllt.hi[1] = y1;
   cllt.pt[1] = cllb.pt[1] + LT;
-  
+
   p = make_cyl_part(1,1,0,cllt.pt,lT);
   set_domain(p, cllt.lo, cllt.hi);
   parts.push_back(p);
@@ -342,7 +342,7 @@ void manifold_thylakoid::init_domains()
   clrt.pt[1] += LT;
   clrt.lo[1] = y1 - pad - lT;
   clrt.hi[1] = y1;
-  
+
   p = make_cyl_part(1,1,0,clrt.pt,lT);
   set_domain(p, clrt.lo, clrt.hi);
   parts.push_back(p);
@@ -362,7 +362,7 @@ void manifold_thylakoid::init_domains()
   p = make_plane_part(1,0,0,pll.pt);
   set_domain(p, pll.lo, pll.hi);
   parts.push_back(p);
-  
+
   // left bottom plane
   plb.pt[0] = x0 + pad + lT + 0.5*LT;
   plb.pt[1] = y0 + pad;
@@ -373,17 +373,17 @@ void manifold_thylakoid::init_domains()
   plb.hi[0] = plb.lo[0] + LT;
   plb.hi[1] = plb.lo[1] + pad + lT;
   plb.hi[2] = z1;
-	  
+
   p = make_plane_part(0,1,0,plb.pt);
   set_domain(p, plb.lo, plb.hi);
   parts.push_back(p);
-  
+
   // left top plane
   plt = plb;
   plt.lo[1] = cllb.pt[1] + LT;
   plt.hi[1] = y1;
   plt.pt[1] = y1 - pad;
-	  
+
   p = make_plane_part(0,1,0,plt.pt);
   set_domain(p, plt.lo, plt.hi);
   parts.push_back(p);
@@ -436,7 +436,7 @@ void manifold_thylakoid::init_domains()
   parts.push_back(p);
 
 
-  
+
   thyla_part_geom::mirror(thyla_part_geom::DIR_X, &prl , &pll );
   p = make_plane_part(1,0,0,prl.pt);
   set_domain(p, prl.lo, prl.hi);
@@ -503,7 +503,7 @@ void manifold_thylakoid::set_domain( thyla_part *p, const std::vector<double> &l
   p->xlo = lo[0];
   p->ylo = lo[1];
   p->zlo = lo[2];
-  
+
   p->xhi = hi[0];
   p->yhi = hi[1];
   p->zhi = hi[2];
@@ -512,13 +512,13 @@ void manifold_thylakoid::set_domain( thyla_part *p, const std::vector<double> &l
 int manifold_thylakoid::is_in_domain( thyla_part *part, const double *x )
 {
   bool domain_ok = (x[0] >= part->xlo) && (x[0] <= part->xhi) &&
-	  (x[1] >= part->ylo) && (x[1] <= part->yhi) &&
-	  (x[2] >= part->zlo) && (x[2] <= part->zhi);
+          (x[1] >= part->ylo) && (x[1] <= part->yhi) &&
+          (x[2] >= part->zlo) && (x[2] <= part->zhi);
 
   if( !domain_ok ) return false;
 
   // From here on out, domain is ok.
-  
+
   if( part->type == thyla_part::THYLA_TYPE_CYL_TO_PLANE ){
 
     double R0 = part->params[1];
@@ -528,8 +528,8 @@ int manifold_thylakoid::is_in_domain( thyla_part *part, const double *x )
     double dist2 = y*y + z*z;
     double RR = R0+R;
     double RR2 = RR*RR;
-    
-    
+
+
     if( dist2 < RR2 ){
       return true;
     }else{

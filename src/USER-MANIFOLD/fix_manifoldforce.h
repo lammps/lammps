@@ -56,7 +56,7 @@ class FixManifoldForce : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
-		
+
 
  private:
   user_manifold::manifold *ptr_m;

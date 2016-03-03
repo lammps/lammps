@@ -20,7 +20,7 @@ namespace user_manifold {
     {
       return (a > 0) - (a < 0);
     }
-	  
+
     virtual double g( const double *x )
     {
       double R = params[0];
@@ -30,7 +30,7 @@ namespace user_manifold {
       double zz = fabs(x[2]);
 
       double rr = pow(xx,q) + pow(yy,q) + pow(zz,q);
-      
+
       return rr - pow(R,q);
     }
 
@@ -45,14 +45,14 @@ namespace user_manifold {
       nn[1] = q * my_sign(x[1])*pow(yy,q-1);
       nn[2] = q * my_sign(x[2])*pow(zz,q-1);
     }
-	  
+
     static const char* type(){ return "supersphere"; }
     virtual const char *id(){ return type(); }
     static int expected_argc(){ return NPARAMS; }
-    virtual int nparams(){ return NPARAMS; }  
+    virtual int nparams(){ return NPARAMS; }
   };
 }
 
 }
 
-#endif 
+#endif

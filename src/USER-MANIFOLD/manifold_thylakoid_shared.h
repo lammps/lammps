@@ -34,7 +34,7 @@ namespace user_manifold {
 
     int err_flag;
     tagint a_id;
-    
+
     double xlo, xhi, ylo, yhi, zlo, zhi;
     double x0, y0, z0;
 
@@ -50,7 +50,7 @@ namespace user_manifold {
     enum DIRS { DIR_X, DIR_Y, DIR_Z };
     static void mirror( unsigned int axis, thyla_part_geom *m,
                         const thyla_part_geom *o );
-	  
+
   }; // struct thyla_part_geom
 
 

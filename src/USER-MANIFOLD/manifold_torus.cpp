@@ -2,8 +2,10 @@
 #include <math.h>
 
 using namespace LAMMPS_NS;
+using namespace user_manifold;
 
-manifold_torus::manifold_torus( LAMMPS *lmp, int argc, char **argv ) : Pointers(lmp)
+
+manifold_torus::manifold_torus( LAMMPS *lmp, int argc, char **argv ) : manifold(lmp)
 {}
 
 

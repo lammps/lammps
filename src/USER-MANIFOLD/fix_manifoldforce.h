@@ -59,7 +59,7 @@ class FixManifoldForce : public Fix {
 		
 
  private:
-  manifold *ptr_m;
+  user_manifold::manifold *ptr_m;
 
   // Stuff to store the parameters in.
   int nvars; // # of args after manifold name.

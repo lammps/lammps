@@ -2,7 +2,9 @@
 
 using namespace LAMMPS_NS;
 
-manifold_ellipsoid::manifold_ellipsoid( LAMMPS *lmp, int narg, char **argv ) : Pointers(lmp)
+using namespace user_manifold;
+
+manifold_ellipsoid::manifold_ellipsoid( LAMMPS *lmp, int narg, char **argv ) : manifold(lmp)
 {}
 
 

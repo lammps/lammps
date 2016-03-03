@@ -4,10 +4,12 @@
 #include "manifold.h"
 
 
-
 namespace LAMMPS_NS {
+
+namespace user_manifold {
+
   // A dendritic spine approximation:
-  class manifold_spine : public manifold, protected Pointers {
+  class manifold_spine : public manifold {
    public:
     enum { NPARAMS = 5 }; // Number of parameters.
     manifold_spine( LAMMPS *lmp, int, char ** );
@@ -23,6 +25,7 @@ namespace LAMMPS_NS {
   };
 }
 
+}
 
 
 #endif // LMP_MANIFOLD_SPINE_H

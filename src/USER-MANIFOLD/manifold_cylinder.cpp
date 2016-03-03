@@ -2,6 +2,14 @@
 
 using namespace LAMMPS_NS;
 
+using namespace user_manifold;
+
+
+manifold_cylinder::manifold_cylinder( LAMMPS *lmp, int argc,
+                                      char **argv ) : manifold(lmp)
+{}
+
+
 double manifold_cylinder::g( const double *x )
 {
   double R = params[0];
@@ -17,6 +25,3 @@ void manifold_cylinder::n( const double *x, double *n )
 }
 
 
-manifold_cylinder::manifold_cylinder( LAMMPS *lmp, int argc,
-                                      char **argv ) : Pointers(lmp)
-{}

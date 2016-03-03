@@ -16,6 +16,8 @@
 
 namespace LAMMPS_NS {
 
+namespace user_manifold {
+
 
   // The thylakoid is composed of many parts
   struct thyla_part {
@@ -69,6 +71,7 @@ inline double sign( const double x )
   return (x > 0.0) ? 1.0 : -1.0;
 }
 
+}
 
 
 #endif // MANIFOLD_THYLAKOID_SHARED_H

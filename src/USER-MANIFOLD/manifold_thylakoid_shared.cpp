@@ -2,7 +2,7 @@
 
 using namespace LAMMPS_NS;
 
-
+using namespace user_manifold;
 
 
 thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double zlo,

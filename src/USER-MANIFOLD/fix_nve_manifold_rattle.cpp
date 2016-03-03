@@ -56,6 +56,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace user_manifold;
 
 
 enum { CONST, EQUAL }; // For treating the variables.

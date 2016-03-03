@@ -44,10 +44,12 @@
 #include "lmptype.h"
 
 namespace LAMMPS_NS {
+namespace user_manifold {
+
   // Abstract base class.
-  class manifold {
+  class manifold : protected Pointers {
    public:
-    manifold() : params(NULL){ }
+    manifold(class LAMMPS* lmp) : Pointers(lmp), params(NULL){ }
     virtual ~manifold(){ delete[] params; }
     virtual double g( const double * ) = 0;
     virtual void   n( const double *, double * ) = 0;
@@ -95,7 +97,7 @@ namespace LAMMPS_NS {
 
 } // namespace LAMMPS_NS
 
-
+}
 
 
 #endif // LMP_MANIFOLD_H

@@ -2,8 +2,10 @@
 
 using namespace LAMMPS_NS;
 
+using namespace user_manifold;
+
 manifold_plane::manifold_plane( LAMMPS *lmp, int argc, char **argv ) :
-	Pointers(lmp)
+  manifold(lmp)
 {}
 
 double manifold_plane::g( const double *x )

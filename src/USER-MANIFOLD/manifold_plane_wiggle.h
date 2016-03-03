@@ -5,8 +5,11 @@
 
 
 namespace LAMMPS_NS {
+
+namespace user_manifold {
+
   // A 2D wiggly/wave-y plane (Like z = A cos(kx))
-  class manifold_plane_wiggle : public manifold, protected Pointers {
+  class manifold_plane_wiggle : public manifold {
    public:
     enum { NPARAMS = 2 }; // Number of parameters.
     manifold_plane_wiggle( LAMMPS *lmp, int, char ** );
@@ -20,6 +23,6 @@ namespace LAMMPS_NS {
   };
 }
 
-
+}
 
 #endif // LMP_MANIFOLD_PLANE_WIGGLE_H

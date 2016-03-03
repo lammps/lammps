@@ -4,11 +4,15 @@
 #include "manifold.h"
 
 namespace LAMMPS_NS {
+
+
+namespace user_manifold {
+
   // A sphere:
-  class manifold_supersphere : public manifold, protected Pointers {
+  class manifold_supersphere : public manifold {
    public:
     enum { NPARAMS = 2 };
-    manifold_supersphere( LAMMPS *lmp, int, char ** ) : Pointers(lmp){}
+    manifold_supersphere( LAMMPS *lmp, int, char ** ) : manifold(lmp){}
 
     virtual ~manifold_supersphere(){}
 
@@ -49,6 +53,6 @@ namespace LAMMPS_NS {
   };
 }
 
-
+}
 
 #endif 

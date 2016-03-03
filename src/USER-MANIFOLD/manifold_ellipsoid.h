@@ -5,8 +5,10 @@
 
 
 namespace LAMMPS_NS {
+
+namespace user_manifold {
   // An ellipsoid:
-  class manifold_ellipsoid : public manifold, protected Pointers {
+  class manifold_ellipsoid : public manifold {
    public:
     enum { NPARAMS = 3 };
     manifold_ellipsoid( LAMMPS *lmp, int, char ** );
@@ -21,6 +23,6 @@ namespace LAMMPS_NS {
   };
 }
 
-
+}
 
 #endif // LMP_MANIFOLD_ELLIPSOID_H

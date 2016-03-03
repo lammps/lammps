@@ -37,30 +37,6 @@
 
 
 #include "manifold.h"
-#include "pointers.h"
-
-#include <string>
-#include <map>
-
-
-#include "manifold_cylinder.h"
-#include "manifold_cylinder_dent.h"
-#include "manifold_dumbbell.h"
-#include "manifold_ellipsoid.h"
-#include "manifold_plane.h"
-#include "manifold_plane_wiggle.h"
-#include "manifold_sphere.h"
-#include "manifold_supersphere.h"
-#include "manifold_spine.h"
-#include "manifold_spine_opt.h"
-#include "manifold_thylakoid.h"
-#include "manifold_torus.h"
-
-
-inline int str_eql(const char *s1, const char *s2)
-{
-  return strcmp(s1,s2) == 0;
-}
 
 /*
  * Defining USE_PHONY_LAMMPS makes sure that none of the LAMMPS classes are
@@ -104,17 +80,13 @@ static FILE *screen = fopen("/dev/stdout","w");
 
 
 
-// Macro to simplify the fix_impl creation:
-#define RETURN_MANIFOLD_IF(MNAME, MANIFOLD_TYPE) \
-  do { \
-    using namespace LAMMPS_NS; \
-    if( strcmp( MNAME, MANIFOLD_TYPE::type() ) == 0 ) {\
-      return new MANIFOLD_TYPE(lmp,narg,arg); \
-    } \
-  }while(0)
+/* Here the actual implementation of LAMMPS-related functions begins. */
 
 namespace LAMMPS_NS {
 
+namespace user_manifold {
+
+  // Templated, so needs to be in header.
   template <typename m_type>
   void make_manifold_if( manifold **man_ptr, const char *name,
                          LAMMPS *lmp, int narg, char **arg )
@@ -125,28 +97,11 @@ namespace LAMMPS_NS {
       }
     }
   }
-  
-  inline manifold* create_manifold(const char *mname, LAMMPS *lmp,
-                                   int narg, char **arg )
-  {
-    using namespace LAMMPS_NS;
-    manifold *man = NULL;
-    make_manifold_if<manifold_cylinder>     ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_cylinder_dent>( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_dumbbell>     ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_ellipsoid>    ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_plane>        ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_plane_wiggle> ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_sphere>       ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_supersphere>  ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_spine>        ( &man, mname, lmp, narg, arg );
-    // make_manifold_if<manifold_spine_opt>    ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_thylakoid>    ( &man, mname, lmp, narg, arg );
-    make_manifold_if<manifold_torus>        ( &man, mname, lmp, narg, arg );
 
-    
-    return man;
-  }
+  manifold* create_manifold(const char *, LAMMPS *,
+                            int , char ** );
+  
+} // namespace user_manifold
 
 } // namespace LAMMPS_NS
 

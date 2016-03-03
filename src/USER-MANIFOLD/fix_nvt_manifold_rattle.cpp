@@ -56,7 +56,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
+using namespace user_manifold;
 
 enum {CONSTANT,EQUAL};
 enum {NOBIAS,BIAS};

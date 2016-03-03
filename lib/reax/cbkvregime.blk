@@ -1,7 +1,0 @@
-      character*5 qvtype             
-      common
-     $/cbkvregime/ ivsca(mvreg,mvzone),dvvreg(mvreg,mvzone),
-     $             nnvreg(mvreg),invrc,nitvc(mvreg),
-     $             qvtype(mvreg,mvzone)
-
-

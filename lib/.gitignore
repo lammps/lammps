@@ -1,0 +1,5 @@
+*.o
+*.a
+*.mod
+obj_mingw*
+Makefile.lammps

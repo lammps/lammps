@@ -1,15 +1,14 @@
-#CUDA_HOME = $(HOME)/cuda-4.0
-CUDA_HOME = $(HOME)/cuda
-NVCC  = $(CUDA_HOME)/bin/nvcc 
+NVCC  = $(CUDA_HOME)/bin/nvcc #-ccbin /opt/gcc-34/bin
+EXTRAMAKE = Makefile.lammps.cuda
 
-CUDA_ARCH = -arch=sm_20
-CUDA_PRECISION = -D_SINGLE_DOUBLE
+CUDA_ARCH = -arch=sm_35
+CUDA_PRECISION = -D_DOUBLE_DOUBLE
 CUDA_INCLUDE = -I$(CUDA_HOME)/include 
-CUDA_LIB = -L$(CUDA_HOME)/lib64 -Xlinker -rpath -Xlinker $(CUDA_HOME)/lib64
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math 
+CUDA_LIB = -L$(CUDA_HOME)/lib64 -Xlinker -rpath -Xlinker $(CUDA_HOME)/lib64 -lcudart
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math --ftz=true 
 
 CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -I$(CUDA_HOME)/include 
-CUDR_OPTS = -O3 -ffast-math -funroll-loops -DMPI_GERYON
+CUDR_OPTS = -O3 -ffast-math -funroll-loops -DMPI_GERYON -DLAMMPS_SMALLBIG
 
 BIN_DIR = .
 OBJ_DIR = obj
@@ -17,7 +16,7 @@ LIB_DIR = .
 AR = ar
 BSH = /bin/sh
 
-CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+CUDPP_OPT = #-DUSE_CUDPP -Icudpp_mini
 
 include Nvidia.makefile
 

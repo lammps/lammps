@@ -1,4 +1,4 @@
-# LAMMPS multiple-machine Makefile
+# LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
 #.IGNORE:
@@ -42,9 +42,9 @@ endif
 # Package variables
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole fld gpu \
-	  granular kim \
-	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
-	  python qeq reax replica rigid shock snap srd voronoi xtc
+          granular kim kokkos kspace manybody mc meam misc molecule mpiio \
+          opt peri poems python qeq replica rigid shock snap srd \
+          voronoi xtc
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars user-cuda \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
@@ -53,9 +53,9 @@ PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars user-cuda \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-vtk
 
-PACKLIB = compress gpu kim kokkos meam poems python reax voronoi \
-	  user-atc user-awpmd user-colvars user-cuda user-h5md user-molfile \
-	  user-qmmm user-quip user-vtk
+PACKLIB = compress gpu kim kokkos meam mpiio poems python voronoi \
+	  user-atc user-awpmd user-colvars user-cuda user-h5md user-intel \
+	  user-lb user-molfile user-qmmm user-quip user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -146,6 +146,8 @@ help:
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings $(objdir)
+	@cd $(objdir); rm .depend; \
+	$(MAKE) $(MFLAGS) "SRC = $(SRC)" "INC = $(INC)" depend || :
 ifeq ($(mode),exe)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
@@ -179,8 +181,16 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+
 clean-%:
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
+
+test-clean:
+	@cd ../test/; $(MAKE) $(MFLAGS) clean; cd ..
+
+test-%:
+	$(MAKE) $(MFLAGS) $(@:test-%=%)
+	@cd ../test/; $(MAKE) $(MFLAGS) test MACH=$(@:test-%=%) MPICMD="$(MPICMD)" LMPFLAGS="$(LMPFLAGS)" TAG=$(TAG) || exit 1 ; cd ..
 
 # Create Makefile.list
 

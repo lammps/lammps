@@ -1,0 +1,17 @@
+# LAMMPS-ICMS repo for Fedora Linux installations
+
+[lammps-icms]
+name=Fedora $releasever - $basearch - LAMMPS-ICMS
+enabled=1
+gpgcheck=0
+baseurl=http://git.icms.temple.edu/rpm/fedora/$releasever/$basearch/
+gpgkey=http://git.icms.temple.edu/rpm/RPM-GPG-KEY-akohlmey
+
+[lammps-icms-debuginfo]
+name=Fedora $releasever - $basearch - LAMMPS-ICMS - Debug
+enabled=0
+gpgcheck=0
+baseurl=http://git.icms.temple.edu/rpm/fedora/$releasever/$basearch/debug
+gpgkey=http://git.icms.temple.edu/rpm/RPM-GPG-KEY-akohlmey
+
+

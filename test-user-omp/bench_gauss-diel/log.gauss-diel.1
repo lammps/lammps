@@ -1,0 +1,186 @@
+LAMMPS (29 Jan 2012-ICMS)
+  using 1 OpenMP thread(s) per MPI task
+# Ionic surfactant system: S12S
+
+units           lj
+dimension       3
+atom_style      full
+
+read_data       data.gauss-diel
+  1 = max bonds/atom
+  1 = max angles/atom
+  1 = max dihedrals/atom
+  orthogonal box = (-35 -35 -35) to (35 35 35)
+  1 by 1 by 1 MPI processor grid
+  4200 atoms
+  3600 bonds
+  3300 angles
+  3000 dihedrals
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
+
+replicate 2 2 2
+  orthogonal box = (-35 -35 -35) to (105 105 105)
+  1 by 1 by 1 MPI processor grid
+  33600 atoms
+  28800 bonds
+  26400 angles
+  24000 dihedrals
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
+
+pair_style      hybrid/overlay                          lj/cut 3.5                              coul/long 18.0                          gauss/cut 3.4                           coul/diel 2.5
+pair_modify    shift yes
+
+dielectric      0.4255
+kspace_style    pppm/cg 0.00035
+kspace_modify   mesh 25 25 25 order 3
+
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  opls
+
+pair_coeff  1     1     lj/cut           0.5 1.775 3.268        # HG   HG  
+pair_coeff  1     1     coul/long                               # HG   HG  
+pair_coeff  1     1     gauss/cut        0.1 2.549 0.1525           
+pair_coeff  1     2     lj/cut           0.31623 1.5329 1.7206  # HG   CM  
+pair_coeff  1     3     lj/cut           0.31623 1.5329 1.7206  # HG   CT  
+pair_coeff  1     4     lj/cut           0.05 1.75 4.375        # HG   CI  
+pair_coeff  1     4     coul/long                               # HG   CI  
+pair_coeff  1     4     gauss/cut        0.2805 1.45 0.112 
+pair_coeff  1     4     coul/diel        78. 1.375 0.112 
+pair_coeff  2     2     lj/cut           0.2000 1.2910 3.2275   # CM   CM  
+pair_coeff  2     3     lj/cut           0.2000 1.2910 3.2275   # CM   CT  
+pair_coeff  2     4     lj/cut           0.4472 1.1455 1.28585  # CM   CI  
+pair_coeff  3     3     lj/cut           1.95 1.291 3.2275      # CT   CT  
+pair_coeff  3     4     lj/cut           0.4472 1.1455 1.28585  # CT   CI  
+pair_coeff  4     4     lj/cut           1.0 10. 1.12246        # CI   CI 
+pair_coeff  4     4     coul/long                               # CI   CI 
+
+bond_coeff  1      12650.0000   0.7500 # HG CM FROM TOP
+bond_coeff  2      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  3      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  4      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  5      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  6      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  7      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  8      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  9      12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  10     12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  11     12650.0000   0.5000 # CM CM FROM TOP
+bond_coeff  12     12650.0000   0.5000 # CM CT FROM TOP
+
+angle_coeff 1           85.7600 109.5000 # HG CM CM FROM TOP
+angle_coeff 2           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 3           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 4           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 5           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 6           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 7           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 8           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 9           85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 10          85.7600 111.0000 # CM CM CM FROM TOP
+angle_coeff 11          85.7600 111.0000 # CM CM CT FROM TOP
+
+dihedral_coeff 1     5.7431 -2.53241 5.0742 0.0 # HG CM CM CM FROM TOP
+dihedral_coeff 2     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 3     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 4     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 5     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 6     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 7     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 8     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 9     5.7431 -2.53241 5.0742 0.0 # CM CM CM CM FROM TOP
+dihedral_coeff 10    5.7431 -2.53241 5.0742 0.0 # CM CM CM CT FROM TOP
+
+timestep        0.002  
+
+reset_timestep  0
+
+group           cions type 4
+2400 atoms in group cions
+group           sds subtract all cions
+31200 atoms in group sds
+
+velocity        all create 1. 87287 dist gaussian
+
+neighbor        1.5 multi
+neigh_modify    exclude molecule sds
+neigh_modify    every 2 delay 4 check yes
+communicate     multi
+
+fix             1 all nve/limit 0.2
+fix             2 all langevin 1.0 1.0 0.05 18273
+
+thermo_style    multi
+thermo          500
+
+run             2000
+PPPM initialization ...
+  G vector = 0.111328
+  grid = 25 25 25
+  stencil order = 3
+  RMS precision = 0.0003158
+  using single precision FFTs
+  brick FFT buffer size/proc = 21952 15625 4704
+  PPPM/cg optimization cutoff: 1e-05
+  Total charged atoms: 14.3%
+  Min/max charged atoms/proc: 14.3% 14.3%
+Memory usage per processor = 36.2271 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =         9.9404 KinEng   =         1.5000 Temp     =         1.0000 
+PotEng   =         8.4405 E_bond   =         0.0036 E_angle  =         0.1237 
+E_dihed  =         0.3185 E_impro  =         0.0000 E_vdwl   =         8.0100 
+E_coul   =        -0.0116 E_long   =        -0.0036 Press    =         0.4086 
+---------------- Step      500 ----- CPU =     15.8884 (sec) ----------------
+TotEng   =         2.7559 KinEng   =         1.4962 Temp     =         0.9975 
+PotEng   =         1.2598 E_bond   =         0.4631 E_angle  =         0.3939 
+E_dihed  =         0.4074 E_impro  =         0.0000 E_vdwl   =        -0.0026 
+E_coul   =         0.0014 E_long   =        -0.0034 Press    =        -0.0002 
+---------------- Step     1000 ----- CPU =     31.7430 (sec) ----------------
+TotEng   =         2.7930 KinEng   =         1.5073 Temp     =         1.0049 
+PotEng   =         1.2858 E_bond   =         0.4683 E_angle  =         0.3887 
+E_dihed  =         0.4343 E_impro  =         0.0000 E_vdwl   =        -0.0031 
+E_coul   =         0.0011 E_long   =        -0.0035 Press    =        -0.0002 
+---------------- Step     1500 ----- CPU =     46.6686 (sec) ----------------
+TotEng   =         2.8272 KinEng   =         1.5048 Temp     =         1.0032 
+PotEng   =         1.3224 E_bond   =         0.4726 E_angle  =         0.3969 
+E_dihed  =         0.4598 E_impro  =         0.0000 E_vdwl   =        -0.0040 
+E_coul   =         0.0006 E_long   =        -0.0035 Press    =        -0.0011 
+---------------- Step     2000 ----- CPU =     61.5981 (sec) ----------------
+TotEng   =         2.8311 KinEng   =         1.5020 Temp     =         1.0013 
+PotEng   =         1.3291 E_bond   =         0.4641 E_angle  =         0.3899 
+E_dihed  =         0.4828 E_impro  =         0.0000 E_vdwl   =        -0.0044 
+E_coul   =         0.0002 E_long   =        -0.0035 Press    =         0.0002 
+Loop time of 61.5982 on 1 procs (1 MPI x 1 OpenMP) for 2000 steps with 33600 atoms
+
+Section |  min time  |  avg time  |  max time  |%total |  #Thr
+--------------------------------------------------------------
+Pair    | 15.49      | 15.49      | 15.49      | 25.15 |  1.0x
+Bond    | 29.09      | 29.09      | 29.09      | 47.23 |  1.0x
+Kspace  | 7.604      | 7.604      | 7.604      | 12.34 |  1.0x
+Neigh   | 3.961      | 3.961      | 3.961      |  6.43 |  1.0x
+Comm    | 0.2721     | 0.2721     | 0.2721     |  0.44 |  1.0x
+Output  | 0.0006061  | 0.0006061  | 0.0006061  |  0.00 |  1.0x
+Modify  | 4.888      | 4.888      | 4.888      |  7.93 |  1.0x
+Other   |            | 0.2888     |            |  0.47 |
+
+FFT time (% of Kspce) = 4.25043 (55.9006)
+FFT Gflps 3d (1d only) = 1.41995 1.88468
+
+Nlocal:    33600 ave 33600 max 33600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    9511 ave 9511 max 9511 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    201205 ave 201205 max 201205 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 201205
+Ave neighs/atom = 5.98824
+Ave special neighs/atom = 4.71429
+Neighbor list builds = 23
+Dangerous builds = 1

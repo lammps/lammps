@@ -1,0 +1,6 @@
+
+timer	off
+
+read_data empty-orth.data
+
+info	all

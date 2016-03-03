@@ -2142,9 +2142,9 @@ bigint Atom::memory_usage()
   memory->destroy(memstr);
 
   bytes += max_same*sizeof(int);
-  if (map_style == 1)
+  if (map_style == 1 && map_tag_max >= 0)
     bytes += memory->usage(map_array,map_maxarray);
-  else if (map_style == 2) {
+  else if (map_style == 2 && map_nhash >=0) {
     bytes += map_nbucket*sizeof(int);
     bytes += map_nhash*sizeof(HashElem);
   }

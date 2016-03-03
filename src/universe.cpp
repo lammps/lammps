@@ -34,7 +34,7 @@ static char *date2num(const char *version);
 
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
-  version = (const char *) LAMMPS_VERSION;
+  version = (const char *) LAMMPS_VERSION "-ICMS";
   num_ver = date2num(version);
 
   uworld = uorig = communicator;

@@ -34,9 +34,11 @@ class ComputeTempCOM : public Compute {
   void compute_vector();
 
   void remove_bias(int, double *);
+  void remove_bias_thr(int, double *, double *);
   void remove_bias_all();
   void restore_bias(int, double *);
   void restore_bias_all();
+  void restore_bias_thr(int, double *, double *);
 
  private:
   double tfactor,masstotal;

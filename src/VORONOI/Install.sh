@@ -33,11 +33,10 @@ done
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*voronoi[^ \t]* //' ../Makefile.package
-    sed -i -e 's/[^ \t]*voro++[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/voronoi/includelink |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/voronoi/liblink |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-lvoro++ |' ../Makefile.package
+    sed -i -e 's/[^ \t]*voronoi[^ \t]* //g' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/voronoi/src |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/voronoi$(LIBOBJDIR) |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-lvoronoi |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(voronoi_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(voronoi_SYSLIB) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(voronoi_SYSPATH) |' ../Makefile.package
@@ -54,8 +53,7 @@ include ..\/..\/lib\/voronoi\/Makefile.lammps
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*voronoi[^ \t]* //' ../Makefile.package
-    sed -i -e 's/[^ \t]*voro++[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*voronoi[^ \t]* //g' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

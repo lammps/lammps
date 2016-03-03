@@ -39,6 +39,19 @@
 
 using namespace LAMMPS_NS;
 
+template<class ViewA, class ViewB>
+struct ForceAdder {
+  ViewA a;
+  ViewB b;
+  ForceAdder(const ViewA& a_, const ViewB& b_):a(a_),b(b_) {}
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int& i) const {
+    a(i,0) += b(i,0);
+    a(i,1) += b(i,1);
+    a(i,2) += b(i,2);
+  }
+};
+
 /* ---------------------------------------------------------------------- */
 
 VerletKokkos::VerletKokkos(LAMMPS *lmp, int narg, char **arg) :
@@ -55,9 +68,10 @@ void VerletKokkos::setup()
 {
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up Verlet run ...\n");
-    fprintf(screen,"  Unit style  : %s\n", update->unit_style);
-    fprintf(screen,"  Current step: " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(screen,"  Time step   : %g\n", update->dt);
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  Time step     : %g\n", update->dt);
+    timer->print_timeout(screen);
   }
 
   update->setupflag = 1;
@@ -278,13 +292,20 @@ void VerletKokkos::run(int n)
   if (atomKK->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 
+  f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
+
   static double time = 0.0;
   static int count = 0;
   atomKK->sync(Device,ALL_MASK);
   Kokkos::Impl::Timer ktimer;
 
+  timer->init_timeout();
   for (int i = 0; i < n; i++) {
 
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
 
@@ -359,53 +380,140 @@ void VerletKokkos::run(int n)
 
     timer->stamp();
 
-    // added for debug
-    //atomKK->k_x.sync<LMPHostType>();
-    //atomKK->k_f.sync<LMPHostType>();
-    //atomKK->k_f.modify<LMPHostType>();
     if (n_pre_force) {
       modify->pre_force(vflag);
       timer->stamp(Timer::MODIFY);
+    }
+
+    bool execute_on_host = false;
+    unsigned int datamask_read_device = 0;
+    unsigned int datamask_modify_device = 0;
+    unsigned int datamask_read_host = 0;
+    unsigned int datamask_modify_host = 0;
+
+    if ( pair_compute_flag ) {
+      if (force->pair->execution_space==Host) {
+        execute_on_host  = true;
+        datamask_read_host   |= force->pair->datamask_read;
+        datamask_modify_device |= force->pair->datamask_modify;
+      } else {
+        datamask_read_device   |= force->pair->datamask_read;
+        datamask_modify_device |= force->pair->datamask_modify;
+      }
+    }
+    if ( atomKK->molecular && force->bond )  {
+      if (force->bond->execution_space==Host) {
+        execute_on_host  = true;
+        datamask_read_host   |= force->bond->datamask_read;
+        datamask_modify_device |= force->bond->datamask_modify;
+      } else {
+        datamask_read_device   |= force->bond->datamask_read;
+        datamask_modify_device |= force->bond->datamask_modify;
+      }
+    }
+    if ( atomKK->molecular && force->angle ) {
+      if (force->angle->execution_space==Host) {
+        execute_on_host  = true;
+        datamask_read_host   |= force->angle->datamask_read;
+        datamask_modify_device |= force->angle->datamask_modify;
+      } else {
+        datamask_read_device   |= force->angle->datamask_read;
+        datamask_modify_device |= force->angle->datamask_modify;
+      }
+    }
+    if ( atomKK->molecular && force->dihedral ) {
+      if (force->dihedral->execution_space==Host) {
+        execute_on_host  = true;
+        datamask_read_host   |= force->dihedral->datamask_read;
+        datamask_modify_device |= force->dihedral->datamask_modify;
+      } else {
+        datamask_read_device   |= force->dihedral->datamask_read;
+        datamask_modify_device |= force->dihedral->datamask_modify;
+      }
+    }
+    if ( atomKK->molecular && force->improper ) {
+      if (force->improper->execution_space==Host) {
+        execute_on_host  = true;
+        datamask_read_host   |= force->improper->datamask_read;
+        datamask_modify_device |= force->improper->datamask_modify;
+      } else {
+        datamask_read_device   |= force->improper->datamask_read;
+        datamask_modify_device |= force->improper->datamask_modify;
+      }
+    }
+    if ( kspace_compute_flag ) {
+      if (force->kspace->execution_space==Host) {
+        execute_on_host  = true;
+        datamask_read_host   |= force->kspace->datamask_read;
+        datamask_modify_device |= force->kspace->datamask_modify;
+      } else {
+        datamask_read_device   |= force->kspace->datamask_read;
+        datamask_modify_device |= force->kspace->datamask_modify;
+      }
     }
 
 
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
+      atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      Kokkos::Impl::Timer ktimer;
       force->pair->compute(eflag,vflag);
       timer->stamp(Timer::PAIR);
     }
 
+      if(execute_on_host) {
+        if(pair_compute_flag && force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
+          Kokkos::fence();
+        atomKK->sync_overlapping_device(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        if(pair_compute_flag && force->pair->execution_space!=Host) {
+          Kokkos::deep_copy(LMPHostType(),atomKK->k_f.h_view,0.0);
+        }
+    }
+
     if (atomKK->molecular) {
       if (force->bond) {
-        atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
-        atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
+        atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->bond->compute(eflag,vflag);
       }
       if (force->angle) {
-        atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
-        atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
+        atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->angle->compute(eflag,vflag);
       }
       if (force->dihedral) {
-        atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
-        atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
+        atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->dihedral->compute(eflag,vflag);
       }
       if (force->improper) {
-        atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
-        atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
+        atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+        atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
         force->improper->compute(eflag,vflag);
       }
       timer->stamp(Timer::BOND);
     }
 
     if (kspace_compute_flag) {
-      atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
-      atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
+      atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
     }
+
+    if(execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
+      if(f_merge_copy.dimension_0()<atomKK->k_f.dimension_0()) {
+        f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
+      }
+      f = atomKK->k_f.d_view;
+      Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
+      Kokkos::parallel_for(atomKK->k_f.dimension_0(),
+        ForceAdder<DAT::t_f_array,DAT::t_f_array>(atomKK->k_f.d_view,f_merge_copy));
+      atomKK->k_f.template modify<LMPDeviceType>();
+    }
+
 
     // reverse communication of forces
 
@@ -414,14 +522,10 @@ void VerletKokkos::run(int n)
 
     // force modifications, final time integration, diagnostics
 
-    ktimer.reset();
-
     if (n_post_force) modify->post_force(vflag);
     modify->final_integrate();
     if (n_end_of_step) modify->end_of_step();
     timer->stamp(Timer::MODIFY);
-
-    time += ktimer.seconds();
 
     // all output
 
@@ -506,3 +610,5 @@ void VerletKokkos::force_clear()
     }
   }
 }
+
+

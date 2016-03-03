@@ -35,7 +35,7 @@ if (test $1 = 1) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*poems[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/poems |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/poems |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/poems$(LIBOBJDIR) |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lpoems |' ../Makefile.package
   fi
 

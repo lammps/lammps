@@ -1,0 +1,113 @@
+LAMMPS (2 Mar 2012-ICMS)
+  using 1 OpenMP thread(s) per MPI task
+# SPC/E water box benchmark
+
+units		real	
+atom_style	full
+
+read_data	data.spce
+  2 = max bonds/atom
+  1 = max angles/atom
+  orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
+  2 by 2 by 1 MPI processor grid
+  4500 atoms
+  3000 bonds
+  1500 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+replicate	2 4 1
+  orthogonal box = (0.02645 0.02645 0.02641) to (71.0392 142.052 35.4736)
+  1 by 4 by 1 MPI processor grid
+  36000 atoms
+  24000 bonds
+  12000 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+pair_style	lj/cut/coul/long 12.0 18.0
+kspace_style	ewald 1.0e-4
+
+pair_coeff	1 1 0.15535 3.166
+pair_coeff	* 2 0.0000 0.0000	
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 0.5
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+neighbor        2.5 bin
+neigh_modify	every 1 delay 10 check yes one 10000
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  12000 = # of frozen angles
+fix		2 all nvt temp 300.0 300.0 100.0
+
+velocity	all create 300 432567 dist uniform
+
+timestep	2.0
+
+thermo_style    one
+thermo		10
+
+run		100
+Ewald initialization ...
+  G vector (1/distnace) = 0.139285
+  estimated absolute RMS force accuracy = 0.0332064
+  estimated relative force accuracy = 0.0001
+  KSpace vectors: actual max1d max3d = 1852 15 14895
+Memory usage per processor = 115.225 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300   -133538.78            0   -112077.84   -1011.8214 
+      10    225.03379   -137764.56            0   -121666.44   -2851.4264 
+      20    226.74169   -137660.32            0   -121440.02   -2751.8271 
+      30    236.66155   -138111.34            0   -121181.41   -1811.2831 
+      40    246.33455   -138522.65            0   -120900.75   -1251.2478 
+      50    256.43346   -138948.53            0   -120604.19   -1031.7078 
+      60    255.25835   -138562.47            0   -120302.19   -625.50864 
+      70    259.78152   -138581.44            0   -119997.59   -582.71844 
+      80    263.61517   -138549.77            0   -119691.67   -512.66694 
+      90    263.83722   -138258.31            0   -119384.33    -444.9219 
+     100    265.59126   -138080.13            0   -119080.68   -435.13406 
+Loop time of 66.3557 on 4 procs (4 MPI x 1 OpenMP) for 100 steps with 36000 atoms
+Performance: 0.260 ns/day  92.161 hours/ns  1.507 timesteps/s
+
+Section |  min time  |  avg time  |  max time  |%total |  #Thr
+--------------------------------------------------------------
+Pair    | 41.379     | 42.307     | 43.199     | 63.76 |  1.0x
+Bond    | 0.00018096 | 0.00020236 | 0.00022078 |  0.00 |  1.0x
+Kspace  | 18.432     | 19.261     | 20.162     | 29.03 |  1.0x
+Neigh   | 3.9932     | 4.1039     | 4.2136     |  6.18 |  1.0x
+Comm    | 0.19133    | 0.36598    | 0.53146    |  0.55 |  1.0x
+Output  | 0.00077677 | 0.00085443 | 0.00096583 |  0.00 |  1.0x
+Modify  | 0.27288    | 0.27302    | 0.27319    |  0.41 |  1.0x
+Other   |            | 0.04437    |            |  0.07 |
+
+Nlocal:    9000 ave 9005 max 8993 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Nghost:    57003.8 ave 57036 max 56960 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+Neighs:    1.63472e+07 ave 1.64744e+07 max 1.62268e+07 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 65388682
+Ave neighs/atom = 1816.35
+Ave special neighs/atom = 2
+Neighbor list builds = 7
+Dangerous builds = 0

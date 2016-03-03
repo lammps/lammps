@@ -65,19 +65,19 @@ class AngleHarmonicKokkos : public AngleHarmonic {
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_2d anglelist;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  typename ArrayTypes<DeviceType>::tdual_efloat_1d k_eatom;
+  typename ArrayTypes<DeviceType>::tdual_virial_array k_vatom;
+  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
+  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  DAT::tdual_ffloat_1d k_k;
-  DAT::tdual_ffloat_1d k_theta0;
+  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k;
+  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_theta0;
 
-  DAT::t_ffloat_1d d_k;
-  DAT::t_ffloat_1d d_theta0;
+  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k;
+  typename ArrayTypes<DeviceType>::t_ffloat_1d d_theta0;
 
   virtual void allocate();
 };

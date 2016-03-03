@@ -47,8 +47,6 @@ qmmm	      quantum mechanics/molecular mechanics coupling interface
                 from Axel Kohlmeyer (Temple U)
 quip          interface to QUIP/libAtoms framework, USER-QUIP package
                 from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
-reax          ReaxFF potential, REAX package
-	        from Adri van Duin (Penn State) and Aidan Thompson (Sandia)
 smd           hooks to Eigen library, used by USER-SMD package
                 from Georg Ganzenmueller (Ernst Mach Institute, Germany)
 voronoi       hooks to the Voro++ library, used by compute voronoi/atom command

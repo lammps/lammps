@@ -1,0 +1,26 @@
+
+units		lj
+neighbor	0.4 bin
+neigh_modify	every 1 delay 1 check yes
+atom_style	atomic
+
+special_bonds lj/coul 1.0 1.0 1.0
+
+read_data       data.dpd
+
+timestep	0.02
+comm_modify vel yes
+
+#set DPD pair coefficients
+pair_style dpd 1.0 3.0 34387
+pair_coeff 1 1 78.0 4.5 1.0 
+pair_coeff 1 2 50.0 4.5 1.0 
+pair_coeff 2 2 78.0 4.5 1.0
+
+fix		3 all nve
+
+thermo_style 	custom step temp etotal evdwl
+thermo          100
+run             2000
+
+

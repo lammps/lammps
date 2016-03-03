@@ -21,7 +21,7 @@ CUDR_CPP = mpic++ -m64
 CUDR_OPTS = -O2 -g
 
 BIN_DIR = ./
-OBJ_DIR = ./
+OBJ_DIR = ./obj
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh

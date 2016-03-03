@@ -598,3 +598,4 @@ void NeighborKokkos::build_topology_kokkos() {
 // include to trigger instantiation of templated functions
 
 #include "neigh_full_kokkos.h"
+

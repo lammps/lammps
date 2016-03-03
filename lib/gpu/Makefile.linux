@@ -37,7 +37,7 @@ CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
 CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias
 
 BIN_DIR = ./
-OBJ_DIR = ./
+OBJ_DIR = ./obj
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh

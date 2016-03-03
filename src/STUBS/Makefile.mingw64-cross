@@ -16,7 +16,7 @@ OBJ = 		$(SRC:%.c=%_mingw64.o)
 # System-specific settings
 
 CC =	        x86_64-w64-mingw32-gcc
-CCFLAGS =	-O2 -Wall -march=core2 -mtune=core2 -msse2 -mpc64
+CCFLAGS =	-O2 -Wall -march=core2 -mtune=core2 -msse2 -mpc64 -I.
 ARCHIVE =	x86_64-w64-mingw32-ar
 ARCHFLAG =	rs
 

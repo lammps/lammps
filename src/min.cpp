@@ -185,7 +185,8 @@ void Min::setup()
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up %s style minimization ...\n",
             update->minimize_style);
-    fprintf(screen,"  Unit style: %s\n", update->unit_style);
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    timer->print_timeout(screen);
   }
   update->setupflag = 1;
 
@@ -395,7 +396,7 @@ void Min::run(int n)
   // add ntimestep to all computes that store invocation times
   //   since are hardwiring call to thermo/dumps and computes may not be ready
 
-  if (stop_condition) {
+  if (stop_condition != MAXITER) {
     update->nsteps = niter;
 
     if (update->restrict_output == 0) {
@@ -791,6 +792,7 @@ char *Min::stopstrings(int n)
                            "forces are zero",
                            "quadratic factors are zero",
                            "trust region too small",
-                           "HFTN minimizer error"};
+                           "HFTN minimizer error",
+                           "walltime limit reached"};
   return (char *) strings[n];
 }

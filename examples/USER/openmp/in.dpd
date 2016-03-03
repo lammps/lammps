@@ -1,0 +1,56 @@
+
+units		lj
+neighbor	2.5 bin
+neigh_modify	every 1 delay 0 check yes page 2000000
+atom_style	atomic
+
+pair_style	soft 1.12246
+special_bonds lj/coul 1.0 1.0 1.0
+
+read_data       data.dpd
+
+variable        prefactor equal 1.0+elapsed*(60.0-1.0)/1000
+pair_coeff	* * 0.0 1.12246
+
+# start with all velocities = 0
+velocity	all zero linear
+
+timestep	0.02
+comm_modify vel yes
+#communicate single vel yes
+
+# integration ensemble
+fix		1 all nve
+# thermostat
+fix		2 all temp/rescale 1 0.0 1.0 0.01 1.0
+# grow soft interaction potential
+fix             3 all adapt 1 pair soft a * * v_prefactor
+
+# output thermodynamic data
+thermo_style 	custom step temp etotal evdwl v_prefactor
+thermo 	        100 	
+
+run		1000
+unfix           1
+unfix           2
+unfix           3
+variable	prefactor equal 60.0
+reset_timestep  0
+
+#----------------------------------------------------------------------------#
+
+#set DPD pair coefficients
+pair_style dpd 1.0 3.0 34387
+pair_coeff 1 1 78.0 4.5 1.0 
+pair_coeff 1 2 50.0 4.5 1.0 
+pair_coeff 2 2 78.0 4.5 1.0
+
+fix		3 all nve
+
+thermo_style 	custom step temp etotal evdwl
+thermo          100
+run             2000
+
+
+
+

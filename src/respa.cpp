@@ -395,6 +395,7 @@ void Respa::setup()
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
     fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
     fprintf(screen,"  OuterTime step: %g\n", update->dt);
+    timer->print_timeout(screen);
   }
 
   update->setupflag = 1;
@@ -549,6 +550,10 @@ void Respa::run(int n)
   bigint ntimestep;
 
   for (int i = 0; i < n; i++) {
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
 
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
@@ -718,7 +723,7 @@ void Respa::recurse(int ilevel)
     if (modify->n_pre_reverse) {
       modify->pre_reverse(eflag,vflag);
       timer->stamp(Timer::MODIFY);
-   }
+    }
 
     if (newton[ilevel]) {
       comm->reverse_comm();

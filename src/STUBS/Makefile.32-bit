@@ -1,0 +1,40 @@
+# Makefile for MPI stubs - edit this for your platform
+
+SHELL = /bin/sh
+.IGNORE:
+
+# Files
+
+SRC =		mpi.c
+INC =		mpi.h
+
+# Definitions
+
+EXE =		libmpi_32-bit.a
+OBJ = 		$(SRC:%.c=%_32-bit.o)
+
+# System-specific settings
+
+CC =	        gcc -m32
+CCFLAGS =	-O2 -Wall -march=i686 -mtune=generic -mfpmath=387 -mpc64 -I.
+ARCHIVE =	ar
+ARCHFLAG =	rs
+
+# Target
+
+$(EXE):	$(OBJ)
+	$(ARCHIVE) $(ARCHFLAG) $(EXE) $(OBJ)
+
+# Clean
+
+clean:
+	rm *.o libmpi.a $(EXE) $(OBJ)
+
+# Compilation rules
+
+%_32-bit.o: %.c
+	$(CC) $(CCFLAGS) -c $< -o $@
+
+# Individual dependencies
+
+$(OBJ):	$(INC)

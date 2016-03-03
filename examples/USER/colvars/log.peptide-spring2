@@ -1,5 +1,5 @@
-LAMMPS (20 Mar 2014-ICMS)
-WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:100)
+LAMMPS (5 Nov 2014-ICMS)
+WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide
 
@@ -67,8 +67,8 @@ fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
   3 = # of size 4 clusters
   640 = # of frozen angles
 
-dump		1 colvar custom 1 dump.spring2.lammpstrj id xu yu zu fx fy fz
-dump_modify 1  sort id
+#dump		1 colvar custom 1 dump.spring2.lammpstrj id xu yu zu fx fy fz
+#dump_modify 1  sort id
 
 thermo_style	custom step temp etotal pe ke epair ebond f_3
 thermo		10
@@ -92,7 +92,7 @@ SHAKE stats (type/ave/delta) on step 0
   14 0.96 0
   18 0.957206 4.37979e-05
   31 104.519 0.00396029
-Memory usage per processor = 11.5952 Mbytes
+Memory usage per processor = 14.8025 Mbytes
 Step Temp TotEng PotEng KinEng E_pair E_bond 3 
        0    282.10052    -5237.458   -6372.3766    1134.9186    -6442.768    16.557152    273.74323 
       10    333.47973   -4982.3893   -6324.0116    1341.6223    -6400.417    21.367753    12.393269 
@@ -115,21 +115,21 @@ SHAKE stats (type/ave/delta) on step 100
   31 104.52 0.00239929
      100    260.35617   -5387.2297   -6434.6686    1047.4389   -6534.1956    20.246734  0.075048996 
 
-Loop time of 1.07264 on 2 procs for 100 steps with 2004 atoms
-98.6% CPU use with 2 MPI tasks x 1 OpenMP threads
-Performance: 16.110 ns/day  1.490 hours/ns  93.228 timesteps/s
+Loop time of 1.08261 on 2 procs for 100 steps with 2004 atoms
+99.2% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 15.961 ns/day  1.504 hours/ns  92.369 timesteps/s
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.76647    | 0.77219    | 0.77792    |   0.7 | 71.99
-Bond    | 0.0024974  | 0.0025403  | 0.0025833  |   0.1 |  0.24
-Kspace  | 0.091998   | 0.096921   | 0.10184    |   1.6 |  9.04
-Neigh   | 0.14764    | 0.14765    | 0.14767    |   0.0 | 13.77
-Comm    | 0.018904   | 0.01937    | 0.019835   |   0.3 |  1.81
-Output  | 0.005985   | 0.0067209  | 0.0074568  |   0.9 |  0.63
-Modify  | 0.024529   | 0.024536   | 0.024542   |   0.0 |  2.29
-Other   |            | 0.002705   |            |       |  0.25
+Pair    | 0.78993    | 0.79433    | 0.79873    |   0.5 | 73.37
+Bond    | 0.0024209  | 0.0026361  | 0.0028512  |   0.4 |  0.24
+Kspace  | 0.088027   | 0.092698   | 0.097369   |   1.5 |  8.56
+Neigh   | 0.15101    | 0.15101    | 0.15102    |   0.0 | 13.95
+Comm    | 0.01659    | 0.017051   | 0.017513   |   0.4 |  1.58
+Output  | 0.00024629 | 0.00033844 | 0.00043058 |   0.5 |  0.03
+Modify  | 0.022275   | 0.02228    | 0.022284   |   0.0 |  2.06
+Other   |            | 0.002267   |            |       |  0.21
 
 Nlocal:    1002 ave 1010 max 994 min
 Histogram: 1 0 0 0 0 0 0 0 0 1

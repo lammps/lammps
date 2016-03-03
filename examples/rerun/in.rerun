@@ -1,0 +1,78 @@
+# 3d Lennard-Jones melt
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+dump		id all atom 50 dump.melt
+dump        xyz all xyz 50 dump.xyz
+dump        ele all xyz 50 dump-ele.xyz
+dump_modify ele element H
+
+dump        dcd all dcd 10 dump.dcd
+dump		vel all custom 50 dump.vels id type xu yu zu vx vy vz
+
+thermo		50
+run		250
+
+# reset status and start over
+clear
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+thermo		1
+
+run 0 
+read_dump dump.xyz 1 x y z box no format xyz
+run 0 pre yes post no
+read_dump dump.melt 50 x y z box yes format native
+run 0 pre yes post no
+rerun dump.xyz dump x y z box no format xyz
+rerun dump.melt dump x y z box yes format native
+read_dump dump.xyz 1 x y z box no format molfile xyz "."
+run 0 pre yes post no
+read_dump dump.melt 1 x y z box yes format molfile lammpstrj
+run 0 pre yes post no
+rerun dump.xyz dump x y z box no format molfile xyz
+rerun dump.dcd dump x y z box no format molfile dcd
+
+read_dump dump-ele.xyz 1 x y z box no format xyz
+run 0 pre yes post no
+rerun dump-ele.xyz dump x y z box no format molfile xyz
+rerun dump.dcd dump x y z box yes format molfile dcd
+
+rerun dump.vels dump x y z vx vy vz box yes format native
+
+rerun dump.vels dump x y z vx vy vz box yes format molfile lammpstrj
+

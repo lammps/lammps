@@ -1,0 +1,239 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>LAMMPS-ICMS Windows Installer Repository</title>
+    <link rel="shortcut icon" href="ICMS_icon.png" type="image/png">
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12573382-3']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
+  </head>
+
+  <body style="font-family: Helvetica,Arial,Verdana, sans-serif; margin-bottom: 2%; margin-top: 2%; margin-left: 5%; margin-right: 5%;">
+    <div style="display: inline; margin-left: 10px; margin-bottom: 5px; border: 5px; border-style: groove; float: right;">
+      <img src="lammpswinlogo.png" border="0" style="" width="300" height="182">
+    </div>
+    <h1>LAMMPS-ICMS Windows Installer Repository</h1>
+    <p align="justify">
+      This repository is hosting pre-compiled Windows installers of the
+      <a href="http://lammps.sandia.gov/" target="_blank">LAMMPS</a>
+      molecular dynamics simulation software package.
+      The binaries are built semi-automaticall with MinGW64 Linux to Windows
+      cross compilers using up-to-date snapshots of the
+      <a href="http://goo.gl/oKYI" target="_blank">LAMMPS-ICMS</a>
+      <a href="http://git.icms.temple.edu/git/" target="_blank">git repository</a>
+      hosted at the <a href="http://www.temple.edu/cst/icms/" target="_blank">
+        Institute for Computational Molecular Science</a> at Temple University.
+
+      The LAMMPS binaries contain <b>all</b> optional packages included in
+      the source distribution <b>except</b>: <u>KIM</u> (license is not GPL compatible),
+      <u>USER-CUDA</u> (CUDA does not support cross compilation),
+      <u>KOKKOS</u> and <u>USER-INTEL</u> 
+      (do not support cross-compilation with GCC),
+      <u>USER-H5MD</u> (requires external library)
+      <u>PYTHON</u> (requires to bundle a full Python runtime),
+      <u>USER-QMMM</u> (only useful when linking to a QM software),
+      <u>USER-QUIP</u> (requires external library),
+      <u>REAX</u> (superseded by the <u>USER-REAXC</u> package which <b>is</b> included).
+      The <b>serial</b> executable additionally does not contain the
+      <u>MPIIO</u> and <u>USER-LB</u> packages, since those require
+      <i>MPI-IO</i> functions, which are not available without linking
+      to a real MPI library.
+    </p>
+
+    <div style="display: inline; margin-right: 10px; margin-bottom: 5px; border: 5px; float: left;">
+      <img src="opencl_logo_75_75.png" border="0" style="" width="75" height="75">
+    </div>
+    <strong>Some Notes on GPU Support</strong>
+    <div align="justify">
+      These Windows binaries include (experimental on Windows) GPU acceleration
+      via the <u>GPU</u> package.
+      This is achieved through compiling the GPU package in OpenCL mode and linking
+      to an <a href="http://www.khronos.org/opencl/" target="_blank">OpenCL v1.2</a>
+      compatible ICD loader. This means the executables do not contain any vendor
+      provided code and should be compatible with GPUs from both
+      <a href="http://developer.amd.com/resources/heterogeneous-computing/opencl-zone/" target="_blank">AMD</a>
+      and <a href="http://www.nvidia.com/opencl/" target="_blank">Nvidia</a>.
+      The GPU package has been compiled for mixed precision computation and
+      is currently somewhat tuned for Nvidia (Fermi generation) GPUs.
+      It <u>does not yet</u> work with OpenCL drivers for CPUs (like those included
+      in the Intel and AMD OpenCL SDKs).
+      <br>
+      In the case of having multiple Vendor provided OpenCL runtimes installed, you may run into the situation of the "wrong" runtime being set as the default and used by LAMMPS. In this case, you may need to remove unwanted vendors from the windows registry database. Look for the key: <code>HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors</code>, and remove vendors such as Intel. 
+      When reporting problems, please always include the exact
+      <u>version of the installer</u> and the output of the
+      <strong><code>ocl_get_devices</code></strong> tool.
+    </div>
+    <div style="clear:both;"></div>
+    <hr>
+    <div style="background-color: #e8e8f0;">
+      <br>
+      Looking for pre-compiled Linux binary RPMs?
+      They are just a <a href="index.html">mouse click away</a>.<br>
+      <br>
+    </div>
+    <hr width="100%">
+    <h2>Installing LAMMPS on Windows</h2>
+    <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
+      <img src="win-installer-screenshot.png" border="0" style="" width="286" height="196">
+    </div>
+    <div style="background-color: #e8e8f0;">
+      <div align="justify">
+        There are installer packages for 32-bit and 64-bit 
+        versions of Windows available.
+        <ul>
+          <li><a href="windows/32bit/lammps-32bit-latest.exe">Latest version for 32-bit Windows</a> 
+            &nbsp; / &nbsp; <a href="windows/32bit/">32-bit Windows download area</a> with all available installer versions</li>
+          <li><a href="windows/64bit/lammps-64bit-latest.exe">Latest version for 64-bit Windows</a> 
+            &nbsp; / &nbsp; <a href="windows/64bit/">64-bit Windows download area</a> with all available installer versions</li>
+        </ul>
+        The respective download directory will contain installer
+        packages that are labeled with the date they were compiled on
+        and one package labeled as <i>latest</i>.  It is usually
+        recommended to download and install the latest package via the link above.
+        The other packages are provided in case there is a problem with it.
+        Download the installer executable suitable for your machine,
+        execute it, and follow the instructions in the dialogs.
+        Each version will install into a different directory, so it
+        is possible to have multiple versions installed at the same
+        time (however it is not recommended). Both kinds of packages contain:
+      </div>
+      <ul>
+        <li>A regular multi-threaded LAMMPS executable called <strong><code>lmp_serial</code></strong>.
+          This should <u>always</u> work.</li>
+
+        <li>A multi-threaded LAMMPS executable that also supports
+          parallel execution via MPI message passing. This 
+          executable is called  <strong><code>lmp_mpi</code></strong>
+          and requires installation of a suitable MPICH2 package to work.</li>
+
+        <li>the LAMMPS manual in PDF format</li>
+
+        <li>the <a href="http://colvars.github.io/" target="_blank">colvars</a>
+          reference manual in PDF format</li>
+
+        <li>the potential files bundled with the LAMMPS source code</li>
+
+        <li>most of the example inputs, reference outputs and related files</li>
+
+        <li>the benchmark inputs and reference outputs</li>
+
+        <li>the tools <strong><code>restart2data, binary2txt, chain, msi2lmp,
+              ocl_get_devices</code></strong></li>
+      </ul>
+      
+      <p align="justify">Both executables will run in serial when executed directly.
+        Please see below for instructions on how to perform parallel runs.
+        To use the MPI based parallelism, you also need to install
+          <a href="http://www.mpich.org/" target="_blank">MPICH2 from Argonne lab</a>.
+        For 32-bit Windows you have to download and install
+          <a href="http://www.mpich.org/static/tarballs/1.4.1p1/mpich2-1.4.1p1-win-ia32.msi">
+            mpich2-1.4.1p1-win-ia32.msi</a> or any compatible version.
+        Correspondingly, for 64-bit Windows you have to download and install
+          <a href="http://www.mpich.org/static/tarballs/1.4.1p1/mpich2-1.4.1p1-win-x86-64.msi">
+          mpich2-1.4.1p1-win-x86-64.msi</a> or any compatible version.
+      </p>
+    </div>
+    <hr width="100%">
+
+    <h2>Running LAMMPS on Windows</h2>
+    <h3>General Comments</h3>
+    <p align="justify">
+      LAMMPS is a text mode program, so you have to click on the
+      <i>Command Prompt</i> entry in the windows start menu, launch the
+      <i>Windows Power Shell</i>, or simply execute the command
+      <strong><code>cmd</code></strong> from <i>Start -&gt; Run</i>.
+      The LAMMPS manual and the colvars reference manual in PDF format
+      are linked from the start men, also references to open the
+      file system browser to view the <i>Benchmarks</i> and <i>Examples</i>
+      directory tree. The <b>PATH</b> environment variable is automatically
+      set by the installer, so that the bundled executables from everywhere
+      in the system. Also the <b>LAMMPS_POTENTIALS</b> environment variable
+      is preset to the folder with the bundled manybody potential files,
+      so they do not need to be copied into the respective working directory.
+    </p>
+
+    <h3>Serial Execution</h3>
+    <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
+      <a imageanchor="1" href="lammps-icms-on-win7.png" style=""><img src="lammps-icms-on-win7.png" border="0" style="" width="400" height="300"></a>
+    </div>
+    <p align="justify">
+      To run a LAMMPS simulations open a terminal window as outlined above
+      and change to the directory with your input script and then run either
+      <strong><code>lmp_serial</code></strong> or <strong><code>lmp_mpi</code></strong>
+      As described in the LAMMPS manual. For more details and additional command
+      line flags, please check out the
+      <a href="http://lammps.sandia.gov/doc/Section_start.html#start_6" target="_blank">
+        LAMMPS Manual</a>.
+    </p>
+    <h3 name="openmp">Multi-threaded Parallel Execution</h3>
+    <p align="justify">
+      All LAMMPS binaries from this repository support multi-threading via OpenMP,
+      however by default only one thread is enabled. To enable more threads, e.g. four,
+      you need to either set it at the command line prompt via
+      <strong><code>set OMP_NUM_THREADS=4</code></strong> or use the
+      <a href="http://lammps.sandia.gov/doc/package.html" target="_blank">package omp</a>
+      command in your input script.</p>
+
+    <p align="justify">
+      After enabling the use of multiple threads, you <b>also</b> have to select
+      styles in LAMMPS, that are multi-thread enabled. Those are usually identified
+      by the <i>/omp</i> suffix. Those can be selected explicitly and selectively,
+      or with the
+      <a href="http://lammps.sandia.gov/doc/package.html" target="_blank">suffix</a>
+      command or - most conveniently - via using the <strong><code>-sfs&nbsp;omp</code></strong>
+      command line flag to the LAMMPS executable.
+    </p>
+
+    <h3 name="mpi">Message Passing (MPI) Parallel Execution</h3>
+    <p align="justify">
+      Only the <strong><code>lmp_mpi</code></strong> executable supports parallel execution
+      via MPI (which can be combined with OpenMPI multi-threading). For that you also
+      need to install <a href="http://www.mpich.org/" target="_blank">MPICH2 from Argonne lab</a>.
+      The installer does not contain it and does not check for it.
+    </p>
+
+    <p align="justify">
+      After the installation of the MPICH software, it needs to be integrated into the system.
+      For this you need to start a <i>Command Prompt</i> in <i>Administrator Mode</i> (right
+      click on the icon and select it). Change into the MPICH2 installation directory, then 
+      into the subdirectory <code>bin</code> and execute 
+      <strong><code>smpd.exe -install</code></strong>. 
+    </p>
+
+    <p align="justify">
+      MPI parallel executables have to be launched with <strong><code>mpiexec -localonly # lmp_mpi ...</code></strong>
+      or <strong><code>mpiexec -np # lmp_mpi ...</code></strong> with "#" being then number
+      of parallel processes to start. For the latter you may be asked for your password.
+    </p>
+    <p align="justify">
+
+      <u><i>Known Issues:</i></u> while running in MPI parallel mode any
+      output to the screen is block buffered and not line buffered as
+      usual. That is, output will not show up immediately, but only
+      after a certain amount of output has accumulated. This is done for
+      efficiency reasons.  Multi-threaded parallel or serial runs are
+      not affected.  Also when running under mpiexec, you should not use
+      multi-threading since MPICH restricts processes to a single
+      physical CPU thus it will run less efficient. </p>
+      
+      For more details, please refer
+      to the <a href="http://www.mpich.org/documentation/guides/" target="_blank">
+        MPICH2 Documentation</a>.
+    <hr>
+    <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
+<!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
+<!-- hhmts start -->
+Last modified: Thu Nov 23 16:46:56 EST 2015
+<!-- hhmts end -->
+  </body>
+</html>

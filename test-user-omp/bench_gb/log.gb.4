@@ -1,0 +1,90 @@
+LAMMPS (21 Jun 2012-ICMS)
+# Gay-Berne benchmark
+# biaxial ellipsoid mesogens in isotropic phase
+# shape: 2 1.5 1
+# cutoff 4.0 with skin 0.8
+# NPT, T=2.4, P=8.0
+
+units	      lj
+atom_style    ellipsoid
+
+# creation
+#lattice          sc 0.22
+#region       box block 0 32 0 32 0 32
+#create_box    1 box
+#create_atoms  1 box
+#set group all shape 1.0 1.5 2.0
+#set group all quat/random  982381
+#set group all mass 1.5
+
+read_data     data.gb
+  orthogonal box = (2.19575 2.19575 2.19575) to (50.8124 50.8124 50.8124)
+  1 by 2 by 2 MPI processor grid
+  32768 atoms
+  32768 velocities
+  32768 ellipsoids
+
+# reset to make sure we have the correct info
+set group all mass 1.5
+  32768 settings made for mass
+set group all shape 1.0 1.5 2.0
+  32768 settings made for shape
+
+compute	      rot all temp/asphere
+group	      spheroid type 1
+32768 atoms in group spheroid
+variable      dof equal count(spheroid)+3
+compute_modify rot extra ${dof}
+compute_modify rot extra 32771
+
+velocity      all create 2.4 41787 loop geom
+
+pair_style    gayberne 1.0 3.0 1.0 4.0
+pair_coeff    1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2
+
+neighbor      0.75 bin
+
+timestep      0.0015
+thermo	      10
+
+# equilibration run
+#fix	      1 all npt/asphere temp 2.4 2.4 0.1 iso 5.0 8.0 0.1
+#compute_modify 1_temp extra ${dof}
+#run	      100
+#write_restart tmp.restart
+
+fix	      1 all npt/asphere temp 2.4 2.4 0.2 iso 8.0 8.0 0.2
+run	      100
+Memory usage per processor = 10.0385 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          2.4   0.50438568            0    4.1042758    6.7818168    114909.09 
+      10    2.4984092   0.36410408            0    4.1116036    6.6571443    114014.62 
+      20    2.6635551   0.27469255            0    4.2699032    6.7304527    112550.66 
+      30     2.790303   0.24621961            0    4.4315465    6.8695422    111313.19 
+      40    2.8708739   0.25131255            0     4.557492    7.0195652    110363.44 
+      50      2.92739   0.22873634            0    4.6196874     7.061658    109720.57 
+      60    2.9759143   0.19727969            0     4.661015    7.0638513    109202.68 
+      70    3.0078174   0.19077408            0    4.7023624    7.1132302    108738.77 
+      80    3.0288421   0.18068151            0    4.7238061    7.1401831    108369.76 
+      90    3.0422538   0.16980989            0    4.7330514    7.1599217    108082.78 
+     100    3.0374421   0.17722427            0    4.7332484    7.2053371    107875.22 
+Loop time of 24.0366 on 4 procs for 100 steps with 32768 atoms
+
+ Pair time (%) = 22.0399 (91.6932)
+Neigh time (%) = 0.134387 (0.559093)
+ Comm time (%) = 1.54458 (6.42595)
+Output time (%) = 0.000648439 (0.00269772)
+Modify time (%) = 0.294701 (1.22605)
+Other time (%) = 0.0223566 (0.0930106)
+
+Nlocal:    8192 ave 8197 max 8184 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Nghost:    11839.2 ave 11856 max 11819 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Neighs:    555103 ave 555731 max 554394 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+
+Total # of neighbors = 2220413
+Ave neighs/atom = 67.7616
+Neighbor list builds = 6
+Dangerous builds = 0

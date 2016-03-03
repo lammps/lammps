@@ -1,0 +1,84 @@
+# LAMMPS lib build makefile for voro++ library
+
+# ------ SETTINGS ------
+
+CXX =		g++
+CXXFLAGS =	-O3 -ffast-math -g -fPIC -Isrc
+ARCHIVE =	ar
+ARCHFLAG =	-rscv
+SHELL =		/bin/sh
+
+# ------ DEFINITIONS ------
+
+SRC =	src/cell.cc src/c_loops.cc src/common.cc src/container.cc	\
+	src/container_prd.cc src/pre_container.cc src/unitcell.cc	\
+	src/v_base.cc src/v_compute.cc src/wall.cc
+
+LIB = libvoronoi.a
+OBJ = $(SRC:src/%.cc=%.o)
+EXE = voro++
+
+# ------ MAKE PROCEDURE ------
+
+default: $(LIB) $(EXE)
+
+$(LIB):	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+$(EXE): cmd_line.o voro++.o
+	$(CXX) -o $@ $< $(LIB)
+
+# ------ MAKE FLAGS ------
+
+.SUFFIXES:
+.SUFFIXES: .cc .o
+
+.PHONY: default clean
+
+# ------ COMPILE RULES ------
+
+%.o: src/%.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# ------ CLEAN ------
+
+clean:
+	-rm *.o *~ $(LIB)
+
+# ------ DEPENDENCIES ------
+
+cell.o: src/cell.cc src/config.hh src/common.hh src/cell.hh
+c_loops.o: src/c_loops.cc src/c_loops.hh src/config.hh
+cmd_line.o: src/cmd_line.cc src/voro++.hh src/config.hh src/common.hh \
+ src/cell.hh src/v_base.hh src/worklist.hh src/rad_option.hh \
+ src/container.hh src/c_loops.hh src/v_compute.hh src/unitcell.hh \
+ src/container_prd.hh src/pre_container.hh src/wall.hh
+common.o: src/common.cc src/common.hh src/config.hh
+container.o: src/container.cc src/container.hh src/config.hh \
+ src/common.hh src/v_base.hh src/worklist.hh src/cell.hh src/c_loops.hh \
+ src/v_compute.hh src/rad_option.hh
+container_prd.o: src/container_prd.cc src/container_prd.hh src/config.hh \
+ src/common.hh src/v_base.hh src/worklist.hh src/cell.hh src/c_loops.hh \
+ src/v_compute.hh src/unitcell.hh src/rad_option.hh
+pre_container.o: src/pre_container.cc src/config.hh src/pre_container.hh \
+ src/c_loops.hh src/container.hh src/common.hh src/v_base.hh \
+ src/worklist.hh src/cell.hh src/v_compute.hh src/rad_option.hh
+unitcell.o: src/unitcell.cc src/unitcell.hh src/config.hh src/cell.hh \
+ src/common.hh
+v_base.o: src/v_base.cc src/v_base.hh src/worklist.hh src/config.hh \
+ src/v_base_wl.cc
+v_base_wl.o: src/v_base_wl.cc
+v_compute.o: src/v_compute.cc src/worklist.hh src/v_compute.hh \
+ src/config.hh src/cell.hh src/common.hh src/rad_option.hh \
+ src/container.hh src/v_base.hh src/c_loops.hh src/container_prd.hh \
+ src/unitcell.hh
+voro++.o: src/voro++.cc src/cell.cc src/config.hh src/common.hh \
+ src/cell.hh src/common.cc src/v_base.cc src/v_base.hh src/worklist.hh \
+ src/v_base_wl.cc src/container.cc src/container.hh src/c_loops.hh \
+ src/v_compute.hh src/rad_option.hh src/unitcell.cc src/unitcell.hh \
+ src/container_prd.cc src/container_prd.hh src/pre_container.cc \
+ src/pre_container.hh src/v_compute.cc src/c_loops.cc src/wall.cc \
+ src/wall.hh
+wall.o: src/wall.cc src/wall.hh src/cell.hh src/config.hh src/common.hh \
+ src/container.hh src/v_base.hh src/worklist.hh src/c_loops.hh \
+ src/v_compute.hh src/rad_option.hh

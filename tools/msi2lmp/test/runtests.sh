@@ -153,6 +153,34 @@ do \
     counter=$(expr $counter + 6)
 done
 
+# Class2 tests with pcff with ignore flag set
+for m in pmma-poly solv-poly
+do \
+    before=$errors
+    vglog=${m}-class2c.chk
+    ${VALGRIND} --log-file=${vglog}				\
+        ${MSI2LMP} ${m}-class2c -i -c 2 -p ${verbose} -f pcff	\
+        || errors=$(expr $errors + 1)
+    ${LAMMPS} -log none -screen none -in in.${m}-class2c		\
+        || errors=$(expr $errors + 1)
+    ${CHECKDATA} ${m}-class2c.data reference/${m}-class2c.data		\
+        || errors=$(expr $errors + 1)
+    ${CHECKDATA} ${m}-class2c.data2 reference/${m}-class2c.data2	\
+        || errors=$(expr $errors + 1)
+    [ $before -eq $errors ] && rm ${m}-class2c.data ${m}-class2c.data2 log.${m}-class2c
+    leak=$(awk '/in use at exit:/ {num=$6;} END {print num;}' $vglog)
+    [ $leak != 0 ] && echo "Memory still used: $leak"		\
+        && errors=$(expr $errors + 1)
+    viol=$(awk '/ERROR SUMMARY/ {num=$4;} END {print num;}' $vglog)
+    [ $viol != 0 ] && echo "Valgrind errors: $viol"		\
+        && errors=$(expr $errors + 1)
+    [ $leak = 0 ] && [ $viol = 0 ] && rm ${vglog}
+    counter=$(expr $counter + 6)
+done
+
+echo "Total error count: $errors / $counter"
+echo
+
 echo "Total error count: $errors / $counter"
 echo
 

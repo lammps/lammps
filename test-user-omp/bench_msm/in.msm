@@ -1,0 +1,43 @@
+# SPC/E water box benchmark
+
+units		real	
+atom_style	full
+
+read_data	data.msm
+
+replicate	2 4 1
+
+pair_style	lj/cut/coul/msm 12.0 12.0
+pair_modify	table 0
+kspace_style	msm 1.0e-4
+
+pair_coeff	1 1 0.15535 3.166
+pair_coeff	* 2 0.0000 0.0000	
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 0.5
+
+neighbor        2.0 bin
+neigh_modify	every 2 delay 4 check yes
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+fix		2 all nvt temp 300.0 300.0 100.0
+
+velocity	all create 300 432567 dist uniform
+
+timestep	2.0
+
+thermo_style    one
+thermo		10
+thermo_modify  format 2 "%10.5f" format 3 "%10.2f" format 4 "%10.5f" format 5 "%10.2f" format 6 "%10.4f"
+run     50 pre yes post no
+
+thermo_modify format 6 "%10.2f"
+run     50 pre yes post yes

@@ -1,0 +1,50 @@
+LAMMPS (11 Nov 2013-ICMS)
+  using 1 OpenMP thread(s) per MPI task
+  orthogonal box = (-2.1 -2.1 0) to (2.1 2.1 25.579)
+  1 by 1 by 4 MPI processor grid
+WARNING: Recommended atom style in data file differs (../read_data.cpp:255)
+  60 atoms
+  orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
+  2 by 2 by 1 MPI processor grid
+  32640 atoms
+Memory usage per processor = 29.5119 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300   -139300.72            0   -138035.04    8820.6458 
+      10    143.01032    -138634.6            0   -138031.25     32321.55 
+      20    219.32077   -138957.56            0   -138032.27   -3503.5467 
+      30    120.49758   -138536.25            0   -138027.88    11355.663 
+      40    158.53513   -138697.17            0   -138028.33     13258.73 
+      50     92.36489   -138416.77            0   -138027.09    23794.249 
+      60    182.22521   -138798.29            0    -138029.5    32996.692 
+      70     153.2787   -138677.21            0   -138030.54    3943.9341 
+      80    173.36305   -138763.72            0   -138032.32    20738.423 
+      90    193.98044   -138850.36            0   -138031.98   -10044.196 
+     100    193.18347   -138847.11            0   -138032.08    31978.384 
+
+Loop time of 57.5952 on 4 procs for 100 steps with 32640 atoms
+98.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 0.075 ns/day  319.973 hours/ns  1.736 timesteps/s
+
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 49.358     | 49.572     | 50.045     |   3.9 | 86.07
+Neigh   | 6.9934     | 7.0714     | 7.113      |   1.7 | 12.28
+Comm    | 0.39529    | 0.88494    | 1.1767     |  31.2 |  1.54
+Output  | 0.0011775  | 0.0013192  | 0.0015182  |   0.3 |  0.00
+Modify  | 0.029944   | 0.030582   | 0.030967   |   0.2 |  0.05
+Other   |            | 0.03446    |            |       |  0.06
+
+Nlocal:    8160 ave 8177 max 8143 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:    22625.5 ave 22644 max 22608 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  5.55854e+06 ave 5.57117e+06 max 5.54429e+06 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+
+Total # of neighbors = 22234144
+Ave neighs/atom = 681.193
+Neighbor list builds = 8
+Dangerous builds = 0

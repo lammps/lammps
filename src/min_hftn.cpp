@@ -42,12 +42,12 @@ using namespace LAMMPS_NS;
 
 //---- CONSTANTS MAP TO stopstrings DECLARED IN Min.run (min.cpp).
 
-static const int  STOP_MAX_ITER = 0;          //-- MAX ITERATIONS EXCEEDED
-static const int  STOP_MAX_FORCE_EVALS = 1;   //-- MAX FORCE EVALUATIONS EXCEEDED
-static const int  STOP_ENERGY_TOL = 2;        //-- STEP DID NOT CHANGE ENERGY
-static const int  STOP_FORCE_TOL = 3;         //-- CONVERGED TO DESIRED FORCE TOL
-static const int  STOP_TR_TOO_SMALL = 8;      //-- TRUST REGION TOO SMALL
-static const int  STOP_ERROR = 9;             //-- INTERNAL ERROR
+static const int  STOP_MAX_ITER = Min::MAXITER;        //-- MAX ITERATIONS EXCEEDED
+static const int  STOP_MAX_FORCE_EVALS = Min::MAXEVAL; //-- MAX FORCE EVALUATIONS EXCEEDED
+static const int  STOP_ENERGY_TOL = Min::ETOL;         //-- STEP DID NOT CHANGE ENERGY
+static const int  STOP_FORCE_TOL = Min::FTOL;          //-- CONVERGED TO DESIRED FORCE TOL
+static const int  STOP_TR_TOO_SMALL = Min::TRSMALL;    //-- TRUST REGION TOO SMALL
+static const int  STOP_ERROR = Min::INTERROR;          //-- INTERNAL ERROR
 
 static const int  NO_CGSTEP_BECAUSE_F_TOL_SATISFIED = 0;
 static const int  CGSTEP_NEWTON                     = 1;
@@ -292,6 +292,10 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   double  dCurrentEnergy    = dInitialEnergy;
   double  dCurrentForce2    = dInitialForce2;
   for (niter = 0; niter < update->nsteps; niter++) {
+
+    if (timer->check_timeout(niter))
+      return(Min::TIMEOUT);
+
     (update->ntimestep)++;
 
     //---- CALL THE INNER LOOP TO GET THE NEXT TRUST REGION STEP.

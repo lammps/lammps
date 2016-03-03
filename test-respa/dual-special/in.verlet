@@ -1,0 +1,60 @@
+
+units 		real
+atom_style 	hybrid sphere dipole molecular
+
+# this is equivalent to special_bonds amber,
+# but also compatible with the per-style overrides below.
+special_bonds lj 0.0 1.0e-100 0.5 coul 0.0 1.0e-100 0.8333333333333333
+
+pair_style 	hybrid  lj/sf/dipole/sf 12.0 lj/sf/dipole/sf 12.0 &
+			lj/charmm/coul/long 11.0 12.0 
+pair_modify 	mix arithmetic
+pair_modify	pair lj/sf/dipole/sf 1 special lj/coul 0.0 1.0 1.0
+pair_modify	pair lj/sf/dipole/sf 2 special lj/coul 0.0 1.0 1.0
+
+kspace_style 	pppm/cg 1.0e-5
+bond_style 	harmonic
+angle_style 	harmonic
+dihedral_style 	harmonic
+
+read_data data.bnzwbox
+
+# pair_coeffs:
+pair_coeff 1 1 lj/charmm/coul/long        0.0860 3.39967 0.0860 3.39967      # AA-AA
+pair_coeff 2 2 lj/charmm/coul/long        0.015000 2.59964 0.015000 2.59964  # AA-AA
+pair_coeff 3 3 lj/sf/dipole/sf       1    0.550000 3.050000                  # CG-CG, this will be propagated with the longer timestep
+pair_coeff 1 2 lj/charmm/coul/long        0.0359 2.9997 0.0359 2.9997        # AA-AA
+pair_coeff 1 3 lj/sf/dipole/sf       2    0.2175 3.2248                      # CG-AA, this will be propagated with the shorter timestep
+pair_coeff 2 3 lj/sf/dipole/sf       2    0.0908 2.8248                      # CG-AA, this will be propagated with the shorter timestep
+
+
+# this will set individual per-atom masses - as required by
+# atom style sphere - to the same value as the per-type masses.
+set type 1 mass 12.011000
+set type 2 mass 1.008000
+set type 3 mass 40.00
+
+group 	solute 	molecule 1
+group 	water 	molecule > 1 
+
+set group solute diameter 0.0
+
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+#timestep 8
+#run_style respa 2 4 hybrid 2 1 1 kspace 1 improper 2
+
+timestep 2.0
+run_style verlet
+
+fix 	integrateSolute	solute nve
+fix	integrateWater	water nve/sphere update dipole
+
+fix	thermostatWater  water  langevin 298 298 100 9 omega yes zero yes
+fix	thermostatSolute solute langevin 298 298 100 9 zero yes
+
+thermo 100
+
+minimize 1.0E-4 1.0E-6 100 1000
+run 1000

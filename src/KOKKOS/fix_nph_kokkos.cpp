@@ -68,7 +68,10 @@ FixNPHKokkos<DeviceType>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
   this->pflag = 1;
 }
 
+namespace LAMMPS_NS {
 template class FixNPHKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class FixNPHKokkos<LMPHostType>;
 #endif
+}
+

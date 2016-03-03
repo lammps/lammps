@@ -53,7 +53,7 @@ class lammps:
     except:
       if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
       else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
-        
+
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
     #   but we can pass an MPI communicator from mpi4py v2.0.0 and later

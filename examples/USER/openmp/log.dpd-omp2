@@ -1,0 +1,134 @@
+LAMMPS (24 Jun 2010-ICMS)
+
+units		lj
+neighbor	2.5 bin
+neigh_modify	every 1 delay 0 check yes page 2000000
+atom_style	atomic
+
+pair_style	soft/omp 1.12246
+special_bonds lj/coul 1.0 1.0 1.0
+
+read_data       data.dpd
+  orthogonal box = (-7.5 -7.5 -11.8519) to (7.5 7.5 11.8519)
+  2 by 2 by 2 processor grid
+  using 2 OpenMP thread(s) per MPI task
+  16000 atoms
+
+variable        prefactor equal 1.0+elapsed*(60.0-1.0)/1000
+pair_coeff	* * 0.0 1.12246
+
+# start with all velocities = 0
+velocity	all zero linear
+
+timestep	0.02
+communicate single vel yes
+
+# integration ensemble
+fix		1 all nve
+# thermostat
+fix		2 all temp/rescale 1 0.0 1.0 0.01 1.0
+# grow soft interaction potential
+fix             3 all adapt 1 pair soft/omp a * * prefactor
+
+# output thermodynamic data
+thermo_style 	custom step temp etotal evdwl v_prefactor
+thermo 	        100 	
+
+run		1000
+Memory usage per processor = 10.1075 Mbytes
+Step Temp TotEng E_vdwl prefacto 
+       0            0    3.4747959    3.4747959            1 
+     100          0.1    14.434393    14.284402          6.9 
+     200   0.20099004    25.850678    25.549212         12.8 
+     300   0.29414627    37.568915    37.127723         18.7 
+     400   0.39347054    49.378554    48.788386         24.6 
+     500   0.49818609    61.226725    60.479493         30.5 
+     600    0.5963335    73.058675     72.16423         36.4 
+     700   0.69634323    84.878259    83.833809         42.3 
+     800   0.79797187     96.74097    95.544087         48.2 
+     900    0.9034181    108.59862    107.24358         54.1 
+    1000    0.9949487    120.50899    119.01666           60 
+Loop time of 7.04864 on 8 procs / 2 threads for 1000 steps with 16000 atoms
+
+Pair  time (%) = 4.77934 (67.8052)
+Neigh time (%) = 0.158472 (2.24827)
+Comm  time (%) = 1.80885 (25.6624)
+Outpt time (%) = 0.000592411 (0.00840461)
+Other time (%) = 0.301383 (4.27577)
+
+Nlocal:    2000 ave 2017 max 1979 min
+Histogram: 1 0 0 2 1 1 0 1 0 2
+Nghost:    10449.4 ave 10493 max 10412 min
+Histogram: 1 0 1 2 1 1 0 1 0 1
+Neighs:    603404 ave 614286 max 589434 min
+Histogram: 1 0 1 0 2 0 1 0 1 2
+
+Total # of neighbors = 4827232
+Ave neighs/atom = 301.702
+Neighbor list builds = 6
+Dangerous builds = 0
+unfix           1
+unfix           2
+unfix           3
+variable	prefactor equal 60.0
+reset_timestep  0
+
+#----------------------------------------------------------------------------#
+
+#set DPD pair coefficients
+pair_style dpd/omp 1.0 3.0 34387
+pair_coeff 1 1 78.0 4.5 1.0 
+pair_coeff 1 2 50.0 4.5 1.0 
+pair_coeff 2 2 78.0 4.5 1.0
+
+fix		3 all nve
+
+thermo_style 	custom step temp etotal evdwl
+thermo          100
+run             2000
+Memory usage per processor = 10.412 Mbytes
+Step Temp TotEng E_vdwl 
+       0    0.9949487    21.212189     19.71986 
+     100    1.2836264    11.766682    9.8413629 
+     200    1.0668713    11.137403    9.5371959 
+     300     1.021086    11.034134    9.5026005 
+     400    1.0108415    10.985254    9.4690867 
+     500    1.0105613      11.0038    9.4880531 
+     600    1.0111341    11.008829    9.4922223 
+     700     1.006067    10.992221    9.4832151 
+     800    1.0063931    11.002978    9.4934824 
+     900    1.0254866    11.056203    9.5180696 
+    1000    1.0089684    10.994389    9.4810313 
+    1100    1.0040986    10.993324    9.4872704 
+    1200     1.017073    11.005574    9.4800601 
+    1300    1.0139723    11.008686    9.4878229 
+    1400     1.006076    11.007757    9.4987376 
+    1500    1.0167027    11.028313    9.5033541 
+    1600    1.0020689     10.98175     9.478741 
+    1700    1.0042823    10.991113    9.4847835 
+    1800    1.0056643    10.994356    9.4859536 
+    1900   0.99808728    10.984567      9.48753 
+    2000    1.0061351    10.991883    9.4827751 
+Loop time of 19.9483 on 8 procs / 2 threads for 2000 steps with 16000 atoms
+
+Pair  time (%) = 10.7205 (53.7413)
+Neigh time (%) = 3.76597 (18.8787)
+Comm  time (%) = 4.99496 (25.0396)
+Outpt time (%) = 0.00136116 (0.00682346)
+Other time (%) = 0.465523 (2.33365)
+
+Nlocal:    2000 ave 2019 max 1986 min
+Histogram: 1 1 1 1 1 1 1 0 0 1
+Nghost:    9885.25 ave 9902 max 9865 min
+Histogram: 1 0 1 1 1 1 0 1 0 2
+Neighs:    537841 ave 549642 max 528380 min
+Histogram: 2 1 0 1 0 0 3 0 0 1
+
+Total # of neighbors = 4302729
+Ave neighs/atom = 268.921
+Neighbor list builds = 110
+Dangerous builds = 0
+
+
+
+

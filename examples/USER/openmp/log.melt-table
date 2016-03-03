@@ -1,0 +1,249 @@
+LAMMPS (29 May 2010-ICMS)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  2 by 2 by 2 processor grid
+  using 2 OpenMP thread(s) per MPI task
+create_atoms	1 box
+Created 32000 atoms
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	table/omp lookup 1000
+pair_coeff	1 1 lj_table.txt lj_rsq 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+thermo		50
+
+run		250
+Memory usage per processor = 2.04461 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            3   -6.7637051            0   -2.2638457   -3.7196088 
+      50    1.6668891   -4.7807849            0   -2.2805293     5.690735 
+     100    1.6517887   -4.7566813            0   -2.2790757    5.8026657 
+     150    1.6521143   -4.7564656            0   -2.2783717     5.821308 
+     200    1.6443947    -4.744167            0   -2.2776521    5.8745814 
+     250    1.6449933   -4.7446526            0   -2.2772398    5.8838204 
+Loop time of 1.00595 on 8 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 0.640826 (63.7036)
+Neigh time (%) = 0.11874 (11.8038)
+Comm  time (%) = 0.209618 (20.8379)
+Outpt time (%) = 0.000472963 (0.0470165)
+Other time (%) = 0.0362921 (3.60775)
+
+Nlocal:    4000 ave 4026 max 3974 min
+Histogram: 1 0 2 0 0 2 1 1 0 1
+Nghost:    5485.25 ave 5503 max 5473 min
+Histogram: 2 2 0 0 1 0 0 1 1 1
+Neighs:    151540 ave 152449 max 150271 min
+Histogram: 1 0 0 1 1 1 1 1 0 2
+
+Total # of neighbors = 1212320
+Ave neighs/atom = 37.885
+Neighbor list builds = 12
+Dangerous builds = 0
+
+pair_style	table/omp linear 1000
+pair_coeff	1 1 lj_table.txt lj_rsq 2.5
+
+run		250
+Memory usage per processor = 2.04461 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     250    1.6449933    -4.744272            0   -2.2768591    5.8860557 
+     300    1.6390267    -4.735735            0   -2.2772718    5.9225893 
+     350    1.6496467   -4.7517624            0   -2.2773697    5.8597313 
+     400    1.6464054   -4.7474729            0   -2.2779419    5.8678018 
+     450    1.6471441   -4.7488835            0   -2.2782445    5.8576003 
+     500    1.6429156   -4.7427993            0    -2.278503    5.9022982 
+Loop time of 1.14394 on 8 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 0.770431 (67.3489)
+Neigh time (%) = 0.117043 (10.2316)
+Comm  time (%) = 0.220681 (19.2913)
+Outpt time (%) = 0.000401378 (0.0350873)
+Other time (%) = 0.0353838 (3.09315)
+
+Nlocal:    4000 ave 4015 max 3986 min
+Histogram: 1 1 2 0 0 0 1 1 1 1
+Nghost:    5492.12 ave 5534 max 5453 min
+Histogram: 1 1 0 1 1 2 0 1 0 1
+Neighs:    151564 ave 153889 max 149973 min
+Histogram: 2 1 0 2 0 0 1 1 0 1
+
+Total # of neighbors = 1212511
+Ave neighs/atom = 37.891
+Neighbor list builds = 12
+Dangerous builds = 0
+
+pair_style	table/omp spline 1000
+pair_coeff	1 1 lj_table.txt lj_rsq 2.5
+
+run		250
+Memory usage per processor = 2.04461 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     500    1.6429156   -4.7433947            0   -2.2790983    5.8990032 
+     550    1.6405054   -4.7399746            0   -2.2792934    5.9099298 
+     600    1.6470431   -4.7502838            0   -2.2797963    5.8646675 
+     650    1.6494374   -4.7541076            0   -2.2800289    5.8422356 
+     700    1.6386636   -4.7386414            0   -2.2807229    5.8972449 
+     750    1.6403779   -4.7412456            0   -2.2807557    5.8876867 
+Loop time of 1.23384 on 8 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 0.854802 (69.28)
+Neigh time (%) = 0.11736 (9.51182)
+Comm  time (%) = 0.225617 (18.2858)
+Outpt time (%) = 0.000406504 (0.0329463)
+Other time (%) = 0.0356504 (2.8894)
+
+Nlocal:    4000 ave 4012 max 3981 min
+Histogram: 1 1 0 0 0 1 1 1 1 2
+Nghost:    5493.75 ave 5510 max 5471 min
+Histogram: 1 0 0 1 1 0 3 1 0 1
+Neighs:    151580 ave 153823 max 149054 min
+Histogram: 1 0 2 1 0 0 1 1 0 2
+
+Total # of neighbors = 1212640
+Ave neighs/atom = 37.895
+Neighbor list builds = 12
+Dangerous builds = 0
+
+pair_style	table/omp lookup 1000
+pair_coeff	1 1 lj_table.txt lj_r 2.5
+
+run		250
+Memory usage per processor = 2.04461 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     750    1.6403779   -4.7410243            0   -2.2805344    5.8887421 
+     800    1.6433307   -4.7452637            0   -2.2803447    5.8784851 
+     850    1.6399884   -4.7398109            0   -2.2799052    5.8889271 
+     900    1.6403131   -4.7402343            0   -2.2798415    5.8989758 
+     950    1.6425157   -4.7433702            0   -2.2796736     5.879569 
+    1000     1.642171   -4.7429316            0   -2.2797521    5.8852123 
+Loop time of 0.986443 on 8 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 0.618168 (62.6664)
+Neigh time (%) = 0.117748 (11.9367)
+Comm  time (%) = 0.215395 (21.8355)
+Outpt time (%) = 0.000415891 (0.0421607)
+Other time (%) = 0.0347156 (3.51927)
+
+Nlocal:    4000 ave 4015 max 3983 min
+Histogram: 2 0 1 0 0 0 1 2 1 1
+Nghost:    5475.12 ave 5499 max 5461 min
+Histogram: 1 2 0 2 1 1 0 0 0 1
+Neighs:    151526 ave 153077 max 148725 min
+Histogram: 1 0 1 1 0 0 1 0 0 4
+
+Total # of neighbors = 1212211
+Ave neighs/atom = 37.8816
+Neighbor list builds = 12
+Dangerous builds = 0
+
+pair_style	table/omp linear 1000
+pair_coeff	1 1 lj_table.txt lj_r 2.5
+
+run		250
+Memory usage per processor = 2.04461 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+    1000     1.642171   -4.7422506            0   -2.2790711     5.889006 
+    1050    1.6343428   -4.7301701            0   -2.2787325      5.93429 
+    1100    1.6465123   -4.7491667            0   -2.2794755    5.8698345 
+    1150    1.6476593   -4.7510989            0   -2.2796872     5.855273 
+    1200    1.6494782   -4.7540825            0   -2.2799426    5.8447346 
+    1250    1.6456816   -4.7487388            0   -2.2802934     5.865547 
+Loop time of 1.14093 on 8 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 0.765485 (67.093)
+Neigh time (%) = 0.117306 (10.2816)
+Comm  time (%) = 0.222228 (19.4777)
+Outpt time (%) = 0.00041908 (0.0367314)
+Other time (%) = 0.0354944 (3.11101)
+
+Nlocal:    4000 ave 4039 max 3963 min
+Histogram: 1 1 1 0 0 2 1 1 0 1
+Nghost:    5486.5 ave 5510 max 5460 min
+Histogram: 2 1 0 0 0 0 1 2 1 1
+Neighs:    151607 ave 152618 max 150228 min
+Histogram: 1 1 0 0 1 1 1 0 1 2
+
+Total # of neighbors = 1212854
+Ave neighs/atom = 37.9017
+Neighbor list builds = 12
+Dangerous builds = 0
+
+pair_style	table/omp spline 1000
+pair_coeff	1 1 lj_table.txt lj_r 2.5
+
+run		250
+Memory usage per processor = 2.04461 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+    1250    1.6456816    -4.749325            0   -2.2808797    5.8622739 
+    1300     1.637551   -4.7374686            0   -2.2812189    5.9062773 
+    1350    1.6469218   -4.7517796            0   -2.2814742    5.8615876 
+    1400    1.6375887   -4.7380421            0   -2.2817358    5.9032243 
+    1450    1.6393448   -4.7415226            0   -2.2825823     5.881546 
+    1500    1.6433388   -4.7471781            0   -2.2822469    5.8488637 
+Loop time of 1.24799 on 8 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 0.85371 (68.407)
+Neigh time (%) = 0.117516 (9.41649)
+Comm  time (%) = 0.238137 (19.0817)
+Outpt time (%) = 0.00346574 (0.277707)
+Other time (%) = 0.0351564 (2.81705)
+
+Nlocal:    4000 ave 4023 max 3977 min
+Histogram: 2 0 1 0 1 0 1 1 1 1
+Nghost:    5495.5 ave 5517 max 5472 min
+Histogram: 1 1 0 1 1 0 1 1 1 1
+Neighs:    151674 ave 152578 max 150755 min
+Histogram: 1 0 3 0 0 0 0 2 1 1
+
+Total # of neighbors = 1213396
+Ave neighs/atom = 37.9186
+Neighbor list builds = 12
+Dangerous builds = 0
+
+pair_style	table/omp bitmap 12
+pair_coeff	1 1 lj_table.txt lj_bitmap 2.5
+
+run		250
+Memory usage per processor = 2.04461 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+    1500    1.6433388   -4.7465997            0   -2.2816686    5.8504474 
+    1550    1.6364098   -4.7366789            0   -2.2821409    5.9056544 
+    1600    1.6365458    -4.737108            0    -2.282366    5.8907653 
+    1650    1.6394524   -4.7419358            0    -2.282834    5.8982579 
+    1700    1.6415454   -4.7452399            0   -2.2829988    5.8709923 
+    1750    1.6400308    -4.743288            0   -2.2833187    5.8906805 
+Loop time of 1.27882 on 8 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 0.750027 (58.65)
+Neigh time (%) = 0.117702 (9.20394)
+Comm  time (%) = 0.374876 (29.3143)
+Outpt time (%) = 0.000406325 (0.0317735)
+Other time (%) = 0.0358061 (2.79994)
+
+Nlocal:    4000 ave 4022 max 3987 min
+Histogram: 2 1 0 1 1 2 0 0 0 1
+Nghost:    5487.62 ave 5511 max 5465 min
+Histogram: 2 0 0 0 1 2 1 1 0 1
+Neighs:    151558 ave 154215 max 149672 min
+Histogram: 3 0 0 0 2 1 0 1 0 1
+
+Total # of neighbors = 1212466
+Ave neighs/atom = 37.8896
+Neighbor list builds = 12
+Dangerous builds = 0

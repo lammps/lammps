@@ -81,7 +81,6 @@ Package, Description, Author(s), Doc page, Example, Library
 "PERI"_#PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 "POEMS"_#POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 "PYTHON"_#PYTHON, embed Python code in an input script, -, "python"_python.html, python, lib/python
-"REAX"_#REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
 "REPLICA"_#REPLICA, multi-replica methods, -, "Section_howto 6.5"_Section_howto.html#howto_5, tad, -
 "RIGID"_#RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
 "SHOCK"_#SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -

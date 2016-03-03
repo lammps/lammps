@@ -1739,9 +1739,14 @@ void Domain::boundary_string(char *str)
 
 void Domain::lamda2x(int n)
 {
-  double **x = atom->x;
+  double * const * const x = atom->x;
+  const int num = n;
+  int i;
 
-  for (int i = 0; i < n; i++) {
+#if defined(_OPENMP)
+#pragma omp parallel for private(i) default(none) schedule(static)
+#endif
+  for (i = 0; i < num; i++) {
     x[i][0] = h[0]*x[i][0] + h[5]*x[i][1] + h[4]*x[i][2] + boxlo[0];
     x[i][1] = h[1]*x[i][1] + h[3]*x[i][2] + boxlo[1];
     x[i][2] = h[2]*x[i][2] + boxlo[2];
@@ -1755,17 +1760,21 @@ void Domain::lamda2x(int n)
 
 void Domain::x2lamda(int n)
 {
-  double delta[3];
-  double **x = atom->x;
+  double * const * const x = atom->x;
+  const int num = n;
+  int i;
 
-  for (int i = 0; i < n; i++) {
-    delta[0] = x[i][0] - boxlo[0];
-    delta[1] = x[i][1] - boxlo[1];
-    delta[2] = x[i][2] - boxlo[2];
+#if defined(_OPENMP)
+#pragma omp parallel for private(i) default(none) schedule(static)
+#endif
+  for (i = 0; i < num; i++) {
+    double delta0 = x[i][0] - boxlo[0];
+    double delta1 = x[i][1] - boxlo[1];
+    double delta2 = x[i][2] - boxlo[2];
 
-    x[i][0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
-    x[i][1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
-    x[i][2] = h_inv[2]*delta[2];
+    x[i][0] = h_inv[0]*delta0 + h_inv[5]*delta1 + h_inv[4]*delta2;
+    x[i][1] = h_inv[1]*delta1 + h_inv[3]*delta2;
+    x[i][2] = h_inv[2]*delta2;
   }
 }
 

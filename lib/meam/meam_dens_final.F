@@ -202,6 +202,7 @@ c   2 => not implemented
 c   3 => G = 2/(1+exp(-Gamma))
 c   4 => G = sqrt(1+Gamma)
 c  -5 => G = +-sqrt(abs(1+Gamma))
+      use meam_data , only: fm_exp
       implicit none
       real*8 Gamma,G
       real*8 gsmooth_factor, gsmooth_switchpoint
@@ -219,7 +220,7 @@ c         G = 0.01*(-0.99/Gamma)**99
           G = sqrt(1.d0+Gamma)
         endif
       else if (ibar.eq.1) then
-        G = exp(Gamma/2.d0)
+        G = fm_exp(Gamma/2.d0)
       else if (ibar.eq.3) then
         G = 2.d0/(1.d0+exp(-Gamma))
       else if (ibar.eq.-5) then
@@ -239,11 +240,12 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine dG_gam(Gamma,ibar,gsmooth_factor,G,dG)
 c Compute G(Gamma) and dG(gamma) based on selection flag ibar:
 c   0 => G = sqrt(1+Gamma)
-c   1 => G = exp(Gamma/2)
+c   1 => G = fm_exp(Gamma/2)
 c   2 => not implemented 
-c   3 => G = 2/(1+exp(-Gamma))
+c   3 => G = 2/(1+fm_exp(-Gamma))
 c   4 => G = sqrt(1+Gamma)
 c  -5 => G = +-sqrt(abs(1+Gamma))
+      use meam_data , only: fm_exp
       real*8 Gamma,G,dG
       real*8 gsmooth_factor, gsmooth_switchpoint
       integer ibar
@@ -262,10 +264,10 @@ c         G = 0.01*(-0.99/Gamma)**99
           dG = 1.d0/(2.d0*G)
         endif
       else if (ibar.eq.1) then
-        G = exp(Gamma/2.d0)
+        G = fm_exp(Gamma/2.d0)
         dG = G/2.d0
       else if (ibar.eq.3) then
-        G = 2.d0/(1.d0+exp(-Gamma))
+        G = 2.d0/(1.d0+fm_exp(-Gamma))
         dG = G*(2.d0-G)/2
       else if (ibar.eq.-5) then
         if ((1.d0+Gamma).ge.0) then

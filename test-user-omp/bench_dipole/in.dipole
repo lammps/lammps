@@ -1,0 +1,24 @@
+units		real
+atom_style	hybrid angle dipole sphere 
+read_data 	data.dipole
+include 	forcefield.elba
+
+velocity	all create 303.15 87287 
+
+group		lip type 2 3 4 5 6
+group		wat type 1
+
+neighbor	 1.5 bin
+neigh_modify delay 2 every 1 check yes
+
+fix		    integrate all nve/sphere update dipole
+fix 		tempLip lip langevin 303.15 303.15 200 48279 omega yes
+fix			tempWat wat langevin 303.15 303.15 200 48279 omega yes
+fix			removeMomentum all momentum 1 linear 1 1 1
+
+thermo_style custom step temp press etotal ke pe
+thermo		10
+
+timestep	15
+run			100
+

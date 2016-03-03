@@ -16,7 +16,7 @@ OCL_LINK = -framework OpenCL
 OCL_PREC = -D_SINGLE_SINGLE
 
 BIN_DIR = ./
-OBJ_DIR = ./
+OBJ_DIR = ./obj_ocl
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh

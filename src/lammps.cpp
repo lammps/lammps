@@ -49,8 +49,17 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "version.h"
+
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
 
 using namespace LAMMPS_NS;
+
+// for help flag output
+static void help_message(FILE *);
+static void print_columns(const char **, const int, FILE *);
 
 /* ----------------------------------------------------------------------
    start up LAMMPS
@@ -532,7 +541,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // if helpflag set, print help and quit with "success" status
 
   if (helpflag) {
-    if (universe->me == 0 && screen) help();
+    if (universe->me == 0) help_message(screen);
     error->done(0);
   }
 
@@ -650,7 +659,10 @@ void LAMMPS::create()
 
   if (kokkos) atom = new AtomKokkos(this);
   else atom = new Atom(this);
-  atom->create_avec("atomic",0,NULL,1);
+  if (kokkos)
+    atom->create_avec("atomic/kk",0,NULL,1);
+  else
+    atom->create_avec("atomic",0,NULL,1);
 
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature
@@ -789,174 +801,248 @@ void LAMMPS::destroy()
 }
 
 /* ----------------------------------------------------------------------
-   help message for command line options and styles present in executable
+   for each style, print name of all child classes built into executable
 ------------------------------------------------------------------------- */
 
-void LAMMPS::help()
+void help_message(FILE *fp)
 {
-  fprintf(screen,
-          "\nCommand line options:\n\n"
-          "-cuda on/off                : turn CUDA mode on or off (-c)\n"
-          "-echo none/screen/log/both  : echoing of input script (-e)\n"
-          "-help                       : print this help message (-h)\n"
-          "-in filename                : read input from file, not stdin (-i)\n"
-          "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
-          "-log none/filename          : where to send log output (-l)\n"
-          "-nocite                     : disable writing log.cite file (-nc)\n"
-          "-package style ...          : invoke package command (-pk)\n"
-          "-partition size1 size2 ...  : assign partition sizes (-p)\n"
-          "-plog basename              : basename for partition logs (-pl)\n"
-          "-pscreen basename           : basename for partition screens (-ps)\n"
-          "-restart rfile dfile ...    : convert restart to data file (-r)\n"
-          "-reorder topology-specs     : processor reordering (-r)\n"
-          "-screen none/filename       : where to send screen output (-sc)\n"
-          "-suffix cuda/gpu/opt/omp    : style suffix to apply (-sf)\n"
-          "-var varname value          : set index style variable (-v)\n\n");
+  if (fp == NULL) return;
 
-  fprintf(screen,"Style options compiled with this executable\n\n");
+  const int nmax = 500;
+  const char *pager = NULL;
+  const char **styles = new const char *[nmax];
 
-  int pos = 80;
-  fprintf(screen,"* Atom styles:\n");
+  // if output is stdout, use pipe to pager
+
+  if (fp == stdout) {
+    pager = getenv("PAGER");
+    if (pager == NULL) pager = "more";
+#if defined(_WIN32)
+    fp = _popen(pager,"w");
+#else
+    fp = popen(pager,"w");
+#endif
+
+    // reset to original state, if pipe command fails
+    if (fp == NULL) {
+      fp = stdout;
+      pager = NULL;
+    }
+  }
+
+  // general help message about command line and flags
+  fputs("\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+        LAMMPS_VERSION "-ICMS\n\n"
+        "Usage example: lmp_g++ -v t 300 -log none -nc "
+        "-echo screen -in in.alloy\n\n",fp);
+
+  fputs("List of command line options supported by this LAMMPS executable:\n"
+        " -cuda on/off                 : turn CUDA mode on or off       (-c)\n"
+        " -echo none/screen/log/both   : select how to echo input       (-e)\n"
+        " -in <filename>               : read input from file not stdin (-i)\n"
+        " -help                        : print this help message        (-h)\n"
+        " -kokkos on/off ...           : turn KOKKOS mode on or off     (-k)\n"
+        " -log none/<filename>         : where to send log output       (-l)\n"
+        " -nocite                      : disable writing log.cite file  (-nc)\n"
+        " -package style ...           : invoke package command         (-pk)\n"
+        " -partition <partition size>  : assign partition sizes         (-p)\n"
+        " -plog <basename>             : basename for partition logs    (-pl)\n"
+        " -pscreen <basename>          : basename for partition screens (-ps)\n"
+        " -restart <restart> <datafile>: convert restart to data file   (-r)\n"
+        " -reorder <topology specs>    : processor reordering           (-ro)\n"
+        " -screen none/<filename>      : where to send screen output    (-sc)\n"
+        " -suffix cuda/gpu/opt/omp     : style suffix to apply          (-sf)\n"
+        " -var <varname> <value>       : set index style variable       (-v)\n",fp);
+
+  fputs("\nList of style options included in this LAMMPS executable:\n\n",fp);
+
+  fputs("* Atom styles:",fp);
+  int n=0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class) print_style(#key,pos);
+#define AtomStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_atom.h"
 #undef ATOM_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Integrate styles:\n");
+  fputs("* Integrate styles:",fp);
+  n=0;
 #define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) print_style(#key,pos);
+#define IntegrateStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_integrate.h"
 #undef INTEGRATE_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Minimize styles:\n");
+  fputs("* Minimize styles:",fp);
+  n=0;
 #define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) print_style(#key,pos);
+#define MinimizeStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_minimize.h"
 #undef MINIMIZE_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Pair styles:\n");
+  fputs("* Pair styles:",fp);
+  n=0;
 #define PAIR_CLASS
-#define PairStyle(key,Class) print_style(#key,pos);
+#define PairStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_pair.h"
 #undef PAIR_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Bond styles:\n");
+  fputs("* Bond styles:",fp);
+  n=0;
 #define BOND_CLASS
-#define BondStyle(key,Class) print_style(#key,pos);
+#define BondStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_bond.h"
 #undef BOND_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Angle styles:\n");
+  fputs("* Angle styles:",fp);
+  n=0;
 #define ANGLE_CLASS
-#define AngleStyle(key,Class) print_style(#key,pos);
+#define AngleStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_angle.h"
 #undef ANGLE_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Dihedral styles:\n");
+  fputs("* Dihedral styles:",fp);
+  n=0;
 #define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) print_style(#key,pos);
+#define DihedralStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_dihedral.h"
 #undef DIHEDRAL_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Improper styles:\n");
+  fputs("* Improper styles:",fp);
+  n=0;
 #define IMPROPER_CLASS
-#define ImproperStyle(key,Class) print_style(#key,pos);
+#define ImproperStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_improper.h"
 #undef IMPROPER_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* KSpace styles:\n");
+  fputs("* KSpace styles:",fp);
+  n=0;
 #define KSPACE_CLASS
-#define KSpaceStyle(key,Class) print_style(#key,pos);
+#define KSpaceStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_kspace.h"
 #undef KSPACE_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Fix styles\n");
+  fputs("* Fix styles:",fp);
+  n=0;
 #define FIX_CLASS
-#define FixStyle(key,Class) print_style(#key,pos);
+#define FixStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_fix.h"
 #undef FIX_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Compute styles:\n");
+  fputs("* Compute styles:",fp);
+  n=0;
 #define COMPUTE_CLASS
-#define ComputeStyle(key,Class) print_style(#key,pos);
+#define ComputeStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_compute.h"
 #undef COMPUTE_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Region styles:\n");
+  fputs("* Region styles:",fp);
+  n=0;
 #define REGION_CLASS
-#define RegionStyle(key,Class) print_style(#key,pos);
+#define RegionStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_region.h"
 #undef REGION_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Dump styles:\n");
+  fputs("* Dump styles:",fp);
+  n=0;
 #define DUMP_CLASS
-#define DumpStyle(key,Class) print_style(#key,pos);
+#define DumpStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_dump.h"
 #undef DUMP_CLASS
-  fprintf(screen,"\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  pos = 80;
-  fprintf(screen,"* Command styles\n");
+  fputs("* Command styles (add-on input script commands):",fp);
+  n=0;
 #define COMMAND_CLASS
-#define CommandStyle(key,Class) print_style(#key,pos);
+#define CommandStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_command.h"
 #undef COMMAND_CLASS
-  fprintf(screen,"\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
+  delete[] styles;
+
+  // wait for pager, if active
+  if (pager != NULL) pclose(fp);
 }
 
 /* ----------------------------------------------------------------------
-   print style names in columns
-   skip any style that starts with upper-case letter, since internal
+   sort and format the -h style name output
 ------------------------------------------------------------------------- */
 
-void LAMMPS::print_style(const char *str, int &pos)
+static int cmpstringp(const void *p1, const void *p2)
 {
-  if (isupper(str[0])) return;
+  return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
 
-  int len = strlen(str);
-  if (pos+len > 80) {
-    fprintf(screen,"\n");
-    pos = 0;
-  }
+static void print_columns(const char **styles, const int num, FILE *fp)
+{
+  int len,i;
 
-  if (len < 16) {
-    fprintf(screen,"%-16s",str);
-    pos += 16;
-  } else if (len < 32) {
-    fprintf(screen,"%-32s",str);
-    pos += 32;
-  } else if (len < 48) {
-    fprintf(screen,"%-48s",str);
-    pos += 48;
-  } else if (len < 64) {
-    fprintf(screen,"%-64s",str);
-    pos += 64;
-  } else {
-    fprintf(screen,"%-80s",str);
-    pos += 80;
+  qsort(styles,num,sizeof(const char *),&cmpstringp);
+
+  int pos = 80;
+  for (i = 0; i < num; ++i) {
+
+    // skip "secret" styles
+    if (isupper(styles[i][0])) continue;
+
+    len = strlen(styles[i]);
+    if (pos + len > 80) {
+      fprintf(fp,"\n");
+      pos = 0;
+    }
+
+    if (len < 16) {
+      fprintf(fp,"%-16s",styles[i]);
+      pos += 16;
+    } else if (len < 32) {
+      fprintf(fp,"%-32s",styles[i]);
+      pos += 32;
+    } else if (len < 48) {
+      fprintf(fp,"%-48s",styles[i]);
+      pos += 48;
+    } else if (len < 64) {
+      fprintf(fp,"%-64s",styles[i]);
+      pos += 64;
+    } else {
+      fprintf(fp,"%-80s",styles[i]);
+      pos += 80;
+    }
   }
 }

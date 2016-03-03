@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>LAMMPS-ICMS RPM Repository</title>
+    <link rel="shortcut icon" href="ICMS_icon.png" type="image/png">
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12573382-3']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
+  </head>
+
+  <body style="font-family: Helvetica,Arial,Verdana, sans-serif; margin-bottom: 2%; margin-top: 2%; margin-left: 5%; margin-right: 5%;">
+    <div style="display: inline; margin-left: 10px; margin-bottom: 5px; border: 5px; border-style: groove; float: right;">
+      <img src="lammpsrpmlogo.png" border="0" style="" width="250" height="150">
+    </div>
+    <h1>LAMMPS-ICMS RPM Repository</h1>
+    <p align="justify">
+      This repository is hosting pre-compiled RPM packages of the
+      <a href="http://lammps.sandia.gov/" target="_blank">LAMMPS</a>
+      molecular dynamics simulation software package.
+      The binaries are built using the
+      <a href="http://goo.gl/oKYI" target="_blank">LAMMPS-ICMS</a>
+      branch <a href="http://git.icms.temple.edu/git/" target="_blank">git repository</a>.
+
+      The packages are configured to depend only on packages that are
+      part of the respective distributions, so dependencies should be
+      resolved automatically when using yum to install the packages.
+
+      The LAMMPS binaries contain <b>all</b> optional packages included in
+      the source distribution <b>except</b>: GPU, KIM, KOKKOS, REAX, USER-CUDA,
+      USER-INTEL, USER-H5MD, and USER-QUIP since those depend on libraries that
+      do not exist as regular RPM packages across all supported distributions
+      and/or where the license is incompatible with
+      including them in a binary distribution like this one. In addition
+      the Fortran variant of ReaxFF support (REAX package) has been omitted,
+      since this has long been superseded by the C/C++ implementation in
+      the USER-REAXC package.
+      The USER-REAXC code has been proven to produce results consistent
+      with the Fortran version and to be faster and more flexible.
+      In addition, the <b>serial</b> and <b>python</b> packages do
+      <b>not</b> include
+      the MPIIO and USER-LB packages, since those depend on MPI-IO functions
+      which are not available with the serial MPI stub library in LAMMPS.
+    </p>
+    <div style="clear:both;"></div>
+    <hr>
+    <div style="background-color: #e8e8f0; padding: 10px;">
+        Looking for pre-compiled Windows binaries?
+        They are just a <a href="windows.html">mouse click away</a>.<br>
+    </div>
+    <hr width="100%">
+    <p align="justify">
+      The LAMMPS distribution is split into multiple sub-packages and you
+      only need to install the ones that you need. Available sub-packages
+      are:
+    </p>
+
+    <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
+      <a imageanchor="1" href="package-kit-centos.jpg" style=""><img src="package-kit-centos.jpg" border="0" style="" width="250" height="252"></a>
+    </div>
+    <div style="background-color: #e8e8f0; padding: 1px; padding-left: 10px; padding-right: 10px;">
+      <dl>
+        <dt><b>lammps</b></dt>
+        <dd>Non-MPI LAMMPS executable compiled multi-threading support via OpenMP.
+          The name of the executable is: <strong><code>lmp_g++</code></strong>.</dd>
+
+        <dt><b>lammps-openmpi</b></dt>
+        <dd>LAMMPS executable compiled with OpenMPI and multi-threading via OpenMP.
+          The name of the executable is: <strong><code>lmp_g++</code></strong>.
+          Switching between the serial and parallel executable is done via
+          loading the openmpi environment module using the
+          <strong><code>module load</code></strong> and
+          <strong><code>module unload</code></strong> commands</dd>
+
+        <dt><b>lammps-mpich</b> or <b>lammps-mpich2</b></dt>
+        <dd>LAMMPS executable compiled with MPICH3 or MPICH2 and multi-threading via OpenMP.
+          The name of the executable is: <strong><code>lmp_g++</code></strong>.
+          Switching between the serial and parallel executable is done via
+          loading the MPICH or MPICH2 environment module using the
+          <strong><code>module load</code></strong> and
+          <strong><code>module unload</code></strong> commands</dd>
+
+        <dt><b>lammps-python</b></dt>
+        <dd>Non-MPI LAMMPS shared library and Python wrapper compiled with OpenMP multi-threading.
+          Use in your python scripts as <strong><code>lammps</code></strong> module.</dd>
+
+        <dt><b>lammps-common</b></dt>
+        <dd>Contains a few bundled tools (<strong><code>restart2data</code></strong>,
+          <strong><code>binary2txt</code></strong>,
+          <strong><code>msi2lmp</code></strong>, and 
+          <strong><code>chain.x</code></strong>), and
+          bundled potential files in
+          <strong><code>/usr/share/lammps/potentials</code></strong> as well as support
+          files for <code>msi2lmp</code> in
+          <strong><code>/usr/share/lammps/frc_files</code></strong>. It also 
+          sets up environment variables, so that those files can be automatically be
+          found, if referenced without a path, without having to copy them somewhere.<br>
+          <em><u>This package is required if one or more of the four previous packages are
+            installed</u></em>.</dd>
+
+        <dt><b>lammps-doc</b></dt>
+        <dd>Contains the LAMMPS manual and additional documentation in PDF format.
+          It also contains the benchmark and example inputs in
+          <strong><code>/usr/share/lammps/bench</code></strong>
+          <strong><code>/usr/share/lammps/examples</code></strong>, respectively.</dd>
+      </dl>
+    </div>
+    <hr width="100%">
+    <div style="background-color: #e8e8f0; padding: 10px;">
+      &nbsp;<b>&gt;</b>&nbsp; Proceed to the <b><a href="install.html">Installation and Configuration Instructions</a>.</b><br>
+    </div>
+    <hr width="100%">
+
+    <h2>Available Repositories</h2>
+    <p align="justify">
+      Binary RPMs are currently provided for up-to-date versions of
+      <a href="http://www.redhat.com/rhel/" target="_blank">Red Hat Enterprise Linux</a>
+      or <a href="http://www.centos.org/" target="_blank">CentOS</a>
+      (version 6.6 or 7.1 at the time of this writing),
+      <a href="http://fedoraproject.org" target="_blank">Fedora</a>
+      (versions 19, 20, 21, 22, and 23 at the time of this writing)
+      and <a href="http://www.opensuse.org/" target="_blank">OpenSuSE</a>
+      (versions 12.3, 13.1, 13.2, and 42.1 as of this writing) for 32-bit (i386/i586 only 
+      for versions that still support it, i.e. 12.3 and 13.1) 
+      and 64-bit (x86_64) Intel/AMD x86 CPU versions. RPM packages for
+      older distributions may still be available, but will not be updated
+      and thus it is strongly recommended to upgrade the installation.
+      Binaries for
+      additional distributions and versions may be added based on demand
+      and available resources. The packages are provided <b>without
+      warranty and support</b>. If you notice any problems or would like
+      to see binaries for other distributions or versions or platforms
+      made available, you can contact
+      <a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a>
+      and we can try to find a solution.
+    </p>
+    <ul>
+      <li>Browse the CentOS / RedHat Enterprise Linux <a href="centos">repository</a></li>
+      <li>Browse the Fedora Linux <a href="fedora">repository</a></li>
+      <li>Browse the OpenSuSE Linux <a href="suse">repository</a></li>
+    </ul>
+    <div style="clear:both;"></div>
+    <hr width="100%">
+
+    <h2>Other RPM-based Distributions</h2>
+    <p align="justify">
+      There is a huge number of Linux distributions on a large variety
+      of hardware around and it is impossible to provide binaries for
+      all of them, even if they do use the RPM package format. For those
+      distributions, you can download a source RPM from below and try a
+      custom RPM build after installing the necessary packages required
+      for building the binary RPM via the command:</p>
+    <div style="background-color: #e8e8f0; padding: 10px;">
+      <code>rpmbuild --rebuild &lt;name of the source rpm file&gt;</code>.<br>
+    </div>
+    </p>
+
+    <p align="justify">
+
+      If your distribution is not simply a different version of the ones
+      listed above, chances are, that some additional tweaks to the
+      lammps.spec file are required. You can contact
+      <a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a> to
+      see, if there is a (simple) solution. But very likely you will be
+      better off following the
+      <a href="http://lammps.sandia.gov/doc/Section_start.html" target="_blank">
+        generic compilation instructions</a> in the LAMMPS manual.
+    </p>
+    <ul>
+      <li>Browse Source RPM <a href="source">repository</a></li>
+    </ul>
+    <hr width="100%">
+
+    <h2>Non-RPM-based Distributions</h2>
+    <p align="justify">
+      For Ubuntu and similar distributions based on the Debian packaging system,
+      you can use the LAMMPS daily build repository set up by Anton Gladky.
+      Instructions for accessing it are on the
+      <a href="http://lammps.sandia.gov/download.html#ubuntu">LAMMPS Download page</a>.
+    </p>
+    <p align="justify">
+      For Gentoo Linux LAMMPS has been integrated by Nicolas Bock and Christoph Junghans
+      into the portage system and LAMMPS can be configured and installed using the emerge
+      command. Basic instructions are on the
+      <a href="http://lammps.sandia.gov/download.html#gentoo">LAMMPS Download page</a>.
+    </p>
+    <hr>
+    <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
+<!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
+<!-- hhmts start -->
+Last modified: Mon Nov 23 17:14:10 EST 2015
+<!-- hhmts end -->
+  </body>
+</html>

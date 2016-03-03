@@ -153,8 +153,6 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -511,7 +509,10 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
 }
 
 
+namespace LAMMPS_NS {
 template class PairBuckCoulLongKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckCoulLongKokkos<LMPHostType>;
 #endif
+}
+

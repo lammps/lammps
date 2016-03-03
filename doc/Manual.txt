@@ -1,6 +1,6 @@
 <!-- HTML_ONLY -->
 <HEAD>
-<TITLE>LAMMPS Users Manual</TITLE>
+<TITLE>LAMMPS-ICMS Users Manual</TITLE>
 <META NAME="docnumber" CONTENT="1 Mar 2016 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
@@ -10,7 +10,7 @@
 
 <!-- END_HTML_ONLY -->
 
-"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+"LAMMPS WWW Site"_lws - "LAMMPS-ICMS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -20,7 +20,7 @@
 
 <H1></H1>
 
-LAMMPS Documentation :c,h3
+LAMMPS-ICMS Documentation :c,h3
 1 Mar 2016 version :c,h4
 
 Version info: :h4
@@ -35,11 +35,26 @@ LAMMPS. It is also in the file src/version.h and in the LAMMPS
 directory name created when you unpack a tarball, and at the top of
 the first page of the manual (this page).
 
+LAMMPS-ICMS is an experimental variant of LAMMPS with additional
+features made available for testing before they will be submitted
+for inclusion into the official LAMMPS tree. The source code is 
+based on the official LAMMPS svn repository mirror at the Institute
+for Computational Molecular Science at Temple University and generally
+kept up-to-date as much as possible. Sometimes, e.g. when additional
+development work is needed to adapt the upstream changes into
+LAMMPS-ICMS it can take longer until synchronization; and occasionally,
+e.g. in case of the rewrite of the multi-threading support, the
+development will be halted except for important bugfixes until
+all features of LAMMPS-ICMS fully compatible with the upstream
+version or replaced by alternate implementations.
+
 If you browse the HTML doc pages on the LAMMPS WWW site, they always
-describe the most current version of LAMMPS. :ulb,l
+describe the most current version of upstream LAMMPS, but may be
+missing some new features in LAMMPS-ICMS. :ulb,l
 
 If you browse the HTML doc pages included in your tarball, they
-describe the version you have. :l
+describe the version you have, however, not all new features in
+LAMMPS-ICMS are documented immediately. :l
 
 The "PDF file"_Manual.pdf on the WWW site or in the tarball is updated
 about once per month.  This is because it is large, and we don't want

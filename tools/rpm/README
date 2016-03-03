@@ -1,0 +1,47 @@
+Steps to set up a virtual machine for building RPMs
+
+Configure a new virtual machine instance for each platform and distribution
+Tested KVM/QEMU settings:
+ 1 CPU, 2048 MB RAM, 20 GB qcow2 disk image, VMVGA graphics, Core2duo CPU 32-bit/64-bit
+
+Install distribution via CD/DVD ISO image (netinstall version)
+- standard (non-LVM) partition layout, 2GB Swap only, 500MB /boot, rest /
+- choose "Minimal" installation
+
+Make sure the following additional packages (and dependencies) are installed
+
+  + on RedHat/Fedora/CentOS:
+    vim-enhanced openssh-clients python-devel tar screen
+    yum-utils rpmdevtools rpm-build redhat-rpm-config createrepo
+    git make gcc-c++ gcc-gfortran
+    mpich-devel openmpi-devel fftw-devel libjpeg-turbo-devel libpng-devel
+
+  + on OpenSuSE
+    yast2-online-update-frontend
+    vim-enhanced screen
+    build rpm-build git-core python-devel createrepo
+    openmpi-devel libjpeg8-devel fftw3-devel gcc-fortran gcc-c++ libpng-devel
+
+Create user 'rpmbuild' and set password.
+Use 'visudo' to allow 'rpmbuild' to shutdown the virtual machine
+without a password by adding the line:
+
+rpmbuild  ALL = NOPASSWD: /sbin/shutdown
+
+Log in and create ssh key pair and append the public key the .ssh/authorized_keys
+file of the repository account for automatic file transfer
+Setup a suitable $HOME/.rpmmacros file
+Run rpmdev-setuptree
+
+Edit $HOME/.bash_profile to set environment variables for depositing files
+MYRPM_REPO_HOST MYRPM_REPO_USER MYRPM_REPO_DIR
+
+Clone LAMMPS-ICMS tree via:
+ git clone git://git.lammps.org/lammps-icms.git lammps-icms
+
+Build and sync the RPMs to the repository with:
+cd lammps-icms;
+git pull
+./tools/rpm/build-rpm-from-git.sh
+./tools/rpm/sync-to-repo.sh
+

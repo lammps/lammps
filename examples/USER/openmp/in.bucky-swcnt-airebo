@@ -1,0 +1,48 @@
+# stick a buckyball into a nanotube
+units           metal
+dimension       3
+boundary        f f f
+atom_style      atomic
+newton          on
+
+processors * * 1
+
+# read topology 
+read_data       data.bucky-swcnt
+
+pair_style airebo 3.0
+
+pair_coeff  *  *   CH.airebo C C
+
+neighbor        5.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+timestep        0.001
+
+# we only move some atoms.
+group mobile type 1
+
+# have balls bounce off the walls
+fix     walls       mobile wall/reflect xlo EDGE ylo EDGE zlo EDGE xhi EDGE yhi EDGE zhi EDGE
+
+velocity mobile create 303.0 46659 mom yes rot yes dist gaussian
+
+# take some potential energy out of the system
+#minimize 1.0e-4 1.0e-6 100 1000
+
+reset_timestep 0
+
+fix     integrate   mobile nve/limit 0.1
+fix     thermostat  mobile langevin 300.0 300.0 1.0 234624
+
+# IMD setup.
+#fix  comm       all imd 6789 unwrap on trate 10
+
+# temperature is based on mobile atoms only
+compute mobtemp mobile temp
+thermo_style    custom step pe ke evdwl emol c_mobtemp
+thermo          10
+thermo_modify   norm yes
+thermo_modify   temp mobtemp
+
+run             100

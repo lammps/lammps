@@ -74,6 +74,7 @@ void RespaOMP::setup()
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
     fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
     fprintf(screen,"  OuterTime step: %g\n", update->dt);
+    timer->print_timeout(screen);
   }
 
   update->setupflag = 1;

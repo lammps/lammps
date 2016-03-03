@@ -25,10 +25,6 @@ using namespace LAMMPS_NS;
 
 #define EPS_ENERGY 1.0e-8
 
-// same as in other min classes
-
-enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
-
 /* ---------------------------------------------------------------------- */
 
 MinSD::MinSD(LAMMPS *lmp) : MinLineSearch(lmp) {}
@@ -57,6 +53,9 @@ int MinSD::iterate(int maxiter)
     for (i = 0; i < nextra_global; i++) hextra[i] = fextra[i];
 
   for (int iter = 0; iter < maxiter; iter++) {
+
+    if (timer->check_timeout(niter))
+      return TIMEOUT;
 
     ntimestep = ++update->ntimestep;
     niter++;

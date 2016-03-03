@@ -12,17 +12,20 @@ timer command :h3
 
 timer args :pre
 
-{args} = one or more of {off} or {loop} or {normal} or {full} or {sync} or {nosync} :l
+{args} = one or more of {off} or {loop} or {normal} or {full} or {sync} or {nosync} or {timeout} or {every} :l
   {off} = do not collect or print any timing information
   {loop} = collect only the total time for the simulation loop
   {normal} = collect timer information broken down by sections (default)
   {full} = like {normal} but also include CPU and thread utilzation 
   {sync} = explicitly synchronize MPI tasks between sections
-  {nosync} = do not synchronize MPI tasks between sections (default) :pre
+  {nosync} = do not synchronize MPI tasks between sections (default)
+  {timeout} value = set walltime limit to {value}
+  {every} value = perform timeout check every {value} steps :pre
 
 [Examples:]
 
 timer full sync
+timer timeout 2:00:00 every 100
 timer loop :pre
 
 [Description:]
@@ -50,8 +53,27 @@ call which meaures load imbalance more accuractly, though it can also
 slow down the simulation.  Using the {nosync} setting (which is the
 default) turns off this synchronization.
 
-Multiple keywords can be specified.  For keywords that are mutually
-exclusive, the last one specified takes effect.
+With the {timeout} keyword a walltime limit can be imposed that affects
+"run"_run.html  and "minimize"_minimize.html commands. If the time
+limit it reached, ongoing calculations will be stopped on the next
+step that is a multiple of the value specified with {every}. All
+follwing run or minimize commands will be skipped until the timeout
+is reset or turned off by a new {timer} command. The timeout value
+can be "off" or "unlimited" to turn the timeout off, otherwise a
+single number is interpreted as seconds, two numbers separated by
+a colon (MM:SS) as minutes and seconds and three numbers separated
+by colons as hours, minutes and seconds, respectively.
+
+The {every} keyword sets how frequent during a run or minimization
+the wall clock will be checked. This check count applies to the outer
+iterations or time steps during minimizations or r-RESPA runs, respectively.
+Checking for timeout very often, can slow a calculation down, checking
+too infrequent makes the timeout measurement less accurate and the run
+will be stopped later than desired.
+
+Multiple keywords can be specified with the {timer} command.  For
+keywords that are mutually exclusive, the last one specified takes
+effect.
 
 NOTE: Using the {full} and {sync} options provides the most detailed
 and accurate timing information, but can also have a negative
@@ -71,3 +93,5 @@ can just use the {loop} or {off} setting.
 [Default:]
 
 timer normal nosync
+timer timeout off
+timer every 10 :pre

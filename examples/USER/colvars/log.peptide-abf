@@ -1,0 +1,575 @@
+LAMMPS (5 Nov 2014-ICMS)
+WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:88)
+  using 1 OpenMP thread(s) per MPI task
+# Solvated 5-mer peptide
+
+units		real
+atom_style	full
+
+pair_style	lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style	pppm 0.0001
+
+read_data	data.peptide
+  orthogonal box = (36.8402 41.0137 29.7681) to (64.2116 68.3851 57.1395)
+  1 by 1 by 2 MPI processor grid
+  reading atoms ...
+  2004 atoms
+  reading velocities ...
+  2004 velocities
+  scanning bonds ...
+  3 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  14 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  reading bonds ...
+  1365 bonds
+  reading angles ...
+  786 angles
+  reading dihedrals ...
+  207 dihedrals
+  reading impropers ...
+  12 impropers
+  4 = max # of 1-2 neighbors
+  7 = max # of 1-3 neighbors
+  14 = max # of 1-4 neighbors
+  18 = max # of special neighbors
+
+neighbor	2.0 bin
+neigh_modify	delay 5
+
+timestep	2.0
+
+group		peptide type <= 12
+84 atoms in group peptide
+group		one id 2 4 5 6
+4 atoms in group one
+group		two id 80 82 83 84
+4 atoms in group two
+group		ref id 37
+1 atoms in group ref
+group		colvar union one two ref
+9 atoms in group colvar
+
+fix		1 all nvt temp  275.0 275.0 100.0 tchain 1
+
+shell "rm -f out*.colvars.* out*.abf.* out*.meta.*"
+fix		2 all colvars peptide.abf tstat 1
+fix		2a ref setforce 0.0 0.0 0.0
+
+fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
+  19 = # of size 2 clusters
+  6 = # of size 3 clusters
+  3 = # of size 4 clusters
+  640 = # of frozen angles
+
+#dump		1 colvar custom 1 dump.colvar.lammpstrj id xu yu zu fx fy fz
+#dump_modify 1 sort id
+
+thermo_style	custom step temp etotal pe ke epair ebond f_2
+thermo		10
+
+
+run		100
+PPPM initialization ...
+  G vector (1/distance) = 0.268725
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0228209
+  estimated relative force accuracy = 6.87243e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 6776 1800
+colvars: Creating proxy instance
+colvars: ----------------------------------------------------------------------
+colvars: Initializing the collective variables module, version 2014-11-06.
+colvars: Using LAMMPS interface, version 2014-10-29.
+colvars: ----------------------------------------------------------------------
+colvars: Reading new configuration from file "peptide.abf":
+colvars: # indexFile = "" [default]
+colvars: # analysis = off [default]
+colvars: # colvarsTrajFrequency = 1
+colvars: # colvarsRestartFrequency = 1000
+colvars: # colvarsTrajAppend = off [default]
+colvars: ----------------------------------------------------------------------
+colvars:   Initializing a new collective variable.
+colvars:   # name = one
+colvars:   Initializing a new "distance" component.
+colvars:     # componentCoeff = 1 [default]
+colvars:     # componentExp = 1 [default]
+colvars:     # period = 0 [default]
+colvars:     # wrapAround = 0 [default]
+colvars:     # forceNoPBC = off [default]
+colvars:     # oneSiteSystemForce = off [default]
+colvars:       Initializing atom group "group1".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group1" defined, 4 atoms initialized: total mass = 0.
+colvars:       Initializing atom group "group2".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group2" defined, 1 atoms initialized: total mass = 0.
+colvars:   All components initialized.
+colvars:   # width = 1 [default]
+colvars:   # lowerBoundary = 0
+colvars:   # lowerWallConstant = 0 [default]
+colvars:   # upperBoundary = 20
+colvars:   # upperWallConstant = 0 [default]
+colvars:   # hardLowerBoundary = on
+colvars:   # hardUpperBoundary = off [default]
+colvars:   # expandBoundaries = off [default]
+colvars:   # extendedLagrangian = off [default]
+colvars:   # outputValue = on [default]
+colvars:   # outputVelocity = off [default]
+colvars:   # outputSystemForce = on
+colvars:   # outputAppliedForce = on
+colvars: ----------------------------------------------------------------------
+colvars:   Initializing a new collective variable.
+colvars:   # name = two
+colvars:   Initializing a new "distance" component.
+colvars:     # componentCoeff = 1 [default]
+colvars:     # componentExp = 1 [default]
+colvars:     # period = 0 [default]
+colvars:     # wrapAround = 0 [default]
+colvars:     # forceNoPBC = off [default]
+colvars:     # oneSiteSystemForce = off [default]
+colvars:       Initializing atom group "group1".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group1" defined, 4 atoms initialized: total mass = 0.
+colvars:       Initializing atom group "group2".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group2" defined, 1 atoms initialized: total mass = 0.
+colvars:   All components initialized.
+colvars:   # width = 1 [default]
+colvars:   # lowerBoundary = 0
+colvars:   # lowerWallConstant = 0 [default]
+colvars:   # upperBoundary = 20
+colvars:   # upperWallConstant = 0 [default]
+colvars:   # hardLowerBoundary = on
+colvars:   # hardUpperBoundary = off [default]
+colvars:   # expandBoundaries = off [default]
+colvars:   # extendedLagrangian = off [default]
+colvars:   # outputValue = on [default]
+colvars:   # outputVelocity = off [default]
+colvars:   # outputSystemForce = on
+colvars:   # outputAppliedForce = on
+colvars: ----------------------------------------------------------------------
+colvars: Collective variables initialized, 2 in total.
+colvars: ----------------------------------------------------------------------
+colvars:   Initializing a new "abf" instance.
+colvars:   # name = abf
+colvars:   # colvars = { one, two }
+colvars:   # outputEnergy = off [default]
+colvars:   # applyBias = on
+colvars:   # updateBias = on [default]
+colvars:   # hideJacobian = off [default]
+colvars:   Jacobian (geometric) forces will be included in reported free energy gradients.
+colvars:   # fullSamples = 200 [default]
+colvars:   # inputPrefix =  [default]
+colvars:   # outputFreq = 1000 [default]
+colvars:   # historyFreq = 0 [default]
+colvars:   # shared = off [default]
+colvars:   # maxForce =  [default]
+colvars:   Finished ABF setup.
+colvars: ----------------------------------------------------------------------
+colvars: Collective variables biases initialized, 1 in total.
+colvars: ----------------------------------------------------------------------
+colvars: Collective variables module (re)initialized.
+colvars: ----------------------------------------------------------------------
+colvars: The restart output state file will be "rest.colvars.state".
+colvars: The final output state file will be "out.colvars.state".
+colvars: Writing to colvar trajectory file "out.colvars.traj".
+colvars: Re-initialized atom group one:0/0. 4 atoms: total mass = 15.035.
+colvars: Re-initialized atom group one:0/1. 1 atoms: total mass = 12.011.
+colvars: Re-initialized atom group two:0/0. 4 atoms: total mass = 15.035.
+colvars: Re-initialized atom group two:0/1. 1 atoms: total mass = 12.011.
+colvars:   Prepared sample and gradient buffers at step 0.
+SHAKE stats (type/ave/delta) on step 0
+  4 1.111 1.44264e-05
+  6 0.996998 7.26967e-06
+  8 1.08 1.32536e-05
+  10 1.111 1.22749e-05
+  12 1.08 1.11767e-05
+  14 0.96 0
+  18 0.957206 4.37979e-05
+  31 104.519 0.00396029
+Memory usage per processor = 14.8029 Mbytes
+Step Temp TotEng PotEng KinEng E_pair E_bond 2 
+       0    282.10052    -5237.458   -6372.3766    1134.9186    -6442.768    16.557152            0 
+      10    277.56202   -5234.5267   -6351.1865    1116.6598   -6421.6673    15.157737            0 
+      20    279.23914   -5226.3715   -6349.7785     1123.407    -6438.893    20.182593            0 
+      30    282.18508   -5222.2101   -6357.4689    1135.2588   -6447.4787    20.633694            0 
+      40    275.79415   -5220.6026     -6330.15    1109.5474   -6418.1917    12.957903            0 
+      50    285.29502   -5218.0696   -6365.8399    1147.7704    -6444.236     16.49252            0 
+      60    271.80932   -5220.1144   -6313.6305    1093.5161   -6406.0186    20.082649            0 
+      70    273.78833   -5224.3654   -6325.8432    1101.4778   -6411.4835    20.116139            0 
+      80    273.59878   -5228.1218    -6328.837    1100.7152   -6417.5929    17.278957            0 
+      90     285.1598   -5229.7433   -6376.9697    1147.2264   -6462.8871    25.416574            0 
+SHAKE stats (type/ave/delta) on step 100
+  4 1.111 1.94821e-06
+  6 0.996999 1.95513e-06
+  8 1.08 1.31363e-06
+  10 1.111 1.50162e-06
+  12 1.08 7.11588e-07
+  14 0.959999 0
+  18 0.9572 9.09672e-06
+  31 104.52 0.000738832
+     100    271.72303   -5234.6676   -6327.8364    1093.1689   -6417.4309    16.436681            0 
+
+Loop time of 1.03853 on 2 procs for 100 steps with 2004 atoms
+99.0% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 16.639 ns/day  1.442 hours/ns  96.290 timesteps/s
+
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.79593    | 0.79855    | 0.80116    |   0.3 | 76.89
+Bond    | 0.0024676  | 0.0027206  | 0.0029736  |   0.5 |  0.26
+Kspace  | 0.093338   | 0.095898   | 0.098457   |   0.8 |  9.23
+Neigh   | 0.094017   | 0.094023   | 0.09403    |   0.0 |  9.05
+Comm    | 0.016705   | 0.016832   | 0.016959   |   0.1 |  1.62
+Output  | 0.00023961 | 0.00033438 | 0.00042915 |   0.5 |  0.03
+Modify  | 0.027617   | 0.0277     | 0.027782   |   0.0 |  2.67
+Other   |            | 0.002477   |            |       |  0.24
+
+Nlocal:    1002 ave 1010 max 994 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:    8643.5 ave 8659 max 8628 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:    354019 ave 356050 max 351988 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 708038
+Ave neighs/atom = 353.312
+Ave special neighs/atom = 2.34032
+Neighbor list builds = 8
+Dangerous builds = 0
+
+run     100
+PPPM initialization ...
+  G vector (1/distance) = 0.268725
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0228209
+  estimated relative force accuracy = 6.87243e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 6776 1800
+colvars: Re-initialized atom group one:0/0. 4 atoms: total mass = 15.035.
+colvars: Re-initialized atom group one:0/1. 1 atoms: total mass = 12.011.
+colvars: Re-initialized atom group two:0/0. 4 atoms: total mass = 15.035.
+colvars: Re-initialized atom group two:0/1. 1 atoms: total mass = 12.011.
+SHAKE stats (type/ave/delta) on step 100
+  4 1.111 1.94821e-06
+  6 0.996999 1.95513e-06
+  8 1.08 1.31363e-06
+  10 1.111 1.50162e-06
+  12 1.08 7.11588e-07
+  14 0.959999 0
+  18 0.9572 9.09672e-06
+  31 104.52 0.000738832
+Memory usage per processor = 14.8029 Mbytes
+Step Temp TotEng PotEng KinEng E_pair E_bond 2 
+     100    271.72303   -5234.6676   -6327.8364    1093.1689   -6417.4309    16.436681            0 
+     110    282.16131   -5238.8524   -6374.0155    1135.1632    -6468.973    26.409952            0 
+     120    279.45401   -5243.5466    -6367.818    1124.2714   -6463.8618     26.02577            0 
+     130    271.89469   -5252.2317   -6346.0912    1093.8595   -6438.0037    17.493788            0 
+     140    272.07731   -5263.1495   -6357.7437    1094.5942   -6448.0536    24.576321            0 
+     150    273.22917   -5275.1405   -6374.3687    1099.2283   -6457.5303     20.61675            0 
+     160    283.33338   -5284.0726   -6423.9511    1139.8785   -6508.5175    17.881775            0 
+     170    276.87524   -5293.0365   -6406.9333    1113.8968   -6497.0038     18.80942            0 
+     180    276.52856   -5304.8136   -6417.3156    1112.5021   -6498.7829    18.007541            0 
+     190    274.63469   -5315.0171   -6419.8999    1104.8828   -6500.9027    13.341442            0 
+SHAKE stats (type/ave/delta) on step 200
+  4 1.111 2.87471e-06
+  6 0.996999 3.05704e-06
+  8 1.08 1.82303e-06
+  10 1.111 1.92003e-06
+  12 1.08 1.967e-06
+  14 0.959999 0
+  18 0.9572 1.13191e-05
+  31 104.52 0.00114646
+     200    280.26317   -5323.8117   -6451.3385    1127.5268   -6532.4914    19.303399            0 
+
+Loop time of 1.0483 on 2 procs for 100 steps with 2004 atoms
+99.3% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 16.484 ns/day  1.456 hours/ns  95.393 timesteps/s
+
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.79373    | 0.80379    | 0.81384    |   1.1 | 76.68
+Bond    | 0.0024867  | 0.0027702  | 0.0030537  |   0.5 |  0.26
+Kspace  | 0.090098   | 0.099933   | 0.10977    |   3.1 |  9.53
+Neigh   | 0.093124   | 0.093127   | 0.093129   |   0.0 |  8.88
+Comm    | 0.017321   | 0.017357   | 0.017392   |   0.0 |  1.66
+Output  | 0.00024033 | 0.00034082 | 0.00044131 |   0.5 |  0.03
+Modify  | 0.028329   | 0.028401   | 0.028473   |   0.0 |  2.71
+Other   |            | 0.002583   |            |       |  0.25
+
+Nlocal:    1002 ave 1003 max 1001 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:    8631 ave 8646 max 8616 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:    353967 ave 356542 max 351392 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 707934
+Ave neighs/atom = 353.26
+Ave special neighs/atom = 2.34032
+Neighbor list builds = 8
+Dangerous builds = 0
+
+fix 2 all colvars peptide.abf input out.colvars.state tstat 1 output out2
+colvars: Saving collective variables state to "out.colvars.state".
+colvars: Resetting the Collective Variables Module.
+
+run     100
+PPPM initialization ...
+  G vector (1/distance) = 0.268725
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0228209
+  estimated relative force accuracy = 6.87243e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 6776 1800
+colvars: Creating proxy instance
+colvars: ----------------------------------------------------------------------
+colvars: Initializing the collective variables module, version 2014-11-06.
+colvars: Using LAMMPS interface, version 2014-10-29.
+colvars: ----------------------------------------------------------------------
+colvars: Reading new configuration from file "peptide.abf":
+colvars: # indexFile = "" [default]
+colvars: # analysis = off [default]
+colvars: # colvarsTrajFrequency = 1
+colvars: # colvarsRestartFrequency = 1000
+colvars: # colvarsTrajAppend = off [default]
+colvars: ----------------------------------------------------------------------
+colvars:   Initializing a new collective variable.
+colvars:   # name = one
+colvars:   Initializing a new "distance" component.
+colvars:     # componentCoeff = 1 [default]
+colvars:     # componentExp = 1 [default]
+colvars:     # period = 0 [default]
+colvars:     # wrapAround = 0 [default]
+colvars:     # forceNoPBC = off [default]
+colvars:     # oneSiteSystemForce = off [default]
+colvars:       Initializing atom group "group1".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group1" defined, 4 atoms initialized: total mass = 0.
+colvars:       Initializing atom group "group2".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group2" defined, 1 atoms initialized: total mass = 0.
+colvars:   All components initialized.
+colvars:   # width = 1 [default]
+colvars:   # lowerBoundary = 0
+colvars:   # lowerWallConstant = 0 [default]
+colvars:   # upperBoundary = 20
+colvars:   # upperWallConstant = 0 [default]
+colvars:   # hardLowerBoundary = on
+colvars:   # hardUpperBoundary = off [default]
+colvars:   # expandBoundaries = off [default]
+colvars:   # extendedLagrangian = off [default]
+colvars:   # outputValue = on [default]
+colvars:   # outputVelocity = off [default]
+colvars:   # outputSystemForce = on
+colvars:   # outputAppliedForce = on
+colvars: ----------------------------------------------------------------------
+colvars:   Initializing a new collective variable.
+colvars:   # name = two
+colvars:   Initializing a new "distance" component.
+colvars:     # componentCoeff = 1 [default]
+colvars:     # componentExp = 1 [default]
+colvars:     # period = 0 [default]
+colvars:     # wrapAround = 0 [default]
+colvars:     # forceNoPBC = off [default]
+colvars:     # oneSiteSystemForce = off [default]
+colvars:       Initializing atom group "group1".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group1" defined, 4 atoms initialized: total mass = 0.
+colvars:       Initializing atom group "group2".
+colvars:       # indexGroup = "" [default]
+colvars:       # psfSegID =  [default]
+colvars:       # atomsFile = "" [default]
+colvars:       # dummyAtom = ( 0 , 0 , 0 ) [default]
+colvars:       # enableForces = on [default]
+colvars:       # disableForces = off [default]
+colvars:       # centerReference = off [default]
+colvars:       # rotateReference = off [default]
+colvars:       # enableFitGradients = on [default]
+colvars:       Atom group "group2" defined, 1 atoms initialized: total mass = 0.
+colvars:   All components initialized.
+colvars:   # width = 1 [default]
+colvars:   # lowerBoundary = 0
+colvars:   # lowerWallConstant = 0 [default]
+colvars:   # upperBoundary = 20
+colvars:   # upperWallConstant = 0 [default]
+colvars:   # hardLowerBoundary = on
+colvars:   # hardUpperBoundary = off [default]
+colvars:   # expandBoundaries = off [default]
+colvars:   # extendedLagrangian = off [default]
+colvars:   # outputValue = on [default]
+colvars:   # outputVelocity = off [default]
+colvars:   # outputSystemForce = on
+colvars:   # outputAppliedForce = on
+colvars: ----------------------------------------------------------------------
+colvars: Collective variables initialized, 2 in total.
+colvars: ----------------------------------------------------------------------
+colvars:   Initializing a new "abf" instance.
+colvars:   # name = abf
+colvars:   # colvars = { one, two }
+colvars:   # outputEnergy = off [default]
+colvars:   # applyBias = on
+colvars:   # updateBias = on [default]
+colvars:   # hideJacobian = off [default]
+colvars:   Jacobian (geometric) forces will be included in reported free energy gradients.
+colvars:   # fullSamples = 200 [default]
+colvars:   # inputPrefix =  [default]
+colvars:   # outputFreq = 1000 [default]
+colvars:   # historyFreq = 0 [default]
+colvars:   # shared = off [default]
+colvars:   # maxForce =  [default]
+colvars:   Finished ABF setup.
+colvars: ----------------------------------------------------------------------
+colvars: Collective variables biases initialized, 1 in total.
+colvars: ----------------------------------------------------------------------
+colvars: Collective variables module (re)initialized.
+colvars: ----------------------------------------------------------------------
+colvars: Restarting from file "out.colvars.state".
+colvars:   Restarting collective variable "one" from value: 10.8015
+colvars:   Restarting collective variable "two" from value: 8.37052
+colvars:   Restarting ABF bias "abf".
+colvars: ----------------------------------------------------------------------
+colvars: The restart output state file will be "rest.colvars.state".
+colvars: The final output state file will be "out2.colvars.state".
+colvars: Writing to colvar trajectory file "out2.colvars.traj".
+colvars: Initializing step number as firstTimestep.
+colvars: Re-initialized atom group one:0/0. 4 atoms: total mass = 15.035.
+colvars: Re-initialized atom group one:0/1. 1 atoms: total mass = 12.011.
+colvars: Re-initialized atom group two:0/0. 4 atoms: total mass = 15.035.
+colvars: Re-initialized atom group two:0/1. 1 atoms: total mass = 12.011.
+colvars:   Prepared sample and gradient buffers at step 200.
+SHAKE stats (type/ave/delta) on step 200
+  4 1.111 2.87471e-06
+  6 0.996999 3.05704e-06
+  8 1.08 1.82303e-06
+  10 1.111 1.92003e-06
+  12 1.08 1.967e-06
+  14 0.959999 0
+  18 0.9572 1.13191e-05
+  31 104.52 0.00114646
+Memory usage per processor = 14.8029 Mbytes
+Step Temp TotEng PotEng KinEng E_pair E_bond 2 
+     200    280.26317   -5323.8117   -6451.3385    1127.5268   -6532.4914    19.303399            0 
+     210    264.04128    -5333.635   -6395.8994    1062.2645   -6472.9679    13.551822            0 
+     220    262.34335   -5342.4337   -6397.8672    1055.4335   -6483.5279    20.662868            0 
+     230    265.06475   -5347.6936   -6414.0756     1066.382    -6495.647    16.284978            0 
+     240    269.68528   -5347.4017   -6432.3726    1084.9708     -6514.26    18.979765            0 
+     250    261.51605   -5342.0062   -6394.1114    1052.1052   -6475.0059    16.005204            0 
+     260    267.18446   -5336.0534   -6410.9632    1074.9098   -6493.8354    14.695191            0 
+     270    271.46039   -5329.6471   -6421.7594    1092.1123   -6499.8468     20.34702            0 
+     280    278.55746   -5318.5412   -6439.2057    1120.6645    -6529.477    27.513163            0 
+     290    283.34047   -5306.9017   -6446.8087    1139.9071   -6529.6114    15.039808            0 
+SHAKE stats (type/ave/delta) on step 300
+  4 1.111 2.96477e-07
+  6 0.997 8.75894e-07
+  8 1.08 1.05442e-06
+  10 1.111 1.33748e-06
+  12 1.08 7.69482e-07
+  14 0.96 0
+  18 0.957201 4.31576e-06
+  31 104.52 0.000408945
+     300    274.78037   -5299.7628   -6405.2317    1105.4689   -6481.9005    20.367752            0 
+
+Loop time of 1.05558 on 2 procs for 100 steps with 2004 atoms
+99.0% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 16.370 ns/day  1.466 hours/ns  94.735 timesteps/s
+
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.80975    | 0.81263    | 0.81551    |   0.3 | 76.98
+Bond    | 0.0025504  | 0.0027277  | 0.0029051  |   0.3 |  0.26
+Kspace  | 0.093665   | 0.096216   | 0.098766   |   0.8 |  9.11
+Neigh   | 0.09469    | 0.094693   | 0.094697   |   0.0 |  8.97
+Comm    | 0.01751    | 0.0179     | 0.018289   |   0.3 |  1.70
+Output  | 0.000247   | 0.00035346 | 0.00045991 |   0.6 |  0.03
+Modify  | 0.028416   | 0.0285     | 0.028585   |   0.1 |  2.70
+Other   |            | 0.002559   |            |       |  0.24
+
+Nlocal:    1002 ave 1004 max 1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:    8705 ave 8720 max 8690 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:    354160 ave 359525 max 348796 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 708321
+Ave neighs/atom = 353.454
+Ave special neighs/atom = 2.34032
+Neighbor list builds = 8
+Dangerous builds = 0
+
+colvars: Saving collective variables state to "out2.colvars.state".
+colvars: Resetting the Collective Variables Module.
+
+Please see the log.cite file for references relevant to this simulation
+

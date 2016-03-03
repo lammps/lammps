@@ -1,0 +1,15 @@
+#CUDA_HOME = $(HOME)/cuda-4.0
+CUDA_HOME = $(HOME)/cuda
+
+OCL_CPP = mpic++ -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -I$(CUDA_HOME)/include -fpic
+OCL_LINK = -lOpenCL 
+OCL_PREC = -D_SINGLE_SINGLE
+OCL_TUNE = -DFERMI_OCL
+
+BIN_DIR = .
+OBJ_DIR = obj
+LIB_DIR = .
+AR = ar
+BSH = /bin/sh
+
+include Opencl.makefile

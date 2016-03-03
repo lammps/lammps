@@ -1,0 +1,18 @@
+cell.o: cell.cc config.hh common.hh cell.hh
+common.o: common.cc common.hh config.hh
+container.o: container.cc container.hh config.hh common.hh v_base.hh \
+  worklist.hh cell.hh c_loops.hh v_compute.hh rad_option.hh
+unitcell.o: unitcell.cc unitcell.hh config.hh cell.hh common.hh
+v_compute.o: v_compute.cc worklist.hh v_compute.hh config.hh cell.hh \
+  common.hh rad_option.hh container.hh v_base.hh c_loops.hh \
+  container_prd.hh unitcell.hh
+c_loops.o: c_loops.cc c_loops.hh config.hh
+v_base.o: v_base.cc v_base.hh worklist.hh config.hh v_base_wl.cc
+wall.o: wall.cc wall.hh cell.hh config.hh common.hh container.hh \
+  v_base.hh worklist.hh c_loops.hh v_compute.hh rad_option.hh
+pre_container.o: pre_container.cc config.hh pre_container.hh c_loops.hh \
+  container.hh common.hh v_base.hh worklist.hh cell.hh v_compute.hh \
+  rad_option.hh
+container_prd.o: container_prd.cc container_prd.hh config.hh common.hh \
+  v_base.hh worklist.hh cell.hh c_loops.hh v_compute.hh unitcell.hh \
+  rad_option.hh

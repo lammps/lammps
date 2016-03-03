@@ -601,11 +601,12 @@ namespace ATC {
     FIELDS sources;
     double k = lammpsInterface_->coulomb_constant();
     string fname = "radial_power";
-    double xtArgs[8];
+    double xtArgs[12];
     xtArgs[0] = 0; xtArgs[1] = 0; xtArgs[2] = 0;
     xtArgs[3] = 1; xtArgs[4] = 1; xtArgs[5] = 1;
     xtArgs[6] = k*chargeDensity_;
     xtArgs[7] = -1.;
+    xtArgs[8] = xtArgs[9] = xtArgs[10] = xtArgs[11] = 0.0;
     const DENS_MAT & s(sources[ELECTRIC_POTENTIAL].quantity());
     NODE_TO_XF_MAP::iterator XFitr;
     for (XFitr = nodeXFMap_.begin(); XFitr != nodeXFMap_.end(); XFitr++) {

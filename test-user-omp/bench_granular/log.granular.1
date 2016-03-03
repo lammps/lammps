@@ -1,0 +1,72 @@
+LAMMPS (21 Jun 2012-ICMS)
+# granular chute flow
+
+units		lj
+atom_style	sphere
+boundary	p p fs
+newton		off
+communicate	single vel yes
+
+read_data	data.granular
+  orthogonal box = (0 0 0) to (40 20 37.2886)
+  1 by 1 by 1 MPI processor grid
+  32000 atoms
+  32000 velocities
+
+pair_style	gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
+pair_coeff	* *
+
+neighbor	0.1 bin
+neigh_modify    delay 5 every 1
+
+timestep	0.0001
+
+group		bottom type 2
+912 atoms in group bottom
+group		active subtract all bottom
+31088 atoms in group active
+neigh_modify	exclude group bottom bottom
+
+fix		1 all gravity 1.0 chute 26.0
+fix		2 bottom freeze
+fix		3 active nve/sphere
+
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo_modify	norm no
+thermo 10
+
+run		100
+Memory usage per processor = 34.9301 Mbytes
+Step Atoms KinEng 1 Volume 
+       0    32000    784139.13    1601.1263    29833.783 
+      10    32000    784172.15    1578.6672    29833.783 
+      20    32000    784180.74    1564.4715    29833.783 
+      30    32000    784191.05    1569.3357    29833.783 
+      40    32000    784209.13    1574.3198    29834.249 
+      50    32000    784222.37    1577.1979    29834.249 
+      60    32000    784235.99    1579.3619    29834.249 
+      70    32000    784252.68    1580.8855    29834.707 
+      80    32000    784267.09    1578.0056    29834.707 
+      90    32000    784277.54    1573.5702    29834.707 
+     100    32000    784292.08    1571.0968    29834.707 
+Loop time of 0.793802 on 1 procs for 100 steps with 32000 atoms
+
+ Pair time (%) = 0.523044 (65.891)
+Neigh time (%) = 0.075381 (9.4962)
+ Comm time (%) = 0.0205085 (2.58358)
+Output time (%) = 0.00245214 (0.30891)
+Modify time (%) = 0.146604 (18.4686)
+Other time (%) = 0.0258117 (3.25165)
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5463 ave 5463 max 5463 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    115133 ave 115133 max 115133 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 115133
+Ave neighs/atom = 3.59791
+Neighbor list builds = 2
+Dangerous builds = 0

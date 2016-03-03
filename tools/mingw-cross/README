@@ -1,0 +1,47 @@
+Notes for cross-compiling LAMMPS in multiple variants from Fedora Linux
+to 32-bit and 64-bit Windows using the provided MinGW64/gcc toolchain.
+
+Set up a suitable (virtual) machine and install the following packages:
+make git vim-enhanced cmake dos2unix htmldoc mingw32-nsis
+mingw32-gcc-c++ mingw32-gcc-gfortran mingw32-libjpeg-static mingw32-pthreads-static mingw32-libgomp mingw32-libpng-static
+mingw64-gcc-c++ mingw64-gcc-gfortran mingw64-libjpeg-static mingw64-pthreads-static mingw64-libgomp mingw64-libpng-static
+
+Create user 'winbuild' and set password.
+Use 'visudo' to allow 'winbuild' to shutdown the virtual machine
+without a password by adding the line:
+
+winbuild  ALL = NOPASSWD: /sbin/shutdown
+
+Log in and create ssh key pair and append the public key the .ssh/authorized_keys
+file of the repository account for automatic file transfer
+
+Edit $HOME/.bash_profile to set environment variables for depositing files
+MINGW_REPO_HOST MINGW_REPO_USER MINGW_REPO_DIR
+
+Clone LAMMPS-ICMS tree via:
+ git clone git://git.icms.temple.edu/lammps-icms.git lammps-icms
+
+From now on, to build and sync the windows installers to the repository with:
+cd ~/lammps-icms;
+git pull
+./tools/mingw-cross/build-mingw-cross.sh
+./tools/mingw-cross/sync-to-repo.sh
+
+Cross compiling an OpenCL installable driver library:
+- download OpenCL-1.2 headers from the Khronos website and copy
+  them to ${MY_OPENCL_DIR}/include/CL
+- download OpenCL ICD builder from the Khronos website,
+  unpackage it and apply the opencl-icd-1.2.11.patch
+  mkdir inc/CL
+  cp ${MY_OPENCL_DIR}/include/CL/* inc/CL
+- create a build-32 directory, cd into it, and run:
+  cmake -DCMAKE_TOOLCHAIN_FILE=${LAMMPS_PATH}/tools/mingw-cross/Toolchain-cross-mingw32-linux.cmake  -DCMAKE_C_FLAGS=-DIGNORE_DIRECTX ..
+
+  make OpenCL
+
+- For building the 64-bit version correspondingly do inside a build-64 directory:
+  cmake -DCMAKE_TOOLCHAIN_FILE=${LAMMPS_PATH}/tools/mingw-cross/Toolchain-cross-mingw64-linux.cmake  -DCMAKE_C_FLAGS=-DIGNORE_DIRECTX ..
+  make OpenCL
+
+the resulting libOpenCL.dll files are copied to ${LAMMPS_PATH}/tools/mingw-cross/OpenCL/{lib,lib64}
+

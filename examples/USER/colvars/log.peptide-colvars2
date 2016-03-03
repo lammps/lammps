@@ -1,5 +1,5 @@
-LAMMPS (20 Mar 2014-ICMS)
-WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:100)
+LAMMPS (5 Nov 2014-ICMS)
+WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide
 
@@ -86,15 +86,15 @@ PPPM initialization ...
   3d grid and FFT values/proc = 6776 1800
 colvars: Creating proxy instance
 colvars: ----------------------------------------------------------------------
-colvars: Initializing the collective variables module, version 2013-10-22.
+colvars: Initializing the collective variables module, version 2014-11-06.
+colvars: Using LAMMPS interface, version 2014-10-29.
+colvars: ----------------------------------------------------------------------
+colvars: Reading new configuration from file "peptide.colvars2":
 colvars: # indexFile = "" [default]
 colvars: # analysis = off [default]
 colvars: # colvarsTrajFrequency = 1
 colvars: # colvarsRestartFrequency = 1000
 colvars: # colvarsTrajAppend = off [default]
-colvars: The restart output state file will be "rest.colvars.state".
-colvars: The final output state file will be "peptide2.colvars.state".
-colvars: Writing to colvar trajectory file "peptide2.colvars.traj".
 colvars: ----------------------------------------------------------------------
 colvars:   Initializing a new collective variable.
 colvars:   # name = one
@@ -151,12 +151,14 @@ colvars:   # centers = { 10 }
 colvars:   # targetCenters = { 10 } [default]
 colvars:   # targetForceConstant = 0 [default]
 colvars:   # outputCenters = off [default]
-colvars:   # outputAccumulatedWork = off [default]
 colvars: ----------------------------------------------------------------------
 colvars: Collective variables biases initialized, 1 in total.
 colvars: ----------------------------------------------------------------------
-colvars: Collective variables module initialized.
+colvars: Collective variables module (re)initialized.
 colvars: ----------------------------------------------------------------------
+colvars: The restart output state file will be "rest.colvars.state".
+colvars: The final output state file will be "peptide2.colvars.state".
+colvars: Writing to colvar trajectory file "peptide2.colvars.traj".
 colvars: Re-initialized atom group one:0/0. 4 atoms: total mass = 15.035.
 colvars: Re-initialized atom group one:0/1. 4 atoms: total mass = 15.035.
 SHAKE stats (type/ave/delta) on step 0
@@ -168,7 +170,7 @@ SHAKE stats (type/ave/delta) on step 0
   14 0.96 0
   18 0.957206 4.37979e-05
   31 104.519 0.00396029
-Memory usage per processor = 10.4103 Mbytes
+Memory usage per processor = 14.8029 Mbytes
 Step Temp TotEng PotEng KinEng E_pair E_bond 2 
        0    282.10052    -5237.458   -6372.3766    1134.9186    -6442.768    16.557152    273.74323 
       10    333.47973   -4982.3893   -6324.0116    1341.6223    -6400.417    21.367753    12.393269 
@@ -176,9 +178,9 @@ Step Temp TotEng PotEng KinEng E_pair E_bond 2
       30    316.97689   -5025.5598   -6300.7895    1275.2297   -6422.5335    27.323113    6.7588862 
       40    297.55811   -5088.2155   -6285.3215     1197.106   -6395.3714    13.676871    25.625154 
       50    296.80002   -5117.2927   -6311.3488    1194.0561   -6451.8274    30.631277    5.3320302 
-      60    281.72798    -5188.494   -6321.9138    1133.4198   -6427.8833     26.28765    20.573958 
-      70    277.26045   -5224.8416   -6340.2881    1115.4465   -6447.8495    27.742889   0.69414895 
-      80    268.01458   -5281.8501   -6360.0996    1078.2495   -6496.6062    20.300729     5.260642 
+      60    281.72798    -5188.494   -6321.9138    1133.4198   -6427.8834     26.28765    20.573958 
+      70    277.26045   -5224.8415    -6340.288    1115.4465   -6447.8494    27.742889   0.69414895 
+      80    268.01458   -5281.8501   -6360.0995    1078.2495   -6496.6062    20.300729     5.260642 
       90    270.43384   -5334.0847   -6422.0671    1087.9824   -6563.2486    39.845992     1.183249 
 SHAKE stats (type/ave/delta) on step 100
   4 1.11096 0.000191466
@@ -189,23 +191,23 @@ SHAKE stats (type/ave/delta) on step 100
   14 0.959997 0
   18 0.957198 2.92454e-05
   31 104.52 0.00239929
-     100    260.35617   -5387.2298   -6434.6687    1047.4389   -6534.1957    20.246734  0.075048991 
+     100    260.35617   -5387.2297   -6434.6686    1047.4389   -6534.1956    20.246734  0.075048996 
 
-Loop time of 1.07439 on 2 procs for 100 steps with 2004 atoms
-98.2% CPU use with 2 MPI tasks x 1 OpenMP threads
-Performance: 16.084 ns/day  1.492 hours/ns  93.076 timesteps/s
+Loop time of 1.10842 on 2 procs for 100 steps with 2004 atoms
+98.7% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 15.590 ns/day  1.539 hours/ns  90.219 timesteps/s
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.77154    | 0.77308    | 0.77462    |   0.2 | 71.96
-Bond    | 0.0023637  | 0.0025266  | 0.0026896  |   0.3 |  0.24
-Kspace  | 0.095779   | 0.097411   | 0.099043   |   0.5 |  9.07
-Neigh   | 0.15521    | 0.15521    | 0.15522    |   0.0 | 14.45
-Comm    | 0.018134   | 0.018364   | 0.018594   |   0.2 |  1.71
-Output  | 0.00024295 | 0.00032854 | 0.00041413 |   0.5 |  0.03
-Modify  | 0.024936   | 0.024973   | 0.02501    |   0.0 |  2.32
-Other   |            | 0.002498   |            |       |  0.23
+Pair    | 0.80115    | 0.80205    | 0.80295    |   0.1 | 72.36
+Bond    | 0.0024853  | 0.0027713  | 0.0030572  |   0.5 |  0.25
+Kspace  | 0.10201    | 0.10313    | 0.10426    |   0.4 |  9.30
+Neigh   | 0.15224    | 0.15224    | 0.15224    |   0.0 | 13.73
+Comm    | 0.018359   | 0.018812   | 0.019266   |   0.3 |  1.70
+Output  | 0.00023365 | 0.0003264  | 0.00041914 |   0.5 |  0.03
+Modify  | 0.026582   | 0.026626   | 0.026669   |   0.0 |  2.40
+Other   |            | 0.002459   |            |       |  0.22
 
 Nlocal:    1002 ave 1010 max 994 min
 Histogram: 1 0 0 0 0 0 0 0 0 1
@@ -220,6 +222,7 @@ Ave special neighs/atom = 2.34032
 Neighbor list builds = 13
 Dangerous builds = 1
 colvars: Saving collective variables state to "peptide2.colvars.state".
+colvars: Resetting the Collective Variables Module.
 
 Please see the log.cite file for references relevant to this simulation
 

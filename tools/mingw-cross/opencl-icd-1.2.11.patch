@@ -1,0 +1,80 @@
+diff -ru icd.orig/CMakeLists.txt icd/CMakeLists.txt
+--- icd.orig/CMakeLists.txt	2012-08-27 16:44:45.000000000 +0200
++++ icd/CMakeLists.txt	2013-06-26 15:21:09.234717781 +0200
+@@ -2,8 +2,8 @@
+ 
+ project (OPENCL_ICD_LOADER)
+ 
+-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
+-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
++#set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
++#set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
+ 
+ set (OPENCL_ICD_LOADER_SOURCES icd.c icd_dispatch.c)
+ 
+@@ -23,6 +23,8 @@
+ 
+ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+     set_target_properties (OpenCL PROPERTIES LINK_FLAGS "-Wl,--version-script -Wl,../icd_exports.map")
++else ()
++    set_target_properties (OpenCL PROPERTIES LINK_FLAGS "-Wl,--enable-stdcall-fixup")
+ endif ()
+ 
+ target_link_libraries (OpenCL ${CMAKE_DL_LIBS})
+diff -ru icd.orig/icd_dispatch.c icd/icd_dispatch.c
+--- icd.orig/icd_dispatch.c	2012-08-06 08:53:38.000000000 +0200
++++ icd/icd_dispatch.c	2013-06-26 13:54:03.671046447 +0200
+@@ -1379,7 +1379,7 @@
+     // cl_khr_gl_event
+     CL_COMMON_EXTENSION_ENTRYPOINT_ADD(clCreateEventFromGLsyncKHR);
+ 
+-#if defined(_WIN32)
++#if defined(_WIN32) && !defined(IGNORE_DIRECTX)
+     // cl_khr_d3d10_sharing
+     CL_COMMON_EXTENSION_ENTRYPOINT_ADD(clGetDeviceIDsFromD3D10KHR);
+     CL_COMMON_EXTENSION_ENTRYPOINT_ADD(clCreateFromD3D10BufferKHR);
+@@ -1574,7 +1574,7 @@
+     // cl_khr_gl_event
+     CL_COMMON_EXTENSION_ENTRYPOINT_ADD(clCreateEventFromGLsyncKHR);
+ 
+-#if defined(_WIN32)
++#if defined(_WIN32) && !defined(IGNORE_DIRECTX)
+     // cl_khr_d3d10_sharing
+     CL_COMMON_EXTENSION_ENTRYPOINT_ADD(clGetDeviceIDsFromD3D10KHR);
+     CL_COMMON_EXTENSION_ENTRYPOINT_ADD(clCreateFromD3D10BufferKHR);
+@@ -1800,7 +1800,7 @@
+ 		errcode_ret);
+ }
+ 
+-#if defined(_WIN32)
++#if defined(_WIN32) && !defined(IGNORE_DIRECTX)
+ /*
+  *
+  * cl_d3d10_sharing_khr
+diff -ru icd.orig/icd_dispatch.h icd/icd_dispatch.h
+--- icd.orig/icd_dispatch.h	2012-10-19 15:26:06.000000000 +0200
++++ icd/icd_dispatch.h	2013-06-26 13:55:03.954146870 +0200
+@@ -55,12 +55,14 @@
+ // cl_gl.h and required files
+ #ifdef _WIN32
+ #include <windows.h>
++#if !defined(IGNORE_DIRECTX)
+ #include <d3d9.h>
+ #include <d3d10_1.h>
+ #include <CL/cl_d3d10.h>
+ #include <CL/cl_d3d11.h>
+ #include <CL/cl_dx9_media_sharing.h>
+ #endif
++#endif
+ #include <GL/gl.h>
+ #include <CL/cl_gl.h>
+ #include <CL/cl_gl_ext.h>
+@@ -747,7 +749,7 @@
+     cl_int *errcode_ret);
+ 
+ 
+-#if defined(_WIN32)
++#if defined(_WIN32) && !defined(IGNORE_DIRECTX)
+ 
+ /* cl_khr_d3d10_sharing */
+ 

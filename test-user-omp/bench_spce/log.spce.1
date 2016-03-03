@@ -1,0 +1,130 @@
+LAMMPS (21 Jun 2012-ICMS)
+# SPC/E water box benchmark
+
+units		real	
+atom_style	full
+
+read_data	data.spce
+  2 = max bonds/atom
+  1 = max angles/atom
+  orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
+  1 by 1 by 1 MPI processor grid
+  4500 atoms
+  3000 bonds
+  1500 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+replicate	2 4 1
+  orthogonal box = (0.02645 0.02645 0.02641) to (71.0392 142.052 35.4736)
+  1 by 1 by 1 MPI processor grid
+  36000 atoms
+  24000 bonds
+  12000 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+pair_style	lj/cut/coul/long 12.0 12.0
+kspace_style	pppm 1.0e-4
+
+pair_coeff	1 1 0.15535 3.166
+pair_coeff	* 2 0.0000 0.0000	
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 0.5
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+neighbor        2.0 bin
+neigh_modify	every 2 delay 4 check yes
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  12000 = # of frozen angles
+fix		2 all nvt temp 300.0 300.0 100.0
+
+velocity	all create 300 432567 dist uniform
+
+timestep	2.0
+
+thermo_style    one
+thermo		10
+thermo_modify  format 2 "%10.5f" format 3 "%10.2f" format 4 "%10.5f" format 5 "%10.2f" format 6 "%10.4f"
+run     50 pre yes post no
+PPPM initialization ...
+  G vector (1/distance) = 0.217855
+  grid = 30 50 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0234978
+  estimated relative force accuracy = 7.0763e-05
+  using double precision FFTs
+  brick FFT buffer size/proc = 48125 27000 23100
+Memory usage per processor = 139.071 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0  300.00000 -133539.02    0.00000 -112078.08 -1012.4235 
+      10  225.02893 -137759.94    0.00000 -121662.16 -2847.5893 
+      20  226.73904 -137661.90    0.00000 -121441.79 -2753.4982 
+      30  236.67585 -138104.91    0.00000 -121173.95 -1805.4539 
+      40  246.34155 -138516.53    0.00000 -120894.13 -1246.7205 
+      50  256.49859 -138945.48    0.00000 -120596.48 -1027.3001 
+Loop time of 29.0231 on 1 procs for 50 steps with 36000 atoms
+
+thermo_modify format 6 "%10.2f"
+run     50 pre yes post yes
+PPPM initialization ...
+  G vector (1/distance) = 0.217855
+  grid = 30 50 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0234978
+  estimated relative force accuracy = 7.0763e-05
+  using double precision FFTs
+  brick FFT buffer size/proc = 48125 27000 23100
+Memory usage per processor = 139.071 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      50  256.49859 -138945.48    0.00000 -120596.48   -1029.47 
+      60  255.31327 -138562.63    0.00000 -120298.42    -625.98 
+      70  259.81042 -138578.58    0.00000 -119992.66    -581.66 
+      80  263.64951 -138551.03    0.00000 -119690.48    -513.44 
+      90  263.84791 -138261.76    0.00000 -119387.01    -450.45 
+     100  265.69726 -138086.63    0.00000 -119079.59    -439.67 
+Loop time of 29.9095 on 1 procs for 50 steps with 36000 atoms
+
+ Pair time (%) = 24.6407 (82.384)
+ Bond time (%) = 9.799e-05 (0.000327622)
+Kspace time (%) = 1.57391 (5.26223)
+Neigh time (%) = 3.32255 (11.1087)
+ Comm time (%) = 0.0502479 (0.168)
+Output time (%) = 0.000749826 (0.00250698)
+Modify time (%) = 0.29217 (0.976845)
+Other time (%) = 0.0291295 (0.0973921)
+
+FFT time (% of Kspce) = 0.3144 (19.9758)
+FFT Gflps 3d (1d only) = 0.876262 1.05103
+
+Nlocal:    36000 ave 36000 max 36000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    71525 ave 71525 max 71525 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.08156e+07 ave 2.08156e+07 max 2.08156e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 20815550
+Ave neighs/atom = 578.21
+Ave special neighs/atom = 2
+Neighbor list builds = 5
+Dangerous builds = 0

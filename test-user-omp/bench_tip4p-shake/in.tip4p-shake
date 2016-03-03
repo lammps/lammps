@@ -1,0 +1,34 @@
+units		real	
+atom_style	full
+dimension       3
+boundary        p p p
+
+read_data	data.tip4p-shake
+
+pair_style	lj/cut/tip4p/long 1 2 1 1 0.15 10.0 
+bond_style harmonic
+angle_style harmonic
+kspace_style	pppm/tip4p 1.0e-4
+
+pair_coeff	1 1 0.2106 3.166
+pair_coeff	* 2 0.0000 0.0000
+bond_coeff  1 3000.0 0.9572
+angle_coeff 1 3000.0 104.52
+
+
+fix             1 all nvt temp 300.0 300.0 100.0
+fix             2 all shake 0.00001 20 100 b 1 a 1
+
+neighbor        2.0 bin  
+neigh_modify    delay 4 every 2 one 2048 page 204800
+
+timestep	2.0
+
+thermo_style    custom step temp epair evdwl ecoul press
+thermo		10
+thermo_modify  format 2 "%10.5f" format 3 "%10.2f" format 4 "%10.5f" format 5 "%10.2f" format 6 "%10.4f"
+run		50 pre yes post no
+
+thermo_modify format 6 "%10.2f"
+run		50 pre yes post yes
+

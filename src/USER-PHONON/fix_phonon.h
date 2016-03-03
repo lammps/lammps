@@ -22,7 +22,6 @@
 
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
-
 #ifdef FIX_CLASS
 
 FixStyle(phonon,FixPhonon)

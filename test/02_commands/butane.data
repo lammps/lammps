@@ -1,0 +1,65 @@
+LAMMPS Description
+
+     4  atoms
+     3  bonds
+     2  angles
+     1  dihedrals
+
+     3  atom types
+     1  bond types
+     1  angle types
+     1  dihedral types
+
+  0.000000 40.0000 xlo xhi
+  0.000000 40.0000 ylo yhi
+  0.000000 40.0000 zlo zhi
+
+Masses
+
+    1 14.1707
+    2 15.2507
+    3 16.3307
+
+Bond Coeffs
+
+    1 80.0 1.54
+
+Angle Coeffs
+
+    1 62.0022 114
+
+Pair Coeffs
+
+    1  0.091411522  3.95
+    2  0.194746286  3.75
+    3  0.294106636  3.73
+
+Atoms
+
+    1 1 2 0.0    11.00  11.00 10.00
+    2 1 1 0.0    10.00  12.00 10.00
+    3 1 1 0.0    12.00  12.00 10.00
+    4 1 2 0.0    13.00  11.00  9.00
+
+Velocities
+
+   1 0.0 0.0 0.0
+   2 0.0 0.0 0.0
+   3 0.0 0.0 0.0
+   4 0.0 0.0 0.0
+
+Bonds
+
+    1 1 1 2
+    2 1 2 3
+    3 1 3 4
+
+Angles
+
+    1 1 1 2 3
+    2 1 2 3 4
+
+Dihedrals
+
+    1 1 1 2 3 4
+

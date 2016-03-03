@@ -258,7 +258,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
   t_make_b += t1-t0;
 
   t0 = gettime();
-  if(bij != 0 && bij != 0) {
+  if(bij != 0 && bik != 0) {
     tptr = twork;
     make_triplet(bij,bik,tptr);
     *dvir_ij_p = bij->fl_deriv_sum;
@@ -591,7 +591,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 			  double *e_s,double *e_p,double *e_t,double *e_q,
 			  int evflag,int newton_pair) {
   Hash<bond_data,Doublet> bond_hash(100000);
-  int i,j,k,m,ix,jx,kx,mx,itag,jtag,p;
+  int i,j,k,m,ix,jx,kx,p;
 
   double e_single,e_pair,e_triplet,e_triplet_c,e_quad;
   double volvir2;
@@ -2151,10 +2151,14 @@ void PairMGPT::fl_deriv_new(double r,double ri,double xhat,double yhat,double zh
     const double tmpy = w4*dl4y + w2*dl2y;                           \
     const double tmpz = w4*dl4z + w2*dl2z;                           \
     const double tmpsum = tmpx*x + tmpy*y + tmpz*z;                  \
-    M [j][i] = M[i][j] =  fl  *tmp;                                  \
-    Mx[j][i] = Mx[i][j] = fl_x*tmp + fl_ri*(tmpx - x*tmpsum);        \
-    My[j][i] = My[i][j] = fl_y*tmp + fl_ri*(tmpy - y*tmpsum);        \
-    Mz[j][i] = Mz[i][j] = fl_z*tmp + fl_ri*(tmpz - z*tmpsum);        \
+    M [i][j] = fl  *tmp;                                             \
+    Mx[i][j] = fl_x*tmp + fl_ri*(tmpx - x*tmpsum);                   \
+    My[i][j] = fl_y*tmp + fl_ri*(tmpy - y*tmpsum);                   \
+    Mz[i][j] = fl_z*tmp + fl_ri*(tmpz - z*tmpsum);                   \
+    if (i != j) {                                                    \
+      M[j][i]  = M[i][j];  Mx[j][i] = Mx[i][j];                      \
+      My[j][i] = My[i][j]; Mz[j][i] = Mz[i][j];                      \
+    }                                                                \
   } while(0)
 
 #define MAKE_ELEMENT_7(i,j)                                          \
@@ -2170,10 +2174,14 @@ void PairMGPT::fl_deriv_new(double r,double ri,double xhat,double yhat,double zh
     const double tmpy = w6*dl6y + w4*dl4y + w2*dl2y;                 \
     const double tmpz = w6*dl6z + w4*dl4z + w2*dl2z;                 \
     const double tmpsum = tmpx*x + tmpy*y + tmpz*z;                  \
-    M [j][i] = M[i][j] =  fl  *tmp;                                  \
-    Mx[j][i] = Mx[i][j] = fl_x*tmp + fl_ri*(tmpx - x*tmpsum);        \
-    My[j][i] = My[i][j] = fl_y*tmp + fl_ri*(tmpy - y*tmpsum);        \
-    Mz[j][i] = Mz[i][j] = fl_z*tmp + fl_ri*(tmpz - z*tmpsum);        \
+    M [i][j] = fl  *tmp;                                             \
+    Mx[i][j] = fl_x*tmp + fl_ri*(tmpx - x*tmpsum);                   \
+    My[i][j] = fl_y*tmp + fl_ri*(tmpy - y*tmpsum);                   \
+    Mz[i][j] = fl_z*tmp + fl_ri*(tmpz - z*tmpsum);                   \
+    if (i != j) {                                                    \
+      M[j][i]  = M[i][j];  Mx[j][i] = Mx[i][j];                      \
+      My[j][i] = My[i][j]; Mz[j][i] = Mz[i][j];                      \
+    }                                                                \
   } while(0)
 /* End of bond matrix macros */
 

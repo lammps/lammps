@@ -1,0 +1,88 @@
+LAMMPS (1 Feb 2012-ICMS)
+  using 1 OpenMP thread(s) per MPI task
+units		real	
+atom_style	full
+dimension       3
+boundary        p p p
+
+read_data	data.rigid-tip4p
+  orthogonal box = (-4.72 -4.72 -4.72) to (51.92 61.36 61.36)
+  1 by 2 by 2 MPI processor grid
+  31752 atoms
+  31752 velocities
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+
+pair_style	lj/cut/coul/long 10.0 
+kspace_style	pppm 1.0e-4
+
+pair_coeff	1 1 0.2106 3.166
+pair_coeff	* 2 0.0000 0.0000
+pair_coeff	* 3 0.0000 0.0000	 
+
+fix             1 all rigid/nvt molecule temp 300.0 300.0 100.0
+7938 rigid bodies with 31752 atoms
+
+neighbor        2.0 bin  
+neigh_modify    exclude type 1 2 
+neigh_modify    exclude type 1 3 
+neigh_modify    exclude molecule all
+neigh_modify    delay 4 every 2 one 2048 page 204800
+
+timestep	0.5
+
+thermo_style    custom step temp epair evdwl ecoul press
+thermo		10
+run		100
+PPPM initialization ...
+  G vector = 0.269243
+  grid = 32 36 36
+  stencil order = 5
+  RMS precision = 6.53414e-05
+  using single precision FFTs
+  brick FFT buffer size/proc = 24375 10368 11700
+Memory usage per processor = 25.7475 Mbytes
+Step Temp E_pair E_vdwl E_coul Press 
+       0    297.44292   -713096.06    5414.0563   -69171.292     2044.438 
+      10    298.06529   -713124.33    5422.4465   -69211.734    545.23069 
+      20    298.48841   -713141.53    5430.9882   -69242.334     540.0494 
+      30    297.98075   -713113.49    5441.1685   -69230.086    554.63888 
+      40    297.38687   -713080.64    5451.8108   -69212.552    573.13604 
+      50    296.96659   -713053.96    5461.9518   -69195.973    596.52239 
+      60    296.62041   -713029.78    5472.7812   -69176.833    627.65204 
+      70    297.40253   -713058.94    5484.5294   -69209.495    639.38109 
+      80    299.23079   -713136.65    5496.3045   -69294.461    622.95584 
+      90    300.31354   -713178.27    5504.3705   -69345.323    615.28114 
+     100    300.15065   -713161.34    5501.8453   -69328.604    619.77205 
+Loop time of 8.35576 on 4 procs (4 MPI x 1 OpenMP) for 100 steps with 31752 atoms
+Performance: 0.517 ns/day  46.421 hours/ns  11.968 timesteps/s
+
+Section |  min time  |  avg time  |  max time  |%total |  #Thr
+--------------------------------------------------------------
+Pair    | 5.521      | 5.747      | 6.236      | 68.78 |  1.0x
+Bond    | 8.488e-05  | 9.358e-05  | 0.0001037  |  0.00 |  1.0x
+Kspace  | 0.733      | 1.244      | 1.489      | 14.89 |  1.0x
+Neigh   | 0.4782     | 0.5023     | 0.539      |  6.01 |  1.0x
+Comm    | 0.09226    | 0.1306     | 0.1478     |  1.56 |  1.0x
+Output  | 0.0008161  | 0.002202   | 0.003193   |  0.03 |  1.0x
+Modify  | 0.6655     | 0.6871     | 0.7321     |  8.22 |  1.0x
+Other   |            | 0.04233    |            |  0.51 |
+
+FFT time (% of Kspce) = 0.156364 (12.5667)
+FFT Gflps 3d (1d only) = 5.64019 9.40758
+
+Nlocal:    7938 ave 8004 max 7862 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+Nghost:    25716.8 ave 25779 max 25654 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Neighs:    2.29506e+06 ave 2.34755e+06 max 2.26101e+06 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 9180234
+Ave neighs/atom = 289.123
+Ave special neighs/atom = 0
+Neighbor list builds = 2
+Dangerous builds = 0
+

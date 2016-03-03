@@ -57,15 +57,13 @@ class LAMMPS {
   class CiteMe *citeme;          // citation info
 
   LAMMPS(int, char **, MPI_Comm);
-  ~LAMMPS();
+  virtual ~LAMMPS();
   void create();
   void post_create();
   void init();
   void destroy();
 
  private:
-  void help();
-  void print_style(const char *, int &);
   LAMMPS() {};                   // prohibit using the default constructor
   LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor
 };

@@ -1,0 +1,5 @@
+# The later Tersoff potential for Silicon
+# J. Tersoff, PRB, 39, 5566 (1989) + errata (PRB 41, 3248)
+
+Si  Si   Si     3.0 1.0 0.0 1.0039e5 16.217 -0.59825 0.78734 1.1000e-6  1.7322  471.18    2.85    0.15   2.4799  1830.8
+

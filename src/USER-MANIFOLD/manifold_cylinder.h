@@ -7,7 +7,10 @@
 
 
 namespace LAMMPS_NS {
-  class manifold_cylinder : public manifold, protected Pointers {
+
+namespace user_manifold {
+
+  class manifold_cylinder : public manifold {
   public:
     enum { NPARAMS = 1 }; // Number of parameters.
     manifold_cylinder( LAMMPS *lmp, int, char ** );
@@ -21,6 +24,6 @@ namespace LAMMPS_NS {
   };
 }
 
-
+}
 
 #endif // LMP_MANIFOLD_CYLINDER_H

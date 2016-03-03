@@ -4,7 +4,9 @@
 
 using namespace LAMMPS_NS;
 
-manifold_dumbbell::manifold_dumbbell( LAMMPS *lmp, int argc, char **argv ) : Pointers(lmp)
+using namespace user_manifold;
+
+manifold_dumbbell::manifold_dumbbell( LAMMPS *lmp, int argc, char **argv ) : manifold(lmp)
 {}
 
 

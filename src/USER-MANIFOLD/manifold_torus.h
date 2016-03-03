@@ -3,8 +3,13 @@
 
 #include "manifold.h"
 
+
 namespace LAMMPS_NS {
-  class manifold_torus : public manifold, protected Pointers {
+
+namespace user_manifold {
+
+
+  class manifold_torus : public manifold {
    public:
     enum {NPARAMS=2};
     manifold_torus( LAMMPS *, int, char ** );
@@ -17,6 +22,8 @@ namespace LAMMPS_NS {
     static int expected_argc(){ return NPARAMS; }
     virtual int nparams(){ return NPARAMS; }
   };
+
+}
 
 }
 

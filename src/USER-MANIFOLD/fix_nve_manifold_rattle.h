@@ -44,7 +44,10 @@ FixStyle(nve/manifold/rattle,FixNVEManifoldRattle)
 #include "fix.h"
 #include "manifold.h"
 
+
 namespace LAMMPS_NS {
+
+// namespace user_manifold {
 
   class FixNVEManifoldRattle : public Fix {
    public:
@@ -93,7 +96,7 @@ namespace LAMMPS_NS {
     int update_style;
     int nvars;
 	  
-    manifold *ptr_m;
+    user_manifold::manifold *ptr_m;
 
 
     void print_stats( const char * );
@@ -108,7 +111,6 @@ namespace LAMMPS_NS {
     virtual void nve_v_rattle(int, int);
   };
 }
-
 
 
 #endif // LMP_FIX_NVE_MANIFOLD_RATTLE_H

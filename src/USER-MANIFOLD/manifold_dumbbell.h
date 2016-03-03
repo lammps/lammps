@@ -6,8 +6,11 @@
 
 
 namespace LAMMPS_NS {
+
+namespace user_manifold {
+
   // A dendritic dumbbell approximation:
-  class manifold_dumbbell : public manifold, protected Pointers {
+  class manifold_dumbbell : public manifold {
    public:
     enum { NPARAMS = 4 }; // Number of parameters.
     manifold_dumbbell( LAMMPS *lmp, int, char ** );
@@ -23,6 +26,6 @@ namespace LAMMPS_NS {
   };
 }
 
-
+}
 
 #endif // LMP_MANIFOLD_DUMBBELL_H

@@ -8,10 +8,11 @@
 #define MANIFOLD_THYLAKOID_DEBUG
 
 using namespace LAMMPS_NS;
+using namespace user_manifold;
 
 
 manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int narg, char ** arg)
-	: Pointers(lmp)
+  : manifold(lmp)
 {
   // You can NOT depend on proper construction of the domains in
   // the constructor, because the params are set by the function that

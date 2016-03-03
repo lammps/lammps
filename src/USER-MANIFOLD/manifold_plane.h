@@ -5,8 +5,12 @@
 
 
 namespace LAMMPS_NS {
+
+namespace user_manifold {
+
+
   // A 2D plane
-  class manifold_plane : public manifold, protected Pointers {
+  class manifold_plane : public manifold {
    public:
     enum { NPARAMS = 6 }; // Number of parameters.
     manifold_plane( LAMMPS *lmp, int, char ** );
@@ -21,5 +25,6 @@ namespace LAMMPS_NS {
 }
 
 
+}
 
 #endif // LMP_MANIFOLD_PLANE_H

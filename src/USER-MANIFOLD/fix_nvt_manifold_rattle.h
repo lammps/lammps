@@ -51,6 +51,8 @@ FixStyle(nvt/manifold/rattle,FixNVTManifoldRattle)
 */
 namespace LAMMPS_NS {
 
+// namespace user_manifold {
+
   class FixNVTManifoldRattle : public FixNVEManifoldRattle {
    public:
     FixNVTManifoldRattle(LAMMPS *, int, char **, int = 1);
@@ -90,6 +92,7 @@ namespace LAMMPS_NS {
     const char *fix_id;
   };
 }
+
 
 
 

@@ -5,9 +5,23 @@
 
 #define SINCOS_LOOKUP_NO_SAFETY
 
+
 #if __cplusplus < 201103L
-#define nullptr NULL
+  #define my_pi2 1.57079632679489661923
+  #define my_pi  3.14159265358979323846
+  #define my_2pi 6.28318530717958647692
+
+  #define nullptr NULL
+
+#else
+  static constexpr const double my_pi2 = 1.57079632679489661923;
+  static constexpr const double my_pi  = 3.14159265358979323846;
+  static constexpr const double my_2pi = 6.28318530717958647692;
 #endif // __cplusplus
+
+
+using namespace LAMMPS_NS;
+using namespace user_manifold;
 
 
 sincos_lookup::sincos_lookup( int N ) : cos_table(nullptr), size(N)

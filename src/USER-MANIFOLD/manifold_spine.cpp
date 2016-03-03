@@ -3,8 +3,9 @@
 #include <math.h>
 
 using namespace LAMMPS_NS;
+using namespace user_manifold;
 
-manifold_spine::manifold_spine( LAMMPS *lmp, int argc, char **argv ) : Pointers(lmp)
+manifold_spine::manifold_spine( LAMMPS *lmp, int argc, char **argv ) : manifold(lmp)
 {}
 
 

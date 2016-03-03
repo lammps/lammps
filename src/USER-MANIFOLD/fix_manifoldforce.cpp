@@ -27,6 +27,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace user_manifold;
 
 
 // Helper functions for parameters/equal style variables in input script

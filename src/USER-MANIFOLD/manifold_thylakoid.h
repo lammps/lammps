@@ -10,12 +10,10 @@
 
 namespace LAMMPS_NS {
 
-  using LAMMPS_NS::thyla_part;
-  using LAMMPS_NS::thyla_part_geom;
+namespace user_manifold {
 
 
-
-  class manifold_thylakoid : public manifold, protected Pointers {
+  class manifold_thylakoid : public manifold {
    public:
     enum { NPARAMS = 3 };
     manifold_thylakoid( LAMMPS *lmp, int, char ** );
@@ -97,5 +95,6 @@ namespace LAMMPS_NS {
 
 } // namespace LAMMPS_NS
 
+}
 
 #endif // LMP_MANIFOLD_THYLAKOID_H

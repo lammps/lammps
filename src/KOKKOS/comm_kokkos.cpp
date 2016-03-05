@@ -496,6 +496,7 @@ void CommKokkos::exchange_device()
           k_count.h_view(0)=k_exchange_sendlist.h_view.dimension_0();
         }
       }
+      k_exchange_copylist.sync<LMPHostType>();
       k_exchange_sendlist.sync<LMPHostType>();
       k_sendflag.sync<LMPHostType>();
 
@@ -615,9 +616,9 @@ void CommKokkos::borders()
   }
 
   atomKK->sync(Host,ALL_MASK);
-
-  k_sendlist.modify<LMPHostType>();
   atomKK->modified(Host,ALL_MASK);
+  k_sendlist.sync<LMPHostType>();
+  k_sendlist.modify<LMPHostType>();
   CommBrick::borders();
   k_sendlist.modify<LMPHostType>();
   atomKK->modified(Host,ALL_MASK);

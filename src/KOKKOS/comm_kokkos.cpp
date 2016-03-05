@@ -105,9 +105,9 @@ void CommKokkos::init()
 
   int check_forward = 0;
   int check_reverse = 0;
-  if (force->pair && !force->pair->execution_space == Device)
+  if (force->pair && (force->pair->execution_space == Host))
     check_forward += force->pair->comm_forward;
-  if (force->pair && !force->pair->execution_space == Device)
+  if (force->pair && (force->pair->execution_space == Host))
     check_reverse += force->pair->comm_reverse;
 
   for (int i = 0; i < modify->nfix; i++) {

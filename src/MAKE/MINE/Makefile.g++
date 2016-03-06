@@ -14,11 +14,12 @@ DEPFLAGS =	-M
 LINK =		g++
 LINKFLAGS =	-g -O
 LIB = 
-SIZE =		size
-
 ARCHIVE =	ar
-ARFLAGS =	-rc
+ARFLAGS =	-rcsv
+
+SIZE =		size
 SHLIBFLAGS =	-shared
+KOKKOS_DEVICES = OpenMP
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -111,10 +112,10 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-depend : mkdep.exe $(SRC) $(INC)
-	@./mkdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+depend : fastdep.exe $(SRC) $(INC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
-mkdep.exe: ../../tools/mkdep.c
-	cc -o $@ $<
+fastdep.exe: ../../tools/fastdep.cpp
+	c++ -O3 -o $@ $<
 
 sinclude .depend

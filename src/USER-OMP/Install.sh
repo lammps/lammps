@@ -62,7 +62,6 @@ if (test $mode = 1) then
   # force rebuild of files with LMP_USER_OMP switch
 
   touch ../accelerator_omp.h
-  touch ../neighbor.cpp
 
 elif (test $mode = 0) then
 
@@ -81,6 +80,5 @@ elif (test $mode = 0) then
   # force rebuild of files with LMP_USER_OMP switch
 
   touch ../accelerator_omp.h
-  touch ../neighbor.cpp
 
 fi

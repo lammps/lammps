@@ -15,12 +15,13 @@ CCFLAGS =	-O3 -fomit-frame-pointer \
 			-Wno-sign-compare
 SHFLAGS =	-fPIC
 DEPFLAGS =	-MM
+
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -mpc64
 LIB =
-
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
+
 SIZE =		size
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = OpenMP

@@ -47,8 +47,8 @@ Description
 """""""""""
 
 Styles *lubricate* and *lubricate/poly* compute hydrodynamic
-interactions between mono-disperse spherical particles in a pairwise
-fashion.  The interactions have 2 components.  The first is
+interactions between mono-disperse finite-size spherical particles in
+a pairwise fashion.  The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Ball>`
 
 .. image:: Eqs/pair_lubricate.jpg
@@ -207,8 +207,8 @@ Restrictions
 """"""""""""
 
 
-These styles are part of the FLD package.  They are only enabled if
-LAMMPS was built with that package.  See the :ref:`Making LAMMPS <2_3>` section for more info.
+These styles are part of the COLLOID package.  They are only enabled
+if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <2_3>` section for more info.
 
 Only spherical monodisperse particles are allowed for pair_style
 lubricate.

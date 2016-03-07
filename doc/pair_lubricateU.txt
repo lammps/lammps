@@ -31,8 +31,9 @@ pair_coeff * * :pre
 [Description:]
 
 Styles {lubricateU} and {lubricateU/poly} compute velocities and
-angular velocities such that the hydrodynamic interaction balances the
-force and torque due to all other types of interactions.
+angular velocities for finite-size spherical particles such that the
+hydrodynamic interaction balances the force and torque due to all
+other types of interactions.
 
 The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in "(Ball and
@@ -177,8 +178,8 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-These styles are part of the FLD package.  They are only enabled if
-LAMMPS was built with that package.  See the "Making
+These styles are part of the COLLOID package.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 Currently, these pair styles assume that all other types of

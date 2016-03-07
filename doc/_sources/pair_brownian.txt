@@ -43,9 +43,9 @@ Description
 """""""""""
 
 Styles *brownian* and *brownain/poly* compute Brownian forces and
-torques on finite-size particles.  The former requires monodisperse
-spherical particles; the latter allows for polydisperse spherical
-particles.
+torques on finite-size spherical particles.  The former requires
+monodisperse spherical particles; the latter allows for polydisperse
+spherical particles.
 
 These pair styles are designed to be used with either the :doc:`pair_style lubricate <pair_lubricate>` or :doc:`pair_style lubricateU <pair_lubricateU>` commands to provide thermostatting
 when dissipative lubrication forces are acting.  Thus the parameters
@@ -134,8 +134,8 @@ Restrictions
 """"""""""""
 
 
-These styles are part of the FLD package.  They are only enabled if
-LAMMPS was built with that package.  See the :ref:`Making LAMMPS <2_3>` section for more info.
+These styles are part of the COLLOID package.  They are only enabled
+if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <2_3>` section for more info.
 
 Only spherical monodisperse particles are allowed for pair_style
 brownian.

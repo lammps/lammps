@@ -17,7 +17,7 @@ pair_style peri/eps command :h3
 
 pair_style style :pre 
 
-style = {peri/pmb} or {peri/lps} or {peri/ves} or {peri/eps}:ul
+style = {peri/pmb} or {peri/lps} or {peri/ves} or {peri/eps} :ul
 
 [Examples:]
 

@@ -41,7 +41,7 @@ endif
 
 # Package variables
 
-PACKAGE = asphere body class2 colloid compress coreshell dipole fld gpu \
+PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim \
 	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
 	  python qeq reax replica rigid shock snap srd voronoi xtc

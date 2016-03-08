@@ -154,8 +154,9 @@ pair_coeff * *
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Styles <em>lubricateU</em> and <em>lubricateU/poly</em> compute velocities and
-angular velocities such that the hydrodynamic interaction balances the
-force and torque due to all other types of interactions.</p>
+angular velocities for finite-size spherical particles such that the
+hydrodynamic interaction balances the force and torque due to all
+other types of interactions.</p>
 <p>The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in <a class="reference internal" href="#ball"><span>(Ball and Melrose)</span></a></p>
 <img alt="_images/pair_lubricate.jpg" class="align-center" src="_images/pair_lubricate.jpg" />
@@ -272,8 +273,8 @@ to be specified in an input script that reads a restart file.</p>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>These styles are part of the FLD package.  They are only enabled if
-LAMMPS was built with that package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
+<p>These styles are part of the COLLOID package.  They are only enabled
+if LAMMPS was built with that package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
 <p>Currently, these pair styles assume that all other types of
 forces/torques on the particles have been already been computed when
 it is invoked.  This requires this style to be defined as the last of

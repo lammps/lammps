@@ -25,7 +25,7 @@ Syntax
 
    pair_style style
 
-style = *peri/pmb* or *peri/lps* or *peri/ves* or *peri/eps*:ul
+* style = *peri/pmb* or *peri/lps* or *peri/ves* or *peri/eps*
 
 Examples
 """"""""

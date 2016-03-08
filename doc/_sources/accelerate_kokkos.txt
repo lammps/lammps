@@ -49,11 +49,13 @@ Here is a quick overview of how to use the KOKKOS package
 for CPU acceleration, assuming one or more 16-core nodes.
 More details follow.
 
-use a C++11 compatible compiler
-make yes-kokkos
-make mpi KOKKOS_DEVICES=OpenMP                 # build with the KOKKOS package
-make kokkos_omp                                # or Makefile.kokkos_omp already has variable set
-Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py
+.. parsed-literal::
+
+   use a C++11 compatible compiler
+   make yes-kokkos
+   make mpi KOKKOS_DEVICES=OpenMP                 # build with the KOKKOS package
+   make kokkos_omp                                # or Makefile.kokkos_omp already has variable set
+   Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py
 
 .. parsed-literal::
 
@@ -72,12 +74,14 @@ details follow.
 
 discuss use of NVCC, which Makefiles to examine
 
-use a C++11 compatible compiler
-KOKKOS_DEVICES = Cuda, OpenMP
-KOKKOS_ARCH = Kepler35
-make yes-kokkos
-make machine
-Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda
+.. parsed-literal::
+
+   use a C++11 compatible compiler
+   KOKKOS_DEVICES = Cuda, OpenMP
+   KOKKOS_ARCH = Kepler35
+   make yes-kokkos
+   make machine
+   Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda
 
 .. parsed-literal::
 
@@ -101,11 +105,13 @@ for the Intel Phi:
    make machine
    Make.py -p kokkos -kokkos phi -o kokkos_phi -a file mpi
 
-host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
-mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
-mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
-mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
-mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
+.. parsed-literal::
+
+   host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
+   mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
+   mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
+   mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
+   mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
 
 **Required hardware/software:**
 

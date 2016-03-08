@@ -35,9 +35,9 @@ pair_coeff * * :pre
 [Description:]
 
 Styles {brownian} and {brownain/poly} compute Brownian forces and
-torques on finite-size particles.  The former requires monodisperse
-spherical particles; the latter allows for polydisperse spherical
-particles.
+torques on finite-size spherical particles.  The former requires
+monodisperse spherical particles; the latter allows for polydisperse
+spherical particles.
 
 These pair styles are designed to be used with either the "pair_style
 lubricate"_pair_lubricate.html or "pair_style
@@ -121,8 +121,8 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-These styles are part of the FLD package.  They are only enabled if
-LAMMPS was built with that package.  See the "Making
+These styles are part of the COLLOID package.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 Only spherical monodisperse particles are allowed for pair_style

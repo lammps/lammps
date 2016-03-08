@@ -166,11 +166,13 @@ produce an executable compatible with specific hardware.</p>
 <p>Here is a quick overview of how to use the KOKKOS package
 for CPU acceleration, assuming one or more 16-core nodes.
 More details follow.</p>
-<p>use a C++11 compatible compiler
+<div class="highlight-python"><div class="highlight"><pre>use a C++11 compatible compiler
 make yes-kokkos
 make mpi KOKKOS_DEVICES=OpenMP                 # build with the KOKKOS package
 make kokkos_omp                                # or Makefile.kokkos_omp already has variable set
-Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py</p>
+Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py
+</pre></div>
+</div>
 <div class="highlight-python"><div class="highlight"><pre>mpirun -np 16 lmp_mpi -k on -sf kk -in in.lj              # 1 node, 16 MPI tasks/node, no threads
 mpirun -np 2 -ppn 1 lmp_mpi -k on t 16 -sf kk -in in.lj   # 2 nodes, 1 MPI task/node, 16 threads/task
 mpirun -np 2 lmp_mpi -k on t 8 -sf kk -in in.lj           # 1 node, 2 MPI tasks/node, 8 threads/task
@@ -186,12 +188,14 @@ mpirun -np 32 -ppn 4 lmp_mpi -k on t 4 -sf kk -in in.lj   # 8 nodes, 4 MPI tasks
 assuming one or more nodes, each with 16 cores and a GPU.  More
 details follow.</p>
 <p>discuss use of NVCC, which Makefiles to examine</p>
-<p>use a C++11 compatible compiler
+<div class="highlight-python"><div class="highlight"><pre>use a C++11 compatible compiler
 KOKKOS_DEVICES = Cuda, OpenMP
 KOKKOS_ARCH = Kepler35
 make yes-kokkos
 make machine
-Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda</p>
+Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda
+</pre></div>
+</div>
 <div class="highlight-python"><div class="highlight"><pre>mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
 mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes
 </pre></div>
@@ -210,11 +214,13 @@ make machine
 Make.py -p kokkos -kokkos phi -o kokkos_phi -a file mpi
 </pre></div>
 </div>
-<p>host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
+<div class="highlight-python"><div class="highlight"><pre>host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
 mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
 mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
 mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
-mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis</p>
+mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
+</pre></div>
+</div>
 <p><strong>Required hardware/software:</strong></p>
 <p>Kokkos support within LAMMPS must be built with a C++11 compatible
 compiler.  If using gcc, version 4.8.1 or later is required.</p>

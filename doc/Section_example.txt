@@ -8,21 +8,20 @@
 
 7. Example problems :h3
 
-The LAMMPS distribution includes an examples sub-directory with
-several sample problems.  Each problem is in a sub-directory of its
-own.  Most are 2d models so that they run quickly, requiring at most a
-couple of minutes to run on a desktop machine.  Each problem has an
-input script (in.*) and produces a log file (log.*) and dump file
-(dump.*) when it runs.  Some use a data file (data.*) of initial
-coordinates as additional input.  A few sample log file outputs on
-different machines and different numbers of processors are included in
-the directories to compare your answers to.  E.g. a log file like
-log.crack.foo.P means it ran on P processors of machine "foo".
+The LAMMPS distribution includes an examples sub-directory with many
+sample problems.  Many are 2d models that run quickly are are
+straightforward to visualize, requiring at most a couple of minutes to
+run on a desktop machine.  Each problem has an input script (in.*) and
+produces a log file (log.*) when it runs.  Some use a data file
+(data.*) of initial coordinates as additional input.  A few sample log
+file run on different machines and different numbers of processors are
+included in the directories to compare your answers to.  E.g. a log
+file like log.date.crack.foo.P means the "crack" example was run on P
+processors of machine "foo" on that date (i.e. with that version of
+LAMMPS).
 
-For examples that use input data files, many of them were produced by
-"Pizza.py"_http://pizza.sandia.gov or setup tools described in the
-"Additional Tools"_Section_tools.html section of the LAMMPS
-documentation and provided with the LAMMPS distribution.
+Many of the input files have commented-out lines for creating dump
+files and image files.
 
 If you uncomment the "dump"_dump.html command in the input script, a
 text dump file will be produced, which can be animated by various
@@ -36,29 +35,39 @@ snapshot images will be produced when the simulation runs.  They can
 be quickly post-processed into a movie using commands described on the
 "dump image"_dump_image.html doc page.
 
-Animations of many of these examples can be viewed on the Movies
-section of the "LAMMPS WWW Site"_lws.
+Animations of many of the examples can be viewed on the Movies section
+of the "LAMMPS web site"_lws.
 
-These are the sample problems in the examples sub-directories:
+There are two kinds of sub-directories in the examples dir.  Lowercase
+dirs contain one or a few simple, quick-to-run problems.  Uppercase
+dirs contain up to several complex scripts that illustrate a
+particular kind of simulation method or model.  Some of these run for
+longer times, e.g. to measure a particular quantity.
 
+Lists of both kinds of directories are given below.
+
+:line
+
+Lowercase directories :h4
+
+accelerate: run with various acceleration options (OpenMP, GPU, Phi)
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
+coreshell: core/shell model using CORESHELL package
 crack:	  crack propagation in a 2d solid
 cuda:     use of the USER-CUDA package for GPU acceleration
+deposit:  deposit atoms and molecules on a surface
 dipole:   point dipolar particles, 2d system
 dreiding: methanol via Dreiding FF
 eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
-gpu:      use of the GPU package for GPU acceleration
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
-intel:    use of the USER-INTEL package for CPU or Intel(R) Xeon Phi(TM) coprocessor
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
-line:     line segment particles in 2d rigid bodies
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
@@ -72,31 +81,35 @@ peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:	  Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
+python:   using embedded Python in a LAMMPS input script
 qeq:      use of the QEQ package for charge equilibration
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 srd:      stochastic rotation dynamics (SRD) particles as solvent
+streitz:  use of Streitz/Mintmire potential with charge equilibration
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
-tri:      triangular particles in rigid bodies :tb(s=:)
-vashishta: models using the Vashishta potential
+vashishta: use of the Vashishta potential :tb(s=:)
 
-Here is how you might run and visualize one of the sample problems:
+Here is how you can run and visualize one of the sample problems:
 
 cd indent
 cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
 lmp_linux -in in.indent            # run the problem :pre
 
 Running the simulation produces the files {dump.indent} and
-{log.lammps}.  You can visualize the dump file as follows:
-
-../../tools/xmovie/xmovie -scale dump.indent :pre
+{log.lammps}.  You can visualize the dump file of snapshots with a
+variety of 3rd-party tools highlighted on the
+"Visualization"_http://lammps.sandia.gov/viz.html page of the LAMMPS
+web site.
 
 If you uncomment the "dump image"_dump_image.html line(s) in the input
-script a series of JPG images will be produced by the run.  These can
-be viewed individually or turned into a movie or animated by tools
-like ImageMagick or QuickTime or various Windows-based tools.  See the
+script a series of JPG images will be produced by the run (assuming
+you built LAMMPS with JPG support; see "Section start
+2.2"_Section_start.html for details).  These can be viewed
+individually or turned into a movie or animated by tools like
+ImageMagick or QuickTime or various Windows-based tools.  See the
 "dump image"_dump_image.html doc page for more details.  E.g. this
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.
@@ -105,20 +118,24 @@ browser.
 
 :line
 
-There is also a COUPLE directory with examples of how to use LAMMPS as
-a library, either by itself or in tandem with another code or library.
-See the COUPLE/README file to get started.
+Uppercase directories :h4
 
-There is also an ELASTIC directory with an example script for
-computing elastic constants at zero temperature, using an Si example.  See
-the ELASTIC/in.elastic file for more info.
+ASPHERE: various aspherical particle models, using ellipsoids, rigid bodies, line/triangle particles, etc
+COUPLE: examples of how to use LAMMPS as a library 
+DIFFUSE: compute diffusion coefficients via several methods
+ELASTIC: compute elastic constants at zero temperature
+ELASTIC_T: compute elastic constants at finite temperature
+KAPPA: compute thermal conductivity via several methods
+MC: using LAMMPS in a Monte Carlo mode to relax the energy of a system
+USER: examples for USER packages and USER-contributed commands
+VISCOSITY: compute viscosity via several methods :tb(s=:)
 
-There is also an ELASTIC_T directory with an example script for
-computing elastic constants at finite temperature, using an Si example.  See
-the ELASTIC_T/in.elastic file for more info.
+Nearly all of these directories have README files which give more
+details on how to understand and use their contents.
 
-There is also a USER directory which contains subdirectories of
-user-provided examples for user packages.  See the README files in
-those directories for more info.  See the
-"Section_start.html"_Section_start.html file for more info about user
-packages.
+The USER directory has a large number of sub-directories which
+correspond by name to a USER package.  They contain scripts that
+illustrate how to use the command(s) provided in that package.  Many
+of the sub-directories have their own README files which give further
+instructions.  See the "Section packages"_Section_packages.html doc
+page for more info on specific USER packages.

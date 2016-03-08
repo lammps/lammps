@@ -33,8 +33,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "dummy.h"
-
 const char version[] = "2.0";
 
 /************************************************************************
@@ -427,9 +425,9 @@ static void make_path(const char *file, llist_t *paths, char *buffer)
 
         while (*val) buffer[i++] = *val++;
 #if defined(_WIN32)
-        buffer[i++] = '/';
-#else
         buffer[i++] = '\\';
+#else
+        buffer[i++] = '/';
 #endif
         val = file;
         while (*val) buffer[i++] = *val++;

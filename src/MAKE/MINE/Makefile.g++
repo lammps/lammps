@@ -112,10 +112,10 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-depend : fastdep.exe $(SRC) $(INC)
+depend : fastdep.exe $(SRC)
 	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
-fastdep.exe: ../../tools/fastdep.cpp
-	c++ -O3 -o $@ $<
+fastdep.exe: ../../tools/fastdep.c
+	cc -O -o $@ $<
 
 sinclude .depend

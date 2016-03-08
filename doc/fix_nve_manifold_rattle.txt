@@ -39,7 +39,7 @@ single-particle constraints as explained in "(Paquay)"_#Paquay.
 V is volume; E is energy. This way, the dynamics of particles constrained to
 curved surfaces can be studied. If combined with "fix langevin"_fix_langevin.html, this generates
 Brownian motion of particles constrained to a curved surface. For a list of currently supported
-manifolds and their parameters, see "manifolds"_user_manifolds.html.
+manifolds and their parameters, see "manifolds"_manifolds.html.
 
 Note that the particles must initially be close to the manifold in question. If not, RATTLE will
 not be able to iterate until the constraint is satisfied, and an error is generated. For simple

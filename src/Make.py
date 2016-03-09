@@ -1154,6 +1154,7 @@ class GPU:
   lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
   mode = double or mixed or single (def = CUDA_PREC in makefile)
   arch = 31 (Kepler) or 21 (Fermi) (def = CUDA_ARCH in makefile)
+  dir = home dir for CUDA include and library files (def = none)
 """
 
   def check(self):
@@ -1172,6 +1173,9 @@ class GPU:
       elif words[0] == "arch":
         self.arch = words[1]
         self.archflag = 1
+      elif words[0] == "dir":
+        self.dir = words[1]
+        self.dirflag = 1
       else: error("-gpu args are invalid")
       if self.modeflag and (self.mode != "double" and
                             self.mode != "mixed" and
@@ -1194,6 +1198,11 @@ class GPU:
       make.setvar("CUDA_ARCH","-arch=sm_%s" % self.arch)
     if self.lammpsflag:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
+    if self.dirflag:
+      make.setvar("CUDA_HOME","%s" % self.dir)
+      lmpmake = MakeReader("%s/%s" % (libdir, make.getvar("EXTRAMAKE")[0]))
+      lmpmake.setvar("gpu_SYSPATH","-L%s/lib64" % self.dir)
+      lmpmake.write("%s/%s" % (libdir, make.getvar("EXTRAMAKE")[0]))
     make.write("%s/Makefile.auto" % libdir)
 
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)

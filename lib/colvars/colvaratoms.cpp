@@ -634,9 +634,11 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
       if (get_keyval(group_conf, "refPositionsCol", ref_pos_col, std::string(""))) {
         // if provided, use PDB column to select coordinates
         bool found = get_keyval(group_conf, "refPositionsColValue", ref_pos_col_value, 0.0);
-        if (found && ref_pos_col_value == 0.0)
+        if (found && ref_pos_col_value == 0.0) {
           cvm::error("Error: refPositionsColValue, "
                      "if provided, must be non-zero.\n", INPUT_ERROR);
+          return COLVARS_ERROR;
+        }
       } else {
         // if not, rely on existing atom indices for the group
         group_for_fit->create_sorted_ids();

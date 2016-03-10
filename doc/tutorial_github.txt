@@ -7,7 +7,7 @@
 :line
 
 LAMMPS GitHub tutorial :h1
-Stefan Paquay :h3
+written by Stefan Paquay :h3
 
 :line
 

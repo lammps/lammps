@@ -5,11 +5,6 @@ units		lj
 dimension       2
 atom_style	body nparticle 2 6
 
-print "test disabled because it stalls on 4xMPI /w 1xOpenMP for unknown reasons"
-quit 0
-
-
-
 read_data       data.body
 
 velocity	all create 1.44 87287 loop geom

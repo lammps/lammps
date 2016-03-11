@@ -12,6 +12,7 @@ pair_style morse/gpu command :h3
 pair_style morse/omp command :h3
 pair_style morse/opt command :h3
 pair_style morse/smooth/linear command :h3
+pair_style morse/smooth/linear/omp command :h3
 
 [Syntax:]
 

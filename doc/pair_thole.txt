@@ -14,14 +14,21 @@
 :line
 
 pair_style thole command :h3
+pair_style lj/cut/thole/long command :h3
 
 [Syntax:]
 
-pair_style thole damp cutoff :pre
+pair_style style args :pre
 
-thole = style name
-damp = global damping parameter
-cutoff = global cutoff :ul
+style = {thole} or {lj/cut/thole/long}
+args = list of arguments for a particular style :ul
+  {thole} args = damp cutoff
+    damp = global damping parameter
+    cutoff = global cutoff (distance units)
+  {lj/cut/thole/long} args = damp cutoff (cutoff2)
+    damp = global damping parameter
+    cutoff = global cutoff for LJ (and Thole if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Thole (optional) (distance units) :pre
 
 [Examples:]
 
@@ -30,9 +37,11 @@ pair_coeff 1 1 thole 1.0
 pair_coeff 1 2 thole 1.0 2.6 10.0
 pair_coeff * 2 thole 1.0 2.6 :pre
 
+pair_style lj/cut/thole/long 2.6 12.0 :pre
+
 [Description:]
 
-The {thole} pair style is meant to be used with force fields that
+The {thole} pair styles are meant to be used with force fields that
 include explicit polarization through Drude dipoles.  This link
 describes how to use the "thermalized Drude oscillator
 model"_tutorial_drude.html in LAMMPS and polarizable models in LAMMPS
@@ -43,7 +52,17 @@ The {thole} pair style should be used as a sub-style within in the
 main pair style including Coulomb interactions, i.e. any pair style
 containing {coul/cut} or {coul/long} in its style name.
 
-The {thole} pair style computes the Coulomb interaction damped at
+The {lj/cut/thole/long} pair style is equivalent to, but more convenient that
+the frequent combination {hybrid/overlay lj/cut/coul/long cutoff thole damp
+cutoff2}. It is not only a shorthand for this pair_style combination, but
+it also allows for mixing pair coefficients instead of listing them all.
+The {lj/cut/thole/long} pair style is also a bit faster because it avoids an
+overlay and can benefit from OMP acceleration. Moreover, it uses a more
+precise approximation of the direct Coulomb interaction at short range similar
+to "coul/long/cs"_pair_coul_long_cs.html, which stabilizes the temperature of
+Drude particles.
+
+The {thole} pair styles compute the Coulomb interaction damped at
 short distances by a function
 
 \begin\{equation\} T_\{ij\}(r_\{ij\}) = 1 - \left( 1 +
@@ -79,9 +98,9 @@ non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
-The following coefficients must be defined for each pair of atoms
-types via the "pair_coeff"_pair_coeff.html command as in the example
-above.
+For pair_style {thole}, the following coefficients must be defined for
+each pair of atoms types via the "pair_coeff"_pair_coeff.html command 
+as in the example above.
 
 alpha (distance units^3)
 damp
@@ -92,10 +111,29 @@ Thole damping parameter or global cutoff specified in the pair_style
 command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
+For pair style {lj/cut/thole/long}, the following coefficients must be
+defined for each pair of atoms types via the "pair_coeff"_pair_coeff.html
+command.
+
+epsilon (energy units)
+sigma (length units)
+alpha (distance units^3)
+damps
+LJ cutoff (distance units) :ul
+
+The last two coefficients are optional and default to the global values from
+the {pair_style} command line.
+
 [Mixing]:
 
 The {thole} pair style does not support mixing.  Thus, coefficients
 for all I,J pairs must be specified explicitly.
+
+The {lj/cut/thole/long} pair style does support mixing. Mixed coefficients
+are defined using
+
+\begin\{equation\} \alpha_\{ij\} = \sqrt\{\alpha_i\alpha_j\}\end\{equation\}
+\begin\{equation\} a_\{ij\} = \frac 1 2 (a_i + a_j)\end\{equation\}
 
 [Restrictions:]
 
@@ -108,12 +146,17 @@ style"_dihedral_charmm.html if the latter has non-zero 1-4 weighting
 factors. This is because the {thole} pair style does not know which
 pairs are 1-4 partners of which dihedrals.
 
+The {lj/cut/thole/long} pair style should be used with a "Kspace solver"_kspace_style.html
+like PPPM or Ewald, which is only enabled if LAMMPS was built with the kspace
+package.
+
 [Related commands:]
 
 "fix drude"_fix_drude.html, "fix
 langevin/drude"_fix_langevin_drude.html, "fix
 drude/transform"_fix_drude_transform.html, "compute
 temp/drude"_compute_temp_drude.html
+"pair_style lj/cut/coul/long"_pair_lj_cut_coul_long
 
 [Default:] none
 

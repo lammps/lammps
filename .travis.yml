@@ -39,6 +39,7 @@ env:
 install:
   - export OMPI_CC=$CC
   - export OMPI_CXX=$CXX
+  - export OMPI_MCA_hwloc_base_binding_policy="none"
   - test "$MACH" = "mpi" && export COMP="mpicxx -fopenmp" || export COMP="$CXX"
 
 script:

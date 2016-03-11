@@ -19,13 +19,18 @@
 #include <impl/Kokkos_Timer.hpp>
 #include <Kokkos_Vectorization.hpp>
 
+#if defined(KOKKOS_HAVE_CXX11)
+#undef ISFINITE
+#define ISFINITE(x) std::isfinite(x)
+#endif
+
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
   struct lmp_float3 {
     float x,y,z;
     KOKKOS_INLINE_FUNCTION
-    lmp_float3():x(0.0f),z(0.0f),y(0.0f) {}
+    lmp_float3():x(0.0f),y(0.0f),z(0.0f) {}
 
     KOKKOS_INLINE_FUNCTION
     void operator += (const lmp_float3& tmp) {
@@ -56,7 +61,7 @@
   struct lmp_double3 {
     double x,y,z;
     KOKKOS_INLINE_FUNCTION
-    lmp_double3():x(0.0),z(0.0),y(0.0) {}
+    lmp_double3():x(0.0),y(0.0),z(0.0) {}
 
     KOKKOS_INLINE_FUNCTION
     void operator += (const lmp_double3& tmp) {
@@ -740,9 +745,17 @@ template<class ViewType>
 void memset_kokkos (ViewType &view) {
   static MemsetZeroFunctor<typename ViewType::execution_space> f;
   f.ptr = view.ptr_on_device();
+  #ifdef KOKKOS_USING_EXPERIMENTAL_VIEW
+  Kokkos::parallel_for(view.memory_span()/4, f);
+  #else
   Kokkos::parallel_for(view.capacity()*sizeof(typename ViewType::value_type)/4, f);
+  #endif
   ViewType::execution_space::fence();
 }
 
+#if defined(KOKKOS_HAVE_CXX11)
+#undef ISFINITE
+#define ISFINITE(x) std::isfinite(x)
+#endif
 
 #endif

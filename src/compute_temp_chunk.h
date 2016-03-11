@@ -106,4 +106,9 @@ E: Compute temp/chunk does not use chunk/atom compute
 
 The style of the specified compute is not chunk/atom.
 
+E: Temperature compute degrees of freedom < 0
+
+This should not happen if you are calculating the temperature
+on a valid set of atoms.
+
 */

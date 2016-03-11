@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix wall/srd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix wall/srd command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -207,35 +207,34 @@ can specify formulas with various mathematical functions, and include
 <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command keywords for the simulation
 box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because the trajectory of the SRD particle is tracked
-as it collides with the wall, you must insure that r = distance of the
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because the trajectory of the SRD particle is tracked as it
+collides with the wall, you must insure that r = distance of the
 particle from the wall, is always &gt; 0 for SRD particles, or LAMMPS
 will generate an error.  This means you cannot start your simulation
 with SRD particles at the wall position <em>coord</em> (r = 0) or with
 particles on the wrong side of the wall (r &lt; 0).</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you have 2 or more walls that come together at an
-edge or corner (e.g. walls in the x and y dimensions), then be sure to
-set the <em>overlap</em> keyword to <em>yes</em> in the <a class="reference internal" href="fix_srd.html"><em>fix srd</em></a>
-command, since the walls effectively overlap when SRD particles
-collide with them.  LAMMPS will issue a warning if you do not do this.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have 2 or more walls that come together at an edge or
+corner (e.g. walls in the x and y dimensions), then be sure to set the
+<em>overlap</em> keyword to <em>yes</em> in the <a class="reference internal" href="fix_srd.html"><em>fix srd</em></a> command,
+since the walls effectively overlap when SRD particles collide with
+them.  LAMMPS will issue a warning if you do not do this.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The walls of this fix only interact with SRD
-particles, as defined by the <a class="reference internal" href="fix_srd.html"><em>fix srd</em></a> command.  If you
-are simulating a mixture containing other kinds of particles, then you
-should typically use <a class="reference internal" href="fix_wall.html"><em>another wall command</em></a> to act on
-the other particles.  Since SRD particles will be colliding both with
-the walls and the other particles, it is important to insure that the
-other particle&#8217;s finite extent does not overlap an SRD wall.  If you
-do not do this, you may generate errors when SRD particles end up
-&#8220;inside&#8221; another particle or a wall at the beginning of a collision
-step.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The walls of this fix only interact with SRD particles, as
+defined by the <a class="reference internal" href="fix_srd.html"><em>fix srd</em></a> command.  If you are simulating
+a mixture containing other kinds of particles, then you should
+typically use <a class="reference internal" href="fix_wall.html"><em>another wall command</em></a> to act on the other
+particles.  Since SRD particles will be colliding both with the walls
+and the other particles, it is important to insure that the other
+particle&#8217;s finite extent does not overlap an SRD wall.  If you do not
+do this, you may generate errors when SRD particles end up &#8220;inside&#8221;
+another particle or a wall at the beginning of a collision step.</p>
 </div>
 <p>The <em>units</em> keyword determines the meaning of the distance units used
 to define a wall position, but only when a numeric constant is used.
@@ -321,7 +320,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -342,7 +341,7 @@ the <a class="reference internal" href="run.html"><em>run</em></a> command.  Thi
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

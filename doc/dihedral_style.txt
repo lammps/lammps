@@ -45,7 +45,7 @@ this.  The one exception is that dihedral_style {hybrid} only stores
 the list of sub-styles in the restart file; dihedral coefficients need
 to be re-specified.
 
-IMPORTANT NOTE: When both a dihedral and pair style is defined, the
+NOTE: When both a dihedral and pair style is defined, the
 "special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between 4 bonded atoms.
@@ -64,14 +64,14 @@ below (e.g. charmm, helix) in the sense that the energy formula
 depends on the sign of phi, which may be reflected in the value of the
 coefficients you specify.
 
-IMPORTANT NOTE: When comparing the formulas and coefficients for
-various LAMMPS dihedral styles with dihedral equations defined by
-other force fields, note that some force field implementations
-divide/multiply the energy prefactor {K} by the multiple number of
-torsions that contain the J-K bond in an I-J-K-L torsion.  LAMMPS does
-not do this, i.e. the listed dihedral equation applies to each
-individual dihedral.  Thus you need to define {K} appropriately via
-the "dihedral_coeff"_dihedral_coeff.html command to account for this
+NOTE: When comparing the formulas and coefficients for various LAMMPS
+dihedral styles with dihedral equations defined by other force fields,
+note that some force field implementations divide/multiply the energy
+prefactor {K} by the multiple number of torsions that contain the J-K
+bond in an I-J-K-L torsion.  LAMMPS does not do this, i.e. the listed
+dihedral equation applies to each individual dihedral.  Thus you need
+to define {K} appropriately via the
+"dihedral_coeff"_dihedral_coeff.html command to account for this
 difference if necessary.
 
 :line
@@ -86,6 +86,7 @@ links to the individual styles are given in the dihedral section of
 "this page"_Section_commands.html#cmd_5.
 
 "dihedral_style none"_dihedral_none.html - turn off dihedral interactions
+"dihedral_style zero"_dihedral_zero.html - topology but no interactions
 "dihedral_style hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
 
 "dihedral_style charmm"_dihedral_charmm.html - CHARMM dihedral

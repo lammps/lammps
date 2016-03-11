@@ -70,21 +70,20 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"angle:eatom");
-    d_eatom = k_eatom.d_view;
+    if(k_eatom.dimension_0()<maxeatom) {
+      memory->destroy_kokkos(k_eatom,eatom);
+      memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
+      d_eatom = k_eatom.d_view;
+    }
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"angle:vatom");
-    d_vatom = k_vatom.d_view;
+    if(k_vatom.dimension_0()<maxvatom) {
+      memory->destroy_kokkos(k_vatom,vatom);
+      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      d_vatom = k_vatom.d_view;
+    }
   }
 
-  atomKK->sync(execution_space,datamask_read);
-  k_k.template sync<DeviceType>();
-  k_theta0.template sync<DeviceType>();
-  k_k_ub.template sync<DeviceType>();
-  k_r_ub.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
@@ -144,9 +143,6 @@ template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
-
-  // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = anglelist(n,0);
   const int i2 = anglelist(n,1);
@@ -227,21 +223,21 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   // apply force to each of 3 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    a_f(i1,0) += f1[0];
-    a_f(i1,1) += f1[1];
-    a_f(i1,2) += f1[2];
+    f(i1,0) += f1[0];
+    f(i1,1) += f1[1];
+    f(i1,2) += f1[2];
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    a_f(i2,0) -= f1[0] + f3[0];
-    a_f(i2,1) -= f1[1] + f3[1];
-    a_f(i2,2) -= f1[2] + f3[2];
+    f(i2,0) -= f1[0] + f3[0];
+    f(i2,1) -= f1[1] + f3[1];
+    f(i2,2) -= f1[2] + f3[2];
   }
 
   if (NEWTON_BOND || i3 < nlocal) {
-    a_f(i3,0) += f3[0];
-    a_f(i3,1) += f3[1];
-    a_f(i3,2) += f3[2];
+    f(i3,0) += f3[0];
+    f(i3,1) += f3[1];
+    f(i3,2) += f3[2];
   }
 
   if (EVFLAG) ev_tally(ev,i1,i2,i3,eangle,f1,f3,
@@ -262,17 +258,6 @@ template<class DeviceType>
 void AngleCharmmKokkos<DeviceType>::allocate()
 {
   AngleCharmm::allocate();
-
-  int n = atom->nangletypes;
-  k_k = DAT::tdual_ffloat_1d("AngleCharmm::k",n+1);
-  k_theta0 = DAT::tdual_ffloat_1d("AngleCharmm::theta0",n+1);
-  k_k_ub = DAT::tdual_ffloat_1d("AngleCharmm::k_ub",n+1);
-  k_r_ub = DAT::tdual_ffloat_1d("AngleCharmm::r_ub",n+1);
-
-  d_k = k_k.d_view;
-  d_theta0 = k_theta0.d_view;
-  d_k_ub = k_k_ub.d_view;
-  d_r_ub = k_r_ub.d_view;
 }
 
 /* ----------------------------------------------------------------------
@@ -285,6 +270,16 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   AngleCharmm::coeff(narg, arg);
 
   int n = atom->nangletypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("AngleCharmm::k",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_theta0("AngleCharmm::theta0",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
+
+  d_k = k_k.d_view;
+  d_theta0 = k_theta0.d_view;
+  d_k_ub = k_k_ub.d_view;
+  d_r_ub = k_r_ub.d_view;
+
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
@@ -296,6 +291,12 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   k_theta0.template modify<LMPHostType>();
   k_k_ub.template modify<LMPHostType>();
   k_r_ub.template modify<LMPHostType>();
+
+  k_k.template sync<DeviceType>();
+  k_theta0.template sync<DeviceType>();
+  k_k_ub.template sync<DeviceType>();
+  k_r_ub.template sync<DeviceType>();
+
 }
 
 /* ----------------------------------------------------------------------
@@ -314,10 +315,6 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
   E_FLOAT eanglethird;
   F_FLOAT v[6];
 
-  // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
-
   if (eflag_either) {
     if (eflag_global) {
       if (newton_bond) ev.evdwl += eangle;
@@ -332,9 +329,9 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
     if (eflag_atom) {
       eanglethird = THIRD*eangle;
 
-      if (newton_bond || i < nlocal) v_eatom[i] += eanglethird;
-      if (newton_bond || j < nlocal) v_eatom[j] += eanglethird;
-      if (newton_bond || k < nlocal) v_eatom[k] += eanglethird;
+      if (newton_bond || i < nlocal) d_eatom[i] += eanglethird;
+      if (newton_bond || j < nlocal) d_eatom[j] += eanglethird;
+      if (newton_bond || k < nlocal) d_eatom[k] += eanglethird;
     }
   }
 
@@ -385,28 +382,28 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        v_vatom(i,0) += THIRD*v[0];
-        v_vatom(i,1) += THIRD*v[1];
-        v_vatom(i,2) += THIRD*v[2];
-        v_vatom(i,3) += THIRD*v[3];
-        v_vatom(i,4) += THIRD*v[4];
-        v_vatom(i,5) += THIRD*v[5];
+        d_vatom(i,0) += THIRD*v[0];
+        d_vatom(i,1) += THIRD*v[1];
+        d_vatom(i,2) += THIRD*v[2];
+        d_vatom(i,3) += THIRD*v[3];
+        d_vatom(i,4) += THIRD*v[4];
+        d_vatom(i,5) += THIRD*v[5];
       }
       if (newton_bond || j < nlocal) {
-        v_vatom(j,0) += THIRD*v[0];
-        v_vatom(j,1) += THIRD*v[1];
-        v_vatom(j,2) += THIRD*v[2];
-        v_vatom(j,3) += THIRD*v[3];
-        v_vatom(j,4) += THIRD*v[4];
-        v_vatom(j,5) += THIRD*v[5];
+        d_vatom(j,0) += THIRD*v[0];
+        d_vatom(j,1) += THIRD*v[1];
+        d_vatom(j,2) += THIRD*v[2];
+        d_vatom(j,3) += THIRD*v[3];
+        d_vatom(j,4) += THIRD*v[4];
+        d_vatom(j,5) += THIRD*v[5];
       }
       if (newton_bond || k < nlocal) {
-        v_vatom(k,0) += THIRD*v[0];
-        v_vatom(k,1) += THIRD*v[1];
-        v_vatom(k,2) += THIRD*v[2];
-        v_vatom(k,3) += THIRD*v[3];
-        v_vatom(k,4) += THIRD*v[4];
-        v_vatom(k,5) += THIRD*v[5];
+        d_vatom(k,0) += THIRD*v[0];
+        d_vatom(k,1) += THIRD*v[1];
+        d_vatom(k,2) += THIRD*v[2];
+        d_vatom(k,3) += THIRD*v[3];
+        d_vatom(k,4) += THIRD*v[4];
+        d_vatom(k,5) += THIRD*v[5];
 
       }
     }
@@ -415,7 +412,10 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class AngleCharmmKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class AngleCharmmKokkos<LMPHostType>;
 #endif
+}
+

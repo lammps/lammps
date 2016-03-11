@@ -73,11 +73,10 @@ void VerletIntel::init()
   if (nvlist_atom)
     error->all(FLERR,
 	       "Cannot currently get per-atom virials with Intel package.");
-  #ifdef _LMP_INTEL_OFFLOAD
+
   ifix = modify->find_fix("package_intel");
   if (ifix >= 0) fix_intel = static_cast<FixIntel *>(modify->fix[ifix]);
   else fix_intel = 0;
-  #endif
 
   // set flags for what arrays to clear in force_clear()
   // need to clear additionals arrays if they exist
@@ -149,6 +148,8 @@ void VerletIntel::setup()
     if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     else force->kspace->compute_dummy(eflag,vflag);
   }
+
+  if (fix_intel) fix_intel->sync();
 
   #ifdef _LMP_INTEL_OFFLOAD
   sync_mode = 0;
@@ -227,6 +228,8 @@ void VerletIntel::setup_minimal(int flag)
     if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     else force->kspace->compute_dummy(eflag,vflag);
   }
+
+  if (fix_intel) fix_intel->sync();
 
   #ifdef _LMP_INTEL_OFFLOAD
   sync_mode = 0;
@@ -354,6 +357,8 @@ void VerletIntel::run(int n)
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
     }
+
+    if (fix_intel) fix_intel->sync();
 
     #ifdef _LMP_INTEL_OFFLOAD
     if (sync_mode == 1) {

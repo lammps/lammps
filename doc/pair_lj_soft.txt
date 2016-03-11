@@ -188,18 +188,18 @@ occur.  These substyles are suitable to represent charges embedded in
 the Lennard-Jones radius of another site (for example hydrogen atoms
 in several water models).
 
-IMPORTANT NOTES: When using the core-softed Coulomb potentials with
-long-range solvers ({coul/long/soft}, {lj/cut/coul/long/soft}, etc.)
-in a free energy calculation in which sites holding electrostatic
-charges are being created or anihilated (using
-"fix_adapt/fep"_fix_adapt_fep.html and "compute_fep"_compute_fep.html)
-it is important to adapt both the lambda activation parameter (from 0
-to 1, or the reverse) and the value of the charge (from 0 to its final
-value, or the reverse). This ensures that long-range electrostatic
-terms (kspace) are correct. It is not necessary to use core-softed
-Coulomb potentials if the van der Waals site is present during the
-free-energy route, thus avoiding overlap of the charges. Examples are
-provided in the LAMMPS source directory tree, under examples/USER/fep.
+NOTES: When using the core-softed Coulomb potentials with long-range
+solvers ({coul/long/soft}, {lj/cut/coul/long/soft}, etc.)  in a free
+energy calculation in which sites holding electrostatic charges are
+being created or anihilated (using "fix_adapt/fep"_fix_adapt_fep.html
+and "compute_fep"_compute_fep.html) it is important to adapt both the
+lambda activation parameter (from 0 to 1, or the reverse) and the
+value of the charge (from 0 to its final value, or the reverse). This
+ensures that long-range electrostatic terms (kspace) are correct. It
+is not necessary to use core-softed Coulomb potentials if the van der
+Waals site is present during the free-energy route, thus avoiding
+overlap of the charges. Examples are provided in the LAMMPS source
+directory tree, under examples/USER/fep.
 
 :line
 

@@ -61,13 +61,23 @@ class FixMove : public Fix {
   double dt,dtv,dtf;
   int xvar,yvar,zvar,vxvar,vyvar,vzvar;
   int xvarstyle,yvarstyle,zvarstyle,vxvarstyle,vyvarstyle,vzvarstyle;
-  int omega_flag,nlevels_respa;
+  int extra_flag,omega_flag,angmom_flag;
+  int radius_flag,ellipsoid_flag,line_flag,tri_flag,body_flag;
+  int theta_flag,quat_flag;
+  int nlevels_respa,nrestart;
   int time_origin;
 
   double **xoriginal;         // original coords of atoms
+  double *toriginal;          // original theta of atoms
+  double **qoriginal;         // original quat of atoms
   int displaceflag,velocityflag;
   int maxatom;
   double **displace,**velocity;
+
+  class AtomVecEllipsoid *avec_ellipsoid;
+  class AtomVecLine *avec_line;
+  class AtomVecTri *avec_tri;
+  class AtomVecBody *avec_body;
 };
 
 }
@@ -98,14 +108,6 @@ Self-explanatory.
 E: Fix move cannot define z or vz variable for 2d problem
 
 Self-explanatory.
-
-W: Fix move does not update angular momentum
-
-Atoms store this quantity, but fix move does not (yet) update it.
-
-W: Fix move does not update quaternions
-
-Atoms store this quantity, but fix move does not (yet) update it.
 
 E: Zero length rotation vector with fix move
 

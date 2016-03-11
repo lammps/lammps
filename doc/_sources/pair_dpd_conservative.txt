@@ -1,0 +1,86 @@
+.. index:: pair_style dpd/conservative
+
+pair_style dpd/conservative command
+===================================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   pair_style dpd/conservative cutoff
+
+* cutoff = global cutoff for DPD interactions (distance units)
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   pair_style dpd/conservative 2.5
+   pair_coeff * * 3.0 2.5
+   pair_coeff 1 1 3.0
+
+Description
+"""""""""""
+
+Style *dpd/conservative* computes the conservative force for
+dissipative particle dynamics (DPD).  The conservative force on atom I
+due to atom J is given by
+
+.. image:: Eqs/pair_dpd_conservative.jpg
+   :align: center
+
+where the weighting factor, omega_ij, varies between 0 and 1, and is
+chosen to have the following functional form:
+
+.. image:: Eqs/pair_dpd_omega.jpg
+   :align: center
+
+where Rij is a unit vector in the direction Ri - Rj, and Rc is the
+cutoff.  Note that alternative definitions of the weighting function
+exist, but would have to be implemented as a separate pair style
+command.
+
+Style *dpd/conservative* differs from the other dpd styles in that the
+dissipative and random forces are not computed within the pair style.
+
+For style *dpd/conservative*, the pairwise energy is due only to the
+conservative force term Fc, and is shifted to be zero at the cutoff
+distance Rc.  The pairwise virial is calculated using only the
+conservative term.
+
+Style *dpd/conservative* requires the following coefficients to be
+defined for each pair of atoms types via the
+:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
+
+* A (force units)
+* cutoff (distance units)
+
+The last coefficient is optional.  If not specified, the global DPD
+cutoff is used.
+
+
+----------
+
+
+Restrictions
+""""""""""""
+
+
+The pair style *dpd/conservative* is only available if LAMMPS is built
+with the USER-DPD package.
+
+Related commands
+""""""""""""""""
+
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_dpd <pair_dpd>`
+
+**Default:** none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

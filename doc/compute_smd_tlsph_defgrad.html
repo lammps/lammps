@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute smd/tlsph_defgrad command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute smd/tlsph/defgrad command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute smd/tlsph_defgrad command</li>
+    <li>compute smd/tlsph/defgrad command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -125,48 +125,51 @@
            <div itemprop="articleBody">
             
   <div class="section" id="compute-smd-tlsph-defgrad-command">
-<span id="index-0"></span><h1>compute smd/tlsph_defgrad command<a class="headerlink" href="#compute-smd-tlsph-defgrad-command" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>compute smd/tlsph/defgrad command<a class="headerlink" href="#compute-smd-tlsph-defgrad-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/tlsph_defgrad
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID smd/tlsph/defgrad
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>smd/tlsph_defgrad = style name of this compute command</li>
+<li>smd/tlsph/defgrad = style name of this compute command</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/tlsph_defgrad
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all smd/tlsph/defgrad
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that calculates the deformation gradient.
-It is only meaningful for particles which interact according to the Total-Lagrangian SPH pair style.</p>
-<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth Mach Dynamics in
-LAMMPS.</p>
+<p>Define a computation that calculates the deformation gradient.  It is
+only meaningful for particles which interact according to the
+Total-Lagrangian SPH pair style.</p>
+<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth
+Mach Dynamics in LAMMPS.</p>
 <p><strong>Output info:</strong></p>
-<p>This compute outputss a per-particle vector of vectors (tensors), which can be
-accessed by any command that uses per-particle values from a compute as input. See
-<a class="reference internal" href="Section_howto.html#howto-15"><span>How-to discussions, section 6.15</span></a>
-for an overview of LAMMPS output options.</p>
-<p>The per-particle vector values will be given dimensionless. See <a class="reference internal" href="units.html"><em>units</em></a>.
-The per-particle vector has 10 entries. The first nine entries  correspond to the xx, xy, xz, yx, yy, yz, zx, zy, zz components
-of the asymmetric deformation gradient tensor. The tenth entry is the determinant of the deformation gradient.</p>
+<p>This compute outputss a per-particle vector of vectors (tensors),
+which can be accessed by any command that uses per-particle values
+from a compute as input. See <a class="reference internal" href="Section_howto.html#howto-15"><span>How-to discussions, section 6.15</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The per-particle vector values will be given dimensionless. See
+<a class="reference internal" href="units.html"><em>units</em></a>.  The per-particle vector has 10 entries. The first
+nine entries correspond to the xx, xy, xz, yx, yy, yz, zx, zy, zz
+components of the asymmetric deformation gradient tensor. The tenth
+entry is the determinant of the deformation gradient.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
-<p>This compute is part of the USER-SMD package.  It is only enabled if LAMMPS was
-built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
-section for more info. TThis compute can only be used for particles which interact via the
-total Lagrangian SPH pair style.</p>
+<p>This compute is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info. TThis
+compute can only be used for particles which interact via the total
+Lagrangian SPH pair style.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="compute_smd_hourglass_error.html"><em>smd/hourglass_error</em></a></p>
+<p><a class="reference internal" href="compute_smd_hourglass_error.html"><em>smd/hourglass/error</em></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>
@@ -181,7 +184,7 @@ total Lagrangian SPH pair style.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -202,7 +205,7 @@ total Lagrangian SPH pair style.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

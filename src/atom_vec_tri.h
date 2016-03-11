@@ -91,8 +91,8 @@ class AtomVecTri : public AtomVec {
   imageint *image;
   double **x,**v,**f;
   tagint *molecule;
-  double *rmass;
-  double **angmom,**torque;
+  double *rmass,*radius;
+  double **omega,**angmom,**torque;
   int *tri;
 
   int nlocal_bonus,nghost_bonus,nmax_bonus;

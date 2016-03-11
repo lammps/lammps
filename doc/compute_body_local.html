@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute body/local command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute body/local command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -135,9 +135,10 @@
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
 <li>body/local = style name of this compute command</li>
 <li>one or more keywords may be appended</li>
-<li>keyword = <em>type</em> or <em>integer</em></li>
+<li>keyword = <em>id</em> or <em>type</em> or <em>integer</em></li>
 </ul>
 <pre class="literal-block">
+<em>id</em> = atom ID of the body particle
 <em>type</em> = atom type of the body particle
 <em>integer</em> = 1,2,3,etc = index of fields defined by body style
 </pre>
@@ -163,8 +164,10 @@ the atoms.  An atom will only be included if it is in the group.  If
 the atom is a body particle, then its N sub-particles will be looped
 over, and it will contribute N datums to the count of datums.  If it
 is not a body particle, it will contribute 1 datum.</p>
+<p>For both body particles and non-body particles, the <em>id</em> keyword
+will store the ID of the particle.</p>
 <p>For both body particles and non-body particles, the <em>type</em> keyword
-will store the type of the atom.</p>
+will store the type of the particle.</p>
 <p>The <em>integer</em> keywords mean different things for body and non-body
 particles.  If the atom is not a body particle, only its <em>x</em>, <em>y</em>, <em>z</em>
 coordinates can be referenced, using the <em>integer</em> keywords 1,2,3.
@@ -217,7 +220,7 @@ options.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -238,7 +241,7 @@ options.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

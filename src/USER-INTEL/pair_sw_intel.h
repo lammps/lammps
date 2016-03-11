@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: W. Michael Brown (Intel)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
 PairStyle(sw/intel,PairSWIntel)
@@ -42,7 +46,7 @@ class PairSWIntel : public PairSW {
   template <class flt_t, class acc_t>
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
-  template <int SPQ, int EVFLAG, int EFLAG, class flt_t, class acc_t>
+  template <int SPQ,int ONETYPE,int EVFLAG,int EFLAG,class flt_t,class acc_t>
   void eval(const int offload, const int vflag,
             IntelBuffers<flt_t,acc_t> * buffers, const ForceConst<flt_t> &fc,
 	    const int astart, const int aend, const int pad_width);
@@ -51,7 +55,10 @@ class PairSWIntel : public PairSW {
   void pack_force_const(ForceConst<flt_t> &fc,
                         IntelBuffers<flt_t, acc_t> *buffers);
 
-  int _ccache_stride, _host_pad, _offload_pad, _spq;
+  int _ccache_stride, _host_pad, _offload_pad, _spq, _onetype;
+  #ifdef LMP_USE_AVXCD
+  int _ccache_stride3;
+  #endif
 
   // ----------------------------------------------------------------------
 
@@ -62,8 +69,11 @@ class PairSWIntel : public PairSW {
       flt_t cutsq, cut, sigma_gamma, pad;
     } fc_packed0;
     typedef struct {
-      flt_t powerp, powerq, cut, sigma, c1, c2, c3, c4;
+      flt_t powerp, powerq, cut, sigma;
     } fc_packed1;
+    typedef struct {
+      flt_t c1, c2, c3, c4;
+    } fc_packed1p2;
     typedef struct {
       flt_t c5, c6;
     } fc_packed2;
@@ -73,6 +83,7 @@ class PairSWIntel : public PairSW {
 
     fc_packed0 **p2;
     fc_packed1 **p2f;
+    fc_packed1p2 **p2f2;
     fc_packed2 **p2e;
     fc_packed3 ***p3;
 

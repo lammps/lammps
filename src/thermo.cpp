@@ -839,7 +839,7 @@ void Thermo::parse_fields(char *str)
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
 
       char *ptr = strchr(id,'[');
-      if (ptr == NULL) argindex1[nfield] = 0;
+      if (ptr == NULL) argindex1[nfield] = argindex2[nfield] = 0;
       else {
         *ptr = '\0';
         argindex1[nfield] =
@@ -911,11 +911,14 @@ void Thermo::parse_fields(char *str)
         n = input->variable->find(id);
         if (n < 0)
           error->all(FLERR,"Could not find thermo custom variable name");
-        if (input->variable->equalstyle(n) == 0)
+        if (argindex1[nfield] == 0 && input->variable->equalstyle(n) == 0)
           error->all(FLERR,
                      "Thermo custom variable is not equal-style variable");
-        if (argindex1[nfield])
-          error->all(FLERR,"Thermo custom variable cannot be indexed");
+        if (argindex1[nfield] && input->variable->vectorstyle(n) == 0)
+          error->all(FLERR,
+                     "Thermo custom variable is not vector-style variable");
+        if (argindex2[nfield])
+          error->all(FLERR,"Thermo custom variable cannot have two indices");
 
         field2index[nfield] = add_variable(id);
         addfield(copy,&Thermo::compute_variable,FLOAT);
@@ -1010,9 +1013,13 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   // if keyword requires a compute, error if thermo doesn't use the compute
   // if inbetween runs and needed compute is not current, error
   // if in middle of run and needed compute is not current, invoke it
-  // for keywords that use pe indirectly (evdwl, ebond, etc):
+  // for keywords that use energy (evdwl, ebond, etc):
   //   check if energy was tallied on this timestep and set pe->invoked_flag
   //   this will trigger next timestep for energy tallying via addstep()
+  //   this means keywords that use pe (pe, etotal, enthalpy)
+  //     need to always invoke it even if invoked_flag is set,
+  //     because evdwl/etc may have set invoked_flag w/out 
+  //       actually invoking pe->compute_scalar()
 
   if (strcmp(word,"step") == 0) {
     compute_step();
@@ -1106,7 +1113,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
+    } else {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
@@ -1134,7 +1141,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
+    } else {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
@@ -1159,7 +1166,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
+    } else {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
@@ -1271,10 +1278,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"etail") == 0) {
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
     compute_etail();
 
   } else if (strcmp(word,"vol") == 0) compute_vol();
@@ -1474,7 +1477,17 @@ void Thermo::compute_fix()
 
 void Thermo::compute_variable()
 {
-  dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
+  int iarg = argindex1[ifield];
+
+  if (iarg == 0)
+    dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
+  else {
+    double *varvec;
+    int nvec = 
+      input->variable->compute_vector(variables[field2index[ifield]],&varvec);
+    if (nvec < iarg) dvalue = 0.0;
+    else dvalue = varvec[iarg-1];
+  }
 }
 
 /* ----------------------------------------------------------------------

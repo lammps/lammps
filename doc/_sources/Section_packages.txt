@@ -1,0 +1,3138 @@
+Packages
+========
+
+This section gives an overview of the add-on optional packages that
+extend LAMMPS functionality.  Packages are groups of files that enable
+a specific set of features.  For example, force fields for molecular
+systems or granular systems are in packages.  You can see the list of
+all packages by typing "make package" from within the src directory of
+the LAMMPS distribution.
+
+Here are links for two tables below, which list standard and user
+packages.
+
+| 4.1 :ref:`Standard packages <pkg_1>`
+| 4.2 :ref:`User packages <pkg_2>` 
+| 
+
+:ref:`Section_start 3 <start_3>` of the manual describes
+the difference between standard packages and user packages.  It also
+has general details on how to include/exclude specific packages as
+part of the LAMMPS build process, and on how to build auxiliary
+libraries or modify a machine Makefile if a package requires it.
+
+Following the two tables below, is a sub-section for each package.  It
+has a summary of what the package contains.  It has specific
+instructions on how to install it, build or obtain any auxiliary
+library it requires, and any Makefile.machine changes it requires.  It
+also lists pointers to examples of its use or documentation provided
+in the LAMMPS distribution.  If you want to know the complete list of
+commands that a package adds to LAMMPS, simply list the files in its
+directory, e.g. "ls src/GRANULAR".  Source files with names that start
+with compute, fix, pair, bond, etc correspond to command styles with
+the same names.
+
+.. note::
+
+   The USER package sub-sections below are still being filled in,
+   as of March 2016.
+
+Unless otherwise noted below, every package is independent of all the
+others.  I.e. any package can be included or excluded in a LAMMPS
+build, independent of all other packages.  However, note that some
+packages include commands derived from commands in other packages.  If
+the other package is not installed, the derived command from the new
+package will also not be installed when you include the new one.
+E.g. the pair lj/cut/coul/long/omp command from the USER-OMP package
+will not be installed as part of the USER-OMP package if the KSPACE
+package is not also installed, since it contains the pair
+lj/cut/coul/long command.  If you later install the KSPACE package and
+the USER-OMP package is already installed, both the pair
+lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.
+
+
+----------
+
+
+.. _pkg_1:
+
+Standard packages
+-----------------------------
+
+The current list of standard packages is as follows.  Each package
+name links to a sub-section below with more details.
+
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| Package                      | Description                          | Author(s)                              | Doc page                                           | Example   | Library    |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`ASPHERE <ASPHERE>`     | aspherical particles                 | -                                      | :ref:`Section_howto 6.14 <howto_14>`               | ellipse   | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`BODY <BODY>`           | body-style particles                 | -                                      | :doc:`body <body>`                                 | body      | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`CLASS2 <CLASS2>`       | class 2 force fields                 | -                                      | :doc:`pair_style lj/class2 <pair_class2>`          | -         | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`COLLOID <COLLOID>`     | colloidal particles                  | Kumar (1)                              | :doc:`atom_style colloid <atom_style>`             | colloid   | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`COMPRESS <COMPRESS>`   | I/O compression                      | Axel Kohlmeyer (Temple U)              | :doc:`dump */gz <dump>`                            | -         | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`CORESHELL <CORESHELL>` | adiabatic core/shell model           | Hendrik Heenen (Technical U of Munich) | :ref:`Section_howto 6.25 <howto_25>`               | coreshell | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`DIPOLE <DIPOLE>`       | point dipole particles               | -                                      | :doc:`pair_style dipole/cut <pair_dipole>`         | dipole    | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`GPU <GPU>`             | GPU-enabled styles                   | Mike Brown (ORNL)                      | :doc:`Section accelerate <accelerate_gpu>`         | gpu       | lib/gpu    |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`GRANULAR <GRANULAR>`   | granular systems                     | -                                      | :ref:`Section_howto 6.6 <howto_6>`                 | pour      | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`KIM <KIM>`             | openKIM potentials                   | Smirichinski & Elliot & Tadmor (3)     | :doc:`pair_style kim <pair_kim>`                   | kim       | KIM        |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`KOKKOS <KOKKOS>`       | Kokkos-enabled styles                | Trott & Moore (4)                      | :doc:`Section_accelerate <accelerate_kokkos>`      | kokkos    | lib/kokkos |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`KSPACE <KSPACE>`       | long-range Coulombic solvers         | -                                      | :doc:`kspace_style <kspace_style>`                 | peptide   | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`MANYBODY <MANYBODY>`   | many-body potentials                 | -                                      | :doc:`pair_style tersoff <pair_tersoff>`           | shear     | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`MEAM <MEAM>`           | modified EAM potential               | Greg Wagner (Sandia)                   | :doc:`pair_style meam <pair_meam>`                 | meam      | lib/meam   |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`MC <MC>`               | Monte Carlo options                  | -                                      | :doc:`fix gcmc <fix_gcmc>`                         | -         | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`MOLECULE <MOLECULE>`   | molecular system force fields        | -                                      | :ref:`Section_howto 6.3 <howto_3>`                 | peptide   | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`OPT <OPT>`             | optimized pair styles                | Fischer & Richie & Natoli (2)          | :doc:`Section accelerate <accelerate_opt>`         | -         | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`PERI <PERI>`           | Peridynamics models                  | Mike Parks (Sandia)                    | :doc:`pair_style peri <pair_peri>`                 | peri      | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`POEMS <POEMS>`         | coupled rigid body motion            | Rudra Mukherjee (JPL)                  | :doc:`fix poems <fix_poems>`                       | rigid     | lib/poems  |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`PYTHON <PYTHON>`       | embed Python code in an input script | -                                      | :doc:`python <python>`                             | python    | lib/python |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`REAX <REAX>`           | ReaxFF potential                     | Aidan Thompson (Sandia)                | :doc:`pair_style reax <pair_reax>`                 | reax      | lib/reax   |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`REPLICA <REPLICA>`     | multi-replica methods                | -                                      | :ref:`Section_howto 6.5 <howto_5>`                 | tad       | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`RIGID <RIGID>`         | rigid bodies                         | -                                      | :doc:`fix rigid <fix_rigid>`                       | rigid     | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`SHOCK <SHOCK>`         | shock loading methods                | -                                      | :doc:`fix msst <fix_msst>`                         | -         | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`SNAP <SNAP>`           | quantum-fit potential                | Aidan Thompson (Sandia)                | :doc:`pair snap <pair_snap>`                       | snap      | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`SRD <SRD>`             | stochastic rotation dynamics         | -                                      | :doc:`fix srd <fix_srd>`                           | srd       | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`VORONOI <VORONOI>`     | Voronoi tesselations                 | Daniel Schwen (LANL)                   | :doc:`compute voronoi/atom <compute_voronoi_atom>` | -         | Voro++     |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+| :ref:`XTC <XTC>`             | dumps in XTC format                  | -                                      | :doc:`dump <dump>`                                 | -         | -          |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+|                              |                                      |                                        |                                                    |           |            |
++------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
+
+The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+
+(1) The COLLOID package includes Fast Lubrication Dynamics pair styles
+which were created by Amit Kumar and Michael Bybee from Jonathan
+Higdon's group at UIUC.
+
+(2) The OPT package was created by James Fischer (High Performance
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
+Technolgy).
+
+(3) The KIM package was created by Valeriu Smirichinski, Ryan Elliott,
+and Ellad Tadmor (U Minn).
+
+(4) The KOKKOS package was created primarily by Christian Trott and
+Stan Moore (Sandia).  It uses the Kokkos library which was developed
+by Carter Edwards, Christian Trott, and others at Sandia.
+
+The "Doc page" column links to either a sub-section of the
+:doc:`Section_howto <Section_howto>` of the manual, or an input script
+command implemented as part of the package, or to additional
+documentation provided within the package.
+
+The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.
+
+The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See details on all of this below for individual packages.
+p.s.: are we ever going to get commit messages from you? ;-)
+
+
+----------
+
+
+.. _ASPHERE:
+
+ASPHERE package
+^^^^^^^^^^^^^^^
+
+Contents: Several computes, time-integration fixes, and pair styles
+for aspherical particle models: ellipsoids, 2d lines, 3d triangles.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-asphere
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p asphere -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-asphere
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^asphere -a machine
+
+Supporting info: :ref:`Section howto 6.14 <howto_14>`,
+:doc:`pair_style gayberne <pair_gayberne>`, :doc:`pair_style resquared <pair_resquared>`,
+`doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_,
+`doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_,
+examples/ASPHERE, examples/ellipse
+
+
+----------
+
+
+.. _BODY:
+
+BODY package
+^^^^^^^^^^^^
+
+Contents: Support for body-style particles.  Computes,
+time-integration fixes, pair styles, as well as the body styles
+themselves.  See the :doc:`body <body>` doc page for an overview.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-body
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p body -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-body
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^body -a machine
+
+Supporting info: :doc:`atom_style body <atom_style>`, :doc:`body <body>`,
+:doc:`pair_style body <pair_body>`, examples/body
+
+
+----------
+
+
+.. _CLASS2:
+
+CLASS2 package
+^^^^^^^^^^^^^^
+
+Contents: Bond, angle, dihedral, improper, and pair styles for the
+COMPASS CLASS2 molecular force field.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-class2
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p class2 -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-class2
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^class2 -a machine
+
+Supporting info: :doc:`bond_style class2 <bond_class2>`, :doc:`angle_style class2 <angle_class2>`, :doc:`dihedral_style class2 <dihedral_class2>`, :doc:`improper_style class2 <improper_class2>`, :doc:`pair_style lj/class2 <pair_class2>`
+
+
+----------
+
+
+.. _COLLOID:
+
+COLLOID package
+^^^^^^^^^^^^^^^
+
+Contents: Support for coarse-grained colloidal particles.  Wall fix
+and pair styles that implement colloidal interaction models for
+finite-size particles.  This includes the Fast Lubrication Dynamics
+method for hydrodynamic interactions, which is a simplified
+approximation to Stokesian dynamics.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-colloid
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p colloid -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-colloid
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^colloid -a machine
+
+Supporting info: :doc:`fix wall/colloid <fix_wall>`, :doc:`pair_style colloid <pair_colloid>`, :doc:`pair_style yukawa/colloid <pair_yukawa_colloid>`, :doc:`pair_style brownian <pair_brownian>`, :doc:`pair_style lubricate <pair_lubricate>`, :doc:`pair_style lubricateU <pair_lubricateU>`, examples/colloid, examples/srd
+
+
+----------
+
+
+.. _COMPRESS:
+
+COMPRESS package
+^^^^^^^^^^^^^^^^
+
+Contents: Support for compressed output of dump files via the zlib
+compression library, using dump styles with a "gz" in their style
+name.
+
+Building with the COMPRESS package assumes you have the zlib
+compression library available on your system.  The build uses the
+lib/compress/Makefile.lammps file in the compile/link process.  You
+should only need to edit this file if the LAMMPS build cannot find the
+zlib info it specifies.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-compress
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p compress -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-compress
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^compress -a machine
+
+Supporting info: src/COMPRESS/README, lib/compress/README, :doc:`dump atom/gz <dump>`, :doc:`dump cfg/gz <dump>`, :doc:`dump custom/gz <dump>`, :doc:`dump xyz/gz <dump>`
+
+
+----------
+
+
+.. _CORESHELL:
+
+CORESHELL package
+^^^^^^^^^^^^^^^^^
+
+Contents: Compute and pair styles that implement the adiabatic
+core/shell model for polarizability.  The compute temp/cs command
+measures the temperature of a system with core/shell particles.  The
+pair styles augment Born, Buckingham, and Lennard-Jones styles with
+core/shell capabilities.  See :ref:`Section howto 6.26 <howto_26>` for an overview of how to use the
+package.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-coreshell
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p coreshell -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-coreshell
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^coreshell -a machine
+
+Supporting info: :ref:`Section howto 6.26 <howto_26>`, :doc:`compute temp/cs <compute_temp_cs>`,
+:doc:`pair_style born/coul/long/cs <pair_cs>`, :doc:`pair_style buck/coul/long/cs <pair_cs>`, pair_style
+lj/cut/coul/long/cs"_pair_lj.html, examples/coreshell
+
+
+----------
+
+
+.. _DIPOLE:
+
+DIPOLE package
+^^^^^^^^^^^^^^
+
+Contents: An atom style and several pair styles to support point
+dipole models with short-range or long-range interactions.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-dipole
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p dipole -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-dipole
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^dipole -a machine
+
+Supporting info: :doc:`atom_style dipole <atom_style>`, :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`, :doc:`pair_style lj/cut/dipole/long <pair_dipole>`, :doc:`pair_style lj/long/dipole/long <pair_dipole>`, examples/dipole
+
+
+----------
+
+
+.. _GPU:
+
+GPU package
+^^^^^^^^^^^
+
+Contents: Dozens of pair styles and a version of the PPPM long-range
+Coulombic solver for NVIDIA GPUs.  All of them have a "gpu" in their
+style name.  :doc:`Section accelerate gpu <accelerate_gpu>` gives
+details of what hardware and Cuda software is required on your system,
+and how to build and use this package.  See the KOKKOS and USER-CUDA
+packages, which also have GPU-enabled styles.
+
+Building LAMMPS with the GPU package requires first building the GPU
+library itself, which is a set of C and Cuda files in lib/gpu.
+Details of how to do this are in lib/gpu/README.  As illustrated
+below, perform a "make" using one of the Makefile.machine files in
+lib/gpu which should create a lib/reax/libgpu.a file.
+Makefile.linux.* and Makefile.xk7 are examples for different
+platforms.  There are 3 important settings in the Makefile.machine you
+use:
+
+* CUDA_HOME = where NVIDIA Cuda software is installed on your system
+* CUDA_ARCH = appropriate to your GPU hardware
+* CUDA_PREC = precision (double, mixed, single) you desire
+
+See example Makefile.machine files in lib/gpu for the syntax of these
+settings.  See lib/gpu/Makefile.linux.double for ARCH settings for
+various NVIDIA GPUs.  The "make" also creates a
+lib/gpu/Makefile.lammps file.  This file has settings that enable
+LAMMPS to link with Cuda libraries.  If the settings in
+Makefile.lammps for your machine are not correct, the LAMMPS link will
+fail.  Note that the Make.py script has a "-gpu" option to allow the
+GPU library (with several of its options) and LAMMPS to be built in
+one step, with Type "python src/Make.py -h -gpu" to see the details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   cd ~/lammps/lib/gpu
+   make -f Makefile.linux.mixed     # for example
+   cd ~/lammps/src
+   make yes-gpu
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p gpu -gpu mode=mixed arch=35 -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-gpu
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^gpu -a machine
+
+Supporting info: src/GPU/README, lib/gpu/README, :doc:`Section acclerate <Section_accelerate>`, :doc:`Section accelerate gpu <accelerate_gpu>`, Pair Styles section of :ref:`Section commands 3.5 <cmd_5>` for any pair style listed with a (g),
+:doc:`kspace_style <kspace_style>`, :doc:`package gpu <package>`,
+examples/accelerate, bench/FERMI, bench/KEPLER
+
+
+----------
+
+
+.. _GRANULAR:
+
+GRANULAR package
+^^^^^^^^^^^^^^^^
+
+Contents: Fixes and pair styles that support models of finite-size
+granular particles, which interact with each other and boundaries via
+frictional and dissipative potentials.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-granular
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p granular -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-granular
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^granular -a machine
+
+Supporting info: :ref:`Section howto 6.6 <howto_6>`, :doc:`fix pour <fix_pour>`, :doc:`fix wall/gran <fix_wall_gran>`, :doc:`pair_style gran/hooke <pair_gran>`, :doc:`pair_style gran/hertz/history <pair_gran>`, examples/pour, bench/in.chute
+
+
+----------
+
+
+.. _KIM:
+
+KIM package
+^^^^^^^^^^^
+
+Contents: A pair style that interfaces to the Knowledge Base for
+Interatomic Models (KIM) repository of interatomic potentials, so that
+KIM potentials can be used in a LAMMPS simulation.
+
+To build LAMMPS with the KIM package you must have previously
+installed the KIM API (library) on your system.  The lib/kim/README
+file explains how to download and install KIM.  Building with the KIM
+package also uses the lib/kim/Makefile.lammps file in the compile/link
+process.  You should not need to edit this file.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-kim
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p kim -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-kim
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^kim -a machine
+
+Supporting info: src/KIM/README, lib/kim/README, :doc:`pair_style kim <pair_kim>`, examples/kim
+
+
+----------
+
+
+.. _KOKKOS:
+
+KOKKOS package
+^^^^^^^^^^^^^^
+
+Contents: Dozens of atom, pair, bond, angle, dihedral, improper styles
+which run with the Kokkos library to provide optimization for
+multicore CPUs (via OpenMP), NVIDIA GPUs, or the Intel Xeon Phi (in
+native mode).  All of them have a "kk" in their style name.  :doc:`Section accelerate kokkos <accelerate_kokkos>` gives details of what
+hardware and software is required on your system, and how to build and
+use this package.  See the GPU, OPT, USER-CUDA, USER-INTEL, USER-OMP
+packages, which also provide optimizations for the same range of
+hardware.
+
+Building with the KOKKOS package requires choosing which of 3 hardware
+options you are optimizing for: CPU acceleration via OpenMP, GPU
+acceleration, or Intel Xeon Phi.  (You can build multiple times to
+create LAMMPS executables for different hardware.)  It also requires a
+C++11 compatible compiler.  For GPUs, the NVIDIA "nvcc" compiler is
+used, and an appopriate KOKKOS_ARCH setting should be made in your
+Makefile.machine for your GPU hardware and NVIDIA software.
+
+The simplest way to do this is to use Makefile.kokkos_cuda or
+Makefile.kokkos_omp or Makefile.kokkos_phi in src/MAKE/OPTIONS, via
+"make kokkos_cuda" or "make kokkos_omp" or "make kokkos_phi".  (Check
+the KOKKOS_ARCH setting in Makefile.kokkos_cuda), Or, as illustrated
+below, you can use the Make.py script with its "-kokkos" option to
+choose which hardware to build for.  Type "python src/Make.py -h
+-kokkos" to see the details.  If these methods do not work on your
+system, you will need to read the :doc:`Section accelerate kokkos <accelerate_kokkos>` doc page for details of what
+Makefile.machine settings are needed.
+
+To install via make or Make.py for each of 3 hardware options:
+
+.. parsed-literal::
+
+   make yes-kokkos
+   make kokkos_omp    # for CPUs with OpenMP
+   make kokkos_cuda   # for GPUs, check the KOKKOS_ARCH setting in Makefile.kokkos_cuda
+   make kokkos_phi    # for Xeon Phis
+
+Make.py -p kokkos -kokkos omp -a machine           # for CPUs with OpenMP
+Make.py -p kokkos -kokkos cuda arch=35 -a machine  # for GPUs of style arch
+Make.py -p kokkos -kokkos phi -a machine           # for Xeon Phis
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-kokkos
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^kokkos -a machine
+
+Supporting info: src/KOKKOS/README, lib/kokkos/README, :doc:`Section acclerate <Section_accelerate>`, :doc:`Section accelerate kokkos <accelerate_kokkos>`, Pair Styles section of :ref:`Section commands 3.5 <cmd_5>` for any pair style listed
+with a (k), :doc:`package kokkos <package>`,
+examples/accelerate, bench/FERMI, bench/KEPLER
+
+
+----------
+
+
+.. _KSPACE:
+
+KSPACE package
+^^^^^^^^^^^^^^
+
+Contents: A variety of long-range Coulombic solvers, and pair styles
+which compute the corresponding short-range portion of the pairwise
+Coulombic interactions.  These include Ewald, particle-particle
+particle-mesh (PPPM), and multilevel summation method (MSM) solvers.
+
+Building with the KSPACE package requires a 1d FFT library be present
+on your system for use by the PPPM solvers.  This can be the KISS FFT
+library provided with LAMMPS, or 3rd party libraries like FFTW or a
+vendor-supplied FFT library.  See step 6 of :ref:`Section start 2.2.2 <start_2_2>` of the manual for details of how
+to select different FFT options in your machine Makefile.  The Make.py
+tool has an "-fft" option which can insert these settings into your
+machine Makefile automatically.  Type "python src/Make.py -h -fft" to
+see the details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-kspace
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p kspace -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-kspace
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^kspace -a machine
+
+Supporting info: :doc:`kspace_style <kspace_style>`,
+`doc/PDF/kspace.pdf <PDF/kspace.pdf>`_, :ref:`Section howto 6.7 <howto_7>`, :ref:`Section howto 6.8 <howto_8>`, :ref:`Section howto 6.9 <howto_9>`, :doc:`pair_style coul <pair_coul>`,
+other pair style command doc pages which have "long" or "msm" in their
+style name, examples/peptide, bench/in.rhodo
+
+
+----------
+
+
+.. _MANYBODY:
+
+MANYBODY package
+^^^^^^^^^^^^^^^^
+
+Contents: A variety of many-body and bond-order potentials.  These
+include (AI)REBO, EAM, EIM, BOP, Stillinger-Weber, and Tersoff
+potentials.  Do a directory listing, "ls src/MANYBODY", to see
+the full list.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-manybody
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p manybody -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-manybody
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^manybody -a machine
+
+Supporting info:
+
+Examples: Pair Styles section of :ref:`Section commands 3.5 <cmd_5>`, examples/comb, examples/eim,
+examples/nb3d, examples/vashishta
+
+
+----------
+
+
+.. _MC:
+
+MC package
+^^^^^^^^^^
+
+Contents: Several fixes and a pair style that have Monte Carlo (MC) or
+MC-like attributes.  These include fixes for creating, breaking, and
+swapping bonds, and for performing atomic swaps and grand-canonical MC
+in conjuction with dynamics.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-mc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p mc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-mc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^mc -a machine
+
+Supporting info: :doc:`fix atom/swap <fix_atom_swap>`, :doc:`fix bond/break <fix_bond_break>`, :doc:`fix bond/create <fix_bond_create>`, :doc:`fix bond/swap <fix_bond_swap>`,
+:doc:`fix gcmc <fix_gcmc>`, :doc:`pair_style dsmc <pair_dsmc>`
+
+
+----------
+
+
+.. _MEAM:
+
+MEAM package
+^^^^^^^^^^^^
+
+Contents: A pair style for the modified embedded atom (MEAM)
+potential.
+
+Building LAMMPS with the MEAM package requires first building the MEAM
+library itself, which is a set of Fortran 95 files in lib/meam.
+Details of how to do this are in lib/meam/README.  As illustrated
+below, perform a "make" using one of the Makefile.machine files in
+lib/meam which should create a lib/meam/libmeam.a file.
+Makefile.gfortran and Makefile.ifort are examples for the GNU Fortran
+and Intel Fortran compilers.  The "make" also copies a
+lib/meam/Makefile.lammps.machine file to lib/meam/Makefile.lammps.
+This file has settings that enable the C++ compiler used to build
+LAMMPS to link with a Fortran library (typically the 2 compilers to be
+consistent e.g. both Intel compilers, or both GNU compilers).  If the
+settings in Makefile.lammps for your compilers and machine are not
+correct, the LAMMPS link will fail.  Note that the Make.py script has
+a "-meam" option to allow the MEAM library and LAMMPS to be built in
+one step.  Type "python src/Make.py -h -meam" to see the details.
+
+.. note::
+
+   The MEAM potential can run dramatically faster if built with the
+   Intel Fortran compiler, rather than the GNU Fortran compiler.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   cd ~/lammps/lib/meam
+   make -f Makefile.gfortran    # for example
+   cd ~/lammps/src
+   make yes-meam
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p meam -meam make=gfortran -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-meam
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^meam -a machine
+
+Supporting info: lib/meam/README, :doc:`pair_style meam <pair_meam>`,
+examples/meam
+
+
+----------
+
+
+.. _MISC:
+
+MISC package
+^^^^^^^^^^^^
+
+Contents: A variety of computes, fixes, and pair styles that are not
+commonly used, but don't align with other packages.  Do a directory
+listing, "ls src/MISC", to see the list of commands.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-misc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p misc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-misc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^misc -a machine
+
+Supporting info: :doc:`compute ti <compute_ti>`, :doc:`fix evaporate <fix_evaporate>`, :doc:`fix tmm <fix_ttm>`, :doc:`fix viscosity <fix_viscosity>`, examples/misc
+
+
+----------
+
+
+.. _MOLECULE:
+
+MOLECULE package
+^^^^^^^^^^^^^^^^
+
+Contents: A large number of atom, pair, bond, angle, dihedral,
+improper styles that are used to model molecular systems with fixed
+covalent bonds.  The pair styles include terms for the Dreiding
+(hydrogen-bonding) and CHARMM force fields, and TIP4P water model.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-molecule
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p molecule -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-molecule
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^molecule -a machine
+
+Supporting info::doc:`atom_style <atom_style>`,
+:doc:`bond_style <bond_style>`, :doc:`angle_style <angle_style>`,
+:doc:`dihedral_style <dihedral_style>`,
+:doc:`improper_style <improper_style>`, :doc:`pair_style hbond/dreiding/lj <pair_hbond_dreiding>`, :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`, :ref:`Section howto 6.3 <howto_3>`, examples/micelle, examples/peptide,
+bench/in.chain, bench/in.rhodo
+
+
+----------
+
+
+.. _MPIIO:
+
+MPIIO package
+^^^^^^^^^^^^^
+
+Contents: Support for parallel output/input of dump and restart files
+via the MPIIO library, which is part of the standard message-passing
+interface (MPI) library.  It adds :doc:`dump styles <dump>` with a
+"mpiio" in their style name.  Restart files with an ".mpiio" suffix
+are also written and read in parallel.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-mpiio
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p mpiio -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-mpiio
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^mpiio -a machine
+
+Supporting info: :doc:`dump <dump>`, :doc:`restart <restart>`,
+:doc:`write_restart <write_restart>`, :doc:`read_restart <read_restart>`
+
+
+----------
+
+
+.. _OPT:
+
+OPT package
+^^^^^^^^^^^
+
+Contents: A handful of pair styles with an "opt" in their style name
+which are optimized for improved CPU performance on single or multiple
+cores.  These include EAM, LJ, CHARMM, and Morse potentials.  :doc:`Section accelerate opt <accelerate_opt>` gives details of how to build and
+use this package.  See the KOKKOS, USER-INTEL, and USER-OMP packages,
+which also have styles optimized for CPU performance.
+
+Some C++ compilers, like the Intel compiler, require the compile flag
+"-restrict" to build LAMMPS with the OPT package.  It should be added
+to the CCFLAGS line of your Makefile.machine.  Or use Makefile.opt in
+src/MAKE/OPTIONS, via "make opt".  For compilers that use the flag,
+the Make.py command adds it automatically to the Makefile.auto file it
+creates and uses.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-opt
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p opt -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-opt
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^opt -a machine
+
+Supporting info: :doc:`Section acclerate <Section_accelerate>`, :doc:`Section accelerate opt <accelerate_opt>`, Pair Styles section of :ref:`Section commands 3.5 <cmd_5>` for any pair style listed
+with an (o), examples/accelerate, bench/KEPLER
+
+
+----------
+
+
+.. _PERI:
+
+PERI package
+^^^^^^^^^^^^
+
+Contents: Support for the Peridynamics method, a particle-based
+meshless continuum model.  The package includes an atom style, several
+computes which calculate diagnostics, and several Peridynamic pair
+styles which implement different materials models.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-peri
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p peri -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-peri
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^peri -a machine
+
+Supporting info:
+`doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_,
+`doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_,
+`doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_, :doc:`atom_style peri <atom_style>`, :doc:`compute damage <compute_damage>`,
+:doc:`pair_style peri/pmb <pair_peri>`, examples/peri
+
+
+----------
+
+
+.. _POEMS:
+
+POEMS package
+^^^^^^^^^^^^^
+
+Contents: A fix that wraps the Parallelizable Open source Efficient
+Multibody Software (POEMS) librar, which is able to simulate the
+dynamics of articulated body systems.  These are systems with multiple
+rigid bodies (collections of atoms or particles) whose motion is
+coupled by connections at hinge points.
+
+Building LAMMPS with the POEMS package requires first building the
+POEMS library itself, which is a set of C++ files in lib/poems.
+Details of how to do this are in lib/poems/README.  As illustrated
+below, perform a "make" using one of the Makefile.machine files in
+lib/poems which should create a lib/meam/libpoems.a file.
+Makefile.g++ and Makefile.icc are examples for the GNU and Intel C++
+compilers.  The "make" also creates a lib/poems/Makefile.lammps file
+which you should not need to change.  Note the Make.py script has a
+"-poems" option to allow the POEMS library and LAMMPS to be built in
+one step.  Type "python src/Make.py -h -poems" to see the details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   cd ~/lammps/lib/poems
+   make -f Makefile.g++    # for example
+   cd ~/lammps/src
+   make yes-poems
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p poems -poems make=g++ -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-meam
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^meam -a machine
+
+Supporting info: src/POEMS/README, lib/poems/README,
+:doc:`fix_poems <fix_poems>`, examples/rigid
+
+
+----------
+
+
+.. _PYTHON:
+
+PYTHON package
+^^^^^^^^^^^^^^
+
+Contents: A :doc:`python <python>` command which allow you to execute
+Python code from a LAMMPS input script.  The code can be in a separate
+file or embedded in the input script itself.  See :ref:`Section python 11.2 <py_2">` for an overview of using Python from
+LAMMPS and `Section python <Section_python.html">`_ for other ways to use
+LAMMPS and Python together.
+
+Building with the PYTHON package assumes you have a Python shared
+library available on your system, which needs to be a Python 2
+version, 2.6 or later.  Python 3 is not supported.  The build uses the
+contents of the lib/python/Makefile.lammps file to find all the Python
+files required in the build/link process.  See the lib/python/README
+file if the settings in that file do not work on your system.  Note
+that the Make.py script has a "-python" option to allow an alternate
+lib/python/Makefile.lammps file to be specified and LAMMPS to be built
+in one step.  Type "python src/Make.py -h -python" to see the details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-python
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p python -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-python
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^python -a machine
+
+Supporting info: examples/python
+
+
+----------
+
+
+.. _QEQ:
+
+QEQ package
+^^^^^^^^^^^
+
+Contents: Several fixes for performing charge equilibration (QEq) via
+severeal different algorithms.  These can be used with pair styles
+that use QEq as part of their formulation.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-qeq
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p qeq -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-qeq
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^qeq -a machine
+
+Supporting info: :doc:`fix qeq/* <fix_qeq>`, examples/qeq
+
+
+----------
+
+
+.. _REAX:
+
+REAX package
+^^^^^^^^^^^^
+
+Contents: A pair style for the ReaxFF potential, a universal reactive
+force field, as well as a :doc:`fix reax/bonds <fix_reax_bonds>` command
+for monitoring molecules as bonds are created and destroyed.
+
+Building LAMMPS with the REAX package requires first building the REAX
+library itself, which is a set of Fortran 95 files in lib/reax.
+Details of how to do this are in lib/reax/README.  As illustrated
+below, perform a "make" using one of the Makefile.machine files in
+lib/reax which should create a lib/reax/libreax.a file.
+Makefile.gfortran and Makefile.ifort are examples for the GNU Fortran
+and Intel Fortran compilers.  The "make" also copies a
+lib/reax/Makefile.lammps.machine file to lib/reax/Makefile.lammps.
+This file has settings that enable the C++ compiler used to build
+LAMMPS to link with a Fortran library (typically the 2 compilers to be
+consistent e.g. both Intel compilers, or both GNU compilers).  If the
+settings in Makefile.lammps for your compilers and machine are not
+correct, the LAMMPS link will fail.  Note that the Make.py script has
+a "-reax" option to allow the REAX library and LAMMPS to be built in
+one step.  Type "python src/Make.py -h -reax" to see the details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   cd ~/lammps/lib/reax
+   make -f Makefile.gfortran    # for example
+   cd ~/lammps/src
+   make yes-reax
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p reax -reax make=gfortran -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-reax
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^reax -a machine
+
+Supporting info: lib/reax/README, :doc:`pair_style reax <pair_reax>`,
+:doc:`fix reax/bonds <fix_reax_bonds>`, examples/reax
+
+
+----------
+
+
+.. _REPLICA:
+
+REPLICA package
+^^^^^^^^^^^^^^^
+
+Contents: A collection of multi-replica methods that are used by
+invoking multiple instances (replicas) of LAMMPS
+simulations. Communication between individual replicas is performed in
+different ways by the different methods.  See :ref:`Section howto 6.5 <howto_5>` for an overview of how to run
+multi-replica simulations in LAMMPS.  Multi-replica methods included
+in the package are nudged elastic band (NEB), parallel replica
+dynamics (PRD), temperature accelerated dynamics (TAD), parallel
+tempering, and a verlet/split algorithm for performing long-range
+Coulombics on one set of processors, and the remainded of the force
+field calcalation on another set.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-replica
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p replica -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-replica
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^replica -a machine
+
+Supporting info: :ref:`Section howto 6.5 <howto_5>`,
+:doc:`neb <neb>`, :doc:`prd <prd>`, :doc:`tad <tad>`, :doc:`temper <temper>`,
+:doc:`run_style verlet/split <run_style>`, examples/neb, examples/prd,
+examples/tad
+
+
+----------
+
+
+.. _RIGID:
+
+RIGID package
+^^^^^^^^^^^^^
+
+Contents: A collection of computes and fixes which enforce rigid
+constraints on collections of atoms or particles.  This includes SHAKE
+and RATTLE, as well as variants of rigid-body time integrators for a
+few large bodies or many small bodies.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-rigid
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p rigid -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-rigid
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^rigid -a machine
+
+Supporting info: :doc:`compute erotate/rigid <compute_erotate_rigid>`,
+:doc:`fix shake <fix_shake>`, :doc:`fix rattle <fix_rattle>`, :doc:`fix rigid/* <fix_rigid>`, examples/ASPHERE, examples/rigid
+
+
+----------
+
+
+.. _SHOCK:
+
+SHOCK package
+^^^^^^^^^^^^^
+
+Contents: A small number of fixes useful for running impact
+simulations where a shock-wave passes through a material.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-shock
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p shock -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-shock
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^shock -a machine
+
+Supporting info: :doc:`fix append/atoms <fix_append_atoms>`, :doc:`fix msst <fix_msst>`, :doc:`fix nphug <fix_nphug>`, :doc:`fix wall/piston <fix_wall_piston>`, examples/hugoniostat, examples/msst
+
+
+----------
+
+
+.. _SNAP:
+
+SNAP package
+^^^^^^^^^^^^
+
+Contents: A pair style for the spectral neighbor analysis potential
+(SNAP), which is an empirical potential which can be quantum accurate
+when fit to an archive of DFT data.  Computes useful for analyzing 
+properties of the potential are also included.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-snap
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p snap -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-snap
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^snap -a machine
+
+Supporting info: :doc:`pair snap <pair_snap>`, :doc:`compute sna/atom <compute_sna_atom>`, :doc:`compute snad/atom <compute_sna>`,
+:doc:`compute snav/atom <compute_sna>`, examples/snap
+
+
+----------
+
+
+.. _SRD:
+
+SRD package
+^^^^^^^^^^^
+
+Contents: Two fixes which implement the Stochastic Rotation Dynamics
+(SRD) method for coarse-graining of a solvent, typically around large
+colloidal-scale particles.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-srd
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p srd -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-srd
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^srd -a machine
+
+Supporting info: :doc:`fix srd <fix_srd>`, :doc:`fix wall/srd <fix_wall_srd>`, examples/srd, examples/ASPHERE
+
+
+----------
+
+
+.. _VORONOI:
+
+VORONOI package
+^^^^^^^^^^^^^^^
+
+Contents: A :doc:`compute voronoi/atom <compute_voronoi_atom>` command
+which computes the Voronoi tesselation of a collection of atoms or
+particles by wrapping the Voro++ lib
+
+To build LAMMPS with the KIM package you must have previously
+installed the KIM API (library) on your system.  The lib/kim/README
+file explains how to download and install KIM.  Building with the KIM
+package also uses the lib/kim/Makefile.lammps file in the compile/link
+process.  You should not need to edit this file.
+
+To build LAMMPS with the VORONOI package you must have previously
+installed the Voro++ library on your system.  The lib/voronoi/README
+file explains how to download and install Voro++.  There is a
+lib/voronoi/install.py script which automates the process.  Type
+"python install.py" to see instructions.  The final step is to create
+soft links in the lib/voronoi directory for "includelink" and
+"liblink" which point to installed Voro++ directories.  Building with
+the VORONOI package uses the contents of the
+lib/voronoi/Makefile.lammps file in the compile/link process.  You
+should not need to edit this file.  Note that the Make.py script has a
+"-voronoi" option to allow the Voro++ library to be downloaded and/or
+installed and LAMMPS to be built in one step.  Type "python
+src/Make.py -h -voronoi" to see the details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   cd ~/lammps/lib/voronoi
+   python install.py -g -b -l    # download Voro++, build in lib/voronoi, create links
+   cd ~/lammps/src
+   make yes-voronoi
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p voronoi -voronoi install="-g -b -l" -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-voronoi
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^voronoi -a machine
+
+Supporting info: src/VORONOI/README, lib/voronoi/README, :doc:`compute voronoi/atom <compute_voronoi_atom>`, examples/voronoi
+
+
+----------
+
+
+.. _XTC:
+
+XTC package
+^^^^^^^^^^^
+
+Contents: A :doc:`dump xtc <dump>` command for writing snapshots in the
+XTC format used by the GROMACS MD package.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-xtc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p xtc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-xtc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^xtc -a machine
+
+Supporting info: :doc:`dump xtc <dump>`
+
+
+----------
+
+
+.. _pkg_2:
+
+User packages
+-------------------------
+
+The current list of user-contributed packages is as follows:
+
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| Package                                    | Description                                    | Author(s)                                       | Doc page                                                | Example          | Pic/movie            | Library     |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-ATC <USER-ATC>`                 | atom-to-continuum coupling                     | Jones & Templeton & Zimmerman (1)               | :doc:`fix atc <fix_atc>`                                | USER/atc         | `atc <atc_>`_        | lib/atc     |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-AWPMD <USER-AWPMD>`             | wave-packet MD                                 | Ilya Valuev (JIHT)                              | :doc:`pair_style awpmd/cut <pair_awpmd>`                | USER/awpmd       | -                    | lib/awpmd   |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-CG-CMM <USER-CG-CMM>`           | coarse-graining model                          | Axel Kohlmeyer (Temple U)                       | :doc:`pair_style lj/sdk <pair_sdk>`                     | USER/cg-cmm      | `cg <cg_>`_          | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-COLVARS <USER-COLVARS>`         | collective variables                           | Fiorin & Henin & Kohlmeyer (2)                  | :doc:`fix colvars <fix_colvars>`                        | USER/colvars     | `colvars <colvars>`_ | lib/colvars |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-CUDA <USER-CUDA>`               | NVIDIA GPU styles                              | Christian Trott (U Tech Ilmenau)                | :doc:`Section accelerate <accelerate_cuda>`             | USER/cuda        | -                    | lib/cuda    |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-DIFFRACTION <USER-DIFFRACTION>` | virutal x-ray and electron diffraction         | Shawn Coleman (ARL)                             | :doc:`compute xrd <compute_xrd>`                        | USER/diffraction | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-DPD <USER-DPD>`                 | dissipative particle dynamics (DPD)            | Larentzos & Mattox & Brennan (5)                | src/USER-DPD/README                                     | USER/dpd         | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-DRUDE <USER-DRUDE>`             | Drude oscillators                              | Dequidt & Devemy & Padua (3)                    | :doc:`tutorial <tutorial_drude>`                        | USER/drude       | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-EFF <USER-EFF>`                 | electron force field                           | Andres Jaramillo-Botero (Caltech)               | :doc:`pair_style eff/cut <pair_eff>`                    | USER/eff         | `eff <eff_>`_        | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-FEP <USER-FEP>`                 | free energy perturbation                       | Agilio Padua (U Blaise Pascal Clermont-Ferrand) | :doc:`compute fep <compute_fep>`                        | USER/fep         | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-H5MD <USER-H5MD>`               | dump output via HDF5                           | Pierre de Buyl (KU Leuven)                      | :doc:`dump h5md <dump_h5md>`                            | -                | -                    | lib/h5md    |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-INTEL <USER-INTEL>`             | Vectorized CPU and Intel(R) coprocessor styles | W. Michael Brown (Intel)                        | :doc:`Section accelerate <accelerate_intel>`            | examples/intel   | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-LB <USER-LB>`                   | Lattice Boltzmann fluid                        | Colin Denniston (U Western Ontario)             | :doc:`fix lb/fluid <fix_lb_fluid>`                      | USER/lb          | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-MGPT <USER-MGPT>`               | fast MGPT multi-ion potentials                 | Tomas Oppelstrup & John Moriarty (LLNL)         | :doc:`pair_style mgpt <pair_mgpt>`                      | USER/mgpt        | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-MISC <USER-MISC>`               | single-file contributions                      | USER-MISC/README                                | USER-MISC/README                                        | -                | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-MOLFILE <USER-MOLFILE>`         | `VMD <VMD_>`_ molfile plug-ins                 | Axel Kohlmeyer (Temple U)                       | :doc:`dump molfile <dump_molfile>`                      | -                | -                    | VMD-MOLFILE |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-OMP <USER-OMP>`                 | OpenMP threaded styles                         | Axel Kohlmeyer (Temple U)                       | :doc:`Section accelerate <accelerate_omp>`              | -                | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-PHONON <USER-PHONON>`           | phonon dynamical matrix                        | Ling-Ti Kong (Shanghai Jiao Tong U)             | :doc:`fix phonon <fix_phonon>`                          | USER/phonon      | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-QMMM <USER-QMMM>`               | QM/MM coupling                                 | Axel Kohlmeyer (Temple U)                       | :doc:`fix qmmm <fix_qmmm>`                              | USER/qmmm        | -                    | lib/qmmm    |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-QTB <USER-QTB>`                 | quantum nuclear effects                        | Yuan Shen (Stanford)                            | :doc:`fix qtb <fix_qtb>` :doc:`fix_qbmsst <fix_qbmsst>` | qtb              | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-QUIP <USER-QUIP>`               | QUIP/libatoms interface                        | Albert Bartok-Partay (U Cambridge)              | :doc:`pair_style quip <pair_quip>`                      | USER/quip        | -                    | lib/quip    |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-REAXC <USER-REAXC>`             | C version of ReaxFF                            | Metin Aktulga (LBNL)                            | :doc:`pair_style reaxc <pair_reax_c>`                   | reax             | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-SMD <USER-SMD>`                 | smoothed Mach dynamics                         | Georg Ganzenmuller (EMI)                        | `userguide.pdf <PDF/SMD_LAMMPS_userguide.pdf>`_         | USER/smd         | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-SMTBQ <USER-SMTBQ>`             | Second Moment Tight Binding - QEq potential    | Salles & Maras & Politano & Tetot (4)           | :doc:`pair_style smtbq <pair_smtbq>`                    | USER/smtbq       | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-SPH <USER-SPH>`                 | smoothed particle hydrodynamics                | Georg Ganzenmuller (EMI)                        | `userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_         | USER/sph         | `sph <sph_>`_        | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-TALLY <USER-TALLY>`             | Pairwise tallied computes                      | Axel Kohlmeyer (Temple U)                       | :doc:`compute <...>/tally <compute_tally>`              | USER/tally       | -                    | -           |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+| :ref:`USER-VTK <USER-VTK>`                 | VTK-style dumps                                | Berger and Queteschiner (6)                     | :doc:`compute custom/vtk <compute_custom_vtk>`          | -                | -                    | lib/vtk     |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+|                                            |                                                |                                                 |                                                         |                  |                      |             |
++--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
+
+.. _atc: http://lammps.sandia.gov/pictures.html#atc
+
+
+
+.. _cg: http://lammps.sandia.gov/pictures.html#cg
+
+
+
+.. _eff: http://lammps.sandia.gov/movies.html#eff
+
+
+
+.. _sph: http://lammps.sandia.gov/movies.html#sph
+
+
+
+.. _VMD: http://www.ks.uiuc.edu/Research/vmd
+
+
+
+The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+
+(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
+Jon Zimmerman (Sandia).
+
+(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+the colvars module library written by Giacomo Fiorin (Temple U) and
+Jerome Henin (LISM, Marseille, France).
+
+(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
+Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
+(U Blaise Pascal).
+
+(4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
+Olivier Politano, and Robert Tetot (LAAS-CNRS, France).
+
+(5) The USER-DPD package was created by James Larentzos (ARL), Timothy
+Mattox (Engility), and John Brennan (ARL).
+
+(6) The USER-VTK package was created by Richard Berger (JKU) and
+Daniel Queteschiner (DCS Computing).
+
+The "Doc page" column links to either a sub-section of the
+:doc:`Section_howto <Section_howto>` of the manual, or an input script
+command implemented as part of the package, or to additional
+documentation provided within the package.
+
+The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.  USER/cuda
+refers to the examples/USER/cuda directory.
+
+The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See details on all of this below for individual packages.
+
+
+----------
+
+
+.. _USER-ATC:
+
+USER-ATC package
+^^^^^^^^^^^^^^^^
+
+Contents: ATC stands for atoms-to-continuum.  This package implements
+a :doc:`fix atc <fix_atc>` command to either couple MD with continuum
+finite element equations or perform on-the-fly post-processing of
+atomic information to continuum fields.  See src/USER-ATC/README for
+more details.
+
+To build LAMMPS with this package ...
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info:src/USER-ATC/README, :doc:`fix atc <fix_atc>`,
+examples/USER/atc
+
+Authors: Reese Jones (rjones at sandia.gov), Jeremy Templeton (jatempl
+at sandia.gov) and Jon Zimmerman (jzimmer at sandia.gov) at Sandia.
+Contact them directly if you have questions.
+
+
+----------
+
+
+.. _USER-AWPMD:
+
+USER-AWPMD package
+^^^^^^^^^^^^^^^^^^
+
+Contents: AWPMD stands for Antisymmetrized Wave Packet Molecular
+Dynamics.  This package implements an atom, pair, and fix style which
+allows electrons to be treated as explicit particles in an MD
+calculation.  See src/USER-AWPMD/README for more details.
+
+To build LAMMPS with this package ...
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: src/USER-AWPMD/README, :doc:`fix awpmd/cut <pair_awpmd_cut>`, examples/USER/awpmd
+
+Author: Ilya Valuev at the JIHT in Russia (valuev at
+physik.hu-berlin.de).  Contact him directly if you have questions.
+
+
+----------
+
+
+.. _USER-CG-CMM:
+
+USER-CG-CMM package
+^^^^^^^^^^^^^^^^^^^
+
+Contents: CG-CMM stands for coarse-grained ??.  This package
+implements several pair styles and an angle style using the coarse
+grained parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27
+(2007) (SDK), with extensions to simulate ionic liquids, electrolytes,
+lipids and charged amino acids.  See src/USER-CG-CMM/README for more
+details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: src/USER-CG-CMM/README, :doc:`pair lj/sdk <pair_sdk>`,
+:doc:`pair lj/sdk/coul/long <pair_sdk>`, :doc:`angle sdk <angle_sdk>`,
+examples/USER/cg-cmm
+
+Author: Axel Kohlmeyer at Temple U (akohlmey at gmail.com).  Contact
+him directly if you have questions.
+
+
+----------
+
+
+.. _USER-COLVARS:
+
+USER-COLVARS package
+^^^^^^^^^^^^^^^^^^^^
+
+Contents: COLVARS stands for collective variables which can be used to
+implement Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
+Sampling and Restraints.  This package implements a :doc:`fix colvars <fix_colvars>` command which wraps a COLVARS library which
+can perform those kinds of simulations.  See src/USER-COLVARS/README
+for more details.
+
+To build LAMMPS with this package ...
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info:
+`doc/PDF/colvars-refman-lammps.pdf <PDF/colvars-refman-lammps.pdf>`_,
+src/USER-COLVARS/README, lib/colvars/README, :doc:`fix colvars <fix_colvars>`, examples/USER/colvars
+
+Authors: Axel Kohlmeyer at Temple U (akohlmey at gmail.com) wrote the
+fix.  The COLVARS library itself is written and maintained by Giacomo
+Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome
+Henin (LISM, CNRS, Marseille, France).  Contact them directly if you
+have questions.
+
+
+----------
+
+
+.. _USER-CUDA:
+
+USER-CUDA package
+^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To build LAMMPS with this package ...
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+This package provides acceleration of various LAMMPS pair styles, fix
+styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
+GPUs.
+
+See this section of the manual to get started:
+
+:ref:`Section_accelerate <acc_7>`
+
+There are example scripts for using this package in
+examples/USER/cuda.
+
+This package uses an external library in lib/cuda which must be
+compiled before making LAMMPS.  See the lib/cuda/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+
+The person who created this package is Christian Trott at the
+University of Technology Ilmenau, Germany (christian.trott at
+tu-ilmenau.de).  Contact him directly if you have questions.
+
+Examples: examples/accelerate, bench/FERMI, bench/KEPLER
+
+
+----------
+
+
+.. _USER-DIFFRACTION:
+
+USER-DIFFRACTION package
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Contents: This packages implements two computes and a fix for
+calculating x-ray and electron diffraction intensities based on
+kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
+more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`compute saed <compute_saed>`, :doc:`compute xrd <compute_xrd>`, :doc:`fix saed.vtk <fix_saed_vtk>`,
+examples/USER/diffraction
+
+Author: Shawn P. Coleman (shawn.p.coleman8.ctr at mail.mil) while at
+the University of Arkansas.  Contact him directly if you have
+questions.
+
+
+----------
+
+
+.. _USER-DPD:
+
+USER-DPD package
+^^^^^^^^^^^^^^^^
+
+Contents: DPD stands for dissipative particle dynamics, This package
+implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
+conditions.  The DPD equations of motion are integrated efficiently
+through the Shardlow splitting algorithm.  See src/USER-DPD/README for
+more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: /src/USER-DPD/README, :doc:`compute dpd <compute_dpd>`
+:doc:`compute dpd/atom <compute_dpd_atom>`
+:doc:`fix_eos/cv <fix_eos_table>` :doc:`fix_eos/table <fix_eos_table>`
+:doc:`fix_shardlow <fix_shardlow>`
+:doc:`pair_dpd/conservative <pair_dpd_conservative>`
+:doc:`pair_dpd/fdt <pair_dpd_fdt>`
+:doc:`pair_dpd/fdt/energy <pair_dpd_fdt>`, examples/USER/dpd
+
+Authors: James Larentzos (ARL) (james.p.larentzos.civ at mail.mil),
+Timothy Mattox (Engility Corp) (Timothy.Mattox at engilitycorp.com)
+and John Brennan (ARL) (john.k.brennan.civ at mail.mil).  Contact them
+directly if you have questions.
+
+
+----------
+
+
+.. _USER-DRUDE:
+
+USER-DRUDE package
+^^^^^^^^^^^^^^^^^^
+
+Contents: This package contains methods for simulating polarizable
+systems using thermalized Drude oscillators.  It has computes, fixes,
+and pair styles for this purpose.  See :ref:`Section howto 6.27 <howto_27>` for an overview of how to use the
+package.  See src/USER-DRUDE/README for additional details.  There are
+auxiliary tools for using this package in tools/drude.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :ref:`Section howto 6.27 <howto_27>`,
+src/USER-DRUDE/README, :doc:`fix drude <fix_drude>`, :doc:`fix drude/transform/* <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair thole <pair_thole>`,
+:doc:`pair lj/cut/thole/long <pair_thole>`, examples/USER/drude,
+tools/drude
+
+Authors: Alain Dequidt at Universite Blaise Pascal Clermont-Ferrand
+(alain.dequidt at univ-bpclermont.fr); co-authors: Julien Devemy,
+Agilio Padua.  Contact them directly if you have questions.
+
+
+----------
+
+
+.. _USER-EFF:
+
+USER-EFF package
+^^^^^^^^^^^^^^^^
+
+Contents: EFF stands for electron force field.  This package contains
+atom, pair, fix and compute styles which implement the eFF as
+described in A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III,
+JCC, 2010. The eFF potential was first introduced by Su and Goddard,
+in 2007.  See src/USER-EFF/README for more details.  There are
+auxiliary tools for using this package in tools/eff; see its README
+file.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`atom_style electron <atom_style>`, :doc:`compute temp/eff <compute_temp_eff>`, :doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nve/eff <fix_nve_eff>`,
+:doc:`pair eff/cut <pair_eff>`, examples/USER/eff, tools/eff
+
+Supporting info:
+
+Author: Andres Jaramillo-Botero at CalTech (ajaramil at
+wag.caltech.edu).  Contact him directly if you have questions.
+
+
+----------
+
+
+.. _USER-FEP:
+
+USER-FEP package
+^^^^^^^^^^^^^^^^
+
+Contents: FEP stands for free energy perturbation.  This package
+provides methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt_fep>` command with soft-core pair potentials,
+which have a "soft" in their style name.  See src/USER-FEP/README for
+more details.  There are auxiliary tools for using this package in
+tools/fep; see its README file.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: src/USER-FEP/README, :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`,
+:doc:`pair_style */soft <pair_lj_soft>`, examples/USER/fep
+
+Author: Agilio Padua at Universite Blaise Pascal Clermont-Ferrand
+(agilio.padua at univ-bpclermont.fr). Contact him directly if you have
+questions.
+
+
+----------
+
+
+.. _USER-H5MD:
+
+USER-H5MD package
+^^^^^^^^^^^^^^^^^
+
+Contents: H5MD stands for HDF5 for MD.  `HDF5 <HDF5_>`_ is a binary,
+portable, self-describing file format, used by many scientific
+simulations.  H5MD is a format for molecular simulations, built on top
+of HDF5.  This package implements a :doc:`dump h5md <dump_h5md>` command
+to output LAMMPS snapshots in this format.  See src/USER-H5MD/README
+for more details.
+
+.. _HDF5: http://www.hdfgroup.org/HDF5/
+
+
+
+To build LAMMPS with this package ...
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: src/USER-H5MD/README, lib/h5md/README, :doc:`dump h5md <dump_h5md>`
+
+Author: Pierre de Buyl at KU Leuven (see http://pdebuyl.be) created
+this package as well as the H5MD format and library.  Contact him
+directly if you have questions.
+
+
+----------
+
+
+.. _USER-INTEL:
+
+USER-INTEL package
+^^^^^^^^^^^^^^^^^^
+
+Contents: Dozens of pair, bond, angle, dihedral, and improper styles
+that are optimized for Intel CPUs and the Intel Xeon Phi (in offload
+mode).  All of them have an "intel" in their style name.  :doc:`Section accelerate intel <accelerate_intel>` gives details of what hardware
+and compilers are required on your system, and how to build and use
+this package.  Also see src/USER-INTEL/README for more details. See
+the KOKKOS, OPT, and USER-OMP packages, which also have CPU and
+Phi-enabled styles.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: examples/accelerate, src/USER-INTEL/TEST
+
+:ref:`Section_accelerate <acc_9>`
+
+Author: Mike Brown at Intel (michael.w.brown at intel.com).  Contact
+him directly if you have questions.
+
+For the USER-INTEL package, you have 2 choices when building.  You can
+build with CPU or Phi support.  The latter uses Xeon Phi chips in
+"offload" mode.  Each of these modes requires additional settings in
+your Makefile.machine for CCFLAGS and LINKFLAGS.
+
+For CPU mode (if using an Intel compiler):
+
+* CCFLAGS: add -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost, -fno-alias, -ansi-alias, -override-limits
+* LINKFLAGS: add -fopenmp
+
+For Phi mode add the following in addition to the CPU mode flags:
+
+* CCFLAGS: add -DLMP_INTEL_OFFLOAD and
+* LINKFLAGS: add -offload
+
+And also add this to CCFLAGS:
+
+.. parsed-literal::
+
+   -offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
+
+Examples:
+
+
+----------
+
+
+.. _USER-LB:
+
+USER-LB package
+^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package contains a LAMMPS implementation of a background
+Lattice-Boltzmann fluid, which can be used to model MD particles
+influenced by hydrodynamic forces.
+
+See this doc page and its related commands to get started:
+
+:doc:`fix lb/fluid <fix_lb_fluid>`
+
+The people who created this package are Frances Mackay (fmackay at
+uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
+Western Ontario.  Contact them directly if you have questions.
+
+Examples: examples/USER/lb
+
+
+----------
+
+
+.. _USER-MGPT:
+
+USER-MGPT package
+^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package contains a fast implementation for LAMMPS of
+quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
+derives from first-principles DFT-based generalized pseudopotential
+theory (GPT) through a series of systematic approximations valid for
+mid-period transition metals with nearly half-filled d bands.  The
+MGPT method was originally developed by John Moriarty at Lawrence
+Livermore National Lab (LLNL).
+
+In the general matrix representation of MGPT, which can also be
+applied to f-band actinide metals, the multi-ion potentials are
+evaluated on the fly during a simulation through d- or f-state matrix
+multiplication, and the forces that move the ions are determined
+analytically.  The *mgpt* pair style in this package calculates forces
+and energies using an optimized matrix-MGPT algorithm due to Tomas
+Oppelstrup at LLNL.
+
+See this doc page to get started:
+
+:doc:`pair_style mgpt <pair_mgpt>`
+
+The persons who created the USER-MGPT package are Tomas Oppelstrup
+(oppelstrup2@llnl.gov) and John Moriarty (moriarty2@llnl.gov)
+Contact them directly if you have any questions.
+
+Examples: examples/USER/mgpt
+
+
+----------
+
+
+.. _USER-MISC:
+
+USER-MISC package
+^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+The files in this package are a potpourri of (mostly) unrelated
+features contributed to LAMMPS by users.  Each feature is a single
+pair of files (*.cpp and *.h).
+
+More information about each feature can be found by reading its doc
+page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
+input script commands is as follows:
+
+:ref:`Section_commands <cmd_5>`
+
+User-contributed features are listed at the bottom of the fix,
+compute, pair, etc sections.
+
+The list of features and author of each is given in the
+src/USER-MISC/README file.
+
+You should contact the author directly if you have specific questions
+about the feature or its coding.
+
+Examples: examples/USER/misc
+
+
+----------
+
+
+.. _USER-MOLFILE:
+
+USER-MOLFILE package
+^^^^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package contains a dump molfile command which uses molfile
+plugins that are bundled with the
+`VMD <http://www.ks.uiuc.edu/Research/vmd>`_ molecular visualization and
+analysis program, to enable LAMMPS to dump its information in formats
+compatible with various molecular simulation tools.
+
+The package only provides the interface code, not the plugins.  These
+can be obtained from a VMD installation which has to match the
+platform that you are using to compile LAMMPS for. By adding plugins
+to VMD, support for new file formats can be added to LAMMPS (or VMD or
+other programs that use them) without having to recompile the
+application itself.
+
+See this doc page to get started:
+
+:ref:`dump molfile <acc_5>`
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+
+
+----------
+
+
+.. _USER-OMP:
+
+USER-OMP package
+^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package provides OpenMP multi-threading support and
+other optimizations of various LAMMPS pair styles, dihedral
+styles, and fix styles.
+
+See this section of the manual to get started:
+
+:ref:`Section_accelerate <acc_5>`
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+
+For the USER-OMP package, your Makefile.machine needs additional
+settings for CCFLAGS and LINKFLAGS.
+
+* CCFLAGS: add -fopenmp and -restrict
+* LINKFLAGS: add -fopenmp
+
+Examples: examples/accelerate, bench/KEPLER
+
+
+----------
+
+
+.. _USER-PHONON:
+
+USER-PHONON package
+^^^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+This package contains a fix phonon command that calculates dynamical
+matrices, which can then be used to compute phonon dispersion
+relations, directly from molecular dynamics simulations.
+
+See this doc page to get started:
+
+:doc:`fix phonon <fix_phonon>`
+
+The person who created this package is Ling-Ti Kong (konglt at
+sjtu.edu.cn) at Shanghai Jiao Tong University.  Contact him directly
+if you have questions.
+
+Examples: examples/USER/phonon
+
+
+----------
+
+
+.. _USER-QMMM:
+
+USER-QMMM package
+^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package provides a fix qmmm command which allows LAMMPS to be
+used in a QM/MM simulation, currently only in combination with pw.x
+code from the `Quantum ESPRESSO <espresso_>`_ package.
+
+.. _espresso: http://www.quantum-espresso.org
+
+
+
+The current implementation only supports an ONIOM style mechanical
+coupling to the Quantum ESPRESSO plane wave DFT package.
+Electrostatic coupling is in preparation and the interface has been
+written in a manner that coupling to other QM codes should be possible
+without changes to LAMMPS itself.
+
+See this doc page to get started:
+
+:doc:`fix qmmm <fix_qmmm>`
+
+as well as the lib/qmmm/README file.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+
+
+----------
+
+
+.. _USER-QTB:
+
+USER-QTB package
+^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package provides a self-consistent quantum treatment of the
+vibrational modes in a classical molecular dynamics simulation.  By
+coupling the MD simulation to a colored thermostat, it introduces zero
+point energy into the system, alter the energy power spectrum and the
+heat capacity towards their quantum nature. This package could be of
+interest if one wants to model systems at temperatures lower than
+their classical limits or when temperatures ramp up across the
+classical limits in the simulation.
+
+See these two doc pages to get started:
+
+:doc:`fix qtb <fix_qtb>` provides quantum nulcear correction through a
+colored thermostat and can be used with other time integration schemes
+like :doc:`fix nve <fix_nve>` or :doc:`fix nph <fix_nh>`.
+
+:doc:`fix qbmsst <fix_qbmsst>` enables quantum nuclear correction of a
+multi-scale shock technique simulation by coupling the quantum thermal
+bath with the shocked system.
+
+The person who created this package is Yuan Shen (sy0302 at
+stanford.edu) at Stanford University.  Contact him directly if you
+have questions.
+
+Examples: examples/USER/qtb
+
+
+----------
+
+
+.. _USER-QUIP:
+
+USER-QUIP package
+^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+Examples: examples/USER/quip
+
+
+----------
+
+
+.. _USER-REAXC:
+
+USER-REAXC package
+^^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package contains a implementation for LAMMPS of the ReaxFF force
+field.  ReaxFF uses distance-dependent bond-order functions to
+represent the contributions of chemical bonding to the potential
+energy.  It was originally developed by Adri van Duin and the Goddard
+group at CalTech.
+
+The USER-REAXC version of ReaxFF (pair_style reax/c), implemented in
+C, should give identical or very similar results to pair_style reax,
+which is a ReaxFF implementation on top of a Fortran library, a
+version of which library was originally authored by Adri van Duin.
+
+The reax/c version should be somewhat faster and more scalable,
+particularly with respect to the charge equilibration calculation.  It
+should also be easier to build and use since there are no complicating
+issues with Fortran memory allocation or linking to a Fortran library.
+
+For technical details about this implemention of ReaxFF, see
+this paper:
+
+Parallel and Scalable Reactive Molecular Dynamics: Numerical Methods
+and Algorithmic Techniques, H. M. Aktulga, J. C. Fogarty,
+S. A. Pandit, A. Y. Grama, Parallel Computing, in press (2011).
+
+See the doc page for the pair_style reax/c command for details
+of how to use it in LAMMPS.
+
+The person who created this package is Hasan Metin Aktulga (hmaktulga
+at lbl.gov), while at Purdue University.  Contact him directly, or
+Aidan Thompson at Sandia (athomps at sandia.gov), if you have
+questions.
+
+Examples: examples/reax
+
+
+----------
+
+
+.. _USER-SMD:
+
+USER-SMD package
+^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package implements smoothed Mach dynamics (SMD) in
+LAMMPS.  Currently, the package has the following features:
+
+* Does liquids via traditional Smooth Particle Hydrodynamics (SPH)
+
+* Also solves solids mechanics problems via a state of the art 
+  stabilized meshless method with hourglass control.
+
+* Can specify hydrostatic interactions independently from material 
+  strength models, i.e. pressure and deviatoric stresses are separated.
+
+* Many material models available (Johnson-Cook, plasticity with 
+  hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new 
+  material models.
+
+* Rigid boundary conditions (walls) can be loaded as surface geometries 
+  from *.STL files.
+
+See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.
+
+There are example scripts for using this package in examples/USER/smd.
+
+The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.
+
+Examples: examples/USER/smd
+
+
+----------
+
+
+.. _USER-SMTBQ:
+
+USER-SMTBQ package
+^^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
+potential for the description of ionocovalent bonds in oxides.
+
+There are example scripts for using this package in
+examples/USER/smtbq.
+
+See this doc page to get started:
+
+:doc:`pair_style smtbq <pair_smtbq>`
+
+The persons who created the USER-SMTBQ package are Nicolas Salles,
+Emile Maras, Olivier Politano, Robert Tetot, who can be contacted at
+these email addreses: lammps@u-bourgogne.fr, nsalles@laas.fr.  Contact
+them directly if you have any questions.
+
+Examples: examples/USER/smtbq
+
+
+----------
+
+
+.. _USER-SPH:
+
+USER-SPH package
+^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+This package implements smoothed particle hydrodynamics (SPH) in
+LAMMPS.  Currently, the package has the following features:
+
+* Tait, ideal gas, Lennard-Jones equation of states, full support for 
+  complete (i.e. internal-energy dependent) equations of state
+
+* Plain or Monaghans XSPH integration of the equations of motion
+
+* Density continuity or density summation to propagate the density field
+
+* Commands to set internal energy and density of particles from the 
+  input script
+
+* Output commands to access internal energy and density for dumping and 
+  thermo output
+
+See the file doc/PDF/SPH_LAMMPS_userguide.pdf to get started.
+
+There are example scripts for using this package in examples/USER/sph.
+
+The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.
+
+Examples: examples/USER/sph
+
+
+----------
+
+
+.. _USER-TALLY:
+
+USER-TALLY package
+^^^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Supporting info:
+
+Examples: examples/USER/tally
+
+
+----------
+
+
+.. _USER-VTK:
+
+USER-VTK package
+^^^^^^^^^^^^^^^^
+
+Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
+either couple of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See
+src/USER-ATC/README for more details.
+
+To install via make or Make.py:
+
+.. parsed-literal::
+
+   make yes-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p atc -a machine
+
+To un-install via make or Make.py:
+
+.. parsed-literal::
+
+   make no-user-atc
+   make machine
+
+.. parsed-literal::
+
+   Make.py -p ^atc -a machine
+
+Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
+
+Examples: examples/USER/tally
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

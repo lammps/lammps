@@ -154,13 +154,14 @@ void TAD::command(int narg, char **arg)
 
   // create FixStore object to store revert state
 
-  narg2 = 5;
+  narg2 = 6;
   args = new char*[narg2];
   args[0] = (char *) "tad_revert";
   args[1] = (char *) "all";
   args[2] = (char *) "STORE";
-  args[3] = (char *) "0";
-  args[4] = (char *) "7";
+  args[3] = (char *) "peratom";
+  args[4] = (char *) "0";
+  args[5] = (char *) "7";
   modify->add_fix(narg2,args);
   fix_revert = (FixStore *) modify->fix[modify->nfix-1];
   delete [] args;

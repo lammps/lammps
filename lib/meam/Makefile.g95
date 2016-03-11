@@ -44,6 +44,7 @@ lib: 	$(OBJ)
 %.o:%.F
 	$(F90) $(F90FLAGS) -c $<
 
+include .depend
 # ------ CLEAN ------
 
 clean:

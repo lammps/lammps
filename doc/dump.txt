@@ -7,6 +7,7 @@
 :line
    
 dump command :h3
+"dump custom/vtk"_dump_custom_vtk.html command :h3
 "dump h5md"_dump_h5md.html command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
@@ -18,7 +19,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {dcd} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} or {h5md} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/gz} or {custom/mpiio} :l
+style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {dcd} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} or {h5md} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/gz} or {custom/mpiio} or {custom/vtk} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -33,6 +34,8 @@ args = list of arguments for a particular style :l
   {xyz} args = none :pre
   {xyz/gz} args = none :pre
   {xyz/mpiio} args = none :pre
+
+  {custom/vtk} args = similar to custom args below, discussed on "dump custom/vtk"_dump_custom_vtk.html doc page :pre
 
   {h5md} args = discussed on "dump h5md"_dump_h5md.html doc page :pre
 
@@ -88,6 +91,8 @@ args = list of arguments for a particular style :l
       v_name = per-atom vector calculated by an atom-style variable with name
       d_name = per-atom floating point vector with name, managed by fix property/atom
       i_name = per-atom integer vector with name, managed by fix property/atom :pre
+
+  {custom/vtk} args = discussed on "dump custom/vtk"_dump_custom_vtk.html doc page :pre
 :ule
 
 [Examples:]
@@ -123,13 +128,12 @@ As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
 or multiple smaller files).
 
-IMPORTANT NOTE: Because periodic boundary conditions are enforced only
-on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom written to a dump file may be slightly outside the simulation
-box.
+NOTE: Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.
 
-IMPORTANT NOTE: Unless the "dump_modify sort"_dump_modify.html option
-is invoked, the lines of atom information written to dump files
+NOTE: Unless the "dump_modify sort"_dump_modify.html option is
+invoked, the lines of atom information written to dump files
 (typically one line per atom) will be in an indeterminate order for
 each snapshot.  This is even true when running on a single processor,
 if the "atom_modify sort"_atom_modify.html option is on, which it is

@@ -111,8 +111,10 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix vector does not exist");
-      if (input->variable->equalstyle(ivariable) == 0)
+      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
         error->all(FLERR,"Fix vector variable is not equal-style variable");
+      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix vector variable is not vector-style variable");
     }
   }
 
@@ -290,10 +292,18 @@ void FixVector::end_of_step()
       else
         result[i] = modify->fix[m]->compute_vector(argindex[i]-1);
 
-    // evaluate equal-style variable
+    // evaluate equal-style or vector-style variable
 
     } else if (which[i] == VARIABLE)
-      result[i] = input->variable->compute_equal(m);
+      if (argindex[i] == 0)
+        result[i] = input->variable->compute_equal(m);
+      else {
+        double *varvec;
+        int nvec = input->variable->compute_vector(m,&varvec);
+        int index = argindex[i];
+        if (nvec < index) result[i] = 0.0;
+        else result[i] = varvec[index-1];
+      }
   }
 
   // trigger computes on next needed step

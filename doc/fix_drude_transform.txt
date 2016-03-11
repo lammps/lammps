@@ -74,11 +74,11 @@ This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the "fix drude"_fix_drude.html command to
 specify the Drude status of each atom type.
 
-IMPORTANT NOTE: only the Drude core atoms need to be in the group
-specified for this fix. A Drude electron will be transformed together
-with its cores even if it is not itself in the group.  It is safe to
-include Drude electrons or non-polarizable atoms in the group. The
-non-polarizable atoms will simply not be transformed.
+NOTE: only the Drude core atoms need to be in the group specified for
+this fix. A Drude electron will be transformed together with its core
+even if it is not itself in the group.  It is safe to include Drude
+electrons or non-polarizable atoms in the group. The non-polarizable
+atoms will simply not be transformed.
 
 :line
 
@@ -90,16 +90,15 @@ atoms.  In order to thermalize the reduced degrees of freedom at
 different temperatures, two Nose-Hoover thermostats must be defined,
 acting on two distinct groups.
 
-IMPORTANT NOTE: The {fix drude/transform/direct} command must appear
-before any Nose-Hoover thermostating fixes.  The {fix
-drude/transform/inverse} command must appear after any Nose-Hoover
-thermostating fixes.
+NOTE: The {fix drude/transform/direct} command must appear before any
+Nose-Hoover thermostating fixes.  The {fix drude/transform/inverse}
+command must appear after any Nose-Hoover thermostating fixes.
 
 Example:
 
 fix fDIRECT all drude/transform/direct
-fix fNVT gCORES nvt temp 300.0 300.0 100.0
-fix fNVT gDRUDES nvt temp 1.0 1.0 100.0
+fix fNVT gCORES nvt temp 300.0 300.0 100
+fix fNVT gDRUDES nvt temp 1.0 1.0 100
 fix fINVERSE all drude/transform/inverse
 compute TDRUDE all temp/drude
 thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE\[1\] c_TDRUDE\[2\] :pre
@@ -110,23 +109,23 @@ is the group of the Drude particles (electrons). The centers of mass
 of the Drude oscillators will be thermostated at 300.0 and the
 internal degrees of freedom will be thermostated at 1.0.  The
 temperatures of cores and Drude particles, in center-of-mass and
-relatice coordinates, are calculated using "compute
+relative coordinates, are calculated using "compute
 temp/drude"_compute_temp_drude.html
 
 In addition, if you want to use a barostat to simulate a system at
 constant pressure, only one of the Nose-Hoover fixes must be {npt},
 the other one should be {nvt}. You must add a {compute temp/com} and a
 {fix_modify} command so that the temperature of the {npt} fix be just
-that of its group but the pressure be the overall pressure
-{thermo_press}.
+that of its group (the Drude cores) but the pressure be the overall
+pressure {thermo_press}.
 
 Example:
 
 compute cTEMP_CORE gCORES temp/com
 fix fDIRECT all drude/transform/direct
-fix fNPT gCORES npt temp 298.0 298.0 100.0 iso 1.0 1.0 500.0
+fix fNPT gCORES npt temp 298.0 298.0 100 iso 1.0 1.0 500
 fix_modify fNPT temp cTEMP_CORE press thermo_press
-fix fNVT gDRUDES nvt temp 5.0 5.0 100.0
+fix fNVT gDRUDES nvt temp 5.0 5.0 100
 fix fINVERSE all drude/transform/inverse :pre
 
 In this example, {gCORES} is the group of the atom cores and {gDRUDES}
@@ -137,7 +136,7 @@ barostated at 1.0.
 
 In order to avoid the flying ice cube problem (irreversible transfer
 of linear momentum to the center of mass of the system), you may need
-to add a {fix momentum} command like such as
+to add a {fix momentum} command:
 
 fix fMOMENTUM all momentum 100 linear 1 1 1 :pre
 

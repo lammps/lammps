@@ -1,0 +1,248 @@
+.. index:: pair_style
+
+pair_style command
+==================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   pair_style style args
+
+* style = one of the styles from the list below
+* args = arguments used by a particular style
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   pair_style lj/cut 2.5
+   pair_style eam/alloy
+   pair_style hybrid lj/charmm/coul/long 10.0 eam
+   pair_style table linear 1000
+   pair_style none
+
+Description
+"""""""""""
+
+Set the formula(s) LAMMPS uses to compute pairwise interactions.  In
+LAMMPS, pair potentials are defined between pairs of atoms that are
+within a cutoff distance and the set of active interactions typically
+changes over time.  See the :doc:`bond_style <bond_style>` command to
+define potentials between pairs of bonded atoms, which typically
+remain in place for the duration of a simulation.
+
+In LAMMPS, pairwise force fields encompass a variety of interactions,
+some of which include many-body effects, e.g. EAM, Stillinger-Weber,
+Tersoff, REBO potentials.  They are still classified as "pairwise"
+potentials because the set of interacting atoms changes with time
+(unlike molecular bonds) and thus a neighbor list is used to find
+nearby interacting atoms.
+
+Hybrid models where specified pairs of atom types interact via
+different pair potentials can be setup using the *hybrid* pair style.
+
+The coefficients associated with a pair style are typically set for
+each pair of atom types, and are specified by the
+:doc:`pair_coeff <pair_coeff>` command or read from a file by the
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+commands.
+
+The :doc:`pair_modify <pair_modify>` command sets options for mixing of
+type I-J interaction coefficients and adding energy offsets or tail
+corrections to Lennard-Jones potentials.  Details on these options as
+they pertain to individual potentials are described on the doc page
+for the potential.  Likewise, info on whether the potential
+information is stored in a :doc:`restart file <write_restart>` is listed
+on the potential doc page.
+
+In the formulas listed for each pair style, *E* is the energy of a
+pairwise interaction between two atoms separated by a distance *r*.
+The force between the atoms is the negative derivative of this
+expression.
+
+If the pair_style command has a cutoff argument, it sets global
+cutoffs for all pairs of atom types.  The distance(s) can be smaller
+or larger than the dimensions of the simulation box.
+
+Typically, the global cutoff value can be overridden for a specific
+pair of atom types by the :doc:`pair_coeff <pair_coeff>` command.  The
+pair style settings (including global cutoffs) can be changed by a
+subsequent pair_style command using the same style.  This will reset
+the cutoffs for all atom type pairs, including those previously set
+explicitly by a :doc:`pair_coeff <pair_coeff>` command.  The exceptions
+to this are that pair_style *table* and *hybrid* settings cannot be
+reset.  A new pair_style command for these styles will wipe out all
+previously specified pair_coeff values.
+
+
+----------
+
+
+Here is an alphabetic list of pair styles defined in LAMMPS.  They are
+also given in more compact form in the pair section of :ref:`this page <cmd_5>`.
+
+Click on the style to display the formula it computes, arguments
+specified in the pair_style command, and coefficients specified by the
+associated :doc:`pair_coeff <pair_coeff>` command.
+
+There are also additional pair styles (not listed here) submitted by
+users which are included in the LAMMPS distribution.  The list of
+these with links to the individual styles are given in the pair
+section of :ref:`this page <cmd_5>`.
+
+There are also additional accelerated pair styles (not listed here)
+included in the LAMMPS distribution for faster performance on CPUs and
+GPUs.  The list of these with links to the individual styles are given
+in the pair section of :ref:`this page <cmd_5>`.
+
+* :doc:`pair_style none <pair_none>` - turn off pairwise interactions
+* :doc:`pair_style hybrid <pair_hybrid>` - multiple styles of pairwise interactions
+* :doc:`pair_style hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
+* :doc:`pair_style zero <pair_zero>` - neighbor list but no interactions
+
+* :doc:`pair_style adp <pair_adp>` - angular dependent potential (ADP) of Mishin
+* :doc:`pair_style airebo <pair_airebo>` - AIREBO potential of Stuart
+* :doc:`pair_style beck <pair_beck>` - Beck potential
+* :doc:`pair_style body <pair_body>` - interactions between body particles
+* :doc:`pair_style bop <pair_bop>` - BOP potential of Pettifor
+* :doc:`pair_style born <pair_born>` - Born-Mayer-Huggins potential
+* :doc:`pair_style born/coul/long <pair_born>` - Born-Mayer-Huggins with long-range Coulombics
+* :doc:`pair_style born/coul/long/cs <pair_born>` - Born-Mayer-Huggins with long-range Coulombics and core/shell
+* :doc:`pair_style born/coul/msm <pair_born>` - Born-Mayer-Huggins with long-range MSM Coulombics
+* :doc:`pair_style born/coul/wolf <pair_born>` - Born-Mayer-Huggins with Coulombics via Wolf potential
+* :doc:`pair_style brownian <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics
+* :doc:`pair_style brownian/poly <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics with polydispersity
+* :doc:`pair_style buck <pair_buck>` - Buckingham potential
+* :doc:`pair_style buck/coul/cut <pair_buck>` - Buckingham with cutoff Coulomb
+* :doc:`pair_style buck/coul/long <pair_buck>` - Buckingham with long-range Coulombics
+* :doc:`pair_style buck/coul/long/cs <pair_buck>` - Buckingham with long-range Coulombics and core/shell
+* :doc:`pair_style buck/coul/msm <pair_buck>` - Buckingham long-range MSM Coulombics
+* :doc:`pair_style buck/long/coul/long <pair_buck_long>` - long-range Buckingham with long-range Coulombics
+* :doc:`pair_style colloid <pair_colloid>` - integrated colloidal potential
+* :doc:`pair_style comb <pair_comb>` - charge-optimized many-body (COMB) potential
+* :doc:`pair_style comb3 <pair_comb>` - charge-optimized many-body (COMB3) potential
+* :doc:`pair_style coul/cut <pair_coul>` - cutoff Coulombic potential
+* :doc:`pair_style coul/debye <pair_coul>` - cutoff Coulombic potential with Debye screening
+* :doc:`pair_style coul/dsf <pair_coul>` - Coulombics via damped shifted forces
+* :doc:`pair_style coul/long <pair_coul>` - long-range Coulombic potential
+* :doc:`pair_style coul/long/cs <pair_coul>` - long-range Coulombic potential and core/shell
+* :doc:`pair_style coul/msm <pair_coul>` - long-range MSM Coulombics
+* :doc:`pair_style coul/streitz <pair_coul>` - Coulombics via Streitz/Mintmire Slater orbitals
+* :doc:`pair_style coul/wolf <pair_coul>` - Coulombics via Wolf potential
+* :doc:`pair_style dpd <pair_dpd>` - dissipative particle dynamics (DPD)
+* :doc:`pair_style dpd/tstat <pair_dpd>` - DPD thermostatting
+* :doc:`pair_style dsmc <pair_dsmc>` - Direct Simulation Monte Carlo (DSMC)
+* :doc:`pair_style eam <pair_eam>` - embedded atom method (EAM)
+* :doc:`pair_style eam/alloy <pair_eam>` - alloy EAM
+* :doc:`pair_style eam/fs <pair_eam>` - Finnis-Sinclair EAM
+* :doc:`pair_style eim <pair_eim>` - embedded ion method (EIM)
+* :doc:`pair_style gauss <pair_gauss>` - Gaussian potential
+* :doc:`pair_style gayberne <pair_gayberne>` - Gay-Berne ellipsoidal potential
+* :doc:`pair_style gran/hertz/history <pair_gran>` - granular potential with Hertzian interactions
+* :doc:`pair_style gran/hooke <pair_gran>` - granular potential with history effects
+* :doc:`pair_style gran/hooke/history <pair_gran>` - granular potential without history effects
+* :doc:`pair_style hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
+* :doc:`pair_style hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
+* :doc:`pair_style kim <pair_kim>` - interface to potentials provided by KIM project
+* :doc:`pair_style lcbop <pair_lcbop>` - long-range bond-order potential (LCBOP)
+* :doc:`pair_style line/lj <pair_line_lj>` - LJ potential between line segments
+* :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb
+* :doc:`pair_style lj/charmm/coul/charmm/implicit <pair_charmm>` - CHARMM for implicit solvent
+* :doc:`pair_style lj/charmm/coul/long <pair_charmm>` - CHARMM with long-range Coulomb
+* :doc:`pair_style lj/charmm/coul/msm <pair_charmm>` - CHARMM with long-range MSM Coulombics
+* :doc:`pair_style lj/class2 <pair_class2>` - COMPASS (class 2) force field with no Coulomb
+* :doc:`pair_style lj/class2/coul/cut <pair_class2>` - COMPASS with cutoff Coulomb
+* :doc:`pair_style lj/class2/coul/long <pair_class2>` - COMPASS with long-range Coulomb
+* :doc:`pair_style lj/cubic <pair_lj_cubic>` - LJ with cubic after inflection point
+* :doc:`pair_style lj/cut <pair_lj>` - cutoff Lennard-Jones potential with no Coulomb
+* :doc:`pair_style lj/cut/coul/cut <pair_lj>` - LJ with cutoff Coulomb
+* :doc:`pair_style lj/cut/coul/debye <pair_lj>` - LJ with Debye screening added to Coulomb
+* :doc:`pair_style lj/cut/coul/dsf <pair_lj>` - LJ with Coulombics via damped shifted forces
+* :doc:`pair_style lj/cut/coul/long <pair_lj>` - LJ with long-range Coulombics
+* :doc:`pair_style lj/cut/coul/long/cs <pair_lj>` - LJ with long-range Coulombics and core/shell
+* :doc:`pair_style lj/cut/coul/msm <pair_lj>` - LJ with long-range MSM Coulombics
+* :doc:`pair_style lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
+* :doc:`pair_style lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
+* :doc:`pair_style lj/cut/tip4p/cut <pair_lj>` - LJ with cutoff Coulomb for TIP4P water
+* :doc:`pair_style lj/cut/tip4p/long <pair_lj>` - LJ with long-range Coulomb for TIP4P water
+* :doc:`pair_style lj/expand <pair_lj_expand>` - Lennard-Jones for variable size particles
+* :doc:`pair_style lj/gromacs <pair_gromacs>` - GROMACS-style Lennard-Jones potential
+* :doc:`pair_style lj/gromacs/coul/gromacs <pair_gromacs>` - GROMACS-style LJ and Coulombic potential
+* :doc:`pair_style lj/long/coul/long <pair_lj_long>` - long-range LJ and long-range Coulombics
+* :doc:`pair_style lj/long/dipole/long <pair_dipole>` - long-range LJ and long-range point dipoles
+* :doc:`pair_style lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
+* :doc:`pair_style lj/smooth <pair_lj_smooth>` - smoothed Lennard-Jones potential
+* :doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed Lennard-Jones potential
+* :doc:`pair_style lj96/cut <pair_lj96>` - Lennard-Jones 9/6 potential
+* :doc:`pair_style lubricate <pair_lubricate>` - hydrodynamic lubrication forces
+* :doc:`pair_style lubricate/poly <pair_lubricate>` - hydrodynamic lubrication forces with polydispersity
+* :doc:`pair_style lubricateU <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication Dynamics
+* :doc:`pair_style lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
+* :doc:`pair_style meam <pair_meam>` - modified embedded atom method (MEAM)
+* :doc:`pair_style mie/cut <pair_mie>` - Mie potential
+* :doc:`pair_style morse <pair_morse>` - Morse potential
+* :doc:`pair_style nb3b/harmonic <pair_nb3b_harmonic>` - nonbonded 3-body harmonic potential
+* :doc:`pair_style nm/cut <pair_nm>` - N-M potential
+* :doc:`pair_style nm/cut/coul/cut <pair_nm>` - N-M potential with cutoff Coulomb
+* :doc:`pair_style nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulombics
+* :doc:`pair_style peri/eps <pair_peri>` - peridynamic EPS potential
+* :doc:`pair_style peri/lps <pair_peri>` - peridynamic LPS potential
+* :doc:`pair_style peri/pmb <pair_peri>` - peridynamic PMB potential
+* :doc:`pair_style peri/ves <pair_peri>` - peridynamic VES potential
+* :doc:`pair_style polymorphic <pair_polymorphic>` - polymorphic 3-body potential
+* :doc:`pair_style reax <pair_reax>` - ReaxFF potential
+* :doc:`pair_style rebo <pair_airebo>` - 2nd generation REBO potential of Brenner
+* :doc:`pair_style resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
+* :doc:`pair_style snap <pair_snap>` - SNAP quantum-accurate potential
+* :doc:`pair_style soft <pair_soft>` - Soft (cosine) potential
+* :doc:`pair_style sw <pair_sw>` - Stillinger-Weber 3-body potential
+* :doc:`pair_style table <pair_table>` - tabulated pair potential
+* :doc:`pair_style tersoff <pair_tersoff>` - Tersoff 3-body potential
+* :doc:`pair_style tersoff/mod <pair_tersoff_mod>` - modified Tersoff 3-body potential
+* :doc:`pair_style tersoff/zbl <pair_tersoff_zbl>` - Tersoff/ZBL 3-body potential
+* :doc:`pair_style tip4p/cut <pair_coul>` - Coulomb for TIP4P water w/out LJ
+* :doc:`pair_style tip4p/long <pair_coul>` - long-range Coulombics for TIP4P water w/out LJ
+* :doc:`pair_style tri/lj <pair_tri_lj>` - LJ potential between triangles
+* :doc:`pair_style vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
+* :doc:`pair_style yukawa <pair_yukawa>` - Yukawa potential
+* :doc:`pair_style yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
+* :doc:`pair_style zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential
+
+
+----------
+
+
+Restrictions
+""""""""""""
+
+
+This command must be used before any coefficients are set by the
+:doc:`pair_coeff <pair_coeff>`, :doc:`read_data <read_data>`, or
+:doc:`read_restart <read_restart>` commands.
+
+Some pair styles are part of specific packages.  They are only enabled
+if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info on packages.
+The doc pages for individual pair potentials tell if it is part of a
+package.
+
+Related commands
+""""""""""""""""
+
+:doc:`pair_coeff <pair_coeff>`, :doc:`read_data <read_data>`,
+:doc:`pair_modify <pair_modify>`, :doc:`kspace_style <kspace_style>`,
+:doc:`dielectric <dielectric>`, :doc:`pair_write <pair_write>`
+
+Default
+"""""""
+
+.. parsed-literal::
+
+   pair_style none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

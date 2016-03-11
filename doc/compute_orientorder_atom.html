@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute orientorder/atom command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute orientorder/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-orientorder-atom-command">
+<span id="index-0"></span><h1>compute orientorder/atom command<a class="headerlink" href="#compute-orientorder-atom-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID orientorder/atom keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>orientorder/atom = style name of this compute command</li>
+<li>one or more keyword/value pairs may be appended</li>
+</ul>
+<pre class="literal-block">
+keyword = <em>cutoff</em> or <em>nnn</em> or <em>ql</em>
+  <em>cutoff</em> value = distance cutoff
+  <em>nnn</em> value = number of nearest neighbors
+  <em>degrees</em> values = nlvalues, l1, l2,...
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all orientorder/atom
+compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates a set of bond-orientational
+order parameters <em>Ql</em> for each atom in a group. These order parameters
+were introduced by <a class="reference internal" href="#steinhardt"><span>Steinhardt et al.</span></a> as a way to
+characterize the local orientational order in atomic structures.
+For each atom, <em>Ql</em> is a real number defined as follows:</p>
+<img alt="_images/orientorder.jpg" class="align-center" src="_images/orientorder.jpg" />
+<p>The first equation defines the spherical harmonic order parameters.
+These are complex number components of the 3D analog of the 2D order
+parameter <em>qn</em>, which is implemented as LAMMPS compute
+<a class="reference internal" href="compute_hexorder_atom.html"><em>hexorder/atom</em></a>.
+The summation is over the <em>nnn</em> nearest
+neighbors of the central atom.
+The angles theta and phi are the standard spherical polar angles
+defining the direction of the bond vector <em>rij</em>.
+The second equation defines <em>Ql</em>, which is a
+rotationally invariant scalar quantity obtained by summing
+over all the components of degree <em>l</em>.</p>
+<p>The optional keyword <em>cutoff</em> defines the distance cutoff
+used when searching for neighbors. The default value, also
+the maximum allowable value, is the cutoff specified
+by the pair style.</p>
+<p>The optional keyword <em>nnn</em> defines the number of nearest
+neighbors used to calculate <em>Ql</em>. The default value is 12.
+If the value is NULL, then all neighbors up to the
+specified distance cutoff are used.</p>
+<p>The optional keyword <em>degrees</em> defines the list of order parameters to
+be computed.  The first argument <em>nlvalues</em> is the number of order
+parameters. This is followed by that number of integers giving the
+degree of each order parameter. Because <a href="#id1"><span class="problematic" id="id2">*</span></a>Q*2 and all odd-degree
+order parameters are zero for atoms in cubic crystals
+(see <a class="reference internal" href="#steinhardt"><span>Steinhardt</span></a>), the default order parameters
+are <a href="#id3"><span class="problematic" id="id4">*</span></a>Q*4, <a href="#id5"><span class="problematic" id="id6">*</span></a>Q*6, <a href="#id7"><span class="problematic" id="id8">*</span></a>Q*8, <a href="#id9"><span class="problematic" id="id10">*</span></a>Q*10, and <a href="#id11"><span class="problematic" id="id12">*</span></a>Q*12. For the
+FCC crystal with <a href="#id13"><span class="problematic" id="id14">*</span></a>nnn*=12, <a href="#id15"><span class="problematic" id="id16">*</span></a>Q*4 = sqrt(7/3)/8 = 0.19094....
+The numerical values of all order parameters up to <a href="#id17"><span class="problematic" id="id18">*</span></a>Q*12
+for a range of commonly encountered high-symmetry structures are given
+in Table I of <a class="reference internal" href="#mickel"><span>Mickel et al.</span></a>.</p>
+<p>The value of <em>Ql</em> is set to zero for atoms not in the
+specified compute group, as well as for atoms that have less than
+<em>nnn</em> neighbors within the distance cutoff.</p>
+<p>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have a bonded system, then the settings of
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the order parameter.  This
+difficulty can be circumvented by writing a dump file, and using the
+<a class="reference internal" href="rerun.html"><em>rerun</em></a> command to compute the order parameter for
+snapshots in the dump file.  The rerun script can use a
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command that includes all pairs in
+the neighbor list.</p>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a per-atom array with <em>nlvalues</em> columns, giving the
+<em>Ql</em> values for each atom, which are real numbers on the range 0 &lt;= <em>Ql</em> &lt;= 1.</p>
+<p>These values can be accessed by any command that uses
+per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_coord_atom.html"><em>compute coord/atom</em></a>, <a class="reference internal" href="compute_centro_atom.html"><em>compute centro/atom</em></a>, <a class="reference internal" href="compute_hexorder_atom.html"><em>compute hexorder/atom</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are <em>cutoff</em> = pair style cutoff, <em>nnn</em> = 12, <em>degrees</em> = 5 4 6 8 9 10 12 i.e. <a href="#id19"><span class="problematic" id="id20">*</span></a>Q*4, <a href="#id21"><span class="problematic" id="id22">*</span></a>Q*6, <a href="#id23"><span class="problematic" id="id24">*</span></a>Q*8, <a href="#id25"><span class="problematic" id="id26">*</span></a>Q*10, and <a href="#id27"><span class="problematic" id="id28">*</span></a>Q*12.</p>
+<hr class="docutils" />
+<p id="mickel"><span id="steinhardt"></span><strong>(Steinhardt)</strong> P. Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983).</p>
+<p><strong>(Mickel)</strong> W. Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke, J. Chem. Phys. 138, 044501 (2013).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

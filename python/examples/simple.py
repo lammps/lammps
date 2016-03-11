@@ -2,9 +2,14 @@
 # preceeding line should have path for Python on your machine
 
 # simple.py
-# Purpose: mimic operation of couple/simple/simple.cpp via Python
-# Syntax:  simple.py in.lammps
-#          in.lammps = LAMMPS input script
+# Purpose: mimic operation of examples/COUPLE/simple/simple.cpp via Python
+
+# Serial syntax: simple.py in.lammps
+#                in.lammps = LAMMPS input script
+
+# Parallel syntax: mpirun -np 4 simple.py in.lammps
+#                  in.lammps = LAMMPS input script
+# also need to uncomment either Pypar or mpi4py sections below
 
 import sys
 
@@ -19,10 +24,15 @@ infile = sys.argv[1]
 
 me = 0
 
-# uncomment if running in parallel via Pypar
+# uncomment this if running in parallel via Pypar
 #import pypar
 #me = pypar.rank()
 #nprocs = pypar.size()
+
+# uncomment this if running in parallel via mpi4py
+#from mpi4py import MPI
+#me = MPI.COMM_WORLD.Get_rank()
+#nprocs = MPI.COMM_WORLD.Get_size()
 
 from lammps import lammps
 lmp = lammps()
@@ -54,3 +64,7 @@ print "Force on 1 atom via extract_variable:",fx[0]
 # uncomment if running in parallel via Pypar
 #print "Proc %d out of %d procs has" % (me,nprocs), lmp
 #pypar.finalize()
+
+# uncomment if running in parallel via mpi4py
+#print "Proc %d out of %d procs has" % (me,nprocs), lmp
+#MPI.Finalize()

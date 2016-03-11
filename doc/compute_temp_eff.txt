@@ -42,9 +42,9 @@ valid for temperatures well below the Fermi temperature, which for
 densities two to five times the density of liquid H2 ranges from
 86,000 to 170,000 K.
 
-IMPORTANT NOTE: For eFF models, in order to override the default
-temperature reported by LAMMPS in the thermodynamic quantities
-reported via the "thermo"_thermo.html command, the user should apply a
+NOTE: For eFF models, in order to override the default temperature
+reported by LAMMPS in the thermodynamic quantities reported via the
+"thermo"_thermo.html command, the user should apply a
 "thermo_modify"_thermo_modify.html command, as shown in the following
 example:
 

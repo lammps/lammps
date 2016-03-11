@@ -804,7 +804,10 @@ void FixLangevinKokkos<DeviceType>::cleanup_copy()
   vatom = NULL;
 }
 
+namespace LAMMPS_NS {
 template class FixLangevinKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class FixLangevinKokkos<LMPHostType>;
 #endif
+}
+

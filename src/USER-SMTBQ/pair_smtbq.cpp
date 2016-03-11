@@ -828,9 +828,7 @@ void PairSMTBQ::read_file(char *file)
   }
 
   //A adapter au STO
-  ncov = params[0].sto * params[0].n0;
-  for (i=1; i<num_atom_types; i++)
-    ncov = min(ncov,params[i].sto * params[i].n0);
+  ncov = min((params[0].sto)*(params[0].n0),(params[1].sto)*(params[1].n0));
 
   if (verbose) printf (" Parametre ncov = %f\n",ncov);
   if (verbose) printf (" ********************************************* \n");
@@ -914,7 +912,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
   //   Charges Communication
   //   ----------------------
-  forward(q) ; reverse(q);
+  forward(q) ; // reverse(q);
 
   memory->create(nmol,nteam+1,"pair:nmol");
   memory->create(tmp,nteam+1,7,"pair:tmp");
@@ -1271,7 +1269,9 @@ void PairSMTBQ::tabqeq()
   double aCoeff,bCoeff,rcoupe,nang;
 
   int n = atom->ntypes;
-  int nmax = atom->nmax;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+  nmax = atom->nmax;
 
   verbose = 1;
   verbose = 0;
@@ -1284,6 +1284,7 @@ void PairSMTBQ::tabqeq()
 
 
   if (verbose) printf ("kmax %d, ds %f, nmax %d\n",kmax,ds,nmax);
+  if (verbose) printf ("nlocal = %d, nghost = %d\n",nlocal,nghost);
   if (verbose) printf ("nntypes %d, kmax %d, rc %f, n %d\n",nntype,kmax,rc,n);
 
   // allocate arrays
@@ -1349,8 +1350,7 @@ void PairSMTBQ::tabqeq()
   //   ofstream fichier("tabqeq.txt", ios::out | ios::trunc) ;
   // -------------------
 
-  double pi,mu;
-  pi = 4.0*atan(1.0);
+  double mu;
 
   mu = erfc(alf*rc)/rc ;
 
@@ -1365,10 +1365,10 @@ void PairSMTBQ::tabqeq()
       potqn[k] = 14.4*(erfc(alf*r)/r - mu) ;
 
       // $$$ Here is (1/r)*dE/dr
-      dpotqn[k] = -14.4*( (erfc(alf*r)/(r*r) + 2.0*alf/sqrt(pi)/r*exp(-alf*alf*r*r))/r  ) ;
+      dpotqn[k] = -14.4*( (erfc(alf*r)/(r*r) + 2.0*alf/MY_PIS/r*exp(-alf*alf*r*r))/r  ) ;
     }
 
-  Vself = -14.4*(alf/sqrt(pi) + mu*0.5) ;
+  Vself = -14.4*(alf/MY_PIS + mu*0.5) ;
 
   // --------------------
   // default arrays to zero
@@ -1423,7 +1423,7 @@ void PairSMTBQ::tabqeq()
         {
           gam = dgam = dza = dzb = d2zaa = d2zab =
             d2zbb = d2zra = d2zrb = d2gamr2 = 0.0 ;
-          dij = 0.0 ;
+          aCoeff = bCoeff = dij = 0.0 ;
 
           s = static_cast<double>(k)*ds ; r = sqrt(s) ;
           if (k==0) r=10e-30;
@@ -2315,7 +2315,7 @@ void PairSMTBQ::QForce_charge(int loop)
   double rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double iq,jq,fqi,fqj,fqij,fqij2,fqjj;
-  int eflag;
+  int eflag = 0;
 
 
   double **x = atom->x;
@@ -2396,9 +2396,9 @@ void PairSMTBQ::QForce_charge(int loop)
     //    to calculate the N-body forces
     // ================================================
 
-    forward (sbcov) ; reverse (sbcov);
-    forward (coord) ; reverse (coord);
-    forward (sbmet) ; reverse (sbmet);
+    forward (sbcov) ; // reverse (sbcov);
+    forward (coord) ; // reverse (coord);
+    forward (sbmet) ; // reverse (sbmet);
 
 
     if (nteam == 0) return; //no oxide
@@ -2655,7 +2655,7 @@ void PairSMTBQ::Charge()
 
     //   Communication des charges
     //  ---------------------------
-    forward(q) ; reverse(q);
+    forward(q) ; // reverse(q);
 
 
     //   Calcul des potentiel
@@ -2735,7 +2735,7 @@ void PairSMTBQ::Charge()
   // =======================================
   //    Charge Communication.
   // =======================================
-  forward(q); reverse(q);
+  forward(q); // reverse(q);
 
   //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   // ==========================================
@@ -3124,7 +3124,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   //   Groups communication
   // OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
   for (i = 0; i < nproc; i++) {
-    forward_int(flag_gp[i]); reverse_int(flag_gp[i]);
+    forward_int(flag_gp[i]); //reverse_int(flag_gp[i]);
   }
   // ---
 
@@ -3214,7 +3214,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
      Group Communication between proc for unification
      ================================================== */
   for (i = 0; i < nproc; i++) {
-    forward_int(flag_gp[i]); reverse_int(flag_gp[i]);
+    forward_int(flag_gp[i]);// reverse_int(flag_gp[i]);
   }
 
   //  =============== End of COMM =================
@@ -3404,7 +3404,7 @@ int PairSMTBQ::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, in
     buf[m++] = tab_comm[j];
     //    if (j < 3) printf ("[%d] %d pfc %d %d buf_send = %f \n",me,n,i,m-1,buf[m-1]);
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3433,7 +3433,7 @@ int PairSMTBQ::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = tab_comm[i];
     //    if (i<first+3) printf ("[%d] prc %d %d buf_send = %f \n",me,i,m-1,buf[m-1]);
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -577,7 +577,7 @@ void PairLJCutTholeLong::read_restart_settings(FILE *fp)
 void PairLJCutTholeLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+    fprintf(fp,"%d %g %g %g %g\n",i,epsilon[i][i],sigma[i][i],polar[i][i],thole[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -588,7 +588,7 @@ void PairLJCutTholeLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],cut_lj[i][j]);
+      fprintf(fp,"%d %d %g %g %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],polar[i][j],thole[i][j],cut_lj[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

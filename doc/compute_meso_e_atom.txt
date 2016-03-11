@@ -6,18 +6,18 @@
 
 :line
 
-compute meso_e/atom command :h3
+compute meso/e/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID meso_e/atom :pre
+compute ID group-ID meso/e/atom :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-meso_e/atom = style name of this compute command :ul
+meso/e/atom = style name of this compute command :ul
 
 [Examples:]
 
-compute 1 all meso_e/atom :pre
+compute 1 all meso/e/atom :pre
 
 [Description:]
 

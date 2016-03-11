@@ -1,0 +1,993 @@
+Modifying & extending LAMMPS
+============================
+
+This section describes how to customize LAMMPS by modifying
+and extending its source code.
+
+| 10.1 :ref:`Atom styles <mod_1>`
+| 10.2 :ref:`Bond, angle, dihedral, improper potentials <mod_2>`
+| 10.3 :ref:`Compute styles <mod_3>`
+| 10.4 :ref:`Dump styles <mod_4>`
+| 10.5 :ref:`Dump custom output options <mod_5>`
+| 10.6 :ref:`Fix styles <mod_6>` which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc
+| 10.7 :ref:`Input script commands <mod_7>`
+| 10.8 :ref:`Kspace computations <mod_8>`
+| 10.9 :ref:`Minimization styles <mod_9>`
+| 10.10 :ref:`Pairwise potentials <mod_10>`
+| 10.11 :ref:`Region styles <mod_11>`
+| 10.12 :ref:`Body styles <mod_12>`
+| 10.13 :ref:`Thermodynamic output options <mod_13>`
+| 10.14 :ref:`Variable options <mod_14>`
+| 10.15 :ref:`Submitting new features for inclusion in LAMMPS <mod_15>` 
+| 
+
+LAMMPS is designed in a modular fashion so as to be easy to modify and
+extend with new functionality.  In fact, about 75% of its source code
+is files added in this fashion.
+
+In this section, changes and additions users can make are listed along
+with minimal instructions.  If you add a new feature to LAMMPS and
+think it will be of interest to general users, we encourage you to
+submit it to the developers for inclusion in the released version of
+LAMMPS.  Information about how to do this is provided
+:ref:`below <mod_14>`.
+
+The best way to add a new feature is to find a similar feature in
+LAMMPS and look at the corresponding source and header files to figure
+out what it does.  You will need some knowledge of C++ to be able to
+understand the hi-level structure of LAMMPS and its class
+organization, but functions (class methods) that do actual
+computations are written in vanilla C-style code and operate on simple
+C-style data structures (vectors and arrays).
+
+Most of the new features described in this section require you to
+write a new C++ derived class (except for exceptions described below,
+where you can make small edits to existing files).  Creating a new
+class requires 2 files, a source code file (*.cpp) and a header file
+(*.h).  The derived class must provide certain methods to work as a
+new option.  Depending on how different your new feature is compared
+to existing features, you can either derive from the base class
+itself, or from a derived class that already exists.  Enabling LAMMPS
+to invoke the new class is as simple as putting the two source
+files in the src dir and re-building LAMMPS.
+
+The advantage of C++ and its object-orientation is that all the code
+and variables needed to define the new feature are in the 2 files you
+write, and thus shouldn't make the rest of LAMMPS more complex or
+cause side-effect bugs.
+
+Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
+and pair_foo.h that define a new class PairFoo that computes pairwise
+potentials described in the classic 1997 :ref:`paper <Foo>` by Foo, et al.
+If you wish to invoke those potentials in a LAMMPS input script with a
+command like
+
+.. parsed-literal::
+
+   pair_style foo 0.1 3.5
+
+then your pair_foo.h file should be structured as follows:
+
+.. parsed-literal::
+
+   #ifdef PAIR_CLASS
+   PairStyle(foo,PairFoo)
+   #else
+   ...
+   (class definition for PairFoo)
+   ...
+   #endif
+
+where "foo" is the style keyword in the pair_style command, and
+PairFoo is the class name defined in your pair_foo.cpp and pair_foo.h
+files.
+
+When you re-build LAMMPS, your new pairwise potential becomes part of
+the executable and can be invoked with a pair_style command like the
+example above.  Arguments like 0.1 and 3.5 can be defined and
+processed by your new class.
+
+As illustrated by this pairwise example, many kinds of options are
+referred to in the LAMMPS documentation as the "style" of a particular
+command.
+
+The instructions below give the header file for the base class that
+these styles are derived from.  Public variables in that file are ones
+used and set by the derived classes which are also used by the base
+class.  Sometimes they are also used by the rest of LAMMPS.  Virtual
+functions in the base class header file which are set = 0 are ones you
+must define in your new derived class to give it the functionality
+LAMMPS expects.  Virtual functions that are not set to 0 are functions
+you can optionally define.
+
+Additionally, new output options can be added directly to the
+thermo.cpp, dump_custom.cpp, and variable.cpp files as explained
+below.
+
+Here are additional guidelines for modifying LAMMPS and adding new
+functionality:
+
+* Think about whether what you want to do would be better as a pre- or
+  post-processing step.  Many computations are more easily and more
+  quickly done that way.
+* Don't do anything within the timestepping of a run that isn't
+  parallel.  E.g. don't accumulate a bunch of data on a single processor
+  and analyze it.  You run the risk of seriously degrading the parallel
+  efficiency.
+* If your new feature reads arguments or writes output, make sure you
+  follow the unit conventions discussed by the :doc:`units <units>`
+  command.
+* If you add something you think is truly useful and doesn't impact
+  LAMMPS performance when it isn't used, send an email to the
+  `developers <http://lammps.sandia.gov/authors.html>`_.  We might be
+  interested in adding it to the LAMMPS distribution.  See further
+  details on this at the bottom of this page.
+
+
+
+
+.. _mod_1:
+
+Atom styles
+-----------
+
+Classes that define an :doc:`atom style <atom_style>` are derived from
+the AtomVec class and managed by the Atom class.  The atom style
+determines what attributes are associated with an atom.  A new atom
+style can be created if one of the existing atom styles does not
+define all the attributes you need to store and communicate with
+atoms.
+
+Atom_vec_atomic.cpp is a simple example of an atom style.
+
+Here is a brief description of methods you define in your new derived
+class.  See atom_vec.h for details.
+
++-----------------------+--------------------------------------------------------------------------------+
+| init                  | one time setup (optional)                                                      |
++-----------------------+--------------------------------------------------------------------------------+
+| grow                  | re-allocate atom arrays to longer lengths (required)                           |
++-----------------------+--------------------------------------------------------------------------------+
+| grow_reset            | make array pointers in Atom and AtomVec classes consistent (required)          |
++-----------------------+--------------------------------------------------------------------------------+
+| copy                  | copy info for one atom to another atom's array locations (required)            |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_comm             | store an atom's info in a buffer communicated every timestep (required)        |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_comm_vel         | add velocity info to communication buffer (required)                           |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_comm_hybrid      | store extra info unique to this atom style (optional)                          |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_comm           | retrieve an atom's info from the buffer (required)                             |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_comm_vel       | also retrieve velocity info (required)                                         |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_comm_hybrid    | retreive extra info unique to this atom style (optional)                       |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_reverse          | store an atom's info in a buffer communicating partial forces  (required)      |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_reverse_hybrid   | store extra info unique to this atom style (optional)                          |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_reverse        | retrieve an atom's info from the buffer (required)                             |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_reverse_hybrid | retreive extra info unique to this atom style (optional)                       |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_border           | store an atom's info in a buffer communicated on neighbor re-builds (required) |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_border_vel       | add velocity info to buffer (required)                                         |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_border_hybrid    | store extra info unique to this atom style (optional)                          |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_border         | retrieve an atom's info from the buffer (required)                             |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_border_vel     | also retrieve velocity info (required)                                         |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_border_hybrid  | retreive extra info unique to this atom style (optional)                       |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_exchange         | store all an atom's info to migrate to another processor (required)            |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_exchange       | retrieve an atom's info from the buffer (required)                             |
++-----------------------+--------------------------------------------------------------------------------+
+| size_restart          | number of restart quantities associated with proc's atoms (required)           |
++-----------------------+--------------------------------------------------------------------------------+
+| pack_restart          | pack atom quantities into a buffer (required)                                  |
++-----------------------+--------------------------------------------------------------------------------+
+| unpack_restart        | unpack atom quantities from a buffer (required)                                |
++-----------------------+--------------------------------------------------------------------------------+
+| create_atom           | create an individual atom of this style (required)                             |
++-----------------------+--------------------------------------------------------------------------------+
+| data_atom             | parse an atom line from the data file (required)                               |
++-----------------------+--------------------------------------------------------------------------------+
+| data_atom_hybrid      | parse additional atom info unique to this atom style (optional)                |
++-----------------------+--------------------------------------------------------------------------------+
+| data_vel              | parse one line of velocity information from data file (optional)               |
++-----------------------+--------------------------------------------------------------------------------+
+| data_vel_hybrid       | parse additional velocity data unique to this atom style (optional)            |
++-----------------------+--------------------------------------------------------------------------------+
+| memory_usage          | tally memory allocated by atom arrays (required)                               |
++-----------------------+--------------------------------------------------------------------------------+
+
+The constructor of the derived class sets values for several variables
+that you must set when defining a new atom style, which are documented
+in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
+the word "customize" and you will find locations you will need to
+modify.
+
+.. note::
+
+   It is possible to add some attributes, such as a molecule ID, to
+   atom styles that do not have them via the :doc:`fix property/atom <fix_property_atom>` command.  This command also
+   allows new custom attributes consisting of extra integer or
+   floating-point values to be added to atoms.  See the :doc:`fix property/atom <fix_property_atom>` doc page for examples of cases
+   where this is useful and details on how to initialize, access, and
+   output the custom values.
+
+New :doc:`pair styles <pair_style>`, :doc:`fixes <fix>`, or
+:doc:`computes <compute>` can be added to LAMMPS, as discussed below.
+The code for these classes can use the per-atom properties defined by
+fix property/atom.  The Atom class has a find_custom() method that is
+useful in this context:
+
+.. parsed-literal::
+
+   int index = atom->find_custom(char *name, int &flag);
+
+The "name" of a custom attribute, as specified in the :doc:`fix property/atom <fix_property_atom>` command, is checked to verify
+that it exists and its index is returned.  The method also sets flag =
+0/1 depending on whether it is an integer or floating-point attribute.
+The vector of values associated with the attribute can then be
+accessed using the returned index as
+
+.. parsed-literal::
+
+   int *ivector = atom->ivector[index];
+   double *dvector = atom->dvector[index];
+
+Ivector or dvector are vectors of length Nlocal = # of owned atoms,
+which store the attributes of individual atoms.
+
+
+----------
+
+
+.. _mod_2:
+
+Bond, angle, dihedral, improper potentials
+------------------------------------------
+
+Classes that compute molecular interactions are derived from the Bond,
+Angle, Dihedral, and Improper classes.  New styles can be created to
+add new potentials to LAMMPS.
+
+Bond_harmonic.cpp is the simplest example of a bond style.  Ditto for
+the harmonic forms of the angle, dihedral, and improper style
+commands.
+
+Here is a brief description of common methods you define in your
+new derived class.  See bond.h, angle.h, dihedral.h, and improper.h
+for details and specific additional methods.
+
++----------------------+---------------------------------------------------------------------------+
+| init                 | check if all coefficients are set, calls *init_style* (optional)          |
++----------------------+---------------------------------------------------------------------------+
+| init_style           | check if style specific conditions are met (optional)                     |
++----------------------+---------------------------------------------------------------------------+
+| compute              | compute the molecular interactions (required)                             |
++----------------------+---------------------------------------------------------------------------+
+| settings             | apply global settings for all types (optional)                            |
++----------------------+---------------------------------------------------------------------------+
+| coeff                | set coefficients for one type (required)                                  |
++----------------------+---------------------------------------------------------------------------+
+| equilibrium_distance | length of bond, used by SHAKE (required, bond only)                       |
++----------------------+---------------------------------------------------------------------------+
+| equilibrium_angle    | opening of angle, used by SHAKE (required, angle only)                    |
++----------------------+---------------------------------------------------------------------------+
+| write & read_restart | writes/reads coeffs to restart files (required)                           |
++----------------------+---------------------------------------------------------------------------+
+| single               | force and energy of a single bond or angle (required, bond or angle only) |
++----------------------+---------------------------------------------------------------------------+
+| memory_usage         | tally memory allocated by the style (optional)                            |
++----------------------+---------------------------------------------------------------------------+
+
+
+----------
+
+
+.. _mod_3:
+
+Compute styles
+--------------
+
+Classes that compute scalar and vector quantities like temperature
+and the pressure tensor, as well as classes that compute per-atom
+quantities like kinetic energy and the centro-symmetry parameter
+are derived from the Compute class.  New styles can be created
+to add new calculations to LAMMPS.
+
+Compute_temp.cpp is a simple example of computing a scalar
+temperature.  Compute_ke_atom.cpp is a simple example of computing
+per-atom kinetic energy.
+
+Here is a brief description of methods you define in your new derived
+class.  See compute.h for details.
+
++---------------------+-----------------------------------------------------------------+
+| init                | perform one time setup (required)                               |
++---------------------+-----------------------------------------------------------------+
+| init_list           | neighbor list setup, if needed (optional)                       |
++---------------------+-----------------------------------------------------------------+
+| compute_scalar      | compute a scalar quantity (optional)                            |
++---------------------+-----------------------------------------------------------------+
+| compute_vector      | compute a vector of quantities (optional)                       |
++---------------------+-----------------------------------------------------------------+
+| compute_peratom     | compute one or more quantities per atom (optional)              |
++---------------------+-----------------------------------------------------------------+
+| compute_local       | compute one or more quantities per processor (optional)         |
++---------------------+-----------------------------------------------------------------+
+| pack_comm           | pack a buffer with items to communicate (optional)              |
++---------------------+-----------------------------------------------------------------+
+| unpack_comm         | unpack the buffer (optional)                                    |
++---------------------+-----------------------------------------------------------------+
+| pack_reverse        | pack a buffer with items to reverse communicate (optional)      |
++---------------------+-----------------------------------------------------------------+
+| unpack_reverse      | unpack the buffer (optional)                                    |
++---------------------+-----------------------------------------------------------------+
+| remove_bias         | remove velocity bias from one atom (optional)                   |
++---------------------+-----------------------------------------------------------------+
+| remove_bias_all     | remove velocity bias from all atoms in group (optional)         |
++---------------------+-----------------------------------------------------------------+
+| restore_bias        | restore velocity bias for one atom after remove_bias (optional) |
++---------------------+-----------------------------------------------------------------+
+| restore_bias_all    | same as before, but for all atoms in group (optional)           |
++---------------------+-----------------------------------------------------------------+
+| pair_tally_callback | callback function for *tally*-style computes (optional).        |
++---------------------+-----------------------------------------------------------------+
+| memory_usage        | tally memory usage (optional)                                   |
++---------------------+-----------------------------------------------------------------+
+
+Tally-style computes are a special case, as their computation is done
+in two stages: the callback function is registered with the pair style
+and then called from the Pair::ev_tally() function, which is called for
+each pair after force and energy has been computed for this pair. Then
+the tallied values are retrieved with the standard compute_scalar or
+compute_vector or compute_peratom methods. The USER-TALLY package
+provides *examples*_compute_tally.html for utilizing this mechanism.
+
+
+----------
+
+
+.. _mod_4:
+
+Dump styles
+-----------
+
+.. _mod_5:
+
+Dump custom output options
+--------------------------
+
+Classes that dump per-atom info to files are derived from the Dump
+class.  To dump new quantities or in a new format, a new derived dump
+class can be added, but it is typically simpler to modify the
+DumpCustom class contained in the dump_custom.cpp file.
+
+Dump_atom.cpp is a simple example of a derived dump class.
+
+Here is a brief description of methods you define in your new derived
+class.  See dump.h for details.
+
++--------------+---------------------------------------------------+
+| write_header | write the header section of a snapshot of atoms   |
++--------------+---------------------------------------------------+
+| count        | count the number of lines a processor will output |
++--------------+---------------------------------------------------+
+| pack         | pack a proc's output data into a buffer           |
++--------------+---------------------------------------------------+
+| write_data   | write a proc's data to a file                     |
++--------------+---------------------------------------------------+
+
+See the :doc:`dump <dump>` command and its *custom* style for a list of
+keywords for atom information that can already be dumped by
+DumpCustom.  It includes options to dump per-atom info from Compute
+classes, so adding a new derived Compute class is one way to calculate
+new quantities to dump.
+
+Alternatively, you can add new keywords to the dump custom command.
+Search for the word "customize" in dump_custom.cpp to see the
+half-dozen or so locations where code will need to be added.
+
+
+----------
+
+
+.. _mod_6:
+
+Fix styles
+----------
+
+In LAMMPS, a "fix" is any operation that is computed during
+timestepping that alters some property of the system.  Essentially
+everything that happens during a simulation besides force computation,
+neighbor list construction, and output, is a "fix".  This includes
+time integration (update of coordinates and velocities), force
+constraints or boundary conditions (SHAKE or walls), and diagnostics
+(compute a diffusion coefficient).  New styles can be created to add
+new options to LAMMPS.
+
+Fix_setforce.cpp is a simple example of setting forces on atoms to
+prescribed values.  There are dozens of fix options already in LAMMPS;
+choose one as a template that is similar to what you want to
+implement.
+
+Here is a brief description of methods you can define in your new
+derived class.  See fix.h for details.
+
++-------------------------+-------------------------------------------------------------------------------------------+
+| setmask                 | determines when the fix is called during the timestep (required)                          |
++-------------------------+-------------------------------------------------------------------------------------------+
+| init                    | initialization before a run (optional)                                                    |
++-------------------------+-------------------------------------------------------------------------------------------+
+| setup_pre_exchange      | called before atom exchange in setup (optional)                                           |
++-------------------------+-------------------------------------------------------------------------------------------+
+| setup_pre_force         | called before force computation in setup (optional)                                       |
++-------------------------+-------------------------------------------------------------------------------------------+
+| setup                   | called immediately before the 1st timestep and after forces are computed (optional)       |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_setup_pre_force     | like setup_pre_force, but for minimizations instead of MD runs (optional)                 |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_setup               | like setup, but for minimizations instead of MD runs (optional)                           |
++-------------------------+-------------------------------------------------------------------------------------------+
+| initial_integrate       | called at very beginning of each timestep (optional)                                      |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pre_exchange            | called before atom exchange on re-neighboring steps (optional)                            |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pre_neighbor            | called before neighbor list build (optional)                                              |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pre_force               | called before pair & molecular forces are computed (optional)                             |
++-------------------------+-------------------------------------------------------------------------------------------+
+| post_force              | called after pair & molecular forces are computed and communicated (optional)             |
++-------------------------+-------------------------------------------------------------------------------------------+
+| final_integrate         | called at end of each timestep (optional)                                                 |
++-------------------------+-------------------------------------------------------------------------------------------+
+| end_of_step             | called at very end of timestep (optional)                                                 |
++-------------------------+-------------------------------------------------------------------------------------------+
+| write_restart           | dumps fix info to restart file (optional)                                                 |
++-------------------------+-------------------------------------------------------------------------------------------+
+| restart                 | uses info from restart file to re-initialize the fix (optional)                           |
++-------------------------+-------------------------------------------------------------------------------------------+
+| grow_arrays             | allocate memory for atom-based arrays used by fix (optional)                              |
++-------------------------+-------------------------------------------------------------------------------------------+
+| copy_arrays             | copy atom info when an atom migrates to a new processor (optional)                        |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pack_exchange           | store atom's data in a buffer (optional)                                                  |
++-------------------------+-------------------------------------------------------------------------------------------+
+| unpack_exchange         | retrieve atom's data from a buffer (optional)                                             |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pack_restart            | store atom's data for writing to restart file (optional)                                  |
++-------------------------+-------------------------------------------------------------------------------------------+
+| unpack_restart          | retrieve atom's data from a restart file buffer (optional)                                |
++-------------------------+-------------------------------------------------------------------------------------------+
+| size_restart            | size of atom's data (optional)                                                            |
++-------------------------+-------------------------------------------------------------------------------------------+
+| maxsize_restart         | max size of atom's data (optional)                                                        |
++-------------------------+-------------------------------------------------------------------------------------------+
+| setup_pre_force_respa   | same as setup_pre_force, but for rRESPA (optional)                                        |
++-------------------------+-------------------------------------------------------------------------------------------+
+| initial_integrate_respa | same as initial_integrate, but for rRESPA (optional)                                      |
++-------------------------+-------------------------------------------------------------------------------------------+
+| post_integrate_respa    | called after the first half integration step is done in rRESPA (optional)                 |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pre_force_respa         | same as pre_force, but for rRESPA (optional)                                              |
++-------------------------+-------------------------------------------------------------------------------------------+
+| post_force_respa        | same as post_force, but for rRESPA (optional)                                             |
++-------------------------+-------------------------------------------------------------------------------------------+
+| final_integrate_respa   | same as final_integrate, but for rRESPA (optional)                                        |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_pre_force           | called after pair & molecular forces are computed in minimizer (optional)                 |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_post_force          | called after pair & molecular forces are computed and communicated in minmizer (optional) |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_store               | store extra data for linesearch based minimization on a LIFO stack (optional)             |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_pushstore           | push the minimization LIFO stack one element down (optional)                              |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_popstore            | pop the minimization LIFO stack one element up (optional)                                 |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_clearstore          | clear minimization LIFO stack (optional)                                                  |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_step                | reset or move forward on line search minimization (optional)                              |
++-------------------------+-------------------------------------------------------------------------------------------+
+| min_dof                 | report number of degrees of freedom *added* by this fix in minimization (optional)        |
++-------------------------+-------------------------------------------------------------------------------------------+
+| max_alpha               | report maximum allowed step size during linesearch minimization (optional)                |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pack_comm               | pack a buffer to communicate a per-atom quantity (optional)                               |
++-------------------------+-------------------------------------------------------------------------------------------+
+| unpack_comm             | unpack a buffer to communicate a per-atom quantity (optional)                             |
++-------------------------+-------------------------------------------------------------------------------------------+
+| pack_reverse_comm       | pack a buffer to reverse communicate a per-atom quantity (optional)                       |
++-------------------------+-------------------------------------------------------------------------------------------+
+| unpack_reverse_comm     | unpack a buffer to reverse communicate a per-atom quantity (optional)                     |
++-------------------------+-------------------------------------------------------------------------------------------+
+| dof                     | report number of degrees of freedom *removed* by this fix during MD (optional)            |
++-------------------------+-------------------------------------------------------------------------------------------+
+| compute_scalar          | return a global scalar property that the fix computes (optional)                          |
++-------------------------+-------------------------------------------------------------------------------------------+
+| compute_vector          | return a component of a vector property that the fix computes (optional)                  |
++-------------------------+-------------------------------------------------------------------------------------------+
+| compute_array           | return a component of an array property that the fix computes (optional)                  |
++-------------------------+-------------------------------------------------------------------------------------------+
+| deform                  | called when the box size is changed (optional)                                            |
++-------------------------+-------------------------------------------------------------------------------------------+
+| reset_target            | called when a change of the target temperature is requested during a run (optional)       |
++-------------------------+-------------------------------------------------------------------------------------------+
+| reset_dt                | is called when a change of the time step is requested during a run (optional)             |
++-------------------------+-------------------------------------------------------------------------------------------+
+| modify_param            | called when a fix_modify request is executed (optional)                                   |
++-------------------------+-------------------------------------------------------------------------------------------+
+| memory_usage            | report memory used by fix (optional)                                                      |
++-------------------------+-------------------------------------------------------------------------------------------+
+| thermo                  | compute quantities for thermodynamic output (optional)                                    |
++-------------------------+-------------------------------------------------------------------------------------------+
+
+Typically, only a small fraction of these methods are defined for a
+particular fix.  Setmask is mandatory, as it determines when the fix
+will be invoked during the timestep.  Fixes that perform time
+integration (*nve*, *nvt*, *npt*) implement initial_integrate() and
+final_integrate() to perform velocity Verlet updates.  Fixes that
+constrain forces implement post_force().
+
+Fixes that perform diagnostics typically implement end_of_step().  For
+an end_of_step fix, one of your fix arguments must be the variable
+"nevery" which is used to determine when to call the fix and you must
+set this variable in the constructor of your fix.  By convention, this
+is the first argument the fix defines (after the ID, group-ID, style).
+
+If the fix needs to store information for each atom that persists from
+timestep to timestep, it can manage that memory and migrate the info
+with the atoms as they move from processors to processor by
+implementing the grow_arrays, copy_arrays, pack_exchange, and
+unpack_exchange methods.  Similarly, the pack_restart and
+unpack_restart methods can be implemented to store information about
+the fix in restart files.  If you wish an integrator or force
+constraint fix to work with rRESPA (see the :doc:`run_style <run_style>`
+command), the initial_integrate, post_force_integrate, and
+final_integrate_respa methods can be implemented.  The thermo method
+enables a fix to contribute values to thermodynamic output, as printed
+quantities and/or to be summed to the potential energy of the system.
+
+
+----------
+
+
+.. _mod_7:
+
+Input script commands
+---------------------
+
+New commands can be added to LAMMPS input scripts by adding new
+classes that have a "command" method.  For example, the create_atoms,
+read_data, velocity, and run commands are all implemented in this
+fashion.  When such a command is encountered in the LAMMPS input
+script, LAMMPS simply creates a class with the corresponding name,
+invokes the "command" method of the class, and passes it the arguments
+from the input script.  The command method can perform whatever
+operations it wishes on LAMMPS data structures.
+
+The single method your new class must define is as follows:
+
++---------+-----------------------------------------+
+| command | operations performed by the new command |
++---------+-----------------------------------------+
+
+Of course, the new class can define other methods and variables as
+needed.
+
+
+----------
+
+
+.. _mod_8:
+
+Kspace computations
+-------------------
+
+Classes that compute long-range Coulombic interactions via K-space
+representations (Ewald, PPPM) are derived from the KSpace class.  New
+styles can be created to add new K-space options to LAMMPS.
+
+Ewald.cpp is an example of computing K-space interactions.
+
+Here is a brief description of methods you define in your new derived
+class.  See kspace.h for details.
+
++--------------+----------------------------------------------+
+| init         | initialize the calculation before a run      |
++--------------+----------------------------------------------+
+| setup        | computation before the 1st timestep of a run |
++--------------+----------------------------------------------+
+| compute      | every-timestep computation                   |
++--------------+----------------------------------------------+
+| memory_usage | tally of memory usage                        |
++--------------+----------------------------------------------+
+
+
+----------
+
+
+.. _mod_9:
+
+Minimization styles
+-------------------
+
+Classes that perform energy minimization derived from the Min class.
+New styles can be created to add new minimization algorithms to
+LAMMPS.
+
+Min_cg.cpp is an example of conjugate gradient minimization.
+
+Here is a brief description of methods you define in your new derived
+class.  See min.h for details.
+
++--------------+------------------------------------------+
+| init         | initialize the minimization before a run |
++--------------+------------------------------------------+
+| run          | perform the minimization                 |
++--------------+------------------------------------------+
+| memory_usage | tally of memory usage                    |
++--------------+------------------------------------------+
+
+
+----------
+
+
+.. _mod_10:
+
+Pairwise potentials
+-------------------
+
+Classes that compute pairwise interactions are derived from the Pair
+class.  In LAMMPS, pairwise calculation include manybody potentials
+such as EAM or Tersoff where particles interact without a static bond
+topology.  New styles can be created to add new pair potentials to
+LAMMPS.
+
+Pair_lj_cut.cpp is a simple example of a Pair class, though it
+includes some optional methods to enable its use with rRESPA.
+
+Here is a brief description of the class methods in pair.h:
+
++-------------------------------+-------------------------------------------------------------------+
+| compute                       | workhorse routine that computes pairwise interactions             |
++-------------------------------+-------------------------------------------------------------------+
+| settings                      | reads the input script line with arguments you define             |
++-------------------------------+-------------------------------------------------------------------+
+| coeff                         | set coefficients for one i,j type pair                            |
++-------------------------------+-------------------------------------------------------------------+
+| init_one                      | perform initialization for one i,j type pair                      |
++-------------------------------+-------------------------------------------------------------------+
+| init_style                    | initialization specific to this pair style                        |
++-------------------------------+-------------------------------------------------------------------+
+| write & read_restart          | write/read i,j pair coeffs to restart files                       |
++-------------------------------+-------------------------------------------------------------------+
+| write & read_restart_settings | write/read global settings to restart files                       |
++-------------------------------+-------------------------------------------------------------------+
+| single                        | force and energy of a single pairwise interaction between 2 atoms |
++-------------------------------+-------------------------------------------------------------------+
+| compute_inner/middle/outer    | versions of compute used by rRESPA                                |
++-------------------------------+-------------------------------------------------------------------+
+
+The inner/middle/outer routines are optional.
+
+
+----------
+
+
+.. _mod_11:
+
+Region styles
+-------------
+
+Classes that define geometric regions are derived from the Region
+class.  Regions are used elsewhere in LAMMPS to group atoms, delete
+atoms to create a void, insert atoms in a specified region, etc.  New
+styles can be created to add new region shapes to LAMMPS.
+
+Region_sphere.cpp is an example of a spherical region.
+
+Here is a brief description of methods you define in your new derived
+class.  See region.h for details.
+
++------------------+------------------------------------------------------------------+
+| inside           | determine whether a point is in the region                       |
++------------------+------------------------------------------------------------------+
+| surface_interior | determine if a point is within a cutoff distance inside of surc  |
++------------------+------------------------------------------------------------------+
+| surface_exterior | determine if a point is within a cutoff distance outside of surf |
++------------------+------------------------------------------------------------------+
+| shape_update     | change region shape if set by time-depedent variable             |
++------------------+------------------------------------------------------------------+
+
+
+----------
+
+
+.. _mod_12:
+
+Body styles
+-----------
+
+Classes that define body particles are derived from the Body class.
+Body particles can represent complex entities, such as surface meshes
+of discrete points, collections of sub-particles, deformable objects,
+etc.
+
+See :ref:`Section_howto 14 <howto_14>` of the manual for
+an overview of using body particles and the :doc:`body <body>` doc page
+for details on the various body styles LAMMPS supports.  New styles
+can be created to add new kinds of body particles to LAMMPS.
+
+Body_nparticle.cpp is an example of a body particle that is treated as
+a rigid body containing N sub-particles.
+
+Here is a brief description of methods you define in your new derived
+class.  See body.h for details.
+
++--------------------+-----------------------------------------------------------+
+| data_body          | process a line from the Bodies section of a data file     |
++--------------------+-----------------------------------------------------------+
+| noutrow            | number of sub-particles output is generated for           |
++--------------------+-----------------------------------------------------------+
+| noutcol            | number of values per-sub-particle output is generated for |
++--------------------+-----------------------------------------------------------+
+| output             | output values for the Mth sub-particle                    |
++--------------------+-----------------------------------------------------------+
+| pack_comm_body     | body attributes to communicate every timestep             |
++--------------------+-----------------------------------------------------------+
+| unpack_comm_body   | unpacking of those attributes                             |
++--------------------+-----------------------------------------------------------+
+| pack_border_body   | body attributes to communicate when reneighboring is done |
++--------------------+-----------------------------------------------------------+
+| unpack_border_body | unpacking of those attributes                             |
++--------------------+-----------------------------------------------------------+
+
+
+----------
+
+
+.. _mod_13:
+
+Thermodynamic output options
+----------------------------
+
+There is one class that computes and prints thermodynamic information
+to the screen and log file; see the file thermo.cpp.
+
+There are two styles defined in thermo.cpp: "one" and "multi".  There
+is also a flexible "custom" style which allows the user to explicitly
+list keywords for quantities to print when thermodynamic info is
+output.  See the :doc:`thermo_style <thermo_style>` command for a list
+of defined quantities.
+
+The thermo styles (one, multi, etc) are simply lists of keywords.
+Adding a new style thus only requires defining a new list of keywords.
+Search for the word "customize" with references to "thermo style" in
+thermo.cpp to see the two locations where code will need to be added.
+
+New keywords can also be added to thermo.cpp to compute new quantities
+for output.  Search for the word "customize" with references to
+"keyword" in thermo.cpp to see the several locations where code will
+need to be added.
+
+Note that the :doc:`thermo_style custom <thermo>` command already allows
+for thermo output of quantities calculated by :doc:`fixes <fix>`,
+:doc:`computes <compute>`, and :doc:`variables <variable>`.  Thus, it may
+be simpler to compute what you wish via one of those constructs, than
+by adding a new keyword to the thermo command.
+
+
+----------
+
+
+.. _mod_14:
+
+Variable options
+----------------
+
+There is one class that computes and stores :doc:`variable <variable>`
+information in LAMMPS; see the file variable.cpp.  The value
+associated with a variable can be periodically printed to the screen
+via the :doc:`print <print>`, :doc:`fix print <fix_print>`, or
+:doc:`thermo_style custom <thermo_style>` commands.  Variables of style
+"equal" can compute complex equations that involve the following types
+of arguments:
+
+.. parsed-literal::
+
+   thermo keywords = ke, vol, atoms, ...
+   other variables = v_a, v_myvar, ...
+   math functions = div(x,y), mult(x,y), add(x,y), ...
+   group functions = mass(group), xcm(group,x), ...
+   atom values = x[123], y[3], vx[34], ...
+   compute values = c_mytemp[0], c_thermo_press[3], ...
+
+Adding keywords for the :doc:`thermo_style custom <thermo_style>` command
+(which can then be accessed by variables) was discussed
+:ref:`here <thermo>` on this page.
+
+Adding a new math function of one or two arguments can be done by
+editing one section of the Variable::evaulate() method.  Search for
+the word "customize" to find the appropriate location.
+
+Adding a new group function can be done by editing one section of the
+Variable::evaulate() method.  Search for the word "customize" to find
+the appropriate location.  You may need to add a new method to the
+Group class as well (see the group.cpp file).
+
+Accessing a new atom-based vector can be done by editing one section
+of the Variable::evaulate() method.  Search for the word "customize"
+to find the appropriate location.
+
+Adding new :doc:`compute styles <compute>` (whose calculated values can
+then be accessed by variables) was discussed
+:ref:`here <compute>` on this page.
+
+
+
+
+
+.. _mod_15:
+
+Submitting new features for inclusion in LAMMPS
+-----------------------------------------------
+
+We encourage users to submit new features to `the developers <http://lammps.sandia.gov/authors.html>`_ that they add to
+LAMMPS, especially if you think they will be of interest to other
+users.  The preferred way to do this is via GitHub.  Once you have
+prepared the content described below, see :doc:`this tutorial <doc/tutorial_github>` for instructions on how to submit
+your changes or new files.
+
+If the new features/files are broadly useful we may add them as core
+files to LAMMPS or as part of a :ref:`standard package <start_3>`.  Else we will add them as a
+user-contributed file or package.  Examples of user packages are in
+src sub-directories that start with USER.  The USER-MISC package is
+simply a collection of (mostly) unrelated single files, which is the
+simplest way to have your contribution quickly added to the LAMMPS
+distribution.  You can see a list of the both standard and user
+packages by typing "make package" in the LAMMPS src directory.
+
+Note that by providing us files to release, you are agreeing to make
+them open-source, i.e. we can release them under the terms of the GPL,
+used as a license for the rest of LAMMPS.  See :ref:`Section 1.4 <intro_4>` for details.
+
+With user packages and files, all we are really providing (aside from
+the fame and fortune that accompanies having your name in the source
+code and on the `Authors page <http://lammps.sandia.gov/authors.html>`_
+of the `LAMMPS WWW site <lws_>`_), is a means for you to distribute your
+work to the LAMMPS user community, and a mechanism for others to
+easily try out your new feature.  This may help you find bugs or make
+contact with new collaborators.  Note that you're also implicitly
+agreeing to support your code which means answer questions, fix bugs,
+and maintain it if LAMMPS changes in some way that breaks it (an
+unusual event).
+
+.. note::
+
+   If you prefer to actively develop and support your add-on
+   feature yourself, then you may wish to make it available for download
+   from your own website, as a user package that LAMMPS users can add to
+   their copy of LAMMPS.  See the `Offsite LAMMPS packages and tools <http://lammps.sandia.gov/offsite.html>`_ page of the LAMMPS web
+   site for examples of groups that do this.  We are happy to advertise
+   your package and web site from that page.  Simply email the
+   `developers <http://lammps.sandia.gov/authors.html>`_ with info about
+   your package and we will post it there.
+
+The previous sections of this doc page describe how to add new "style"
+files of various kinds to LAMMPS.  Packages are simply collections of
+one or more new class files which are invoked as a new style within a
+LAMMPS input script.  If designed correctly, these additions typically
+do not require changes to the main core of LAMMPS; they are simply
+add-on files.  If you think your new feature requires non-trivial
+changes in core LAMMPS files, you'll need to `communicate with the developers <http://lammps.sandia.gov/authors.html>`_, since we may or may
+not want to make those changes.  An example of a trivial change is
+making a parent-class method "virtual" when you derive a new child
+class from it.
+
+Here are the steps you need to follow to submit a single file or user
+package for our consideration.  Following these steps will save both
+you and us time.  See existing files in packages in the src dir for
+examples.
+
+* All source files you provide must compile with the most current
+  version of LAMMPS.
+* If you want your file(s) to be added to main LAMMPS or one of its
+  standard packages, then it needs to be written in a style compatible
+  with other LAMMPS source files.  This is so the developers can
+  understand it and hopefully maintain it.  This basically means that
+  the code accesses data structures, performs its operations, and is
+  formatted similar to other LAMMPS source files, including the use of
+  the error class for error and warning messages.
+* If you want your contribution to be added as a user-contributed
+  feature, and it's a single file (actually a *.cpp and *.h file) it can
+  rapidly be added to the USER-MISC directory.  Send us the one-line
+  entry to add to the USER-MISC/README file in that dir, along with the
+  2 source files.  You can do this multiple times if you wish to
+  contribute several individual features.
+* If you want your contribution to be added as a user-contribution and
+  it is several related featues, it is probably best to make it a user
+  package directory with a name like USER-FOO.  In addition to your new
+  files, the directory should contain a README text file.  The README
+  should contain your name and contact information and a brief
+  description of what your new package does.  If your files depend on
+  other LAMMPS style files also being installed (e.g. because your file
+  is a derived class from the other LAMMPS class), then an Install.sh
+  file is also needed to check for those dependencies.  See other README
+  and Install.sh files in other USER directories as examples.  Send us a
+  tarball of this USER-FOO directory.
+* Your new source files need to have the LAMMPS copyright, GPL notice,
+  and your name and email address at the top, like other
+  user-contributed LAMMPS source files.  They need to create a class
+  that is inside the LAMMPS namespace.  If the file is for one of the
+  USER packages, including USER-MISC, then we are not as picky about the
+  coding style (see above).  I.e. the files do not need to be in the
+  same stylistic format and syntax as other LAMMPS files, though that
+  would be nice for developers as well as users who try to read your
+  code.
+* You must also create a documentation file for each new command or
+  style you are adding to LAMMPS.  This will be one file for a
+  single-file feature.  For a package, it might be several files.  These
+  are simple text files which we auto-convert to HTML.  Thus they must
+  be in the same format as other *.txt files in the lammps/doc directory
+  for similar commands and styles; use one or more of them as a starting
+  point.  As appropriate, the text files can include links to equations
+  (see doc/Eqs/*.tex for examples, we auto-create the associated JPG
+  files), or figures (see doc/JPG for examples), or even additional PDF
+  files with further details (see doc/PDF for examples).  The doc page
+  should also include literature citations as appropriate; see the
+  bottom of doc/fix_nh.txt for examples and the earlier part of the same
+  file for how to format the cite itself.  The "Restrictions" section of
+  the doc page should indicate that your command is only available if
+  LAMMPS is built with the appropriate USER-MISC or USER-FOO package.
+  See other user package doc files for examples of how to do this.  The
+  txt2html tool we use to convert to HTML can be downloaded from `this site <http://www.sandia.gov/~sjplimp/download.html>`_, so you can perform
+  the HTML conversion yourself to proofread your doc page.
+* For a new package (or even a single command) you can include one or
+  more example scripts.  These should run in no more than 1 minute, even
+  on a single processor, and not require large data files as input.  See
+  directories under examples/USER for examples of input scripts other
+  users provided for their packages.
+* If there is a paper of yours describing your feature (either the
+  algorithm/science behind the feature itself, or its initial usage, or
+  its implementation in LAMMPS), you can add the citation to the *.cpp
+  source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
+  A LaTeX citation is stored in a variable at the top of the file and a
+  single line of code that references the variable is added to the
+  constructor of the class.  Whenever a user invokes your feature from
+  their input script, this will cause LAMMPS to output the citation to a
+  log.cite file and prompt the user to examine the file.  Note that you
+  should only use this for a paper you or your group authored.
+  E.g. adding a cite in the code for a paper by Nose and Hoover if you
+  write a fix that implements their integrator is not the intended
+  usage.  That kind of citation should just be in the doc page you
+  provide.
+Finally, as a general rule-of-thumb, the more clear and
+self-explanatory you make your doc and README files, and the easier
+you make it for people to get started, e.g. by providing example
+scripts, the more likely it is that users will try out your new
+feature.
+
+
+
+
+
+.. _Foo:
+
+
+
+**(Foo)** Foo, Morefoo, and Maxfoo, J of Classic Potentials, 75, 345 (1997).
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

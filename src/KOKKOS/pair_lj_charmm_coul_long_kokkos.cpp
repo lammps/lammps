@@ -154,8 +154,6 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -432,19 +430,6 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double
   }
 }
 
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg > 2) error->all(FLERR,"Illegal pair_style command");
-
-  PairLJCharmmCoulLong::settings(narg,arg);
-}
-
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
@@ -531,7 +516,10 @@ double PairLJCharmmCoulLongKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCharmmCoulLongKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCharmmCoulLongKokkos<LMPHostType>;
 #endif
+}
+

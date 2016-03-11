@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix wall/region command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix wall/region command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -163,19 +163,22 @@ from 1, 2, or 3 faces of the block.</p>
 <p>Regions are defined using the <a class="reference internal" href="region.html"><em>region</em></a> command.  Note that
 the region volume can be interior or exterior to the bounding surface,
 which will determine in which direction the surface interacts with
-particles, i.e. the direction of the surface normal.  Regions can
-either be primitive shapes (block, sphere, cylinder, etc) or
-combinations of primitive shapes specified via the <em>union</em> or
+particles, i.e. the direction of the surface normal.  The surface of
+the region only exerts forces on particles &#8220;inside&#8221; the region; if a
+particle is &#8220;outside&#8221; the region it will generate an error, because it
+has moved through the wall.</p>
+<p>Regions can either be primitive shapes (block, sphere, cylinder, etc)
+or combinations of primitive shapes specified via the <em>union</em> or
 <em>intersect</em> region styles.  These latter styles can be used to
 construct particle containers with complex shapes.  Regions can also
 change over time via the <a class="reference internal" href="region.html"><em>region</em></a> command keywords (move)
 and <em>rotate</em>.  If such a region is used with this fix, then the of
 region surface will move over time in the corresponding manner.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">As discussed on the <a class="reference internal" href="region.html"><em>region</em></a> command doc
-page, regions in LAMMPS do not get wrapped across periodic boundaries.
-It is up to you to insure that periodic or non-periodic boundaries are
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As discussed on the <a class="reference internal" href="region.html"><em>region</em></a> command doc page,
+regions in LAMMPS do not get wrapped across periodic boundaries.  It
+is up to you to insure that periodic or non-periodic boundaries are
 specified appropriately via the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command when
 using a region as a wall that bounds particle motion.  This also means
 that if you embed a region in your simulation box and want it to
@@ -183,41 +186,41 @@ repulse particles from its surface (using the &#8220;side out&#8221; option in t
 <a class="reference internal" href="region.html"><em>region</em></a> command), that its repulsive force will not be
 felt across a periodic boundary.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For primitive regions with sharp corners and/or edges
-(e.g. a block or cylinder), wall/particle forces are computed
-accurately for both interior and exterior regions.  For <em>union</em> and
-<em>intersect</em> regions, additional sharp corners and edges may be present
-due to the intersection of the surfaces of 2 or more primitive
-volumes.  These corners and edges can be of two types: concave or
-convex.  Concave points/edges are like the corners of a cube as seen
-by particles in the interior of a cube.  Wall/particle forces around
-these features are computed correctly.  Convex points/edges are like
-the corners of a cube as seen by particles exterior to the cube,
-i.e. the points jut into the volume where particles are present.
-LAMMPS does NOT compute the location of these convex points directly,
-and hence wall/particle forces in the cutoff volume around these
-points suffer from inaccuracies.  The basic problem is that the
-outward normal of the surface is not continuous at these points.  This
-can cause particles to feel no force (they don&#8217;t &#8220;see&#8221; the wall) when
-in one location, then move a distance epsilon, and suddenly feel a
-large force because they now &#8220;see&#8221; the wall.  In a worst-case
-scenario, this can blow particles out of the simulation box.  Thus, as
-a general rule you should not use the fix wall/region command with
-<em>union</em> or <em>interesect</em> regions that have convex points or edges.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For primitive regions with sharp corners and/or edges (e.g. a
+block or cylinder), wall/particle forces are computed accurately for
+both interior and exterior regions.  For <em>union</em> and <em>intersect</em>
+regions, additional sharp corners and edges may be present due to the
+intersection of the surfaces of 2 or more primitive volumes.  These
+corners and edges can be of two types: concave or convex.  Concave
+points/edges are like the corners of a cube as seen by particles in
+the interior of a cube.  Wall/particle forces around these features
+are computed correctly.  Convex points/edges are like the corners of a
+cube as seen by particles exterior to the cube, i.e. the points jut
+into the volume where particles are present.  LAMMPS does NOT compute
+the location of these convex points directly, and hence wall/particle
+forces in the cutoff volume around these points suffer from
+inaccuracies.  The basic problem is that the outward normal of the
+surface is not continuous at these points.  This can cause particles
+to feel no force (they don&#8217;t &#8220;see&#8221; the wall) when in one location,
+then move a distance epsilon, and suddenly feel a large force because
+they now &#8220;see&#8221; the wall.  In a worst-case scenario, this can blow
+particles out of the simulation box.  Thus, as a general rule you
+should not use the fix wall/region command with <em>union</em> or
+<em>interesect</em> regions that have convex points or edges.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Similarly, you should not define <em>union</em> or
-<em>intersert</em> regions for use with this command that share a common
-face, even if the face is smooth.  E.g. two regions of style block in
-a <em>union</em> region, where the two blocks have the same face.  This is
-because LAMMPS discards points that are part of multiple sub-regions
-when calculating wall/particle interactions, to avoid double-counting
-the interaction.  Having two coincident faces could cause the face to
-become invisible to the particles.  The solution is to make the two
-faces differ by epsilon in their position.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Similarly, you should not define <em>union</em> or <em>intersert</em> regions
+for use with this command that share a common face, even if the face
+is smooth.  E.g. two regions of style block in a <em>union</em> region, where
+the two blocks have the same face.  This is because LAMMPS discards
+points that are part of multiple sub-regions when calculating
+wall/particle interactions, to avoid double-counting the interaction.
+Having two coincident faces could cause the face to become invisible
+to the particles.  The solution is to make the two faces differ by
+epsilon in their position.</p>
 </div>
 <p>The energy of wall-particle interactions depends on the specified
 style.</p>
@@ -261,21 +264,21 @@ constant K, and has units (energy/distance^2).  The input parameter
 <em>sigma</em> is ignored.  The minimum energy position of the harmonic
 spring is at the <em>cutoff</em>.  This is a repulsive-only spring since the
 interaction is truncated at the <em>cutoff</em></p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For all of the styles, you must insure that r is
-always &gt; 0 for all particles in the group, or LAMMPS will generate an
-error.  This means you cannot start your simulation with particles on
-the region surface (r = 0) or with particles on the wrong side of the
-region surface (r &lt; 0).  For the <em>wall/lj93</em> and <em>wall/lj126</em> styles,
-the energy of the wall/particle interaction (and hence the force on
-the particle) blows up as r -&gt; 0.  The <em>wall/colloid</em> style is even
-more restrictive, since the energy blows up as D = r-R -&gt; 0.  This
-means the finite-size particles of radius R must be a distance larger
-than R from the region surface.  The <em>harmonic</em> style is a softer
-potential and does not blow up as r -&gt; 0, but you must use a large
-enough <em>epsilon</em> that particles always reamin on the correct side of
-the region surface (r &gt; 0).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For all of the styles, you must insure that r is always &gt; 0 for
+all particles in the group, or LAMMPS will generate an error.  This
+means you cannot start your simulation with particles on the region
+surface (r = 0) or with particles on the wrong side of the region
+surface (r &lt; 0).  For the <em>wall/lj93</em> and <em>wall/lj126</em> styles, the
+energy of the wall/particle interaction (and hence the force on the
+particle) blows up as r -&gt; 0.  The <em>wall/colloid</em> style is even more
+restrictive, since the energy blows up as D = r-R -&gt; 0.  This means
+the finite-size particles of radius R must be a distance larger than R
+from the region surface.  The <em>harmonic</em> style is a softer potential
+and does not blow up as r -&gt; 0, but you must use a large enough
+<em>epsilon</em> that particles always reamin on the correct side of the
+region surface (r &gt; 0).</p>
 </div>
 </div>
 <div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
@@ -295,12 +298,12 @@ particles.  The scalar and vector values calculated by this fix are
 the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
 <p>The forces due to this fix are imposed during an energy minimization,
 invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the atom/wall interaction energy to be
-included in the total potential energy of the system (the quantity
-being minimized), you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a>
-<em>energy</em> option for this fix.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the atom/wall interaction energy to be included in
+the total potential energy of the system (the quantity being
+minimized), you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em>
+option for this fix.</p>
 </div>
 </div>
 <div class="section" id="restrictions">
@@ -328,7 +331,7 @@ being minimized), you MUST enable the <a class="reference internal" href="fix_mo
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -349,7 +352,7 @@ being minimized), you MUST enable the <a class="reference internal" href="fix_mo
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

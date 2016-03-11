@@ -1,8 +1,7 @@
 #include "dynmat.h"
 #include "math.h"
 #include "version.h"
-
-#define MAXLINE 256
+#include "global.h"
 
 // to intialize the class
 DynMat::DynMat(int narg, char **arg)
@@ -14,6 +13,8 @@ DynMat::DynMat(int narg, char **arg)
   DM_q = DM_all = NULL;
   binfile = funit = dmfile = NULL;
 
+  attyp = NULL;
+  basis = NULL;
   flag_reset_gamma = flag_skip = 0;
 
   // analyze the command line options
@@ -74,23 +75,23 @@ DynMat::DynMat(int narg, char **arg)
   npt = nx*ny*nz;
 
   // display info related to the read file
-  printf("\n"); for (int i=0; i<80; i++) printf("="); printf("\n");
+  printf("\n"); for (int i = 0; i < 80; ++i) printf("="); printf("\n");
   printf("Dynamical matrix is read from file: %s\n", binfile);
   printf("The system size in three dimension: %d x %d x %d\n", nx, ny, nz);
   printf("Number of atoms per unit cell     : %d\n", nucell);
   printf("System dimension                  : %d\n", sysdim);
   printf("Boltzmann constant in used units  : %g\n", boltz);
-  for (int i=0; i<80; i++) printf("="); printf("\n");
-  if (sysdim<1||sysdim>3||nx<1||ny<1||nz<1||nucell<1){
+  for (int i = 0; i < 80; ++i) printf("="); printf("\n");
+  if (sysdim < 1||sysdim > 3||nx < 1||ny < 1||nz < 1||nucell < 1){
     printf("Wrong values read from header of file: %s, please check the binary file!\n", binfile);
     fclose(fp); exit(3);
   }
 
   funit = new char[4];
   strcpy(funit, "THz");
-  if (boltz == 1.){eml2f = 1.; delete funit; funit=new char[22]; strcpy(funit,"sqrt(epsilon/(m.sigma^2))");}
-  else if (boltz == 0.0019872067) eml2f = 3.256576161;
-  else if (boltz == 8.617343e-5)  eml2f = 15.63312493;
+  if (boltz == 1.){eml2f = 1.; delete funit; funit = new char[27]; strcpy(funit,"sqrt(epsilon/(m.sigma^2))");}
+  else if (boltz == 0.0019872067)  eml2f = 3.256576161;
+  else if (boltz == 8.617343e-5)   eml2f = 15.63312493;
   else if (boltz == 1.3806504e-23) eml2f = 1.;
   else if (boltz == 1.3806504e-16) eml2f = 1.591549431e-14;
   else {
@@ -100,9 +101,9 @@ DynMat::DynMat(int narg, char **arg)
   }
 
   // now to allocate memory for DM
-  memory = new Memory;
-  DM_all = memory->create(DM_all, npt, fftdim2, "DynMat:DM_all");
-  DM_q   = memory->create(DM_q, fftdim,fftdim,"DynMat:DM_q");
+  memory = new Memory();
+  memory->create(DM_all, npt, fftdim2, "DynMat:DM_all");
+  memory->create(DM_q, fftdim,fftdim,"DynMat:DM_q");
 
   // read all dynamical matrix info into DM_all
   if ( fread(DM_all[0], sizeof(doublecomplex), npt*fftdim2, fp) != size_t(npt*fftdim2)){
@@ -112,48 +113,36 @@ DynMat::DynMat(int narg, char **arg)
   }
 
   // now try to read unit cell info from the binary file
-  flag_latinfo = 0;
-  basis = memory->create(basis,nucell,sysdim,"DynMat:basis");
-  attyp = memory->create(attyp,nucell, "DynMat:attyp");
-  M_inv_sqrt = memory->create(M_inv_sqrt, nucell, "DynMat:M_inv_sqrt");
-  int flag_mass_read = 0;
+  memory->create(basis, nucell, sysdim, "DynMat:basis");
+  memory->create(attyp, nucell,         "DynMat:attyp");
+  memory->create(M_inv_sqrt, nucell,    "DynMat:M_inv_sqrt");
   
-  if ( fread(&Tmeasure,   sizeof(double), 1, fp) == 1) flag_latinfo |= 1;
-  if ( fread(&basevec[0], sizeof(double), 9, fp) == 9) flag_latinfo |= 2;
-  if ( fread(basis[0],    sizeof(double), fftdim, fp) == fftdim) flag_latinfo |= 4;
-  if ( fread(&attyp[0],   sizeof(int),    nucell, fp) == nucell) flag_latinfo |= 8;
-  if ( fread(&M_inv_sqrt[0], sizeof(double), nucell, fp) == nucell) flag_mass_read = 1;
+  if ( fread(&Tmeasure,      sizeof(double), 1,      fp) != 1     ){printf("\nError while reading temperature from file: %s\n",   binfile); fclose(fp); exit(3);}
+  if ( fread(&basevec[0],    sizeof(double), 9,      fp) != 9     ){printf("\nError while reading lattice info from file: %s\n",  binfile); fclose(fp); exit(3);}
+  if ( fread(basis[0],       sizeof(double), fftdim, fp) != fftdim){printf("\nError while reading basis info from file: %s\n",    binfile); fclose(fp); exit(3);}
+  if ( fread(&attyp[0],      sizeof(int),    nucell, fp) != nucell){printf("\nError while reading atom types from file: %s\n",    binfile); fclose(fp); exit(3);}
+  if ( fread(&M_inv_sqrt[0], sizeof(double), nucell, fp) != nucell){printf("\nError while reading atomic masses from file: %s\n", binfile); fclose(fp); exit(3);}
   fclose(fp);
 
-  if ((flag_latinfo&15) == 15){
-    car2dir(flag_mass_read);
-    real2rec();
-
-    flag_latinfo = 1;
-  } else {
-    Tmeasure = 0.;
-    flag_latinfo = 0;
-  }
+  car2dir();
+  real2rec();
 
   // initialize interpolation
   interpolate = new Interpolate(nx,ny,nz,fftdim2,DM_all);
   if (flag_reset_gamma) interpolate->reset_gamma();
 
-  if ( flag_mass_read ){ // M_inv_sqrt info read, the data stored are force constant matrix instead of dynamical matrix.
+  // Enforcing Austic Sum Rule
+  EnforceASR();
 
-    EnforceASR();
-
-    // get the dynamical matrix from force constant matrix: D = 1/M x Phi
-    for (int idq=0; idq< npt; idq++){
-      int ndim =0;
-      for (int idim=0; idim<fftdim; idim++){
-        for (int jdim=0; jdim<fftdim; jdim++){
-          double inv_mass = M_inv_sqrt[idim/sysdim]*M_inv_sqrt[jdim/sysdim];
-          DM_all[idq][ndim].r *= inv_mass;
-          DM_all[idq][ndim].i *= inv_mass;
-          ndim++;
-        }
-      }
+  // get the dynamical matrix from force constant matrix: D = 1/M x Phi
+  for (int idq = 0; idq < npt; ++idq){
+    int ndim =0;
+    for (int idim = 0; idim < fftdim; ++idim)
+    for (int jdim = 0; jdim < fftdim; ++jdim){
+      double inv_mass = M_inv_sqrt[idim/sysdim]*M_inv_sqrt[jdim/sysdim];
+      DM_all[idq][ndim].r *= inv_mass;
+      DM_all[idq][ndim].i *= inv_mass;
+      ndim++;
     }
   }
 
@@ -191,7 +180,7 @@ void DynMat::writeDMq(double *q)
   if (dmfile == NULL){
     char str[MAXLINE], *ptr;
     printf("\n");
-    while (1){
+    while ( 1 ){
       printf("Please input the filename to output the DM at selected q: ");
       fgets(str,MAXLINE,stdin);
       ptr = strtok(str, " \r\t\n\f");
@@ -208,8 +197,8 @@ void DynMat::writeDMq(double *q)
   }
   fprintf(fp,"# q = [%lg %lg %lg]\n", q[0], q[1], q[2]);
 
-  for (int i=0; i<fftdim; i++){
-    for (int j=0; j<fftdim; j++) fprintf(fp,"%lg %lg\t", DM_q[i][j].r, DM_q[i][j].i);
+  for (int i = 0; i < fftdim; ++i){
+    for (int j = 0; j < fftdim; ++j) fprintf(fp,"%lg %lg\t", DM_q[i][j].r, DM_q[i][j].i);
     fprintf(fp,"\n");
   }
   fprintf(fp,"\n");
@@ -225,9 +214,9 @@ void DynMat::writeDMq(double *q, const double qr, FILE *fp)
 
   fprintf(fp, "%lg %lg %lg %lg ", q[0], q[1], q[2], qr);
 
-  for (int i=0; i<fftdim; i++){
-    for (int j=0; j<fftdim; j++) fprintf(fp,"%lg %lg\t", DM_q[i][j].r, DM_q[i][j].i);
-  }
+  for (int i = 0; i < fftdim; ++i)
+  for (int j = 0; j < fftdim; ++j) fprintf(fp,"%lg %lg\t", DM_q[i][j].r, DM_q[i][j].i);
+
   fprintf(fp,"\n");
 return;
 }
@@ -254,14 +243,14 @@ int DynMat::geteigen(double *egv, int flag)
   liwork = 3 + 5*n;
   lda    = n;
 
-  work  = memory->create(work,  lwork,  "geteigen:work");
-  rwork = memory->create(rwork, lrwork, "geteigen:rwork");
-  iwork = memory->create(iwork, liwork, "geteigen:iwork");
+  memory->create(work,  lwork,  "geteigen:work");
+  memory->create(rwork, lrwork, "geteigen:rwork");
+  memory->create(iwork, liwork, "geteigen:iwork");
 
   zheevd_(&jobz, &uplo, &n, DM_q[0], &lda, w, work, &lwork, rwork, &lrwork, iwork, &liwork, &info);
  
   // to get w instead of w^2; and convert w into v (THz hopefully)
-  for (int i=0; i<n; i++){
+  for (int i = 0; i < n; ++i){
     if (w[i]>= 0.) w[i] = sqrt(w[i]);
     else w[i] = -sqrt(-w[i]);
 
@@ -298,24 +287,17 @@ return;
 /* ----------------------------------------------------------------------------
  * private method to convert the cartisan coordinate of basis into fractional
  * ---------------------------------------------------------------------------- */
-void DynMat::car2dir(int flag)
+void DynMat::car2dir()
 {
-  if (!flag){ // in newer version, this is done in fix-phonon
-    for (int i=0; i<3; i++){
-      basevec[i]   /= double(nx);
-      basevec[i+3] /= double(ny);
-      basevec[i+6] /= double(nz);
-    }
-  }
   double mat[9];
-  for (int idim=0; idim<9; idim++) mat[idim] = basevec[idim];
+  for (int idim = 0; idim < 9; ++idim) mat[idim] = basevec[idim];
   GaussJordan(3, mat);
 
-  for (int i=0; i<nucell; i++){
+  for (int i = 0; i < nucell; ++i){
     double x[3];
     x[0] = x[1] = x[2] = 0.;
-    for (int idim=0; idim<sysdim; idim++) x[idim] = basis[i][idim];
-    for (int idim=0; idim<sysdim; idim++)
+    for (int idim = 0; idim < sysdim; idim++) x[idim] = basis[i][idim];
+    for (int idim = 0; idim < sysdim; idim++)
       basis[i][idim] = x[0]*mat[idim] + x[1]*mat[3+idim] + x[2]*mat[6+idim];
   }
 
@@ -330,7 +312,7 @@ void DynMat::EnforceASR()
   char str[MAXLINE];
   int nasr = 20;
   if (nucell <= 1) nasr = 1;
-  printf("\n"); for (int i=0; i<80; i++) printf("=");
+  printf("\n"); for (int i = 0; i < 80; ++i) printf("=");
 
   // compute and display eigenvalues of Phi at gamma before ASR
   if (nucell > 100){
@@ -339,11 +321,11 @@ void DynMat::EnforceASR()
   }
 
   double egvs[fftdim];
-  for (int i=0; i<fftdim; i++)
-  for (int j=0; j<fftdim; j++) DM_q[i][j] = DM_all[0][i*fftdim+j];
+  for (int i = 0; i < fftdim; ++i)
+  for (int j = 0; j < fftdim; ++j) DM_q[i][j] = DM_all[0][i*fftdim+j];
   geteigen(egvs, 0);
   printf("\nEigenvalues of Phi at gamma before enforcing ASR:\n");
-  for (int i=0; i<fftdim; i++){
+  for (int i = 0; i < fftdim; ++i){
     printf("%lg ", egvs[i]);
     if (i%10 == 9) printf("\n");
     if (i == 99){ printf("...... (%d more skipped)\n", fftdim-100); break;}
@@ -355,20 +337,23 @@ void DynMat::EnforceASR()
   fgets(str,MAXLINE,stdin);
   char *ptr = strtok(str," \t\n\r\f");
   if (ptr) nasr = atoi(ptr);
-  if (nasr < 1){return; for (int i=0; i<80; i++) printf("="); printf("\n");}
+  if (nasr < 1){
+    for (int i=0; i<80; i++) printf("="); printf("\n");
+    return;
+  }
 
-  for (int iit=0; iit<nasr; iit++){
+  for (int iit = 0; iit < nasr; ++iit){
     // simple ASR; the resultant matrix might not be symmetric
-    for (int a=0; a<sysdim; a++)
-    for (int b=0; b<sysdim; b++){
-      for (int k=0; k<nucell; k++){
+    for (int a = 0; a < sysdim; ++a)
+    for (int b = 0; b < sysdim; ++b){
+      for (int k = 0; k < nucell; ++k){
         double sum = 0.;
-        for (int kp=0; kp<nucell; kp++){
+        for (int kp = 0; kp < nucell; ++kp){
           int idx = (k*sysdim+a)*fftdim+kp*sysdim+b;
           sum += DM_all[0][idx].r;
         }
         sum /= double(nucell);
-        for (int kp=0; kp<nucell; kp++){
+        for (int kp = 0; kp < nucell; ++kp){
           int idx = (k*sysdim+a)*fftdim+kp*sysdim+b;
           DM_all[0][idx].r -= sum;
         }
@@ -376,11 +361,11 @@ void DynMat::EnforceASR()
     }
    
     // symmetrize
-    for (int k=0; k<nucell; k++)
-    for (int kp=k; kp<nucell; kp++){
+    for (int k  = 0; k  < nucell; ++k)
+    for (int kp = k; kp < nucell; ++kp){
       double csum = 0.;
-      for (int a=0; a<sysdim; a++)
-      for (int b=0; b<sysdim; b++){
+      for (int a = 0; a < sysdim; ++a)
+      for (int b = 0; b < sysdim; ++b){
         int idx = (k*sysdim+a)*fftdim+kp*sysdim+b;
         int jdx = (kp*sysdim+b)*fftdim+k*sysdim+a;
         csum = (DM_all[0][idx].r + DM_all[0][jdx].r )*0.5;
@@ -390,16 +375,16 @@ void DynMat::EnforceASR()
   }
 
   // symmetric ASR
-  for (int a=0; a<sysdim; a++)
-  for (int b=0; b<sysdim; b++){
-    for (int k=0; k<nucell; k++){
+  for (int a = 0; a < sysdim; ++a)
+  for (int b = 0; b < sysdim; ++b){
+    for (int k = 0; k < nucell; ++k){
       double sum = 0.;
-      for (int kp=0; kp<nucell; kp++){
+      for (int kp = 0; kp < nucell; ++kp){
         int idx = (k*sysdim+a)*fftdim+kp*sysdim+b;
         sum += DM_all[0][idx].r;
       }
       sum /= double(nucell-k);
-      for (int kp=k; kp<nucell; kp++){
+      for (int kp = k; kp < nucell; ++kp){
         int idx = (k*sysdim+a)*fftdim+kp*sysdim+b;
         int jdx = (kp*sysdim+b)*fftdim+k*sysdim+a;
         DM_all[0][idx].r -= sum;
@@ -409,16 +394,17 @@ void DynMat::EnforceASR()
   }
 
   // compute and display eigenvalues of Phi at gamma after ASR
-  for (int i=0; i<fftdim; i++)
-  for (int j=0; j<fftdim; j++) DM_q[i][j] = DM_all[0][i*fftdim+j];
+  for (int i = 0; i < fftdim; ++i)
+  for (int j = 0; j < fftdim; ++j) DM_q[i][j] = DM_all[0][i*fftdim+j];
   geteigen(egvs, 0);
   printf("Eigenvalues of Phi at gamma after enforcing ASR:\n");
-  for (int i=0; i<fftdim; i++){
+  for (int i = 0; i < fftdim; ++i){
     printf("%lg ", egvs[i]);
     if (i%10 == 9) printf("\n");
     if (i == 99){ printf("...... (%d more skiped)", fftdim-100); break;}
   }
-  printf("\n"); for (int i=0; i<80; i++) printf("="); printf("\n\n");
+  printf("\n");
+  for (int i = 0; i < 80; ++i) printf("="); printf("\n\n");
 
 return;
 }
@@ -441,23 +427,23 @@ void DynMat::real2rec()
   ibasevec[8] = basevec[0]*basevec[4] - basevec[1]*basevec[3];
 
   double vol = 0.;
-  for (int i=0; i<sysdim; i++) vol += ibasevec[i] * basevec[i];
+  for (int i = 0; i < sysdim; ++i) vol += ibasevec[i] * basevec[i];
   vol = 8.*atan(1.)/vol;
 
-  for (int i=0; i<9; i++) ibasevec[i] *= vol;
+  for (int i = 0; i < 9; ++i) ibasevec[i] *= vol;
 
-  printf("\n"); for (int i=0; i<80; i++) printf("=");
+  printf("\n"); for (int i = 0; i < 80; ++i) printf("=");
   printf("\nBasis vectors of the unit cell in real space:");
-  for (int i=0; i<sysdim; i++){
+  for (int i = 0; i < sysdim; ++i){
     printf("\n     A%d: ", i+1);
-    for (int j=0; j<sysdim; j++) printf("%8.4f ", basevec[i*3+j]);
+    for (int j = 0; j < sysdim; ++j) printf("%8.4f ", basevec[i*3+j]);
   }
   printf("\nBasis vectors of the corresponding reciprocal cell:");
-  for (int i=0; i<sysdim; i++){
+  for (int i = 0; i < sysdim; ++i){
     printf("\n     B%d: ", i+1);
-    for (int j=0; j<sysdim; j++) printf("%8.4f ", ibasevec[i*3+j]);
+    for (int j = 0; j < sysdim; ++j) printf("%8.4f ", ibasevec[i*3+j]);
   }
-  printf("\n"); for (int i=0; i<80; i++) printf("="); printf("\n");
+  printf("\n"); for (int i = 0; i < 80; ++i) printf("="); printf("\n");
 
 return;
 }
@@ -479,21 +465,21 @@ void DynMat::GaussJordan(int n, double *Mat)
   indxr = new int[n];
   ipiv  = new int[n];
 
-  for (i=0; i<n; i++) ipiv[i] = 0;
-  for (i=0; i<n; i++){
+  for (i = 0; i < n; ++i) ipiv[i] = 0;
+  for (i = 0; i < n; ++i){
     big = 0.;
-    for (j=0; j<n; j++){
+    for (j = 0; j < n; ++j){
       if (ipiv[j] != 1){
-        for (k=0; k<n; k++){
+        for (k = 0; k < n; ++k){
           if (ipiv[k] == 0){
-            idr = j*n+k;
+            idr = j * n + k;
             nmjk = abs(Mat[idr]);
             if (nmjk >= big){
               big  = nmjk;
               irow = j;
               icol = k;
             }
-          }else if (ipiv[k]>1){
+          } else if (ipiv[k] > 1){
             printf("DynMat: Singular matrix in double GaussJordan!\n"); exit(1);
           }
         }
@@ -501,7 +487,7 @@ void DynMat::GaussJordan(int n, double *Mat)
     }
     ipiv[icol] += 1;
     if (irow != icol){
-      for (l=0; l<n; l++){
+      for (l = 0; l < n; ++l){
         idr  = irow*n+l;
         idc  = icol*n+l;
         dum  = Mat[idr];
@@ -511,7 +497,7 @@ void DynMat::GaussJordan(int n, double *Mat)
     }
     indxr[i] = irow;
     indxc[i] = icol;
-    idr = icol*n+icol;
+    idr = icol * n + icol;
     if (Mat[idr] == 0.){
       printf("DynMat: Singular matrix in double GaussJordan!");
       exit(1);
@@ -520,24 +506,24 @@ void DynMat::GaussJordan(int n, double *Mat)
     pivinv = 1./ Mat[idr];
     Mat[idr] = 1.;
     idr = icol*n;
-    for (l=0; l<n; l++) Mat[idr+l] *= pivinv;
-    for (ll=0; ll<n; ll++){
+    for (l = 0; l < n; ++l) Mat[idr+l] *= pivinv;
+    for (ll = 0; ll < n; ++ll){
       if (ll != icol){
-        idc = ll*n+icol;
+        idc = ll * n + icol;
         dum = Mat[idc];
         Mat[idc] = 0.;
         idc -= icol;
-        for (l=0; l<n; l++) Mat[idc+l] -= Mat[idr+l]*dum;
+        for (l = 0; l < n; ++l) Mat[idc+l] -= Mat[idr+l]*dum;
       }
     }
   }
-  for (l=n-1; l>=0; l--){
+  for (l = n-1; l >= 0; --l){
     int rl = indxr[l];
     int cl = indxc[l];
     if (rl != cl){
-      for (k=0; k<n; k++){
-        idr = k*n+rl;
-        idc = k*n+cl;
+      for (k = 0; k < n; ++k){
+        idr = k * n + rl;
+        idc = k * n + cl;
         dum = Mat[idr];
         Mat[idr] = Mat[idc];
         Mat[idc] = dum;
@@ -547,6 +533,7 @@ void DynMat::GaussJordan(int n, double *Mat)
   delete []indxr;
   delete []indxc;
   delete []ipiv;
+
 return;
 }
 
@@ -595,7 +582,7 @@ void DynMat::ShowVersion()
   printf("               (  _ \\( )_( )  /__\\  ( \\( )  /__\\  \n");
   printf("                )___/ ) _ (  /(__)\\  )  (  /(__)\\ \n");
   printf("               (__)  (_) (_)(__)(__)(_)\\_)(__)(__)\n");
-  printf("\nPHonon ANAlyzer for Fix-Phonon, version 2.%d, compiled on %s.\n", VERSION, __DATE__);
+  printf("\nPHonon ANAlyzer for Fix-Phonon, version 2.%02d, compiled on %s.\n", VERSION, __DATE__);
 
 return;
 }

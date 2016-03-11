@@ -35,6 +35,7 @@
 using namespace LAMMPS_NS;
 
 #define BONDDELTA 10000
+#define LB_FACTOR 1.5
 
 enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
 
@@ -44,6 +45,7 @@ template<class DeviceType>
 NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
 
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
@@ -76,28 +78,35 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   // 1st time allocation of topology lists
 
   if (atom->molecular && atom->nbonds && maxbond == 0) {
-    memory->destroy(neighbor->bondlist);
+    if (nprocs == 1) maxbond = atom->nbonds;
+    else maxbond = static_cast<int> (LB_FACTOR * atom->nbonds / nprocs);
     memory->create_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neigh:neighbor->bondlist");
   }
 
   if (atom->molecular && atom->nangles && maxangle == 0) {
-    memory->destroy(neighbor->anglelist);
+    if (nprocs == 1) maxangle = atom->nangles;
+    else maxangle = static_cast<int> (LB_FACTOR * atom->nangles / nprocs);
     memory->create_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neigh:neighbor->anglelist");
   }
 
   if (atom->molecular && atom->ndihedrals && maxdihedral == 0) {
-    memory->destroy(neighbor->dihedrallist);
+    if (nprocs == 1) maxdihedral = atom->ndihedrals;
+    else maxdihedral = static_cast<int>
+           (LB_FACTOR * atom->ndihedrals / nprocs);
     memory->create_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neigh:neighbor->dihedrallist");
   }
 
   if (atom->molecular && atom->nimpropers && maximproper == 0) {
-    memory->destroy(neighbor->improperlist);
+    if (nprocs == 1) maximproper = atom->nimpropers;
+    else maximproper = static_cast<int>
+           (LB_FACTOR * atom->nimpropers / nprocs);
     memory->create_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neigh:neighbor->improperlist");
   }
 
   // set flags that determine which topology neighboring routines to use
   // bonds,etc can only be broken for atom->molecular = 1, not 2
   // SHAKE sets bonds and angles negative
+  // gcmc sets all bonds, angles, etc negative
   // bond_quartic sets bonds to 0
   // delete_bonds sets all interactions negative
 
@@ -105,7 +114,8 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   int bond_off = 0;
   int angle_off = 0;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shake") == 0)
+    if ((strcmp(modify->fix[i]->style,"shake") == 0)
+        || (strcmp(modify->fix[i]->style,"rattle") == 0))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
@@ -142,6 +152,10 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
         if (atom->improper_type[i][m] <= 0) improper_off = 1;
     }
   }
+
+  for (i = 0; i < modify->nfix; i++)
+    if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
+      bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs
 
@@ -353,7 +367,7 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     k_fail_flag.template modify<LMPHostType>();
     k_fail_flag.template sync<DeviceType>();
 
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondAll>(0,nlocal),*this,nmissing);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondPartial>(0,nlocal),*this,nmissing);
     DeviceType::fence();
 
     k_nlist.template modify<DeviceType>();
@@ -952,8 +966,6 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralCheck, const in
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
 }
 
-
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1278,7 +1290,10 @@ void NeighBondKokkos<DeviceType>::update_domain_variables()
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class NeighBondKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class NeighBondKokkos<LMPHostType>;
 #endif
+}
+

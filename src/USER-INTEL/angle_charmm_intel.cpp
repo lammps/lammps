@@ -1,0 +1,332 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: W. Michael Brown (Intel)
+------------------------------------------------------------------------- */
+
+#include <math.h>
+#include <stdlib.h>
+#include "angle_charmm_intel.h"
+#include "atom.h"
+#include "neighbor.h"
+#include "domain.h"
+#include "comm.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "suffix.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+using namespace MathConst;
+
+#define SMALL2     (flt_t)0.000001
+#define INVSMALL   (flt_t)1000.0
+typedef struct { int a,b,c,t;  } int4_t;
+
+/* ---------------------------------------------------------------------- */
+
+AngleCharmmIntel::AngleCharmmIntel(LAMMPS *lmp) : AngleCharmm(lmp) 
+{
+  suffix_flag |= Suffix::INTEL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+AngleCharmmIntel::~AngleCharmmIntel()
+{
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleCharmmIntel::compute(int eflag, int vflag)
+{
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_use_base) {
+    AngleCharmm::compute(eflag, vflag);
+    return;
+  }
+  #endif
+
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
+                          force_const_single);
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+    compute<double,double>(eflag, vflag, fix->get_double_buffers(),
+                           force_const_double);
+  else
+    compute<float,float>(eflag, vflag, fix->get_single_buffers(),
+                         force_const_single);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t, class acc_t>
+void AngleCharmmIntel::compute(int eflag, int vflag,
+			       IntelBuffers<flt_t,acc_t> *buffers,
+			       const ForceConst<flt_t> &fc)
+{
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
+
+  if (evflag) {
+    if (eflag) {
+      if (force->newton_bond)
+	eval<1,1,1>(vflag, buffers, fc);
+      else
+	eval<1,1,0>(vflag, buffers, fc);
+    } else {
+      if (force->newton_bond)
+	eval<1,0,1>(vflag, buffers, fc);
+      else
+	eval<1,0,0>(vflag, buffers, fc);
+    }
+  } else {
+    if (force->newton_bond)
+      eval<0,0,1>(vflag, buffers, fc);
+    else
+      eval<0,0,0>(vflag, buffers, fc);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
+void AngleCharmmIntel::eval(const int vflag, 
+			    IntelBuffers<flt_t,acc_t> *buffers,
+			    const ForceConst<flt_t> &fc)
+
+{
+  const int inum = neighbor->nanglelist;
+  if (inum == 0) return;
+
+  ATOM_T * _noalias const x = buffers->get_x(0);
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+
+  int f_stride;
+  if (NEWTON_BOND) f_stride = buffers->get_stride(nall);
+  else f_stride = buffers->get_stride(nlocal);
+
+  int tc;
+  FORCE_T * _noalias f_start;
+  acc_t * _noalias ev_global;
+  IP_PRE_get_buffers(0, buffers, fix, tc, f_start, ev_global);
+  const int nthreads = tc;
+
+  acc_t oeangle, ov0, ov1, ov2, ov3, ov4, ov5;
+  if (EVFLAG) {
+    if (EFLAG)
+      oeangle = (acc_t)0.0;
+    if (vflag) {
+      ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0.0;
+    }
+  }
+
+  #if defined(_OPENMP)
+  #pragma omp parallel default(none) \
+    shared(f_start,f_stride,fc)	\
+    reduction(+:oeangle,ov0,ov1,ov2,ov3,ov4,ov5)
+  #endif
+  {
+    int nfrom, nto, tid;
+    IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
+
+    FORCE_T * _noalias const f = f_start + (tid * f_stride);
+    if (fix->need_zero(tid))
+      memset(f, 0, f_stride * sizeof(FORCE_T));
+
+    const int4_t * _noalias const anglelist = 
+      (int4_t *) neighbor->anglelist[0];
+
+    for (int n = nfrom; n < nto; n++) {
+      const int i1 = anglelist[n].a;
+      const int i2 = anglelist[n].b;
+      const int i3 = anglelist[n].c;
+      const int type = anglelist[n].t;
+
+      // 1st bond
+
+      const flt_t delx1 = x[i1].x - x[i2].x;
+      const flt_t dely1 = x[i1].y - x[i2].y;
+      const flt_t delz1 = x[i1].z - x[i2].z;
+
+      const flt_t rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+      flt_t ir12 = (flt_t)1.0/sqrt(rsq1);
+
+      // 2nd bond
+
+      const flt_t delx2 = x[i3].x - x[i2].x;
+      const flt_t dely2 = x[i3].y - x[i2].y;
+      const flt_t delz2 = x[i3].z - x[i2].z;
+
+      const flt_t rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+      ir12 *= (flt_t)1.0/sqrt(rsq2);
+
+      // Urey-Bradley bond
+
+      const flt_t delxUB = x[i3].x - x[i1].x;
+      const flt_t delyUB = x[i3].y - x[i1].y;
+      const flt_t delzUB = x[i3].z - x[i1].z;
+
+      const flt_t rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
+      const flt_t irUB = (flt_t)1.0/sqrt(rsqUB);
+
+      // Urey-Bradley force & energy
+
+      const flt_t dr = (flt_t)1.0/irUB - fc.fc[type].r_ub;
+      const flt_t rk = fc.fc[type].k_ub * dr;
+
+      flt_t forceUB;
+      if (rsqUB > (flt_t)0.0) forceUB = (flt_t)-2.0*rk*irUB;
+      else forceUB = 0.0;
+
+      flt_t eangle;
+      if (EFLAG) eangle = rk*dr;
+
+      // angle (cos and sin)
+
+      flt_t c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+      c *= ir12;
+
+      if (c > (flt_t)1.0) c = (flt_t)1.0;
+      if (c < (flt_t)-1.0) c = (flt_t)-1.0;
+
+      const flt_t sd = (flt_t)1.0 - c * c;
+      flt_t s = (flt_t)1.0 / sqrt(sd);
+      if (sd < SMALL2) s = INVSMALL;
+
+      // harmonic force & energy
+
+      const flt_t dtheta = acos(c) - fc.fc[type].theta0;
+      const flt_t tk = fc.fc[type].k * dtheta;
+
+      if (EFLAG) eangle += tk*dtheta;
+
+      const flt_t a = (flt_t)-2.0 * tk * s;
+      const flt_t a11 = a*c / rsq1;
+      const flt_t a12 = -a * ir12;
+      const flt_t a22 = a*c / rsq2;
+
+      const flt_t f1x = a11*delx1 + a12*delx2 - delxUB*forceUB;
+      const flt_t f1y = a11*dely1 + a12*dely2 - delyUB*forceUB;
+      const flt_t f1z = a11*delz1 + a12*delz2 - delzUB*forceUB;
+
+      const flt_t f3x = a22*delx2 + a12*delx1 + delxUB*forceUB;
+      const flt_t f3y = a22*dely2 + a12*dely1 + delyUB*forceUB;
+      const flt_t f3z = a22*delz2 + a12*delz1 + delzUB*forceUB;
+
+      // apply force to each of 3 atoms
+
+      if (NEWTON_BOND || i1 < nlocal) {
+        f[i1].x += f1x;
+	f[i1].y += f1y;
+	f[i1].z += f1z;
+      }
+
+      if (NEWTON_BOND || i2 < nlocal) {
+        f[i2].x -= f1x + f3x;
+        f[i2].y -= f1y + f3y;
+        f[i2].z -= f1z + f3z;
+      }
+
+      if (NEWTON_BOND || i3 < nlocal) {
+        f[i3].x += f3x;
+        f[i3].y += f3y;
+        f[i3].z += f3z;
+      }
+
+      if (EVFLAG) {
+	IP_PRE_ev_tally_angle(EFLAG, eatom, vflag, eangle, i1, i2, i3,f1x, 
+                              f1y, f1z, f3x, f3y, f3z, delx1, dely1, delz1, 
+                              delx2, dely2, delz2, oeangle, f, NEWTON_BOND, 
+                              nlocal, ov0, ov1, ov2, ov3, ov4, ov5);
+      }
+    } // for n
+  } // omp parallel
+
+  if (EVFLAG) {
+    if (EFLAG)
+      energy += oeangle;
+    if (vflag) {
+      virial[0] += ov0; virial[1] += ov1; virial[2] += ov2;
+      virial[3] += ov3; virial[4] += ov4; virial[5] += ov5; 
+    }
+  }
+
+  fix->set_reduce_flag();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleCharmmIntel::init_style()
+{
+  AngleCharmm::init_style();
+
+  int ifix = modify->find_fix("package_intel");
+  if (ifix < 0)
+    error->all(FLERR,
+               "The 'package intel' command is required for /intel styles");
+  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+
+  #ifdef _LMP_INTEL_OFFLOAD
+  _use_base = 0;
+  if (fix->offload_balance() != 0.0) {
+    _use_base = 1;
+    return;
+  }
+  #endif
+
+  fix->bond_init_check();
+
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+    pack_force_const(force_const_single, fix->get_mixed_buffers());
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+    pack_force_const(force_const_double, fix->get_double_buffers());
+  else
+    pack_force_const(force_const_single, fix->get_single_buffers());
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t, class acc_t>
+void AngleCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
+                                        IntelBuffers<flt_t,acc_t> *buffers)
+{
+  const int bp1 = atom->nangletypes + 1;
+  fc.set_ntypes(bp1,memory);
+
+  for (int i = 0; i < bp1; i++) {
+    fc.fc[i].k = k[i];
+    fc.fc[i].theta0 = theta0[i];
+    fc.fc[i].k_ub = k_ub[i];
+    fc.fc[i].r_ub = r_ub[i];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t>
+void AngleCharmmIntel::ForceConst<flt_t>::set_ntypes(const int nangletypes,
+	                                             Memory *memory) {
+  if (nangletypes != _nangletypes) {
+    if (_nangletypes > 0)
+      _memory->destroy(fc);
+    
+    if (nangletypes > 0)
+      _memory->create(fc,nangletypes,"anglecharmmintel.fc");
+  }
+  _nangletypes = nangletypes;
+  _memory = memory;
+}

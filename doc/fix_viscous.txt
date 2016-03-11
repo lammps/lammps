@@ -46,9 +46,9 @@ optional keyword {scale} is used, gamma can scaled up or down by the
 specified factor for atoms of that type.  It can be used multiple
 times to adjust gamma for several atom types.
 
-IMPORTANT NOTE: You should specify gamma in force/velocity units.
-This is not the same as mass/time units, at least for some of the
-LAMMPS "units"_units.html options like "real" or "metal" that are not
+NOTE: You should specify gamma in force/velocity units.  This is not
+the same as mass/time units, at least for some of the LAMMPS
+"units"_units.html options like "real" or "metal" that are not
 self-consistent.
 
 In a Brownian dynamics context, gamma = Kb T / D, where Kb =

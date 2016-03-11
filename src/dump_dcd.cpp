@@ -126,7 +126,7 @@ void DumpDCD::write_header(bigint n)
 {
   if (n != natoms) error->all(FLERR,"Dump dcd of non-matching # of atoms");
   if (update->ntimestep > MAXSMALLINT)
-    error->all(FLERR,"Too big a timestep for dump dcd");
+    error->one(FLERR,"Too big a timestep for dump dcd");
 
   // first time, write header for entire file
 

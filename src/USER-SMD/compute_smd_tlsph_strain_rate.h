@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(smd/tlsph_strain_rate,ComputeSMDTLSPHStrainRate)
+ComputeStyle(smd/tlsph/strain/rate,ComputeSMDTLSPHStrainRate)
 
 #else
 

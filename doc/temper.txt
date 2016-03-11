@@ -97,6 +97,23 @@ assignments for the Nth replica by comparing the Nth column of screen
 output to the thermodynamic data in the corresponding log.lammps.N or
 screen.N files as time proceeds.
 
+You can have each replica create its own dump file in the following
+manner:
+
+variable rep world 0 1 2 3 4 5 6 7
+dump 1 all atom 1000 dump.temper.${rep} :pre
+
+NOTE: Each replica's dump file will contain a continuous trajectory
+for its atoms where the temperature varies over time as swaps take
+place involving that replica.  If you want a series of dump files,
+each with snapshots (from all replicas) that are all at a single
+temperature, then you will need to post-process the dump files using
+the information from the log.lammps file.  E.g. you could produce one
+dump file with snapshots at 300K (from all replicas), another with
+snapshots at 310K, etc.  Note that these new dump files will not
+contain "continuous trajectories" for individual atoms, because two
+successive snapshots (in time) may be from different replicas.
+
 The last argument {index} in the temper command is optional and is
 used when restarting a tempering run from a set of restart files (one
 for each replica) which had previously swapped to new temperatures.

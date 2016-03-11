@@ -57,8 +57,15 @@
 #elif defined ( KOKKOS_HAVE_WINTHREAD )
   #include <process.h>
   #define YIELD  Sleep(0)
+#elif defined ( _WIN32)  && defined (_MSC_VER)
+  /* Windows w/ Visual Studio */
+  #define NOMINMAX
+  #include <winsock2.h>
+  #include <windows.h>
+#define YIELD YieldProcessor();
 #elif defined ( _WIN32 )
-  #define YIELD   __asm__ __volatile__("pause\n":::"memory")
+  /* Windows w/ Intel*/
+  #define YIELD __asm__ __volatile__("pause\n":::"memory")
 #else
   #include <sched.h>
   #define YIELD  sched_yield()

@@ -60,6 +60,7 @@
 
 #include <TestViewAPI.hpp>
 #include <TestViewSubview.hpp>
+#include <TestViewOfClass.hpp>
 #include <TestAtomic.hpp>
 
 #include <TestReduce.hpp>
@@ -133,6 +134,16 @@ TEST_F( threads , init ) {
   ;
 }
 
+TEST_F( threads , dispatch )
+{
+  const int repeat = 100 ;
+  for ( int i = 0 ; i < repeat ; ++i ) {
+  for ( int j = 0 ; j < repeat ; ++j ) {
+    Kokkos::parallel_for( Kokkos::RangePolicy< Kokkos::Threads >(0,j)
+                        , KOKKOS_LAMBDA( int ) {} );
+  }}
+}
+
 TEST_F( threads , impl_shared_alloc ) {
   test_shared_alloc< Kokkos::HostSpace , Kokkos::Threads >();
 }
@@ -151,6 +162,11 @@ TEST_F( threads, view_impl) {
 
 TEST_F( threads, view_api) {
   TestViewAPI< double , Kokkos::Threads >();
+}
+
+TEST_F( threads , view_nested_view )
+{
+  ::Test::view_nested_view< Kokkos::Threads >();
 }
 
 TEST_F( threads, view_subview_auto_1d_left ) {
@@ -247,6 +263,12 @@ TEST_F( threads, long_reduce_dynamic_view ) {
 TEST_F( threads, team_shared_request) {
   TestSharedTeam< Kokkos::Threads >();
 }
+
+#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA) && !defined(KOKKOS_HAVE_CUDA)
+TEST_F( threads, team_lambda_shared_request) {
+  TestLambdaSharedTeam< Kokkos::Threads >();
+}
+#endif
 
 TEST_F( threads , view_remap )
 {

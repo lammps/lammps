@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix reax/c/species command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix reax/c/species command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -208,9 +208,10 @@ order.  The species analysis is performed using the average bond-order
 on timesteps that are a multiple of <em>Nfreq</em>.  The average is over
 <em>Nrepeat</em> bond-order samples, computed in the preceding portion of the
 simulation every <em>Nevery</em> timesteps.  <em>Nfreq</em> must be a multiple of
-<em>Nevery</em> and <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.  Also,
-the timesteps contributing to the average bond-order cannot overlap,
-i.e. Nfreq &gt; (Nrepeat-1)*Nevery is required.</p>
+<em>Nevery</em> and <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.
+Also, the timesteps
+contributing to the average bond-order cannot overlap,
+i.e. Nrepeat*Nevery can not exceed Nfreq.</p>
 <p>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then bond-order
 values on timesteps 90,92,94,96,98,100 will be used to compute the
 average bond-order for the species analysis output on timestep 100.</p>
@@ -269,7 +270,7 @@ by default.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -290,7 +291,7 @@ by default.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

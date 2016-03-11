@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute xrd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute xrd command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -167,7 +167,7 @@ fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2T
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Define a computation that calculates x-ray diffraction intensity as described
-in <a class="reference internal" href="#coleman"><span>(Coleman)</span></a> on a mesh of reciprocal lattice nodes defined
+in <a class="reference internal" href="fix_saed_vtk.html#coleman"><span>(Coleman)</span></a> on a mesh of reciprocal lattice nodes defined
 by the entire simulation domain (or manually) using a simulated radiation
 of wavelength lambda.</p>
 <p>The x-ray diffraction intensity, I, at each reciprocal lattice point, k,
@@ -297,13 +297,15 @@ which by the mesh.  The global array has 2 columns.</p>
 <p>The first column contains the diffraction angle in the units (radians
 or degrees) provided with the <em>2Theta</em> values. The second column contains
 the computed diffraction intensities as described above.</p>
-<p>The array can be accessed by any command that uses global values
-from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
-options.</p>
+<p>The array can be accessed by any command that uses global values from
+a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a>
+for an overview of LAMMPS output options.</p>
 <p>All array values calculated by this compute are &#8220;intensive&#8221;.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This compute is part of the USER-DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 <p>The compute_xrd command does not work for triclinic cells.</p>
 </div>
 <div class="section" id="related-commands">
@@ -335,7 +337,7 @@ Volume C: Mathematical and Chemical Tables, 249-429 (2004).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -356,7 +358,7 @@ Volume C: Mathematical and Chemical Tables, 249-429 (2004).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

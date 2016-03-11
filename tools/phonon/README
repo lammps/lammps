@@ -1,31 +1,48 @@
-phana = post-processing program for the fix phonon command
+#-------------------------------------------------------------------------------
+   phana
+#
+   This program reads the binary file created by fix_phonon and helps to
+   analyse the phonon related information.
+#-------------------------------------------------------------------------------
+1. Dependencies
+   The clapack library is needed to solve the eigen problems,
+   which could be downloaded from:
+   http://www.netlib.org/clapack/
+   
+   The tricubic library is also needed to do tricubic interpolations,
+   which could be obtained from:
+      http://orca.princeton.edu/francois/software/tricubic/
+   or
+      http://1drv.ms/1J2WFYk
+   
+   The spglib is optionally needed, enabling one to evaluate the
+   phonon density of states or vibrational thermal properties
+   using only the irreducible q-points in the first Brillouin zone,
+   as well as to evaluate the phonon dispersion curvers with the
+   automatic mode. Currently, the 1.8.3 version of spglib is used.
+   It can be obtained from:
+   http://spglib.sourceforge.net/
+   
+2. Compilation
+   To compile the code, one needs therefore to install the above
+   libraries and set the paths correctly in the Makefile.
+   Once this is done, by typing
+     make
+   will yield the executable "phana".
 
-This program reads the binary file created by the fix phonon command
-and helps to analyse the phonon related info.
+3. Unit system
+   The units of the output frequencies by this code is THz for
+   LAMMPS units "real", "si", "metal", and "cgs"; in these cases,
+   the frequencies are $\nu$ instead of $\omega$.
 
-The clapack library is needed to solve the eigen problems, which could
-be downloaded from: http://www.netlib.org/clapack/
+4. Updates
+   For updates of phana, please check:
+     http://nes.sjtu.edu.cn/english/research/software.htm
+   or
+     https://github.com/lingtikong/phana.git
 
-The tricubic library is also needed to to tricubic interpolations,
-which could be obtained from:
-http://orca.princeton.edu/francois/software/tricubic/ or
-http://code.google.com/p/fix-phonon/downloads/list
-
-The spglib (version 0.7.1) is optionally needed, enabling one to
-evaluate the phonon density of states or vibrational thermal
-properties using only the irreducible q-points in the first Brillouin
-zone.
-
-To compile the code, one needs therefore to install the above
-libraries and set the paths correctly in the Makefile.
-
-The units of the output frequencies by this code is THz for LAMMPS
-units "real", "si", "metal", and "cgs"; in these cases, the
-frequencies are $\nu$ instead of $\omega$.
-
-One is encouraged to visit http://code.google.com/p/fix-phonon/ to
-check out the latest revision on fix-phonon and the post-processing
-code.
-
-Author: Ling-Ti Kong (konglt at sjtu.edu.cn)
-Feb 2013
+5. Bug report
+   If any bug found, please drop a line to: konglt(at)sjtu.edu.cn
+#-------------------------------------------------------------------------------
+Author: Ling-Ti Kong, konglt(at)sjtu.edu.cn
+Oct 2015

@@ -246,8 +246,8 @@ struct PairComputeFunctor  {
     if (EFLAG) {
       if (c.eflag_atom) {
         const E_FLOAT epairhalf = 0.5 * epair;
-        if (NEWTON_PAIR || i < c.nlocal) eatom[i] += epairhalf;
-        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) eatom[j] += epairhalf;
+        if (NEWTON_PAIR || i < c.nlocal) c.d_eatom[i] += epairhalf;
+        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) c.d_eatom[j] += epairhalf;
       }
     }
 
@@ -298,20 +298,20 @@ struct PairComputeFunctor  {
 
       if (c.vflag_atom) {
         if (NEWTON_PAIR || i < c.nlocal) {
-          vatom(i,0) += 0.5*v0;
-          vatom(i,1) += 0.5*v1;
-          vatom(i,2) += 0.5*v2;
-          vatom(i,3) += 0.5*v3;
-          vatom(i,4) += 0.5*v4;
-          vatom(i,5) += 0.5*v5;
+          c.d_vatom(i,0) += 0.5*v0;
+          c.d_vatom(i,1) += 0.5*v1;
+          c.d_vatom(i,2) += 0.5*v2;
+          c.d_vatom(i,3) += 0.5*v3;
+          c.d_vatom(i,4) += 0.5*v4;
+          c.d_vatom(i,5) += 0.5*v5;
         }
         if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) {
-          vatom(j,0) += 0.5*v0;
-          vatom(j,1) += 0.5*v1;
-          vatom(j,2) += 0.5*v2;
-          vatom(j,3) += 0.5*v3;
-          vatom(j,4) += 0.5*v4;
-          vatom(j,5) += 0.5*v5;
+          c.d_vatom(j,0) += 0.5*v0;
+          c.d_vatom(j,1) += 0.5*v1;
+          c.d_vatom(j,2) += 0.5*v2;
+          c.d_vatom(j,3) += 0.5*v3;
+          c.d_vatom(j,4) += 0.5*v4;
+          c.d_vatom(j,5) += 0.5*v5;
         }
       }
     }
@@ -355,12 +355,12 @@ struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
   EV_FLOAT compute_item(const typename Kokkos::TeamPolicy<device_type>::member_type& dev,
                         const NeighListKokkos<device_type> &list, const NoCoulTag& ) const {
     EV_FLOAT ev;
-    const int i = dev.league_rank()*dev.team_size() + dev.team_rank();
+    int i = dev.league_rank()*dev.team_size() + dev.team_rank();
 
     const X_FLOAT xtmp = c.c_x(i,0);
     const X_FLOAT ytmp = c.c_x(i,1);
     const X_FLOAT ztmp = c.c_x(i,2);
-    const int itype = c.type(i);
+    int itype = c.type(i);
 
     const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
     const int jnum = list.d_numneigh[i];
@@ -368,7 +368,7 @@ struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
     F_FLOAT3 ftmp;
 
     for (int jj = 0; jj < jnum; jj++) {
-      const int jjj = neighbors_i(jj);
+      int jjj = neighbors_i(jj);
 
       Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(dev,NeighClusterSize),[&] (const int& k, F_FLOAT3& fftmp) {
         const F_FLOAT factor_lj = c.special_lj[sbmask(jjj+k)];

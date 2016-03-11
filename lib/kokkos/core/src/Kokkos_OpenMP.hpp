@@ -53,6 +53,9 @@
 #include <cstddef>
 #include <iosfwd>
 #include <Kokkos_HostSpace.hpp>
+#ifdef KOKKOS_HAVE_HBWSPACE
+#include <Kokkos_HBWSpace.hpp>
+#endif
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_Layout.hpp>
@@ -72,12 +75,16 @@ public:
 
   //! Tag this class as a kokkos execution space
   typedef OpenMP                execution_space ;
+  #ifdef KOKKOS_HAVE_HBWSPACE
+  typedef Experimental::HBWSpace memory_space ;
+  #else
   typedef HostSpace             memory_space ;
+  #endif
   //! This execution space preferred device_type
   typedef Kokkos::Device<execution_space,memory_space> device_type;
 
   typedef LayoutRight           array_layout ;
-  typedef HostSpace::size_type  size_type ;
+  typedef memory_space::size_type  size_type ;
 
   typedef ScratchMemorySpace< OpenMP > scratch_memory_space ;
 

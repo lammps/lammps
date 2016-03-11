@@ -367,6 +367,11 @@ FixGCMC::~FixGCMC()
       delete [] grouptypestrings[igroup];
     memory->sfree(grouptypestrings);
   }
+  if (full_flag) {
+    int igroupall = group->find("all");
+    neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -392,8 +397,7 @@ void FixGCMC::init()
         (force->pair == NULL) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
-        (force->pair_match("eam",0)) ||
-        (triclinic == 1)
+        (force->pair_match("eam",0))
 	) {
       full_flag = true;
       if (comm->me == 0)
@@ -469,10 +473,14 @@ void FixGCMC::init()
     error->all(FLERR,"Cannot use fix gcmc in a 2d simulation");
 
   // create a new group for interaction exclusions
+  // used for attempted atom or molecule deletions
+  // skip if already exists from previous init()
 
-  if (full_flag) {
+  if (full_flag && !exclusion_group_bit) {
     char **group_arg = new char*[4];
+
     // create unique group name for atoms to be excluded
+
     int len = strlen(id) + 30;
     group_arg[0] = new char[len];
     sprintf(group_arg[0],"FixGCMC:gcmc_exclusion_group:%s",id);
@@ -643,11 +651,11 @@ void FixGCMC::pre_exchange()
         int random_int_fraction =
           static_cast<int>(random_equal->uniform()*ncycles) + 1;
         if (random_int_fraction <= nmcmoves) {
-	  if (random_equal->uniform() < 0.5) attempt_molecule_translation_full();
-	  else attempt_molecule_rotation_full();
+ 	  if (random_equal->uniform() < 0.5) attempt_molecule_translation_full();
+ 	  else attempt_molecule_rotation_full();
         } else {
-          if (random_equal->uniform() < 0.5) attempt_molecule_deletion_full();
-          else attempt_molecule_insertion_full();
+	  if (random_equal->uniform() < 0.5) attempt_molecule_deletion_full();
+	  else attempt_molecule_insertion_full();
         }
       }
     } else {
@@ -657,17 +665,17 @@ void FixGCMC::pre_exchange()
         if (random_int_fraction <= nmcmoves) {
           attempt_atomic_translation_full();
         } else {
-          if (random_equal->uniform() < 0.5) attempt_atomic_deletion_full();
-          else attempt_atomic_insertion_full();
+	  if (random_equal->uniform() < 0.5) attempt_atomic_deletion_full();
+	  else attempt_atomic_insertion_full();
         }
       }
     }
-  if (triclinic) domain->x2lamda(atom->nlocal);
+    if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
-  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
   } else {
 
@@ -680,7 +688,7 @@ void FixGCMC::pre_exchange()
           else attempt_molecule_rotation();
         } else {
           if (random_equal->uniform() < 0.5) attempt_molecule_deletion();
-          else attempt_molecule_insertion();
+	  else attempt_molecule_insertion();
         }
       }
     } else {
@@ -690,8 +698,8 @@ void FixGCMC::pre_exchange()
         if (random_int_fraction <= nmcmoves) {
           attempt_atomic_translation();
         } else {
-          if (random_equal->uniform() < 0.5) attempt_atomic_deletion();
-          else attempt_atomic_insertion();
+	  if (random_equal->uniform() < 0.5) attempt_atomic_deletion();
+	  else attempt_atomic_insertion();
         }
       }
     }
@@ -800,7 +808,9 @@ void FixGCMC::attempt_atomic_deletion()
       if (atom->map_style) atom->map_init();
     }
     atom->nghost = 0;
+    if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ndeletion_successes += 1.0;
   }
@@ -907,7 +917,9 @@ void FixGCMC::attempt_atomic_insertion()
       if (atom->map_style) atom->map_init();
     }
     atom->nghost = 0;
+    if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ninsertion_successes += 1.0;
   }
@@ -1133,7 +1145,9 @@ void FixGCMC::attempt_molecule_deletion()
     atom->natoms -= natoms_per_molecule;
     if (atom->map_style) atom->map_init();
     atom->nghost = 0;
+    if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ndeletion_successes += 1.0;
   }
@@ -1316,7 +1330,9 @@ void FixGCMC::attempt_molecule_insertion()
     atom->nimpropers += onemols[imol]->nimpropers;
     if (atom->map_style) atom->map_init();
     atom->nghost = 0;
+    if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ninsertion_successes += 1.0;
   }
@@ -1542,7 +1558,9 @@ void FixGCMC::attempt_atomic_insertion_full()
     if (atom->map_style) atom->map_init();
   }
   atom->nghost = 0;
+  if (triclinic) domain->x2lamda(atom->nlocal);
   comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (force->kspace) force->kspace->qsum_qsq();
   double energy_after = energy_full();
 
@@ -1965,7 +1983,9 @@ void FixGCMC::attempt_molecule_insertion_full()
   atom->nimpropers += onemols[imol]->nimpropers;
   if (atom->map_style) atom->map_init();
   atom->nghost = 0;
+  if (triclinic) domain->x2lamda(atom->nlocal);
   comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (force->kspace) force->kspace->qsum_qsq();
   double energy_after = energy_full();
 

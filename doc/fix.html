@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -161,11 +161,11 @@ invoked in the order they were specified in the input script.</p>
 <p>The ID of a fix can only contain alphanumeric characters and
 underscores.</p>
 <p>Fixes can be deleted with the <a class="reference internal" href="unfix.html"><em>unfix</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <a class="reference internal" href="unfix.html"><em>unfix</em></a> command is the only way to turn
-off a fix; simply specifying a new fix with a similar style will not
-turn off the first one.  This is especially important to realize for
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="unfix.html"><em>unfix</em></a> command is the only way to turn off a
+fix; simply specifying a new fix with a similar style will not turn
+off the first one.  This is especially important to realize for
 integration fixes.  For example, using a <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>
 command for a second run after using a <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> command
 for the first run, will not cancel out the NVT time integration
@@ -267,21 +267,19 @@ for further info.</p>
 <p>Each fix style has its own documentation page which describes its
 arguments and what it does, as listed below.  Here is an alphabetic
 list of fix styles available in LAMMPS.  They are also given in more
-compact form in the fix section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+compact form in the Fix section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
 <p>There are also additional fix styles (not listed here) submitted by
 users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the fix section
 of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
-<p>There are also additional accelerated fix styles (not listed here)
-included in the LAMMPS distribution for faster performance on CPUs and
-GPUs.  The list of these with links to the individual styles are given
-in the fix section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
 <ul class="simple">
 <li><a class="reference internal" href="fix_adapt.html"><em>adapt</em></a> - change a simulation parameter over time</li>
 <li><a class="reference internal" href="fix_addforce.html"><em>addforce</em></a> - add a force to each atom</li>
 <li><a class="reference internal" href="fix_append_atoms.html"><em>append/atoms</em></a> - append atoms to a running simulation</li>
+<li><a class="reference internal" href="fix_atom_swap.html"><em>atom/swap</em></a> - Monte Carlo atom type swapping</li>
 <li><a class="reference internal" href="fix_aveforce.html"><em>aveforce</em></a> - add an averaged force to each atom</li>
 <li><a class="reference internal" href="fix_ave_atom.html"><em>ave/atom</em></a> - compute per-atom time-averaged quantities</li>
+<li><a class="reference internal" href="fix_ave_chunk.html"><em>ave/chunk</em></a> - compute per-chunk time-averaged quantities</li>
 <li><a class="reference internal" href="fix_ave_correlate.html"><em>ave/correlate</em></a> - compute/output time correlations</li>
 <li><a class="reference internal" href="fix_ave_histo.html"><em>ave/histo</em></a> - compute/output time-averaged histograms</li>
 <li><a class="reference internal" href="fix_ave_spatial.html"><em>ave/spatial</em></a> - compute/output time-averaged per-atom quantities by layer</li>
@@ -314,9 +312,11 @@ in the fix section of <a class="reference internal" href="Section_commands.html#
 <li><a class="reference internal" href="fix_nh.html"><em>nph</em></a> - constant NPH time integration via Nose/Hoover</li>
 <li><a class="reference internal" href="fix_nphug.html"><em>nphug</em></a> - constant-stress Hugoniostat integration</li>
 <li><a class="reference internal" href="fix_nph_asphere.html"><em>nph/asphere</em></a> - NPH for aspherical particles</li>
+<li><a class="reference internal" href="fix_nve_body.html"><em>nph/body</em></a> - NPH for body particles</li>
 <li><a class="reference internal" href="fix_nph_sphere.html"><em>nph/sphere</em></a> - NPH for spherical particles</li>
 <li><a class="reference internal" href="fix_nh.html"><em>npt</em></a> - constant NPT time integration via Nose/Hoover</li>
 <li><a class="reference internal" href="fix_npt_asphere.html"><em>npt/asphere</em></a> - NPT for aspherical particles</li>
+<li><a class="reference internal" href="fix_nve_body.html"><em>npt/body</em></a> - NPT for body particles</li>
 <li><a class="reference internal" href="fix_npt_sphere.html"><em>npt/sphere</em></a> - NPT for spherical particles</li>
 <li><a class="reference internal" href="fix_nve.html"><em>nve</em></a> - constant NVE time integration</li>
 <li><a class="reference internal" href="fix_nve_asphere.html"><em>nve/asphere</em></a> - NVE for aspherical particles</li>
@@ -329,8 +329,10 @@ in the fix section of <a class="reference internal" href="Section_commands.html#
 <li><a class="reference internal" href="fix_nve_tri.html"><em>nve/tri</em></a> - NVE for triangles</li>
 <li><a class="reference internal" href="fix_nh.html"><em>nvt</em></a> - constant NVT time integration via Nose/Hoover</li>
 <li><a class="reference internal" href="fix_nvt_asphere.html"><em>nvt/asphere</em></a> - NVT for aspherical particles</li>
+<li><a class="reference internal" href="fix_nve_body.html"><em>nvt/body</em></a> - NVT for body particles</li>
 <li><a class="reference internal" href="fix_nvt_sllod.html"><em>nvt/sllod</em></a> - NVT for NEMD with SLLOD equations</li>
 <li><a class="reference internal" href="fix_nvt_sphere.html"><em>nvt/sphere</em></a> - NVT for spherical particles</li>
+<li><a class="reference internal" href="fix_oneway.html"><em>oneway</em></a> - constrain particles on move in one direction</li>
 <li><a class="reference internal" href="fix_orient_fcc.html"><em>orient/fcc</em></a> - add grain boundary migration force</li>
 <li><a class="reference internal" href="fix_planeforce.html"><em>planeforce</em></a> - constrain atoms to move in a plane</li>
 <li><a class="reference internal" href="fix_poems.html"><em>poems</em></a> - constrain clusters of atoms to move   as coupled rigid bodies</li>
@@ -338,7 +340,8 @@ in the fix section of <a class="reference internal" href="Section_commands.html#
 <li><a class="reference internal" href="fix_press_berendsen.html"><em>press/berendsen</em></a> - pressure control by      Berendsen barostat</li>
 <li><a class="reference internal" href="fix_print.html"><em>print</em></a> - print text and variables during a simulation</li>
 <li><a class="reference internal" href="fix_property_atom.html"><em>property/atom</em></a> - add customized per-atom values</li>
-<li><a class="reference internal" href="fix_qeq_comb.html"><em>qeq/comb</em></a> - charge equilibration for COMB potential <a class="reference internal" href="fix_qeq.html"><em>qeq/dynamic</em></a> - charge equilibration via dynamic method <a class="reference internal" href="fix_qeq.html"><em>qeq/point</em></a> - charge equilibration via point method <a class="reference internal" href="fix_qeq.html"><em>qeq/shielded</em></a> - charge equilibration via shielded method <a class="reference internal" href="fix_qeq.html"><em>qeq/slater</em></a> - charge equilibration via Slater method <a class="reference internal" href="fix_reax_bonds.html"><em>reax/bonds</em></a> - write out ReaxFF bond information <a class="reference internal" href="fix_recenter.html"><em>recenter</em></a> - constrain the center-of-mass position   of a group of atoms</li>
+<li><a class="reference internal" href="fix_qeq_comb.html"><em>qeq/comb</em></a> - charge equilibration for COMB potential <a class="reference internal" href="fix_qeq.html"><em>qeq/dynamic</em></a> - charge equilibration via dynamic method <a class="reference internal" href="fix_qeq.html"><em>qeq/fire</em></a> - charge equilibration via FIRE minimizer <a class="reference internal" href="fix_qeq.html"><em>qeq/point</em></a> - charge equilibration via point method <a class="reference internal" href="fix_qeq.html"><em>qeq/shielded</em></a> - charge equilibration via shielded method <a class="reference internal" href="fix_qeq.html"><em>qeq/slater</em></a> - charge equilibration via Slater method <a class="reference internal" href="fix_shake.html"><em>rattle</em></a> - RATTLE constraints on bonds and/or angles</li>
+<li><a class="reference internal" href="fix_reax_bonds.html"><em>reax/bonds</em></a> - write out ReaxFF bond information <a class="reference internal" href="fix_recenter.html"><em>recenter</em></a> - constrain the center-of-mass position   of a group of atoms</li>
 <li><a class="reference internal" href="fix_restrain.html"><em>restrain</em></a> - constrain a bond, angle, dihedral</li>
 <li><a class="reference internal" href="fix_rigid.html"><em>rigid</em></a> - constrain one or more clusters of atoms to      move as a rigid body with NVE integration</li>
 <li><a class="reference internal" href="fix_rigid.html"><em>rigid/nph</em></a> - constrain one or more clusters of atoms to      move as a rigid body with NPH integration</li>
@@ -346,6 +349,10 @@ in the fix section of <a class="reference internal" href="Section_commands.html#
 <li><a class="reference internal" href="fix_rigid.html"><em>rigid/nve</em></a> - constrain one or more clusters of atoms to      move as a rigid body with alternate NVE integration</li>
 <li><a class="reference internal" href="fix_rigid.html"><em>rigid/nvt</em></a> - constrain one or more clusters of atoms to      move as a rigid body with NVT integration</li>
 <li><a class="reference internal" href="fix_rigid.html"><em>rigid/small</em></a> - constrain many small clusters of atoms to      move as a rigid body with NVE integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/small/nph</em></a> - constrain many small clusters of atoms to      move as a rigid body with NPH integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/small/npt</em></a> - constrain many small clusters of atoms to      move as a rigid body with NPT integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/small/nve</em></a> - constrain many small clusters of atoms to      move as a rigid body with alternate NVE integration</li>
+<li><a class="reference internal" href="fix_rigid.html"><em>rigid/small/nvt</em></a> - constrain many small clusters of atoms to      move as a rigid body with NVT integration</li>
 <li><a class="reference internal" href="fix_setforce.html"><em>setforce</em></a> - set the force on each atom</li>
 <li><a class="reference internal" href="fix_shake.html"><em>shake</em></a> - SHAKE constraints on bonds and/or angles</li>
 <li><a class="reference internal" href="fix_spring.html"><em>spring</em></a> - apply harmonic spring force to group of atoms</li>
@@ -355,7 +362,10 @@ in the fix section of <a class="reference internal" href="Section_commands.html#
 <li><a class="reference internal" href="fix_store_force.html"><em>store/force</em></a> - store force on each atom</li>
 <li><a class="reference internal" href="fix_store_state.html"><em>store/state</em></a> - store attributes for each atom</li>
 <li><a class="reference internal" href="fix_temp_berendsen.html"><em>temp/berendsen</em></a> - temperature control by      Berendsen thermostat</li>
+<li><a class="reference internal" href="fix_temp_csvr.html"><em>temp/csld</em></a> - canonical sampling thermostat with Langevin dynamics</li>
+<li><a class="reference internal" href="fix_temp_csvr.html"><em>temp/csvr</em></a> - canonical sampling thermostat with Hamiltonian dynamics</li>
 <li><a class="reference internal" href="fix_temp_rescale.html"><em>temp/rescale</em></a> - temperature control by      velocity rescaling</li>
+<li><a class="reference internal" href="fix_tfmc.html"><em>tfmc</em></a> - perform force-bias Monte Carlo with time-stamped method</li>
 <li><a class="reference internal" href="fix_thermal_conductivity.html"><em>thermal/conductivity</em></a> - Muller-Plathe kinetic energy exchange for      thermal conductivity calculation</li>
 <li><a class="reference internal" href="fix_tmd.html"><em>tmd</em></a> - guide a group of atoms to a new configuration</li>
 <li><a class="reference internal" href="fix_ttm.html"><em>ttm</em></a> - two-temperature model for electronic/atomic coupling</li>
@@ -398,7 +408,7 @@ The doc pages for individual fixes tell if it is part of a package.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -419,7 +429,7 @@ The doc pages for individual fixes tell if it is part of a package.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

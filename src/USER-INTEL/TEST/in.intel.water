@@ -1,0 +1,48 @@
+package intel 1 mode mixed balance $b
+package omp 0
+suffix $s
+
+# processors * * * grid numa
+
+variable	x index 4
+variable	y index 2
+variable	z index 2
+
+units        real
+atom_style   atomic
+
+boundary     p p p
+lattice	     fcc 4.8
+#region	     waterbox block -10 10 -10 10 -10 10
+#create_box   1 waterbox
+#create_atoms 1 region waterbox
+
+read_data mW_32k_cube.data
+reset_timestep 0
+replicate $x $y $z
+
+pair_style   sw
+pair_coeff   * * mW.sw mW
+
+mass	     1 18.015 #g/mol
+group	     mW type 1
+
+neighbor     1 bin #Angstroms
+neigh_modify every 2 delay 2 check yes
+
+fix 	     1 all nvt temp 300.0 300.0 1000.0
+
+#velocity     all create 300.0 2323 dist gaussian #Kelvin
+velocity     all zero linear
+
+timestep     10 #femtoseconds
+
+#variable     Density equal "mass(mW)/vol/0.602214179"
+#thermo_style custom step temp press pe spcpu
+thermo_modify norm yes
+
+#restart	      100 mW_32k_cube.res mW_32k_cube.res
+thermo	      100
+
+run	      10 #actual runs
+run	      100

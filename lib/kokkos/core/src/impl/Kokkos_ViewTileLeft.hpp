@@ -79,8 +79,8 @@ struct ViewOffset< ShapeType
                                             )>::type >
   : public ShapeType
 {
-  enum { SHIFT_0 = Impl::power_of_two<N0>::value };
-  enum { SHIFT_1 = Impl::power_of_two<N1>::value };
+  enum { SHIFT_0 = Impl::integral_power_of_two(N0) };
+  enum { SHIFT_1 = Impl::integral_power_of_two(N1) };
   enum { MASK_0  = N0 - 1 };
   enum { MASK_1  = N1 - 1 };
 

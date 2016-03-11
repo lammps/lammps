@@ -174,12 +174,12 @@ specify do not have to be unit vectors, but they must be mutually
 orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
 the Z direction.
 
-IMPORTANT NOTE: The preceding paragraph describing lattice directions
-is only valid for orthogonal cubic unit cells (or square in 2d).  If
-you are using a {hcp} or {hex} lattice or the more general lattice
-style {custom} with non-orthogonal a1,a2,a3 vectors, then you should
-think of the 3 {orient} vectors as creating a 3x3 rotation matrix
-which is applied to a1,a2,a3 to rotate the original unit cell to a new
+NOTE: The preceding paragraph describing lattice directions is only
+valid for orthogonal cubic unit cells (or square in 2d).  If you are
+using a {hcp} or {hex} lattice or the more general lattice style
+{custom} with non-orthogonal a1,a2,a3 vectors, then you should think
+of the 3 {orient} vectors as creating a 3x3 rotation matrix which is
+applied to a1,a2,a3 to rotate the original unit cell to a new
 orientation in the simulation box.
 
 :line
@@ -189,13 +189,12 @@ inferred from "lattice spacings" in the x,y,z box directions.
 E.g. the "region"_region.html command can create a block of size
 10x20x20, where 10 means 10 lattice spacings in the x direction.  
 
-IMPORTANT NOTE: Though they are called lattice spacings, all the
-commands that have a "units lattice" option, simply use the 3 values
-as scale factors on the distance units defined by the
-"units"_units.html command.  Thus if you do not like the lattice
-spacings computed by LAMMPS (e.g. for a non-orthogonal or rotated unit
-cell), you can define the 3 values to be whatever you wish, via the
-{spacing} option.
+NOTE: Though they are called lattice spacings, all the commands that
+have a "units lattice" option, simply use the 3 values as scale
+factors on the distance units defined by the "units"_units.html
+command.  Thus if you do not like the lattice spacings computed by
+LAMMPS (e.g. for a non-orthogonal or rotated unit cell), you can
+define the 3 values to be whatever you wish, via the {spacing} option.
 
 If the {spacing} option is not specified, the lattice spacings are
 computed by LAMMPS in the following way.  A unit cell of the lattice
@@ -213,16 +212,16 @@ the length of a1,a2,a3.  Thus a {hex} style lattice with a scale
 factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
 3*sqrt(3.0) in y.
 
-IMPORTANT NOTE: For non-orthogonal unit cells and/or when a rotation
-is applied via the {orient} keyword, then the lattice spacings
-computed by LAMMPS are typically less intuitive.  In particular, in
-these cases, there is no guarantee that a particular lattice spacing
-is an integer multiple of the periodicity of the lattice in that
-direction.  Thus, if you create an orthogonal periodic simulation box
-whose size in a dimension is a multiple of the lattice spacing, and
-then fill it with atoms via the "create_atoms"_create_atoms.html
-command, you will NOT necessarily create a periodic system.
-I.e. atoms may overlap incorrectly at the faces of the simulation box.
+NOTE: For non-orthogonal unit cells and/or when a rotation is applied
+via the {orient} keyword, then the lattice spacings computed by LAMMPS
+are typically less intuitive.  In particular, in these cases, there is
+no guarantee that a particular lattice spacing is an integer multiple
+of the periodicity of the lattice in that direction.  Thus, if you
+create an orthogonal periodic simulation box whose size in a dimension
+is a multiple of the lattice spacing, and then fill it with atoms via
+the "create_atoms"_create_atoms.html command, you will NOT necessarily
+create a periodic system.  I.e. atoms may overlap incorrectly at the
+faces of the simulation box.
 
 The {spacing} option sets the 3 lattice spacings directly.  All must
 be non-zero (use 1.0 for dz in a 2d simulation).  The specified values

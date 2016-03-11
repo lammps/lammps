@@ -90,6 +90,10 @@ class NeighRequest : protected Pointers {
   int kokkos_host;
   int kokkos_device;
 
+  // 1 if using Shardlow Splitting Algorithm (SSA) neighbor list build
+  
+  int ssa;
+  
   // set by neighbor and pair_hybrid after all requests are made
   // these settings do not change kind value
 

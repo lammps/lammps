@@ -57,7 +57,7 @@ class PairVashishta : public Pair {
 
   virtual void allocate();
   void read_file(char *);
-  void setup();
+  void setup_params();
   void twobody(Param *, double, double &, int, double &);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);
@@ -110,12 +110,10 @@ invalid.
 
 E: Potential file has duplicate entry
 
-The potential file for a Vashishta or Tersoff potential has more than
-one entry for the same 3 ordered elements.
+The potential file has more than one entry for the same element.
 
 E: Potential file is missing an entry
 
-The potential file for a Vashishta or Tersoff potential does not have a
-needed entry.
+The potential file does not have a needed entry.
 
 */

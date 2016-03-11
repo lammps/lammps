@@ -23,7 +23,7 @@ $ git clone https://github.com/libAtoms/QUIP.git QUIP
 
 If GAP is needed, it may be downloaded from the `Software' section of
 libatoms.org, after accepting the terms and conditions of the Academic
-License Agreement. Extract the tarball into the QUIP directory.
+License Agreement. Extract the tarball under the /path/to/QUIP/src/ directory.
 
 1.2) Building QUIP
 
@@ -53,7 +53,7 @@ necessary libraries will be built.
 for example:
 
 $ cd QUIP
-$ export QUIP_DIR=/path/to/QUIP
+$ export QUIP_ROOT=/path/to/QUIP
 $ export QUIP_ARCH=linux_x86_64_gfortran
 $ make config
 $ make libquip
@@ -64,13 +64,8 @@ to run a test suite.
 
 2) Building LAMMPS
 
-2.1) Adding QUIP support
-Obtain the most recent version of the QUIPforLAMMPS package:
-$ git clone https://github.com/libAtoms/QUIPforLAMMPS
-$ cd QUIPforLAMMPS
-$ make LAMMPS_DIR=/path/to/lammps/directory install
-
-Enter the LAMMPS directory:
+LAMMPS is now shipped with the interface necessary to use QUIP potentials, but
+it should be enabled first. Enter the LAMMPS directory:
 
 $ cd LAMMPS
 $ cd src

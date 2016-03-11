@@ -195,8 +195,8 @@ If you want the code to work in verbose mode or not : 'true' or 'false'
 If you want to print or not in file 'Energy_component.txt' the three main contributions to the energy of the system according to the description presented above : 'true' or 'false' and {N<sub>Energy</sub>}. This option writes in file every {N<sub>Energy</sub>} time step. If the value is 'false' then {N<sub>Energy</sub>} = 0. The file take into account the possibility to have several QEq group {g} then it writes: time step, number of atoms in group {g}, electrostatic part of energy, {E<sub>ES</sub>}, the interaction between oxygen, {E<sub>OO</sub>}, and short range metal-oxygen interaction, {E<sub>MO</sub>}. 
 If you want to print in file 'Electroneg_component.txt' the electronegativity component ({&#8706E<sub>tot</sub> &#8260&#8706Q<sub>i</sub>}) or not: 'true' or 'false' and {N<sub>Electroneg</sub>}.This option writes in file every {N<sub>Electroneg</sub>} time step. If the value is 'false' then {N<sub>Electroneg</sub>} = 0.  The file consist in atom number {i}, atom type (1 for oxygen and # higher than 1 for metal), atom position: {x}, {y} and {z}, atomic charge of atom {i}, electrostatic part of atom {i} electronegativity, covalent part of atom {i} electronegativity, the hopping integral of atom {i} {(Z&#946<sup>2</sup>)<sub>i<sub>} and box electronegativity. :ul
 
-IMPORTANT NOTE: This last option slows down the calculation
-dramatically.  Use only with a single processor simulation.
+NOTE: This last option slows down the calculation dramatically.  Use
+only with a single processor simulation.
 
 :line
 

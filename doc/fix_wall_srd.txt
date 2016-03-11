@@ -86,29 +86,28 @@ can specify formulas with various mathematical functions, and include
 box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.
 
-IMPORTANT NOTE: Because the trajectory of the SRD particle is tracked
-as it collides with the wall, you must insure that r = distance of the
+NOTE: Because the trajectory of the SRD particle is tracked as it
+collides with the wall, you must insure that r = distance of the
 particle from the wall, is always > 0 for SRD particles, or LAMMPS
 will generate an error.  This means you cannot start your simulation
 with SRD particles at the wall position {coord} (r = 0) or with
 particles on the wrong side of the wall (r < 0).
 
-IMPORTANT NOTE: If you have 2 or more walls that come together at an
-edge or corner (e.g. walls in the x and y dimensions), then be sure to
-set the {overlap} keyword to {yes} in the "fix srd"_fix_srd.html
-command, since the walls effectively overlap when SRD particles
-collide with them.  LAMMPS will issue a warning if you do not do this.
+NOTE: If you have 2 or more walls that come together at an edge or
+corner (e.g. walls in the x and y dimensions), then be sure to set the
+{overlap} keyword to {yes} in the "fix srd"_fix_srd.html command,
+since the walls effectively overlap when SRD particles collide with
+them.  LAMMPS will issue a warning if you do not do this.
 
-IMPORTANT NOTE: The walls of this fix only interact with SRD
-particles, as defined by the "fix srd"_fix_srd.html command.  If you
-are simulating a mixture containing other kinds of particles, then you
-should typically use "another wall command"_fix_wall.html to act on
-the other particles.  Since SRD particles will be colliding both with
-the walls and the other particles, it is important to insure that the
-other particle's finite extent does not overlap an SRD wall.  If you
-do not do this, you may generate errors when SRD particles end up
-"inside" another particle or a wall at the beginning of a collision
-step.
+NOTE: The walls of this fix only interact with SRD particles, as
+defined by the "fix srd"_fix_srd.html command.  If you are simulating
+a mixture containing other kinds of particles, then you should
+typically use "another wall command"_fix_wall.html to act on the other
+particles.  Since SRD particles will be colliding both with the walls
+and the other particles, it is important to insure that the other
+particle's finite extent does not overlap an SRD wall.  If you do not
+do this, you may generate errors when SRD particles end up "inside"
+another particle or a wall at the beginning of a collision step.
 
 The {units} keyword determines the meaning of the distance units used
 to define a wall position, but only when a numeric constant is used.

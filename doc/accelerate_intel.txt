@@ -234,18 +234,18 @@ See the "Benchmark page"_http://lammps.sandia.gov/bench.html of the
 LAMMPS web site for performance of the USER-INTEL package on different
 hardware.
 
-IMPORTANT NOTE: Setting core affinity is often used to pin MPI tasks
-and OpenMP threads to a core or group of cores so that memory access
-can be uniform. Unless disabled at build time, affinity for MPI tasks
-and OpenMP threads on the host (CPU) will be set by default on the
-host when using offload to a coprocessor. In this case, it is
-unnecessary to use other methods to control affinity (e.g. taskset,
-numactl, I_MPI_PIN_DOMAIN, etc.). This can be disabled in an input
-script with the {no_affinity} option to the "package
-intel"_package.html command or by disabling the option at build time
-(by adding -DINTEL_OFFLOAD_NOAFFINITY to the CCFLAGS line of your
-Makefile).  Disabling this option is not recommended, especially when
-running on a machine with hyperthreading disabled.
+NOTE: Setting core affinity is often used to pin MPI tasks and OpenMP
+threads to a core or group of cores so that memory access can be
+uniform. Unless disabled at build time, affinity for MPI tasks and
+OpenMP threads on the host (CPU) will be set by default on the host
+when using offload to a coprocessor. In this case, it is unnecessary
+to use other methods to control affinity (e.g. taskset, numactl,
+I_MPI_PIN_DOMAIN, etc.). This can be disabled in an input script with
+the {no_affinity} option to the "package intel"_package.html command
+or by disabling the option at build time (by adding
+-DINTEL_OFFLOAD_NOAFFINITY to the CCFLAGS line of your Makefile).
+Disabling this option is not recommended, especially when running on a
+machine with hyperthreading disabled.
 
 [Guidelines for best performance on an Intel(R) Xeon Phi(TM)
 coprocessor:]

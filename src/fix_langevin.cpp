@@ -145,11 +145,14 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   id_temp = NULL;
   temperature = NULL;
 
-  // flangevin is unallocated until first call to setup()
-  // compute_scalar checks for this and returns 0.0 if flangevin is NULL
-
   energy = 0.0;
+
+  // flangevin is unallocated until first call to setup()
+  // compute_scalar checks for this and returns 0.0 
+  // if flangevin_allocated is not set
+
   flangevin = NULL;
+  flangevin_allocated = 0;
   franprev = NULL;
   tforce = NULL;
   maxatom1 = maxatom2 = 0;
@@ -513,6 +516,7 @@ void FixLangevin::post_force_untemplated
       maxatom1 = atom->nmax;
       memory->create(flangevin,maxatom1,3,"langevin:flangevin");
     }
+    flangevin_allocated = 1;
   }
 
   if (Tp_BIAS) temperature->compute_scalar();
@@ -827,7 +831,7 @@ int FixLangevin::modify_param(int narg, char **arg)
 
 double FixLangevin::compute_scalar()
 {
-  if (!tallyflag || flangevin == NULL) return 0.0;
+  if (!tallyflag || !flangevin_allocated) return 0.0;
 
   // capture the very first energy transfer to thermal reservoir
 

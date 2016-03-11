@@ -87,6 +87,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: No values in fix ave/chunk command
+
+Self-explanatory.
+
 E: Cannot open fix ave/chunk file %s
 
 The specified file cannot be opened.  Check that the path and name are
@@ -160,6 +164,10 @@ E: Fix ave/chunk does not use chunk/atom compute
 
 The specified conpute is not for a compute chunk/atom command.
 
+E: Error writing file header
+
+Something in the output to the file triggered an error.
+
 E: Fix for fix ave/chunk not computed at compatible time
 
 Fixes generate their values on specific timesteps.  Fix ave/chunk is
@@ -169,5 +177,9 @@ E: Invalid timestep reset for fix ave/chunk
 
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
+
+E: Error writing averaged chunk data
+
+Something in the output to the file triggered an error.
 
 */

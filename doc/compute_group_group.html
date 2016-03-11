@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute group/group command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute group/group command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -164,6 +164,12 @@ the pair is in the first group and the other is in the second group.
 Likewise, the interaction force calculated by this compute will
 include the force on the compute group atoms due to pairwise
 interactions with atoms in the specified group2.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The energies computed by the <em>pair</em> keyword do not include tail
+corrections, even if they are enabled via the
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> command.</p>
+</div>
 <p>If the <em>kspace</em> keyword is set to <em>yes</em>, which is not the default, and
 if a <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> is defined, then the interaction
 energy will include a Kspace component which is the long-range
@@ -240,7 +246,7 @@ The <em>ewald</em> and <em>pppm</em> styles do.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -261,7 +267,7 @@ The <em>ewald</em> and <em>pppm</em> styles do.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

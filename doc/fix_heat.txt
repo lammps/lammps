@@ -76,10 +76,10 @@ variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent flux
 with optional time-dependence as well.
 
-IMPORTANT NOTE: If heat is subtracted from the system too aggressively
-so that the group's kinetic energy would go to zero, or any individual
-atom's kinetic energy would go to zero for the case where {eflux} is
-an atom-style variable, then LAMMPS will halt with an error message.
+NOTE: If heat is subtracted from the system too aggressively so that
+the group's kinetic energy would go to zero, or any individual atom's
+kinetic energy would go to zero for the case where {eflux} is an
+atom-style variable, then LAMMPS will halt with an error message.
 
 Fix heat is different from a thermostat such as "fix nvt"_fix_nh.html
 or "fix temp/rescale"_fix_temp_rescale.html in that energy is

@@ -88,6 +88,10 @@ void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
   ((AtomVecKokkos *) avec)->modified(space,mask);
 }
 
+void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
+{
+  ((AtomVecKokkos *) avec)->sync_overlapping_device(space,mask);
+}
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()
@@ -97,6 +101,7 @@ void AtomKokkos::allocate_type_arrays()
     mass = k_mass.h_view.ptr_on_device();
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
+    k_mass.modify<LMPHostType>();
   }
 }
 
@@ -252,4 +257,12 @@ void AtomKokkos::sync_modify(ExecutionSpace execution_space,
 {
   sync(execution_space,datamask_read);
   modified(execution_space,datamask_modify);
+}
+
+AtomVec *AtomKokkos::new_avec(const char *style, int trysuffix, int &sflag)
+{
+  AtomVec* avec = Atom::new_avec(style,trysuffix,sflag);
+  if (!avec->kokkosable)
+    error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
+  return avec;
 }

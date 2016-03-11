@@ -49,9 +49,11 @@ namespace LAMMPS_NS {
       virtual void coeff(int, char**);
       virtual void init_style();
       virtual double init_one(int, int);
+      virtual void reinit();
       virtual int pack_reverse_comm(int, int, double*);
       virtual void unpack_reverse_comm(int, int*, double*);
       virtual double memory_usage();
+      void *extract(const char *, int &);
 
    private:
       // (nearly) all bool flags are not initialized in constructor, but set

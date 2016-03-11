@@ -37,6 +37,7 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all(FLERR,"Illegal compute temp command");
 
   vector_flag = 1;
+  scalar_flag = 1;
   size_vector = 6;
   extscalar = 0;
   extvector = -1;
@@ -214,5 +215,11 @@ void ComputeTempDrude::compute_vector()
     vector[1] = temp_drude;
     vector[4] = kineng_core;
     vector[5] = kineng_drude;
+}
+
+double ComputeTempDrude::compute_scalar(){
+    compute_vector();
+    scalar = vector[0];
+    return scalar;
 }
 

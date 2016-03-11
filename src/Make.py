@@ -19,8 +19,8 @@ abbrevs = "adhjmoprsv"
 
 switchclasses = ("actions","dir","help","jmake","makefile",
                  "output","packages","redo","settings","verbose")
-libclasses = ("atc","awpmd","colvars","cuda","gpu",
-              "meam","poems","qmmm","voronoi")
+libclasses = ("atc","awpmd","colvars","cuda","gpu","h5md",
+              "meam","poems","python","qmmm","voronoi")
 buildclasses = ("intel","kokkos")
 makeclasses = ("cc","mpi","fft","jpg","png")
 
@@ -120,7 +120,7 @@ def link_check(linker,linkflags,warn):
 
 class Actions:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     
   def help(self):
     return """
@@ -162,33 +162,29 @@ class Actions:
   
   def check(self):
     if not self.inlist: error("-a args are invalid")
-    alist = []
-    machine = 0
-    nlib = 0
+    libs = []
+    cleans = []
+    files = []
+    exes = []
     for one in self.inlist:
-      if one in alist: error("An action is duplicated")
       if one.startswith("lib-"):
         lib = one[4:]
         if lib != "all" and lib not in libclasses: error("Actions are invalid")
-        alist.insert(nlib,one)
-        nlib += 1
+        libs.append(one)
       elif one == "file":
-        if nlib == 0: alist.insert(0,"file")
-        else: alist.insert(1,"file")
+        files.append(one)
       elif one == "clean":
-        if nlib == 0: alist.insert(0,"clean")
-        elif "file" not in alist: alist.insert(1,"clean")
-        else: alist.insert(2,"clean")
+        cleans.append(one)
       elif one == "exe":
-        if machine == 0: alist.append("exe")
-        else: error("Actions are invalid")
-        machine = 1
+        exes.append(one)
       # one action can be unknown in case is a machine (checked in setup)
-      elif machine == 0:
-        alist.append(one)
-        machine = 1
-      else: error("Actions are invalid")
-    self.alist = alist
+      else:
+        exes.append(one)
+    if len(set(libs)) != len(libs) or \
+       len(cleans) > 1 or len(files) > 1 or len(exes) > 1:
+      error("Actions are invalid")
+    self.alist = [action for actions in [libs,cleans,files,exes] \
+                           for action in actions]
 
   # dedup list of actions concatenated from two lists
   # current self.inlist = specified -a switch + redo command -a switch
@@ -532,8 +528,7 @@ class Actions:
 
 class Dir:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
       
   def help(self):
     return """
@@ -582,8 +577,8 @@ Syntax: Make.py switch args ...
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:
-    -atc, -awpmd, -colvars, -cuda
-    -gpu, -meam, -poems, -qmmm, -voronoi
+    -atc, -awpmd, -colvars, -cuda, -gpu, -h5md,
+    -meam, -poems, -python, -qmmm, -voronoi
   switches for build and makefile options:
     -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
 """
@@ -592,7 +587,7 @@ Syntax: Make.py switch args ...
   
 class Jmake:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -613,7 +608,7 @@ class Jmake:
 
 class Makefile:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -632,7 +627,7 @@ class Makefile:
 
 class Output:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -649,8 +644,7 @@ class Output:
   
 class Packages:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -658,7 +652,7 @@ class Packages:
   list of packages to install or uninstall in order specified
   operates on set of packages currently installed
   valid package names:
-    and LAMMPS standard or user package (type "make package" to see list)
+    any LAMMPS standard or user package (type "make package" to see list)
     prefix by yes/no to install/uninstall (see abbrevs)
       yes-molecule, yes-user-atc, no-molecule, no-user-atc
   can use LAMMPS categories (type "make package" to see list)
@@ -770,7 +764,7 @@ class Packages:
         yes = 0
       if pkg in all:
         final[pkg] = yes
-      elif pkg == "std":
+      elif pkg == "std" or pkg == "standard":
         for pkg in std: final[pkg] = yes
       elif pkg == "user":
         for pkg in user: final[pkg] = yes
@@ -818,7 +812,7 @@ class Packages:
     
 class Redo:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -899,7 +893,7 @@ class Redo:
 
 class Settings:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -918,7 +912,7 @@ class Settings:
 
 class Verbose:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -938,8 +932,7 @@ class Verbose:
 
 class ATC:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -990,8 +983,7 @@ class ATC:
 
 class AWPMD:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "mpicc"
     self.lammpsflag = 0
 
@@ -1042,8 +1034,7 @@ class AWPMD:
 
 class COLVARS:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1094,8 +1085,7 @@ class COLVARS:
 
 class CUDA:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "double"
     self.arch = "31"
 
@@ -1152,8 +1142,7 @@ class CUDA:
 
 class GPU:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "linux.double"
     self.lammpsflag = self.modeflag = self.archflag = 0
 
@@ -1165,6 +1154,7 @@ class GPU:
   lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
   mode = double or mixed or single (def = CUDA_PREC in makefile)
   arch = 31 (Kepler) or 21 (Fermi) (def = CUDA_ARCH in makefile)
+  dir = home dir for CUDA include and library files (def = none)
 """
 
   def check(self):
@@ -1183,6 +1173,9 @@ class GPU:
       elif words[0] == "arch":
         self.arch = words[1]
         self.archflag = 1
+      elif words[0] == "dir":
+        self.dir = words[1]
+        self.dirflag = 1
       else: error("-gpu args are invalid")
       if self.modeflag and (self.mode != "double" and
                             self.mode != "mixed" and
@@ -1205,6 +1198,11 @@ class GPU:
       make.setvar("CUDA_ARCH","-arch=sm_%s" % self.arch)
     if self.lammpsflag:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
+    if self.dirflag:
+      make.setvar("CUDA_HOME","%s" % self.dir)
+      lmpmake = MakeReader("%s/%s" % (libdir, make.getvar("EXTRAMAKE")[0]))
+      lmpmake.setvar("gpu_SYSPATH","-L%s/lib64" % self.dir)
+      lmpmake.write("%s/%s" % (libdir, make.getvar("EXTRAMAKE")[0]))
     make.write("%s/Makefile.auto" % libdir)
 
     commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
@@ -1223,12 +1221,61 @@ class GPU:
       error("Unsuccessful build of lib/gpu library")
     else: print "Created lib/gpu library"
 
+# H5MD lib
+
+class H5MD:
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+    self.make = "h5cc"
+    self.lammpsflag = 0
+
+  def help(self):
+    return """
+-h5md make=suffix lammps=suffix2
+  all args are optional and can be in any order
+  make = use Makefile.suffix (def = h5cc)
+  lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
+"""
+
+  def check(self):
+    if self.inlist != None and len(self.inlist) == 0:
+      error("-h5md args are invalid")
+    for one in self.inlist:
+      words = one.split('=')
+      if len(words) != 2: error("-h5md args are invalid")
+      if words[0] == "make": self.make = words[1]
+      elif words[0] == "lammps": 
+        self.lammps = words[1]
+        self.lammpsflag = 1
+      else: error("-h5md args are invalid")
+
+  def build(self):
+    libdir = dir.lib + "/h5md"
+    make = MakeReader("%s/Makefile.%s" % (libdir,self.make))
+    if self.lammpsflag:
+      make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
+    make.write("%s/Makefile.auto" % libdir)
+
+    commands.getoutput("cd %s; make clean" % libdir)
+    str = "cd %s; make" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
+    if not os.path.isfile("%s/libch5md.a" % libdir) or \
+          not os.path.isfile("%s/Makefile.lammps" % libdir):
+      error("Unsuccessful build of lib/h5md library")
+    else: print "Created lib/h5md library"
+
 # MEAM lib
 
 class MEAM:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1279,8 +1326,7 @@ class MEAM:
 
 class POEMS:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1327,12 +1373,46 @@ class POEMS:
       error("Unsuccessful build of lib/poems library")
     else: print "Created lib/poems library"
 
+# PYTHON lib
+
+class PYTHON:
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+    self.make = "g++"
+    self.lammpsflag = 0
+
+  def help(self):
+    return """
+-python lammps=suffix
+  arg is optional, use Makefile.lammps if not specified
+  lammps = use Makefile.lammps.suffix
+"""
+
+  def check(self):
+    if self.inlist != None and len(self.inlist) == 0:
+      error("-python args are invalid")
+    for one in self.inlist:
+      words = one.split('=')
+      if len(words) != 2: error("-python args are invalid")
+      if words[0] == "lammps": 
+        self.lammps = words[1]
+        self.lammpsflag = 1
+      else: error("-python args are invalid")
+
+  def build(self):
+    libdir = dir.lib + "/python"
+    if self.lammpsflag:
+      commands.getoutput("cd %s; cp Makefile.lammps.%s Makefile.lammps" %
+                         (libdir,self.lammps))
+    if not os.path.isfile("%s/Makefile.lammps.%s" % (libdir,self.lammps)):
+      error("Unsuccessful creation of lib/python/Makefile.lammps.%s file" % self.lammps)
+    else: print "Created lib/python/Makefile.lammps file"
+
 # QMMM lib
 
 class QMMM:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1383,8 +1463,7 @@ class QMMM:
 
 class VORONOI:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.install = ""
     
   def help(self):
@@ -1422,8 +1501,7 @@ class VORONOI:
 
 class Intel:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "cpu"
 
   def help(self):
@@ -1444,8 +1522,7 @@ class Intel:
 
 class Kokkos:
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = ""
     self.archflag = 0
     
@@ -1484,7 +1561,7 @@ class Kokkos:
 
 class Cc:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.compiler = self.abbrev = ""
     self.wrap = ""
 
@@ -1529,7 +1606,7 @@ class Cc:
 
 class Mpi:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.style = self.dir = ""
                 
   def help(self):
@@ -1562,7 +1639,7 @@ class Mpi:
 
 class Fft:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.dir = self.incdir = self.libdir = ""
 
   def help(self):
@@ -1601,7 +1678,7 @@ class Fft:
 
 class Jpg:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 
@@ -1638,7 +1715,7 @@ class Jpg:
 
 class Png:
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 
@@ -1940,9 +2017,8 @@ while 1:
   for switch in switches:
     if len(switch) == 1 and switch in abbrevs:
       i = abbrevs.index(switch)
-      capitalized = switchclasses[i][0].upper() + switchclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (switchclasses[i],switch,capitalized,switch)
+          (switchclasses[i],switch,switchclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in libclasses:
       i = libclasses.index(switch)
@@ -1951,15 +2027,13 @@ while 1:
       exec(txt)
     elif switch in buildclasses:
       i = buildclasses.index(switch)
-      capitalized = buildclasses[i][0].upper() + buildclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (buildclasses[i],switch,capitalized,switch)
+          (buildclasses[i],switch,buildclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in makeclasses:
       i = makeclasses.index(switch)
-      capitalized = makeclasses[i][0].upper() + makeclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (makeclasses[i],switch,capitalized,switch)
+          (makeclasses[i],switch,makeclasses[i].capitalize(),switch)
       exec(txt)
     else: error("Unknown command-line switch -%s" % switch)
 
@@ -1984,8 +2058,7 @@ while 1:
     exec(txt)
 
   for one in buildclasses:
-    capitalized = one[0].upper() + one[1:]
-    txt = "if not %s: %s = %s(None)" % (one,one,capitalized)
+    txt = "if not %s: %s = %s(None)" % (one,one,one.capitalize())
     exec(txt)
 
   # error check on args for all classes
@@ -2011,7 +2084,7 @@ while 1:
       if 'o' not in switches:
         switches['o'] = [machine]
         switch_order.insert(-1,'o')
-        output = classes['o'] = Makefile(switches['o'])
+        output = classes['o'] = Output(switches['o'])
         output.check()
 
   # perform actions

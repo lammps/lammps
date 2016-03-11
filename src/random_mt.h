@@ -21,9 +21,10 @@ namespace LAMMPS_NS {
 class RanMT : protected Pointers {
  public:
   RanMT(class LAMMPS *, int);
-  virtual ~RanMT() {};
+  virtual ~RanMT();
   double uniform();
   double gaussian();
+  double gaussian_z();
 
  private:
   // some internal constants
@@ -31,6 +32,8 @@ class RanMT : protected Pointers {
   uint32_t _m[MT_N];            // state of RNG
   int _idx;                     // twist index
   int _save;                    // for gaussian distributed RNG
+  int _nlayers;                 // number of layers for ziggurat method
+  double *_xlayers, *_ylayers;  // layer distribution for ziggurat method
   double _second;               // stored RNG for gaussian distributed RNG
 
   uint32_t _randomize();        // generate new 32-bit integer

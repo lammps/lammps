@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>molecule command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>molecule command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -212,14 +212,14 @@ individual diameters of each particle (Diameters section), the total
 mass of the molecule (header keyword = mass), the center-of-mass of
 the molecule (header keyword = com), and the moments of inertia of the
 molecule (header keyword = inertia).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The molecule command can be used to define molecules
-with bonds, angles, dihedrals, imporopers, or special bond lists of
-neighbors within a molecular topology, so that you can later add the
-molecules to your simulation, via one or more of the commands listed
-above.  If such molecules do not already exist when LAMMPS creates the
-simulation box, via the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The molecule command can be used to define molecules with bonds,
+angles, dihedrals, imporopers, or special bond lists of neighbors
+within a molecular topology, so that you can later add the molecules
+to your simulation, via one or more of the commands listed above.  If
+such molecules do not already exist when LAMMPS creates the simulation
+box, via the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
 <a class="reference internal" href="read_data.html"><em>read_data</em></a> command, when you later add them you may
 overflow the pre-allocated data structures which store molecular
 topology information with each atom, and an error will be generated.
@@ -292,15 +292,14 @@ reason to list the special bond info explicitly is for the
 <a class="reference internal" href="tutorial_drude.html"><em>thermalized Drude oscillator model</em></a> which treats
 the bonds between nuclear cores and Drude electrons in a different
 manner.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Whether a section is required depends on how the
-molecule template is used by other LAMMPS commands.  For example, to
-add a molecule via the <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> command, the
-Coords and Types sections are required.  To add a rigid body via the
-<code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">pour</span></code> command, the Bonds (Angles, etc) sections are
-not required, since the molecule will be treated as a rigid body.
-Some sections are optional.  For example, the <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Whether a section is required depends on how the molecule
+template is used by other LAMMPS commands.  For example, to add a
+molecule via the <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> command, the Coords
+and Types sections are required.  To add a rigid body via the <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">pour</span></code> command, the Bonds (Angles, etc) sections are not
+required, since the molecule will be treated as a rigid body.  Some
+sections are optional.  For example, the <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>
 command can be used to add &#8220;molecules&#8221; which are clusters of
 finite-size granular particles.  If the Diameters section is not
 specified, each particle in the molecule will have a default diameter
@@ -549,7 +548,7 @@ of SHAKE clusters.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -570,7 +569,7 @@ of SHAKE clusters.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

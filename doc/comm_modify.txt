@@ -39,12 +39,12 @@ communication of atom information that occurs each timestep as
 coordinates and other properties are exchanged between neighboring
 processors and stored as properties of ghost atoms.
 
-IMPORTANT NOTE: These options apply to the currently defined comm
-style.  When you specify a "comm_style"_comm_style.html command, all
-communication settings are restored to their default values, including
-those previously reset by a comm_modify command.  Thus if your input
-script specifies a comm_style command, you should use the comm_modify
-command after it.
+NOTE: These options apply to the currently defined comm style.  When
+you specify a "comm_style"_comm_style.html command, all communication
+settings are restored to their default values, including those
+previously reset by a comm_modify command.  Thus if your input script
+specifies a comm_style command, you should use the comm_modify command
+after it.
 
 The {mode} keyword determines whether a single or multiple cutoff
 distances are used to determine which atoms to communicate.
@@ -112,12 +112,12 @@ performs (e.g. locate neighbors of ghost atoms in a multibody pair
 potential).  Setting the ghost cutoff appropriately can insure it will
 find the needed atoms.
 
-IMPORTANT NOTE: In these scenarios, if you do not set the ghost cutoff
-long enough, and if there is only one processor in a periodic
-dimension (e.g. you are running in serial), then LAMMPS may "find" the
-atom it is looking for (e.g. the partner atom in a bond), that is on
-the far side of the simulation box, across a periodic boundary.  This
-will typically lead to bad dynamics (i.e. the bond length is now the
+NOTE: In these scenarios, if you do not set the ghost cutoff long
+enough, and if there is only one processor in a periodic dimension
+(e.g. you are running in serial), then LAMMPS may "find" the atom it
+is looking for (e.g. the partner atom in a bond), that is on the far
+side of the simulation box, across a periodic boundary.  This will
+typically lead to bad dynamics (i.e. the bond length is now the
 simulation box length).  To detect if this is happening, see the
 "neigh_modify cluster"_neigh_modify.html command.
 

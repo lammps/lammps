@@ -8,10 +8,12 @@
 
 fix nvt command :h3
 fix nvt/cuda command :h3
+fix nvt/intel command :h3
 fix nvt/kk command :h3
 fix nvt/omp command :h3
 fix npt command :h3
 fix npt/cuda command :h3
+fix npt/intel command :h3
 fix npt/kk command :h3
 fix npt/omp command :h3
 fix nph command :h3
@@ -25,7 +27,7 @@ fix ID group-ID style_name keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {nvt} or {npt} or {nph} :l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint}
+keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update}
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -55,8 +57,9 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {scalexz} value = {yes} or {no} = scale xz with lz
   {flip} value = {yes} or {no} = allow or disallow box flips when it becomes highly skewed
   {fixedpoint} values = x y z
-    x,y,z = perform barostat dilation/contraction around this point (distance units) :pre
-    
+    x,y,z = perform barostat dilation/contraction around this point (distance units)
+  {update} value = {dipole} update dipole orientation (only for sphere variants) :pre
+
 :ule
 
 [Examples:]
@@ -96,7 +99,7 @@ Martyna, Tobias and Klein in "(Martyna)"_#Martyna with the strain
 energy proposed by Parrinello and Rahman in
 "(Parrinello)"_#Parrinello.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al. in "(Tuckerman)"_#Tuckerman.
+integrators derived by Tuckerman et al in "(Tuckerman)"_#Tuckerman.
 
 :line
 
@@ -116,12 +119,12 @@ fmsec or psec - see the "units"_units.html command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
 
-IMPORTANT NOTE: A Nose-Hoover thermostat will not work well for
-arbitrary values of {Tdamp}.  If {Tdamp} is too small, the temperature
-can fluctuate wildly; if it is too large, the temperature will take a
-very long time to equilibrate.  A good choice for many models is a
-{Tdamp} of around 100 timesteps.  Note that this is NOT the same as
-100 time units for most "units"_units.html settings.
+NOTE: A Nose-Hoover thermostat will not work well for arbitrary values
+of {Tdamp}.  If {Tdamp} is too small, the temperature can fluctuate
+wildly; if it is too large, the temperature will take a very long time
+to equilibrate.  A good choice for many models is a {Tdamp} of around
+100 timesteps.  Note that this is NOT the same as 100 time units for
+most "units"_units.html settings.
 
 :line
 
@@ -166,12 +169,12 @@ relaxed.  For example, a value of 10.0 means to relax the pressure in
 a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
 the "units"_units.html command).
 
-IMPORTANT NOTE: A Nose-Hoover barostat will not work well for
-arbitrary values of {Pdamp}.  If {Pdamp} is too small, the pressure
-and volume can fluctuate wildly; if it is too large, the pressure will
-take a very long time to equilibrate.  A good choice for many models
-is a {Pdamp} of around 1000 timesteps.  Note that this is NOT the same
-as 1000 time units for most "units"_units.html settings.
+NOTE: A Nose-Hoover barostat will not work well for arbitrary values
+of {Pdamp}.  If {Pdamp} is too small, the pressure and volume can
+fluctuate wildly; if it is too large, the pressure will take a very
+long time to equilibrate.  A good choice for many models is a {Pdamp}
+of around 1000 timesteps.  Note that this is NOT the same as 1000 time
+units for most "units"_units.html settings.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -280,8 +283,8 @@ The keyword {tloop} can be used to improve the accuracy of integration
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into {tloop} substeps, each of
 length {dt}/{tloop}. This corresponds to using a first-order
-Suzuki-Yoshida scheme "(Tuckerman2006)"_#Tuckerman2006.  The keyword
-{ploop} does the same thing for the barostat thermostat.
+Suzuki-Yoshida scheme "(Tuckerman)"_#Tuckerman.  The keyword {ploop}
+does the same thing for the barostat thermostat.
 
 The keyword {nreset} controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
@@ -326,15 +329,22 @@ far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
 positions.
 
+If the {update} keyword is used with the {dipole} value, then the
+orientation of the dipole moment of each particle is also updated
+during the time integration.  This option should be used for models
+where a dipole moment is assigned to finite-size particles,
+e.g. spheroids via use of the "atom_style hybrid sphere
+dipole"_atom_style.html command.
+
 :line
 
-IMPORTANT NOTE: Using a barostat coupled to tilt dimensions {xy},
-{xz}, {yz} can sometimes result in arbitrarily large values of the
-tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-allows the tilt factors to grow a small amount beyond the normal limit
-of half the box length (0.6 times the box length), and then performs a
-box "flip" to an equivalent periodic cell.  See the discussion of the
-{flip} keyword above, to allow this bound to be exceeded, if desired.
+NOTE: Using a barostat coupled to tilt dimensions {xy}, {xz}, {yz} can
+sometimes result in arbitrarily large values of the tilt dimensions,
+i.e. a dramatically deformed simulation box.  LAMMPS allows the tilt
+factors to grow a small amount beyond the normal limit of half the box
+length (0.6 times the box length), and then performs a box "flip" to
+an equivalent periodic cell.  See the discussion of the {flip} keyword
+above, to allow this bound to be exceeded, if desired.
 
 The flip operation is described in more detail in the doc page for
 "fix deform"_fix_deform.html.  Both the barostat dynamics and the atom
@@ -359,15 +369,15 @@ not change the atom positions due to non-periodicity.  In this mode,
 if you tilt the system to extreme angles, the simulation will simply
 become inefficient due to the highly skewed simulation box.
 
-IMPORTANT NOTE: Unlike the "fix
-temp/berendsen"_fix_temp_berendsen.html command which performs
-thermostatting but NO time integration, these fixes perform
-thermostatting/barostatting AND time integration.  Thus you should not
-use any other time integration fix, such as "fix nve"_fix_nve.html on
-atoms to which this fix is applied.  Likewise, fix nvt and fix npt
-should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. by "fix langevin"_fix_nh.html or "fix
-temp/rescale"_fix_temp_rescale.html commands.
+NOTE: Unlike the "fix temp/berendsen"_fix_temp_berendsen.html command
+which performs thermostatting but NO time integration, these fixes
+perform thermostatting/barostatting AND time integration.  Thus you
+should not use any other time integration fix, such as "fix
+nve"_fix_nve.html on atoms to which this fix is applied.  Likewise,
+fix nvt and fix npt should not normally be used on atoms that also
+have their temperature controlled by another fix - e.g. by "fix
+langevin"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html
+commands.
 
 See "this howto section"_Section_howto.html#howto_16 of the manual for
 a discussion of different ways to compute temperature and perform
@@ -428,16 +438,36 @@ according to the following factorization of the Liouville propagator
 
 :c,image(Eqs/fix_nh1.jpg) 
  
-This factorization differs somewhat from that of Tuckerman et al., in that
-the barostat is only updated at the outermost rRESPA level, whereas
-Tuckerman's factorization requires splitting the pressure into pieces
-corresponding to the forces computed at each rRESPA level. In theory, the
-latter method will exhibit better numerical stability. In practice,
-because Pdamp is normally chosen to be a large multiple of the 
-outermost rRESPA timestep, the barostat dynamics are not the 
-limiting factor for numerical stability. Both 
-factorizations are time-reversible and can be shown to preserve the phase 
-space measure of the underlying non-Hamiltonian equations of motion.
+This factorization differs somewhat from that of Tuckerman et al, in
+that the barostat is only updated at the outermost rRESPA level,
+whereas Tuckerman's factorization requires splitting the pressure into
+pieces corresponding to the forces computed at each rRESPA level. In
+theory, the latter method will exhibit better numerical stability. In
+practice, because Pdamp is normally chosen to be a large multiple of
+the outermost rRESPA timestep, the barostat dynamics are not the
+limiting factor for numerical stability. Both factorizations are
+time-reversible and can be shown to preserve the phase space measure
+of the underlying non-Hamiltonian equations of motion.
+
+NOTE: This implementation has been shown to conserve linear momentum
+up to machine precision under NVT dynamics. Under NPT dynamics,
+for a system with zero initial total linear momentum, the total
+momentum fluctuates close to zero. It may occasionally undergo brief
+excursions to non-negligible values, before returning close to zero. 
+Over long simulations, this has the effect of causing the center-of-mass
+to undergo a slow random walk. This can be mitigated by resetting
+the momentum at infrequent intervals using the
+"fix momentum"_fix_momentum.html command.
+
+NOTE: This implementation has been shown to conserve linear momentum
+up to machine precision under NVT dynamics. Under NPT dynamics,
+for a system with zero initial total linear momentum, the total
+momentum fluctuates close to zero. It may occasionally undergo brief
+excursions to non-negligible values, before returning close to zero. 
+Over long simulations, this has the effect of causing the center-of-mass
+to undergo a slow random walk. This can be mitigated by resetting
+the momentum at infrequent intervals using the
+"fix momentum"_fix_momentum.html command.
 
 :line
 
@@ -490,16 +520,16 @@ temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
 compute temperature on a subset of atoms.
 
-IMPORTANT NOTE: If both the {temp} and {press} keywords are used in a
-single thermo_modify command (or in two separate commands), then the
-order in which the keywords are specified is important.  Note that a
-"pressure compute"_compute_pressure.html defines its own temperature
-compute as an argument when it is specified.  The {temp} keyword will
-override this (for the pressure compute being used by fix npt), but
-only if the {temp} keyword comes after the {press} keyword.  If the
-{temp} keyword comes before the {press} keyword, then the new pressure
-compute specified by the {press} keyword will be unaffected by the
-{temp} setting.
+NOTE: If both the {temp} and {press} keywords are used in a single
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a "pressure
+compute"_compute_pressure.html defines its own temperature compute as
+an argument when it is specified.  The {temp} keyword will override
+this (for the pressure compute being used by fix npt), but only if the
+{temp} keyword comes after the {press} keyword.  If the {temp} keyword
+comes before the {press} keyword, then the new pressure compute
+specified by the {press} keyword will be unaffected by the {temp}
+setting.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by these
 fixes to add the energy change induced by Nose/Hoover thermostatting

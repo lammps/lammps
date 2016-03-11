@@ -43,6 +43,8 @@
 
 #include <Kokkos_HostSpace.hpp>
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
 #include <impl/Kokkos_BasicAllocators.hpp>
 #include <impl/Kokkos_Error.hpp>
 
@@ -50,8 +52,11 @@
 #include <stdint.h>    // uintptr_t
 #include <cstdlib>     // for malloc, realloc, and free
 #include <cstring>     // for memcpy
+
+#if defined(KOKKOS_POSIX_MEMALIGN_AVAILABLE)
 #include <sys/mman.h>  // for mmap, munmap, MAP_ANON, etc
 #include <unistd.h>    // for sysconf, _SC_PAGE_SIZE, _SC_PHYS_PAGES
+#endif
 
 #include <sstream>
 
@@ -103,8 +108,7 @@ void * raw_aligned_allocate( size_t size, size_t alignment )
 #if defined( __INTEL_COMPILER ) && !defined ( KOKKOS_HAVE_CUDA )
     ptr = _mm_malloc( size , alignment );
 
-#elif ( defined( _POSIX_C_SOURCE ) && _POSIX_C_SOURCE >= 200112L ) || \
-    ( defined( _XOPEN_SOURCE )   && _XOPEN_SOURCE   >= 600 )
+#elif defined(KOKKOS_POSIX_MEMALIGN_AVAILABLE)
 
     posix_memalign( & ptr, alignment , size );
 
@@ -136,8 +140,7 @@ void raw_aligned_deallocate( void * ptr, size_t /*size*/ )
 #if defined( __INTEL_COMPILER ) && !defined ( KOKKOS_HAVE_CUDA )
     _mm_free( ptr );
 
-#elif ( defined( _POSIX_C_SOURCE ) && _POSIX_C_SOURCE >= 200112L ) || \
-      ( defined( _XOPEN_SOURCE )   && _XOPEN_SOURCE   >= 600 )
+#elif defined(KOKKOS_POSIX_MEMALIGN_AVAILABLE)
     free( ptr );
 #else
     // get the alloc'd pointer
@@ -279,3 +282,6 @@ void * PageAlignedAllocator::reallocate(void * old_ptr, size_t old_size, size_t 
 }
 
 }} // namespace Kokkos::Impl
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+

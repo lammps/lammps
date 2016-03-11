@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>thermo_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>thermo_style command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -152,7 +152,7 @@
                    cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
                    c_ID, c_ID[I], c_ID[I][J],
                       f_ID, f_ID[I], f_ID[I][J],
-                      v_name
+                      v_name, v_name[I]
     step = timestep
     elapsed = timesteps since start of this run
     elaplong = timesteps since start of initial run in a series of runs
@@ -170,9 +170,9 @@
     ke = kinetic energy
     etotal = total energy (pe + ke)
     enthalpy = enthalpy (etotal + press*vol)
-    evdwl = VanderWaal pairwise energy
+    evdwl = VanderWaal pairwise energy (includes etail)
     ecoul = Coulombic pairwise energy
-    epair = pairwise energy (evdwl + ecoul + elong + etail)
+    epair = pairwise energy (evdwl + ecoul + elong)
     ebond = bond energy
     eangle = angle energy
     edihed = dihedral energy
@@ -200,7 +200,8 @@
     f_ID = global scalar value calculated by a fix with ID
     f_ID[I] = Ith component of global vector calculated by a fix with ID
     f_ID[I][J] = I,J component of global array calculated by a fix with ID
-    v_name = scalar value calculated by an equal-style variable with name
+    v_name = value calculated by an equal-style variable with name
+    v_name[I] = value calculated by a vector-style variable with name
 </pre>
 </div>
 <div class="section" id="examples">
@@ -244,13 +245,13 @@ be used to set the one- or multi-line format of the print-out, the
 normalization of thermodynamic output (total values versus per-atom
 values for extensive quantities (ones which scale with the number of
 atoms in the system), and the numeric precision of each printed value.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When you use a &#8220;thermo_style&#8221; command, all
-thermodynamic settings are restored to their default values, including
-those previously set by a <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> command.
-Thus if your input script specifies a thermo_style command, you should
-use the thermo_modify command after it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When you use a &#8220;thermo_style&#8221; command, all thermodynamic
+settings are restored to their default values, including those
+previously set by a <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> command.  Thus
+if your input script specifies a thermo_style command, you should use
+the thermo_modify command after it.</p>
 </div>
 <hr class="docutils" />
 <p>Several of the thermodynamic quantities require a temperature to be
@@ -310,9 +311,9 @@ interacting with the wall.  See the doc pages for &#8220;individual fixes&#8221;
 to see which ones contribute.</p>
 <p>A long-range tail correction <em>etail</em> for the VanderWaal pairwise
 energy will be non-zero only if the <a class="reference internal" href="pair_modify.html"><em>pair_modify tail</em></a> option is turned on.  The <em>etail</em> contribution
-is included in <em>evdwl</em>, <em>pe</em>, and <em>etotal</em>, and the corresponding tail
-correction to the pressure is included in <em>press</em> and <em>pxx</em>, <em>pyy</em>,
-etc.</p>
+is included in <em>evdwl</em>, <em>epair</em>, <em>pe</em>, and <em>etotal</em>, and the
+corresponding tail correction to the pressure is included in <em>press</em>
+and <em>pxx</em>, <em>pyy</em>, etc.</p>
 <hr class="docutils" />
 <p>The <em>step</em>, <em>elapsed</em>, and <em>elaplong</em> keywords refer to timestep
 count.  <em>Step</em> is the current timestep, or iteration count when a
@@ -422,15 +423,17 @@ option being used.</p>
 <p>The <em>v_name</em> keyword allow the current value of a variable to be
 output.  The name in the keyword should be replaced by the variable
 name that has been defined elsewhere in the input script.  Only
-equal-style variables can be referenced.  See the
-<a class="reference internal" href="variable.html"><em>variable</em></a> command for details.  Variables of style
-<em>equal</em> can reference per-atom properties or thermodynamic keywords,
-or they can invoke other computes, fixes, or variables when evaluated,
-so this is a very general means of creating thermodynamic output.</p>
-<p>Note that equal-style variables are assumed to be &#8220;intensive&#8221; global
-quantities, which are thus printed as-is, without normalization by
-thermo_style custom.  You can include a division by &#8220;natoms&#8221; in the
-variable formula if this is not the case.</p>
+equal-style and vector-style variables can be referenced; the latter
+requires a bracketed term to specify the Ith element of the vector
+calculated by the variable.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> command
+for details.  Variables of style <em>equal</em> and <em>vector</em> define a formula
+which can reference per-atom properties or thermodynamic keywords, or
+they can invoke other computes, fixes, or variables when evaluated, so
+this is a very general means of creating thermodynamic output.</p>
+<p>Note that equal-style and vector-style variables are assumed to
+produce &#8220;intensive&#8221; global quantities, which are thus printed as-is,
+without normalization by thermo_style custom.  You can include a
+division by &#8220;natoms&#8221; in the variable formula if this is not the case.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="restrictions">
@@ -463,7 +466,7 @@ variable formula if this is not the case.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -484,7 +487,7 @@ variable formula if this is not the case.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -178,10 +178,18 @@ E: Atom type must be zero in fix gcmc mol command
 
 Self-explanatory.
 
+E: Fix gcmc molecule has charges, but atom style does not
+
+Self-explanatory.
+
 E: Fix gcmc molecule template ID must be same as atom_style template ID
 
 When using atom_style template, you cannot insert molecules that are
 not in that template.
+
+E: Fix gcmc atom has charge, but atom style does not
+
+Self-explanatory.
 
 E: Cannot use fix gcmc shake and not molecule
 
@@ -257,10 +265,18 @@ E: Illegal fix gcmc gas mass <= 0
 The computed mass of the designated gas molecule or atom type was less
 than or equal to zero.
 
-E: Cannot do gcmc on atoms in atom_modify first group
+E: Cannot do GCMC on atoms in atom_modify first group
 
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.
+
+E: Could not find specified fix gcmc group ID
+
+Self-explanatory.
+
+E: Fix gcmc put atom outside box
+
+This should not normally happen.  Contact the developers.
 
 E: Fix gcmc ran out of available molecule IDs
 

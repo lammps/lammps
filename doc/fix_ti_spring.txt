@@ -82,10 +82,10 @@ This function has zero slope as lambda approaches its extreme values
 smaller fluctuations on the integral to be computed on the
 thermodynamic integration.
 
-IMPORTANT NOTE: It is importante to keep the center of mass fixed
-during the thermodynamic integration, a non-zero total velocity will
-result in divergencies during the integration due to the fact that the
-atoms are 'attatched' to its equilibrium positions by the Einstein
+NOTE: It is importante to keep the center of mass fixed during the
+thermodynamic integration, a non-zero total velocity will result in
+divergencies during the integration due to the fact that the atoms are
+'attatched' to its equilibrium positions by the Einstein
 crystal. Check the option {zero} of "fix langevin"_fix_langevin_html
 and "velocity"_velocity.html. The use of the Nose-Hoover thermostat
 ("fix nvt"_fix_nvt.html) is NOT recommended due to its well documented
@@ -121,10 +121,10 @@ the "run"_run.html command.
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.
 
-IMPORTANT NOTE: If you want the per-atom spring energy to be included
-in the total potential energy of the system (the quantity being
-minimized), you MUST enable the "fix modify"_fix_modify.html {energy}
-option for this fix.
+NOTE: If you want the per-atom spring energy to be included in the
+total potential energy of the system (the quantity being minimized),
+you MUST enable the "fix modify"_fix_modify.html {energy} option for
+this fix.
 
 An example script using this command is provided in the
 examples/USER/misc/ti directory.

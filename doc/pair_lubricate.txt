@@ -38,8 +38,8 @@ fix 1 all adapt 1 pair lubricate mu * * v_mu :pre
 [Description:]
 
 Styles {lubricate} and {lubricate/poly} compute hydrodynamic
-interactions between mono-disperse spherical particles in a pairwise
-fashion.  The interactions have 2 components.  The first is
+interactions between mono-disperse finite-size spherical particles in
+a pairwise fashion.  The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in "(Ball and
 Melrose)"_#Ball
 
@@ -83,10 +83,9 @@ this is dynamic viscosity which has units of mass/distance/time, not
 kinematic viscosity. Volume fraction corrections to R_FU are included
 as long as {flagVF} is set to 1 (default).
 
-IMPORTANT NOTE: When using the FLD terms, these pair styles are
-designed to be used with explicit time integration and a
-correspondingly small timestep.  Thus either "fix
-nve/sphere"_fix_nve_sphere.html or "fix
+NOTE: When using the FLD terms, these pair styles are designed to be
+used with explicit time integration and a correspondingly small
+timestep.  Thus either "fix nve/sphere"_fix_nve_sphere.html or "fix
 nve/asphere"_fix_nve_asphere.html should be used for time integration.
 To perform implicit FLD, see the "pair_style
 lubricateU"_pair_lubricateU.html command.
@@ -191,8 +190,8 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-These styles are part of the FLD package.  They are only enabled if
-LAMMPS was built with that package.  See the "Making
+These styles are part of the COLLOID package.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 Only spherical monodisperse particles are allowed for pair_style

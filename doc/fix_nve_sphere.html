@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix nve/sphere command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix nve/sphere command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -163,8 +163,8 @@ assumes point particles and only updates their position and velocity.</p>
 <p>If the <em>update</em> keyword is used with the <em>dipole</em> value, then the
 orientation of the dipole moment of each particle is also updated
 during the time integration.  This option should be used for models
-where a dipole moment is assigned to particles via use of the
-<a class="reference internal" href="atom_style.html"><em>atom_style dipole</em></a> command.</p>
+where a dipole moment is assigned to finite-size particles,
+e.g. spheroids via use of the <a class="reference internal" href="atom_style.html"><em>atom_style hybrid sphere dipole</em></a> command.</p>
 <hr class="docutils" />
 <p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
@@ -218,7 +218,7 @@ be point particles.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -239,7 +239,7 @@ be point particles.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

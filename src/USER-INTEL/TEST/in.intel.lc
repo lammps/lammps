@@ -7,7 +7,7 @@
 package intel 1 mode mixed balance $b
 package omp 0
 suffix $s
-processors * * * grid numa
+# processors * * * grid numa
 
 variable        x index 4
 variable        y index 2

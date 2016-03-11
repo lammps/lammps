@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -45,6 +45,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_hwloc.hpp>
@@ -253,6 +254,7 @@ hwloc_topology_t             s_hwloc_topology(0);
 hwloc_bitmap_t               s_hwloc_location(0);
 hwloc_bitmap_t               s_process_binding(0);
 hwloc_bitmap_t               s_core[ MAX_CORE ];
+bool                         s_can_bind_threads(true);
 
 struct Sentinel {
   ~Sentinel();
@@ -308,6 +310,22 @@ Sentinel::Sentinel()
   s_process_binding = hwloc_bitmap_alloc();
 
   hwloc_get_cpubind( s_hwloc_topology , s_process_binding ,  HWLOC_CPUBIND_PROCESS );
+
+  if ( hwloc_bitmap_iszero( s_process_binding ) ) {
+    std::cerr << "WARNING: Cannot detect process binding -- ASSUMING ALL processing units" << std::endl;
+    const int pu_depth = hwloc_get_type_depth( s_hwloc_topology, HWLOC_OBJ_PU );
+    int num_pu = 1;
+    if ( pu_depth != HWLOC_TYPE_DEPTH_UNKNOWN ) {
+      num_pu = hwloc_get_nbobjs_by_depth( s_hwloc_topology, pu_depth );
+    }
+    else {
+      std::cerr << "WARNING: Cannot detect number of processing units -- ASSUMING 1 (serial)." << std::endl;
+      num_pu = 1;
+    }
+    hwloc_bitmap_set_range( s_process_binding, 0, num_pu-1);
+    s_can_bind_threads = false;
+  }
+
 
   if ( remove_core_0 ) {
 
@@ -509,6 +527,9 @@ unsigned get_available_cores_per_numa()
 unsigned get_available_threads_per_core()
 { sentinel(); return s_core_capacity ; }
 
+bool can_bind_threads()
+{ sentinel(); return s_can_bind_threads; }
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
@@ -676,6 +697,7 @@ namespace Kokkos {
 namespace hwloc {
 
 bool available() { return false ; }
+bool can_bind_threads() { return false ; }
 
 unsigned get_available_numa_count() { return 1 ; }
 unsigned get_available_cores_per_numa() { return 1 ; }

@@ -51,8 +51,8 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -I/home/sjplimp/fftw/fftw
-FFT_PATH = 	-L/home/sjplimp/fftw/fftw/.libs
+FFT_INC =       -DFFT_FFTW
+FFT_PATH = 	
 FFT_LIB =	-lfftw
 
 # JPEG and/or PNG library
@@ -112,5 +112,10 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+	cc -O -o $@ $<
+
+sinclude .depend

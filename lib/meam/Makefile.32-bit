@@ -56,6 +56,7 @@ $(LIB):  $(OBJ)
 $(DIR)%.o:%.F
 	$(F90) $(F90FLAGS) -c $< -o $@
 
+include .depend
 # ------ CLEAN ------
 
 clean:

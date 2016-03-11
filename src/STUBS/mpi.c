@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------ */
 
 /* Single-processor "stub" versions of MPI routines */
+/* -I. in Makefile insures dummy mpi.h in this dir is included */
 
 #include <stdlib.h>
 #include <string.h>

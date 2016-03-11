@@ -103,7 +103,6 @@ void PairCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   q = atomKK->k_q.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
@@ -173,7 +172,6 @@ void PairCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_coul += ev.ecoul;
   if (vflag_global) {
@@ -250,7 +248,6 @@ void PairCoulDSFKokkos<DeviceType>::operator()(TagPairCoulDSFKernelA<NEIGHFLAG,N
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const F_FLOAT qtmp = q[i];
-  const int itype = type(i);
 
   if (eflag) {
     const F_FLOAT e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
@@ -275,7 +272,6 @@ void PairCoulDSFKokkos<DeviceType>::operator()(TagPairCoulDSFKernelA<NEIGHFLAG,N
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
-    const int jtype = type(j);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cut_coulsq) {
@@ -429,7 +425,10 @@ int PairCoulDSFKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
 }
 
+namespace LAMMPS_NS {
 template class PairCoulDSFKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairCoulDSFKokkos<LMPHostType>;
 #endif
+}
+

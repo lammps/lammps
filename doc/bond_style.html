@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bond_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>bond_style command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -171,8 +171,8 @@ simulation.  See the <a class="reference internal" href="read_restart.html"><em>
 details on how to do this.  The one exception is that bond_style
 <em>hybrid</em> only stores the list of sub-styles in the restart file; bond
 coefficients need to be re-specified.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">When both a bond and pair style is defined, the
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
@@ -189,6 +189,7 @@ which are included in the LAMMPS distribution.  The list of these with
 links to the individual styles are given in the bond section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
 <ul class="simple">
 <li><a class="reference internal" href="bond_none.html"><em>bond_style none</em></a> - turn off bonded interactions</li>
+<li><a class="reference internal" href="bond_zero.html"><em>bond_style zero</em></a> - topology but no interactions</li>
 <li><a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a> - define multiple styles of bond interactions</li>
 <li><a class="reference internal" href="bond_class2.html"><em>bond_style class2</em></a> - COMPASS (class 2) bond</li>
 <li><a class="reference internal" href="bond_fene.html"><em>bond_style fene</em></a> - FENE (finite-extensible non-linear elastic) bond</li>
@@ -230,7 +231,7 @@ package.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -251,7 +252,7 @@ package.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

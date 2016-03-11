@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix adapt command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix adapt command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -224,9 +224,9 @@ pages for individual pair styles and their energy formulas for the
 meaning of these parameters:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="51%" />
-<col width="31%" />
-<col width="18%" />
+<col width="49%" />
+<col width="35%" />
+<col width="17%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="pair_born.html"><em>born</em></a></td>
@@ -273,16 +273,26 @@ meaning of these parameters:</p>
 <td>a</td>
 <td>type pairs</td>
 </tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_kim.html"><em>kim</em></a></td>
+<td>PARAM_FREE_*&amp;#58i,j,...</td>
+<td>global</td>
+</tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is easy to add new potentials and their parameters
-to this list.  All it typically takes is adding an extract() method to
-the pair_*.cpp file associated with the potential.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is easy to add new potentials and their parameters to this
+list.  All it typically takes is adding an extract() method to the
+pair_*.cpp file associated with the potential.</p>
 </div>
 <p>Some parameters are global settings for the pair style, e.g. the
 viscosity setting &#8220;mu&#8221; for <a class="reference internal" href="pair_lubricate.html"><em>pair_style lubricate</em></a>.
+For <a class="reference internal" href="pair_kim.html"><em>pair_kim</em></a>, all free parameters supported by the
+KIM Model are available (e.g., PARAM_FREE_sigmas provided by the
+LennardJones612_Universal__MO_826355984548_001 Model).  If the free
+parameter corresponds to an array, then the particular array element
+to be adapted must be specified (e.g., &#8220;PARAM_FREE_sigmas:10&#8221;, to
+adapt the tenth entry of the sigmas array).
 Other parameters apply to atom type pairs within the pair style,
 e.g. the prefactor &#8220;a&#8221; for <a class="reference internal" href="pair_soft.html"><em>pair_style soft</em></a>.</p>
 <p>Note that for many of the potentials, the parameter that can be varied
@@ -357,11 +367,11 @@ specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The <em>atom</em> keyword works this way whether the <em>scale</em>
-keyword is set to <em>no</em> or <em>yes</em>.  I.e. the use of scale yes is not yet
-supported by the <em>atom</em> keyword.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>atom</em> keyword works this way whether the <em>scale</em> keyword is
+set to <em>no</em> or <em>yes</em>.  I.e. the use of scale yes is not yet supported
+by the <em>atom</em> keyword.</p>
 </div>
 <p>If the atom parameter is <em>diameter</em> and per-atom density and per-atom
 mass are defined for particles (e.g. <a class="reference internal" href="atom_style.html"><em>atom_style granular</em></a>), then the mass of each particle is also
@@ -411,7 +421,7 @@ parameters on the outermost rRESPA level.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -432,7 +442,7 @@ parameters on the outermost rRESPA level.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

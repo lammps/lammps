@@ -28,8 +28,8 @@ using namespace LAMMPS_NS;
 ComputeMesoRhoAtom::ComputeMesoRhoAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute meso_rho/atom command");
-  if (atom->rho_flag != 1) error->all(FLERR,"compute meso_rho/atom command requires atom_style with density (e.g. meso)");
+  if (narg != 3) error->all(FLERR,"Illegal compute meso/rho/atom command");
+  if (atom->rho_flag != 1) error->all(FLERR,"compute meso/rho/atom command requires atom_style with density (e.g. meso)");
 
   peratom_flag = 1;
   size_peratom_cols = 0;

@@ -104,7 +104,7 @@ enabled if LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 This pair_style should currently not be used with the "charmm dihedral
-style"_dihedral_charmm.html if the latter non-zero 1-4 weighting
+style"_dihedral_charmm.html if the latter has non-zero 1-4 weighting
 factors. This is because the {thole} pair style does not know which
 pairs are 1-4 partners of which dihedrals.
 

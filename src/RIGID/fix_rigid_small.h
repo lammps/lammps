@@ -256,7 +256,7 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
-W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized h
+W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
 
 This means the temperature associated with the rigid bodies may be
 incorrect on this timestep.
@@ -271,6 +271,10 @@ not be accounted for.
 E: Fix rigid/small atom has non-zero image flag in a non-periodic dimension
 
 Image flags for non-periodic dimensions should not be set.
+
+E: One or more rigid bodies are a single particle
+
+Self-explanatory.
 
 E: Inconsistent use of finite-size particles by molecule template molecules
 

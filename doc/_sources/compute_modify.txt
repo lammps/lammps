@@ -1,0 +1,82 @@
+.. index:: compute_modify
+
+compute_modify command
+======================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   compute_modify compute-ID keyword value ...
+
+* compute-ID = ID of the compute to modify
+* one or more keyword/value pairs may be listed
+* keyword = *extra* or *dynamic*
+.. parsed-literal::
+
+     *extra* value = N
+       N = # of extra degrees of freedom to subtract
+     *dynamic* value = *yes* or *no*
+       yes/no = do or do not recompute the number of atoms contributing to the temperature
+     *thermo* value = *yes* or *no*
+       yes/no = do or do not add contributions from fixes to the potential energy
+
+
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   compute_modify myTemp extra 0
+   compute_modify newtemp dynamic yes extra 600
+
+Description
+"""""""""""
+
+Modify one or more parameters of a previously defined compute.  Not
+all compute styles support all parameters.
+
+The *extra* keyword refers to how many degrees-of-freedom are
+subtracted (typically from 3N) as a normalizing factor in a
+temperature computation.  Only computes that compute a temperature use
+this option.  The default is 2 or 3 for :doc:`2d or 3d systems <dimension>` which is a correction factor for an ensemble
+of velocities with zero total linear momentum.  You can use a negative
+number for the *extra* parameter if you need to add
+degrees-of-freedom.  See the :doc:`compute temp/asphere <compute_temp_asphere>` command for an example.
+
+The *dynamic* keyword determines whether the number of atoms N in the
+compute group is re-computed each time a temperature is computed.
+Only compute styles that compute a temperature use this option.  By
+default, N is assumed to be constant.  If you are adding atoms to the
+system (see the :doc:`fix pour <fix_pour>` or :doc:`fix deposit <fix_deposit>` commands) or expect atoms to be lost
+(e.g. due to evaporation), then this option should be used to insure
+the temperature is correctly normalized.
+
+The *thermo* keyword determines whether the potential energy
+contribution calculated by some :doc:`fixes <fix>` is added to the
+potential energy calculated by the compute.  Currently, only the
+compute of style *pe* uses this option.  See the doc pages for
+:doc:`individual fixes <fix>` for details.
+
+Restrictions
+""""""""""""
+ none
+
+Related commands
+""""""""""""""""
+
+:doc:`compute <compute>`
+
+Default
+"""""""
+
+The option defaults are extra = 2 or 3 for 2d or 3d systems and
+dynamic = no.  Thermo is *yes* if the compute of style *pe* was
+defined with no extra keywords; otherwise it is *no*.
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

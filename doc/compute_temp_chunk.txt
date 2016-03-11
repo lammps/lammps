@@ -132,8 +132,8 @@ one set of atoms to calculate their temperature.  This compute allows
 the center-of-mass velocity of each chunk to be subtracted before
 calculating the temperature; fix ave/chunk does not.
 
-IMPORTANT NOTE: Only atoms in the specified group contribute to the
-calculations performed by this compute.  The "compute
+NOTE: Only atoms in the specified group contribute to the calculations
+performed by this compute.  The "compute
 chunk/atom"_compute_chunk_atom.html command defines its own group;
 atoms will have a chunk ID = 0 if they are not in that group,
 signifying they are not assigned to a chunk, and will thus also not

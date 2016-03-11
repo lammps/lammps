@@ -104,6 +104,11 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   maxbin = 0;
   bins = NULL;
 
+  // SSA AIR binning
+
+  len_ssa_airnum = 0;
+  ssa_airnum = NULL;
+
   // pair exclusion list info
 
   includegroup = 0;
@@ -175,6 +180,8 @@ Neighbor::~Neighbor()
 
   memory->destroy(binhead);
   memory->destroy(bins);
+
+  memory->destroy(ssa_airnum);
 
   memory->destroy(ex1_type);
   memory->destroy(ex2_type);
@@ -402,8 +409,12 @@ void Neighbor::init()
   else exclude = 1;
 
   if (nex_type) {
-    memory->destroy(ex_type);
-    memory->create(ex_type,n+1,n+1,"neigh:ex_type");
+    if (lmp->kokkos)
+      init_ex_type_kokkos(n);
+    else {
+      memory->destroy(ex_type);
+      memory->create(ex_type,n+1,n+1,"neigh:ex_type");
+    }
 
     for (i = 1; i <= n; i++)
       for (j = 1; j <= n; j++)
@@ -419,10 +430,14 @@ void Neighbor::init()
   }
 
   if (nex_group) {
-    delete [] ex1_bit;
-    delete [] ex2_bit;
-    ex1_bit = new int[nex_group];
-    ex2_bit = new int[nex_group];
+    if (lmp->kokkos)
+      init_ex_bit_kokkos();
+    else {
+      delete [] ex1_bit;
+      delete [] ex2_bit;
+      ex1_bit = new int[nex_group];
+      ex2_bit = new int[nex_group];
+    }
 
     for (i = 0; i < nex_group; i++) {
       ex1_bit[i] = group->bitmask[ex1_group[i]];
@@ -431,8 +446,12 @@ void Neighbor::init()
   }
 
   if (nex_mol) {
-    delete [] ex_mol_bit;
-    ex_mol_bit = new int[nex_mol];
+    if (lmp->kokkos)
+      init_ex_mol_bit_kokkos();
+    else {
+      delete [] ex_mol_bit;
+      ex_mol_bit = new int[nex_mol];
+    }
 
     for (i = 0; i < nex_mol; i++)
       ex_mol_bit[i] = group->bitmask[ex_mol_group[i]];
@@ -1007,6 +1026,7 @@ int Neighbor::request(void *requestor, int instance)
    skip -> granular function if gran with granhistory,
            respa function if respaouter,
            skip_from function for everything else
+   ssa -> special case for USER-DPD pair styles
    half_from_full, half, full, gran, respaouter ->
      choose by newton and rq->newton and tri settings
      style NSQ options = newton off, newton on
@@ -1029,6 +1049,10 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
         pb = &Neighbor::skip_from_granular;
       else if (rq->respaouter) pb = &Neighbor::skip_from_respa;
       else pb = &Neighbor::skip_from;
+
+    } else if (rq->ssa) {
+      if (rq->half_from_full) pb = &Neighbor::half_from_full_newton_ssa;
+      else pb = &Neighbor::half_bin_newton_ssa;
 
     } else if (rq->half_from_full) {
       if (rq->newton == 0) {
@@ -1274,6 +1298,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
    determine which stencil_create function each neigh list needs
    based on settings of neigh request, only called if style != NSQ
    skip or copy or half_from_full -> no stencil
+   ssa = special case for USER-DPD pair styles
    half, gran, respaouter, full -> choose by newton and tri and dimension
    if none of these, ptr = NULL since this list needs no stencils
    use "else if" b/c skip,copy can be set in addition to half,full,etc
@@ -1285,7 +1310,11 @@ void Neighbor::choose_stencil(int index, NeighRequest *rq)
 
   if (rq->skip || rq->copy || rq->half_from_full) sc = NULL;
 
-  else if (rq->half || rq->gran || rq->respaouter) {
+  else if (rq->ssa) {
+    if (dimension == 2) sc = &Neighbor::stencil_half_bin_2d_ssa;
+    else if (dimension == 3) sc = &Neighbor::stencil_half_bin_3d_ssa;
+
+  } else if (rq->half || rq->gran || rq->respaouter) {
     if (style == BIN) {
       if (rq->newton == 0) {
         if (newton_pair == 0) {
@@ -1486,7 +1515,7 @@ int Neighbor::check_distance()
 }
 
 /* ----------------------------------------------------------------------
-   build perpetuals neighbor lists
+   build perpetual neighbor lists
    called at setup and every few timesteps during run or minimization
    topology lists also built if topoflag = 1, USER-CUDA calls with topoflag = 0
 ------------------------------------------------------------------------- */
@@ -2127,6 +2156,30 @@ int Neighbor::exclusion(int i, int j, int itype, int jtype,
 }
 
 /* ----------------------------------------------------------------------
+   remove the first group-group exclusion matching group1, group2
+------------------------------------------------------------------------- */
+
+void Neighbor::exclusion_group_group_delete(int group1, int group2)
+{
+  int m, mlast;
+  for (m = 0; m < nex_group; m++)
+    if (ex1_group[m] == group1 && ex2_group[m] == group2 )
+      break;
+
+  mlast = m;
+  if (mlast == nex_group) 
+    error->all(FLERR,"Unable to find group-group exclusion");
+  
+  for (m = mlast+1; m < nex_group; m++) {
+    ex1_group[m-1] = ex1_group[m];
+    ex2_group[m-1] = ex2_group[m];
+    ex1_bit[m-1] = ex1_bit[m];
+    ex2_bit[m-1] = ex2_bit[m];
+  }
+  nex_group--;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
@@ -2139,6 +2192,8 @@ bigint Neighbor::memory_usage()
     bytes += memory->usage(bins,maxbin);
     bytes += memory->usage(binhead,maxhead);
   }
+
+  bytes += memory->usage(ssa_airnum,len_ssa_airnum);
 
   for (int i = 0; i < nrequest; i++)
     if (lists[i]) bytes += lists[i]->memory_usage();
@@ -2159,3 +2214,4 @@ int Neighbor::exclude_setting()
 {
   return exclude;
 }
+

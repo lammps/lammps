@@ -94,7 +94,7 @@ void Finish::end(int flag)
     timeflag = histoflag = 1;
     neighflag = 1;
     if (update->whichflag == 1 &&
-        strcmp(update->integrate_style,"verlet/split") == 0 &&
+        strncmp(update->integrate_style,"verlet/split",12) == 0 &&
         universe->iworld == 1) neighflag = 0;
     if (force->kspace && force->kspace_match("pppm",0)
         && force->kspace->fftbench) fftflag = 1;

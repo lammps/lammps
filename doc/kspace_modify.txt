@@ -34,7 +34,7 @@ keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minor
   {slab} value = volfactor or {nozforce}
     volfactor = ratio of the total extended volume used in the
       2d approximation compared with the volume of the simulation domain
-  {nozforce} turns off kspace forces in the z direction
+    {nozforce} turns off kspace forces in the z direction
   {compute} value = {yes} or {no} 
   {cutoff/adjust} value = {yes} or {no} 
   {pressure/scalar} value = {yes} or {no} 
@@ -243,8 +243,8 @@ the {ik} method. Currently, only the {ik} method (default) can be
 used for a triclinic simulation cell with PPPM. The {ad} method is 
 always used for MSM.
 
-IMPORTANT NOTE: Currently, not all PPPM styles support the {ad}
-option.  Support for those PPPM variants will be added later.
+NOTE: Currently, not all PPPM styles support the {ad} option.  Support
+for those PPPM variants will be added later.
 
 The {kmax/ewald} keyword sets the number of kspace vectors in each
 dimension for kspace style {ewald}.  The three values must be positive

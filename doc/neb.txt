@@ -57,12 +57,12 @@ speed-up you would see with one or more physical processors per
 replica.  See "this section"_Section_howto.html#howto_5 of the manual
 for further discussion.
 
-IMPORTANT NOTE: The current NEB implementation in LAMMPS only allows
-there to be one processor per replica.
+NOTE: The current NEB implementation in LAMMPS only allows there to be
+one processor per replica.
 
-IMPORTANT NOTE: As explained below, a NEB calculation perfoms a damped
-dynamics minimization across all the replicas.  The mimimizer uses
-whatever timestep you have defined in your input script, via the
+NOTE: As explained below, a NEB calculation perfoms a damped dynamics
+minimization across all the replicas.  The mimimizer uses whatever
+timestep you have defined in your input script, via the
 "timestep"_timestep.html command.  Often NEB will converge more
 quickly if you use a timestep about 10x larger than you would normally
 use for dynamics simulations.
@@ -180,10 +180,10 @@ as in the discussion above for the {each} file-style.  Also see the
 section below for how a NEB calculation can produce restart files, so
 that a long calculation can be restarted if needed.
 
-IMPORTANT NOTE: None of the {file-style} settings change the initial
+NOTE: None of the {file-style} settings change the initial
 configuration of any atom in the first replica.  The first replica
 must thus be in the correct initial configuration at the time the neb
-command is issued.  
+command is issued.
 
 :line
 
@@ -248,8 +248,8 @@ configurations along the MEP.
 :line
 
 A few other settings in your input script are required or advised to
-perform a NEB calculation.  See the IMPORTANT NOTE about the choice of
-timestep at the beginning of this doc page.
+perform a NEB calculation.  See the NOTE about the choice of timestep
+at the beginning of this doc page.
 
 An atom map must be defined which it is not by default for "atom_style
 atomic"_atom_style.html problems.  The "atom_modify

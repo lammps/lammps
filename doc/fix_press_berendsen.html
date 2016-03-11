@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix press/berendsen command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix press/berendsen command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -169,15 +169,15 @@ keyword <em>dilate</em> is specified with a value of <em>partial</em>, in which 
 only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> commands which perform Nose/Hoover barostatting AND
-time integration, this fix does NOT perform time integration.  It only
-modifies the box size and atom coordinates to effect barostatting.
-Thus you must use a separate time integration fix, like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> to actually update the
-positions and velocities of atoms.  This fix can be used in
-conjunction with thermostatting fixes to control the temperature, such
-as <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> or <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>
+commands which perform Nose/Hoover barostatting AND time integration,
+this fix does NOT perform time integration.  It only modifies the box
+size and atom coordinates to effect barostatting.  Thus you must use a
+separate time integration fix, like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> to actually update the positions and velocities of
+atoms.  This fix can be used in conjunction with thermostatting fixes
+to control the temperature, such as <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> or <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a>.</p>
 </div>
 <p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
 a discussion of different ways to compute temperature and perform
@@ -206,13 +206,13 @@ although you have the option to change that dimension via the <a class="referenc
 scale on which pressure is relaxed.  For example, a value of 1000.0
 means to relax the pressure in a timespan of (roughly) 1000 time units
 (tau or fmsec or psec - see the <a class="reference internal" href="units.html"><em>units</em></a> command).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The relaxation time is actually also a function of the
-bulk modulus of the system (inverse of isothermal compressibility).
-The bulk modulus has units of pressure and is the amount of pressure
-that would need to be applied (isotropically) to reduce the volume of
-the system by a factor of 2 (assuming the bulk modulus was a constant,
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The relaxation time is actually also a function of the bulk
+modulus of the system (inverse of isothermal compressibility).  The
+bulk modulus has units of pressure and is the amount of pressure that
+would need to be applied (isotropically) to reduce the volume of the
+system by a factor of 2 (assuming the bulk modulus was a constant,
 independent of density, which it&#8217;s not).  The bulk modulus can be set
 via the keyword <em>modulus</em>.  The <em>Pdamp</em> parameter is effectively
 multiplied by the bulk modulus, so if the pressure is relaxing faster
@@ -329,7 +329,7 @@ Phys, 81, 3684 (1984).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -350,7 +350,7 @@ Phys, 81, 3684 (1984).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

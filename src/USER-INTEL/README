@@ -3,9 +3,11 @@
                           LAMMPS Intel(R) Package
                      --------------------------------
                      
-                        W. Michael Brown (Intel)
-                       michael.w.brown at intel.com
-
+             W. Michael Brown (Intel) michael.w.brown at intel.com
+                   Rodrigo Canales (RWTH Aachen University)
+                  Markus H�hnerbach (RWTH Aachen University)
+		   Ahmed E. Ismail (RWTH Aachen University)
+                   Paolo Bientinesi (RWTH Aachen University)
                           Anupama Kurpad (Intel)
                           Biswajit Mishra (Shell)
 
@@ -53,3 +55,12 @@ By default, when running with offload to Intel(R) coprocessors, affinity
 for host MPI tasks and OpenMP threads is set automatically within the code.
 This currently requires the use of system calls. To disable at build time,
 compile with -DINTEL_OFFLOAD_NOAFFINITY.
+
+-----------------------------------------------------------------------------
+
+Vector intrinsics are temporarily being used for the Stillinger-Weber 
+potential to allow for advanced features in the AVX512 instruction set to
+be exploited on early hardware. We hope to see compiler improvements for
+AVX512 that will eliminate this requirement, so it is not recommended to
+develop code based on the intrinsics implementation. Please e-mail the 
+authors for more details.

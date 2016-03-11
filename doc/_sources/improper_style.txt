@@ -1,0 +1,113 @@
+.. index:: improper_style
+
+improper_style command
+======================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   improper_style style
+
+* style = *none* or *hybrid* or *class2* or *cvff* or *harmonic*
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   improper_style harmonic
+   improper_style cvff
+   improper_style hybrid cvff harmonic
+
+Description
+"""""""""""
+
+Set the formula(s) LAMMPS uses to compute improper interactions
+between quadruplets of atoms, which remain in force for the duration
+of the simulation.  The list of improper quadruplets is read in by a
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` command
+from a data or restart file.  Note that the ordering of the 4 atoms in
+an improper quadruplet determines the the definition of the improper
+angle used in the formula for each style.  See the doc pages of
+individual styles for details.
+
+Hybrid models where impropers are computed using different improper
+potentials can be setup using the *hybrid* improper style.
+
+The coefficients associated with an improper style can be specified in
+a data or restart file or via the :doc:`improper_coeff <improper_coeff>`
+command.
+
+All improper potentials store their coefficient data in binary restart
+files which means improper_style and
+:doc:`improper_coeff <improper_coeff>` commands do not need to be
+re-specified in an input script that restarts a simulation.  See the
+:doc:`read_restart <read_restart>` command for details on how to do
+this.  The one exception is that improper_style *hybrid* only stores
+the list of sub-styles in the restart file; improper coefficients need
+to be re-specified.
+
+.. note::
+
+   When both an improper and pair style is defined, the
+   :doc:`special_bonds <special_bonds>` command often needs to be used to
+   turn off (or weight) the pairwise interaction that would otherwise
+   exist between a group of 4 bonded atoms.
+
+
+----------
+
+
+Here is an alphabetic list of improper styles defined in LAMMPS.
+Click on the style to display the formula it computes and coefficients
+specified by the associated :doc:`improper_coeff <improper_coeff>`
+command.
+
+Note that there are also additional improper styles submitted by users
+which are included in the LAMMPS distribution.  The list of these with
+links to the individual styles are given in the improper section of
+:ref:`this page <cmd_5>`.
+
+* :doc:`improper_style none <improper_none>` - turn off improper interactions
+* :doc:`improper_style zero <improper_zero>` - topology but no interactions
+* :doc:`improper_style hybrid <improper_hybrid>` - define multiple styles of improper interactions
+
+* :doc:`improper_style class2 <improper_class2>` - COMPASS (class 2) improper
+* :doc:`improper_style cvff <improper_cvff>` - CVFF improper
+* :doc:`improper_style harmonic <improper_harmonic>` - harmonic improper
+* :doc:`improper_style umbrella <improper_umbrella>` - DREIDING improper
+
+
+----------
+
+
+Restrictions
+""""""""""""
+
+
+Improper styles can only be set for atom_style choices that allow
+impropers to be defined.
+
+Most improper styles are part of the MOLECULE package.  They are only
+enabled if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info on packages.
+The doc pages for individual improper potentials tell if it is part of
+a package.
+
+Related commands
+""""""""""""""""
+
+:doc:`improper_coeff <improper_coeff>`
+
+Default
+"""""""
+
+.. parsed-literal::
+
+   improper_style none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

@@ -44,7 +44,7 @@ MPI_PATH =      -L../STUBS
 MPI_LIB =	-lmpi_stubs
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
@@ -111,5 +111,10 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+	cc -O -o $@ $<
+
+sinclude .depend

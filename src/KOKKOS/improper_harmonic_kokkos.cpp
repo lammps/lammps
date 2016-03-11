@@ -47,8 +47,8 @@ ImproperHarmonicKokkos<DeviceType>::ImproperHarmonicKokkos(LAMMPS *lmp) : Improp
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
-  k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
-  d_warning_flag = k_warning_flag.view<DeviceType>();
+  k_warning_flag = Kokkos::DualView<int,DeviceType>("Dihedral:warning_flag");
+  d_warning_flag = k_warning_flag.template view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
 }
 
@@ -77,17 +77,21 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-    d_eatom = k_eatom.d_view;
+    if(k_eatom.dimension_0()<maxeatom) {
+      memory->destroy_kokkos(k_eatom,eatom);
+      memory->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
+      d_eatom = k_eatom.d_view;
+    }
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-    d_vatom = k_vatom.d_view;
+    if(k_vatom.dimension_0()<maxvatom) {
+      memory->destroy_kokkos(k_vatom,vatom);
+      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      d_vatom = k_vatom.d_view;
+    }
   }
 
-  atomKK->sync(execution_space,datamask_read);
+  //atomKK->sync(execution_space,datamask_read);
   k_k.template sync<DeviceType>();
   k_chi.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
@@ -124,7 +128,7 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagImproperHarmonicCompute<0,0> >(0,nimproperlist),*this);
     }
   }
-  DeviceType::fence();
+  //DeviceType::fence();
 
   // error check
 
@@ -160,9 +164,6 @@ template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
-
-  // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = improperlist(n,0);
   const int i2 = improperlist(n,1);
@@ -262,27 +263,27 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   // apply force to each of 4 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    a_f(i1,0) += f1[0];
-    a_f(i1,1) += f1[1];
-    a_f(i1,2) += f1[2];
+    f(i1,0) += f1[0];
+    f(i1,1) += f1[1];
+    f(i1,2) += f1[2];
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    a_f(i2,0) += f2[0];
-    a_f(i2,1) += f2[1];
-    a_f(i2,2) += f2[2];
+    f(i2,0) += f2[0];
+    f(i2,1) += f2[1];
+    f(i2,2) += f2[2];
   }
 
   if (NEWTON_BOND || i3 < nlocal) {
-    a_f(i3,0) += f3[0];
-    a_f(i3,1) += f3[1];
-    a_f(i3,2) += f3[2];
+    f(i3,0) += f3[0];
+    f(i3,1) += f3[1];
+    f(i3,2) += f3[2];
   }
 
   if (NEWTON_BOND || i4 < nlocal) {
-    a_f(i4,0) += f4[0];
-    a_f(i4,1) += f4[1];
-    a_f(i4,2) += f4[2];
+    f(i4,0) += f4[0];
+    f(i4,1) += f4[1];
+    f(i4,2) += f4[2];
   }
 
   if (EVFLAG)
@@ -306,8 +307,8 @@ void ImproperHarmonicKokkos<DeviceType>::allocate()
   ImproperHarmonic::allocate();
 
   int n = atom->nimpropertypes;
-  k_k = DAT::tdual_ffloat_1d("ImproperHarmonic::k",n+1);
-  k_chi = DAT::tdual_ffloat_1d("ImproperHarmonic::chi",n+1);
+  k_k = Kokkos::DualView<F_FLOAT*,DeviceType>("ImproperHarmonic::k",n+1);
+  k_chi = Kokkos::DualView<F_FLOAT*,DeviceType>("ImproperHarmonic::chi",n+1);
 
   d_k = k_k.d_view;
   d_chi = k_chi.d_view;
@@ -351,9 +352,6 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
   E_FLOAT eimproperquarter;
   F_FLOAT v[6];
 
-  // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
 
   if (eflag_either) {
     if (eflag_global) {
@@ -368,10 +366,10 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
     }
     if (eflag_atom) {
       eimproperquarter = 0.25*eimproper;
-      if (newton_bond || i1 < nlocal) v_eatom[i1] += eimproperquarter;
-      if (newton_bond || i2 < nlocal) v_eatom[i2] += eimproperquarter;
-      if (newton_bond || i3 < nlocal) v_eatom[i3] += eimproperquarter;
-      if (newton_bond || i4 < nlocal) v_eatom[i4] += eimproperquarter;
+      if (newton_bond || i1 < nlocal) d_eatom[i1] += eimproperquarter;
+      if (newton_bond || i2 < nlocal) d_eatom[i2] += eimproperquarter;
+      if (newton_bond || i3 < nlocal) d_eatom[i3] += eimproperquarter;
+      if (newton_bond || i4 < nlocal) d_eatom[i4] += eimproperquarter;
     }
   }
 
@@ -429,36 +427,36 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 
     if (vflag_atom) {
       if (newton_bond || i1 < nlocal) {
-        v_vatom(i1,0) += 0.25*v[0];
-        v_vatom(i1,1) += 0.25*v[1];
-        v_vatom(i1,2) += 0.25*v[2];
-        v_vatom(i1,3) += 0.25*v[3];
-        v_vatom(i1,4) += 0.25*v[4];
-        v_vatom(i1,5) += 0.25*v[5];
+        d_vatom(i1,0) += 0.25*v[0];
+        d_vatom(i1,1) += 0.25*v[1];
+        d_vatom(i1,2) += 0.25*v[2];
+        d_vatom(i1,3) += 0.25*v[3];
+        d_vatom(i1,4) += 0.25*v[4];
+        d_vatom(i1,5) += 0.25*v[5];
       }
       if (newton_bond || i2 < nlocal) {
-        v_vatom(i2,0) += 0.25*v[0];
-        v_vatom(i2,1) += 0.25*v[1];
-        v_vatom(i2,2) += 0.25*v[2];
-        v_vatom(i2,3) += 0.25*v[3];
-        v_vatom(i2,4) += 0.25*v[4];
-        v_vatom(i2,5) += 0.25*v[5];
+        d_vatom(i2,0) += 0.25*v[0];
+        d_vatom(i2,1) += 0.25*v[1];
+        d_vatom(i2,2) += 0.25*v[2];
+        d_vatom(i2,3) += 0.25*v[3];
+        d_vatom(i2,4) += 0.25*v[4];
+        d_vatom(i2,5) += 0.25*v[5];
       }
       if (newton_bond || i3 < nlocal) {
-        v_vatom(i3,0) += 0.25*v[0];
-        v_vatom(i3,1) += 0.25*v[1];
-        v_vatom(i3,2) += 0.25*v[2];
-        v_vatom(i3,3) += 0.25*v[3];
-        v_vatom(i3,4) += 0.25*v[4];
-        v_vatom(i3,5) += 0.25*v[5];
+        d_vatom(i3,0) += 0.25*v[0];
+        d_vatom(i3,1) += 0.25*v[1];
+        d_vatom(i3,2) += 0.25*v[2];
+        d_vatom(i3,3) += 0.25*v[3];
+        d_vatom(i3,4) += 0.25*v[4];
+        d_vatom(i3,5) += 0.25*v[5];
       }
       if (newton_bond || i4 < nlocal) {
-        v_vatom(i4,0) += 0.25*v[0];
-        v_vatom(i4,1) += 0.25*v[1];
-        v_vatom(i4,2) += 0.25*v[2];
-        v_vatom(i4,3) += 0.25*v[3];
-        v_vatom(i4,4) += 0.25*v[4];
-        v_vatom(i4,5) += 0.25*v[5];
+        d_vatom(i4,0) += 0.25*v[0];
+        d_vatom(i4,1) += 0.25*v[1];
+        d_vatom(i4,2) += 0.25*v[2];
+        d_vatom(i4,3) += 0.25*v[3];
+        d_vatom(i4,4) += 0.25*v[4];
+        d_vatom(i4,5) += 0.25*v[5];
       }
     }
   }
@@ -466,7 +464,10 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class ImproperHarmonicKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class ImproperHarmonicKokkos<LMPHostType>;
 #endif
+}
+

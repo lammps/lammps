@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style colloid command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style colloid command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -227,10 +227,10 @@ would correspond to a colloid-colloid cutoff of 25.  A good
 rule-of-thumb is to use a colloid-solvent cutoff that is half the big
 diameter + 4 times the small diameter.  I.e. 9 = 5 + 4 for the
 colloid-solvent cutoff in this case.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">When using pair_style colloid for a mixture with 2 (or
-more) widely different particles sizes (e.g. sigma=10 colloids in a
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using pair_style colloid for a mixture with 2 (or more)
+widely different particles sizes (e.g. sigma=10 colloids in a
 background sigam=1 LJ fluid), you will likely want to use these
 commands for efficiency: <a class="reference internal" href="neighbor.html"><em>neighbor multi</em></a> and
 <a class="reference internal" href="comm_modify.html"><em>comm_modify multi</em></a>.</p>
@@ -305,7 +305,7 @@ only per-type polydispersity is enabled via the pair_coeff parameters.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -326,7 +326,7 @@ only per-type polydispersity is enabled via the pair_coeff parameters.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

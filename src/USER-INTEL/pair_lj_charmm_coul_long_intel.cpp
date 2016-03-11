@@ -217,7 +217,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
     ITABLE_IN signal(f_start)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
@@ -303,7 +303,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               const flt_t EWALD_F = 1.12837917;
               const flt_t INV_EWALD_P = 1.0 / 0.3275911;
 
-              const flt_t r = sqrt(rsq);
+              const flt_t r = (flt_t)1.0 / sqrt(r2inv);
               const flt_t grij = g_ewald * r;
               const flt_t expm2 = exp(-grij * grij);
               const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
@@ -311,12 +311,12 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
               forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
               if (EFLAG) ecoul = prefactor * erfc;
-              if (sbindex) {
-                const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
-                    prefactor;
-                forcecoul -= adjust;
-                if (EFLAG) ecoul -= adjust;
-              }
+
+	      const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
+		prefactor;
+	      forcecoul -= adjust;
+	      if (EFLAG) ecoul -= adjust;
+
             #ifdef INTEL_ALLOW_TABLE
             } else {
               float rsq_lookup = rsq;
@@ -438,12 +438,17 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	IP_PRE_ev_tally_atomq(EVFLAG, EFLAG, vflag, f, fwtmp);
       } // for ii
 
-      #if defined(_OPENMP)
-      #pragma omp barrier
+      #ifndef _LMP_INTEL_OFFLOAD
+      if (vflag == 2)
       #endif
-      IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			     nlocal, minlocal, nthreads, f_start, f_stride,
-			     x);
+      {
+        #if defined(_OPENMP)
+        #pragma omp barrier
+        #endif
+        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
+	  		       nlocal, minlocal, nthreads, f_start, f_stride,
+	                       x, offload);
+      }
     } // end of omp parallel region
     if (EVFLAG) {
       if (EFLAG) {
@@ -459,7 +464,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         ev_global[7] = ov5;
       }
     }
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end of offload region
@@ -470,7 +475,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload, eatom);
+    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
 }

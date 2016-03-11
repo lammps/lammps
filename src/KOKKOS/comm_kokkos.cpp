@@ -105,9 +105,9 @@ void CommKokkos::init()
 
   int check_forward = 0;
   int check_reverse = 0;
-  if (force->pair && !force->pair->execution_space == Device)
+  if (force->pair && (force->pair->execution_space == Host))
     check_forward += force->pair->comm_forward;
-  if (force->pair && !force->pair->execution_space == Device)
+  if (force->pair && (force->pair->execution_space == Host))
     check_reverse += force->pair->comm_reverse;
 
   for (int i = 0; i < modify->nfix; i++) {
@@ -496,6 +496,7 @@ void CommKokkos::exchange_device()
           k_count.h_view(0)=k_exchange_sendlist.h_view.dimension_0();
         }
       }
+      k_exchange_copylist.sync<LMPHostType>();
       k_exchange_sendlist.sync<LMPHostType>();
       k_sendflag.sync<LMPHostType>();
 
@@ -512,6 +513,8 @@ void CommKokkos::exchange_device()
 
       k_exchange_copylist.modify<LMPHostType>();
       k_exchange_copylist.sync<DeviceType>();
+      nsend = k_count.h_view(0);
+      if (nsend > maxsend) grow_send_kokkos(nsend,1);
       nsend =
         avec->pack_exchange_kokkos(k_count.h_view(0),k_buf_send,
                                    k_exchange_sendlist,k_exchange_copylist,
@@ -613,9 +616,9 @@ void CommKokkos::borders()
   }
 
   atomKK->sync(Host,ALL_MASK);
-
-  k_sendlist.modify<LMPHostType>();
   atomKK->modified(Host,ALL_MASK);
+  k_sendlist.sync<LMPHostType>();
+  k_sendlist.modify<LMPHostType>();
   CommBrick::borders();
   k_sendlist.modify<LMPHostType>();
   atomKK->modified(Host,ALL_MASK);
@@ -992,3 +995,4 @@ void CommKokkos::grow_swap(int n)
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i=0;i<maxswap;i++) maxsendlist[i]=size;
 }
+

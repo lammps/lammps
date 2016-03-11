@@ -1,0 +1,3103 @@
+How-to discussions
+==================
+
+This section describes how to perform common tasks using LAMMPS.
+
+| 6.1 :ref:`Restarting a simulation <howto_1>`
+| 6.2 :ref:`2d simulations <howto_2>`
+| 6.3 :ref:`CHARMM, AMBER, and DREIDING force fields <howto_3>`
+| 6.4 :ref:`Running multiple simulations from one input script <howto_4>`
+| 6.5 :ref:`Multi-replica simulations <howto_5>`
+| 6.6 :ref:`Granular models <howto_6>`
+| 6.7 :ref:`TIP3P water model <howto_7>`
+| 6.8 :ref:`TIP4P water model <howto_8>`
+| 6.9 :ref:`SPC water model <howto_9>`
+| 6.10 :ref:`Coupling LAMMPS to other codes <howto_10>`
+| 6.11 :ref:`Visualizing LAMMPS snapshots <howto_11>`
+| 6.12 :ref:`Triclinic (non-orthogonal) simulation boxes <howto_12>`
+| 6.13 :ref:`NEMD simulations <howto_13>`
+| 6.14 :ref:`Finite-size spherical and aspherical particles <howto_14>`
+| 6.15 :ref:`Output from LAMMPS (thermo, dumps, computes, fixes, variables) <howto_15>`
+| 6.16 :ref:`Thermostatting, barostatting and computing temperature <howto_16>`
+| 6.17 :ref:`Walls <howto_17>`
+| 6.18 :ref:`Elastic constants <howto_18>`
+| 6.19 :ref:`Library interface to LAMMPS <howto_19>`
+| 6.20 :ref:`Calculating thermal conductivity <howto_20>`
+| 6.21 :ref:`Calculating viscosity <howto_21>`
+| 6.22 :ref:`Calculating a diffusion coefficient <howto_22>`
+| 6.23 :ref:`Using chunks to calculate system properties <howto_23>`
+| 6.24 :ref:`Setting parameters for the kspace_style pppm/disp command <howto_24>`
+| 6.25 :ref:`Polarizable models <howto_25>`
+| 6.26 :ref:`Adiabatic core/shell model <howto_26>`
+| 6.27 :ref:`Drude induced dipoles <howto_27>` 
+| 
+
+The example input scripts included in the LAMMPS distribution and
+highlighted in :doc:`Section_example <Section_example>` also show how to
+setup and run various kinds of simulations.
+
+
+
+
+
+.. _howto_1:
+
+Restarting a simulation
+-----------------------
+
+There are 3 ways to continue a long LAMMPS simulation.  Multiple
+:doc:`run <run>` commands can be used in the same input script.  Each
+run will continue from where the previous run left off.  Or binary
+restart files can be saved to disk using the :doc:`restart <restart>`
+command.  At a later time, these binary files can be read via a
+:doc:`read_restart <read_restart>` command in a new script.  Or they can
+be converted to text data files using the :ref:`-r command-line switch <start_7>` and read by a
+:doc:`read_data <read_data>` command in a new script.
+
+Here we give examples of 2 scripts that read either a binary restart
+file or a converted data file and then issue a new run command to
+continue where the previous run left off.  They illustrate what
+settings must be made in the new script.  Details are discussed in the
+documentation for the :doc:`read_restart <read_restart>` and
+:doc:`read_data <read_data>` commands.
+
+Look at the *in.chain* input script provided in the *bench* directory
+of the LAMMPS distribution to see the original script that these 2
+scripts are based on.  If that script had the line
+
+.. parsed-literal::
+
+   restart	        50 tmp.restart
+
+added to it, it would produce 2 binary restart files (tmp.restart.50
+and tmp.restart.100) as it ran.
+
+This script could be used to read the 1st restart file and re-run the
+last 50 timesteps:
+
+.. parsed-literal::
+
+   read_restart	tmp.restart.50
+
+.. parsed-literal::
+
+   neighbor	0.4 bin
+   neigh_modify	every 1 delay 1
+
+.. parsed-literal::
+
+   fix		1 all nve
+   fix		2 all langevin 1.0 1.0 10.0 904297
+
+.. parsed-literal::
+
+   timestep	0.012
+
+.. parsed-literal::
+
+   run		50
+
+Note that the following commands do not need to be repeated because
+their settings are included in the restart file: *units, atom_style,
+special_bonds, pair_style, bond_style*.  However these commands do
+need to be used, since their settings are not in the restart file:
+*neighbor, fix, timestep*.
+
+If you actually use this script to perform a restarted run, you will
+notice that the thermodynamic data match at step 50 (if you also put a
+"thermo 50" command in the original script), but do not match at step
+100.  This is because the :doc:`fix langevin <fix_langevin>` command
+uses random numbers in a way that does not allow for perfect restarts.
+
+As an alternate approach, the restart file could be converted to a data
+file as follows:
+
+.. parsed-literal::
+
+   lmp_g++ -r tmp.restart.50 tmp.restart.data
+
+Then, this script could be used to re-run the last 50 steps:
+
+.. parsed-literal::
+
+   units		lj
+   atom_style	bond
+   pair_style	lj/cut 1.12
+   pair_modify	shift yes
+   bond_style	fene
+   special_bonds   0.0 1.0 1.0
+
+.. parsed-literal::
+
+   read_data	tmp.restart.data
+
+.. parsed-literal::
+
+   neighbor	0.4 bin
+   neigh_modify	every 1 delay 1
+
+.. parsed-literal::
+
+   fix		1 all nve
+   fix		2 all langevin 1.0 1.0 10.0 904297
+
+.. parsed-literal::
+
+   timestep	0.012
+
+.. parsed-literal::
+
+   reset_timestep	50
+   run		50
+
+Note that nearly all the settings specified in the original *in.chain*
+script must be repeated, except the *pair_coeff* and *bond_coeff*
+commands since the new data file lists the force field coefficients.
+Also, the :doc:`reset_timestep <reset_timestep>` command is used to tell
+LAMMPS the current timestep.  This value is stored in restart files,
+but not in data files.
+
+
+----------
+
+
+.. _howto_2:
+
+2d simulations
+--------------
+
+Use the :doc:`dimension <dimension>` command to specify a 2d simulation.
+
+Make the simulation box periodic in z via the :doc:`boundary <boundary>`
+command.  This is the default.
+
+If using the :doc:`create box <create_box>` command to define a
+simulation box, set the z dimensions narrow, but finite, so that the
+create_atoms command will tile the 3d simulation box with a single z
+plane of atoms - e.g.
+
+.. parsed-literal::
+
+   :doc:`create box <create_box>` 1 -10 10 -10 10 -0.25 0.25
+
+If using the :doc:`read data <read_data>` command to read in a file of
+atom coordinates, set the "zlo zhi" values to be finite but narrow,
+similar to the create_box command settings just described.  For each
+atom in the file, assign a z coordinate so it falls inside the
+z-boundaries of the box - e.g. 0.0.
+
+Use the :doc:`fix enforce2d <fix_enforce2d>` command as the last
+defined fix to insure that the z-components of velocities and forces
+are zeroed out every timestep.  The reason to make it the last fix is
+so that any forces induced by other fixes will be zeroed out.
+
+Many of the example input scripts included in the LAMMPS distribution
+are for 2d models.
+
+.. note::
+
+   Some models in LAMMPS treat particles as finite-size spheres, as
+   opposed to point particles.  In 2d, the particles will still be
+   spheres, not disks, meaning their moment of inertia will be the same
+   as in 3d.
+
+
+----------
+
+
+.. _howto_3:
+
+CHARMM, AMBER, and DREIDING force fields
+----------------------------------------
+
+A force field has 2 parts: the formulas that define it and the
+coefficients used for a particular system.  Here we only discuss
+formulas implemented in LAMMPS that correspond to formulas commonly
+used in the CHARMM, AMBER, and DREIDING force fields.  Setting
+coefficients is done in the input data file via the
+:doc:`read_data <read_data>` command or in the input script with
+commands like :doc:`pair_coeff <pair_coeff>` or
+:doc:`bond_coeff <bond_coeff>`.  See :doc:`Section_tools <Section_tools>`
+for additional tools that can use CHARMM or AMBER to assign force
+field coefficients and convert their output into LAMMPS input.
+
+See :ref:`(MacKerell) <MacKerell>` for a description of the CHARMM force
+field.  See :ref:`(Cornell) <Cornell>` for a description of the AMBER force
+field.
+
+.. _charmm: http://www.scripps.edu/brooks
+
+
+
+.. _amber: http://amber.scripps.edu
+
+
+
+These style choices compute force field formulas that are consistent
+with common options in CHARMM or AMBER.  See each command's
+documentation for the formula it computes.
+
+* :doc:`bond_style <bond_harmonic>` harmonic
+* :doc:`angle_style <angle_charmm>` charmm
+* :doc:`dihedral_style <dihedral_charmm>` charmm
+* :doc:`pair_style <pair_charmm>` lj/charmm/coul/charmm
+* :doc:`pair_style <pair_charmm>` lj/charmm/coul/charmm/implicit
+* :doc:`pair_style <pair_charmm>` lj/charmm/coul/long
+
+* :doc:`special_bonds <special_bonds>` charmm
+* :doc:`special_bonds <special_bonds>` amber
+
+DREIDING is a generic force field developed by the `Goddard group <http://www.wag.caltech.edu>`_ at Caltech and is useful for
+predicting structures and dynamics of organic, biological and
+main-group inorganic molecules. The philosophy in DREIDING is to use
+general force constants and geometry parameters based on simple
+hybridization considerations, rather than individual force constants
+and geometric parameters that depend on the particular combinations of
+atoms involved in the bond, angle, or torsion terms. DREIDING has an
+:doc:`explicit hydrogen bond term <pair_hbond_dreiding>` to describe
+interactions involving a hydrogen atom on very electronegative atoms
+(N, O, F).
+
+See :ref:`(Mayo) <Mayo>` for a description of the DREIDING force field
+
+These style choices compute force field formulas that are consistent
+with the DREIDING force field.  See each command's
+documentation for the formula it computes.
+
+* :doc:`bond_style <bond_harmonic>` harmonic
+* :doc:`bond_style <bond_morse>` morse
+
+* :doc:`angle_style <angle_harmonic>` harmonic
+* :doc:`angle_style <angle_cosine>` cosine
+* :doc:`angle_style <angle_cosine_periodic>` cosine/periodic
+
+* :doc:`dihedral_style <dihedral_charmm>` charmm
+* :doc:`improper_style <improper_umbrella>` umbrella
+
+* :doc:`pair_style <pair_buck>` buck
+* :doc:`pair_style <pair_buck>` buck/coul/cut
+* :doc:`pair_style <pair_buck>` buck/coul/long
+* :doc:`pair_style <pair_lj>` lj/cut
+* :doc:`pair_style <pair_lj>` lj/cut/coul/cut
+* :doc:`pair_style <pair_lj>` lj/cut/coul/long
+
+* :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/lj
+* :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/morse
+
+* :doc:`special_bonds <special_bonds>` dreiding
+
+
+----------
+
+
+.. _howto_4:
+
+Running multiple simulations from one input script
+--------------------------------------------------
+
+This can be done in several ways.  See the documentation for
+individual commands for more details on how these examples work.
+
+If "multiple simulations" means continue a previous simulation for
+more timesteps, then you simply use the :doc:`run <run>` command
+multiple times.  For example, this script
+
+.. parsed-literal::
+
+   units lj
+   atom_style atomic
+   read_data data.lj
+   run 10000
+   run 10000
+   run 10000
+   run 10000
+   run 10000
+
+would run 5 successive simulations of the same system for a total of
+50,000 timesteps.
+
+If you wish to run totally different simulations, one after the other,
+the :doc:`clear <clear>` command can be used in between them to
+re-initialize LAMMPS.  For example, this script
+
+.. parsed-literal::
+
+   units lj
+   atom_style atomic
+   read_data data.lj
+   run 10000
+   clear
+   units lj
+   atom_style atomic
+   read_data data.lj.new
+   run 10000
+
+would run 2 independent simulations, one after the other.
+
+For large numbers of independent simulations, you can use
+:doc:`variables <variable>` and the :doc:`next <next>` and
+:doc:`jump <jump>` commands to loop over the same input script
+multiple times with different settings.  For example, this
+script, named in.polymer
+
+.. parsed-literal::
+
+   variable d index run1 run2 run3 run4 run5 run6 run7 run8
+   shell cd $d
+   read_data data.polymer
+   run 10000
+   shell cd ..
+   clear
+   next d
+   jump in.polymer
+
+would run 8 simulations in different directories, using a data.polymer
+file in each directory.  The same concept could be used to run the
+same system at 8 different temperatures, using a temperature variable
+and storing the output in different log and dump files, for example
+
+.. parsed-literal::
+
+   variable a loop 8
+   variable t index 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15
+   log log.$a
+   read data.polymer
+   velocity all create $t 352839
+   fix 1 all nvt $t $t 100.0
+   dump 1 all atom 1000 dump.$a
+   run 100000
+   clear
+   next t
+   next a
+   jump in.polymer
+
+All of the above examples work whether you are running on 1 or
+multiple processors, but assumed you are running LAMMPS on a single
+partition of processors.  LAMMPS can be run on multiple partitions via
+the "-partition" command-line switch as described in :ref:`this section <start_7>` of the manual.
+
+In the last 2 examples, if LAMMPS were run on 3 partitions, the same
+scripts could be used if the "index" and "loop" variables were
+replaced with *universe*-style variables, as described in the
+:doc:`variable <variable>` command.  Also, the "next t" and "next a"
+commands would need to be replaced with a single "next a t" command.
+With these modifications, the 8 simulations of each script would run
+on the 3 partitions one after the other until all were finished.
+Initially, 3 simulations would be started simultaneously, one on each
+partition.  When one finished, that partition would then start
+the 4th simulation, and so forth, until all 8 were completed.
+
+
+----------
+
+
+.. _howto_5:
+
+Multi-replica simulations
+-------------------------
+
+Several commands in LAMMPS run mutli-replica simulations, meaning
+that multiple instances (replicas) of your simulation are run
+simultaneously, with small amounts of data exchanged between replicas
+periodically.
+
+These are the relevant commands:
+
+* :doc:`neb <neb>` for nudged elastic band calculations
+* :doc:`prd <prd>` for parallel replica dynamics
+* :doc:`tad <tad>` for temperature accelerated dynamics
+* :doc:`temper <temper>` for parallel tempering
+* :doc:`fix pimd <fix_pimd>` for path-integral molecular dynamics (PIMD)
+
+NEB is a method for finding transition states and barrier energies.
+PRD and TAD are methods for performing accelerated dynamics to find
+and perform infrequent events.  Parallel tempering or replica exchange
+runs different replicas at a series of temperature to facilitate
+rare-event sampling.
+
+These commands can only be used if LAMMPS was built with the REPLICA
+package.  See the :ref:`Making LAMMPS <start_3>` section
+for more info on packages.
+
+PIMD runs different replicas whose individual particles are coupled
+together by springs to model a system or ring-polymers.
+
+This commands can only be used if LAMMPS was built with the USER-MISC
+package.  See the :ref:`Making LAMMPS <start_3>` section
+for more info on packages.
+
+In all these cases, you must run with one or more processors per
+replica.  The processors assigned to each replica are determined at
+run-time by using the :ref:`-partition command-line switch <start_7>` to launch LAMMPS on multiple
+partitions, which in this context are the same as replicas.  E.g.
+these commands:
+
+.. parsed-literal::
+
+   mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
+   mpirun -np 8 lmp_linux -partition 8x1 -in in.neb
+
+would each run 8 replicas, on either 16 or 8 processors.  Note the use
+of the :ref:`-in command-line switch <start_7>` to specify
+the input script which is required when running in multi-replica mode.
+
+Also note that with MPI installed on a machine (e.g. your desktop),
+you can run on more (virtual) processors than you have physical
+processors.  Thus the above commands could be run on a
+single-processor (or few-processor) desktop so that you can run
+a multi-replica simulation on more replicas than you have
+physical processors.
+
+
+----------
+
+
+.. _howto_6:
+
+Granular models
+---------------
+
+Granular system are composed of spherical particles with a diameter,
+as opposed to point particles.  This means they have an angular
+velocity and torque can be imparted to them to cause them to rotate.
+
+To run a simulation of a granular model, you will want to use
+the following commands:
+
+* :doc:`atom_style sphere <atom_style>`
+* :doc:`fix nve/sphere <fix_nve_sphere>`
+* :doc:`fix gravity <fix_gravity>`
+
+This compute
+
+* :doc:`compute erotate/sphere <compute_erotate_sphere>`
+
+calculates rotational kinetic energy which can be :ref:`output with thermodynamic info <howto_15>`.
+
+Use one of these 3 pair potentials, which compute forces and torques
+between interacting pairs of particles:
+
+* :doc:`pair_style <pair_style>` gran/history
+* :doc:`pair_style <pair_style>` gran/no_history
+* :doc:`pair_style <pair_style>` gran/hertzian
+
+These commands implement fix options specific to granular systems:
+
+* :doc:`fix freeze <fix_freeze>`
+* :doc:`fix pour <fix_pour>`
+* :doc:`fix viscous <fix_viscous>`
+* :doc:`fix wall/gran <fix_wall_gran>`
+
+The fix style *freeze* zeroes both the force and torque of frozen
+atoms, and should be used for granular system instead of the fix style
+*setforce*.
+
+For computational efficiency, you can eliminate needless pairwise
+computations between frozen atoms by using this command:
+
+* :doc:`neigh_modify <neigh_modify>` exclude
+
+
+----------
+
+
+.. _howto_7:
+
+TIP3P water model
+-----------------
+
+The TIP3P water model as implemented in CHARMM
+:ref:`(MacKerell) <MacKerell>` specifies a 3-site rigid water molecule with
+charges and Lennard-Jones parameters assigned to each of the 3 atoms.
+In LAMMPS the :doc:`fix shake <fix_shake>` command can be used to hold
+the two O-H bonds and the H-O-H angle rigid.  A bond style of
+*harmonic* and an angle style of *harmonic* or *charmm* should also be
+used.
+
+These are the additional parameters (in real units) to set for O and H
+atoms and the water molecule to run a rigid TIP3P-CHARMM model with a
+cutoff.  The K values can be used if a flexible TIP3P model (without
+fix shake) is desired.  If the LJ epsilon and sigma for HH and OH are
+set to 0.0, it corresponds to the original 1983 TIP3P model
+:ref:`(Jorgensen) <Jorgensen>`.
+
+| O mass = 15.9994
+| H mass = 1.008
+| O charge = -0.834
+| H charge = 0.417
+| LJ epsilon of OO = 0.1521
+| LJ sigma of OO = 3.1507
+| LJ epsilon of HH = 0.0460
+| LJ sigma of HH = 0.4000
+| LJ epsilon of OH = 0.0836
+| LJ sigma of OH = 1.7753
+| K of OH bond = 450
+| r0 of OH bond = 0.9572
+| K of HOH angle = 55
+| theta of HOH angle = 104.52
+| 
+
+These are the parameters to use for TIP3P with a long-range Coulombic
+solver (e.g. Ewald or PPPM in LAMMPS), see :ref:`(Price) <Price>` for
+details:
+
+| O mass = 15.9994
+| H mass = 1.008
+| O charge = -0.830
+| H charge = 0.415
+| LJ epsilon of OO = 0.102
+| LJ sigma of OO = 3.188
+| LJ epsilon, sigma of OH, HH = 0.0
+| K of OH bond = 450
+| r0 of OH bond = 0.9572
+| K of HOH angle = 55
+| theta of HOH angle = 104.52
+| 
+
+Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
+
+
+----------
+
+
+.. _howto_8:
+
+TIP4P water model
+-----------------
+
+The four-point TIP4P rigid water model extends the traditional
+three-point TIP3P model by adding an additional site, usually
+massless, where the charge associated with the oxygen atom is placed.
+This site M is located at a fixed distance away from the oxygen along
+the bisector of the HOH bond angle.  A bond style of *harmonic* and an
+angle style of *harmonic* or *charmm* should also be used.
+
+A TIP4P model is run with LAMMPS using either this command
+for a cutoff model:
+
+:doc:`pair_style lj/cut/tip4p/cut <pair_lj>`
+
+or these two commands for a long-range model:
+
+* :doc:`pair_style lj/cut/tip4p/long <pair_lj>`
+* :doc:`kspace_style pppm/tip4p <kspace_style>`
+
+For both models, the bond lengths and bond angles should be held fixed
+using the :doc:`fix shake <fix_shake>` command.
+
+These are the additional parameters (in real units) to set for O and H
+atoms and the water molecule to run a rigid TIP4P model with a cutoff
+:ref:`(Jorgensen) <Jorgensen>`.  Note that the OM distance is specified in
+the :doc:`pair_style <pair_style>` command, not as part of the pair
+coefficients.
+
+| O mass = 15.9994
+| H mass = 1.008
+| O charge = -1.040
+| H charge = 0.520
+| r0 of OH bond = 0.9572
+| theta of HOH angle = 104.52 
+| OM distance = 0.15
+| LJ epsilon of O-O = 0.1550
+| LJ sigma of O-O = 3.1536
+| LJ epsilon, sigma of OH, HH = 0.0
+| Coulombic cutoff = 8.5
+| 
+
+For the TIP4/Ice model (J Chem Phys, 122, 234511 (2005);
+http://dx.doi.org/10.1063/1.1931662) these values can be used:
+
+| O mass = 15.9994
+| H mass =  1.008
+| O charge = -1.1794
+| H charge =  0.5897
+| r0 of OH bond = 0.9572
+| theta of HOH angle = 104.52
+| OM distance = 0.1577
+| LJ epsilon of O-O = 0.21084
+| LJ sigma of O-O = 3.1668
+| LJ epsilon, sigma of OH, HH = 0.0
+| Coulombic cutoff = 8.5
+| 
+
+For the TIP4P/2005 model (J Chem Phys, 123, 234505 (2005);
+http://dx.doi.org/10.1063/1.2121687), these values can be used:
+
+| O mass = 15.9994
+| H mass =  1.008
+| O charge = -1.1128
+| H charge = 0.5564
+| r0 of OH bond = 0.9572
+| theta of HOH angle = 104.52
+| OM distance = 0.1546
+| LJ epsilon of O-O = 0.1852
+| LJ sigma of O-O = 3.1589
+| LJ epsilon, sigma of OH, HH = 0.0
+| Coulombic cutoff = 8.5
+| 
+
+These are the parameters to use for TIP4P with a long-range Coulombic
+solver (e.g. Ewald or PPPM in LAMMPS):
+
+| O mass = 15.9994
+| H mass = 1.008
+| O charge = -1.0484
+| H charge = 0.5242
+| r0 of OH bond = 0.9572
+| theta of HOH angle = 104.52
+| OM distance = 0.1250
+| LJ epsilon of O-O = 0.16275
+| LJ sigma of O-O = 3.16435
+| LJ epsilon, sigma of OH, HH = 0.0
+| 
+
+Note that the when using the TIP4P pair style, the neighobr list
+cutoff for Coulomb interactions is effectively extended by a distance
+2 * (OM distance), to account for the offset distance of the
+fictitious charges on O atoms in water molecules.  Thus it is
+typically best in an efficiency sense to use a LJ cutoff >= Coulomb
+cutoff + 2*(OM distance), to shrink the size of the neighbor list.
+This leads to slightly larger cost for the long-range calculation, so
+you can test the trade-off for your model.  The OM distance and the LJ
+and Coulombic cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long <pair_lj>` command.
+
+Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
+
+
+----------
+
+
+.. _howto_9:
+
+SPC water model
+---------------
+
+The SPC water model specifies a 3-site rigid water molecule with
+charges and Lennard-Jones parameters assigned to each of the 3 atoms.
+In LAMMPS the :doc:`fix shake <fix_shake>` command can be used to hold
+the two O-H bonds and the H-O-H angle rigid.  A bond style of
+*harmonic* and an angle style of *harmonic* or *charmm* should also be
+used.
+
+These are the additional parameters (in real units) to set for O and H
+atoms and the water molecule to run a rigid SPC model.
+
+| O mass = 15.9994
+| H mass = 1.008
+| O charge = -0.820
+| H charge = 0.410
+| LJ epsilon of OO = 0.1553
+| LJ sigma of OO = 3.166
+| LJ epsilon, sigma of OH, HH = 0.0
+| r0 of OH bond = 1.0
+| theta of HOH angle = 109.47
+| 
+
+Note that as originally proposed, the SPC model was run with a 9
+Angstrom cutoff for both LJ and Coulommbic terms.  It can also be used
+with long-range Coulombics (Ewald or PPPM in LAMMPS), without changing
+any of the parameters above, though it becomes a different model in
+that mode of usage.
+
+The SPC/E (extended) water model is the same, except
+the partial charge assignemnts change:
+
+| O charge = -0.8476
+| H charge = 0.4238
+| 
+
+See the :ref:`(Berendsen) <Berendsen>` reference for more details on both
+the SPC and SPC/E models.
+
+Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
+
+
+----------
+
+
+.. _howto_10:
+
+Coupling LAMMPS to other codes
+------------------------------
+
+LAMMPS is designed to allow it to be coupled to other codes.  For
+example, a quantum mechanics code might compute forces on a subset of
+atoms and pass those forces to LAMMPS.  Or a continuum finite element
+(FE) simulation might use atom positions as boundary conditions on FE
+nodal points, compute a FE solution, and return interpolated forces on
+MD atoms.
+
+LAMMPS can be coupled to other codes in at least 3 ways.  Each has
+advantages and disadvantages, which you'll have to think about in the
+context of your application.
+
+(1) Define a new :doc:`fix <fix>` command that calls the other code.  In
+this scenario, LAMMPS is the driver code.  During its timestepping,
+the fix is invoked, and can make library calls to the other code,
+which has been linked to LAMMPS as a library.  This is the way the
+`POEMS <poems_>`_ package that performs constrained rigid-body motion on
+groups of atoms is hooked to LAMMPS.  See the
+:doc:`fix_poems <fix_poems>` command for more details.  See :doc:`this section <Section_modify>` of the documentation for info on how to add
+a new fix to LAMMPS.
+
+.. _poems: http://www.rpi.edu/~anderk5/lab
+
+
+
+(2) Define a new LAMMPS command that calls the other code.  This is
+conceptually similar to method (1), but in this case LAMMPS and the
+other code are on a more equal footing.  Note that now the other code
+is not called during the timestepping of a LAMMPS run, but between
+runs.  The LAMMPS input script can be used to alternate LAMMPS runs
+with calls to the other code, invoked via the new command.  The
+:doc:`run <run>` command facilitates this with its *every* option, which
+makes it easy to run a few steps, invoke the command, run a few steps,
+invoke the command, etc.
+
+In this scenario, the other code can be called as a library, as in
+(1), or it could be a stand-alone code, invoked by a system() call
+made by the command (assuming your parallel machine allows one or more
+processors to start up another program).  In the latter case the
+stand-alone code could communicate with LAMMPS thru files that the
+command writes and reads.
+
+See :doc:`Section_modify <Section_modify>` of the documentation for how
+to add a new command to LAMMPS.
+
+(3) Use LAMMPS as a library called by another code.  In this case the
+other code is the driver and calls LAMMPS as needed.  Or a wrapper
+code could link and call both LAMMPS and another code as libraries.
+Again, the :doc:`run <run>` command has options that allow it to be
+invoked with minimal overhead (no setup or clean-up) if you wish to do
+multiple short runs, driven by another program.
+
+Examples of driver codes that call LAMMPS as a library are included in
+the examples/COUPLE directory of the LAMMPS distribution; see
+examples/COUPLE/README for more details:
+
+* simple: simple driver programs in C++ and C which invoke LAMMPS as a
+  library
+* lammps_quest: coupling of LAMMPS and `Quest <quest_>`_, to run classical
+  MD with quantum forces calculated by a density functional code
+* lammps_spparks: coupling of LAMMPS and `SPPARKS <spparks_>`_, to couple
+  a kinetic Monte Carlo model for grain growth using MD to calculate
+  strain induced across grain boundaries
+.. _quest: http://dft.sandia.gov/Quest
+
+
+
+.. _spparks: http://www.sandia.gov/~sjplimp/spparks.html
+
+
+
+:ref:`This section <start_5>` of the documentation
+describes how to build LAMMPS as a library.  Once this is done, you
+can interface with LAMMPS either via C++, C, Fortran, or Python (or
+any other language that supports a vanilla C-like interface).  For
+example, from C++ you could create one (or more) "instances" of
+LAMMPS, pass it an input script to process, or execute individual
+commands, all by invoking the correct class methods in LAMMPS.  From C
+or Fortran you can make function calls to do the same things.  See
+:doc:`Section_python <Section_python>` of the manual for a description
+of the Python wrapper provided with LAMMPS that operates through the
+LAMMPS library interface.
+
+The files src/library.cpp and library.h contain the C-style interface
+to LAMMPS.  See :ref:`Section_howto 19 <howto_19>` of the
+manual for a description of the interface and how to extend it for
+your needs.
+
+Note that the lammps_open() function that creates an instance of
+LAMMPS takes an MPI communicator as an argument.  This means that
+instance of LAMMPS will run on the set of processors in the
+communicator.  Thus the calling code can run LAMMPS on all or a subset
+of processors.  For example, a wrapper script might decide to
+alternate between LAMMPS and another code, allowing them both to run
+on all the processors.  Or it might allocate half the processors to
+LAMMPS and half to the other code and run both codes simultaneously
+before syncing them up periodically.  Or it might instantiate multiple
+instances of LAMMPS to perform different calculations.
+
+
+----------
+
+
+.. _howto_11:
+
+Visualizing LAMMPS snapshots
+----------------------------
+
+LAMMPS itself does not do visualization, but snapshots from LAMMPS
+simulations can be visualized (and analyzed) in a variety of ways.
+
+LAMMPS snapshots are created by the :doc:`dump <dump>` command which can
+create files in several formats.  The native LAMMPS dump format is a
+text file (see "dump atom" or "dump custom") which can be visualized
+by the :ref:`xmovie <xmovie>` program, included with the
+LAMMPS package.  This produces simple, fast 2d projections of 3d
+systems, and can be useful for rapid debugging of simulation geometry
+and atom trajectories.
+
+Several programs included with LAMMPS as auxiliary tools can convert
+native LAMMPS dump files to other formats.  See the
+:doc:`Section_tools <Section_tools>` doc page for details.  The first is
+the :ref:`ch2lmp tool <charmm>`, which contains a
+lammps2pdb Perl script which converts LAMMPS dump files into PDB
+files.  The second is the :ref:`lmp2arc tool <arc>` which
+converts LAMMPS dump files into Accelrys' Insight MD program files.
+The third is the :ref:`lmp2cfg tool <cfg>` which converts
+LAMMPS dump files into CFG files which can be read into the
+`AtomEye <atomeye_>`_ visualizer.
+
+A Python-based toolkit distributed by our group can read native LAMMPS
+dump files, including custom dump files with additional columns of
+user-specified atom information, and convert them to various formats
+or pipe them into visualization software directly.  See the `Pizza.py WWW site <pizza_>`_ for details.  Specifically, Pizza.py can convert
+LAMMPS dump files into PDB, XYZ, `Ensight <ensight_>`_, and VTK formats.
+Pizza.py can pipe LAMMPS dump files directly into the Raster3d and
+RasMol visualization programs.  Pizza.py has tools that do interactive
+3d OpenGL visualization and one that creates SVG images of dump file
+snapshots.
+
+LAMMPS can create XYZ files directly (via "dump xyz") which is a
+simple text-based file format used by many visualization programs
+including `VMD <vmd_>`_.
+
+LAMMPS can create DCD files directly (via "dump dcd") which can be
+read by `VMD <vmd_>`_ in conjunction with a CHARMM PSF file.  Using this
+form of output avoids the need to convert LAMMPS snapshots to PDB
+files.  See the :doc:`dump <dump>` command for more information on DCD
+files.
+
+LAMMPS can create XTC files directly (via "dump xtc") which is GROMACS
+file format which can also be read by `VMD <vmd_>`_ for visualization.
+See the :doc:`dump <dump>` command for more information on XTC files.
+
+.. _pizza: http://www.sandia.gov/~sjplimp/pizza.html
+
+
+
+.. _vmd: http://www.ks.uiuc.edu/Research/vmd
+
+
+
+.. _ensight: http://www.ensight.com
+
+
+
+.. _atomeye: http://mt.seas.upenn.edu/Archive/Graphics/A
+
+
+
+
+----------
+
+
+.. _howto_12:
+
+Triclinic (non-orthogonal) simulation boxes
+-------------------------------------------
+
+By default, LAMMPS uses an orthogonal simulation box to encompass the
+particles.  The :doc:`boundary <boundary>` command sets the boundary
+conditions of the box (periodic, non-periodic, etc).  The orthogonal
+box has its "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors
+starting from the origin given by **a** = (xhi-xlo,0,0); **b** =
+(0,yhi-ylo,0); **c** = (0,0,zhi-zlo).  The 6 parameters
+(xlo,xhi,ylo,yhi,zlo,zhi) are defined at the time the simulation box
+is created, e.g. by the :doc:`create_box <create_box>` or
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+commands.  Additionally, LAMMPS defines box size parameters lx,ly,lz
+where lx = xhi-xlo, and similarly in the y and z dimensions.  The 6
+parameters, as well as lx,ly,lz, can be output via the :doc:`thermo_style custom <thermo_style>` command.
+
+LAMMPS also allows simulations to be performed in triclinic
+(non-orthogonal) simulation boxes shaped as a parallelepiped with
+triclinic symmetry.  The parallelepiped has its "origin" at
+(xlo,ylo,zlo) and is defined by 3 edge vectors starting from the
+origin given by **a** = (xhi-xlo,0,0); **b** = (xy,yhi-ylo,0); **c** =
+(xz,yz,zhi-zlo).  *xy,xz,yz* can be 0.0 or positive or negative values
+and are called "tilt factors" because they are the amount of
+displacement applied to faces of an originally orthogonal box to
+transform it into the parallelepiped.  In LAMMPS the triclinic
+simulation box edge vectors **a**, **b**, and **c** cannot be arbitrary
+vectors.  As indicated, **a** must lie on the positive x axis.  **b** must
+lie in the xy plane, with strictly positive y component. **c** may have
+any orientation with strictly positive z component.  The requirement
+that **a**, **b**, and **c** have strictly positive x, y, and z components,
+respectively, ensures that **a**, **b**, and **c** form a complete
+right-handed basis.  These restrictions impose no loss of generality,
+since it is possible to rotate/invert any set of 3 crystal basis
+vectors so that they conform to the restrictions.
+
+For example, assume that the 3 vectors **A**,**B**,**C** are the edge
+vectors of a general parallelepiped, where there is no restriction on
+**A**,**B**,**C** other than they form a complete right-handed basis i.e.
+**A** x **B** . **C** > 0.  The equivalent LAMMPS **a**,**b**,**c** are a linear
+rotation of **A**, **B**, and **C** and can be computed as follows:
+
+.. image:: Eqs/transform.jpg
+   :align: center
+
+where A = |**A**| indicates the scalar length of **A**. The ^ hat symbol
+indicates the corresponding unit vector. *beta* and *gamma* are angles
+between the vectors described below. Note that by construction, 
+**a**, **b**, and **c** have strictly positive x, y, and z components, respectively.
+If it should happen that
+**A**, **B**, and **C** form a left-handed basis, then the above equations
+are not valid for **c**. In this case, it is necessary
+to first apply an inversion. This can be achieved
+by interchanging two basis vectors or by changing the sign of one of them.
+
+For consistency, the same rotation/inversion applied to the basis vectors
+must also be applied to atom positions, velocities, 
+and any other vector quantities.
+This can be conveniently achieved by first converting to 
+fractional coordinates in the
+old basis and then converting to distance coordinates in the new basis.
+The transformation is given by the following equation:
+
+.. image:: Eqs/rotate.jpg
+   :align: center
+
+where *V* is the volume of the box, **X** is the original vector quantity and 
+**x** is the vector in the LAMMPS basis.
+
+There is no requirement that a triclinic box be periodic in any
+dimension, though it typically should be in at least the 2nd dimension
+of the tilt (y in xy) if you want to enforce a shift in periodic
+boundary conditions across that boundary.  Some commands that work
+with triclinic boxes, e.g. the :doc:`fix deform <fix_deform>` and :doc:`fix npt <fix_nh>` commands, require periodicity or non-shrink-wrap
+boundary conditions in specific dimensions.  See the command doc pages
+for details.
+
+The 9 parameters (xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) are defined at the
+time the simluation box is created.  This happens in one of 3 ways.
+If the :doc:`create_box <create_box>` command is used with a region of
+style *prism*, then a triclinic box is setup.  See the
+:doc:`region <region>` command for details.  If the
+:doc:`read_data <read_data>` command is used to define the simulation
+box, and the header of the data file contains a line with the "xy xz
+yz" keyword, then a triclinic box is setup.  See the
+:doc:`read_data <read_data>` command for details.  Finally, if the
+:doc:`read_restart <read_restart>` command reads a restart file which
+was written from a simulation using a triclinic box, then a triclinic
+box will be setup for the restarted simulation.
+
+Note that you can define a triclinic box with all 3 tilt factors =
+0.0, so that it is initially orthogonal.  This is necessary if the box
+will become non-orthogonal, e.g. due to the :doc:`fix npt <fix_nh>` or
+:doc:`fix deform <fix_deform>` commands.  Alternatively, you can use the
+:doc:`change_box <change_box>` command to convert a simulation box from
+orthogonal to triclinic and vice versa.
+
+As with orthogonal boxes, LAMMPS defines triclinic box size parameters
+lx,ly,lz where lx = xhi-xlo, and similarly in the y and z dimensions.
+The 9 parameters, as well as lx,ly,lz, can be output via the
+:doc:`thermo_style custom <thermo_style>` command.
+
+To avoid extremely tilted boxes (which would be computationally
+inefficient), LAMMPS normally requires that no tilt factor can skew
+the box more than half the distance of the parallel box length, which
+is the 1st dimension in the tilt factor (x for xz).  This is required
+both when the simulation box is created, e.g. via the
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands,
+as well as when the box shape changes dynamically during a simulation,
+e.g. via the :doc:`fix deform <fix_deform>` or :doc:`fix npt <fix_nh>`
+commands.
+
+For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
+the xy tilt factor must be between -5 and 5.  Similarly, both xz and
+yz must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is
+not a limitation, since if the maximum tilt factor is 5 (as in this
+example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
+... are geometrically all equivalent.  If the box tilt exceeds this
+limit during a dynamics run (e.g. via the :doc:`fix deform <fix_deform>`
+command), then the box is "flipped" to an equivalent shape with a tilt
+factor within the bounds, so the run can continue.  See the :doc:`fix deform <fix_deform>` doc page for further details.
+
+One exception to this rule is if the 1st dimension in the tilt
+factor (x for xy) is non-periodic.  In that case, the limits on the
+tilt factor are not enforced, since flipping the box in that dimension
+does not change the atom positions due to non-periodicity.  In this
+mode, if you tilt the system to extreme angles, the simulation will
+simply become inefficient, due to the highly skewed simulation box.
+
+The limitation on not creating a simulation box with a tilt factor
+skewing the box more than half the distance of the parallel box length
+can be overridden via the :doc:`box <box>` command.  Setting the *tilt*
+keyword to *large* allows any tilt factors to be specified.
+
+Box flips that may occur using the :doc:`fix deform <fix_deform>` or
+:doc:`fix npt <fix_nh>` commands can be turned off using the *flip no*
+option with either of the commands.
+
+Note that if a simulation box has a large tilt factor, LAMMPS will run
+less efficiently, due to the large volume of communication needed to
+acquire ghost atoms around a processor's irregular-shaped sub-domain.
+For extreme values of tilt, LAMMPS may also lose atoms and generate an
+error.
+
+Triclinic crystal structures are often defined using three lattice
+constants *a*, *b*, and *c*, and three angles *alpha*, *beta* and
+*gamma*. Note that in this nomenclature, the a, b, and c lattice
+constants are the scalar lengths of the edge vectors **a**, **b**, and **c**
+defined above.  The relationship between these 6 quantities
+(a,b,c,alpha,beta,gamma) and the LAMMPS box sizes (lx,ly,lz) =
+(xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) is as follows:
+
+.. image:: Eqs/box.jpg
+   :align: center
+
+The inverse relationship can be written as follows:
+
+.. image:: Eqs/box_inverse.jpg
+   :align: center
+
+The values of *a*, *b*, *c* , *alpha*, *beta* , and *gamma* can be printed 
+out or accessed by computes using the 
+:doc:`thermo_style custom <thermo_style>` keywords 
+*cella*, *cellb*, *cellc*, *cellalpha*, *cellbeta*, *cellgamma*,
+respectively.
+
+As discussed on the :doc:`dump <dump>` command doc page, when the BOX
+BOUNDS for a snapshot is written to a dump file for a triclinic box,
+an orthogonal bounding box which encloses the triclinic simulation box
+is output, along with the 3 tilt factors (xy, xz, yz) of the triclinic
+box, formatted as follows:
+
+.. parsed-literal::
+
+   ITEM: BOX BOUNDS xy xz yz
+   xlo_bound xhi_bound xy
+   ylo_bound yhi_bound xz
+   zlo_bound zhi_bound yz
+
+This bounding box is convenient for many visualization programs and is
+calculated from the 9 triclinic box parameters
+(xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) as follows:
+
+.. parsed-literal::
+
+   xlo_bound = xlo + MIN(0.0,xy,xz,xy+xz)
+   xhi_bound = xhi + MAX(0.0,xy,xz,xy+xz)
+   ylo_bound = ylo + MIN(0.0,yz)
+   yhi_bound = yhi + MAX(0.0,yz)
+   zlo_bound = zlo
+   zhi_bound = zhi
+
+These formulas can be inverted if you need to convert the bounding box
+back into the triclinic box parameters, e.g. xlo = xlo_bound -
+MIN(0.0,xy,xz,xy+xz).
+
+One use of triclinic simulation boxes is to model solid-state crystals
+with triclinic symmetry.  The :doc:`lattice <lattice>` command can be
+used with non-orthogonal basis vectors to define a lattice that will
+tile a triclinic simulation box via the
+:doc:`create_atoms <create_atoms>` command.
+
+A second use is to run Parinello-Rahman dyanamics via the :doc:`fix npt <fix_nh>` command, which will adjust the xy, xz, yz tilt
+factors to compensate for off-diagonal components of the pressure
+tensor.  The analalog for an :doc:`energy minimization <minimize>` is
+the :doc:`fix box/relax <fix_box_relax>` command.
+
+A third use is to shear a bulk solid to study the response of the
+material.  The :doc:`fix deform <fix_deform>` command can be used for
+this purpose.  It allows dynamic control of the xy, xz, yz tilt
+factors as a simulation runs.  This is discussed in the next section
+on non-equilibrium MD (NEMD) simulations.
+
+
+----------
+
+
+.. _howto_13:
+
+NEMD simulations
+----------------
+
+Non-equilibrium molecular dynamics or NEMD simulations are typically
+used to measure a fluid's rheological properties such as viscosity.
+In LAMMPS, such simulations can be performed by first setting up a
+non-orthogonal simulation box (see the preceding Howto section).
+
+A shear strain can be applied to the simulation box at a desired
+strain rate by using the :doc:`fix deform <fix_deform>` command.  The
+:doc:`fix nvt/sllod <fix_nvt_sllod>` command can be used to thermostat
+the sheared fluid and integrate the SLLOD equations of motion for the
+system.  Fix nvt/sllod uses :doc:`compute temp/deform <compute_temp_deform>` to compute a thermal temperature
+by subtracting out the streaming velocity of the shearing atoms.  The
+velocity profile or other properties of the fluid can be monitored via
+the :doc:`fix ave/spatial <fix_ave_spatial>` command.
+
+As discussed in the previous section on non-orthogonal simulation
+boxes, the amount of tilt or skew that can be applied is limited by
+LAMMPS for computational efficiency to be 1/2 of the parallel box
+length.  However, :doc:`fix deform <fix_deform>` can continuously strain
+a box by an arbitrary amount.  As discussed in the :doc:`fix deform <fix_deform>` command, when the tilt value reaches a limit,
+the box is flipped to the opposite limit which is an equivalent tiling
+of periodic space.  The strain rate can then continue to change as
+before.  In a long NEMD simulation these box re-shaping events may
+occur many times.
+
+In a NEMD simulation, the "remap" option of :doc:`fix deform <fix_deform>` should be set to "remap v", since that is what
+:doc:`fix nvt/sllod <fix_nvt_sllod>` assumes to generate a velocity
+profile consistent with the applied shear strain rate.
+
+An alternative method for calculating viscosities is provided via the
+:doc:`fix viscosity <fix_viscosity>` command.
+
+
+----------
+
+
+.. _howto_14:
+
+Finite-size spherical and aspherical particles
+----------------------------------------------
+
+Typical MD models treat atoms or particles as point masses.  Sometimes
+it is desirable to have a model with finite-size particles such as
+spheroids or ellipsoids or generalized aspherical bodies.  The
+difference is that such particles have a moment of inertia, rotational
+energy, and angular momentum.  Rotation is induced by torque coming
+from interactions with other particles.
+
+LAMMPS has several options for running simulations with these kinds of
+particles.  The following aspects are discussed in turn:
+
+* atom styles
+* pair potentials
+* time integration
+* computes, thermodynamics, and dump output
+* rigid bodies composed of finite-size particles
+
+Example input scripts for these kinds of models are in the body,
+colloid, dipole, ellipse, line, peri, pour, and tri directories of the
+:doc:`examples directory <Section_example>` in the LAMMPS distribution.
+
+Atom styles
+^^^^^^^^^^^
+
+There are several :doc:`atom styles <atom_style>` that allow for
+definition of finite-size particles: sphere, dipole, ellipsoid, line,
+tri, peri, and body.
+
+The sphere style defines particles that are spheriods and each
+particle can have a unique diameter and mass (or density).  These
+particles store an angular velocity (omega) and can be acted upon by
+torque.  The "set" command can be used to modify the diameter and mass
+of individual particles, after then are created.
+
+The dipole style does not actually define finite-size particles, but
+is often used in conjunction with spherical particles, via a command
+like
+
+.. parsed-literal::
+
+   atom_style hybrid sphere dipole
+
+This is because when dipoles interact with each other, they induce
+torques, and a particle must be finite-size (i.e. have a moment of
+inertia) in order to respond and rotate.  See the :doc:`atom_style dipole <atom_style>` command for details.  The "set" command can be
+used to modify the orientation and length of the dipole moment of
+individual particles, after then are created.
+
+The ellipsoid style defines particles that are ellipsoids and thus can
+be aspherical.  Each particle has a shape, specified by 3 diameters,
+and mass (or density).  These particles store an angular momentum and
+their orientation (quaternion), and can be acted upon by torque.  They
+do not store an angular velocity (omega), which can be in a different
+direction than angular momentum, rather they compute it as needed.
+The "set" command can be used to modify the diameter, orientation, and
+mass of individual particles, after then are created.  It also has a
+brief explanation of what quaternions are.
+
+The line style defines line segment particles with two end points and
+a mass (or density).  They can be used in 2d simulations, and they can
+be joined together to form rigid bodies which represent arbitrary
+polygons.
+
+The tri style defines triangular particles with three corner points
+and a mass (or density).  They can be used in 3d simulations, and they
+can be joined together to form rigid bodies which represent arbitrary
+particles with a triangulated surface.
+
+The peri style is used with :doc:`Peridynamic models <pair_peri>` and
+defines particles as having a volume, that is used internally in the
+:doc:`pair_style peri <pair_peri>` potentials.
+
+The body style allows for definition of particles which can represent
+complex entities, such as surface meshes of discrete points,
+collections of sub-particles, deformable objects, etc.  The body style
+is discussed in more detail on the :doc:`body <body>` doc page.
+
+Note that if one of these atom styles is used (or multiple styles via
+the :doc:`atom_style hybrid <atom_style>` command), not all particles in
+the system are required to be finite-size or aspherical.
+
+For example, in the ellipsoid style, if the 3 shape parameters are set
+to the same value, the particle will be a sphere rather than an
+ellipsoid.  If the 3 shape parameters are all set to 0.0 or if the
+diameter is set to 0.0, it will be a point particle.  In the line or
+tri style, if the lineflag or triflag is specified as 0, then it
+will be a point particle.
+
+Some of the pair styles used to compute pairwise interactions between
+finite-size particles also compute the correct interaction with point
+particles as well, e.g. the interaction between a point particle and a
+finite-size particle or between two point particles.  If necessary,
+:doc:`pair_style hybrid <pair_hybrid>` can be used to insure the correct
+interactions are computed for the appropriate style of interactions.
+Likewise, using groups to partition particles (ellipsoids versus
+spheres versus point particles) will allow you to use the appropriate
+time integrators and temperature computations for each class of
+particles.  See the doc pages for various commands for details.
+
+Also note that for :doc:`2d simulations <dimension>`, atom styles sphere
+and ellipsoid still use 3d particles, rather than as circular disks or
+ellipses.  This means they have the same moment of inertia as the 3d
+object.  When temperature is computed, the correct degrees of freedom
+are used for rotation in a 2d versus 3d system.
+
+Pair potentials
+^^^^^^^^^^^^^^^
+
+When a system with finite-size particles is defined, the particles
+will only rotate and experience torque if the force field computes
+such interactions.  These are the various :doc:`pair styles <pair_style>` that generate torque:
+
+* :doc:`pair_style gran/history <pair_gran>`
+* :doc:`pair_style gran/hertzian <pair_gran>`
+* :doc:`pair_style gran/no_history <pair_gran>`
+* :doc:`pair_style dipole/cut <pair_dipole>`
+* :doc:`pair_style gayberne <pair_gayberne>`
+* :doc:`pair_style resquared <pair_resquared>`
+* :doc:`pair_style brownian <pair_brownian>`
+* :doc:`pair_style lubricate <pair_lubricate>`
+* :doc:`pair_style line/lj <pair_line_lj>`
+* :doc:`pair_style tri/lj <pair_tri_lj>`
+* :doc:`pair_style body <pair_body>`
+
+The granular pair styles are used with spherical particles.  The
+dipole pair style is used with the dipole atom style, which could be
+applied to spherical or ellipsoidal particles.  The GayBerne and
+REsquared potentials require ellipsoidal particles, though they will
+also work if the 3 shape parameters are the same (a sphere).  The
+Brownian and lubrication potentials are used with spherical particles.
+The line, tri, and body potentials are used with line segment,
+triangular, and body particles respectively.
+
+Time integration
+^^^^^^^^^^^^^^^^
+
+There are several fixes that perform time integration on finite-size
+spherical particles, meaning the integrators update the rotational
+orientation and angular velocity or angular momentum of the particles:
+
+* :doc:`fix nve/sphere <fix_nve_sphere>`
+* :doc:`fix nvt/sphere <fix_nvt_sphere>`
+* :doc:`fix npt/sphere <fix_npt_sphere>`
+
+Likewise, there are 3 fixes that perform time integration on
+ellipsoidal particles:
+
+* :doc:`fix nve/asphere <fix_nve_asphere>`
+* :doc:`fix nvt/asphere <fix_nvt_asphere>`
+* :doc:`fix npt/asphere <fix_npt_asphere>`
+
+The advantage of these fixes is that those which thermostat the
+particles include the rotational degrees of freedom in the temperature
+calculation and thermostatting.  The `fix langevin <fix_langevin>`_
+command can also be used with its *omgea* or *angmom* options to
+thermostat the rotational degrees of freedom for spherical or
+ellipsoidal particles.  Other thermostatting fixes only operate on the
+translational kinetic energy of finite-size particles.
+
+These fixes perform constant NVE time integration on line segment,
+triangular, and body particles:
+
+* :doc:`fix nve/line <fix_nve_line>`
+* :doc:`fix nve/tri <fix_nve_tri>`
+* :doc:`fix nve/body <fix_nve_body>`
+
+Note that for mixtures of point and finite-size particles, these
+integration fixes can only be used with :doc:`groups <group>` which
+contain finite-size particles.
+
+Computes, thermodynamics, and dump output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are several computes that calculate the temperature or
+rotational energy of spherical or ellipsoidal particles:
+
+* :doc:`compute temp/sphere <compute_temp_sphere>`
+* :doc:`compute temp/asphere <compute_temp_asphere>`
+* :doc:`compute erotate/sphere <compute_erotate_sphere>`
+* :doc:`compute erotate/asphere <compute_erotate_asphere>`
+
+These include rotational degrees of freedom in their computation.  If
+you wish the thermodynamic output of temperature or pressure to use
+one of these computes (e.g. for a system entirely composed of
+finite-size particles), then the compute can be defined and the
+:doc:`thermo_modify <thermo_modify>` command used.  Note that by default
+thermodynamic quantities will be calculated with a temperature that
+only includes translational degrees of freedom.  See the
+:doc:`thermo_style <thermo_style>` command for details.
+
+These commands can be used to output various attributes of finite-size
+particles:
+
+* :doc:`dump custom <dump>`
+* :doc:`compute property/atom <compute_property_atom>`
+* :doc:`dump local <dump>`
+* :doc:`compute body/local <compute_body_local>`
+
+Attributes include the dipole moment, the angular velocity, the
+angular momentum, the quaternion, the torque, the end-point and
+corner-point coordinates (for line and tri particles), and
+sub-particle attributes of body particles.
+
+Rigid bodies composed of finite-size particles
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :doc:`fix rigid <fix_rigid>` command treats a collection of
+particles as a rigid body, computes its inertia tensor, sums the total
+force and torque on the rigid body each timestep due to forces on its
+constituent particles, and integrates the motion of the rigid body.
+
+If any of the constituent particles of a rigid body are finite-size
+particles (spheres or ellipsoids or line segments or triangles), then
+their contribution to the inertia tensor of the body is different than
+if they were point particles.  This means the rotational dynamics of
+the rigid body will be different.  Thus a model of a dimer is
+different if the dimer consists of two point masses versus two
+spheroids, even if the two particles have the same mass.  Finite-size
+particles that experience torque due to their interaction with other
+particles will also impart that torque to a rigid body they are part
+of.
+
+See the "fix rigid" command for example of complex rigid-body models
+it is possible to define in LAMMPS.
+
+Note that the :doc:`fix shake <fix_shake>` command can also be used to
+treat 2, 3, or 4 particles as a rigid body, but it always assumes the
+particles are point masses.
+
+Also note that body particles cannot be modeled with the :doc:`fix rigid <fix_rigid>` command.  Body particles are treated by LAMMPS
+as single particles, though they can store internal state, such as a
+list of sub-particles.  Individual body partices are typically treated
+as rigid bodies, and their motion integrated with a command like :doc:`fix nve/body <fix_nve_body>`.  Interactions between pairs of body
+particles are computed via a command like :doc:`pair_style body <pair_body>`.
+
+
+----------
+
+
+.. _howto_15:
+
+Output from LAMMPS (thermo, dumps, computes, fixes, variables)
+--------------------------------------------------------------
+
+There are four basic kinds of LAMMPS output:
+
+* :doc:`Thermodynamic output <thermo_style>`, which is a list
+  of quantities printed every few timesteps to the screen and logfile.
+* :doc:`Dump files <dump>`, which contain snapshots of atoms and various
+  per-atom values and are written at a specified frequency.
+* Certain fixes can output user-specified quantities to files: :doc:`fix ave/time <fix_ave_time>` for time averaging, :doc:`fix ave/chunk <fix_ave_chunk>` for spatial or other averaging, and :doc:`fix print <fix_print>` for single-line output of
+  :doc:`variables <variable>`.  Fix print can also output to the
+  screen.
+* :doc:`Restart files <restart>`.
+A simulation prints one set of thermodynamic output and (optionally)
+restart files.  It can generate any number of dump files and fix
+output files, depending on what :doc:`dump <dump>` and :doc:`fix <fix>`
+commands you specify.
+
+As discussed below, LAMMPS gives you a variety of ways to determine
+what quantities are computed and printed when the thermodynamics,
+dump, or fix commands listed above perform output.  Throughout this
+discussion, note that users can also :doc:`add their own computes and fixes to LAMMPS <Section_modify>` which can then generate values that can
+then be output with these commands.
+
+The following sub-sections discuss different LAMMPS command related
+to output and the kind of data they operate on and produce:
+
+* :ref:`Global/per-atom/local data <global>`
+* :ref:`Scalar/vector/array data <scalar>`
+* :ref:`Thermodynamic output <thermo>`
+* :ref:`Dump file output <dump>`
+* :ref:`Fixes that write output files <fixoutput>`
+* :ref:`Computes that process output quantities <computeoutput>`
+* :ref:`Fixes that process output quantities <fixoutput>`
+* :ref:`Computes that generate values to output <compute>`
+* :ref:`Fixes that generate values to output <fix>`
+* :ref:`Variables that generate values to output <variable>`
+* :ref:`Summary table of output options and data flow between commands <table>`
+
+.. _global:
+
+Global/per-atom/local data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Various output-related commands work with three different styles of
+data: global, per-atom, or local.  A global datum is one or more
+system-wide values, e.g. the temperature of the system.  A per-atom
+datum is one or more values per atom, e.g. the kinetic energy of each
+atom.  Local datums are calculated by each processor based on the
+atoms it owns, but there may be zero or more per atom, e.g. a list of
+bond distances.
+
+.. _scalar:
+
+Scalar/vector/array data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Global, per-atom, and local datums can each come in three kinds: a
+single scalar value, a vector of values, or a 2d array of values.  The
+doc page for a "compute" or "fix" or "variable" that generates data
+will specify both the style and kind of data it produces, e.g. a
+per-atom vector.
+
+When a quantity is accessed, as in many of the output commands
+discussed below, it can be referenced via the following bracket
+notation, where ID in this case is the ID of a compute.  The leading
+"c_" would be replaced by "f_" for a fix, or "v_" for a variable:
+
++------------+--------------------------------------------+
+| c_ID       | entire scalar, vector, or array            |
++------------+--------------------------------------------+
+| c_ID[I]    | one element of vector, one column of array |
++------------+--------------------------------------------+
+| c_ID[I][J] | one element of array                       |
++------------+--------------------------------------------+
+
+In other words, using one bracket reduces the dimension of the data
+once (vector -> scalar, array -> vector).  Using two brackets reduces
+the dimension twice (array -> scalar).  Thus a command that uses
+scalar values as input can typically also process elements of a vector
+or array.
+
+.. _thermo:
+
+Thermodynamic output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The frequency and format of thermodynamic output is set by the
+:doc:`thermo <thermo>`, :doc:`thermo_style <thermo_style>`, and
+:doc:`thermo_modify <thermo_modify>` commands.  The
+:doc:`thermo_style <thermo_style>` command also specifies what values
+are calculated and written out.  Pre-defined keywords can be specified
+(e.g. press, etotal, etc).  Three additional kinds of keywords can
+also be specified (c_ID, f_ID, v_name), where a :doc:`compute <compute>`
+or :doc:`fix <fix>` or :doc:`variable <variable>` provides the value to be
+output.  In each case, the compute, fix, or variable must generate
+global values for input to the :doc:`thermo_style custom <dump>`
+command.
+
+Note that thermodynamic output values can be "extensive" or
+"intensive".  The former scale with the number of atoms in the system
+(e.g. total energy), the latter do not (e.g. temperature).  The
+setting for :doc:`thermo_modify norm <thermo_modify>` determines whether
+extensive quantities are normalized or not.  Computes and fixes
+produce either extensive or intensive values; see their individual doc
+pages for details.  :doc:`Equal-style variables <variable>` produce only
+intensive values; you can include a division by "natoms" in the
+formula if desired, to make an extensive calculation produce an
+intensive result.
+
+.. _dump:
+
+Dump file output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dump file output is specified by the :doc:`dump <dump>` and
+:doc:`dump_modify <dump_modify>` commands.  There are several
+pre-defined formats (dump atom, dump xtc, etc).
+
+There is also a :doc:`dump custom <dump>` format where the user
+specifies what values are output with each atom.  Pre-defined atom
+attributes can be specified (id, x, fx, etc).  Three additional kinds
+of keywords can also be specified (c_ID, f_ID, v_name), where a
+:doc:`compute <compute>` or :doc:`fix <fix>` or :doc:`variable <variable>`
+provides the values to be output.  In each case, the compute, fix, or
+variable must generate per-atom values for input to the :doc:`dump custom <dump>` command.
+
+There is also a :doc:`dump local <dump>` format where the user specifies
+what local values to output.  A pre-defined index keyword can be
+specified to enumuerate the local values.  Two additional kinds of
+keywords can also be specified (c_ID, f_ID), where a
+:doc:`compute <compute>` or :doc:`fix <fix>` or :doc:`variable <variable>`
+provides the values to be output.  In each case, the compute or fix
+must generate local values for input to the :doc:`dump local <dump>`
+command.
+
+.. _fixoutput:
+
+Fixes that write output files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Several fixes take various quantities as input and can write output
+files: :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/histo <fix_ave_histo>`,
+:doc:`fix ave/correlate <fix_ave_correlate>`, and :doc:`fix print <fix_print>`.
+
+The :doc:`fix ave/time <fix_ave_time>` command enables direct output to
+a file and/or time-averaging of global scalars or vectors.  The user
+specifies one or more quantities as input.  These can be global
+:doc:`compute <compute>` values, global :doc:`fix <fix>` values, or
+:doc:`variables <variable>` of any style except the atom style which
+produces per-atom values.  Since a variable can refer to keywords used
+by the :doc:`thermo_style custom <thermo_style>` command (like temp or
+press) and individual per-atom values, a wide variety of quantities
+can be time averaged and/or output in this way.  If the inputs are one
+or more scalar values, then the fix generate a global scalar or vector
+of output.  If the inputs are one or more vector values, then the fix
+generates a global vector or array of output.  The time-averaged
+output of this fix can also be used as input to other output commands.
+
+The :doc:`fix ave/chunk <fix_ave_chunk>` command enables direct output
+to a file of chunk-averaged per-atom quantities like those output in
+dump files.  Chunks can represent spatial bins or other collections of
+atoms, e.g. individual molecules.  The per-atom quantities can be atom
+density (mass or number) or atom attributes such as position,
+velocity, force.  They can also be per-atom quantities calculated by a
+:doc:`compute <compute>`, by a :doc:`fix <fix>`, or by an atom-style
+:doc:`variable <variable>`.  The chunk-averaged output of this fix can
+also be used as input to other output commands.
+
+The :doc:`fix ave/histo <fix_ave_histo>` command enables direct output
+to a file of histogrammed quantities, which can be global or per-atom
+or local quantities.  The histogram output of this fix can also be
+used as input to other output commands.
+
+The :doc:`fix ave/correlate <fix_ave_correlate>` command enables direct
+output to a file of time-correlated quantities, which can be global
+values.  The correlation matrix output of this fix can also be used as
+input to other output commands.
+
+The :doc:`fix print <fix_print>` command can generate a line of output
+written to the screen and log file or to a separate file, periodically
+during a running simulation.  The line can contain one or more
+:doc:`variable <variable>` values for any style variable except the
+vector or atom styles).  As explained above, variables themselves can
+contain references to global values generated by :doc:`thermodynamic keywords <thermo_style>`, :doc:`computes <compute>`,
+:doc:`fixes <fix>`, or other :doc:`variables <variable>`, or to per-atom
+values for a specific atom.  Thus the :doc:`fix print <fix_print>`
+command is a means to output a wide variety of quantities separate
+from normal thermodynamic or dump file output.
+
+.. _computeoutput:
+
+Computes that process output quantities
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :doc:`compute reduce <compute_reduce>` and :doc:`compute reduce/region <compute_reduce>` commands take one or more per-atom
+or local vector quantities as inputs and "reduce" them (sum, min, max,
+ave) to scalar quantities.  These are produced as output values which
+can be used as input to other output commands.
+
+The :doc:`compute slice <compute_slice>` command take one or more global
+vector or array quantities as inputs and extracts a subset of their
+values to create a new vector or array.  These are produced as output
+values which can be used as input to other output commands.
+
+The :doc:`compute property/atom <compute_property_atom>` command takes a
+list of one or more pre-defined atom attributes (id, x, fx, etc) and
+stores the values in a per-atom vector or array.  These are produced
+as output values which can be used as input to other output commands.
+The list of atom attributes is the same as for the :doc:`dump custom <dump>` command.
+
+The :doc:`compute property/local <compute_property_local>` command takes
+a list of one or more pre-defined local attributes (bond info, angle
+info, etc) and stores the values in a local vector or array.  These
+are produced as output values which can be used as input to other
+output commands.
+
+.. _fixoutput:
+
+Fixes that process output quantities
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :doc:`fix vector <fix_vector>` command can create global vectors as
+output from global scalars as input, accumulating them one element at
+a time.
+
+The :doc:`fix ave/atom <fix_ave_atom>` command performs time-averaging
+of per-atom vectors.  The per-atom quantities can be atom attributes
+such as position, velocity, force.  They can also be per-atom
+quantities calculated by a :doc:`compute <compute>`, by a
+:doc:`fix <fix>`, or by an atom-style :doc:`variable <variable>`.  The
+time-averaged per-atom output of this fix can be used as input to
+other output commands.
+
+The :doc:`fix store/state <fix_store_state>` command can archive one or
+more per-atom attributes at a particular time, so that the old values
+can be used in a future calculation or output.  The list of atom
+attributes is the same as for the :doc:`dump custom <dump>` command,
+including per-atom quantities calculated by a :doc:`compute <compute>`,
+by a :doc:`fix <fix>`, or by an atom-style :doc:`variable <variable>`.
+The output of this fix can be used as input to other output commands.
+
+.. _compute:
+
+Computes that generate values to output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Every :doc:`compute <compute>` in LAMMPS produces either global or
+per-atom or local values.  The values can be scalars or vectors or
+arrays of data.  These values can be output using the other commands
+described in this section.  The doc page for each compute command
+describes what it produces.  Computes that produce per-atom or local
+values have the word "atom" or "local" in their style name.  Computes
+without the word "atom" or "local" produce global values.
+
+.. _fix:
+
+Fixes that generate values to output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some :doc:`fixes <fix>` in LAMMPS produces either global or per-atom or
+local values which can be accessed by other commands.  The values can
+be scalars or vectors or arrays of data.  These values can be output
+using the other commands described in this section.  The doc page for
+each fix command tells whether it produces any output quantities and
+describes them.
+
+.. _variable:
+
+Variables that generate values to output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:doc:`Variables <variable>` defined in an input script can store one or
+more strings.  But equal-style, vector-style, and atom-style or
+atomfile-style variables generate a global scalar value, global vector
+or values, or a per-atom vector, resepctively, when accessed.  The
+formulas used to define these variables can contain references to the
+thermodynamic keywords and to global and per-atom data generated by
+computes, fixes, and other variables.  The values generated by
+variables can be used as input to and thus output by the other
+commands described in this section.
+
+.. _table:
+
+Summary table of output options and data flow between commands
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This table summarizes the various commands that can be used for
+generating output from LAMMPS.  Each command produces output data of
+some kind and/or writes data to a file.  Most of the commands can take
+data from other commands as input.  Thus you can link many of these
+commands together in pipeline form, where data produced by one command
+is used as input to another command and eventually written to the
+screen or to a file.  Note that to hook two commands together the
+output and input data types must match, e.g. global/per-atom/local
+data and scalar/vector/array data.
+
+Also note that, as described above, when a command takes a scalar as
+input, that could be an element of a vector or array.  Likewise a
+vector input could be a column of an array.
+
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| Command                                                | Input                                        | Output                                    |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`thermo_style custom <thermo_style>`              | global scalars                               | screen, log file                          |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`dump custom <dump>`                              | per-atom vectors                             | dump file                                 |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`dump local <dump>`                               | local vectors                                | dump file                                 |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix print <fix_print>`                           | global scalar from variable                  | screen, file                              |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`print <print>`                                   | global scalar from variable                  | screen                                    |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`computes <compute>`                              | N/A                                          | global/per-atom/local scalar/vector/array |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fixes <fix>`                                     | N/A                                          | global/per-atom/local scalar/vector/array |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`variables <variable>`                            | global scalars and vectors, per-atom vectors | global scalar and vector, per-atom vector |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`compute reduce <compute_reduce>`                 | per-atom/local vectors                       | global scalar/vector                      |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`compute slice <compute_slice>`                   | global vectors/arrays                        | global vector/array                       |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`compute property/atom <compute_property_atom>`   | per-atom vectors                             | per-atom vector/array                     |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`compute property/local <compute_property_local>` | local vectors                                | local vector/array                        |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix vector <fix_vector>`                         | global scalars                               | global vector                             |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix ave/atom <fix_ave_atom>`                     | per-atom vectors                             | per-atom vector/array                     |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix ave/time <fix_ave_time>`                     | global scalars/vectors                       | global scalar/vector/array, file          |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix ave/chunk <fix_ave_chunk>`                   | per-atom vectors                             | global array, file                        |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix ave/histo <fix_ave_histo>`                   | global/per-atom/local scalars and vectors    | global array, file                        |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix ave/correlate <fix_ave_correlate>`           | global scalars                               | global array, file                        |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+| :doc:`fix store/state <fix_store_state>`               | per-atom vectors                             | per-atom vector/array                     |
++--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
+
+
+----------
+
+
+.. _howto_16:
+
+Thermostatting, barostatting, and computing temperature
+-------------------------------------------------------
+
+Thermostatting means controlling the temperature of particles in an MD
+simulation.  Barostatting means controlling the pressure.  Since the
+pressure includes a kinetic component due to particle velocities, both
+these operations require calculation of the temperature.  Typically a
+target temperature (T) and/or pressure (P) is specified by the user,
+and the thermostat or barostat attempts to equilibrate the system to
+the requested T and/or P.
+
+Temperature is computed as kinetic energy divided by some number of
+degrees of freedom (and the Boltzmann constant).  Since kinetic energy
+is a function of particle velocity, there is often a need to
+distinguish between a particle's advection velocity (due to some
+aggregate motiion of particles) and its thermal velocity.  The sum of
+the two is the particle's total velocity, but the latter is often what
+is wanted to compute a temperature.
+
+LAMMPS has several options for computing temperatures, any of which
+can be used in thermostatting and barostatting.  These :doc:`compute commands <compute>` calculate temperature, and the :doc:`compute pressure <compute_pressure>` command calculates pressure.
+
+* :doc:`compute temp <compute_temp>`
+* :doc:`compute temp/sphere <compute_temp_sphere>`
+* :doc:`compute temp/asphere <compute_temp_asphere>`
+* :doc:`compute temp/com <compute_temp_com>`
+* :doc:`compute temp/deform <compute_temp_deform>`
+* :doc:`compute temp/partial <compute_temp_partial>`
+* :doc:`compute temp/profile <compute_temp_profile>`
+* :doc:`compute temp/ramp <compute_temp_ramp>`
+* :doc:`compute temp/region <compute_temp_region>`
+
+All but the first 3 calculate velocity biases directly (e.g. advection
+velocities) that are removed when computing the thermal temperature.
+:doc:`Compute temp/sphere <compute_temp_sphere>` and :doc:`compute temp/asphere <compute_temp_asphere>` compute kinetic energy for
+finite-size particles that includes rotational degrees of freedom.
+They both allow for velocity biases indirectly, via an optional extra
+argument, another temperature compute that subtracts a velocity bias.
+This allows the translational velocity of spherical or aspherical
+particles to be adjusted in prescribed ways.
+
+Thermostatting in LAMMPS is performed by :doc:`fixes <fix>`, or in one
+case by a pair style.  Several thermostatting fixes are available:
+Nose-Hoover (nvt), Berendsen, CSVR, Langevin, and direct rescaling
+(temp/rescale).  Dissipative particle dynamics (DPD) thermostatting
+can be invoked via the *dpd/tstat* pair style:
+
+* :doc:`fix nvt <fix_nh>`
+* :doc:`fix nvt/sphere <fix_nvt_sphere>`
+* :doc:`fix nvt/asphere <fix_nvt_asphere>`
+* :doc:`fix nvt/sllod <fix_nvt_sllod>`
+* :doc:`fix temp/berendsen <fix_temp_berendsen>`
+* :doc:`fix temp/csvr <fix_temp_csvr>`
+* :doc:`fix langevin <fix_langevin>`
+* :doc:`fix temp/rescale <fix_temp_rescale>`
+* :doc:`pair_style dpd/tstat <pair_dpd>`
+
+:doc:`Fix nvt <fix_nh>` only thermostats the translational velocity of
+particles.  :doc:`Fix nvt/sllod <fix_nvt_sllod>` also does this, except
+that it subtracts out a velocity bias due to a deforming box and
+integrates the SLLOD equations of motion.  See the :ref:`NEMD simulations <howto_13>` section of this page for further details.  :doc:`Fix nvt/sphere <fix_nvt_sphere>` and :doc:`fix nvt/asphere <fix_nvt_asphere>` thermostat not only translation
+velocities but also rotational velocities for spherical and aspherical
+particles.
+
+DPD thermostatting alters pairwise interactions in a manner analagous
+to the per-particle thermostatting of :doc:`fix langevin <fix_langevin>`.
+
+Any of the thermostatting fixes can use temperature computes that
+remove bias which has two effects.  First, the current calculated
+temperature, which is compared to the requested target temperature, is
+caluclated with the velocity bias removed.  Second, the thermostat
+adjusts only the thermal temperature component of the particle's
+velocities, which are the velocities with the bias removed.  The
+removed bias is then added back to the adjusted velocities.  See the
+doc pages for the individual fixes and for the
+:doc:`fix_modify <fix_modify>` command for instructions on how to assign
+a temperature compute to a thermostatting fix.  For example, you can
+apply a thermostat to only the x and z components of velocity by using
+it in conjunction with :doc:`compute temp/partial <compute_temp_partial>`.  Of you could thermostat only
+the thermal temperature of a streaming flow of particles without
+affecting the streaming velocity, by using :doc:`compute temp/profile <compute_temp_profile>`.
+
+.. note::
+
+   Only the nvt fixes perform time integration, meaning they update
+   the velocities and positions of particles due to forces and velocities
+   respectively.  The other thermostat fixes only adjust velocities; they
+   do NOT perform time integration updates.  Thus they should be used in
+   conjunction with a constant NVE integration fix such as these:
+
+* :doc:`fix nve <fix_nve>`
+* :doc:`fix nve/sphere <fix_nve_sphere>`
+* :doc:`fix nve/asphere <fix_nve_asphere>`
+
+Barostatting in LAMMPS is also performed by :doc:`fixes <fix>`.  Two
+barosttating methods are currently available: Nose-Hoover (npt and
+nph) and Berendsen:
+
+* :doc:`fix npt <fix_nh>`
+* :doc:`fix npt/sphere <fix_npt_sphere>`
+* :doc:`fix npt/asphere <fix_npt_asphere>`
+* :doc:`fix nph <fix_nh>`
+* :doc:`fix press/berendsen <fix_press_berendsen>`
+
+The :doc:`fix npt <fix_nh>` commands include a Nose-Hoover thermostat
+and barostat.  :doc:`Fix nph <fix_nh>` is just a Nose/Hoover barostat;
+it does no thermostatting.  Both :doc:`fix nph <fix_nh>` and :doc:`fix press/bernendsen <fix_press_berendsen>` can be used in conjunction
+with any of the thermostatting fixes.
+
+As with the thermostats, :doc:`fix npt <fix_nh>` and :doc:`fix nph <fix_nh>` only use translational motion of the particles in
+computing T and P and performing thermo/barostatting.  :doc:`Fix npt/sphere <fix_npt_sphere>` and :doc:`fix npt/asphere <fix_npt_asphere>` thermo/barostat using not only
+translation velocities but also rotational velocities for spherical
+and aspherical particles.
+
+All of the barostatting fixes use the :doc:`compute pressure <compute_pressure>` compute to calculate a current
+pressure.  By default, this compute is created with a simple :doc:`compute temp <compute_temp>` (see the last argument of the :doc:`compute pressure <compute_pressure>` command), which is used to calculated
+the kinetic componenet of the pressure.  The barostatting fixes can
+also use temperature computes that remove bias for the purpose of
+computing the kinetic componenet which contributes to the current
+pressure.  See the doc pages for the individual fixes and for the
+:doc:`fix_modify <fix_modify>` command for instructions on how to assign
+a temperature or pressure compute to a barostatting fix.
+
+.. note::
+
+   As with the thermostats, the Nose/Hoover methods (:doc:`fix npt <fix_nh>` and :doc:`fix nph <fix_nh>`) perform time integration.
+   :doc:`Fix press/berendsen <fix_press_berendsen>` does NOT, so it should
+   be used with one of the constant NVE fixes or with one of the NVT
+   fixes.
+
+Finally, thermodynamic output, which can be setup via the
+:doc:`thermo_style <thermo_style>` command, often includes temperature
+and pressure values.  As explained on the doc page for the
+:doc:`thermo_style <thermo_style>` command, the default T and P are
+setup by the thermo command itself.  They are NOT the ones associated
+with any thermostatting or barostatting fix you have defined or with
+any compute that calculates a temperature or pressure.  Thus if you
+want to view these values of T and P, you need to specify them
+explicitly via a :doc:`thermo_style custom <thermo_style>` command.  Or
+you can use the :doc:`thermo_modify <thermo_modify>` command to
+re-define what temperature or pressure compute is used for default
+thermodynamic output.
+
+
+----------
+
+
+.. _howto_17:
+
+Walls
+-----
+
+Walls in an MD simulation are typically used to bound particle motion,
+i.e. to serve as a boundary condition.
+
+Walls in LAMMPS can be of rough (made of particles) or idealized
+surfaces.  Ideal walls can be smooth, generating forces only in the
+normal direction, or frictional, generating forces also in the
+tangential direction.
+
+Rough walls, built of particles, can be created in various ways.  The
+particles themselves can be generated like any other particle, via the
+:doc:`lattice <lattice>` and :doc:`create_atoms <create_atoms>` commands,
+or read in via the :doc:`read_data <read_data>` command.
+
+Their motion can be constrained by many different commands, so that
+they do not move at all, move together as a group at constant velocity
+or in response to a net force acting on them, move in a prescribed
+fashion (e.g. rotate around a point), etc.  Note that if a time
+integration fix like :doc:`fix nve <fix_nve>` or :doc:`fix nvt <fix_nh>`
+is not used with the group that contains wall particles, their
+positions and velocities will not be updated.
+
+* :doc:`fix aveforce <fix_aveforce>` - set force on particles to average value, so they move together
+* :doc:`fix setforce <fix_setforce>` - set force on particles to a value, e.g. 0.0
+* :doc:`fix freeze <fix_freeze>` - freeze particles for use as granular walls
+* :doc:`fix nve/noforce <fix_nve_noforce>` - advect particles by their velocity, but without force
+* :doc:`fix move <fix_move>` - prescribe motion of particles by a linear velocity, oscillation, rotation, variable
+
+The :doc:`fix move <fix_move>` command offers the most generality, since
+the motion of individual particles can be specified with
+:doc:`variable <variable>` formula which depends on time and/or the
+particle position.
+
+For rough walls, it may be useful to turn off pairwise interactions
+between wall particles via the :doc:`neigh_modify exclude <neigh_modify>` command.
+
+Rough walls can also be created by specifying frozen particles that do
+not move and do not interact with mobile particles, and then tethering
+other particles to the fixed particles, via a :doc:`bond <bond_style>`.
+The bonded particles do interact with other mobile particles.
+
+Idealized walls can be specified via several fix commands.  :doc:`Fix wall/gran <fix_wall_gran>` creates frictional walls for use with
+granular particles; all the other commands create smooth walls.
+
+* :doc:`fix wall/reflect <fix_wall_reflect>` - reflective flat walls
+* :doc:`fix wall/lj93 <fix_wall>` - flat walls, with Lennard-Jones 9/3 potential
+* :doc:`fix wall/lj126 <fix_wall>` - flat walls, with Lennard-Jones 12/6 potential
+* :doc:`fix wall/colloid <fix_wall>` - flat walls, with :doc:`pair_style colloid <pair_colloid>` potential
+* :doc:`fix wall/harmonic <fix_wall>` - flat walls, with repulsive harmonic spring potential
+* :doc:`fix wall/region <fix_wall_region>` - use region surface as wall
+* :doc:`fix wall/gran <fix_wall_gran>` - flat or curved walls with :doc:`pair_style granular <pair_gran>` potential
+
+The *lj93*, *lj126*, *colloid*, and *harmonic* styles all allow the
+flat walls to move with a constant velocity, or oscillate in time.
+The :doc:`fix wall/region <fix_wall_region>` command offers the most
+generality, since the region surface is treated as a wall, and the
+geometry of the region can be a simple primitive volume (e.g. a
+sphere, or cube, or plane), or a complex volume made from the union
+and intersection of primitive volumes.  :doc:`Regions <region>` can also
+specify a volume "interior" or "exterior" to the specified primitive
+shape or *union* or *intersection*.  :doc:`Regions <region>` can also be
+"dynamic" meaning they move with constant velocity, oscillate, or
+rotate.
+
+The only frictional idealized walls currently in LAMMPS are flat or
+curved surfaces specified by the :doc:`fix wall/gran <fix_wall_gran>`
+command.  At some point we plan to allow regoin surfaces to be used as
+frictional walls, as well as triangulated surfaces.
+
+
+----------
+
+
+.. _howto_18:
+
+Elastic constants
+-----------------
+
+Elastic constants characterize the stiffness of a material. The formal
+definition is provided by the linear relation that holds between the
+stress and strain tensors in the limit of infinitesimal deformation.
+In tensor notation, this is expressed as s_ij = C_ijkl * e_kl, where
+the repeated indices imply summation. s_ij are the elements of the
+symmetric stress tensor. e_kl are the elements of the symmetric strain
+tensor. C_ijkl are the elements of the fourth rank tensor of elastic
+constants. In three dimensions, this tensor has 3^4=81 elements. Using
+Voigt notation, the tensor can be written as a 6x6 matrix, where C_ij
+is now the derivative of s_i w.r.t. e_j. Because s_i is itself a
+derivative w.r.t. e_i, it follows that C_ij is also symmetric, with at
+most 7*6/2 = 21 distinct elements.
+
+At zero temperature, it is easy to estimate these derivatives by
+deforming the simulation box in one of the six directions using the
+:doc:`change_box <change_box>` command and measuring the change in the
+stress tensor. A general-purpose script that does this is given in the
+examples/elastic directory described in :doc:`this section <Section_example>`.
+
+Calculating elastic constants at finite temperature is more
+challenging, because it is necessary to run a simulation that perfoms
+time averages of differential properties. One way to do this is to
+measure the change in average stress tensor in an NVT simulations when
+the cell volume undergoes a finite deformation. In order to balance
+the systematic and statistical errors in this method, the magnitude of
+the deformation must be chosen judiciously, and care must be taken to
+fully equilibrate the deformed cell before sampling the stress
+tensor. Another approach is to sample the triclinic cell fluctuations
+that occur in an NPT simulation. This method can also be slow to
+converge and requires careful post-processing :ref:`(Shinoda) <Shinoda>`
+
+
+----------
+
+
+.. _howto_19:
+
+Library interface to LAMMPS
+---------------------------
+
+As described in :ref:`Section_start 5 <start_5>`, LAMMPS
+can be built as a library, so that it can be called by another code,
+used in a :ref:`coupled manner <howto_10>` with other
+codes, or driven through a :doc:`Python interface <Section_python>`.
+
+All of these methodologies use a C-style interface to LAMMPS that is
+provided in the files src/library.cpp and src/library.h.  The
+functions therein have a C-style argument list, but contain C++ code
+you could write yourself in a C++ application that was invoking LAMMPS
+directly.  The C++ code in the functions illustrates how to invoke
+internal LAMMPS operations.  Note that LAMMPS classes are defined
+within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
+application.
+
+Library.cpp contains these 5 basic functions:
+
+.. parsed-literal::
+
+   void lammps_open(int, char **, MPI_Comm, void **)
+   void lammps_close(void *)
+   int lammps_version(void *)
+   void lammps_file(void *, char *)
+   char *lammps_command(void *, char *)
+
+The lammps_open() function is used to initialize LAMMPS, passing in a
+list of strings as if they were :ref:`command-line arguments <start_7>` when LAMMPS is run in
+stand-alone mode from the command line, and a MPI communicator for
+LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
+created, and which is used in subsequent library calls.  The
+lammps_open() function can be called multiple times, to create
+multiple instances of LAMMPS.
+
+LAMMPS will run on the set of processors in the communicator.  This
+means the calling code can run LAMMPS on all or a subset of
+processors.  For example, a wrapper script might decide to alternate
+between LAMMPS and another code, allowing them both to run on all the
+processors.  Or it might allocate half the processors to LAMMPS and
+half to the other code and run both codes simultaneously before
+syncing them up periodically.  Or it might instantiate multiple
+instances of LAMMPS to perform different calculations.
+
+The lammps_close() function is used to shut down an instance of LAMMPS
+and free all its memory.
+
+The lammps_version() function can be used to determined the specific
+version of the underlying LAMMPS code. This is particularly useful
+when loading LAMMPS as a shared library via dlopen(). The code using
+the library interface can than use this information to adapt to
+changes to the LAMMPS command syntax between versions. The returned
+LAMMPS version code is an integer (e.g. 2 Sep 2015 results in
+20150902) that grows with every new LAMMPS version.
+
+The lammps_file() and lammps_command() functions are used to pass a
+file or string to LAMMPS as if it were an input script or single
+command in an input script.  Thus the calling code can read or
+generate a series of LAMMPS commands one line at a time and pass it
+thru the library interface to setup a problem and then run it,
+interleaving the lammps_command() calls with other calls to extract
+information from LAMMPS, perform its own operations, or call another
+code's library.
+
+Other useful functions are also included in library.cpp.  For example:
+
+.. parsed-literal::
+
+   void *lammps_extract_global(void *, char *)
+   void *lammps_extract_atom(void *, char *)
+   void *lammps_extract_compute(void *, char *, int, int)
+   void *lammps_extract_fix(void *, char *, int, int, int, int)
+   void *lammps_extract_variable(void *, char *, char *)
+   int lammps_set_variable(void *, char *, char *)
+   int lammps_get_natoms(void *)
+   void lammps_get_coords(void *, double *)
+   void lammps_put_coords(void *, double *)
+
+These can extract various global or per-atom quantities from LAMMPS as
+well as values calculated by a compute, fix, or variable.  The
+"set_variable" function can set an existing string-style variable to a
+new value, so that subsequent LAMMPS commands can access the variable.
+The "get" and "put" operations can retrieve and reset atom
+coordinates.  See the library.cpp file and its associated header file
+library.h for details.
+
+The key idea of the library interface is that you can write any
+functions you wish to define how your code talks to LAMMPS and add
+them to src/library.cpp and src/library.h, as well as to the :doc:`Python interface <Section_python>`.  The routines you add can access or
+change any LAMMPS data you wish.  The examples/COUPLE and python
+directories have example C++ and C and Python codes which show how a
+driver code can link to LAMMPS as a library, run LAMMPS on a subset of
+processors, grab data from LAMMPS, change it, and put it back into
+LAMMPS.
+
+
+----------
+
+
+.. _howto_20:
+
+Calculating thermal conductivity
+--------------------------------
+
+The thermal conductivity kappa of a material can be measured in at
+least 4 ways using various options in LAMMPS.  See the examples/KAPPA
+directory for scripts that implement the 4 methods discussed here for
+a simple Lennard-Jones fluid model.  Also, see :ref:`this section <howto_21>` of the manual for an analogous
+discussion for viscosity.
+
+The thermal conducitivity tensor kappa is a measure of the propensity
+of a material to transmit heat energy in a diffusive manner as given
+by Fourier's law
+
+J = -kappa grad(T)
+
+where J is the heat flux in units of energy per area per time and
+grad(T) is the spatial gradient of temperature.  The thermal
+conductivity thus has units of energy per distance per time per degree
+K and is often approximated as an isotropic quantity, i.e. as a
+scalar.
+
+The first method is to setup two thermostatted regions at opposite
+ends of a simulation box, or one in the middle and one at the end of a
+periodic box.  By holding the two regions at different temperatures
+with a :ref:`thermostatting fix <howto_13>`, the energy
+added to the hot region should equal the energy subtracted from the
+cold region and be proportional to the heat flux moving between the
+regions.  See the paper by :ref:`Ikeshoji and Hafskjold <Ikeshoji>` for
+details of this idea.  Note that thermostatting fixes such as :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, and :doc:`fix temp/rescale <fix_temp_rescale>` store the cumulative energy they
+add/subtract.
+
+Alternatively, as a second method, the :doc:`fix heat <fix_heat>`
+command can used in place of thermostats on each of two regions to
+add/subtract specified amounts of energy to both regions.  In both
+cases, the resulting temperatures of the two regions can be monitored
+with the "compute temp/region" command and the temperature profile of
+the intermediate region can be monitored with the :doc:`fix ave/spatial <fix_ave_spatial>` and :doc:`compute ke/atom <compute_ke_atom>` commands.
+
+The third method is to perform a reverse non-equilibrium MD simulation
+using the :doc:`fix thermal/conductivity <fix_thermal_conductivity>`
+command which implements the rNEMD algorithm of Muller-Plathe.
+Kinetic energy is swapped between atoms in two different layers of the
+simulation box.  This induces a temperature gradient between the two
+layers which can be monitored with the :doc:`fix ave/spatial <fix_ave_spatial>` and :doc:`compute ke/atom <compute_ke_atom>` commands.  The fix tallies the
+cumulative energy transfer that it performs.  See the :doc:`fix thermal/conductivity <fix_thermal_conductivity>` command for
+details.
+
+The fourth method is based on the Green-Kubo (GK) formula which
+relates the ensemble average of the auto-correlation of the heat flux
+to kappa.  The heat flux can be calculated from the fluctuations of
+per-atom potential and kinetic energies and per-atom stress tensor in
+a steady-state equilibrated simulation.  This is in contrast to the
+two preceding non-equilibrium methods, where energy flows continuously
+between hot and cold regions of the simulation box.
+
+The :doc:`compute heat/flux <compute_heat_flux>` command can calculate
+the needed heat flux and describes how to implement the Green_Kubo
+formalism using additional LAMMPS commands, such as the :doc:`fix ave/correlate <fix_ave_correlate>` command to calculate the needed
+auto-correlation.  See the doc page for the :doc:`compute heat/flux <compute_heat_flux>` command for an example input script
+that calculates the thermal conductivity of solid Ar via the GK
+formalism.
+
+
+----------
+
+
+.. _howto_21:
+
+Calculating viscosity
+---------------------
+
+The shear viscosity eta of a fluid can be measured in at least 4 ways
+using various options in LAMMPS.  See the examples/VISCOSITY directory
+for scripts that implement the 4 methods discussed here for a simple
+Lennard-Jones fluid model.  Also, see :ref:`this section <howto_20>` of the manual for an analogous
+discussion for thermal conductivity.
+
+Eta is a measure of the propensity of a fluid to transmit momentum in
+a direction perpendicular to the direction of velocity or momentum
+flow.  Alternatively it is the resistance the fluid has to being
+sheared.  It is given by
+
+J = -eta grad(Vstream)
+
+where J is the momentum flux in units of momentum per area per time.
+and grad(Vstream) is the spatial gradient of the velocity of the fluid
+moving in another direction, normal to the area through which the
+momentum flows.  Viscosity thus has units of pressure-time.
+
+The first method is to perform a non-equlibrium MD (NEMD) simulation
+by shearing the simulation box via the :doc:`fix deform <fix_deform>`
+command, and using the :doc:`fix nvt/sllod <fix_nvt_sllod>` command to
+thermostat the fluid via the SLLOD equations of motion.
+Alternatively, as a second method, one or more moving walls can be
+used to shear the fluid in between them, again with some kind of
+thermostat that modifies only the thermal (non-shearing) components of
+velocity to prevent the fluid from heating up.
+
+In both cases, the velocity profile setup in the fluid by this
+procedure can be monitored by the :doc:`fix ave/spatial <fix_ave_spatial>` command, which determines
+grad(Vstream) in the equation above.  E.g. the derivative in the
+y-direction of the Vx component of fluid motion or grad(Vstream) =
+dVx/dy.  The Pxy off-diagonal component of the pressure or stress
+tensor, as calculated by the :doc:`compute pressure <compute_pressure>`
+command, can also be monitored, which is the J term in the equation
+above.  See :ref:`this section <howto_13>` of the manual
+for details on NEMD simulations.
+
+The third method is to perform a reverse non-equilibrium MD simulation
+using the :doc:`fix viscosity <fix_viscosity>` command which implements
+the rNEMD algorithm of Muller-Plathe.  Momentum in one dimension is
+swapped between atoms in two different layers of the simulation box in
+a different dimension.  This induces a velocity gradient which can be
+monitored with the :doc:`fix ave/spatial <fix_ave_spatial>` command.
+The fix tallies the cummulative momentum transfer that it performs.
+See the :doc:`fix viscosity <fix_viscosity>` command for details.
+
+The fourth method is based on the Green-Kubo (GK) formula which
+relates the ensemble average of the auto-correlation of the
+stress/pressure tensor to eta.  This can be done in a steady-state
+equilibrated simulation which is in contrast to the two preceding
+non-equilibrium methods, where momentum flows continuously through the
+simulation box.
+
+Here is an example input script that calculates the viscosity of
+liquid Ar via the GK formalism:
+
+.. parsed-literal::
+
+   # Sample LAMMPS input script for viscosity of liquid Ar
+
+.. parsed-literal::
+
+   units       real
+   variable    T equal 86.4956
+   variable    V equal vol
+   variable    dt equal 4.0
+   variable    p equal 400     # correlation length
+   variable    s equal 5       # sample interval
+   variable    d equal $p*$s   # dump interval
+
+.. parsed-literal::
+
+   # convert from LAMMPS real units to SI
+
+.. parsed-literal::
+
+   variable    kB equal 1.3806504e-23    # [J/K/** Boltzmann
+   variable    atm2Pa equal 101325.0
+   variable    A2m equal 1.0e-10
+   variable    fs2s equal 1.0e-15
+   variable    convert equal ${atm2Pa}*${atm2Pa}*${fs2s}*${A2m}*${A2m}*${A2m}
+
+.. parsed-literal::
+
+   # setup problem
+
+.. parsed-literal::
+
+   dimension    3
+   boundary     p p p
+   lattice      fcc 5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+   region       box block 0 4 0 4 0 4
+   create_box   1 box
+   create_atoms 1 box
+   mass	     1 39.948
+   pair_style   lj/cut 13.0
+   pair_coeff   * * 0.2381 3.405
+   timestep     ${dt}
+   thermo	     $d
+
+.. parsed-literal::
+
+   # equilibration and thermalization
+
+.. parsed-literal::
+
+   velocity     all create $T 102486 mom yes rot yes dist gaussian
+   fix          NVT all nvt temp $T $T 10 drag 0.2
+   run          8000
+
+.. parsed-literal::
+
+   # viscosity calculation, switch to NVE if desired
+
+.. parsed-literal::
+
+   #unfix       NVT
+   #fix         NVE all nve
+
+.. parsed-literal::
+
+   reset_timestep 0
+   variable     pxy equal pxy
+   variable     pxz equal pxz
+   variable     pyz equal pyz
+   fix          SS all ave/correlate $s $p $d &
+                v_pxy v_pxz v_pyz type auto file S0St.dat ave running
+   variable     scale equal ${convert}/(${kB}*$T)*$V*$s*${dt}
+   variable     v11 equal trap(f_SS[3])*${scale}
+   variable     v22 equal trap(f_SS[4])*${scale}
+   variable     v33 equal trap(f_SS[5])*${scale}
+   thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
+   run          100000
+   variable     v equal (v_v11+v_v22+v_v33)/3.0
+   variable     ndens equal count(all)/vol
+   print        "average viscosity: $v [Pa.s/** @ $T K, ${ndens} /A^3"
+
+
+----------
+
+
+.. _howto_22:
+
+Calculating a diffusion coefficient
+-----------------------------------
+
+The diffusion coefficient D of a material can be measured in at least
+2 ways using various options in LAMMPS.  See the examples/DIFFUSE
+directory for scripts that implement the 2 methods discussed here for
+a simple Lennard-Jones fluid model.
+
+The first method is to measure the mean-squared displacement (MSD) of
+the system, via the :doc:`compute msd <compute_msd>` command.  The slope
+of the MSD versus time is proportional to the diffusion coefficient.
+The instantaneous MSD values can be accumulated in a vector via the
+:doc:`fix vector <fix_vector>` command, and a line fit to the vector to
+compute its slope via the :doc:`variable slope <variable>` function, and
+thus extract D.
+
+The second method is to measure the velocity auto-correlation function
+(VACF) of the system, via the :doc:`compute vacf <compute_vacf>`
+command.  The time-integral of the VACF is proportional to the
+diffusion coefficient.  The instantaneous VACF values can be
+accumulated in a vector via the :doc:`fix vector <fix_vector>` command,
+and time integrated via the :doc:`variable trap <variable>` function,
+and thus extract D.
+
+
+----------
+
+
+.. _howto_23:
+
+Using chunks to calculate system properties
+-------------------------------------------
+
+In LAMMS, "chunks" are collections of atoms, as defined by the
+:doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns
+each atom to a chunk ID (or to no chunk at all).  The number of chunks
+and the assignment of chunk IDs to atoms can be static or change over
+time.  Examples of "chunks" are molecules or spatial bins or atoms
+with similar values (e.g. coordination number or potential energy).
+
+The per-atom chunk IDs can be used as input to two other kinds of
+commands, to calculate various properties of a system:
+
+* :doc:`fix ave/chunk <fix_ave_chunk>`
+* any of the :doc:`compute */chunk <compute>` commands
+
+Here, each of the 3 kinds of chunk-related commands is briefly
+overviewed.  Then some examples are given of how to compute different
+properties with chunk commands.
+
+Compute chunk/atom command:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This compute can assign atoms to chunks of various styles.  Only atoms
+in the specified group and optional specified region are assigned to a
+chunk.  Here are some possible chunk definitions:
+
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| atoms in same molecule                                  | chunk ID = molecule ID                                                                                                          |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| atoms of same atom type                                 | chunk ID = atom type                                                                                                            |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| all atoms with same atom property (charge, radius, etc) | chunk ID = output of compute property/atom                                                                                      |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| atoms in same cluster                                   | chunk ID = output of :doc:`compute cluster/atom <compute_cluster_atom>` command                                                 |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| atoms in same spatial bin                               | chunk ID = bin ID                                                                                                               |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| atoms in same rigid body                                | chunk ID = molecule ID used to define rigid bodies                                                                              |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| atoms with similar potential energy                     | chunk ID = output of :doc:`compute pe/atom <compute_pe_atom>`                                                                   |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| atoms with same local defect structure                  | chunk ID = output of :doc:`compute centro/atom <compute_centro_atom>` or :doc:`compute coord/atom <compute_coord_atom>` command |
++---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+
+Note that chunk IDs are integer values, so for atom properties or
+computes that produce a floating point value, they will be truncated
+to an integer.  You could also use the compute in a variable that
+scales the floating point value to spread it across multiple intergers.
+
+Spatial bins can be of various kinds, e.g. 1d bins = slabs, 2d bins =
+pencils, 3d bins = boxes, spherical bins, cylindrical bins.
+
+This compute also calculates the number of chunks *Nchunk*, which is
+used by other commands to tally per-chunk data.  *Nchunk* can be a
+static value or change over time (e.g. the number of clusters).  The
+chunk ID for an individual atom can also be static (e.g. a molecule
+ID), or dynamic (e.g. what spatial bin an atom is in as it moves).
+
+Note that this compute allows the per-atom output of other
+:doc:`computes <compute>`, :doc:`fixes <fix>`, and
+:doc:`variables <variable>` to be used to define chunk IDs for each
+atom.  This means you can write your own compute or fix to output a
+per-atom quantity to use as chunk ID.  See
+:doc:`Section_modify <Section_modify>` of the documentation for how to
+do this.  You can also define a :doc:`per-atom variable <variable>` in
+the input script that uses a formula to generate a chunk ID for each
+atom.
+
+Fix ave/chunk command:
+^^^^^^^^^^^^^^^^^^^^^^
+
+This fix takes the ID of a :doc:`compute chunk/atom <compute_chunk_atom>` command as input.  For each chunk,
+it then sums one or more specified per-atom values over the atoms in
+each chunk.  The per-atom values can be any atom property, such as
+velocity, force, charge, potential energy, kinetic energy, stress,
+etc.  Additional keywords are defined for per-chunk properties like
+density and temperature.  More generally any per-atom value generated
+by other :doc:`computes <compute>`, :doc:`fixes <fix>`, and :doc:`per-atom variables <variable>`, can be summed over atoms in each chunk.
+
+Similar to other averaging fixes, this fix allows the summed per-chunk
+values to be time-averaged in various ways, and output to a file.  The
+fix produces a global array as output with one row of values per
+chunk.
+
+Compute */chunk commands:
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Currently the following computes operate on chunks of atoms to produce
+per-chunk values.
+
+* :doc:`compute com/chunk <compute_com_chunk>`
+* :doc:`compute gyration/chunk <compute_gyration_chunk>`
+* :doc:`compute inertia/chunk <compute_inertia_chunk>`
+* :doc:`compute msd/chunk <compute_msd_chunk>`
+* :doc:`compute property/chunk <compute_property_chunk>`
+* :doc:`compute temp/chunk <compute_temp_chunk>`
+* :doc:`compute torque/chunk <compute_vcm_chunk>`
+* :doc:`compute vcm/chunk <compute_vcm_chunk>`
+
+They each take the ID of a :doc:`compute chunk/atom <compute_chunk_atom>` command as input.  As their names
+indicate, they calculate the center-of-mass, radius of gyration,
+moments of inertia, mean-squared displacement, temperature, torque,
+and velocity of center-of-mass for each chunk of atoms.  The :doc:`compute property/chunk <compute_property_chunk>` command can tally the
+count of atoms in each chunk and extract other per-chunk properties.
+
+The reason these various calculations are not part of the :doc:`fix ave/chunk command <fix_ave_chunk>`, is that each requires a more
+complicated operation than simply summing and averaging over per-atom
+values in each chunk.  For example, many of them require calculation
+of a center of mass, which requires summing mass*position over the
+atoms and then dividing by summed mass.
+
+All of these computes produce a global vector or global array as
+output, wih one or more values per chunk.  They can be used
+in various ways:
+
+* As input to the :doc:`fix ave/time <fix_ave_time>` command, which can
+  write the values to a file and optionally time average them.
+* As input to the :doc:`fix ave/histo <fix_ave_histo>` command to
+  histogram values across chunks.  E.g. a histogram of cluster sizes or
+  molecule diffusion rates.
+* As input to special functions of :doc:`equal-style variables <variable>`, like sum() and max().  E.g. to find the
+  largest cluster or fastest diffusing molecule.
+Example calculations with chunks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here are eaxmples using chunk commands to calculate various
+properties:
+
+(1) Average velocity in each of 1000 2d spatial bins:
+
+.. parsed-literal::
+
+   compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.01 units reduced
+   fix 1 all ave/chunk 100 10 1000 cc1 vx vy file tmp.out
+
+(2) Temperature in each spatial bin, after subtracting a flow
+velocity:
+
+.. parsed-literal::
+
+   compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.1 units reduced
+   compute vbias all temp/profile 1 0 0 y 10
+   fix 1 all ave/chunk 100 10 1000 cc1 temp bias vbias file tmp.out
+
+(3) Center of mass of each molecule:
+
+.. parsed-literal::
+
+   compute cc1 all chunk/atom molecule
+   compute myChunk all com/chunk cc1
+   fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector
+
+(4) Total force on each molecule and ave/max across all molecules:
+
+.. parsed-literal::
+
+   compute cc1 all chunk/atom molecule
+   fix 1 all ave/chunk 1000 1 1000 cc1 fx fy fz file tmp.out
+   variable xave equal ave(f_1**2**)
+   variable xmax equal max(f_1**2**)
+   thermo 1000
+   thermo_style custom step temp v_xave v_xmax
+
+(5) Histogram of cluster sizes:
+
+.. parsed-literal::
+
+   compute cluster all cluster/atom 1.0
+   compute cc1 all chunk/atom c_cluster compress yes
+   compute size all property/chunk cc1 count
+   fix 1 all ave/histo 100 1 100 0 20 20 c_size mode vector ave running beyond ignore file tmp.histo
+
+
+----------
+
+
+.. _howto_24:
+
+Setting parameters for the :doc:`kspace_style pppm/disp <kspace_style>` command
+-------------------------------------------------------------------------------
+
+The PPPM method computes interactions by splitting the pair potential
+into two parts, one of which is computed in a normal pairwise fashion,
+the so-called real-space part, and one of which is computed using the
+Fourier transform, the so called reciprocal-space or kspace part.  For
+both parts, the potential is not computed exactly but is approximated.
+Thus, there is an error in both parts of the computation, the
+real-space and the kspace error. The just mentioned facts are true
+both for the PPPM for Coulomb as well as dispersion interactions. The
+deciding difference - and also the reason why the parameters for
+pppm/disp have to be selected with more care - is the impact of the
+errors on the results: The kspace error of the PPPM for Coulomb and
+dispersion interaction and the real-space error of the PPPM for
+Coulomb interaction have the character of noise. In contrast, the
+real-space error of the PPPM for dispersion has a clear physical
+interpretation: the underprediction of cohesion. As a consequence, the
+real-space error has a much stronger effect than the kspace error on
+simulation results for pppm/disp.  Parameters must thus be chosen in a
+way that this error is much smaller than the kspace error.
+
+When using pppm/disp and not making any specifications on the PPPM
+parameters via the kspace modify command, parameters will be tuned
+such that the real-space error and the kspace error are equal.  This
+will result in simulations that are either inaccurate or slow, both of
+which is not desirable. For selecting parameters for the pppm/disp
+that provide fast and accurate simulations, there are two approaches,
+which both have their up- and downsides.
+
+The first approach is to set desired real-space an kspace accuracies
+via the *kspace_modify force/disp/real* and *kspace_modify
+force/disp/kspace* commands. Note that the accuracies have to be
+specified in force units and are thus dependend on the chosen unit
+settings. For real units, 0.0001 and 0.002 seem to provide reasonable
+accurate and efficient computations for the real-space and kspace
+accuracies.  0.002 and 0.05 work well for most systems using lj
+units. PPPM parameters will be generated based on the desired
+accuracies. The upside of this approach is that it usually provides a
+good set of parameters and will work for both the *kspace_modify diff
+ad* and *kspace_modify diff ik* options.  The downside of the method
+is that setting the PPPM parameters will take some time during the
+initialization of the simulation.
+
+The second approach is to set the parameters for the pppm/disp
+explicitly using the *kspace_modify mesh/disp*, *kspace_modify
+order/disp*, and *kspace_modify gewald/disp* commands. This approach
+requires a more experienced user who understands well the impact of
+the choice of parameters on the simulation accuracy and
+performance. This approach provides a fast initialization of the
+simulation. However, it is sensitive to errors: A combination of
+parameters that will perform well for one system might result in
+far-from-optimal conditions for other simulations. For example,
+parametes that provide accurate and fast computations for
+all-atomistic force fields can provide insufficient accuracy or
+united-atomistic force fields (which is related to that the latter
+typically have larger dispersion coefficients).
+
+To avoid inaccurate or inefficient simulations, the pppm/disp stops
+simulations with an error message if no action is taken to control the
+PPPM parameters. If the automatic parameter generation is desired and
+real-space and kspace accuracies are desired to be equal, this error
+message can be suppressed using the *kspace_modify disp/auto yes*
+command.
+
+A reasonable approach that combines the upsides of both methods is to
+make the first run using the *kspace_modify force/disp/real* and
+*kspace_modify force/disp/kspace* commands, write down the PPPM
+parameters from the outut, and specify these parameters using the
+second approach in subsequent runs (which have the same composition,
+force field, and approximately the same volume).
+
+Concerning the performance of the pppm/disp there are two more things
+to consider. The first is that when using the pppm/disp, the cutoff
+parameter does no longer affect the accuracy of the simulation
+(subject to that gewald/disp is adjusted when changing the cutoff).
+The performance can thus be increased by examining different values
+for the cutoff parameter. A lower bound for the cutoff is only set by
+the truncation error of the repulsive term of pair potentials.
+
+The second is that the mixing rule of the pair style has an impact on
+the computation time when using the pppm/disp. Fastest computations
+are achieved when using the geometric mixing rule. Using the
+arithmetic mixing rule substantially increases the computational cost.
+The computational overhead can be reduced using the *kspace_modify
+mix/disp geom* and *kspace_modify splittol* commands. The first
+command simply enforces geometric mixing of the dispersion
+coeffiecients in kspace computations.  This introduces some error in
+the computations but will also significantly speed-up the
+simulations. The second keyword sets the accuracy with which the
+dispersion coefficients are approximated using a matrix factorization
+approach.  This may result in better accuracy then using the first
+command, but will usually also not provide an equally good increase of
+efficiency.
+
+Finally, pppm/disp can also be used when no mixing rules apply.
+This can be achieved using the *kspace_modify mix/disp none* command.
+Note that the code does not check automatically whether any mixing
+rule is fulfilled. If mixing rules do not apply, the user will have
+to specify this command explicitly.
+
+
+----------
+
+
+.. _howto_25:
+
+Polarizable models
+------------------
+
+In polarizable force fields the charge distributions in molecules and
+materials respond to their electrostatic environements. Polarizable
+systems can be simulated in LAMMPS using three methods:
+
+* the fluctuating charge method, implemented in the :doc:`QEQ <fix_qeq>`
+  package,
+* the adiabatic core-shell method, implemented in the
+  :ref:`CORESHELL <howto_26>` package,
+* the thermalized Drude dipole method, implemented in the
+  :ref:`USER-DRUDE <howto_27>` package.
+The fluctuating charge method calculates instantaneous charges on
+interacting atoms based on the electronegativity equalization
+principle. It is implemented in the :doc:`fix qeq <fix_qeq>` which is
+available in several variants. It is a relatively efficient technique
+since no additional particles are introduced. This method allows for
+charge transfer between molecules or atom groups. However, because the
+charges are located at the interaction sites, off-plane components of
+polarization cannot be represented in planar molecules or atom groups.
+
+The two other methods share the same basic idea: polarizable atoms are
+split into one core atom and one satellite particle (called shell or
+Drude particle) attached to it by a harmonic spring.  Both atoms bear
+a charge and they represent collectively an induced electric dipole.
+These techniques are computationally more expensive than the QEq
+method because of additional particles and bonds. These two
+charge-on-spring methods differ in certain features, with the
+core-shell model being normally used for ionic/crystalline materials,
+whereas the so-called Drude model is normally used for molecular
+systems and fluid states.
+
+The core-shell model is applicable to crystalline materials where the
+high symmetry around each site leads to stable trajectories of the
+core-shell pairs. However, bonded atoms in molecules can be so close
+that a core would interact too strongly or even capture the Drude
+particle of a neighbor. The Drude dipole model is relatively more
+complex in order to remediate this and other issues. Specifically, the
+Drude model includes specific thermostating of the core-Drude pairs
+and short-range damping of the induced dipoles.
+
+The three polarization methods can be implemented through a
+self-consistent calculation of charges or induced dipoles at each
+timestep. In the fluctuating charge scheme this is done by the matrix
+inversion method in :doc:`fix qeq/point <fix_qeq>`, but for core-shell
+or Drude-dipoles the relaxed-dipoles technique would require an slow
+iterative procedure. These self-consistent solutions yield accurate
+trajectories since the additional degrees of freedom representing
+polarization are massless.  An alternative is to attribute a mass to
+the additional degrees of freedom and perform time integration using
+an extended Lagrangian technique. For the fluctuating charge scheme
+this is done by :doc:`fix qeq/dynamic <fix_qeq>`, and for the
+charge-on-spring models by the methods outlined in the next two
+sections. The assignment of masses to the additional degrees of
+freedom can lead to unphysical trajectories if care is not exerted in
+choosing the parameters of the poarizable models and the simulation
+conditions.
+
+In the core-shell model the vibration of the shells is kept faster
+than the ionic vibrations to mimic the fast response of the
+polarizable electrons.  But in molecular systems thermalizing the
+core-Drude pairs at temperatures comparable to the rest of the
+simulation leads to several problems (kinetic energy transfer, too
+short a timestep, etc.) In order to avoid these problems the relative
+motion of the Drude particles with respect to their cores is kept
+"cold" so the vibration of the core-Drude pairs is very slow,
+approaching the self-consistent regime.  In both models the
+temperature is regulated using the velocities of the center of mass of
+core+shell (or Drude) pairs, but in the Drude model the actual
+relative core-Drude particle motion is thermostated separately as
+well.
+
+
+----------
+
+
+.. _howto_26:
+
+Adiabatic core/shell model
+--------------------------
+
+The adiabatic core-shell model by :ref:`Mitchell and Finchham <MitchellFinchham>` is a simple method for adding
+polarizability to a system.  In order to mimic the electron shell of
+an ion, a satellite particle is attached to it. This way the ions are
+split into a core and a shell where the latter is meant to react to
+the electrostatic environment inducing polarizability.
+
+Technically, shells are attached to the cores by a spring force f =
+k*r where k is a parametrized spring constant and r is the distance
+between the core and the shell. The charges of the core and the shell
+add up to the ion charge, thus q(ion) = q(core) + q(shell). This 
+setup introduces the ion polarizability (alpha) given by 
+alpha = q(shell)^2 / k. In a
+similar fashion the mass of the ion is distributed on the core and the
+shell with the core having the larger mass.
+
+To run this model in LAMMPS, :doc:`atom_style <atom_style>` *full* can
+be used since atom charge and bonds are needed.  Each kind of
+core/shell pair requires two atom types and a bond type.  The core and
+shell of a core/shell pair should be bonded to each other with a
+harmonic bond that provides the spring force. For example, a data file
+for NaCl, as found in examples/coreshell, has this format:
+
+.. parsed-literal::
+
+   432   atoms  # core and shell atoms
+   216   bonds  # number of core/shell springs
+
+.. parsed-literal::
+
+   4     atom types  # 2 cores and 2 shells for Na and Cl 
+   2     bond types
+
+.. parsed-literal::
+
+   0.0 24.09597 xlo xhi
+   0.0 24.09597 ylo yhi
+   0.0 24.09597 zlo zhi
+
+.. parsed-literal::
+
+   Masses       # core/shell mass ratio = 0.1
+
+.. parsed-literal::
+
+   1 20.690784  # Na core
+   2 31.90500   # Cl core
+   3 2.298976   # Na shell
+   4 3.54500    # Cl shell
+
+.. parsed-literal::
+
+   Atoms
+
+.. parsed-literal::
+
+   1    1    2   1.5005    0.00000000   0.00000000   0.00000000 # core of core/shell pair 1
+   2    1    4  -2.5005    0.00000000   0.00000000   0.00000000 # shell of core/shell pair 1
+   3    2    1   1.5056    4.01599500   4.01599500   4.01599500 # core of core/shell pair 2
+   4    2    3  -0.5056    4.01599500   4.01599500   4.01599500 # shell of core/shell pair 2 
+   (...)
+
+.. parsed-literal::
+
+   Bonds   # Bond topology for spring forces
+
+.. parsed-literal::
+
+   1     2     1     2   # spring for core/shell pair 1
+   2     2     3     4   # spring for core/shell pair 2 
+   (...)
+
+Non-Coulombic (e.g. Lennard-Jones) pairwise interactions are only
+defined between the shells.  Coulombic interactions are defined
+between all cores and shells.  If desired, additional bonds can be
+specified between cores.
+
+The :doc:`special_bonds <special_bonds>` command should be used to
+turn-off the Coulombic interaction within core/shell pairs, since that
+interaction is set by the bond spring.  This is done using the
+:doc:`special_bonds <special_bonds>` command with a 1-2 weight = 0.0,
+which is the default value.  It needs to be considered whether one has
+to adjust the :doc:`special_bonds <special_bonds>` weighting according
+to the molecular topology since the interactions of the shells are
+bypassed over an extra bond.
+
+Note that this core/shell implementation does not require all ions to
+be polarized.  One can mix core/shell pairs and ions without a
+satellite particle if desired.
+
+Since the core/shell model permits distances of r = 0.0 between the
+core and shell, a pair style with a "cs" suffix needs to be used to
+implement a valid long-range Coulombic correction.  Several such pair
+styles are provided in the CORESHELL package.  See :doc:`this doc page <pair_cs>` for details.  All of the core/shell enabled pair
+styles require the use of a long-range Coulombic solver, as specified
+by the :doc:`kspace_style <kspace_style>` command.  Either the PPPM or
+Ewald solvers can be used.
+
+For the NaCL example problem, these pair style and bond style settings
+are used:
+
+.. parsed-literal::
+
+   pair_style      born/coul/long/cs 20.0 20.0
+   pair_coeff      * *      0.0 1.000   0.00  0.00   0.00
+   pair_coeff      3 3    487.0 0.23768 0.00  1.05   0.50 #Na-Na
+   pair_coeff      3 4 145134.0 0.23768 0.00  6.99   8.70 #Na-Cl
+   pair_coeff      4 4 405774.0 0.23768 0.00 72.40 145.40 #Cl-Cl
+
+.. parsed-literal::
+
+   bond_style      harmonic
+   bond_coeff      1 63.014 0.0
+   bond_coeff      2 25.724 0.0
+
+When running dynamics with the adiabatic core/shell model, the
+following issues should be considered.  Since the relative motion of
+the core and shell particles corresponds to the polarization, typical
+thermostats can alter the polarization behaviour, meaning the shell
+will not react freely to its electrostatic environment.  This is
+critical during the equilibration of the system. Therefore
+it's typically desirable to decouple the relative motion of the
+core/shell pair, which is an imaginary degree of freedom, from the
+real physical system.  To do that, the :doc:`compute temp/cs <compute_temp_cs>` command can be used, in conjunction with
+any of the thermostat fixes, such as :doc:`fix nvt <fix_nh>` or `fix langevin <fix_langevin>`_.  This compute uses the center-of-mass velocity
+of the core/shell pairs to calculate a temperature, and insures that
+velocity is what is rescaled for thermostatting purposes.  This
+compute also works for a system with both core/shell pairs and
+non-polarized ions (ions without an attached satellite particle).  The
+:doc:`compute temp/cs <compute_temp_cs>` command requires input of two
+groups, one for the core atoms, another for the shell atoms.
+Non-polarized ions which might also be included in the treated system
+should not be included into either of these groups, they are taken
+into account by the *group-ID* (2nd argument) of the compute.  The
+groups can be defined using the :doc:`group *type* <group>` command.
+Note that to perform thermostatting using this definition of
+temperature, the :doc:`fix modify temp <fix_modify>` command should be
+used to assign the compute to the thermostat fix.  Likewise the
+:doc:`thermo_modify temp <thermo_modify>` command can be used to make
+this temperature be output for the overall system.
+
+For the NaCl example, this can be done as follows:
+
+.. parsed-literal::
+
+   group cores type 1 2
+   group shells type 3 4
+   compute CSequ all temp/cs cores shells
+   fix thermoberendsen all temp/berendsen 1427 1427 0.4    # thermostat for the true physical system
+   fix thermostatequ all nve                               # integrator as needed for the berendsen thermostat
+   fix_modify thermoberendsen temp CSequ
+   thermo_modify temp CSequ                                # output of center-of-mass derived temperature
+
+If :doc:`compute temp/cs <compute_temp_cs>` is used, the decoupled 
+relative motion of the core and the shell should in theory be 
+stable.  However numerical fluctuation can introduce a small
+momentum to the system, which is noticable over long trajectories.
+Therefore it is recomendable to use the :doc:`fix  momentum <fix_momentum>` command in combination with :doc:`compute  temp/cs <compute_temp_cs>` when equilibrating the system to 
+prevent any drift.
+
+When intializing the velocities of a system with core/shell pairs, it
+is also desirable to not introduce energy into the relative motion of
+the core/shell particles, but only assign a center-of-mass velocity to
+the pairs.  This can be done by using the *bias* keyword of the
+:doc:`velocity create <velocity>` command and assigning the :doc:`compute temp/cs <compute_temp_cs>` command to the *temp* keyword of the
+:doc:`velocity <velocity>` commmand, e.g.
+
+.. parsed-literal::
+
+   velocity all create 1427 134 bias yes temp CSequ
+   velocity all scale 1427 temp CSequ
+
+It is important to note that the polarizability of the core/shell
+pairs is based on their relative motion. Therefore the choice of
+spring force and mass ratio need to ensure much faster relative motion
+of the 2 atoms within the core/shell pair than their center-of-mass
+velocity. This allow the shells to effectively react instantaneously
+to the electrostatic environment.  This fast movement also limits the
+timestep size that can be used.
+
+The primary literature of the adiabatic core/shell model suggests that
+the fast relative motion of the core/shell pairs only allows negligible 
+energy transfer to the environment. Therefore it is not intended to
+decouple the core/shell degree of freedom from the physical system
+during production runs. In other words, the :doc:`compute temp/cs <compute_temp_cs>` command should not be used during
+production runs and is only required during equilibration. This way one 
+is consistent with literature (based on the code packages DL_POLY or 
+GULP for instance).
+
+The mentioned energy transfer will typically lead to a a small drift 
+in total energy over time.  This internal energy can be monitored 
+using the :doc:`compute chunk/atom <compute_chunk_atom>` and :doc:`compute temp/chunk <compute_temp_chunk>` commands.  The internal kinetic
+energies of each core/shell pair can then be summed using the sum()
+special function of the :doc:`variable <variable>` command.  Or they can
+be time/averaged and output using the :doc:`fix ave/time <fix_ave_time>`
+command.  To use these commands, each core/shell pair must be defined
+as a "chunk".  If each core/shell pair is defined as its own molecule,
+the molecule ID can be used to define the chunks.  If cores are bonded
+to each other to form larger molecules, the chunks can be identified
+by the :doc:`fix property/atom <fix_property_atom>` via assigning a
+core/shell ID to each atom using a special field in the data file read
+by the :doc:`read_data <read_data>` command.  This field can then be
+accessed by the :doc:`compute property/atom <compute_property_atom>`
+command, to use as input to the :doc:`compute chunk/atom <compute_chunk_atom>` command to define the core/shell
+pairs as chunks.
+
+For example,
+
+.. parsed-literal::
+
+   fix csinfo all property/atom i_CSID                       # property/atom command
+   read_data NaCl_CS_x0.1_prop.data fix csinfo NULL CS-Info  # atom property added in the data-file
+   compute prop all property/atom i_CSID
+   compute cs_chunk all chunk/atom c_prop
+   compute cstherm all temp/chunk cs_chunk temp internal com yes cdof 3.0     # note the chosen degrees of freedom for the core/shell pairs
+   fix ave_chunk all ave/time 10 1 10 c_cstherm file chunk.dump mode vector
+
+The additional section in the date file would be formatted like this:
+
+.. parsed-literal::
+
+   CS-Info         # header of additional section
+
+.. parsed-literal::
+
+   1   1           # column 1 = atom ID, column 2 = core/shell ID 
+   2   1   
+   3   2   
+   4   2   
+   5   3   
+   6   3   
+   7   4   
+   8   4   
+   (...)
+
+
+----------
+
+
+.. _howto_27:
+
+Drude induced dipoles
+---------------------
+
+The thermalized Drude model, similarly to the :ref:`core-shell <howto_26>`
+model, representes induced dipoles by a pair of charges (the core atom
+and the Drude particle) connected by a harmonic spring. The Drude
+model has a number of features aimed at its use in molecular systems
+(:ref:`Lamoureux and Roux <Lamoureux>`):
+
+* Thermostating of the additional degrees of freedom associated with the
+  induced dipoles at very low temperature, in terms of the reduced
+  coordinates of the Drude particles with respect to their cores. This
+  makes the trajectory close to that of relaxed induced dipoles.
+* Consistent definition of 1-2 to 1-4 neighbors. A core-Drude particle
+  pair represents a single (polarizable) atom, so the special screening
+  factors in a covalent structure should be the same for the core and
+  the Drude particle.  Drude particles have to inherit the 1-2, 1-3, 1-4
+  special neighbor relations from their respective cores.
+* Stabilization of the interactions between induced dipoles. Drude
+  dipoles on covalently bonded atoms interact too strongly due to the
+  short distances, so an atom may capture the Drude particle of a
+  neighbor, or the induced dipoles within the same molecule may align
+  too much. To avoid this, damping at short range can be done by Thole
+  functions (for which there are physical grounds). This Thole damping
+  is applied to the point charges composing the induced dipole (the
+  charge of the Drude particle and the opposite charge on the core, not
+  to the total charge of the core atom).
+A detailed tutorial covering the usage of Drude induced dipoles in
+LAMMPS is :doc:`available here <tutorial_drude>`.
+
+As with the core-shell model, the cores and Drude particles should
+appear in the data file as standard atoms. The same holds for the
+springs between them, which are described by standard harmonic bonds.
+The nature of the atoms (core, Drude particle or non-polarizable) is
+specified via the :doc:`fix drude <fix_drude>` command.  The special
+list of neighbors is automatically refactored to account for the
+equivalence of core and Drude particles as regards special 1-2 to 1-4
+screening. It may be necessary to use the *extra* keyword of the
+:doc:`special_bonds <special_bonds>` command. If using :doc:`fix shake <fix_shake>`, make sure no Drude particle is in this fix
+group.
+
+There are two ways to thermostat the Drude particles at a low
+temperature: use either :doc:`fix langevin/drude <fix_langevin_drude>`
+for a Langevin thermostat, or :doc:`fix drude/transform/* <fix_drude_transform>` for a Nose-Hoover
+thermostat. The former requires use of the command :doc:`comm_modify vel yes <comm_modify>`. The latter requires two separate integration
+fixes like *nvt* or *npt*. The correct temperatures of the reduced
+degrees of freedom can be calculated using the :doc:`compute temp/drude <compute_temp_drude>`. This requires also to use the
+command *comm_modify vel yes*.
+
+Short-range damping of the induced dipole interactions can be achieved
+using Thole functions through the the :doc:`pair style thole <pair_thole>` in :doc:`pair_style hybrid/overlay <pair_hybrid>`
+with a Coulomb pair style. It may be useful to use *coul/long/cs* or
+similar from the CORESHELL package if the core and Drude particle come
+too close, which can cause numerical issues.
+
+
+
+
+
+.. _Berendsen:
+
+
+
+**(Berendsen)** Berendsen, Grigera, Straatsma, J Phys Chem, 91,
+6269-6271 (1987).
+
+.. _Cornell:
+
+
+
+**(Cornell)** Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
+
+.. _Horn:
+
+
+
+**(Horn)** Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,
+J Chem Phys, 120, 9665 (2004).
+
+.. _Ikeshoji:
+
+
+
+**(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
+(1994).
+
+.. _MacKerell:
+
+
+
+**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+
+.. _Mayo:
+
+
+
+**(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).
+
+.. _Jorgensen:
+
+
+
+**(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
+Phys, 79, 926 (1983).
+
+.. _Price:
+
+
+
+**(Price)** Price and Brooks, J Chem Phys, 121, 10096 (2004).
+
+.. _Shinoda:
+
+
+
+**(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
+
+.. _MitchellFinchham:
+
+
+
+**(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
+5, 1031-1038 (1993).
+
+.. _Lamoureux:
+
+
+
+**(Lamoureux and Roux)** G. Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

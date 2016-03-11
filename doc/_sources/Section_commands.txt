@@ -1,0 +1,816 @@
+Commands
+========
+
+This section describes how a LAMMPS input script is formatted and the
+input script commands used to define a LAMMPS simulation.
+
+| 3.1 :ref:`LAMMPS input script <cmd_1>`
+| 3.2 :ref:`Parsing rules <cmd_2>`
+| 3.3 :ref:`Input script structure <cmd_3>`
+| 3.4 :ref:`Commands listed by category <cmd_4>`
+| 3.5 :ref:`Commands listed alphabetically <cmd_5>` 
+| 
+
+
+
+
+
+.. _cmd_1:
+
+LAMMPS input script
+-------------------
+
+LAMMPS executes by reading commands from a input script (text file),
+one line at a time.  When the input script ends, LAMMPS exits.  Each
+command causes LAMMPS to take some action.  It may set an internal
+variable, read in a file, or run a simulation.  Most commands have
+default settings, which means you only need to use the command if you
+wish to change the default.
+
+In many cases, the ordering of commands in an input script is not
+important.  However the following rules apply:
+
+(1) LAMMPS does not read your entire input script and then perform a
+simulation with all the settings.  Rather, the input script is read
+one line at a time and each command takes effect when it is read.
+Thus this sequence of commands:
+
+.. parsed-literal::
+
+   timestep 0.5 
+   run      100 
+   run      100
+
+does something different than this sequence:
+
+.. parsed-literal::
+
+   run      100 
+   timestep 0.5 
+   run      100
+
+In the first case, the specified timestep (0.5 fmsec) is used for two
+simulations of 100 timesteps each.  In the 2nd case, the default
+timestep (1.0 fmsec) is used for the 1st 100 step simulation and a 0.5
+fmsec timestep is used for the 2nd one.
+
+(2) Some commands are only valid when they follow other commands.  For
+example you cannot set the temperature of a group of atoms until atoms
+have been defined and a group command is used to define which atoms
+belong to the group.
+
+(3) Sometimes command B will use values that can be set by command A.
+This means command A must precede command B in the input script if it
+is to have the desired effect.  For example, the
+:doc:`read_data <read_data>` command initializes the system by setting
+up the simulation box and assigning atoms to processors.  If default
+values are not desired, the :doc:`processors <processors>` and
+:doc:`boundary <boundary>` commands need to be used before read_data to
+tell LAMMPS how to map processors to the simulation box.
+
+Many input script errors are detected by LAMMPS and an ERROR or
+WARNING message is printed.  :doc:`This section <Section_errors>` gives
+more information on what errors mean.  The documentation for each
+command lists restrictions on how the command can be used.
+
+
+----------
+
+
+.. _cmd_2:
+
+Parsing rules
+-------------
+
+Each non-blank line in the input script is treated as a command.
+LAMMPS commands are case sensitive.  Command names are lower-case, as
+are specified command arguments.  Upper case letters may be used in
+file names or user-chosen ID strings.
+
+Here is how each line in the input script is parsed by LAMMPS:
+
+(1) If the last printable character on the line is a "&" character,
+the command is assumed to continue on the next line.  The next line is
+concatenated to the previous line by removing the "&" character and
+line break.  This allows long commands to be continued across two or
+more lines.  See the discussion of triple quotes in (6) for how to
+continue a command across multiple line without using "&" characters.
+
+(2) All characters from the first "#" character onward are treated as
+comment and discarded.  See an exception in (6).  Note that a
+comment after a trailing "&" character will prevent the command from
+continuing on the next line.  Also note that for multi-line commands a
+single leading "#" will comment out the entire command.
+
+(3) The line is searched repeatedly for $ characters, which indicate
+variables that are replaced with a text string.  See an exception in
+(6).
+
+If the $ is followed by curly brackets, then the variable name is the
+text inside the curly brackets.  If no curly brackets follow the $,
+then the variable name is the single character immediately following
+the $.  Thus ${myTemp} and $x refer to variable names "myTemp" and
+"x".
+
+How the variable is converted to a text string depends on what style
+of variable it is; see the `variable <variable>`_ doc page for details.
+It can be a variable that stores multiple text strings, and return one
+of them.  The returned text string can be multiple "words" (space
+separated) which will then be interpreted as multiple arguments in the
+input command.  The variable can also store a numeric formula which
+will be evaluated and its numeric result returned as a string.
+
+As a special case, if the $ is followed by parenthesis, then the text
+inside the parenthesis is treated as an "immediate" variable and
+evaluated as an :doc:`equal-style variable <variable>`.  This is a way
+to use numeric formulas in an input script without having to assign
+them to variable names.  For example, these 3 input script lines:
+
+.. parsed-literal::
+
+   variable X equal (xlo+xhi)/2+sqrt(v_area)
+   region 1 block $X 2 INF INF EDGE EDGE
+   variable X delete
+
+can be replaced by
+
+.. parsed-literal::
+
+   region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE
+
+so that you do not have to define (or discard) a temporary variable X.
+
+Note that neither the curly-bracket or immediate form of variables can
+contain nested $ characters for other variables to substitute for.
+Thus you cannot do this:
+
+.. parsed-literal::
+
+   variable        a equal 2
+   variable        b2 equal 4
+   print           "B2 = ${b$a}"
+
+Nor can you specify this $($x-1.0) for an immediate variable, but
+you could use $(v_x-1.0), since the latter is valid syntax for an
+:doc:`equal-style variable <variable>`.
+
+See the :doc:`variable <variable>` command for more details of how
+strings are assigned to variables and evaluated, and how they can be
+used in input script commands.
+
+(4) The line is broken into "words" separated by whitespace (tabs,
+spaces).  Note that words can thus contain letters, digits,
+underscores, or punctuation characters.
+
+(5) The first word is the command name.  All successive words in the
+line are arguments.
+
+(6) If you want text with spaces to be treated as a single argument,
+it can be enclosed in either single or double or triple quotes.  A
+long single argument enclosed in single or double quotes can span
+multiple lines if the "&" character is used, as described above.  When
+the lines are concatenated together (and the "&" characters and line
+breaks removed), the text will become a single line.  If you want
+multiple lines of an argument to retain their line breaks, the text
+can be enclosed in triple quotes, in which case "&" characters are not
+needed.  For example:
+
+.. parsed-literal::
+
+   print "Volume = $v"
+   print 'Volume = $v'
+   if "${steps} > 1000" then quit
+   variable a string "red green blue &
+                      purple orange cyan"
+   print """
+   System volume = $v
+   System temperature = $t
+   """
+
+In each case, the single, double, or triple quotes are removed when
+the single argument they enclose is stored internally.
+
+See the :doc:`dump modify format <dump_modify>`, :doc:`print <print>`,
+:doc:`if <if>`, and :doc:`python <python>` commands for examples.
+
+A "#" or "$" character that is between quotes will not be treated as a
+comment indicator in (2) or substituted for as a variable in (3).
+
+.. note::
+
+   If the argument is itself a command that requires a quoted
+   argument (e.g. using a :doc:`print <print>` command as part of an
+   :doc:`if <if>` or :doc:`run every <run>` command), then single, double, or
+   triple quotes can be nested in the usual manner.  See the doc pages
+   for those commands for examples.  Only one of level of nesting is
+   allowed, but that should be sufficient for most use cases.
+
+
+----------
+
+
+.. _cmd_3:
+
+Input script structure
+----------------------------------
+
+This section describes the structure of a typical LAMMPS input script.
+The "examples" directory in the LAMMPS distribution contains many
+sample input scripts; the corresponding problems are discussed in
+:doc:`Section_example <Section_example>`, and animated on the `LAMMPS WWW Site <lws_>`_.
+
+A LAMMPS input script typically has 4 parts:
+
+1. Initialization
+2. Atom definition
+3. Settings
+4. Run a simulation
+
+The last 2 parts can be repeated as many times as desired.  I.e. run a
+simulation, change some settings, run some more, etc.  Each of the 4
+parts is now described in more detail.  Remember that almost all the
+commands need only be used if a non-default value is desired.
+
+(1) Initialization
+
+Set parameters that need to be defined before atoms are created or
+read-in from a file.
+
+The relevant commands are :doc:`units <units>`,
+:doc:`dimension <dimension>`, :doc:`newton <newton>`,
+:doc:`processors <processors>`, :doc:`boundary <boundary>`,
+:doc:`atom_style <atom_style>`, :doc:`atom_modify <atom_modify>`.
+
+If force-field parameters appear in the files that will be read, these
+commands tell LAMMPS what kinds of force fields are being used:
+:doc:`pair_style <pair_style>`, :doc:`bond_style <bond_style>`,
+:doc:`angle_style <angle_style>`, :doc:`dihedral_style <dihedral_style>`,
+:doc:`improper_style <improper_style>`.
+
+(2) Atom definition
+
+There are 3 ways to define atoms in LAMMPS.  Read them in from a data
+or restart file via the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands.  These files can contain
+molecular topology information.  Or create atoms on a lattice (with no
+molecular topology), using these commands: :doc:`lattice <lattice>`,
+:doc:`region <region>`, :doc:`create_box <create_box>`,
+:doc:`create_atoms <create_atoms>`.  The entire set of atoms can be
+duplicated to make a larger simulation using the
+:doc:`replicate <replicate>` command.
+
+(3) Settings
+
+Once atoms and molecular topology are defined, a variety of settings
+can be specified: force field coefficients, simulation parameters,
+output options, etc.
+
+Force field coefficients are set by these commands (they can also be
+set in the read-in files): :doc:`pair_coeff <pair_coeff>`,
+:doc:`bond_coeff <bond_coeff>`, :doc:`angle_coeff <angle_coeff>`,
+:doc:`dihedral_coeff <dihedral_coeff>`,
+:doc:`improper_coeff <improper_coeff>`,
+:doc:`kspace_style <kspace_style>`, :doc:`dielectric <dielectric>`,
+:doc:`special_bonds <special_bonds>`.
+
+Various simulation parameters are set by these commands:
+:doc:`neighbor <neighbor>`, :doc:`neigh_modify <neigh_modify>`,
+:doc:`group <group>`, :doc:`timestep <timestep>`,
+:doc:`reset_timestep <reset_timestep>`, :doc:`run_style <run_style>`,
+:doc:`min_style <min_style>`, :doc:`min_modify <min_modify>`.
+
+Fixes impose a variety of boundary conditions, time integration, and
+diagnostic options.  The :doc:`fix <fix>` command comes in many flavors.
+
+Various computations can be specified for execution during a
+simulation using the :doc:`compute <compute>`,
+:doc:`compute_modify <compute_modify>`, and :doc:`variable <variable>`
+commands.
+
+Output options are set by the :doc:`thermo <thermo>`, :doc:`dump <dump>`,
+and :doc:`restart <restart>` commands.
+
+(4) Run a simulation
+
+A molecular dynamics simulation is run using the :doc:`run <run>`
+command.  Energy minimization (molecular statics) is performed using
+the :doc:`minimize <minimize>` command.  A parallel tempering
+(replica-exchange) simulation can be run using the
+:doc:`temper <temper>` command.
+
+
+----------
+
+
+.. _cmd_4:
+
+Commands listed by category
+---------------------------
+
+This section lists all LAMMPS commands, grouped by category.  The
+:ref:`next section <cmd_5>` lists the same commands alphabetically.  Note
+that some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+
+Initialization:
+
+:doc:`atom_modify <atom_modify>`, :doc:`atom_style <atom_style>`,
+:doc:`boundary <boundary>`, :doc:`dimension <dimension>`,
+:doc:`newton <newton>`, :doc:`processors <processors>`, :doc:`units <units>`
+
+Atom definition:
+
+:doc:`create_atoms <create_atoms>`, :doc:`create_box <create_box>`,
+:doc:`lattice <lattice>`, :doc:`read_data <read_data>`,
+:doc:`read_dump <read_dump>`, :doc:`read_restart <read_restart>`,
+:doc:`region <region>`, :doc:`replicate <replicate>`
+
+Force fields:
+
+:doc:`angle_coeff <angle_coeff>`, :doc:`angle_style <angle_style>`,
+:doc:`bond_coeff <bond_coeff>`, :doc:`bond_style <bond_style>`,
+:doc:`dielectric <dielectric>`, :doc:`dihedral_coeff <dihedral_coeff>`,
+:doc:`dihedral_style <dihedral_style>`,
+:doc:`improper_coeff <improper_coeff>`,
+:doc:`improper_style <improper_style>`,
+:doc:`kspace_modify <kspace_modify>`, :doc:`kspace_style <kspace_style>`,
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_modify <pair_modify>`,
+:doc:`pair_style <pair_style>`, :doc:`pair_write <pair_write>`,
+:doc:`special_bonds <special_bonds>`
+
+Settings:
+
+:doc:`comm_style <comm_style>`, :doc:`group <group>`, :doc:`mass <mass>`,
+:doc:`min_modify <min_modify>`, :doc:`min_style <min_style>`,
+:doc:`neigh_modify <neigh_modify>`, :doc:`neighbor <neighbor>`,
+:doc:`reset_timestep <reset_timestep>`, :doc:`run_style <run_style>`,
+:doc:`set <set>`, :doc:`timestep <timestep>`, :doc:`velocity <velocity>`
+
+Fixes:
+
+:doc:`fix <fix>`, :doc:`fix_modify <fix_modify>`, :doc:`unfix <unfix>`
+
+Computes:
+
+:doc:`compute <compute>`, :doc:`compute_modify <compute_modify>`,
+:doc:`uncompute <uncompute>`
+
+Output:
+
+:doc:`dump <dump>`, :doc:`dump image <dump_image>`,
+:doc:`dump_modify <dump_modify>`, :doc:`dump movie <dump_image>`,
+:doc:`restart <restart>`, :doc:`thermo <thermo>`,
+:doc:`thermo_modify <thermo_modify>`, :doc:`thermo_style <thermo_style>`,
+:doc:`undump <undump>`, :doc:`write_data <write_data>`,
+:doc:`write_dump <write_dump>`, :doc:`write_restart <write_restart>`
+
+Actions:
+
+:doc:`delete_atoms <delete_atoms>`, :doc:`delete_bonds <delete_bonds>`,
+:doc:`displace_atoms <displace_atoms>`, :doc:`change_box <change_box>`,
+:doc:`minimize <minimize>`, :doc:`neb <neb>` :doc:`prd <prd>`,
+:doc:`rerun <rerun>`, :doc:`run <run>`, :doc:`temper <temper>`
+
+Miscellaneous:
+
+:doc:`clear <clear>`, :doc:`echo <echo>`, :doc:`if <if>`,
+:doc:`include <include>`, :doc:`jump <jump>`, :doc:`label <label>`,
+:doc:`log <log>`, :doc:`next <next>`, :doc:`print <print>`,
+:doc:`shell <shell>`, :doc:`variable <variable>`
+
+
+----------
+
+
+.. _cmd_5:
+
+.. _comm:
+
+Individual commands
+------------------------------------------
+
+This section lists all LAMMPS commands alphabetically, with a separate
+listing below of styles within certain commands.  The :ref:`previous section <cmd_4>` lists the same commands, grouped by category.  Note
+that some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`angle_coeff <angle_coeff>`       | :doc:`angle_style <angle_style>`   | :doc:`atom_modify <atom_modify>`       | :doc:`atom_style <atom_style>`         | :doc:`balance <balance>`               | :doc:`bond_coeff <bond_coeff>`         |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`bond_style <bond_style>`         | :doc:`boundary <boundary>`         | :doc:`box <box>`                       | :doc:`change_box <change_box>`         | :doc:`clear <clear>`                   | :doc:`comm_modify <comm_modify>`       |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`comm_style <comm_style>`         | :doc:`compute <compute>`           | :doc:`compute_modify <compute_modify>` | :doc:`create_atoms <create_atoms>`     | :doc:`create_bonds <create_bonds>`     | :doc:`create_box <create_box>`         |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`delete_atoms <delete_atoms>`     | :doc:`delete_bonds <delete_bonds>` | :doc:`dielectric <dielectric>`         | :doc:`dihedral_coeff <dihedral_coeff>` | :doc:`dihedral_style <dihedral_style>` | :doc:`dimension <dimension>`           |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`displace_atoms <displace_atoms>` | :doc:`dump <dump>`                 | :doc:`dump image <dump_image>`         | :doc:`dump_modify <dump_modify>`       | :doc:`dump movie <dump_image>`         | :doc:`echo <echo>`                     |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`fix <fix>`                       | :doc:`fix_modify <fix_modify>`     | :doc:`group <group>`                   | :doc:`if <if>`                         | :doc:`info <info>`                     | :doc:`improper_coeff <improper_coeff>` |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`improper_style <improper_style>` | :doc:`include <include>`           | :doc:`jump <jump>`                     | :doc:`kspace_modify <kspace_modify>`   | :doc:`kspace_style <kspace_style>`     | :doc:`label <label>`                   |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`lattice <lattice>`               | :doc:`log <log>`                   | :doc:`mass <mass>`                     | :doc:`minimize <minimize>`             | :doc:`min_modify <min_modify>`         | :doc:`min_style <min_style>`           |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`molecule <molecule>`             | :doc:`neb <neb>`                   | :doc:`neigh_modify <neigh_modify>`     | :doc:`neighbor <neighbor>`             | :doc:`newton <newton>`                 | :doc:`next <next>`                     |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`package <package>`               | :doc:`pair_coeff <pair_coeff>`     | :doc:`pair_modify <pair_modify>`       | :doc:`pair_style <pair_style>`         | :doc:`pair_write <pair_write>`         | :doc:`partition <partition>`           |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`prd <prd>`                       | :doc:`print <print>`               | :doc:`processors <processors>`         | :doc:`python <python>`                 | :doc:`quit <quit>`                     | :doc:`read_data <read_data>`           |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`read_dump <read_dump>`           | :doc:`read_restart <read_restart>` | :doc:`region <region>`                 | :doc:`replicate <replicate>`           | :doc:`rerun <rerun>`                   | :doc:`reset_timestep <reset_timestep>` |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`restart <restart>`               | :doc:`run <run>`                   | :doc:`run_style <run_style>`           | :doc:`set <set>`                       | :doc:`shell <shell>`                   | :doc:`special_bonds <special_bonds>`   |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`suffix <suffix>`                 | :doc:`tad <tad>`                   | :doc:`temper <temper>`                 | :doc:`thermo <thermo>`                 | :doc:`thermo_modify <thermo_modify>`   | :doc:`thermo_style <thermo_style>`     |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`timer <timer>`                   | :doc:`timestep <timestep>`         | :doc:`uncompute <uncompute>`           | :doc:`undump <undump>`                 | :doc:`unfix <unfix>`                   | :doc:`units <units>`                   |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+| :doc:`variable <variable>`             | :doc:`velocity <velocity>`         | :doc:`write_data <write_data>`         | :doc:`write_dump <write_dump>`         | :doc:`write_restart <write_restart>`   |                                        |
++----------------------------------------+------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+----------------------------------------+
+
+These are additional commands in USER packages, which can be used if
+:ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++------------------------------------------+------------------------------+------------------------------+
+| :doc:`dump custom/vtk <dump_custom_vtk>` | :doc:`group2ndx <group2ndx>` | :doc:`ndx2group <group2ndx>` |
++------------------------------------------+------------------------------+------------------------------+
+
+
+----------
+
+
+Fix styles
+----------
+
+See the :doc:`fix <fix>` command for one-line descriptions of each style
+or click on the style itself for a full description.  Some of the
+styles have accelerated versions, which can be used if LAMMPS is built
+with the :doc:`appropriate accelerated package <Section_accelerate>`.
+This is indicated by additional letters in parenthesis: c = USER-CUDA,
+g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
+
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`adapt <fix_adapt>`                             | :doc:`addforce (c) <fix_addforce>`           | :doc:`append/atoms <fix_append_atoms>` | :doc:`atom/swap <fix_atom_swap>`           | :doc:`aveforce (c) <fix_aveforce>`   | :doc:`ave/atom <fix_ave_atom>`                         | :doc:`ave/chunk <fix_ave_chunk>`     | :doc:`ave/correlate <fix_ave_correlate>` |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`ave/histo <fix_ave_histo>`                     | :doc:`ave/histo/weight <fix_ave_histo>`      | :doc:`ave/spatial <fix_ave_spatial>`   | :doc:`ave/time <fix_ave_time>`             | :doc:`balance <fix_balance>`         | :doc:`bond/break <fix_bond_break>`                     | :doc:`bond/create <fix_bond_create>` | :doc:`bond/swap <fix_bond_swap>`         |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`box/relax <fix_box_relax>`                     | :doc:`deform (k) <fix_deform>`               | :doc:`deposit <fix_deposit>`           | :doc:`drag <fix_drag>`                     | :doc:`dt/reset <fix_dt_reset>`       | :doc:`efield <fix_efield>`                             | :doc:`enforce2d (c) <fix_enforce2d>` | :doc:`evaporate <fix_evaporate>`         |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`external <fix_external>`                       | :doc:`freeze (c) <fix_freeze>`               | :doc:`gcmc <fix_gcmc>`                 | :doc:`gld <fix_gld>`                       | :doc:`gravity (co) <fix_gravity>`    | :doc:`heat <fix_heat>`                                 | :doc:`indent <fix_indent>`           | :doc:`langevin (k) <fix_langevin>`       |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`lineforce <fix_lineforce>`                     | :doc:`momentum <fix_momentum>`               | :doc:`move <fix_move>`                 | :doc:`msst <fix_msst>`                     | :doc:`neb <fix_neb>`                 | :doc:`nph (ko) <fix_nh>`                               | :doc:`nphug (o) <fix_nphug>`         | :doc:`nph/asphere (o) <fix_nph_asphere>` |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`nph/body <fix_nph_body>`                       | :doc:`nph/sphere (o) <fix_nph_sphere>`       | :doc:`npt (ckio) <fix_nh>`             | :doc:`npt/asphere (o) <fix_npt_asphere>`   | :doc:`npt/body <fix_npt_body>`       | :doc:`npt/sphere (o) <fix_npt_sphere>`                 | :doc:`nve (ckio) <fix_nve>`          | :doc:`nve/asphere (i) <fix_nve_asphere>` |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>` | :doc:`nve/body <fix_nve_body>`               | :doc:`nve/limit <fix_nve_limit>`       | :doc:`nve/line <fix_nve_line>`             | :doc:`nve/noforce <fix_nve_noforce>` | :doc:`nve/sphere (o) <fix_nve_sphere>`                 | :doc:`nve/tri <fix_nve_tri>`         | :doc:`nvt (ciko) <fix_nh>`               |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`nvt/asphere (o) <fix_nvt_asphere>`             | :doc:`nvt/body <fix_nvt_body>`               | :doc:`nvt/sllod (io) <fix_nvt_sllod>`  | :doc:`nvt/sphere (o) <fix_nvt_sphere>`     | :doc:`oneway <fix_oneway>`           | :doc:`orient/fcc <fix_orient_fcc>`                     | :doc:`planeforce <fix_planeforce>`   | :doc:`poems <fix_poems>`                 |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`pour <fix_pour>`                               | :doc:`press/berendsen <fix_press_berendsen>` | :doc:`print <fix_print>`               | :doc:`property/atom <fix_property_atom>`   | :doc:`qeq/comb (o) <fix_qeq_comb>`   | :doc:`qeq/dynamic <fix_qeq>`                           | :doc:`qeq/fire <fix_qeq>`            | :doc:`qeq/point <fix_qeq>`               |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`qeq/shielded <fix_qeq>`                        | :doc:`qeq/slater <fix_qeq>`                  | :doc:`rattle <fix_shake>`              | :doc:`reax/bonds <fix_reax_bonds>`         | :doc:`recenter <fix_recenter>`       | :doc:`restrain <fix_restrain>`                         | :doc:`rigid (o) <fix_rigid>`         | :doc:`rigid/nph (o) <fix_rigid>`         |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`rigid/npt (o) <fix_rigid>`                     | :doc:`rigid/nve (o) <fix_rigid>`             | :doc:`rigid/nvt (o) <fix_rigid>`       | :doc:`rigid/small (o) <fix_rigid>`         | :doc:`rigid/small/nph <fix_rigid>`   | :doc:`rigid/small/npt <fix_rigid>`                     | :doc:`rigid/small/nve <fix_rigid>`   | :doc:`rigid/small/nvt <fix_rigid>`       |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`setforce (ck) <fix_setforce>`                  | :doc:`shake (c) <fix_shake>`                 | :doc:`spring <fix_spring>`             | :doc:`spring/rg <fix_spring_rg>`           | :doc:`spring/self <fix_spring_self>` | :doc:`srd <fix_srd>`                                   | :doc:`store/force <fix_store_force>` | :doc:`store/state <fix_store_state>`     |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`temp/berendsen (c) <fix_temp_berendsen>`       | :doc:`temp/csld <fix_temp_csvr>`             | :doc:`temp/csvr <fix_temp_csvr>`       | :doc:`temp/rescale (c) <fix_temp_rescale>` | :doc:`tfmc <fix_tfmc>`               | :doc:`thermal/conductivity <fix_thermal_conductivity>` | :doc:`tmd <fix_tmd>`                 | :doc:`ttm <fix_ttm>`                     |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`tune/kspace <fix_tune_kspace>`                 | :doc:`vector <fix_vector>`                   | :doc:`viscosity <fix_viscosity>`       | :doc:`viscous (c) <fix_viscous>`           | :doc:`wall/colloid <fix_wall>`       | :doc:`wall/gran <fix_wall_gran>`                       | :doc:`wall/harmonic <fix_wall>`      | :doc:`wall/lj1043 <fix_wall>`            |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+| :doc:`wall/lj126 <fix_wall>`                         | :doc:`wall/lj93 <fix_wall>`                  | :doc:`wall/piston <fix_wall_piston>`   | :doc:`wall/reflect (k) <fix_wall_reflect>` | :doc:`wall/region <fix_wall_region>` | :doc:`wall/srd <fix_wall_srd>`                         |                                      |                                          |
++------------------------------------------------------+----------------------------------------------+----------------------------------------+--------------------------------------------+--------------------------------------+--------------------------------------------------------+--------------------------------------+------------------------------------------+
+
+These are additional fix styles in USER packages, which can be used if
+:ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`adapt/fep <fix_adapt_fep>`                                         | :doc:`addtorque <fix_addtorque>`                    | :doc:`atc <fix_atc>`                                                             | :doc:`ave/correlate/long <fix_ave_correlate_long>` | :doc:`ave/spatial/sphere <fix_ave_spatial_sphere>`   | :doc:`colvars <fix_colvars>`                         |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`drude <fix_drude>`                                                 | :doc:`drude/transform/direct <fix_drude_transform>` | :doc:`drude/transform/reverse <fix_drude_transform>`                             | :doc:`eos/cv <fix_eos_cv>`                         | :doc:`eos/table <fix_eos_table>`                     | :doc:`gle <fix_gle>`                                 |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`imd <fix_imd>`                                                     | :doc:`ipi <fix_ipi>`                                | :doc:`langevin/drude <fix_langevin_drude>`                                       | :doc:`langevin/eff <fix_langevin_eff>`             | :doc:`lb/fluid <fix_lb_fluid>`                       | :doc:`lb/momentum <fix_lb_momentum>`                 |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`lb/pc <fix_lb_pc>`                                                 | :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`  | :doc:`lb/viscous <fix_lb_viscous>`                                               | :doc:`meso <fix_meso>`                             | :doc:`meso/stationary <fix_meso_stationary>`         | :doc:`nph/eff <fix_nh_eff>`                          |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`npt/eff <fix_nh_eff>`                                              | :doc:`nve/eff <fix_nve_eff>`                        | :doc:`nvt/eff <fix_nh_eff>`                                                      | :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`           | :doc:`phonon <fix_phonon>`                           | :doc:`pimd <fix_pimd>`                               |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`qbmsst <fix_qbmsst>`                                               | :doc:`qeq/reax <fix_qeq_reax>`                      | :doc:`qmmm <fix_qmmm>`                                                           | :doc:`qtb <fix_qtb>`                               | :doc:`reax/c/bonds <fix_reax_bonds>`                 | :doc:`reax/c/species <fix_reaxc_species>`            |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`saed/vtk <fix_saed_vtk>`                                           | :doc:`shardlow <fix_shardlow>`                      | :doc:`smd <fix_smd>`                                                             | :doc:`smd/adjust/dt <fix_smd_adjust_dt>`           | :doc:`smd/integrate/tlsph <fix_smd_integrate_tlsph>` | :doc:`smd/integrate/ulsph <fix_smd_integrate_ulsph>` |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`smd/move/triangulated/surface <fix_smd_move_triangulated_surface>` | :doc:`smd/setvel <fix_smd_setvel>`                  | :doc:`smd/tlsph/reference/configuration <fix_smd_tlsph_reference_configuration>` | :doc:`smd/wall/surface <fix_smd_wall_surface>`     | :doc:`temp/rescale/eff <fix_temp_rescale_eff>`       | :doc:`ti/rs <fix_ti_rs>`                             |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+| :doc:`ti/spring <fix_ti_spring>`                                         | :doc:`ttm/mod <fix_ttm>`                            |                                                                                  |                                                    |                                                      |                                                      |
++--------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------+------------------------------------------------------+
+
+
+----------
+
+
+Compute styles
+--------------
+
+See the :doc:`compute <compute>` command for one-line descriptions of
+each style or click on the style itself for a full description.  Some
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the :doc:`appropriate accelerated package <Section_accelerate>`.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`angle/local <compute_angle_local>`       | :doc:`angmom/chunk <compute_angmom_chunk>`               | :doc:`body/local <compute_body_local>`           | :doc:`bond/local <compute_bond_local>`       | :doc:`centro/atom <compute_centro_atom>`         | :doc:`chunk/atom <compute_chunk_atom>`             |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`cluster/atom <compute_cluster_atom>`     | :doc:`cna/atom <compute_cna_atom>`                       | :doc:`com <compute_com>`                         | :doc:`com/chunk <compute_com_chunk>`         | :doc:`contact/atom <compute_contact_atom>`       | :doc:`coord/atom <compute_coord_atom>`             |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`damage/atom <compute_damage_atom>`       | :doc:`dihedral/local <compute_dihedral_local>`           | :doc:`dilatation/atom <compute_dilatation_atom>` | :doc:`displace/atom <compute_displace_atom>` | :doc:`erotate/asphere <compute_erotate_asphere>` | :doc:`erotate/rigid <compute_erotate_rigid>`       |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`erotate/sphere <compute_erotate_sphere>` | :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>` | :doc:`event/displace <compute_event_displace>`   | :doc:`group/group <compute_group_group>`     | :doc:`gyration <compute_gyration>`               | :doc:`gyration/chunk <compute_gyration_chunk>`     |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`heat/flux <compute_heat_flux>`           | :doc:`hexorder/atom <compute_hexorder_atom>`             | :doc:`improper/local <compute_improper_local>`   | :doc:`inertia/chunk <compute_inertia_chunk>` | :doc:`ke <compute_ke>`                           | :doc:`ke/atom <compute_ke_atom>`                   |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`ke/rigid <compute_ke_rigid>`             | :doc:`msd <compute_msd>`                                 | :doc:`msd/chunk <compute_msd_chunk>`             | :doc:`msd/nongauss <compute_msd_nongauss>`   | :doc:`omega/chunk <compute_omega_chunk>`         | :doc:`orientorder/atom <compute_orientorder_atom>` |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`pair <compute_pair>`                     | :doc:`pair/local <compute_pair_local>`                   | :doc:`pe (c) <compute_pe>`                       | :doc:`pe/atom <compute_pe_atom>`             | :doc:`plasticity/atom <compute_plasticity_atom>` | :doc:`pressure (c) <compute_pressure>`             |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`property/atom <compute_property_atom>`   | :doc:`property/local <compute_property_local>`           | :doc:`property/chunk <compute_property_chunk>`   | :doc:`rdf <compute_rdf>`                     | :doc:`reduce <compute_reduce>`                   | :doc:`reduce/region <compute_reduce>`              |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`slice <compute_slice>`                   | :doc:`sna/atom <compute_sna_atom>`                       | :doc:`snad/atom <compute_sna_atom>`              | :doc:`snav/atom <compute_sna_atom>`          | :doc:`stress/atom <compute_stress_atom>`         | :doc:`temp (ck) <compute_temp>`                    |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`temp/asphere <compute_temp_asphere>`     | :doc:`temp/body <compute_temp_body>`                     | :doc:`temp/chunk <compute_temp_chunk>`           | :doc:`temp/com <compute_temp_com>`           | :doc:`temp/deform <compute_temp_deform>`         | :doc:`temp/partial (c) <compute_temp_partial>`     |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`temp/profile <compute_temp_profile>`     | :doc:`temp/ramp <compute_temp_ramp>`                     | :doc:`temp/region <compute_temp_region>`         | :doc:`temp/sphere <compute_temp_sphere>`     | :doc:`ti <compute_ti>`                           | :doc:`torque/chunk <compute_torque_chunk>`         |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+| :doc:`vacf <compute_vacf>`                     | :doc:`vcm/chunk <compute_vcm_chunk>`                     | :doc:`voronoi/atom <compute_voronoi_atom>`       |                                              |                                                  |                                                    |
++------------------------------------------------+----------------------------------------------------------+--------------------------------------------------+----------------------------------------------+--------------------------------------------------+----------------------------------------------------+
+
+These are additional compute styles in USER packages, which can be
+used if :ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+| :doc:`ackland/atom <compute_ackland_atom>`             | :doc:`basal/atom <compute_basal_atom>`                           | :doc:`dpd <compute_dpd>`                                     | :doc:`dpd/atom <compute_dpd_atom>`                   | :doc:`fep <compute_fep>`                                               | :doc:`force/tally <compute_tally>`                         |
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+| :doc:`heat/flux/tally <compute_tally>`                 | :doc:`ke/eff <compute_ke_eff>`                                   | :doc:`ke/atom/eff <compute_ke_atom_eff>`                     | :doc:`meso/e/atom <compute_meso_e_atom>`             | :doc:`meso/rho/atom <compute_meso_rho_atom>`                           | :doc:`meso/t/atom <compute_meso_t_atom>`                   |
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+| :doc:`pe/tally <compute_tally>`                        | :doc:`saed <compute_saed>`                                       | :doc:`smd/contact/radius <compute_smd_contact_radius>`       | :doc:`smd/damage <compute_smd_damage>`               | :doc:`smd/hourglass/error <compute_smd_hourglass_error>`               | :doc:`smd/internal/energy <compute_smd_internal_energy>`   |
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+| :doc:`smd/plastic/strain <compute_smd_plastic_strain>` | :doc:`smd/plastic/strain/rate <compute_smd_plastic_strain_rate>` | :doc:`smd/rho <compute_smd_rho>`                             | :doc:`smd/tlsph/defgrad <compute_smd_tlsph_defgrad>` | :doc:`smd/tlsph/dt <compute_smd_tlsph_dt>`                             | :doc:`smd/tlsph/num/neighs <compute_smd_tlsph_num_neighs>` |
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+| :doc:`smd/tlsph/shape <compute_smd_tlsph_shape>`       | :doc:`smd/tlsph/strain <compute_smd_tlsph_strain>`               | :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>` | :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>`   | :doc:`smd/triangle/mesh/vertices <compute_smd_triangle_mesh_vertices>` | :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>` |
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+| :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>`     | :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>`     | :doc:`smd/ulsph/stress <compute_smd_ulsph_stress>`           | :doc:`smd/vol <compute_smd_vol>`                     | :doc:`stress/tally <compute_tally>`                                    | :doc:`temp/drude <compute_temp_drude>`                     |
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+| :doc:`temp/eff <compute_temp_eff>`                     | :doc:`temp/deform/eff <compute_temp_deform_eff>`                 | :doc:`temp/region/eff <compute_temp_region_eff>`             | :doc:`temp/rotate <compute_temp_rotate>`             | :doc:`xrd <compute_xrd>`                                               |                                                            |
++--------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------+------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------+
+
+
+----------
+
+
+Pair_style potentials
+---------------------
+
+See the :doc:`pair_style <pair_style>` command for an overview of pair
+potentials.  Click on the style itself for a full description.  Many
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the :doc:`appropriate accelerated package <Section_accelerate>`.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`none <pair_none>`                             | :doc:`zero <pair_zero>`                            | :doc:`hybrid <pair_hybrid>`                           | :doc:`hybrid/overlay <pair_hybrid>`                       |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`adp (o) <pair_adp>`                           | :doc:`airebo (o) <pair_airebo>`                    | :doc:`beck (go) <pair_beck>`                          | :doc:`body <pair_body>`                                   |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`bop <pair_bop>`                               | :doc:`born (go) <pair_born>`                       | :doc:`born/coul/long (cgo) <pair_born>`               | :doc:`born/coul/long/cs <pair_born>`                      |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`born/coul/msm (o) <pair_born>`                | :doc:`born/coul/wolf (go) <pair_born>`             | :doc:`brownian (o) <pair_brownian>`                   | :doc:`brownian/poly (o) <pair_brownian>`                  |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`buck (cgkio) <pair_buck>`                     | :doc:`buck/coul/cut (cgkio) <pair_buck>`           | :doc:`buck/coul/long (cgkio) <pair_buck>`             | :doc:`buck/coul/long/cs <pair_buck>`                      |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`buck/coul/msm (o) <pair_buck>`                | :doc:`buck/long/coul/long (o) <pair_buck_long>`    | :doc:`colloid (go) <pair_colloid>`                    | :doc:`comb (o) <pair_comb>`                               |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`comb3 <pair_comb>`                            | :doc:`coul/cut (gko) <pair_coul>`                  | :doc:`coul/debye (gko) <pair_coul>`                   | :doc:`coul/dsf (gko) <pair_coul>`                         |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`coul/long (gko) <pair_coul>`                  | :doc:`coul/long/cs <pair_coul>`                    | :doc:`coul/msm <pair_coul>`                           | :doc:`coul/streitz <pair_coul>`                           |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`coul/wolf (ko) <pair_coul>`                   | :doc:`dpd (o) <pair_dpd>`                          | :doc:`dpd/tstat (o) <pair_dpd>`                       | :doc:`dsmc <pair_dsmc>`                                   |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`eam (cgkot) <pair_eam>`                       | :doc:`eam/alloy (cgkot) <pair_eam>`                | :doc:`eam/fs (cgkot) <pair_eam>`                      | :doc:`eim (o) <pair_eim>`                                 |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`gauss (go) <pair_gauss>`                      | :doc:`gayberne (gio) <pair_gayberne>`              | :doc:`gran/hertz/history (o) <pair_gran>`             | :doc:`gran/hooke (co) <pair_gran>`                        |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`gran/hooke/history (o) <pair_gran>`           | :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>` | :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>` | :doc:`kim <pair_kim>`                                     |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lcbop <pair_lcbop>`                           | :doc:`line/lj <pair_line_lj>`                      | :doc:`lj/charmm/coul/charmm (cko) <pair_charmm>`      | :doc:`lj/charmm/coul/charmm/implicit (cko) <pair_charmm>` |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lj/charmm/coul/long (cgiko) <pair_charmm>`    | :doc:`lj/charmm/coul/msm <pair_charmm>`            | :doc:`lj/class2 (cgko) <pair_class2>`                 | :doc:`lj/class2/coul/cut (cko) <pair_class2>`             |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lj/class2/coul/long (cgko) <pair_class2>`     | :doc:`lj/cubic (go) <pair_lj_cubic>`               | :doc:`lj/cut (cgikot) <pair_lj>`                      | :doc:`lj/cut/coul/cut (cgko) <pair_lj>`                   |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lj/cut/coul/debye (cgko) <pair_lj>`           | :doc:`lj/cut/coul/dsf (gko) <pair_lj>`             | :doc:`lj/cut/coul/long (cgikot) <pair_lj>`            | :doc:`lj/cut/coul/long/cs <pair_lj>`                      |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lj/cut/coul/msm (go) <pair_lj>`               | :doc:`lj/cut/dipole/cut (go) <pair_dipole>`        | :doc:`lj/cut/dipole/long <pair_dipole>`               | :doc:`lj/cut/tip4p/cut (o) <pair_lj>`                     |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lj/cut/tip4p/long (ot) <pair_lj>`             | :doc:`lj/expand (cgko) <pair_lj_expand>`           | :doc:`lj/gromacs (cgko) <pair_gromacs>`               | :doc:`lj/gromacs/coul/gromacs (cko) <pair_gromacs>`       |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lj/long/coul/long (o) <pair_lj_long>`         | :doc:`lj/long/dipole/long <pair_dipole>`           | :doc:`lj/long/tip4p/long <pair_lj_long>`              | :doc:`lj/smooth (co) <pair_lj_smooth>`                    |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lj/smooth/linear (o) <pair_lj_smooth_linear>` | :doc:`lj96/cut (cgo) <pair_lj96>`                  | :doc:`lubricate (o) <pair_lubricate>`                 | :doc:`lubricate/poly (o) <pair_lubricate>`                |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`lubricateU <pair_lubricateU>`                 | :doc:`lubricateU/poly <pair_lubricateU>`           | :doc:`meam (o) <pair_meam>`                           | :doc:`mie/cut (o) <pair_mie>`                             |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`morse (cgot) <pair_morse>`                    | :doc:`nb3b/harmonic (o) <pair_nb3b_harmonic>`      | :doc:`nm/cut (o) <pair_nm>`                           | :doc:`nm/cut/coul/cut (o) <pair_nm>`                      |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`nm/cut/coul/long (o) <pair_nm>`               | :doc:`peri/eps <pair_peri>`                        | :doc:`peri/lps (o) <pair_peri>`                       | :doc:`peri/pmb (o) <pair_peri>`                           |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`peri/ves <pair_peri>`                         | :doc:`polymorphic <pair_polymorphic>`              | :doc:`reax <pair_reax>`                               | :doc:`rebo (o) <pair_airebo>`                             |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`resquared (go) <pair_resquared>`              | :doc:`snap <pair_snap>`                            | :doc:`soft (go) <pair_soft>`                          | :doc:`sw (cgkio) <pair_sw>`                               |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`table (gko) <pair_table>`                     | :doc:`tersoff (cgkio) <pair_tersoff>`              | :doc:`tersoff/mod (ko) <pair_tersoff_mod>`            | :doc:`tersoff/zbl (ko) <pair_tersoff_zbl>`                |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`tip4p/cut (o) <pair_coul>`                    | :doc:`tip4p/long (o) <pair_coul>`                  | :doc:`tri/lj <pair_tri_lj>`                           | :doc:`vashishta (o) <pair_vashishta>`                     |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+| :doc:`yukawa (go) <pair_yukawa>`                    | :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`   | :doc:`zbl (go) <pair_zbl>`                            |                                                           |
++-----------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+-----------------------------------------------------------+
+
+These are additional pair styles in USER packages, which can be used
+if :ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`awpmd/cut <pair_awpmd>`                       | :doc:`buck/mdf <pair_mdf>`                                      | :doc:`coul/cut/soft (o) <pair_lj_soft>`           | :doc:`coul/diel (o) <pair_coul_diel>`            |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`coul/long/soft (o) <pair_lj_soft>`            | :doc:`dpd/conservative <pair_dpd_conservative>`                 | :doc:`dpd/fdt <pair_dpd_fdt>`                     | :doc:`dpd/fdt/energy <pair_dpd_fdt>`             |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`eam/cd (o) <pair_eam>`                        | :doc:`edip (o) <pair_edip>`                                     | :doc:`eff/cut <pair_eff>`                         | :doc:`gauss/cut <pair_gauss>`                    |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`lennard/mdf <pair_mdf>`                       | :doc:`list <pair_list>`                                         | :doc:`lj/charmm/coul/long/soft (o) <pair_charmm>` | :doc:`lj/cut/coul/cut/soft (o) <pair_lj_soft>`   |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`lj/cut/coul/long/soft (o) <pair_lj_soft>`     | :doc:`lj/cut/dipole/sf (go) <pair_dipole>`                      | :doc:`lj/cut/soft (o) <pair_lj_soft>`             | :doc:`lj/cut/tip4p/long/soft (o) <pair_lj_soft>` |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`lj/mdf <pair_mdf>`                            | :doc:`lj/sdk (gko) <pair_sdk>`                                  | :doc:`lj/sdk/coul/long (go) <pair_sdk>`           | :doc:`lj/sdk/coul/msm (o) <pair_sdk>`            |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`lj/sf (o) <pair_lj_sf>`                       | :doc:`meam/spline <pair_meam_spline>`                           | :doc:`meam/sw/spline <pair_meam_sw_spline>`       | :doc:`mgpt <pair_mgpt>`                          |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`morse/smooth/linear <pair_morse>`             | :doc:`quip <pair_quip>`                                         | :doc:`reax/c <pair_reax_c>`                       | :doc:`smd/hertz <pair_smd_hertz>`                |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`smd/tlsph <pair_smd_tlsph>`                   | :doc:`smd/triangulated/surface <pair_smd_triangulated_surface>` | :doc:`smd/ulsph <pair_smd_ulsph>`                 | :doc:`smtbq <pair_smtbq>`                        |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`sph/heatconduction <pair_sph_heatconduction>` | :doc:`sph/idealgas <pair_sph_idealgas>`                         | :doc:`sph/lj <pair_sph_lj>`                       | :doc:`sph/rhosum <pair_sph_rhosum>`              |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`sph/taitwater <pair_sph_taitwater>`           | :doc:`sph/taitwater/morris <pair_sph_taitwater_morris>`         | :doc:`srp <pair_srp>`                             | :doc:`tersoff/table (o) <pair_tersoff>`          |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+| :doc:`thole <pair_thole>`                           | :doc:`tip4p/long/soft (o) <pair_lj_soft>`                       |                                                   |                                                  |
++-----------------------------------------------------+-----------------------------------------------------------------+---------------------------------------------------+--------------------------------------------------+
+
+
+----------
+
+
+Bond_style potentials
+---------------------
+
+See the :doc:`bond_style <bond_style>` command for an overview of bond
+potentials.  Click on the style itself for a full description.  Some
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the :doc:`appropriate accelerated package <Section_accelerate>`.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
++---------------------------------------+-------------------------------------------+--------------------------------------+---------------------------------+
+| :doc:`none <bond_none>`               | :doc:`zero <bond_zero>`                   | :doc:`hybrid <bond_hybrid>`          | :doc:`class2 (o) <bond_class2>` |
++---------------------------------------+-------------------------------------------+--------------------------------------+---------------------------------+
+| :doc:`fene (ko) <bond_fene>`          | :doc:`fene/expand (o) <bond_fene_expand>` | :doc:`harmonic (ko) <bond_harmonic>` | :doc:`morse (o) <bond_morse>`   |
++---------------------------------------+-------------------------------------------+--------------------------------------+---------------------------------+
+| :doc:`nonlinear (o) <bond_nonlinear>` | :doc:`quartic (o) <bond_quartic>`         | :doc:`table (o) <bond_table>`        |                                 |
++---------------------------------------+-------------------------------------------+--------------------------------------+---------------------------------+
+
+These are additional bond styles in USER packages, which can be used
+if :ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++-------------------------------------------------+---------------------------------------------------------+
+| :doc:`harmonic/shift (o) <bond_harmonic_shift>` | :doc:`harmonic/shift/cut (o) <bond_harmonic_shift_cut>` |
++-------------------------------------------------+---------------------------------------------------------+
+
+
+----------
+
+
+Angle_style potentials
+----------------------
+
+See the :doc:`angle_style <angle_style>` command for an overview of
+angle potentials.  Click on the style itself for a full description.
+Some of the styles have accelerated versions, which can be used if
+LAMMPS is built with the :doc:`appropriate accelerated package <Section_accelerate>`.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
++--------------------------------------------------+----------------------------------------+----------------------------------------------+----------------------------------------------------+
+| :doc:`none <angle_none>`                         | :doc:`zero <angle_zero>`               | :doc:`hybrid <angle_hybrid>`                 | :doc:`charmm (ko) <angle_charmm>`                  |
++--------------------------------------------------+----------------------------------------+----------------------------------------------+----------------------------------------------------+
+| :doc:`class2 (o) <angle_class2>`                 | :doc:`cosine (o) <angle_cosine>`       | :doc:`cosine/delta (o) <angle_cosine_delta>` | :doc:`cosine/periodic (o) <angle_cosine_periodic>` |
++--------------------------------------------------+----------------------------------------+----------------------------------------------+----------------------------------------------------+
+| :doc:`cosine/squared (o) <angle_cosine_squared>` | :doc:`harmonic (iko) <angle_harmonic>` | :doc:`table (o) <angle_table>`               |                                                    |
++--------------------------------------------------+----------------------------------------+----------------------------------------------+----------------------------------------------------+
+
+These are additional angle styles in USER packages, which can be used
+if :ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++--------------------------------------------------+------------------------------------------------------+----------------------------------+------------------------------------+
+| :doc:`cosine/shift (o) <angle_cosine_shift>`     | :doc:`cosine/shift/exp (o) <angle_cosine_shift_exp>` | :doc:`dipole (o) <angle_dipole>` | :doc:`fourier (o) <angle_fourier>` |
++--------------------------------------------------+------------------------------------------------------+----------------------------------+------------------------------------+
+| :doc:`fourier/simple (o) <angle_fourier_simple>` | :doc:`quartic (o) <angle_quartic>`                   | :doc:`sdk <angle_sdk>`           |                                    |
++--------------------------------------------------+------------------------------------------------------+----------------------------------+------------------------------------+
+
+
+----------
+
+
+Dihedral_style potentials
+-------------------------
+
+See the :doc:`dihedral_style <dihedral_style>` command for an overview
+of dihedral potentials.  Click on the style itself for a full
+description.  Some of the styles have accelerated versions, which can
+be used if LAMMPS is built with the :doc:`appropriate accelerated package <Section_accelerate>`.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
++-------------------------------------+------------------------------------------+-----------------------------------+-----------------------------------------------------+
+| :doc:`none <dihedral_none>`         | :doc:`zero <dihedral_zero>`              | :doc:`hybrid <dihedral_hybrid>`   | :doc:`charmm (ko) <dihedral_charmm>`                |
++-------------------------------------+------------------------------------------+-----------------------------------+-----------------------------------------------------+
+| :doc:`class2 (o) <dihedral_class2>` | :doc:`harmonic (io) <dihedral_harmonic>` | :doc:`helix (o) <dihedral_helix>` | :doc:`multi/harmonic (o) <dihedral_multi_harmonic>` |
++-------------------------------------+------------------------------------------+-----------------------------------+-----------------------------------------------------+
+| :doc:`opls (iko) <dihedral_opls>`   |                                          |                                   |                                                     |
++-------------------------------------+------------------------------------------+-----------------------------------+-----------------------------------------------------+
+
+These are additional dihedral styles in USER packages, which can be
+used if :ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++---------------------------------------------------------+---------------------------------------+-------------------------------------------+-------------------------------------------+
+| :doc:`cosine/shift/exp (o) <dihedral_cosine_shift_exp>` | :doc:`fourier (o) <dihedral_fourier>` | :doc:`nharmonic (o) <dihedral_nharmonic>` | :doc:`quadratic (o) <dihedral_quadratic>` |
++---------------------------------------------------------+---------------------------------------+-------------------------------------------+-------------------------------------------+
+| :doc:`table (o) <dihedral_table>`                       |                                       |                                           |                                           |
++---------------------------------------------------------+---------------------------------------+-------------------------------------------+-------------------------------------------+
+
+
+----------
+
+
+Improper_style potentials
+-------------------------
+
+See the :doc:`improper_style <improper_style>` command for an overview
+of improper potentials.  Click on the style itself for a full
+description.  Some of the styles have accelerated versions, which can
+be used if LAMMPS is built with the :doc:`appropriate accelerated package <Section_accelerate>`.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
++----------------------------------+------------------------------------------+-----------------------------------------+-------------------------------------+
+| :doc:`none <improper_none>`      | :doc:`zero <improper_zero>`              | :doc:`hybrid <improper_hybrid>`         | :doc:`class2 (o) <improper_class2>` |
++----------------------------------+------------------------------------------+-----------------------------------------+-------------------------------------+
+| :doc:`cvff (io) <improper_cvff>` | :doc:`harmonic (ko) <improper_harmonic>` | :doc:`umbrella (o) <improper_umbrella>` |                                     |
++----------------------------------+------------------------------------------+-----------------------------------------+-------------------------------------+
+
+These are additional improper styles in USER packages, which can be
+used if :ref:`LAMMPS is built with the appropriate package <start_3>`.
+
++-----------------------------------+-------------------------------------+---------------------------------------+---------------------------------+
+| :doc:`cossq (o) <improper_cossq>` | :doc:`distance <improper_distance>` | :doc:`fourier (o) <improper_fourier>` | :doc:`ring (o) <improper_ring>` |
++-----------------------------------+-------------------------------------+---------------------------------------+---------------------------------+
+
+
+----------
+
+
+Kspace solvers
+--------------
+
+See the :doc:`kspace_style <kspace_style>` command for an overview of
+Kspace solvers.  Click on the style itself for a full description.
+Some of the styles have accelerated versions, which can be used if
+LAMMPS is built with the :doc:`appropriate accelerated package <Section_accelerate>`.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
++------------------------------------+--------------------------------------+---------------------------------+---------------------------------------+
+| :doc:`ewald (o) <kspace_style>`    | :doc:`ewald/disp <kspace_style>`     | :doc:`msm (o) <kspace_style>`   | :doc:`msm/cg (o) <kspace_style>`      |
++------------------------------------+--------------------------------------+---------------------------------+---------------------------------------+
+| :doc:`pppm (cgo) <kspace_style>`   | :doc:`pppm/cg (o) <kspace_style>`    | :doc:`pppm/disp <kspace_style>` | :doc:`pppm/disp/tip4p <kspace_style>` |
++------------------------------------+--------------------------------------+---------------------------------+---------------------------------------+
+| :doc:`pppm/stagger <kspace_style>` | :doc:`pppm/tip4p (o) <kspace_style>` |                                 |                                       |
++------------------------------------+--------------------------------------+---------------------------------+---------------------------------------+
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

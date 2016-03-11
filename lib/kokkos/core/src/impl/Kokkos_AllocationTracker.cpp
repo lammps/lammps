@@ -43,6 +43,8 @@
 
 #include <Kokkos_Core_fwd.hpp>
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 
 #include <Kokkos_Atomic.hpp>
@@ -386,18 +388,18 @@ struct AllocationRecordPool
         curr = next;
       } while ( curr != start );
 
-      if ( !string_vec.empty() ) {
-        std::sort( string_vec.begin(), string_vec.end() );
-
-        std::ostringstream oss;
-        oss << "Error: Allocation pool destroyed with the following memory leak(s):\n";
-        for (size_t i=0; i< string_vec.size(); ++i)
-        {
-          oss << "   " << string_vec[i] << std::endl;
-        }
-
-        std::cerr << oss.str() << std::endl;
-      }
+      //if ( !string_vec.empty() ) {
+      //  std::sort( string_vec.begin(), string_vec.end() );
+      //
+      //  std::ostringstream oss;
+      //  oss << "Error: Allocation pool destroyed with the following memory leak(s):\n";
+      //  for (size_t i=0; i< string_vec.size(); ++i)
+      //  {
+      //    oss << "   " << string_vec[i] << std::endl;
+      //  }
+      //
+      //  std::cerr << oss.str() << std::endl;
+      //}
     }
 
     // delete singletons
@@ -841,4 +843,6 @@ void * create_singleton(  size_t size
 }} // namespace Kokkos::Impl
 
 #endif /* #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST ) */
+
+#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 

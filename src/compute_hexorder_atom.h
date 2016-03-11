@@ -64,6 +64,10 @@ E: Compute hexorder/atom requires a pair style be defined
 
 Self-explantory.
 
+E: Compute hexorder/atom cutoff is longer than pairwise cutoff
+
+Cannot compute order parameter beyond cutoff.
+
 W: More than one compute hexorder/atom
 
 It is not efficient to use compute hexorder/atom more than once.

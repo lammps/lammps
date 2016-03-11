@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix ti/spring command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix ti/spring command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -192,12 +192,12 @@ switching function</p>
 (0 and 1), according to (<a class="reference internal" href="#dekoning96"><span>de Koning96)</span></a> this results in
 smaller fluctuations on the integral to be computed on the
 thermodynamic integration.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is importante to keep the center of mass fixed
-during the thermodynamic integration, a non-zero total velocity will
-result in divergencies during the integration due to the fact that the
-atoms are &#8216;attatched&#8217; to its equilibrium positions by the Einstein
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is importante to keep the center of mass fixed during the
+thermodynamic integration, a non-zero total velocity will result in
+divergencies during the integration due to the fact that the atoms are
+&#8216;attatched&#8217; to its equilibrium positions by the Einstein
 crystal. Check the option <em>zero</em> of <a class="reference external" href="fix_langevin_html">fix langevin</a>
 and <a class="reference internal" href="velocity.html"><em>velocity</em></a>. The use of the Nose-Hoover thermostat
 (<code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">nvt</span></code>) is NOT recommended due to its well documented
@@ -226,12 +226,12 @@ fix are &#8220;extensive&#8221;.</p>
 the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
 <p>The forces due to this fix are imposed during an energy minimization,
 invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you want the per-atom spring energy to be included
-in the total potential energy of the system (the quantity being
-minimized), you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix modify</em></a> <em>energy</em>
-option for this fix.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the per-atom spring energy to be included in the
+total potential energy of the system (the quantity being minimized),
+you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix modify</em></a> <em>energy</em> option for
+this fix.</p>
 </div>
 <p>An example script using this command is provided in the
 examples/USER/misc/ti directory.</p>
@@ -267,7 +267,7 @@ LAMMPS was built with those packages.  See the <a class="reference internal" hre
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -288,7 +288,7 @@ LAMMPS was built with those packages.  See the <a class="reference internal" hre
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -71,7 +71,7 @@ shared_allocation_record( Kokkos::CudaSpace const & arg_space
 
   DestructFunctor * const functor =
     reinterpret_cast< DestructFunctor * >(
-    reinterpret_cast< unsigned long >( record ) + sizeof(SharedAllocationRecord) );
+    reinterpret_cast< uintptr_t >( record ) + sizeof(SharedAllocationRecord) );
 
   new( functor ) DestructFunctor( arg_destruct );
 

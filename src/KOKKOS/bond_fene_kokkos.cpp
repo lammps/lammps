@@ -379,7 +379,10 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class BondFENEKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class BondFENEKokkos<LMPHostType>;
 #endif
+}
+

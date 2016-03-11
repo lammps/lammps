@@ -24,11 +24,16 @@
 #include "group.h"
 #include "math_const.h"
 #include "random_park.h"
-#include "error.h"
 #include "force.h"
 #include "input.h"
 #include "variable.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
+#include "atom_vec_body.h"
+#include "math_extra.h"
 #include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -203,8 +208,10 @@ void DisplaceAtoms::command(int narg, char **arg)
   // X = P + C + A cos(theta) + B sin(theta)
 
   if (style == ROTATE) {
-    double axis[3],point[3];
+    double theta_new;
+    double axis[3],point[3],qrotate[4],qnew[4];
     double a[3],b[3],c[3],d[3],disp[3],runit[3];
+    double *quat;
 
     int dim = domain->dimension;
     point[0] = xscale*force->numeric(FLERR,arg[2]);
@@ -224,11 +231,44 @@ void DisplaceAtoms::command(int narg, char **arg)
     runit[1] = axis[1]/len;
     runit[2] = axis[2]/len;
 
-    double sine = sin(MY_PI*theta/180.0);
-    double cosine = cos(MY_PI*theta/180.0);
+    double angle = MY_PI*theta/180.0;
+    double cosine = cos(angle);
+    double sine = sin(angle);
+
+    double qcosine = cos(0.5*angle);
+    double qsine = sin(0.5*angle);
+    qrotate[0] = qcosine;
+    qrotate[1] = runit[0]*qsine;
+    qrotate[2] = runit[1]*qsine;
+    qrotate[3] = runit[2]*qsine;
+
     double ddotr;
 
+    // flags for additional orientation info stored by some atom styles
+
+    int ellipsoid_flag = atom->ellipsoid_flag;
+    int line_flag = atom->line_flag;
+    int tri_flag = atom->tri_flag;
+    int body_flag = atom->body_flag;
+
+    int theta_flag = 0;
+    int quat_flag = 0;
+    if (line_flag) theta_flag = 1;
+    if (ellipsoid_flag || tri_flag || body_flag) quat_flag = 1;
+
+    // AtomVec pointers to retrieve per-atom storage of extra quantities
+    
+    AtomVecEllipsoid *avec_ellipsoid = 
+      (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+    AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
+    AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
+    AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+
     double **x = atom->x;
+    int *ellipsoid = atom->ellipsoid;
+    int *line = atom->line;
+    int *tri = atom->tri;
+    int *body = atom->body;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
@@ -253,6 +293,32 @@ void DisplaceAtoms::command(int narg, char **arg)
         x[i][0] = point[0] + c[0] + disp[0];
         x[i][1] = point[1] + c[1] + disp[1];
         if (dim == 3) x[i][2] = point[2] + c[2] + disp[2];
+
+        // theta for lines
+          
+        if (theta_flag && line[i] >= 0.0) {
+          theta_new = fmod(avec_line->bonus[line[i]].theta+angle,MY_2PI);
+          avec_line->bonus[atom->line[i]].theta = theta_new;
+        }
+          
+        // quats for ellipsoids, tris, and bodies
+        
+        if (quat_flag) {
+          quat = NULL;
+          if (ellipsoid_flag && ellipsoid[i] >= 0)
+            quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          else if (tri_flag && tri[i] >= 0)
+            quat = avec_tri->bonus[tri[i]].quat;
+          else if (body_flag && body[i] >= 0)
+            quat = avec_body->bonus[body[i]].quat;
+          if (quat) {
+            MathExtra::quatquat(qrotate,quat,qnew);
+            quat[0] = qnew[0];
+            quat[1] = qnew[1];
+            quat[2] = qnew[2];
+            quat[3] = qnew[3];
+          }
+        }
       }
     }
   }

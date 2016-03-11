@@ -53,7 +53,7 @@ E: Fix nve/sphere requires atom style sphere
 
 Self-explanatory.
 
-E: Fix nve/sphere requires atom attribute mu
+E: Fix nve/sphere dipole requires atom attribute mu
 
 An atom style with this attribute is needed.
 

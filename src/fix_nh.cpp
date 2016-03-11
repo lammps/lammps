@@ -78,6 +78,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   omega_mass_flag = 0;
   etap_mass_flag = 0;
   flipflag = 1;
+  dipole_flag = 0;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -321,6 +322,11 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
       else error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"update") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
+      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
@@ -416,6 +422,13 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
+
+  if (dipole_flag) {
+    if (!atom->sphere_flag)
+      error->all(FLERR,"Using update dipole flag requires atom style sphere");
+    if (!atom->mu_flag)
+      error->all(FLERR,"Using update dipole flag requires atom attribute mu");
+  }
 
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||
@@ -700,6 +713,11 @@ void FixNH::init()
 
 void FixNH::setup(int vflag)
 {
+  // tdof needed by compute_temp_target()
+
+  t_current = temperature->compute_scalar();
+  tdof = temperature->dof;
+  
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
@@ -725,9 +743,6 @@ void FixNH::setup(int vflag)
   }
 
   if (pstat_flag) compute_press_target();
-
-  t_current = temperature->compute_scalar();
-  tdof = temperature->dof;
 
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();

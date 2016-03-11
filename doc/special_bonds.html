@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>special_bonds command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>special_bonds command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -176,8 +176,8 @@ the interaction between a pair of bonded atoms is all (or mostly)
 specified by the bond, angle, dihedral potentials, and thus the
 non-bonded Lennard-Jones or Coulombic interaction between the pair of
 atoms should be excluded (or reduced by a weighting factor).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">These weighting factors are NOT used by <a class="reference internal" href="pair_style.html"><em>pair styles</em></a> that compute many-body interactions, since the
 &#8220;bonds&#8221; that result from such interactions are not permanent, but are
 created and broken dynamically as atom conformations change.  Examples
@@ -189,15 +189,14 @@ e.g. when using the <a class="reference internal" href="pair_hybrid.html"><em>pa
 Thus LAMMPS ignores special_bonds settings when manybody potentials
 are calculated.</p>
 </div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Unlike some commands in LAMMPS, you cannot use this
-command multiple times in an incremental fashion: e.g. to first set
-the LJ settings and then the Coulombic ones.  Each time you use this
-command it sets all the coefficients to default values and only
-overrides the one you specify, so you should set all the options you
-need each time you use it.  See more details at the bottom of this
-page.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike some commands in LAMMPS, you cannot use this command
+multiple times in an incremental fashion: e.g. to first set the LJ
+settings and then the Coulombic ones.  Each time you use this command
+it sets all the coefficients to default values and only overrides the
+one you specify, so you should set all the options you need each time
+you use it.  See more details at the bottom of this page.</p>
 </div>
 <p>The Coulomb factors are applied to any Coulomb (charge interaction)
 term that the potential calculates.  The LJ factors are applied to the
@@ -216,18 +215,18 @@ atoms in a dihedral interaction).  Thus if the 1-2 coefficient is set
 to 0.0, then the pairwise interaction is effectively turned off for
 all pairs of atoms bonded to each other.  If it is set to 1.0, then
 that interaction will be at full strength.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">For purposes of computing weighted pairwise
-interactions, 1-3 and 1-4 interactions are not defined from the list
-of angles or dihedrals used by the simulation.  Rather, they are
-inferred topologically from the set of bonds specified when the
-simulation is defined from a data or restart file (see
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
-commands).  Thus the set of 1-2,1-3,1-4 interactions that the weights
-apply to is the same whether angle and dihedral potentials are
-computed or not, and remains the same even if bonds are constrained,
-or turned off, or removed during a simulation.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For purposes of computing weighted pairwise interactions, 1-3
+and 1-4 interactions are not defined from the list of angles or
+dihedrals used by the simulation.  Rather, they are inferred
+topologically from the set of bonds specified when the simulation is
+defined from a data or restart file (see <a class="reference internal" href="read_data.html"><em>read_data</em></a> or
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> commands).  Thus the set of
+1-2,1-3,1-4 interactions that the weights apply to is the same whether
+angle and dihedral potentials are computed or not, and remains the
+same even if bonds are constrained, or turned off, or removed during a
+simulation.</p>
 </div>
 <p>The two exceptions to this rule are (a) if the <em>angle</em> or <em>dihedral</em>
 keywords are set to <em>yes</em> (see below), or (b) if the
@@ -295,26 +294,26 @@ molecules will be added to the system, e.g. via the <a class="reference internal
 will have atoms with more special neighbors than any atom in the
 current system has.</p>
 <hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">LAMMPS stores and maintains a data structure with a
-list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
-topology of the system).  If new bonds are created (or molecules added
-containing atoms with more special neighbors), the size of this list
-needs to grow.  Note that adding a single bond always adds a new 1st
-neighbor but may also induce <em>many</em> new 2nd and 3rd neighbors,
-depending on the molecular topology of your system.  Using the <em>extra</em>
-keyword leaves empty space in the list for this N additional 1st, 2nd,
-or 3rd neighbors to be added.  If you do not do this, you may get an
-error when bonds (or molecules) are added.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">LAMMPS stores and maintains a data structure with a list of the
+1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+the system).  If new bonds are created (or molecules added containing
+atoms with more special neighbors), the size of this list needs to
+grow.  Note that adding a single bond always adds a new 1st neighbor
+but may also induce <em>many</em> new 2nd and 3rd neighbors, depending on the
+molecular topology of your system.  Using the <em>extra</em> keyword leaves
+empty space in the list for this N additional 1st, 2nd, or 3rd
+neighbors to be added.  If you do not do this, you may get an error
+when bonds (or molecules) are added.</p>
 </div>
 <hr class="docutils" />
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If you reuse this command in an input script, you
-should set all the options you need each time.  This command cannot be
-used a 2nd time incrementally, e.g. to add some extra storage
-locations via the <em>extra</em> keyword.  E.g. these two commands:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you reuse this command in an input script, you should set all
+the options you need each time.  This command cannot be used a 2nd
+time incrementally, e.g. to add some extra storage locations via the
+<em>extra</em> keyword.  E.g. these two commands:</p>
 </div>
 <p>special_bonds lj 0.0 1.0 1.0
 special_bonds coul 0.0 0.0 1.0</p>
@@ -377,7 +376,7 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -398,7 +397,7 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

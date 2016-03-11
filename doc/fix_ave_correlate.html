@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix ave/correlate command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix ave/correlate command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -145,6 +145,7 @@ c_ID[I] = Ith component of global vector calculated by a compute with ID
 f_ID = global scalar calculated by a fix with ID
 f_ID[I] = Ith component of global vector calculated by a fix with ID
 v_name = global value calculated by an equal-style variable with name
+v_name[I] = Ith component of a vector-style variable with name
 </pre></div>
 </div>
 <ul class="simple">
@@ -200,20 +201,21 @@ very long time windows.</p>
 specified values may represent calculations performed by computes and
 fixes which store their own &#8220;group&#8221; definitions.</p>
 <p>Each listed value can be the result of a <a class="reference internal" href="compute.html"><em>compute</em></a> or
-<a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an equal-style
+<a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an equal-style or vector-style
 <a class="reference internal" href="variable.html"><em>variable</em></a>.  In each case, the compute, fix, or variable
 must produce a global quantity, not a per-atom or local quantity.  If
 you wish to spatial- or time-average or histogram per-atom quantities
 from a compute, fix, or variable, then see the <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>, <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>,
-or <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a> commands.  If you wish to sum a
-per-atom quantity into a single global quantity, see the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command.</p>
+or <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a> commands.  If you wish to
+convert a per-atom quantity into a single global value, see the
+<a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command.</p>
 <p><a class="reference internal" href="compute.html"><em>Computes</em></a> that produce global quantities are those which
 do not have the word <em>atom</em> in their style name.  Only a few
 <a class="reference internal" href="fix.html"><em>fixes</em></a> produce global quantities.  See the doc pages for
 individual fixes for info on which ones produce such values.
-<a class="reference internal" href="variable.html"><em>Variables</em></a> of style <em>equal</em> are the only ones that can
-be used with this fix.  Variables of style <em>atom</em> cannot be used,
-since they produce per-atom values.</p>
+<a class="reference internal" href="variable.html"><em>Variables</em></a> of style <em>equal</em> and <em>vector</em> are the only
+ones that can be used with this fix.  Variables of style <em>atom</em> cannot
+be used, since they produce per-atom values.</p>
 <p>The input values must either be all scalars.  What kinds of
 correlations between input values are calculated is determined by the
 <em>type</em> keyword as discussed below.</p>
@@ -271,9 +273,11 @@ calculated by the fix is used.</p>
 which must be compatible with <em>Nevery</em>, else an error will result.
 Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
 <p>If a value begins with &#8220;<a href="#id7"><span class="problematic" id="id8">v_</span></a>&#8221;, a variable name must follow which has
-been previously defined in the input script.  Only equal-style
-variables can be referenced.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> command
-for details.  Note that variables of style <em>equal</em> define a formula
+been previously defined in the input script.  Only equal-style or
+vector-style variables can be referenced; the latter requires a
+bracketed term to specify the Ith element of the vector calculated by
+the variable.  See the <a class="reference internal" href="variable.html"><em>variable</em></a> command for details.
+Note that variables of style <em>equal</em> or <em>vector</em> define a formula
 which can reference individual atom properties or thermodynamic
 keywords, or they can invoke other computes, fixes, or variables when
 they are evaluated, so this is a very general means of specifying
@@ -395,9 +399,9 @@ CNN.</li>
 ..., C1N, C21, C22, ..., C2N, C31, ..., C3N, ..., CN1, ..., CNN-1,
 CNN.</li>
 </ul>
-<p>The array values calculated by this fix are treated as &#8220;intensive&#8221;.
-If you need to divide them by the number of atoms, you must do this in
-a later processing step, e.g. when using them in a
+<p>The array values calculated by this fix are treated as intensive.  If
+you need to divide them by the number of atoms, you must do this in a
+later processing step, e.g. when using them in a
 <a class="reference internal" href="variable.html"><em>variable</em></a>.</p>
 <p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
 the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
@@ -428,7 +432,7 @@ output, title 1,2,3 = strings as described above, and prefactor = 1.0.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -449,7 +453,7 @@ output, title 1,2,3 = strings as described above, and prefactor = 1.0.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

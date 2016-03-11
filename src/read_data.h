@@ -33,7 +33,7 @@ class ReadData : protected Pointers {
 
  private:
   int me,compressed;
-  char *line,*keyword,*buffer,*style;
+  char *line,*copy,*keyword,*buffer,*style;
   FILE *fp;
   char **arg;
   int narg,maxarg;
@@ -124,27 +124,59 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix ID for read_data does not exist
+E: Read data add offset is too big
+
+It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
+integer.
+
+E: Non-zero read_data shift z value for 2d simulation
 
 Self-explanatory.
 
-E: Cannot read_data after simulation box is defined
+E: No bonds allowed with this atom style
 
-The read_data command cannot be used after a read_data,
-read_restart, or create_box command.
+Self-explanatory.
 
-E: Cannot read_data add and merge
+E: No angles allowed with this atom style
 
-These options are not yet supported.
+Self-explanatory.
 
-E: Cannot use non-zero z offset in read_data for 2d simulation
+E: No dihedrals allowed with this atom style
 
-The offset option is not yet supported.
+Self-explanatory.
+
+E: No impropers allowed with this atom style
+
+Self-explanatory.
+
+E: Fix ID for read_data does not exist
+
+Self-explanatory.
 
 E: Cannot run 2d simulation with nonperiodic Z dimension
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation.
+
+E: Cannot read_data without add keyword after simulation box is defined
+
+Self-explanatory.
+
+E: Cannot use read_data add before simulation box is defined
+
+Self-explanatory.
+
+E: Cannot use read_data offset without add flag
+
+Self-explanatory.
+
+E: Cannot use read_data shift without add flag
+
+Self-explanatory.
+
+E: Cannot use read_data extra with add flag
+
+Self-explanatory.
 
 W: Atom style in data file differs from currently defined atom style
 
@@ -411,22 +443,6 @@ E: System in data file is too big
 
 See the setting for bigint in the src/lmptype.h file.
 
-E: No bonds allowed with this atom style
-
-Self-explanatory.
-
-E: No angles allowed with this atom style
-
-Self-explanatory.
-
-E: No dihedrals allowed with this atom style
-
-Self-explanatory.
-
-E: No impropers allowed with this atom style
-
-Self-explanatory.
-
 E: Bonds defined but no bond types
 
 The data file header lists bonds but no bond types.
@@ -454,10 +470,20 @@ Atoms read in from a data file were not assigned correctly to
 processors.  This is likely due to some atom coordinates being
 outside a non-periodic simulation box.
 
+E: Subsequent read data induced too many bonds per atom
+
+See the create_box extra/bond/per/atom or read_data "extra bond per
+atom" header value to set this limit larger.
+
 E: Bonds assigned incorrectly
 
 Bonds read in from the data file were not assigned correctly to atoms.
 This means there is something invalid about the topology definitions.
+
+E: Subsequent read data induced too many angles per atom
+
+See the create_box extra/angle/per/atom or read_data "extra angle per
+atom" header value to set this limit larger.
 
 E: Angles assigned incorrectly
 
@@ -465,17 +491,35 @@ Angles read in from the data file were not assigned correctly to
 atoms.  This means there is something invalid about the topology
 definitions.
 
+E: Subsequent read data induced too many dihedrals per atom
+
+See the create_box extra/dihedral/per/atom or read_data "extra
+dihedral per atom" header value to set this limit larger.
+
 E: Dihedrals assigned incorrectly
 
 Dihedrals read in from the data file were not assigned correctly to
 atoms.  This means there is something invalid about the topology
 definitions.
 
+E: Subsequent read data induced too many impropers per atom
+
+See the create_box extra/improper/per/atom or read_data "extra
+improper per atom" header value to set this limit larger.
+
 E: Impropers assigned incorrectly
 
 Impropers read in from the data file were not assigned correctly to
 atoms.  This means there is something invalid about the topology
 definitions.
+
+E: Too few values in body lines in data file
+
+Self-explanatory.
+
+E: Too many values in body lines in data file
+
+Self-explanatory.
 
 E: Too many lines in one body in data file - boost MAXBODY
 

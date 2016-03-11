@@ -120,7 +120,6 @@ void PairBuckKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
   EV_FLOAT ev = pair_compute<PairBuckKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -280,7 +279,10 @@ double PairBuckKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairBuckKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckKokkos<LMPHostType>;
 #endif
+}
+

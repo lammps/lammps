@@ -51,3 +51,5 @@ smd           hooks to Eigen library, used by USER-SMD package
                 from Georg Ganzenmueller (Ernst Mach Institute, Germany)
 voronoi       hooks to the Voro++ library, used by compute voronoi/atom command
 	        from Daniel Schwen (LANL)
+vtk           hooks to the VTK library, used by dump custom/vtk command
+                from Richard Berger (JKU)

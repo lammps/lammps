@@ -59,13 +59,12 @@ equation for J is NOT included in the calculation performed by this
 compute; you need to add it for a volume appropriate to the atoms
 included in the calculation.
 
-IMPORTANT NOTE: The "compute pe/atom"_compute_pe_atom.html and
-"compute stress/atom"_compute_stress_atom.html commands have options
-for which terms to include in their calculation (pair, bond, etc).
-The heat flux calculation will thus include exactly the same terms.
-Normally you should use "compute stress/atom
-virial"_compute_stress_atom.html so as not to include a kinetic energy
-term in the heat flux.
+NOTE: The "compute pe/atom"_compute_pe_atom.html and "compute
+stress/atom"_compute_stress_atom.html commands have options for which
+terms to include in their calculation (pair, bond, etc).  The heat
+flux calculation will thus include exactly the same terms.  Normally
+you should use "compute stress/atom virial"_compute_stress_atom.html
+so as not to include a kinetic energy term in the heat flux.
 
 This compute calculates 6 quantities and stores them in a 6-component
 vector.  The first 3 components are the x, y, z components of the full

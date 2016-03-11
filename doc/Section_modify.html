@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>10. Modifying &amp; extending LAMMPS &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>10. Modifying &amp; extending LAMMPS &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
         <link rel="next" title="11. Python interface to LAMMPS" href="Section_python.html"/>
         <link rel="prev" title="9. Additional tools" href="Section_tools.html"/> 
 
@@ -379,10 +379,10 @@ that you must set when defining a new atom style, which are documented
 in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
 the word &#8220;customize&#8221; and you will find locations you will need to
 modify.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is possible to add some attributes, such as a
-molecule ID, to atom styles that do not have them via the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command.  This command also
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is possible to add some attributes, such as a molecule ID, to
+atom styles that do not have them via the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command.  This command also
 allows new custom attributes consisting of extra integer or
 floating-point values to be added to atoms.  See the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> doc page for examples of cases
 where this is useful and details on how to initialize, access, and
@@ -929,12 +929,21 @@ styles can be created to add new region shapes to LAMMPS.</p>
 class.  See region.h for details.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="86%" />
+<col width="21%" />
+<col width="79%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>match</td>
+<tr class="row-odd"><td>inside</td>
 <td>determine whether a point is in the region</td>
+</tr>
+<tr class="row-even"><td>surface_interior</td>
+<td>determine if a point is within a cutoff distance inside of surc</td>
+</tr>
+<tr class="row-odd"><td>surface_exterior</td>
+<td>determine if a point is within a cutoff distance outside of surf</td>
+</tr>
+<tr class="row-even"><td>shape_update</td>
+<td>change region shape if set by time-depedent variable</td>
 </tr>
 </tbody>
 </table>
@@ -1050,18 +1059,20 @@ then be accessed by variables) was discussed
 <span id="mod-15"></span><h2>10.15. Submitting new features for inclusion in LAMMPS<a class="headerlink" href="#submitting-new-features-for-inclusion-in-lammps" title="Permalink to this headline">¶</a></h2>
 <p>We encourage users to submit new features to <a class="reference external" href="http://lammps.sandia.gov/authors.html">the developers</a> that they add to
 LAMMPS, especially if you think they will be of interest to other
-users.  If they are broadly useful we may add them as core files to
-LAMMPS or as part of a <a class="reference internal" href="Section_start.html#start-3"><span>standard package</span></a>.
-Else we will add them as a user-contributed file or package.  Examples
-of user packages are in src sub-directories that start with USER.  The
-USER-MISC package is simply a collection of (mostly) unrelated single
-files, which is the simplest way to have your contribution quickly
-added to the LAMMPS distribution.  You can see a list of the both
-standard and user packages by typing &#8220;make package&#8221; in the LAMMPS src
-directory.</p>
-<p>Note that by providing us the files to release, you are agreeing to
-make them open-source, i.e. we can release them under the terms of the
-GPL, used as a license for the rest of LAMMPS.  See <a class="reference internal" href="Section_intro.html#intro-4"><span>Section 1.4</span></a> for details.</p>
+users.  The preferred way to do this is via GitHub.  Once you have
+prepared the content described below, see <code class="xref doc docutils literal"><span class="pre">this</span> <span class="pre">tutorial</span></code> for instructions on how to submit
+your changes or new files.</p>
+<p>If the new features/files are broadly useful we may add them as core
+files to LAMMPS or as part of a <a class="reference internal" href="Section_start.html#start-3"><span>standard package</span></a>.  Else we will add them as a
+user-contributed file or package.  Examples of user packages are in
+src sub-directories that start with USER.  The USER-MISC package is
+simply a collection of (mostly) unrelated single files, which is the
+simplest way to have your contribution quickly added to the LAMMPS
+distribution.  You can see a list of the both standard and user
+packages by typing &#8220;make package&#8221; in the LAMMPS src directory.</p>
+<p>Note that by providing us files to release, you are agreeing to make
+them open-source, i.e. we can release them under the terms of the GPL,
+used as a license for the rest of LAMMPS.  See <a class="reference internal" href="Section_intro.html#intro-4"><span>Section 1.4</span></a> for details.</p>
 <p>With user packages and files, all we are really providing (aside from
 the fame and fortune that accompanies having your name in the source
 code and on the <a class="reference external" href="http://lammps.sandia.gov/authors.html">Authors page</a>
@@ -1199,7 +1210,7 @@ feature.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -1220,7 +1231,7 @@ feature.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

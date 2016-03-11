@@ -116,10 +116,10 @@ the {atype}, {dtype}, and {itype} keywords.  All of these changes
 typically affect pairwise interactions between atoms that are now part
 of new bonds, angles, etc.
 
-IMPORTANT NOTE: One data structure that is not updated when a bond
-breaks are the molecule IDs stored by each atom.  Even though two
-molecules become one moleclue due to the created bond, all atoms in
-the new moleclue retain their original molecule IDs.
+NOTE: One data structure that is not updated when a bond breaks are
+the molecule IDs stored by each atom.  Even though two molecules
+become one moleclue due to the created bond, all atoms in the new
+moleclue retain their original molecule IDs.
 
 If the {atype} keyword is used and if an angle potential is defined
 via the "angle_style"_angle.html command, then any new 3-body
@@ -129,11 +129,11 @@ of type {angletype}, with parameters assigned by the corresponding
 {itype} keywords will create new dihedrals and impropers of type
 {dihedraltype} and {impropertype}.
 
-IMPORTANT NOTE: To create a new bond, the internal LAMMPS data
-structures that store this information must have space for it.  When
-LAMMPS is initialized from a data file, the list of bonds is scanned
-and the maximum number of bonds per atom is tallied.  If some atom
-will acquire more bonds than this limit as this fix operates, then the
+NOTE: To create a new bond, the internal LAMMPS data structures that
+store this information must have space for it.  When LAMMPS is
+initialized from a data file, the list of bonds is scanned and the
+maximum number of bonds per atom is tallied.  If some atom will
+acquire more bonds than this limit as this fix operates, then the
 "extra bond per atom" parameter must be set to allow for it.  Ditto
 for "extra angle per atom", "extra dihedral per atom", and "extra
 improper per atom" if angles, dihedrals, or impropers are being added
@@ -143,24 +143,24 @@ data file with no atoms can be used if you wish to add unbonded atoms
 via the "create atoms"_create_atoms.html command, e.g. for a
 percolation simulation.
 
-IMPORTANT NOTE: LAMMPS stores and maintains a data structure with a
-list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
-topology of the system) for use in weighting pairwise interactions for
-bonded atoms.  Note that adding a single bond always adds a new 1st
-neighbor but may also induce *many* new 2nd and 3rd neighbors,
-depending on the molecular topology of your system.  The "extra
-special per atom" parameter must typically be set to allow for the new
-maximum total size (1st + 2nd + 3rd neighbors) of this per-atom list.
-There are 3 ways to do this.  See the "read_data"_read_data.html or
+NOTE: LAMMPS stores and maintains a data structure with a list of the
+1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+the system) for use in weighting pairwise interactions for bonded
+atoms.  Note that adding a single bond always adds a new 1st neighbor
+but may also induce *many* new 2nd and 3rd neighbors, depending on the
+molecular topology of your system.  The "extra special per atom"
+parameter must typically be set to allow for the new maximum total
+size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 3
+ways to do this.  See the "read_data"_read_data.html or
 "create_box"_create_box.html or "special_bonds extra" commands for
 details.
 
-IMPORTANT NOTE: Even if you do not use the {atype}, {dtype}, or
-{itype} keywords, the list of topological neighbors is updated for
-atoms affected by the new bond.  This in turn affects which neighbors
-are considered for pairwise interactions, using the weighting rules
-set by the "special_bonds"_special_bonds.html command.  Consider a new
-bond created between atoms I,J.  If J has a bonded neighbor K, then K
+NOTE: Even if you do not use the {atype}, {dtype}, or {itype}
+keywords, the list of topological neighbors is updated for atoms
+affected by the new bond.  This in turn affects which neighbors are
+considered for pairwise interactions, using the weighting rules set by
+the "special_bonds"_special_bonds.html command.  Consider a new bond
+created between atoms I,J.  If J has a bonded neighbor K, then K
 becomes a 2nd neighbor of I.  Even if the {atype} keyword is not used
 to create angle I-J-K, the pairwise interaction between I and K will
 be potentially turned off or weighted by the 1-3 weighting specified
@@ -193,14 +193,14 @@ Thus you should be cautious about invoking this fix too frequently.
 You can dump out snapshots of the current bond topology via the "dump
 local"_dump.html command.
 
-IMPORTANT NOTE: Creating a bond typically alters the energy of a
-system.  You should be careful not to choose bond creation criteria
-that induce a dramatic change in energy.  For example, if you define a
-very stiff harmonic bond and create it when 2 atoms are separated by a
-distance far from the equilibribum bond length, then the 2 atoms will
-oscillate dramatically when the bond is formed.  More generally, you
-may need to thermostat your system to compensate for energy changes
-resulting from created bonds (and angles, dihedrals, impropers).
+NOTE: Creating a bond typically alters the energy of a system.  You
+should be careful not to choose bond creation criteria that induce a
+dramatic change in energy.  For example, if you define a very stiff
+harmonic bond and create it when 2 atoms are separated by a distance
+far from the equilibribum bond length, then the 2 atoms will oscillate
+dramatically when the bond is formed.  More generally, you may need to
+thermostat your system to compensate for energy changes resulting from
+created bonds (and angles, dihedrals, impropers).
 
 :line
 

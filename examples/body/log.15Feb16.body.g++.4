@@ -1,0 +1,86 @@
+LAMMPS (15 Feb 2016)
+# 2d polygon nparticle bodies
+
+units		lj
+dimension       2
+atom_style	body nparticle 2 6
+
+read_data       data.body
+  orthogonal box = (-15.5322 -15.5322 -0.5) to (15.5322 15.5322 0.5)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  100 atoms
+  100 bodies
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	body 5.0
+pair_coeff	* * 1.0 1.0
+
+neighbor	0.3 bin
+
+fix		1 all nve/body
+fix		2 all enforce2d
+
+#compute         1 all body/local type 1 2 3
+#dump            1 all local 100 dump.body index c_1[1] c_1[2] c_1[3] c_1[4]
+
+thermo          500
+run		10000
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65 -> bins = 12 12 1
+Memory usage per processor = 3.93947 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44  -0.63799525            0   0.78760475  -0.15028724 
+     500    1.5681124   -1.6060641            0 -0.053632801   0.23819933 
+    1000    1.7596217   -1.7290976            0  0.012927885   0.12600944 
+    1500    1.5746718   -1.5427933            0  0.016131767   0.21832856 
+    2000    1.6187614   -1.5563097            0  0.046264104   0.35910742 
+    2500    1.7210993   -1.6955088            0 0.0083794889   0.24522984 
+    3000    1.7893309    -1.752166            0  0.019271611    0.1013425 
+    3500    1.8922335   -1.7645965            0   0.10871463   0.51383163 
+    4000    1.7068531   -1.6754593            0  0.014325271   0.31615632 
+    4500    1.6924784   -1.7467381            0 -0.071184511   0.13138777 
+    5000    1.7693873   -1.7177224            0  0.033971031   0.15253256 
+    5500    1.6829564   -1.6729159            0 -0.0067890531   0.13745591 
+    6000    1.9528594   -1.8229135            0   0.11041735   0.21444568 
+    6500    1.8827185   -2.0037589            0  -0.13986752  0.044294616 
+    7000    1.4723386   -1.6538512            0  -0.19623597   0.23973507 
+    7500    1.7787216    -1.729955            0  0.030979334   0.15662931 
+    8000    1.8821398   -1.8913154            0 -0.027996988   0.26972798 
+    8500    1.7200393    -1.771927            0 -0.069088004   0.48600924 
+    9000    1.6731944    -1.702556            0 -0.046093535    0.1259234 
+    9500    1.7159449   -1.6430047            0    0.0557808    0.3620955 
+   10000    1.4879693   -1.5303732            0 -0.057283589   0.34668456 
+Loop time of 0.853475 on 4 procs for 10000 steps with 100 atoms
+
+Performance: 5061659.129 tau/day, 11716.804 timesteps/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.48406    | 0.55202    | 0.69789    |  11.6 | 64.68
+Neigh   | 0.0044043  | 0.0046293  | 0.0049062  |   0.3 |  0.54
+Comm    | 0.091245   | 0.24104    | 0.30869    |  18.0 | 28.24
+Output  | 0.00033712 | 0.00036192 | 0.00039911 |   0.1 |  0.04
+Modify  | 0.040754   | 0.042422   | 0.044837   |   0.7 |  4.97
+Other   |            | 0.013      |            |       |  1.52
+
+Nlocal:    25 ave 29 max 20 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Nghost:    44 ave 45 max 43 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:    104 ave 133 max 64 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 416
+Ave neighs/atom = 4.16
+Neighbor list builds = 773
+Dangerous builds = 31
+Total wall time: 0:00:00

@@ -25,14 +25,14 @@
         <div style="background-color: #e8e8f0; padding: 10px; margin-bottom: 5px;">
           &nbsp;&nbsp;Enabling the repository for
         <a href="http://git.icms.temple.edu/rpm/fedora/lammps-fedora-repo-1-2.noarch.rpm">
-          Fedora 17 and later</a><br>
+          Fedora 19 and later</a><br>
         </div>
       </li>
       <li>
         <div style="background-color: #e8e8f0; padding: 10px; margin-top: 5px;">
           &nbsp;&nbsp;Enabling the repository for
         <a href="http://git.icms.temple.edu/rpm/centos/lammps-centos-rhel-repo-1-2.noarch.rpm">
-            CentOS or RedHat Enterprise Linux 6.4 and later</a><br>
+            CentOS or RedHat Enterprise Linux 6.0 and later</a><br>
         </div>
       </li>
     </ul>
@@ -48,7 +48,7 @@
         gpk-install-local-file $PWD/lammps-centos-rhel-repo-1-2.noarch.rpm
       </code><br>
     </div>
-    <p align="justify">This will launch the PackageKit Installer GUI and
+    <p align="justify">This should launch the PackageKit Installer GUI and
     you can complete the installation of the repository by following the
     instructions in the dialog windows.</p>
     <hr width="100%">
@@ -59,7 +59,7 @@
       suitable command line from below.
     </p>
     <ul>
-      <li>Enabling the repository for Fedora 18 and later:<br>
+      <li>Enabling the repository for Fedora 19, 20, and 21:<br>
         <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
           &nbsp;<code>
             su -c 'yum localinstall --nogpgcheck http://git.icms.temple.edu/rpm/fedora/lammps-fedora-repo-1-2.noarch.rpm'
@@ -73,6 +73,22 @@
           </code>
         </div>
       </li>
+    </ul>
+    <hr width="100%">
+
+    <h2>Command Line Setup for Fedora 21 and later with <b>dnf</b></h2>
+    <p align="justify">
+      To enable the repository from the command line, please enter a
+      suitable command line from below.
+    </p>
+    <ul>
+      <li>Enabling the repository for Fedora 21 and later:<br>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
+            su -c 'dnf install --nogpgcheck http://git.icms.temple.edu/rpm/fedora/lammps-fedora-repo-1-2.noarch.rpm'
+          </code><br>
+        </div>
+        </li>
     </ul>
     <hr width="100%">
 
@@ -101,10 +117,25 @@
             su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/13.1/i586 lammps-icms'
           </code><br>
         </div>
+      </li>
       <li>Enabling the repository on openSuSE 13.1 for 64-bit x86:<br>
         <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
           &nbsp;<code>
             su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/13.1/x86_64 lammps-icms'
+          </code><br>
+        </div>
+      </li>
+      <li>Enabling the repository on openSuSE 13.2 for 64-bit x86:<br>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
+            su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/13.2/x86_64 lammps-icms'
+          </code><br>
+        </div>
+      </li>
+      <li>Enabling the repository on openSuSE 42.1 for 64-bit x86:<br>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
+            su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/42.1/x86_64 lammps-icms'
           </code><br>
         </div>
       </li>
@@ -143,6 +174,24 @@
     <h2>Manually Uninstalling or Deactivating the Repository with Yum</h2>
     <p align="justify">
       To uninstall the yum repository, simply uninstall the repository
+      package <b><code>lammps-(your distribution)-repo</code></b> that
+      you installed with the instructions above. This will <b>not</b>
+      remove any installed LAMMPS packages. To get rid of them, you have
+      to explicitly uninstall them through the package manager software
+      as well.
+    </p>
+    <p align="justify">
+      To suspend getting (automatic) updates, you can
+      edit the file <b><code>/etc/yum.repos.d/lammps-*.repo</code></b>
+      and change the <b><code>enabled = 1</code></b> entries to
+      <b><code>enabled = 0</code></b>. If you want to re-enable the
+      repository, simply reverse the procedure.
+    </p>
+    <hr width="100%">
+
+    <h2>Manually Uninstalling or Deactivating the Repository with <b>dnf</b></h2>
+    <p align="justify">
+      To uninstall the dnf repository, simply uninstall the repository
       package <b><code>lammps-(your distribution)-repo</code></b> that
       you installed with the instructions above. This will <b>not</b>
       remove any installed LAMMPS packages. To get rid of them, you have

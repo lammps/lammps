@@ -39,7 +39,6 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 
   void compute(int, int);
 
-  void settings(int, char **);
   void init_tables(double cut_coul, double *cut_respa);
   void init_style();
   double init_one(int, int);
@@ -147,5 +146,13 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+Self-explanatory.
+
+E: Cannot use chosen neighbor list style with lj/charmm/coul/long/kk
+
+Self-explanatory.
 
 */

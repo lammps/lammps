@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 #ifndef COLVARPROXY_LAMMPS_H
 #define COLVARPROXY_LAMMPS_H
 
@@ -15,13 +17,13 @@
 #include <iostream>
 
 #ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2015-07-21"
+#define COLVARPROXY_VERSION "2016-02-28"
 #endif
 
 /* struct for packed data communication of coordinates and forces. */
 struct commdata {
   int tag,type;
-  double x,y,z,m;
+  double x,y,z,m,q;
 };
 
 inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
@@ -52,23 +54,25 @@ class colvarproxy_lammps : public colvarproxy {
   bool system_force_requested;
   bool do_exit;
 
-  std::vector<int>          colvars_atoms;
-  std::vector<size_t>       colvars_atoms_ncopies;
-  std::vector<struct commdata> positions;
-  std::vector<struct commdata> total_forces;
-  std::vector<struct commdata> applied_forces;
-  std::vector<struct commdata> previous_applied_forces;
+  // std::vector<int>          colvars_atoms;
+  // std::vector<size_t>       colvars_atoms_ncopies;
+  // std::vector<struct commdata> positions;
+  // std::vector<struct commdata> total_forces;
+  // std::vector<struct commdata> applied_forces;
+  // std::vector<struct commdata> previous_applied_forces;
+
+  std::vector<int>          atoms_types;
 
   MPI_Comm inter_comm;     // MPI comm with 1 root proc from each world
   int inter_me, inter_num; // rank for the inter replica comm
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *,
-                      const char *, const int, const double, MPI_Comm);
+  colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp, const char *,
+                     const char *, const int, const double, MPI_Comm);
   virtual ~colvarproxy_lammps();
   void init(const char*);
-  void setup();
+  int setup();
 
  // disable default and copy constructor
  private:
@@ -80,13 +84,6 @@ class colvarproxy_lammps : public colvarproxy {
   void set_temperature(double t) { t_target = t; };
   bool need_system_forces() const { return  system_force_requested; };
   bool want_exit() const { return do_exit; };
-  std::vector<int> *             get_tags()   { return &colvars_atoms; };
-  std::vector<struct commdata> * get_coords() { return &positions; };
-  std::vector<struct commdata> * get_forces() { return &applied_forces; };
-  std::vector<struct commdata> * get_oforce() { return &total_forces; };
-
-  // initialize atom structure
-  int init_lammps_atom(const int &, cvm::atom *);
 
   // perform colvars computation. returns biasing energy
   double compute();
@@ -122,20 +119,14 @@ class colvarproxy_lammps : public colvarproxy {
   void select_closest_image(cvm::atom_pos &pos,
                             cvm::atom_pos const &ref_pos);
 
-  int load_atoms(char const *filename,
-                  std::vector<cvm::atom> &atoms,
-                  std::string const &pdb_field,
-                  double const pdb_field_value = 0.0);
-
-  int load_coords(char const *filename,
-                   std::vector<cvm::atom_pos> &pos,
-                   const std::vector<int> &indices,
-                   std::string const &pdb_field,
-                   double const pdb_field_value = 0.0);
-
   int backup_file(char const *filename);
 
   cvm::real rand_gaussian(void) { return _random->gaussian(); };
+
+  int init_atom(int atom_number);
+  int check_atom_id(int atom_number);
+
+  inline std::vector<int> *modify_atom_types() { return &atoms_types; }
 
   // implementation of optional methods from base class
  public:
@@ -161,8 +152,3 @@ class colvarproxy_lammps : public colvarproxy {
 
 #endif
 
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

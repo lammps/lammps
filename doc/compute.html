@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>compute command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -174,7 +174,8 @@ local quantities have the word &#8220;local&#8221; in their style,
 e.g. <em>bond/local</em>.  Styles with neither &#8220;atom&#8221; or &#8220;local&#8221; in their
 style produce global quantities.</p>
 <p>Note that a single compute produces either global or per-atom or local
-quantities, but never more than one of these.</p>
+quantities, but never more than one of these (with only a few
+exceptions, as documented by individual compute commands).</p>
 <p>Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
 doc page for each compute describes the style and kind of values it
@@ -268,20 +269,18 @@ calculations accessed in the various ways described above.</p>
 <p>Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
 available in LAMMPS.  They are also given in more compact form in the
-compute section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+Compute section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
 <p>There are also additional compute styles (not listed here) submitted
 by users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the compute
 section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
-<p>There are also additional accelerated compute styles (note listed
-here) included in the LAMMPS distribution for faster performance on
-CPUs and GPUs.  The list of these with links to the individual styles
-are given in the compute section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
 <ul class="simple">
 <li><a class="reference internal" href="compute_bond_local.html"><em>angle/local</em></a> - theta and energy of each angle</li>
+<li><a class="reference internal" href="compute_angmom_chunk.html"><em>angmom/chunk</em></a> - angular momentum for each chunk</li>
 <li><a class="reference internal" href="compute_body_local.html"><em>body/local</em></a> - attributes of body sub-particles</li>
 <li><a class="reference internal" href="compute_bond_local.html"><em>bond/local</em></a> - distance and energy of each bond</li>
 <li><a class="reference internal" href="compute_centro_atom.html"><em>centro/atom</em></a> - centro-symmetry parameter for each atom</li>
+<li><a class="reference internal" href="compute_chunk_atom.html"><em>chunk/atom</em></a> - assign chunk IDs to each atom</li>
 <li><a class="reference internal" href="compute_cluster_atom.html"><em>cluster/atom</em></a> - cluster ID for each atom</li>
 <li><a class="reference internal" href="compute_cna_atom.html"><em>cna/atom</em></a> - common neighbor analysis (CNA) for each atom</li>
 <li><a class="reference internal" href="compute_com.html"><em>com</em></a> - center-of-mass of group of atoms</li>
@@ -310,6 +309,8 @@ are given in the compute section of <a class="reference internal" href="Section_
 <li><a class="reference internal" href="compute_msd.html"><em>msd</em></a> - mean-squared displacement of group of atoms</li>
 <li><a class="reference internal" href="compute_msd_chunk.html"><em>msd/chunk</em></a> - mean-squared displacement for each chunk</li>
 <li><a class="reference internal" href="compute_msd_nongauss.html"><em>msd/nongauss</em></a> - MSD and non-Gaussian parameter of group of atoms</li>
+<li><a class="reference internal" href="compute_omega_chunk.html"><em>omega/chunk</em></a> - angular velocity for each chunk</li>
+<li><a class="reference internal" href="compute_orientorder_atom.html"><em>orientorder/atom</em></a> - Steinhardt bond orientational order parameters Ql</li>
 <li><a class="reference internal" href="compute_pair.html"><em>pair</em></a> - values computed by a pair style</li>
 <li><a class="reference internal" href="compute_pair_local.html"><em>pair/local</em></a> - distance/energy/force of each pairwise interaction</li>
 <li><a class="reference internal" href="compute_pe.html"><em>pe</em></a> - potential energy</li>
@@ -329,6 +330,7 @@ are given in the compute section of <a class="reference internal" href="Section_
 <li><a class="reference internal" href="compute_stress_atom.html"><em>stress/atom</em></a> - stress tensor for each atom</li>
 <li><a class="reference internal" href="compute_temp.html"><em>temp</em></a> - temperature of group of atoms</li>
 <li><a class="reference internal" href="compute_temp_asphere.html"><em>temp/asphere</em></a> - temperature of aspherical particles</li>
+<li><a class="reference internal" href="compute_temp_body.html"><em>temp/body</em></a> - temperature of body particles</li>
 <li><a class="reference internal" href="compute_temp_chunk.html"><em>temp/chunk</em></a> - temperature of each chunk</li>
 <li><a class="reference internal" href="compute_temp_com.html"><em>temp/com</em></a> - temperature after subtracting center-of-mass velocity</li>
 <li><a class="reference internal" href="compute_temp_deform.html"><em>temp/deform</em></a> - temperature excluding box deformation velocity</li>
@@ -374,7 +376,7 @@ section of <a class="reference internal" href="Section_commands.html#cmd-5"><spa
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -395,7 +397,7 @@ section of <a class="reference internal" href="Section_commands.html#cmd-5"><spa
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

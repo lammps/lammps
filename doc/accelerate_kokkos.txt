@@ -61,15 +61,12 @@ use a C++11 compatible compiler
 make yes-kokkos
 make mpi KOKKOS_DEVICES=OpenMP                 # build with the KOKKOS package
 make kokkos_omp                                # or Makefile.kokkos_omp already has variable set
-Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py
+Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py :pre
 
 mpirun -np 16 lmp_mpi -k on -sf kk -in in.lj              # 1 node, 16 MPI tasks/node, no threads
 mpirun -np 2 -ppn 1 lmp_mpi -k on t 16 -sf kk -in in.lj   # 2 nodes, 1 MPI task/node, 16 threads/task
 mpirun -np 2 lmp_mpi -k on t 8 -sf kk -in in.lj           # 1 node, 2 MPI tasks/node, 8 threads/task 
 mpirun -np 32 -ppn 4 lmp_mpi -k on t 4 -sf kk -in in.lj   # 8 nodes, 4 MPI tasks/node, 4 threads/task :pre
-
-
-
 
 specify variables and settings in your Makefile.machine that enable OpenMP, GPU, or Phi support
 include the KOKKOS package and build LAMMPS
@@ -86,7 +83,7 @@ KOKKOS_DEVICES = Cuda, OpenMP
 KOKKOS_ARCH = Kepler35
 make yes-kokkos
 make machine
-Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda
+Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda :pre
 
 mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
 mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes :pre
@@ -108,8 +105,7 @@ host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
 mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
 mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
 mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
-mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
-
+mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis :pre
 
 [Required hardware/software:]
 
@@ -126,10 +122,10 @@ discussion for the "USER-CUDA"_accelerate_cuda.html and
 "GPU"_accelerate_gpu.html packages for details of how to check and do
 this.
 
-IMPORTANT NOTE: For good performance of the KOKKOS package on GPUs,
-you must have Kepler generation GPUs (or later).  The Kokkos library
-exploits texture cache options not supported by Telsa generation GPUs
-(or older).
+NOTE: For good performance of the KOKKOS package on GPUs, you must
+have Kepler generation GPUs (or later).  The Kokkos library exploits
+texture cache options not supported by Telsa generation GPUs (or
+older).
 
 To build with Kokkos support for Intel Xeon Phi coprocessors, your
 sysmte must be configured to use them in "native" mode, not "offload"
@@ -179,12 +175,11 @@ These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
 make command line which requires a GNU-compatible make command.  Try
 "gmake" if your system's standard make complains.  
 
-IMPORTANT NOTE: If you build using make line variables and re-build
-LAMMPS twice with different KOKKOS options and the *same* target,
-e.g. g++ in the first two examples above, then you *must* perform a
-"make clean-all" or "make clean-machine" before each build.  This is
-to force all the KOKKOS-dependent files to be re-compiled with the new
-options.
+NOTE: If you build using make line variables and re-build LAMMPS twice
+with different KOKKOS options and the *same* target, e.g. g++ in the
+first two examples above, then you *must* perform a "make clean-all"
+or "make clean-machine" before each build.  This is to force all the
+KOKKOS-dependent files to be re-compiled with the new options.
 
 You can also hardwire these make variables in the specified machine
 makefile, e.g. src/MAKE/Makefile.g++ in the first two examples above,
@@ -197,19 +192,18 @@ different KOKKOS options (defined in different machine makefiles), you
 do not have to worry about doing a "clean" in between.  This is
 because the targets will be different.
 
-IMPORTANT NOTE: The 3rd example above for a GPU, uses a different
-machine makefile, in this case src/MAKE/Makefile.cuda, which is
-included in the LAMMPS distribution.  To build the KOKKOS package for
-a GPU, this makefile must use the NVIDA "nvcc" compiler.  And it must
-have a KOKKOS_ARCH setting that is appropriate for your NVIDIA
-hardware and installed software.  Typical values for KOKKOS_ARCH are given
-below, as well
-as other settings that must be included in the machine makefile, if
-you create your own.
+NOTE: The 3rd example above for a GPU, uses a different machine
+makefile, in this case src/MAKE/Makefile.cuda, which is included in
+the LAMMPS distribution.  To build the KOKKOS package for a GPU, this
+makefile must use the NVIDA "nvcc" compiler.  And it must have a
+KOKKOS_ARCH setting that is appropriate for your NVIDIA hardware and
+installed software.  Typical values for KOKKOS_ARCH are given below,
+as well as other settings that must be included in the machine
+makefile, if you create your own.
 
-IMPORTANT NOTE: Currently, there are no precision options with the
-KOKKOS package.  All compilation and computation is performed in
-double precision.
+NOTE: Currently, there are no precision options with the KOKKOS
+package.  All compilation and computation is performed in double
+precision.
 
 There are other allowed options when building with the KOKKOS package.
 As above, they can be set either as variables on the make command line
@@ -461,11 +455,11 @@ on a dual-socket node will incur extra cost to copy memory from the
 
 Examples of mpirun commands that follow these rules are shown above.
 
-IMPORTANT NOTE: When using a GPU, you will achieve the best
-performance if your input script does not use any fix or compute
-styles which are not yet Kokkos-enabled.  This allows data to stay on
-the GPU for multiple timesteps, without being copied back to the host
-CPU.  Invoking a non-Kokkos fix or compute, or performing I/O for
+NOTE: When using a GPU, you will achieve the best performance if your
+input script does not use any fix or compute styles which are not yet
+Kokkos-enabled.  This allows data to stay on the GPU for multiple
+timesteps, without being copied back to the host CPU.  Invoking a
+non-Kokkos fix or compute, or performing I/O for
 "thermo"_thermo_style.html or "dump"_dump.html output will cause data
 to be copied back to the CPU.
 

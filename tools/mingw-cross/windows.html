@@ -39,6 +39,7 @@
       <u>USER-CUDA</u> (CUDA does not support cross compilation),
       <u>KOKKOS</u> and <u>USER-INTEL</u> 
       (do not support cross-compilation with GCC),
+      <u>USER-H5MD</u> (requires external library)
       <u>PYTHON</u> (requires to bundle a full Python runtime),
       <u>USER-QMMM</u> (only useful when linking to a QM software),
       <u>USER-QUIP</u> (requires external library),
@@ -67,6 +68,7 @@
       It <u>does not yet</u> work with OpenCL drivers for CPUs (like those included
       in the Intel and AMD OpenCL SDKs).
       <br>
+      In the case of having multiple Vendor provided OpenCL runtimes installed, you may run into the situation of the "wrong" runtime being set as the default and used by LAMMPS. In this case, you may need to remove unwanted vendors from the windows registry database. Look for the key: <code>HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors</code>, and remove vendors such as Intel. 
       When reporting problems, please always include the exact
       <u>version of the installer</u> and the output of the
       <strong><code>ocl_get_devices</code></strong> tool.
@@ -231,7 +233,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Thu Jan 15 14:46:56 EST 2015
+Last modified: Thu Nov 23 16:46:56 EST 2015
 <!-- hhmts end -->
   </body>
 </html>

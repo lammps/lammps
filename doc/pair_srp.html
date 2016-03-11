@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pair_style srp command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>pair_style srp command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -137,6 +137,7 @@
 <li>keyword = <em>exclude</em></li>
 </ul>
 <pre class="literal-block">
+<em>bptype</em> value = atom type for bond particles
 <em>exclude</em> value = <em>yes</em> or <em>no</em>
 </pre>
 </div>
@@ -194,22 +195,23 @@ or <a class="reference internal" href="read_restart.html"><em>read_restart</em><
 </ul>
 <p>The last coefficient is optional. If not specified, the global cutoff
 is used.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Pair style srp considers each bond of type <em>btype</em> to
-be a fictitious &#8220;particle&#8221; of type <em>bptype</em>, where <em>bptype</em> is the
-largest atom type in the system.  There cannot be any actual particles
-assigned to this atom type.  This means you must specify the number of
-types in your system to be one larger would normally be the case,
-e.g. via the <a class="reference internal" href="create_box.html"><em>create_box</em></a> or
-<a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.  These ficitious &#8220;bond particles&#8221;
-are inserted at the beginning of the run, and serve as placeholders
-that define the position of the bonds.  This allows neighbor lists to
-be constructed and pairwise interactions to be computed in almost the
-same way as is done for actual particles.  Because bonds interact only
-with other bonds, <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> should be used
-to turn off interactions between atom type <em>bptype</em> and all other
-types of atoms.  An error will be flagged if <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> is not used.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Pair style srp considers each bond of type <em>btype</em> to be a
+fictitious &#8220;particle&#8221; of type <em>bptype</em>, where <em>bptype</em> is either the
+largest atom type in the system, or the type set by the <em>bptype</em> flag.
+Any actual existing particles with this atom type will be deleted at
+the beginning of a run. This means you must specify the number of
+types in your system accordingly; usually to be one larger than what
+would normally be the case, e.g. via the <a class="reference internal" href="create_box.html"><em>create_box</em></a>
+or by changing the header in your <a class="reference internal" href="read_data.html"><em>data file</em></a>.  The
+ficitious &#8220;bond particles&#8221; are inserted at the beginning of the run,
+and serve as placeholders that define the position of the bonds.  This
+allows neighbor lists to be constructed and pairwise interactions to
+be computed in almost the same way as is done for actual particles.
+Because bonds interact only with other bonds, <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> should be used to turn off interactions
+between atom type <em>bptype</em> and all other types of atoms.  An error
+will be flagged if <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> is not used.</p>
 </div>
 <p>The optional <em>exclude</em> keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
@@ -273,7 +275,7 @@ Chem Phys, 136 (13) 134903, 2012.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -294,7 +296,7 @@ Chem Phys, 136 (13) 134903, 2012.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

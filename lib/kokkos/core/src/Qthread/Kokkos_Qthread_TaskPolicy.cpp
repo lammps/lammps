@@ -255,6 +255,56 @@ void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
 
 //----------------------------------------------------------------------------
 
+void Task::closeout()
+{
+  enum { RESPAWN = int( Kokkos::Experimental::TASK_STATE_WAITING ) |
+                   int( Kokkos::Experimental::TASK_STATE_EXECUTING ) };
+
+#if 0
+fprintf( stdout
+       , "worker(%d.%d) task 0x%.12lx %s\n"
+       , qthread_shep()
+       , qthread_worker_local(NULL)
+       , reinterpret_cast<unsigned long>(this)
+       , ( m_state == RESPAWN ? "respawn" : "complete" )
+       );
+fflush(stdout);
+#endif
+
+  // When dependent tasks run there would be a race
+  // condition between destroying this task and
+  // querying the active count pointer from this task.
+  int volatile * const active_count = m_active_count ;
+
+  if ( m_state == RESPAWN ) {
+    // Task requests respawn, set state to waiting and reschedule the task
+    m_state = Kokkos::Experimental::TASK_STATE_WAITING ;
+    schedule();
+  }
+  else {
+
+    // Task did not respawn, is complete
+    m_state = Kokkos::Experimental::TASK_STATE_COMPLETE ;
+
+    // Release dependences before allowing dependent tasks to run.
+    // Otherwise there is a thread race condition for removing dependences.
+    for ( int i = 0 ; i < m_dep_size ; ++i ) {
+      assign( & m_dep[i] , 0 );
+    }
+
+    // Set qthread FEB to full so that dependent tasks are allowed to execute.
+    // This 'task' may be deleted immediately following this function call.
+    qthread_fill( & m_qfeb );
+
+    // The dependent task could now complete and destroy 'this' task
+    // before the call to 'qthread_fill' returns.  Therefore, for
+    // thread safety assume that 'this' task has now been destroyed.
+  }
+
+  // Decrement active task count before returning.
+  Kokkos::atomic_decrement( active_count );
+}
+
 aligned_t Task::qthread_func( void * arg )
 {
   Task * const task = reinterpret_cast< Task * >(arg);
@@ -291,62 +341,18 @@ fflush(stdout);
 #endif
 
     member.team_barrier();
-
-    close_out = member.team_rank() == 0 ;
+    if ( member.team_rank() == 0 ) task->closeout();
+    member.team_barrier();
   }
   else if ( task->m_apply_team && task->m_apply_single == reinterpret_cast<function_apply_single_type>(1) ) {
     // Team hard-wired to one, no cloning
     Kokkos::Impl::QthreadTeamPolicyMember member ;
     (*task->m_apply_team)( task , member );
-    close_out = true ;
+    task->closeout();
   }
   else {
     (*task->m_apply_single)( task );
-
-    close_out = true ;
-  }
-
-  if ( close_out ) {
-
-    // When dependent tasks run there would be a race
-    // condition between destroying this task and
-    // querying the active count pointer from this task.
-    int volatile * active_count = task->m_active_count ;
-
-    if ( task->m_state == ( Kokkos::Experimental::TASK_STATE_WAITING | Kokkos::Experimental::TASK_STATE_EXECUTING ) ) {
-
-#if 0
-fprintf( stdout
-       , "worker(%d.%d) task 0x%.12lx respawn\n"
-       , qthread_shep()
-       , qthread_worker_local(NULL)
-       , reinterpret_cast<unsigned long>(task)
-       );
-fflush(stdout);
-#endif
-
-      // Task respawned, set state to waiting and reschedule the task
-      task->m_state = Kokkos::Experimental::TASK_STATE_WAITING ;
-      task->schedule();
-    }
-    else {
-
-      // Task did not respawn, is complete
-      task->m_state = Kokkos::Experimental::TASK_STATE_COMPLETE ;
-
-      // Release dependences before allowing dependent tasks to run.
-      // Otherwise there is a thread race condition for removing dependences.
-      for ( int i = 0 ; i < task->m_dep_size ; ++i ) {
-        assign( & task->m_dep[i] , 0 );
-      }
-
-      // Set qthread FEB to full so that dependent tasks are allowed to execute.
-      // This 'task' may be deleted immediately following this function call.
-      qthread_fill( & task->m_qfeb );
-    }
-
-    // Decrement active task count before returning.
-    Kokkos::atomic_decrement( active_count );
+    task->closeout();
   }
 
 #if 0
@@ -419,8 +425,7 @@ fflush(stdout);
       , NULL
       , m_dep_size , qprecon /* dependences */
       , spawn_shepherd
-      // , unsigned( QTHREAD_SPAWN_SIMPLE | QTHREAD_SPAWN_LOCAL_PRIORITY )
-      , unsigned( QTHREAD_SPAWN_LOCAL_PRIORITY )
+      , unsigned( QTHREAD_SPAWN_SIMPLE | QTHREAD_SPAWN_LOCAL_PRIORITY )
       , num_worker_per_shepherd - 1
       );
   }

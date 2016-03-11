@@ -154,8 +154,6 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::compute(int eflag_in, int
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -510,7 +508,10 @@ double PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCharmmCoulCharmmImplicitKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCharmmCoulCharmmImplicitKokkos<LMPHostType>;
 #endif
+}
+

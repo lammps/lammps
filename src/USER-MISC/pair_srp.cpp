@@ -352,32 +352,38 @@ void PairSRP::compute(int eflag, int vflag)
 
 void PairSRP::settings(int narg, char **arg)
 {
-    if (narg < 3 || narg > 5)
-        error->all(FLERR,"Illegal pair_style command");
+  if (narg < 3 || narg > 7)
+    error->all(FLERR,"Illegal pair_style command");
 
-    cut_global = force->numeric(FLERR,arg[0]);
-    // wildcard
-    if (strcmp(arg[1],"*") == 0)
-      btype = 0;
-    else {
-      btype = force->inumeric(FLERR,arg[1]);
-      if ((btype > atom->nbondtypes) || (btype <= 0))
-        error->all(FLERR,"Illegal pair_style command");
-    }
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Pair_style srp requires atom IDs");
 
-    // settings
-    midpoint = 0;
-    min = 0;
+  cut_global = force->numeric(FLERR,arg[0]);
+  // wildcard
+  if (strcmp(arg[1],"*") == 0)
+    btype = 0;
+  else {
+    btype = force->inumeric(FLERR,arg[1]);
+    if ((btype > atom->nbondtypes) || (btype <= 0))
+      error->all(FLERR,"Illegal pair_style command");
+  }
+
+  // settings
+  midpoint = 0;
+  min = 0;
 
   if (strcmp(arg[2],"min") == 0) min = 1;
   else if (strcmp(arg[2],"mid") == 0) midpoint = 1;
   else
-     error->all(FLERR,"Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 
   int iarg = 3;
   // default exclude 1-2
   // scaling for 1-2, etc not supported
   exclude = 1;
+
+  // use last atom type by default for bond particles
+  bptype = atom->ntypes;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"exclude") == 0) {
@@ -389,11 +395,14 @@ void PairSRP::settings(int narg, char **arg)
         exclude = 0;
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"bptype") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
+      bptype = force->inumeric(FLERR,arg[iarg+1]);
+      if ((bptype < 1) || (bptype > atom->ntypes))
+        error->all(FLERR,"Illegal bond particle type for srp");
+      iarg += 2;
     } else error->all(FLERR,"Illegal pair srp command");
   }
-
-  // highest atom type is saved for bond particles
-  bptype = atom->ntypes;
 
   // reset cutoffs if explicitly set
   if (allocated) {
@@ -453,14 +462,25 @@ void PairSRP::init_style()
   if (f_srp != (FixSRP *)modify->fix[ifix])
     error->all(FLERR,"Fix SRP has been changed unexpectedly");
 
-  // set bond type in fix srp
+  if (comm->me == 0) {
+    if (screen) fprintf(screen,"Using type %d for bond particles\n",bptype);
+    if (logfile) fprintf(logfile,"Using type %d for bond particles\n",bptype);
+  }
+
+  // set bond and bond particle types in fix srp
   // bonds of this type will be represented by bond particles
+  // if bond type is 0, then all bonds have bond particles
   // btype = bond type
-  // bptype = bond particle type
   char c0[20];
   char* arg0[2];
   sprintf(c0, "%d", btype);
   arg0[0] = (char *) "btype";
+  arg0[1] = c0;
+  f_srp->modify_params(2, arg0);
+
+  // bptype = bond particle type
+  sprintf(c0, "%d", bptype);
+  arg0[0] = (char *) "bptype";
   arg0[1] = c0;
   f_srp->modify_params(2, arg0);
 

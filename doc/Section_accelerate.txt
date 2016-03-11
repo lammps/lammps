@@ -134,10 +134,10 @@ relative accuracy of slightly greater than 1e-5 and above.
 
 :c,image(JPG/rhodo_staggered.jpg)
 
-IMPORTANT NOTE: Using staggered PPPM may not give the same increase in
-accuracy of energy and pressure as it does in forces, so some caution
-must be used if energy and/or pressure are quantities of interest,
-such as when using a barostat.
+NOTE: Using staggered PPPM may not give the same increase in accuracy
+of energy and pressure as it does in forces, so some caution must be
+used if energy and/or pressure are quantities of interest, such as
+when using a barostat.
 
 :line
 
@@ -240,12 +240,12 @@ individual accelerator sections.  Or you can add
 "package"_package.html and "suffix"_suffix.html commands to your input
 script.
 
-IMPORTANT NOTE: With a few exceptions, you can build a single LAMMPS
-executable with all its accelerator packages installed.  Note however
-that the USER-INTEL and KOKKOS packages require you to choose one of
-their hardware options when building for a specific platform.
-I.e. CPU or Phi option for the USER-INTEL package.  Or the OpenMP,
-Cuda, or Phi option for the KOKKOS package.
+NOTE: With a few exceptions, you can build a single LAMMPS executable
+with all its accelerator packages installed.  Note however that the
+USER-INTEL and KOKKOS packages require you to choose one of their
+hardware options when building for a specific platform.  I.e. CPU or
+Phi option for the USER-INTEL package.  Or the OpenMP, Cuda, or Phi
+option for the KOKKOS package.
 
 These are the exceptions.  You cannot build a single executable with:
 

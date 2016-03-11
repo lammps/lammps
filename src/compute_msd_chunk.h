@@ -44,12 +44,13 @@ class ComputeMSDChunk : public Compute {
   int nchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
+  char *id_fix;
+  class FixStore *fix;
+  int firstflag;
 
   double *massproc,*masstotal;
-  double **com,**comall,**cominit;
+  double **com,**comall;
   double **msd;
-
-  int firstflag;
 
   void allocate();
 };
@@ -74,6 +75,10 @@ Self-explanatory.
 E: Compute msd/chunk does not use chunk/atom compute
 
 The style of the specified compute is not chunk/atom.
+
+E: Could not find compute msd/chunk fix ID
+
+The compute creates an internal fix, which has been deleted.
 
 E: Compute msd/chunk nchunk is not static
 

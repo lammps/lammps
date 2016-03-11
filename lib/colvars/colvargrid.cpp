@@ -127,7 +127,6 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
 
   integral = 0.0;
   int_vals.push_back( 0.0 );
-  bin = 0.0;
   min = 0.0;
 
   // correction for periodic colvars, so that the PMF is periodic
@@ -138,7 +137,7 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
     corr = 0.0;
   }
 
-  for (std::vector<int> ix = new_index(); index_ok(ix); incr(ix), bin += 1.0 ) {
+  for (std::vector<int> ix = new_index(); index_ok(ix); incr(ix)) {
 
     if (samples) {
       size_t const samples_here = samples->value(ix);

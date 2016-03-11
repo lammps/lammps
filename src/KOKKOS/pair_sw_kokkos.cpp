@@ -128,28 +128,24 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairSWComputeHalf<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairSWComputeHalf<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else if (neighflag == HALFTHREAD) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairSWComputeHalf<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairSWComputeHalf<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else if (neighflag == FULL) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairSWComputeFullA<FULL,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairSWComputeFullA<FULL,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
 
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairSWComputeFullB<FULL,1> >(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairSWComputeFullB<FULL,0> >(0,ignum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
 
@@ -574,9 +570,9 @@ void PairSWKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairSWKokkos<DeviceType>::setup()
+void PairSWKokkos<DeviceType>::setup_params()
 {
-  PairSW::setup();
+  PairSW::setup_params();
 
   // sync elem2param and params
 
@@ -902,7 +898,10 @@ void PairSWKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
   }
 }
 
+namespace LAMMPS_NS {
 template class PairSWKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairSWKokkos<LMPHostType>;
 #endif
+}
+

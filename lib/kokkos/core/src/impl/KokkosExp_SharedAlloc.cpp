@@ -47,6 +47,27 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
+int SharedAllocationRecord< void , void >::s_tracking_enabled = 1 ;
+
+void SharedAllocationRecord< void , void >::tracking_claim_and_disable()
+{
+  // A host thread claim and disable tracking flag
+
+  while ( ! Kokkos::atomic_compare_exchange_strong( & s_tracking_enabled, 1, 0 ) );
+}
+
+void SharedAllocationRecord< void , void >::tracking_release_and_enable()
+{
+  // The host thread that claimed and disabled the tracking flag
+  // now release and enable tracking.
+
+  if ( ! Kokkos::atomic_compare_exchange_strong( & s_tracking_enabled, 0, 1 ) ){
+    Kokkos::Impl::throw_runtime_exception("Kokkos::Experimental::Impl::SharedAllocationRecord<>::tracking_release_and_enable FAILED, this host process thread did not hold the lock" );
+  }
+}
+
+//----------------------------------------------------------------------------
+
 bool
 SharedAllocationRecord< void , void >::
 is_sane( SharedAllocationRecord< void , void > * arg_record )
@@ -61,7 +82,7 @@ is_sane( SharedAllocationRecord< void , void > * arg_record )
     SharedAllocationRecord * root_next = 0 ;
 
     // Lock the list:
-    while ( ( root_next = Kokkos::atomic_exchange( & root->m_next , zero ) ) == 0 );
+    while ( ( root_next = Kokkos::atomic_exchange( & root->m_next , zero ) ) == zero );
 
     for ( SharedAllocationRecord * rec = root_next ; ok && rec != root ; rec = rec->m_next ) {
       const bool ok_non_null  = rec && rec->m_prev && ( rec == root || rec->m_next );
@@ -73,14 +94,25 @@ is_sane( SharedAllocationRecord< void , void > * arg_record )
       ok = ok_root && ok_prev_next && ok_next_prev && ok_count ;
 
 if ( ! ok ) {
-  fprintf(stderr,"Kokkos::Experimental::Impl::SharedAllocationRecord failed is_sane: rec(0x%.12lx){ m_count(%d) m_root(0x%.12lx) m_next(0x%.12lx) m_prev(0x%.12lx) m_next->m_prev(0x%.12lx) m_prev->m_next(0x%.12lx) }\n"
-        , reinterpret_cast< unsigned long >( rec )
+  //Formatting dependent on sizeof(uintptr_t) 
+  const char * format_string;
+  
+  if (sizeof(uintptr_t) == sizeof(unsigned long)) {
+     format_string = "Kokkos::Experimental::Impl::SharedAllocationRecord failed is_sane: rec(0x%.12lx){ m_count(%d) m_root(0x%.12lx) m_next(0x%.12lx) m_prev(0x%.12lx) m_next->m_prev(0x%.12lx) m_prev->m_next(0x%.12lx) }\n";
+  }
+  else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
+     format_string = "Kokkos::Experimental::Impl::SharedAllocationRecord failed is_sane: rec(0x%.12llx){ m_count(%d) m_root(0x%.12llx) m_next(0x%.12llx) m_prev(0x%.12llx) m_next->m_prev(0x%.12llx) m_prev->m_next(0x%.12llx) }\n";
+  }
+
+  fprintf(stderr
+        , format_string 
+        , reinterpret_cast< uintptr_t >( rec )
         , rec->m_count
-        , reinterpret_cast< unsigned long >( rec->m_root )
-        , reinterpret_cast< unsigned long >( rec->m_next )
-        , reinterpret_cast< unsigned long >( rec->m_prev )
-        , reinterpret_cast< unsigned long >( rec->m_next->m_prev )
-        , reinterpret_cast< unsigned long >( rec->m_prev != rec->m_root ? rec->m_prev->m_next : root_next )
+        , reinterpret_cast< uintptr_t >( rec->m_root )
+        , reinterpret_cast< uintptr_t >( rec->m_next )
+        , reinterpret_cast< uintptr_t >( rec->m_prev )
+        , reinterpret_cast< uintptr_t >( rec->m_next->m_prev )
+        , reinterpret_cast< uintptr_t >( rec->m_prev != rec->m_root ? rec->m_prev->m_next : root_next )
         );
 }
 
@@ -102,7 +134,7 @@ SharedAllocationRecord<void,void>::find( SharedAllocationRecord<void,void> * con
   SharedAllocationRecord * root_next = 0 ;
 
   // Lock the list:
-  while ( ( root_next = Kokkos::atomic_exchange( & arg_root->m_next , 0 ) ) == 0 );
+  while ( ( root_next = Kokkos::atomic_exchange( & arg_root->m_next , zero ) ) == zero );
 
   // Iterate searching for the record with this data pointer
 
@@ -148,7 +180,7 @@ SharedAllocationRecord( SharedAllocationRecord<void,void> * arg_root
   m_prev = m_root ;
 
   // Read root->m_next and lock by setting to zero
-  while ( ( m_next = Kokkos::atomic_exchange( & m_root->m_next , zero ) ) == 0 );
+  while ( ( m_next = Kokkos::atomic_exchange( & m_root->m_next , zero ) ) == zero );
 
   m_next->m_prev = this ;
 
@@ -187,7 +219,7 @@ decrement( SharedAllocationRecord< void , void > * arg_record )
     SharedAllocationRecord * root_next = 0 ;
 
     // Lock the list:
-    while ( ( root_next = Kokkos::atomic_exchange( & arg_record->m_root->m_next , 0 ) ) == 0 );
+    while ( ( root_next = Kokkos::atomic_exchange( & arg_record->m_root->m_next , zero ) ) == zero );
 
     arg_record->m_next->m_prev = arg_record->m_prev ;
 
@@ -232,16 +264,26 @@ print_host_accessible_records( std::ostream & s
 
   if ( detail ) {
     do {
+      //Formatting dependent on sizeof(uintptr_t) 
+      const char * format_string;
 
-      snprintf( buffer , 256 , "%s addr( 0x%.12lx ) list( 0x%.12lx 0x%.12lx ) extent[ 0x%.12lx + %.8ld ] count(%d) dealloc(0x%.12lx) %s\n"
+      if (sizeof(uintptr_t) == sizeof(unsigned long)) {
+        format_string = "%s addr( 0x%.12lx ) list( 0x%.12lx 0x%.12lx ) extent[ 0x%.12lx + %.8ld ] count(%d) dealloc(0x%.12lx) %s\n";
+      }
+      else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
+        format_string = "%s addr( 0x%.12llx ) list( 0x%.12llx 0x%.12llx ) extent[ 0x%.12llx + %.8ld ] count(%d) dealloc(0x%.12llx) %s\n";
+      }
+
+      snprintf( buffer , 256
+              , format_string
               , space_name
-              , reinterpret_cast<unsigned long>( r )
-              , reinterpret_cast<unsigned long>( r->m_prev )
-              , reinterpret_cast<unsigned long>( r->m_next )
-              , reinterpret_cast<unsigned long>( r->m_alloc_ptr )
+              , reinterpret_cast<uintptr_t>( r )
+              , reinterpret_cast<uintptr_t>( r->m_prev )
+              , reinterpret_cast<uintptr_t>( r->m_next )
+              , reinterpret_cast<uintptr_t>( r->m_alloc_ptr )
               , r->m_alloc_size
               , r->m_count
-              , reinterpret_cast<unsigned long>( r->m_dealloc )
+              , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , r->m_alloc_ptr->m_label
               );
       std::cout << buffer ;
@@ -251,10 +293,20 @@ print_host_accessible_records( std::ostream & s
   else {
     do {
       if ( r->m_alloc_ptr ) {
+        //Formatting dependent on sizeof(uintptr_t) 
+        const char * format_string;
 
-        snprintf( buffer , 256 , "%s [ 0x%.12lx + %ld ] %s\n"
+        if (sizeof(uintptr_t) == sizeof(unsigned long)) { 
+          format_string = "%s [ 0x%.12lx + %ld ] %s\n";
+        }
+        else if (sizeof(uintptr_t) == sizeof(unsigned long long)) { 
+          format_string = "%s [ 0x%.12llx + %ld ] %s\n";
+        }
+
+        snprintf( buffer , 256
+                , format_string
                 , space_name
-                , reinterpret_cast< unsigned long >( r->data() )
+                , reinterpret_cast< uintptr_t >( r->data() )
                 , r->size()
                 , r->m_alloc_ptr->m_label
                 );

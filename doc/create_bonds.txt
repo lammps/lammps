@@ -83,18 +83,17 @@ executes, e.g. if you wish to use long-range Coulombic interactions
 via the "kspace_style"_kspace_style.html command for your subsequent
 simulation.
 
-IMPORTANT NOTE: If the system has no bonds to begin with, or if more
-bonds per atom are being added than currently exist, then you must
-insure that the number of bond types and the maximum number of bonds
-per atom are set to large enough values.  Otherwise an error may occur
-when too many bonds are added to an atom.  If the
-"read_data"_read_data.html command is used to define the system, these
-2 parameters can be set via the "bond types" and "extra bond per atom"
-fields in the header section of the data file.  If the
-"create_box"_create_box.html command is used to define the system,
-these 2 parameters can be set via its optional "bond/types" and
-"extra/bond/per/atom" arguments.  See the doc pages for the 2 commands
-for details.
+NOTE: If the system has no bonds to begin with, or if more bonds per
+atom are being added than currently exist, then you must insure that
+the number of bond types and the maximum number of bonds per atom are
+set to large enough values.  Otherwise an error may occur when too
+many bonds are added to an atom.  If the "read_data"_read_data.html
+command is used to define the system, these 2 parameters can be set
+via the "bond types" and "extra bond per atom" fields in the header
+section of the data file.  If the "create_box"_create_box.html command
+is used to define the system, these 2 parameters can be set via its
+optional "bond/types" and "extra/bond/per/atom" arguments.  See the
+doc pages for the 2 commands for details.
 
 [Restrictions:]
 

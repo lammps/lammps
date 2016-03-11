@@ -74,9 +74,8 @@ potential is used as part of the {hybrid} pair style.  The NULL values
 are placeholders for atom types that will be used with other
 potentials.
 
-IMPORTANT NOTE: The {meam/spline} style currently supports only
-single-element MEAM potentials.  It may be extended for alloy systems
-in the future.
+NOTE: The {meam/spline} style currently supports only single-element
+MEAM potentials.  It may be extended for alloy systems in the future.
 
 :line
 

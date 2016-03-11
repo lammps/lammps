@@ -1,4 +1,4 @@
-# serial = g++ compiler, no MPI, internal FFT
+# intel = icpc compiler, no MPI, internal FFT
 
 SHELL = /bin/sh
 
@@ -14,11 +14,12 @@ DEPFLAGS =	-M
 LINK =		icpc
 LINKFLAGS =	-g -O -static-intel
 LIB = 
-SIZE =		size
-
 ARCHIVE =	ar
-ARFLAGS =	-rc
+ARFLAGS =	-rcsv
+
+SIZE =		size
 SHLIBFLAGS =	-shared
+KOKKOS_DEVICES = OpenMP
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -28,7 +29,8 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 \
+	-DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -44,7 +46,7 @@ MPI_PATH =      -L../STUBS
 MPI_LIB =	-lmpi_stubs
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
@@ -63,7 +65,7 @@ FFT_LIB =
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	
+JPG_LIB =	-ljpeg -lpng
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -111,5 +113,10 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+	cc -O -o $@ $<
+
+sinclude .depend

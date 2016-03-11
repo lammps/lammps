@@ -43,6 +43,8 @@ private:
   void DMdisp();
   void vecanyq();
 
+  void ShowCell();
+
   void smooth(double *, const int);
   void writeDOS();
   void writeLDOS();

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix shake command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix shake command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -237,18 +237,18 @@ atoms in the bond are in the group specified with the SHAKE fix.</p>
 for in temperature and pressure computations.  Similarly, the SHAKE
 contribution to the pressure of the system (virial) is also accounted
 for.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This command works by using the current forces on
-atoms to caculate an additional constraint force which when added will
-leave the atoms in positions that satisfy the SHAKE constraints
-(e.g. bond length) after the next time integration step.  If you
-define fixes (e.g. <a class="reference internal" href="fix_efield.html"><em>fix efield</em></a>) that add additional
-force to the atoms after fix shake operates, then this fix will not
-take them into account and the time integration will typically not
-satisfy the SHAKE constraints.  The solution for this is to make sure
-that fix shake is defined in your input script after any other fixes
-which add or change forces (to atoms that fix shake operates on).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This command works by using the current forces on atoms to
+caculate an additional constraint force which when added will leave
+the atoms in positions that satisfy the SHAKE constraints (e.g. bond
+length) after the next time integration step.  If you define fixes
+(e.g. <a class="reference internal" href="fix_efield.html"><em>fix efield</em></a>) that add additional force to the
+atoms after fix shake operates, then this fix will not take them into
+account and the time integration will typically not satisfy the SHAKE
+constraints.  The solution for this is to make sure that fix shake is
+defined in your input script after any other fixes which add or change
+forces (to atoms that fix shake operates on).</p>
 </div>
 <hr class="docutils" />
 <p>The <em>mol</em> keyword should be used when other commands, such as <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> or <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>, add molecules
@@ -280,16 +280,16 @@ more instructions on how to use the accelerated styles effectively.</p>
 <p>The velocity constraints lead to a linear system of equations which
 can be solved analytically.  The implementation of the algorithm in
 LAMMPS closely follows (<a class="reference internal" href="#andersen"><span>Andersen (1983)</span></a>).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The fix rattle command modifies forces and velocities
-and thus should be defined after all other integration fixes in your
-input script.  If you define other fixes that modify velocities or
-forces after fix rattle operates, then fix rattle will not take them
-into account and the overall time integration will typically not
-satisfy the RATTLE constraints.  You can check whether the constraints
-work correctly by setting the value of RATTLE_DEBUG in
-src/fix_rattle.cpp to 1 and recompiling LAMMPS.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The fix rattle command modifies forces and velocities and thus
+should be defined after all other integration fixes in your input
+script.  If you define other fixes that modify velocities or forces
+after fix rattle operates, then fix rattle will not take them into
+account and the overall time integration will typically not satisfy
+the RATTLE constraints.  You can check whether the constraints work
+correctly by setting the value of RATTLE_DEBUG in src/fix_rattle.cpp
+to 1 and recompiling LAMMPS.</p>
 </div>
 </div>
 <hr class="docutils" />
@@ -333,7 +333,7 @@ J of Comp Phys, 23, 327-341 (1977).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -354,7 +354,7 @@ J of Comp Phys, 23, 327-341 (1977).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

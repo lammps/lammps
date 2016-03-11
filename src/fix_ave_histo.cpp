@@ -62,6 +62,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   size_array_cols = 3;
   extarray = 0;
+  dynamic_group_allow = 1;
 
   lo = force->numeric(FLERR,arg[6]);
   hi = force->numeric(FLERR,arg[7]);
@@ -239,7 +240,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/histo command");
-  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nfreq % nevery || nrepeat*nevery > nfreq)
     error->all(FLERR,"Illegal fix ave/histo command");
   if (lo >= hi) error->all(FLERR,"Illegal fix ave/histo command");
   if (nbins <= 0) error->all(FLERR,"Illegal fix ave/histo command");
@@ -421,15 +422,32 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == VARIABLE && kind == GLOBAL) {
+    } else if (which[i] == VARIABLE && kind == GLOBAL && mode == SCALAR) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
+      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not equal-style variable");
+      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not vector-style variable");
+
+    } else if (which[i] == VARIABLE && kind == GLOBAL && mode == VECTOR) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for fix ave/histo does not exist");
+      if (argindex[i] == 0 && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not vector-style variable");
+      if (argindex[i]) 
+        error->all(FLERR,"Fix ave/histo variable cannot be indexed");
 
     } else if (which[i] == VARIABLE && kind == PERATOM) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
+      if (argindex[i] == 0 && input->variable->atomstyle(ivariable) == 0)
+        error->all(FLERR,"Fix ave/histo variable is not atom-style variable");
+      if (argindex[i]) 
+        error->all(FLERR,"Fix ave/histo variable cannot be indexed");
     }
   }
 
@@ -718,19 +736,32 @@ void FixAveHisto::end_of_step()
                      fix->size_local_cols);
       }
 
-      // evaluate equal-style variable
+    // evaluate equal-style or vector-style or atom-style variable
 
-    } else if (which[i] == VARIABLE && kind == GLOBAL) {
-      bin_one(input->variable->compute_equal(m));
+    } else if (which[i] == VARIABLE) {
+      if (kind == GLOBAL && mode == SCALAR) {
+        if (j == 0) bin_one(input->variable->compute_equal(m));
+        else {
+          double *varvec;
+          int nvec = input->variable->compute_vector(m,&varvec);
+          if (nvec < j) bin_one(0.0);
+          else bin_one(varvec[j-1]);
+        }
 
-    } else if (which[i] == VARIABLE && kind == PERATOM) {
-      if (atom->nlocal > maxatom) {
-        memory->destroy(vector);
-        maxatom = atom->nmax;
-        memory->create(vector,maxatom,"ave/histo:vector");
+      } else if (kind == GLOBAL && mode == VECTOR) {
+        double *varvec;
+        int nvec = input->variable->compute_vector(m,&varvec);
+        bin_vector(nvec,varvec,1);
+
+      } else if (which[i] == VARIABLE && kind == PERATOM) {
+        if (atom->nlocal > maxatom) {
+          memory->destroy(vector);
+          maxatom = atom->nmax;
+          memory->create(vector,maxatom,"ave/histo:vector");
+        }
+        input->variable->compute_atom(m,igroup,vector,1,0);
+        bin_atoms(vector,1);
       }
-      input->variable->compute_atom(m,igroup,vector,1,0);
-      bin_atoms(vector,1);
     }
   }
 

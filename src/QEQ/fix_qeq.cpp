@@ -92,6 +92,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   q1 = NULL;
   q2 = NULL;
   streitz_flag = 0;
+  qv = NULL;
 
   comm_forward = comm_reverse = 1;
 
@@ -170,6 +171,8 @@ void FixQEq::allocate_storage()
   memory->create(qf,nmax,"qeq:qf");
   memory->create(q1,nmax,"qeq:q1");
   memory->create(q2,nmax,"qeq:q2");
+
+  memory->create(qv,nmax,"qeq:qv");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,6 +195,8 @@ void FixQEq::deallocate_storage()
   memory->destroy( qf );
   memory->destroy( q1 );
   memory->destroy( q2 );
+
+  memory->destroy( qv );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -318,6 +323,8 @@ void FixQEq::init_storage()
     qf[i] = 0.0;
     q1[i] = 0.0;
     q2[i] = 0.0;
+
+    qv[i] = 0.0;
   }
 }
 

@@ -57,9 +57,9 @@ number {Nc} of thermostats in each chain.  For example, for a
 simulation of N particles with P beads in each ring-polymer, the total
 number of NH thermostats would be 3 x N x P x Nc.
 
-IMPORTANT NOTE: This fix implements a complete velocity-verlet
-integrator combined with NH massive chain thermostat, so no
-other time integration fix should be used.
+NOTE: This fix implements a complete velocity-verlet integrator
+combined with NH massive chain thermostat, so no other time
+integration fix should be used.
 
 The {method} keyword determines what style of PIMD is performed.  A
 value of {pimd} is standard PIMD.  A value of {nmpimd} is for

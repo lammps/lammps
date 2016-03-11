@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix ave/spatial command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>fix ave/spatial command &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -198,7 +198,7 @@ fix 1 flow ave/spatial 100 5 1000 z lower 1.0 y 0.0 2.5 density/mass ave running
 fix 1 flow ave/spatial 100 5 1000 z lower 1.0 y 0.0 2.5 density/mass bound y 5.0 20.0 discard yes ave running
 </pre></div>
 </div>
-<p><strong>IMPORTANT NOTE:</strong></p>
+<p><strong>NOTE:</strong></p>
 <p>The fix ave/spatial command has been replaced by the more flexible
 <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> and <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> commands.  The fix ave/spatial
 command will be removed from LAMMPS sometime in the summer of 2015.</p>
@@ -243,16 +243,16 @@ independently of the per-atom values in other input vectors.</p>
 pencils, 3d = boxes) are determined by the <em>dim</em>, <em>origin</em>, and
 <em>delta</em> settings and how many times they are specified (1, 2, or 3).
 See details below.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This fix works by creating an array of size Nbins by
-Nvalues on each processor.  Nbins is the total number of bins; Nvalues
-is the number of input values specified.  Each processor loops over
-its atoms, tallying its values to the appropriate bin.  Then the
-entire array is summed across all processors.  This means that using a
-large number of bins (easy to do for 2d or 3d bins) will incur an
-overhead in memory and computational cost (summing across processors),
-so be careful to use reasonable numbers of bins.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This fix works by creating an array of size Nbins by Nvalues on
+each processor.  Nbins is the total number of bins; Nvalues is the
+number of input values specified.  Each processor loops over its
+atoms, tallying its values to the appropriate bin.  Then the entire
+array is summed across all processors.  This means that using a large
+number of bins (easy to do for 2d or 3d bins) will incur an overhead
+in memory and computational cost (summing across processors), so be
+careful to use reasonable numbers of bins.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> arguments specify on what
@@ -262,8 +262,8 @@ that are a multiples of <em>Nfreq</em>.  The average is over <em>Nrepeat</em>
 quantities, computed in the preceding portion of the simulation every
 <em>Nevery</em> timesteps.  <em>Nfreq</em> must be a multiple of <em>Nevery</em> and
 <em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.  Also, the timesteps
-contributing to the average value cannot overlap, i.e. Nfreq &gt;
-(Nrepeat-1)*Nevery is required.</p>
+contributing to the average value cannot overlap,
+i.e. Nrepeat*Nevery can not exceed Nfreq.</p>
 <p>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
@@ -512,7 +512,7 @@ output, and title 1,2,3 = strings as described above.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -533,7 +533,7 @@ output, and title 1,2,3 = strings as described above.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

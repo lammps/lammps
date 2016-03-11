@@ -192,7 +192,6 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       else Kokkos::parallel_for(config,f);
     }
   }
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -1375,8 +1374,11 @@ void PairTableKokkos<DeviceType>::cleanup_copy() {
   h_table=NULL; d_table=NULL;
 }
 
+namespace LAMMPS_NS {
 template class PairTableKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairTableKokkos<LMPHostType>;
 #endif
+
+}
 

@@ -22,8 +22,7 @@ compute TDRUDE all temp/drude :pre
 [Description:]
 
 Define a computation that calculates the temperatures of core-Drude
-pairs.  This compute is designed to be used with the thermalized Drude
-oscillator model.  This compute is designed to be used with the
+pairs. This compute is designed to be used with the
 "thermalized Drude oscillator model"_tutorial_drude.html.  Polarizable
 models in LAMMPS are described in "this
 Section"_Section_howto.html#howto_25.
@@ -75,7 +74,7 @@ assumed to be constant for the duration of the run unless the
 [Related commands:]
 
 "fix drude"_fix_drude.html, "fix
-langevin_drude"_fix_langevin_drude.html, "fix
+langevin/drude"_fix_langevin_drude.html, "fix
 drude/transform"_fix_drude_transform.html, "pair_style
 thole"_pair_thole.html, "compute temp"_compute_temp.html
 

@@ -45,7 +45,6 @@ using namespace MathConst;
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
 #define CUDA_CHUNK 3000
-#define MAXBODY 20       // max # of lines in one body, also in ReadData class
 
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
@@ -93,6 +92,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   rho = drho = e = de = cv = NULL;
   vest = NULL;
+
+  // USER-DPD
+
+  uCond = uMech = uChem = uCG = uCGnew = NULL;
+  duCond = duMech = duChem = NULL;
+  dpdTheta = NULL;
 
   // USER-SMD
 
@@ -158,6 +163,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
   rho_flag = e_flag = cv_flag = vest_flag = 0;
+  dpd_flag = 0;
 
   // USER-SMD
 
@@ -273,6 +279,16 @@ Atom::~Atom()
   memory->destroy(eff_plastic_strain);
   memory->destroy(eff_plastic_strain_rate);
   memory->destroy(damage);
+
+  memory->destroy(dpdTheta);
+  memory->destroy(uCond);
+  memory->destroy(uMech);
+  memory->destroy(uChem);
+  memory->destroy(uCG);
+  memory->destroy(uCGnew);
+  memory->destroy(duCond);
+  memory->destroy(duMech);
+  memory->destroy(duChem);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -714,6 +730,29 @@ int Atom::count_words(const char *line)
 }
 
 /* ----------------------------------------------------------------------
+   count and return words in a single line using provided copy buf
+   make copy of line before using strtok so as not to change line
+   trim anything from '#' onward
+------------------------------------------------------------------------- */
+
+int Atom::count_words(const char *line, char *copy)
+{
+  strcpy(copy,line);
+
+  char *ptr;
+  if ((ptr = strchr(copy,'#'))) *ptr = '\0';
+
+  if (strtok(copy," \t\n\r\f") == NULL) {
+    memory->destroy(copy);
+    return 0;
+  }
+  int n = 1;
+  while (strtok(NULL," \t\n\r\f")) n++;
+
+  return n;
+}
+
+/* ----------------------------------------------------------------------
    deallocate molecular topology arrays
    done before realloc with (possibly) new 2nd dimension set to
      correctly initialized per-atom values, e.g. bond_per_atom
@@ -756,7 +795,7 @@ void Atom::deallocate_topology()
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from Atom section of data file
+   unpack N lines from Atom section of data file
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
@@ -900,7 +939,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from Velocity section of data file
+   unpack N lines from Velocity section of data file
    check that atom IDs are > 0 and <= map_tag_max
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
@@ -1240,7 +1279,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from atom-style specific section of data file
+   unpack N lines from atom-style specific bonus section of data file
    check that atom IDs are > 0 and <= map_tag_max
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
@@ -1287,7 +1326,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines from atom-style specific section of data file
+   unpack N bodies from Bodies section of data file
+   each body spans multiple lines
    check that atom IDs are > 0 and <= map_tag_max
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
@@ -1295,31 +1335,51 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
                        tagint id_offset)
 {
-  int j,m,tagdata,ninteger,ndouble;
+  int j,m,nvalues,tagdata,ninteger,ndouble;
 
-  char **ivalues = new char*[10*MAXBODY];
-  char **dvalues = new char*[10*MAXBODY];
+  int maxint = 0;
+  int maxdouble = 0;
+  int *ivalues = NULL;
+  double *dvalues = NULL;
 
   // loop over lines of body data
-  // tokenize the lines into ivalues and dvalues
-  // if I own atom tag, unpack its values
+  // if I own atom tag, tokenize lines into ivalues/dvalues, call data_body()
+  // else skip values
 
   for (int i = 0; i < n; i++) {
     if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
     else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f")) + id_offset;
-    ninteger = atoi(strtok(NULL," \t\n\r\f"));
-    ndouble = atoi(strtok(NULL," \t\n\r\f"));
-
-    for (j = 0; j < ninteger; j++)
-      ivalues[j] = strtok(NULL," \t\n\r\f");
-    for (j = 0; j < ndouble; j++)
-      dvalues[j] = strtok(NULL," \t\n\r\f");
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
 
-    if ((m = map(tagdata)) >= 0)
+    ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    
+    if ((m = map(tagdata)) >= 0) {
+      if (ninteger > maxint) {
+	delete [] ivalues;
+	maxint = ninteger;
+	ivalues = new int[maxint];
+      }
+      if (ndouble > maxdouble) {
+	delete [] dvalues;
+	maxdouble = ndouble;
+	dvalues = new double[maxdouble];
+      }
+      
+      for (j = 0; j < ninteger; j++)
+	ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+      for (j = 0; j < ndouble; j++)
+	dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+      
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
+      
+    } else {
+      nvalues = ninteger + ndouble;    // number of values to skip
+      for (j = 0; j < nvalues; j++)
+	strtok(NULL," \t\n\r\f");
+    }
   }
 
   delete [] ivalues;
@@ -1551,7 +1611,13 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   else if (rmass_flag)
     rmass[ilocal] = 4.0*MY_PI/3.0 *
       radius[ilocal]*radius[ilocal]*radius[ilocal];
-
+  if (onemol->bodyflag) {
+    body[ilocal] = 0;     // as if a body read from data file
+    onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
+				 onemol->ibodyparams,onemol->dbodyparams);
+    onemol->avec_body->set_quat(ilocal,onemol->quat_external);
+  }
+  
   if (molecular != 1) return;
 
   // add bond topology info
@@ -2055,6 +2121,8 @@ void *Atom::extract(char *name)
   if (strcmp(name, "eff_plastic_strain_rate") == 0)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
+
+  if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
 
   return NULL;
 }

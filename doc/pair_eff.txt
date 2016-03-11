@@ -173,21 +173,21 @@ core pseudo particle and valence electrons within the Pauli repulsion.
 A list of type:element-symbol pairs may be provided for all ECP
 representations, after the "ecp" keyword.
 
-IMPORTANT NOTE: Default ECP parameters are provided for C, N, O, Al,
-and Si.  Users can modify these using the pair_coeff command as
-exemplified above.  For this, the User must distinguish between two
-different functional forms supported, one that captures the orbital
-overlap assuming the s-type core interacts with an s-like valence
-electron (s-s) and another that assumes the interaction is s-p.  For
-systems that exhibit significant p-character (e.g. C, N, O) the s-p
-form is recommended. The "s" ECP form requires 3 parameters and the
-"p" 5 parameters.
+NOTE: Default ECP parameters are provided for C, N, O, Al, and Si.
+Users can modify these using the pair_coeff command as exemplified
+above.  For this, the User must distinguish between two different
+functional forms supported, one that captures the orbital overlap
+assuming the s-type core interacts with an s-like valence electron
+(s-s) and another that assumes the interaction is s-p.  For systems
+that exhibit significant p-character (e.g. C, N, O) the s-p form is
+recommended. The "s" ECP form requires 3 parameters and the "p" 5
+parameters.
 
-IMPORTANT NOTE: there are two different pressures that can be reported
-for eFF when defining this pair_style, one (default) that considers
-electrons do not contribute radial virial components (i.e. electrons
-treated as incompressible 'rigid' spheres) and one that does.  The
-radial electronic contributions to the virials are only tallied if the
+NOTE: there are two different pressures that can be reported for eFF
+when defining this pair_style, one (default) that considers electrons
+do not contribute radial virial components (i.e. electrons treated as
+incompressible 'rigid' spheres) and one that does.  The radial
+electronic contributions to the virials are only tallied if the
 flexible pressure option is set, and this will affect both global and
 per-atom quantities.  In principle, the true pressure of a system is
 somewhere in between the rigid and the flexible eFF pressures, but,
@@ -197,15 +197,14 @@ partitioning changes, the total energy remains similar).
 
 :line
 
-IMPORTANT NOTE: This implemention of eFF gives a reasonably accurate
-description for systems containing nuclei from Z = 1-6 in "all
-electron" representations.  For systems with increasingly
-non-spherical electrons, Users should use the ECP representations.
-ECPs are now supported and validated for most of the 2nd and 3rd row
-elements of the p-block.  Predefined parameters are provided for C, N,
-O, Al, and Si.  The ECP captures the orbital overlap between the core
-and valence electrons (i.e. Pauli repulsion) with one of the
-functional forms:
+NOTE: This implemention of eFF gives a reasonably accurate description
+for systems containing nuclei from Z = 1-6 in "all electron"
+representations.  For systems with increasingly non-spherical
+electrons, Users should use the ECP representations.  ECPs are now
+supported and validated for most of the 2nd and 3rd row elements of
+the p-block.  Predefined parameters are provided for C, N, O, Al, and
+Si.  The ECP captures the orbital overlap between the core and valence
+electrons (i.e. Pauli repulsion) with one of the functional forms:
 
 :c,image(Eqs/eff_ECP1.jpg)
 :c,image(Eqs/eff_ECP2.jpg)

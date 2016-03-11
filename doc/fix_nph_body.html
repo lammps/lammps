@@ -1,0 +1,309 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix nph/body command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix nph/body command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-nph-body-command">
+<span id="index-0"></span><h1>fix nph/body command<a class="headerlink" href="#fix-nph-body-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID nph/body args keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>nph/body = style name of this fix command</li>
+<li>additional barostat related keyword/value pairs from the <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> command can be appended</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all nph/body iso 0.0 0.0 1000.0
+fix 2 all nph/body x 5.0 5.0 1000.0
+fix 2 all nph/body x 5.0 5.0 1000.0 drag 0.2
+fix 2 water nph/body aniso 0.0 0.0 1000.0 dilate partial
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Perform constant NPH integration to update position, velocity,
+orientation, and angular velocity each timestep for body
+particles in the group using a Nose/Hoover pressure
+barostat.  P is pressure; H is enthalpy.  This creates a system
+trajectory consistent with the isenthalpic ensemble.</p>
+<p>This fix differs from the <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> command, which assumes
+point particles and only updates their position and velocity.</p>
+<p>Additional parameters affecting the barostat are specified by keywords
+and values documented with the <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> command.  See,
+for example, discussion of the <em>aniso</em>, and <em>dilate</em> keywords.</p>
+<p>The particles in the fix group are the only ones whose velocities and
+positions are updated by the velocity/position update portion of the
+NPH integration.</p>
+<p>Regardless of what particles are in the fix group, a global pressure is
+computed for all particles.  Similarly, when the size of the simulation
+box is changed, all particles are re-scaled to new positions, unless the
+keyword <em>dilate</em> is specified with a value of <em>partial</em>, in which case
+only the particles in the fix group are re-scaled.  The latter can be
+useful for leaving the coordinates of particles in a solid substrate
+unchanged and controlling the pressure of a surrounding fluid.</p>
+<hr class="docutils" />
+<p>This fix computes a temperature and pressure each timestep.  To do
+this, the fix creates its own computes of style &#8220;temp/body&#8221; and
+&#8220;pressure&#8221;, as if these commands had been issued:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute fix-ID_temp all temp/body
+compute fix-ID_press all pressure fix-ID_temp
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="compute_temp_body.html"><em>compute temp/body</em></a> and <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
++ underscore + &#8220;press&#8221;, and the group for the new computes is &#8220;all&#8221;
+since pressure is computed for the entire system.</p>
+<p>Note that these are NOT the computes used by thermodynamic output (see
+the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command) with ID = <em>thermo_temp</em>
+and <em>thermo_press</em>.  This means you can change the attributes of this
+fix&#8217;s temperature or pressure via the
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command or print this temperature
+or pressure during thermodynamic output via the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command using the appropriate compute-ID.
+It also means that changing attributes of <em>thermo_temp</em> or
+<em>thermo_press</em> will have no effect on this fix.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>This fix writes the state of the Nose/Hoover barostat to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>temp</em> and <em>press</em> options are
+supported by this fix.  You can use them to assign a
+<a class="reference internal" href="compute.html"><em>compute</em></a> you have defined to this fix which will be used
+in its thermostatting or barostatting procedure.  If you do this, note
+that the kinetic energy derived from the compute temperature should be
+consistent with the virial term computed using all atoms for the
+pressure.  LAMMPS will warn you if you choose to compute temperature
+on a subset of atoms.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
+fix to add the energy change induced by Nose/Hoover barostatting to
+the system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
+<p>This fix computes the same global scalar and global vector of
+quantities as does the <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> command.</p>
+<p>This fix can ramp its target pressure over multiple runs, using the
+<em>start</em> and <em>stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.  See the
+<a class="reference internal" href="run.html"><em>run</em></a> command for details of how to do this.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the BODY package.  It is only enabled if LAMMPS
+was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This fix requires that atoms store torque and angular momementum and a
+quaternion as defined by the <a class="reference internal" href="atom_style.html"><em>atom_style body</em></a>
+command.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>, <a class="reference internal" href="fix_nve_body.html"><em>fix nve_body</em></a>, <a class="reference internal" href="fix_nvt_body.html"><em>fix nvt_body</em></a>, <a class="reference internal" href="fix_npt_body.html"><em>fix npt_body</em></a>, <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

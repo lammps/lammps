@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>3. Commands &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>3. Commands &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
         <link rel="next" title="4. Packages" href="Section_packages.html"/>
         <link rel="prev" title="2. Getting Started" href="Section_start.html"/> 
 
@@ -302,10 +302,10 @@ the single argument they enclose is stored internally.</p>
 <a class="reference internal" href="if.html"><em>if</em></a>, and <a class="reference internal" href="python.html"><em>python</em></a> commands for examples.</p>
 <p>A &#8220;#&#8221; or &#8220;$&#8221; character that is between quotes will not be treated as a
 comment indicator in (2) or substituted for as a variable in (3).</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If the argument is itself a command that requires a
-quoted argument (e.g. using a <a class="reference internal" href="print.html"><em>print</em></a> command as part of an
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the argument is itself a command that requires a quoted
+argument (e.g. using a <a class="reference internal" href="print.html"><em>print</em></a> command as part of an
 <a class="reference internal" href="if.html"><em>if</em></a> or <a class="reference internal" href="run.html"><em>run every</em></a> command), then single, double, or
 triple quotes can be nested in the usual manner.  See the doc pages
 for those commands for examples.  Only one of level of nesting is
@@ -588,10 +588,14 @@ in the command&#8217;s documentation.</p>
 <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="100%" />
+<col width="41%" />
+<col width="29%" />
+<col width="29%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="group2ndx.html"><em>group2ndx</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="dump_custom_vtk.html"><em>dump custom/vtk</em></a></td>
+<td><a class="reference internal" href="group2ndx.html"><em>group2ndx</em></a></td>
+<td><a class="reference internal" href="group2ndx.html"><em>ndx2group</em></a></td>
 </tr>
 </tbody>
 </table>
@@ -607,13 +611,13 @@ This is indicated by additional letters in parenthesis: c = USER-CUDA,
 g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="16%" />
+<col width="15%" />
+<col width="13%" />
 <col width="11%" />
 <col width="12%" />
-<col width="13%" />
-<col width="10%" />
 <col width="11%" />
-<col width="15%" />
+<col width="16%" />
+<col width="11%" />
 <col width="12%" />
 </colgroup>
 <tbody valign="top">
@@ -662,93 +666,93 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <td><a class="reference internal" href="fix_nphug.html"><em>nphug (o)</em></a></td>
 <td><a class="reference internal" href="fix_nph_asphere.html"><em>nph/asphere (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_nph_sphere.html"><em>nph/sphere (o)</em></a></td>
-<td><a class="reference internal" href="fix_nh.html"><em>npt (cko)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="fix_nph_body.html"><em>nph/body</em></a></td>
+<td><a class="reference internal" href="fix_nph_sphere.html"><em>nph/sphere (o)</em></a></td>
+<td><a class="reference internal" href="fix_nh.html"><em>npt (ckio)</em></a></td>
 <td><a class="reference internal" href="fix_npt_asphere.html"><em>npt/asphere (o)</em></a></td>
+<td><a class="reference internal" href="fix_npt_body.html"><em>npt/body</em></a></td>
 <td><a class="reference internal" href="fix_npt_sphere.html"><em>npt/sphere (o)</em></a></td>
-<td><a class="reference internal" href="fix_nve.html"><em>nve (cko)</em></a></td>
-<td><a class="reference internal" href="fix_nve_asphere.html"><em>nve/asphere</em></a></td>
-<td><a class="reference internal" href="fix_nve_asphere_noforce.html"><em>nve/asphere/noforce</em></a></td>
-<td><a class="reference internal" href="fix_nve_body.html"><em>nve/body</em></a></td>
+<td><a class="reference internal" href="fix_nve.html"><em>nve (ckio)</em></a></td>
+<td><a class="reference internal" href="fix_nve_asphere.html"><em>nve/asphere (i)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_nve_limit.html"><em>nve/limit</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_nve_asphere_noforce.html"><em>nve/asphere/noforce</em></a></td>
+<td><a class="reference internal" href="fix_nve_body.html"><em>nve/body</em></a></td>
+<td><a class="reference internal" href="fix_nve_limit.html"><em>nve/limit</em></a></td>
 <td><a class="reference internal" href="fix_nve_line.html"><em>nve/line</em></a></td>
 <td><a class="reference internal" href="fix_nve_noforce.html"><em>nve/noforce</em></a></td>
 <td><a class="reference internal" href="fix_nve_sphere.html"><em>nve/sphere (o)</em></a></td>
 <td><a class="reference internal" href="fix_nve_tri.html"><em>nve/tri</em></a></td>
-<td><a class="reference internal" href="fix_nh.html"><em>nvt (cko)</em></a></td>
-<td><a class="reference internal" href="fix_nvt_asphere.html"><em>nvt/asphere (o)</em></a></td>
-<td><a class="reference internal" href="fix_nvt_sllod.html"><em>nvt/sllod (o)</em></a></td>
+<td><a class="reference internal" href="fix_nh.html"><em>nvt (ciko)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_nvt_sphere.html"><em>nvt/sphere (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="fix_nvt_asphere.html"><em>nvt/asphere (o)</em></a></td>
+<td><a class="reference internal" href="fix_nvt_body.html"><em>nvt/body</em></a></td>
+<td><a class="reference internal" href="fix_nvt_sllod.html"><em>nvt/sllod (io)</em></a></td>
+<td><a class="reference internal" href="fix_nvt_sphere.html"><em>nvt/sphere (o)</em></a></td>
 <td><a class="reference internal" href="fix_oneway.html"><em>oneway</em></a></td>
 <td><a class="reference internal" href="fix_orient_fcc.html"><em>orient/fcc</em></a></td>
 <td><a class="reference internal" href="fix_planeforce.html"><em>planeforce</em></a></td>
 <td><a class="reference internal" href="fix_poems.html"><em>poems</em></a></td>
-<td><a class="reference internal" href="fix_pour.html"><em>pour</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_pour.html"><em>pour</em></a></td>
 <td><a class="reference internal" href="fix_press_berendsen.html"><em>press/berendsen</em></a></td>
 <td><a class="reference internal" href="fix_print.html"><em>print</em></a></td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_property_atom.html"><em>property/atom</em></a></td>
+<td><a class="reference internal" href="fix_property_atom.html"><em>property/atom</em></a></td>
 <td><a class="reference internal" href="fix_qeq_comb.html"><em>qeq/comb (o)</em></a></td>
 <td><a class="reference internal" href="fix_qeq.html"><em>qeq/dynamic</em></a></td>
+<td><a class="reference internal" href="fix_qeq.html"><em>qeq/fire</em></a></td>
 <td><a class="reference internal" href="fix_qeq.html"><em>qeq/point</em></a></td>
-<td><a class="reference internal" href="fix_qeq.html"><em>qeq/shielded</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_qeq.html"><em>qeq/shielded</em></a></td>
 <td><a class="reference internal" href="fix_qeq.html"><em>qeq/slater</em></a></td>
+<td><a class="reference internal" href="fix_shake.html"><em>rattle</em></a></td>
 <td><a class="reference internal" href="fix_reax_bonds.html"><em>reax/bonds</em></a></td>
 <td><a class="reference internal" href="fix_recenter.html"><em>recenter</em></a></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_restrain.html"><em>restrain</em></a></td>
+<td><a class="reference internal" href="fix_restrain.html"><em>restrain</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid (o)</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid/nph (o)</em></a></td>
-<td><a class="reference internal" href="fix_rigid.html"><em>rigid/npt (o)</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_rigid.html"><em>rigid/npt (o)</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid/nve (o)</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid/nvt (o)</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid/small (o)</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid/small/nph</em></a></td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_rigid.html"><em>rigid/small/npt</em></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><em>rigid/small/npt</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid/small/nve</em></a></td>
 <td><a class="reference internal" href="fix_rigid.html"><em>rigid/small/nvt</em></a></td>
-<td><a class="reference internal" href="fix_setforce.html"><em>setforce (c)</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_setforce.html"><em>setforce (ck)</em></a></td>
 <td><a class="reference internal" href="fix_shake.html"><em>shake (c)</em></a></td>
 <td><a class="reference internal" href="fix_spring.html"><em>spring</em></a></td>
 <td><a class="reference internal" href="fix_spring_rg.html"><em>spring/rg</em></a></td>
 <td><a class="reference internal" href="fix_spring_self.html"><em>spring/self</em></a></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_srd.html"><em>srd</em></a></td>
+<td><a class="reference internal" href="fix_srd.html"><em>srd</em></a></td>
 <td><a class="reference internal" href="fix_store_force.html"><em>store/force</em></a></td>
 <td><a class="reference internal" href="fix_store_state.html"><em>store/state</em></a></td>
-<td><a class="reference internal" href="fix_temp_berendsen.html"><em>temp/berendsen (c)</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_temp_berendsen.html"><em>temp/berendsen (c)</em></a></td>
 <td><a class="reference internal" href="fix_temp_csvr.html"><em>temp/csld</em></a></td>
 <td><a class="reference internal" href="fix_temp_csvr.html"><em>temp/csvr</em></a></td>
 <td><a class="reference internal" href="fix_temp_rescale.html"><em>temp/rescale (c)</em></a></td>
 <td><a class="reference internal" href="fix_tfmc.html"><em>tfmc</em></a></td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_thermal_conductivity.html"><em>thermal/conductivity</em></a></td>
+<td><a class="reference internal" href="fix_thermal_conductivity.html"><em>thermal/conductivity</em></a></td>
 <td><a class="reference internal" href="fix_tmd.html"><em>tmd</em></a></td>
 <td><a class="reference internal" href="fix_ttm.html"><em>ttm</em></a></td>
-<td><a class="reference internal" href="fix_tune_kspace.html"><em>tune/kspace</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_tune_kspace.html"><em>tune/kspace</em></a></td>
 <td><a class="reference internal" href="fix_vector.html"><em>vector</em></a></td>
 <td><a class="reference internal" href="fix_viscosity.html"><em>viscosity</em></a></td>
 <td><a class="reference internal" href="fix_viscous.html"><em>viscous (c)</em></a></td>
 <td><a class="reference internal" href="fix_wall.html"><em>wall/colloid</em></a></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_wall_gran.html"><em>wall/gran</em></a></td>
+<td><a class="reference internal" href="fix_wall_gran.html"><em>wall/gran</em></a></td>
 <td><a class="reference internal" href="fix_wall.html"><em>wall/harmonic</em></a></td>
 <td><a class="reference internal" href="fix_wall.html"><em>wall/lj1043</em></a></td>
-<td><a class="reference internal" href="fix_wall.html"><em>wall/lj126</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_wall.html"><em>wall/lj126</em></a></td>
 <td><a class="reference internal" href="fix_wall.html"><em>wall/lj93</em></a></td>
 <td><a class="reference internal" href="fix_wall_piston.html"><em>wall/piston</em></a></td>
 <td><a class="reference internal" href="fix_wall_reflect.html"><em>wall/reflect (k)</em></a></td>
 <td><a class="reference internal" href="fix_wall_region.html"><em>wall/region</em></a></td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_wall_srd.html"><em>wall/srd</em></a></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
+<td><a class="reference internal" href="fix_wall_srd.html"><em>wall/srd</em></a></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
@@ -758,12 +762,12 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="15%" />
-<col width="15%" />
 <col width="20%" />
 <col width="14%" />
 <col width="22%" />
+<col width="14%" />
+<col width="15%" />
+<col width="15%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="fix_adapt_fep.html"><em>adapt/fep</em></a></td>
@@ -771,55 +775,62 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <td><a class="reference internal" href="fix_atc.html"><em>atc</em></a></td>
 <td><a class="reference internal" href="fix_ave_correlate_long.html"><em>ave/correlate/long</em></a></td>
 <td><a class="reference internal" href="fix_ave_spatial_sphere.html"><em>ave/spatial/sphere</em></a></td>
-<td><a class="reference internal" href="fix_drude.html"><em>drude</em></a></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_drude_transform.html"><em>drude/transform/direct</em></a></td>
-<td><a class="reference internal" href="fix_drude_transform.html"><em>drude/transform/reverse</em></a></td>
 <td><a class="reference internal" href="fix_colvars.html"><em>colvars</em></a></td>
-<td><a class="reference internal" href="fix_gle.html"><em>gle</em></a></td>
-<td><a class="reference internal" href="fix_imd.html"><em>imd</em></a></td>
-<td><a class="reference internal" href="fix_ipi.html"><em>ipi</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_langevin_drude.html"><em>langevin/drude</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="fix_drude.html"><em>drude</em></a></td>
+<td><a class="reference internal" href="fix_drude_transform.html"><em>drude/transform/direct</em></a></td>
+<td><a class="reference internal" href="fix_drude_transform.html"><em>drude/transform/reverse</em></a></td>
+<td><a class="reference internal" href="fix_eos_cv.html"><em>eos/cv</em></a></td>
+<td><a class="reference internal" href="fix_eos_table.html"><em>eos/table</em></a></td>
+<td><a class="reference internal" href="fix_gle.html"><em>gle</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_imd.html"><em>imd</em></a></td>
+<td><a class="reference internal" href="fix_ipi.html"><em>ipi</em></a></td>
+<td><a class="reference internal" href="fix_langevin_drude.html"><em>langevin/drude</em></a></td>
 <td><a class="reference internal" href="fix_langevin_eff.html"><em>langevin/eff</em></a></td>
 <td><a class="reference internal" href="fix_lb_fluid.html"><em>lb/fluid</em></a></td>
 <td><a class="reference internal" href="fix_lb_momentum.html"><em>lb/momentum</em></a></td>
-<td><a class="reference internal" href="fix_lb_pc.html"><em>lb/pc</em></a></td>
-<td><a class="reference internal" href="fix_lb_rigid_pc_sphere.html"><em>lb/rigid/pc/sphere</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_lb_viscous.html"><em>lb/viscous</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="fix_lb_pc.html"><em>lb/pc</em></a></td>
+<td><a class="reference internal" href="fix_lb_rigid_pc_sphere.html"><em>lb/rigid/pc/sphere</em></a></td>
+<td><a class="reference internal" href="fix_lb_viscous.html"><em>lb/viscous</em></a></td>
 <td><a class="reference internal" href="fix_meso.html"><em>meso</em></a></td>
 <td><a class="reference internal" href="fix_meso_stationary.html"><em>meso/stationary</em></a></td>
 <td><a class="reference internal" href="fix_nh_eff.html"><em>nph/eff</em></a></td>
-<td><a class="reference internal" href="fix_nh_eff.html"><em>npt/eff</em></a></td>
-<td><a class="reference internal" href="fix_nve_eff.html"><em>nve/eff</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_nh_eff.html"><em>nvt/eff</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_nh_eff.html"><em>npt/eff</em></a></td>
+<td><a class="reference internal" href="fix_nve_eff.html"><em>nve/eff</em></a></td>
+<td><a class="reference internal" href="fix_nh_eff.html"><em>nvt/eff</em></a></td>
 <td><a class="reference internal" href="fix_nvt_sllod_eff.html"><em>nvt/sllod/eff</em></a></td>
 <td><a class="reference internal" href="fix_phonon.html"><em>phonon</em></a></td>
 <td><a class="reference internal" href="fix_pimd.html"><em>pimd</em></a></td>
-<td><a class="reference internal" href="fix_qbmsst.html"><em>qbmsst</em></a></td>
-<td><a class="reference internal" href="fix_qeq_reax.html"><em>qeq/reax</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_qmmm.html"><em>qmmm</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="fix_qbmsst.html"><em>qbmsst</em></a></td>
+<td><a class="reference internal" href="fix_qeq_reax.html"><em>qeq/reax</em></a></td>
+<td><a class="reference internal" href="fix_qmmm.html"><em>qmmm</em></a></td>
 <td><a class="reference internal" href="fix_qtb.html"><em>qtb</em></a></td>
 <td><a class="reference internal" href="fix_reax_bonds.html"><em>reax/c/bonds</em></a></td>
 <td><a class="reference internal" href="fix_reaxc_species.html"><em>reax/c/species</em></a></td>
-<td><a class="reference internal" href="fix_saed_vtk.html"><em>saed/vtk</em></a></td>
-<td><a class="reference internal" href="fix_smd.html"><em>smd</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_smd_adjust_dt.html"><em>smd/adjust/dt</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_saed_vtk.html"><em>saed/vtk</em></a></td>
+<td><a class="reference internal" href="fix_shardlow.html"><em>shardlow</em></a></td>
+<td><a class="reference internal" href="fix_smd.html"><em>smd</em></a></td>
+<td><a class="reference internal" href="fix_smd_adjust_dt.html"><em>smd/adjust/dt</em></a></td>
 <td><a class="reference internal" href="fix_smd_integrate_tlsph.html"><em>smd/integrate/tlsph</em></a></td>
 <td><a class="reference internal" href="fix_smd_integrate_ulsph.html"><em>smd/integrate/ulsph</em></a></td>
-<td><a class="reference internal" href="fix_smd_move_triangulated_surface.html"><em>smd/move/triangulated/surface</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_smd_move_triangulated_surface.html"><em>smd/move/triangulated/surface</em></a></td>
 <td><a class="reference internal" href="fix_smd_setvel.html"><em>smd/setvel</em></a></td>
 <td><a class="reference internal" href="fix_smd_tlsph_reference_configuration.html"><em>smd/tlsph/reference/configuration</em></a></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_smd_wall_surface.html"><em>smd/wall/surface</em></a></td>
+<td><a class="reference internal" href="fix_smd_wall_surface.html"><em>smd/wall/surface</em></a></td>
 <td><a class="reference internal" href="fix_temp_rescale_eff.html"><em>temp/rescale/eff</em></a></td>
 <td><a class="reference internal" href="fix_ti_rs.html"><em>ti/rs</em></a></td>
-<td><a class="reference internal" href="fix_ti_spring.html"><em>ti/spring</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_ti_spring.html"><em>ti/spring</em></a></td>
 <td><a class="reference internal" href="fix_ttm.html"><em>ttm/mod</em></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -839,9 +850,9 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 <col width="16%" />
 <col width="19%" />
 <col width="16%" />
+<col width="15%" />
 <col width="16%" />
-<col width="16%" />
-<col width="16%" />
+<col width="17%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="compute_angle_local.html"><em>angle/local</em></a></td>
@@ -884,46 +895,46 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 <td><a class="reference internal" href="compute_msd_chunk.html"><em>msd/chunk</em></a></td>
 <td><a class="reference internal" href="compute_msd_nongauss.html"><em>msd/nongauss</em></a></td>
 <td><a class="reference internal" href="compute_omega_chunk.html"><em>omega/chunk</em></a></td>
-<td><a class="reference internal" href="compute_pair.html"><em>pair</em></a></td>
+<td><a class="reference internal" href="compute_orientorder_atom.html"><em>orientorder/atom</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="compute_pair_local.html"><em>pair/local</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="compute_pair.html"><em>pair</em></a></td>
+<td><a class="reference internal" href="compute_pair_local.html"><em>pair/local</em></a></td>
 <td><a class="reference internal" href="compute_pe.html"><em>pe (c)</em></a></td>
 <td><a class="reference internal" href="compute_pe_atom.html"><em>pe/atom</em></a></td>
 <td><a class="reference internal" href="compute_plasticity_atom.html"><em>plasticity/atom</em></a></td>
 <td><a class="reference internal" href="compute_pressure.html"><em>pressure (c)</em></a></td>
-<td><a class="reference internal" href="compute_property_atom.html"><em>property/atom</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_property_local.html"><em>property/local</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="compute_property_atom.html"><em>property/atom</em></a></td>
+<td><a class="reference internal" href="compute_property_local.html"><em>property/local</em></a></td>
 <td><a class="reference internal" href="compute_property_chunk.html"><em>property/chunk</em></a></td>
 <td><a class="reference internal" href="compute_rdf.html"><em>rdf</em></a></td>
 <td><a class="reference internal" href="compute_reduce.html"><em>reduce</em></a></td>
 <td><a class="reference internal" href="compute_reduce.html"><em>reduce/region</em></a></td>
-<td><a class="reference internal" href="compute_slice.html"><em>slice</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="compute_sna_atom.html"><em>sna/atom</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="compute_slice.html"><em>slice</em></a></td>
+<td><a class="reference internal" href="compute_sna_atom.html"><em>sna/atom</em></a></td>
 <td><a class="reference internal" href="compute_sna_atom.html"><em>snad/atom</em></a></td>
 <td><a class="reference internal" href="compute_sna_atom.html"><em>snav/atom</em></a></td>
 <td><a class="reference internal" href="compute_stress_atom.html"><em>stress/atom</em></a></td>
 <td><a class="reference internal" href="compute_temp.html"><em>temp (ck)</em></a></td>
-<td><a class="reference internal" href="compute_temp_asphere.html"><em>temp/asphere</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_temp_com.html"><em>temp/com</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="compute_temp_asphere.html"><em>temp/asphere</em></a></td>
+<td><a class="reference internal" href="compute_temp_body.html"><em>temp/body</em></a></td>
 <td><a class="reference internal" href="compute_temp_chunk.html"><em>temp/chunk</em></a></td>
+<td><a class="reference internal" href="compute_temp_com.html"><em>temp/com</em></a></td>
 <td><a class="reference internal" href="compute_temp_deform.html"><em>temp/deform</em></a></td>
 <td><a class="reference internal" href="compute_temp_partial.html"><em>temp/partial (c)</em></a></td>
-<td><a class="reference internal" href="compute_temp_profile.html"><em>temp/profile</em></a></td>
-<td><a class="reference internal" href="compute_temp_ramp.html"><em>temp/ramp</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="compute_temp_region.html"><em>temp/region</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="compute_temp_profile.html"><em>temp/profile</em></a></td>
+<td><a class="reference internal" href="compute_temp_ramp.html"><em>temp/ramp</em></a></td>
+<td><a class="reference internal" href="compute_temp_region.html"><em>temp/region</em></a></td>
 <td><a class="reference internal" href="compute_temp_sphere.html"><em>temp/sphere</em></a></td>
 <td><a class="reference internal" href="compute_ti.html"><em>ti</em></a></td>
 <td><a class="reference internal" href="compute_torque_chunk.html"><em>torque/chunk</em></a></td>
-<td><a class="reference internal" href="compute_vacf.html"><em>vacf</em></a></td>
-<td><a class="reference internal" href="compute_vcm_chunk.html"><em>vcm/chunk</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_voronoi_atom.html"><em>voronoi/atom</em></a></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
+<tr class="row-even"><td><a class="reference internal" href="compute_vacf.html"><em>vacf</em></a></td>
+<td><a class="reference internal" href="compute_vcm_chunk.html"><em>vcm/chunk</em></a></td>
+<td><a class="reference internal" href="compute_voronoi_atom.html"><em>voronoi/atom</em></a></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -934,61 +945,61 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 used if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
+<col width="15%" />
+<col width="18%" />
 <col width="17%" />
 <col width="15%" />
 <col width="19%" />
 <col width="16%" />
-<col width="15%" />
-<col width="18%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="compute_ackland_atom.html"><em>ackland/atom</em></a></td>
 <td><a class="reference internal" href="compute_basal_atom.html"><em>basal/atom</em></a></td>
+<td><a class="reference internal" href="compute_dpd.html"><em>dpd</em></a></td>
+<td><a class="reference internal" href="compute_dpd_atom.html"><em>dpd/atom</em></a></td>
 <td><a class="reference internal" href="compute_fep.html"><em>fep</em></a></td>
 <td><a class="reference internal" href="compute_tally.html"><em>force/tally</em></a></td>
-<td><a class="reference internal" href="compute_tally.html"><em>heat/flux/tally</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_tally.html"><em>heat/flux/tally</em></a></td>
 <td><a class="reference internal" href="compute_ke_eff.html"><em>ke/eff</em></a></td>
+<td><a class="reference internal" href="compute_ke_atom_eff.html"><em>ke/atom/eff</em></a></td>
+<td><a class="reference internal" href="compute_meso_e_atom.html"><em>meso/e/atom</em></a></td>
+<td><a class="reference internal" href="compute_meso_rho_atom.html"><em>meso/rho/atom</em></a></td>
+<td><a class="reference internal" href="compute_meso_t_atom.html"><em>meso/t/atom</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_ke_atom_eff.html"><em>ke/atom/eff</em></a></td>
-<td><a class="reference internal" href="compute_meso_e_atom.html"><em>meso_e/atom</em></a></td>
-<td><a class="reference internal" href="compute_meso_rho_atom.html"><em>meso_rho/atom</em></a></td>
-<td><a class="reference internal" href="compute_meso_t_atom.html"><em>meso_t/atom</em></a></td>
-<td><a class="reference internal" href="compute_tally.html"><em>pe/tally</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="compute_tally.html"><em>pe/tally</em></a></td>
 <td><a class="reference internal" href="compute_saed.html"><em>saed</em></a></td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="compute_smd_contact_radius.html"><em>smd/contact/radius</em></a></td>
+<td><a class="reference internal" href="compute_smd_contact_radius.html"><em>smd/contact/radius</em></a></td>
 <td><a class="reference internal" href="compute_smd_damage.html"><em>smd/damage</em></a></td>
 <td><a class="reference internal" href="compute_smd_hourglass_error.html"><em>smd/hourglass/error</em></a></td>
 <td><a class="reference internal" href="compute_smd_internal_energy.html"><em>smd/internal/energy</em></a></td>
-<td><a class="reference internal" href="compute_smd_plastic_strain.html"><em>smd/plastic/strain</em></a></td>
-<td><a class="reference internal" href="compute_smd_plastic_strain_rate.html"><em>smd/plastic/strain/rate</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_smd_rho.html"><em>smd/rho</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="compute_smd_plastic_strain.html"><em>smd/plastic/strain</em></a></td>
+<td><a class="reference internal" href="compute_smd_plastic_strain_rate.html"><em>smd/plastic/strain/rate</em></a></td>
+<td><a class="reference internal" href="compute_smd_rho.html"><em>smd/rho</em></a></td>
 <td><a class="reference internal" href="compute_smd_tlsph_defgrad.html"><em>smd/tlsph/defgrad</em></a></td>
 <td><a class="reference internal" href="compute_smd_tlsph_dt.html"><em>smd/tlsph/dt</em></a></td>
 <td><a class="reference internal" href="compute_smd_tlsph_num_neighs.html"><em>smd/tlsph/num/neighs</em></a></td>
-<td><a class="reference internal" href="compute_smd_tlsph_shape.html"><em>smd/tlsph/shape</em></a></td>
-<td><a class="reference internal" href="compute_smd_tlsph_strain.html"><em>smd/tlsph/strain</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="compute_smd_tlsph_strain_rate.html"><em>smd/tlsph/strain/rate</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="compute_smd_tlsph_shape.html"><em>smd/tlsph/shape</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_strain.html"><em>smd/tlsph/strain</em></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_strain_rate.html"><em>smd/tlsph/strain/rate</em></a></td>
 <td><a class="reference internal" href="compute_smd_tlsph_stress.html"><em>smd/tlsph/stress</em></a></td>
 <td><a class="reference internal" href="compute_smd_triangle_mesh_vertices.html"><em>smd/triangle/mesh/vertices</em></a></td>
 <td><a class="reference internal" href="compute_smd_ulsph_num_neighs.html"><em>smd/ulsph/num/neighs</em></a></td>
-<td><a class="reference internal" href="compute_smd_ulsph_strain.html"><em>smd/ulsph/strain</em></a></td>
-<td><a class="reference internal" href="compute_smd_ulsph_strain_rate.html"><em>smd/ulsph/strain/rate</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="compute_smd_ulsph_stress.html"><em>smd/ulsph/stress</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="compute_smd_ulsph_strain.html"><em>smd/ulsph/strain</em></a></td>
+<td><a class="reference internal" href="compute_smd_ulsph_strain_rate.html"><em>smd/ulsph/strain/rate</em></a></td>
+<td><a class="reference internal" href="compute_smd_ulsph_stress.html"><em>smd/ulsph/stress</em></a></td>
 <td><a class="reference internal" href="compute_smd_vol.html"><em>smd/vol</em></a></td>
 <td><a class="reference internal" href="compute_tally.html"><em>stress/tally</em></a></td>
 <td><a class="reference internal" href="compute_temp_drude.html"><em>temp/drude</em></a></td>
-<td><a class="reference internal" href="compute_temp_eff.html"><em>temp/eff</em></a></td>
-<td><a class="reference internal" href="compute_temp_deform_eff.html"><em>temp/deform/eff</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="compute_temp_region_eff.html"><em>temp/region/eff</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="compute_temp_eff.html"><em>temp/eff</em></a></td>
+<td><a class="reference internal" href="compute_temp_deform_eff.html"><em>temp/deform/eff</em></a></td>
+<td><a class="reference internal" href="compute_temp_region_eff.html"><em>temp/region/eff</em></a></td>
 <td><a class="reference internal" href="compute_temp_rotate.html"><em>temp/rotate</em></a></td>
 <td><a class="reference internal" href="compute_xrd.html"><em>xrd</em></a></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1006,149 +1017,149 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="24%" />
+<col width="24%" />
 <col width="25%" />
 <col width="27%" />
-<col width="24%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="pair_none.html"><em>none</em></a></td>
+<td><a class="reference internal" href="pair_zero.html"><em>zero</em></a></td>
 <td><a class="reference internal" href="pair_hybrid.html"><em>hybrid</em></a></td>
 <td><a class="reference internal" href="pair_hybrid.html"><em>hybrid/overlay</em></a></td>
-<td><a class="reference internal" href="pair_adp.html"><em>adp (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_airebo.html"><em>airebo (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_adp.html"><em>adp (o)</em></a></td>
+<td><a class="reference internal" href="pair_airebo.html"><em>airebo (o)</em></a></td>
 <td><a class="reference internal" href="pair_beck.html"><em>beck (go)</em></a></td>
 <td><a class="reference internal" href="pair_body.html"><em>body</em></a></td>
-<td><a class="reference internal" href="pair_bop.html"><em>bop</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_born.html"><em>born (go)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_bop.html"><em>bop</em></a></td>
+<td><a class="reference internal" href="pair_born.html"><em>born (go)</em></a></td>
 <td><a class="reference internal" href="pair_born.html"><em>born/coul/long (cgo)</em></a></td>
 <td><a class="reference internal" href="pair_born.html"><em>born/coul/long/cs</em></a></td>
-<td><a class="reference internal" href="pair_born.html"><em>born/coul/msm (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_born.html"><em>born/coul/wolf (go)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_born.html"><em>born/coul/msm (o)</em></a></td>
+<td><a class="reference internal" href="pair_born.html"><em>born/coul/wolf (go)</em></a></td>
 <td><a class="reference internal" href="pair_brownian.html"><em>brownian (o)</em></a></td>
 <td><a class="reference internal" href="pair_brownian.html"><em>brownian/poly (o)</em></a></td>
-<td><a class="reference internal" href="pair_buck.html"><em>buck (cgko)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_buck.html"><em>buck/coul/cut (cgko)</em></a></td>
-<td><a class="reference internal" href="pair_buck.html"><em>buck/coul/long (cgko)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_buck.html"><em>buck (cgkio)</em></a></td>
+<td><a class="reference internal" href="pair_buck.html"><em>buck/coul/cut (cgkio)</em></a></td>
+<td><a class="reference internal" href="pair_buck.html"><em>buck/coul/long (cgkio)</em></a></td>
 <td><a class="reference internal" href="pair_buck.html"><em>buck/coul/long/cs</em></a></td>
-<td><a class="reference internal" href="pair_buck.html"><em>buck/coul/msm (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_buck_long.html"><em>buck/long/coul/long (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_buck.html"><em>buck/coul/msm (o)</em></a></td>
+<td><a class="reference internal" href="pair_buck_long.html"><em>buck/long/coul/long (o)</em></a></td>
 <td><a class="reference internal" href="pair_colloid.html"><em>colloid (go)</em></a></td>
 <td><a class="reference internal" href="pair_comb.html"><em>comb (o)</em></a></td>
-<td><a class="reference internal" href="pair_comb.html"><em>comb3</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_coul.html"><em>coul/cut (gko)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_comb.html"><em>comb3</em></a></td>
+<td><a class="reference internal" href="pair_coul.html"><em>coul/cut (gko)</em></a></td>
 <td><a class="reference internal" href="pair_coul.html"><em>coul/debye (gko)</em></a></td>
 <td><a class="reference internal" href="pair_coul.html"><em>coul/dsf (gko)</em></a></td>
-<td><a class="reference internal" href="pair_coul.html"><em>coul/long (gko)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_coul.html"><em>coul/long/cs</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_coul.html"><em>coul/long (gko)</em></a></td>
+<td><a class="reference internal" href="pair_coul.html"><em>coul/long/cs</em></a></td>
 <td><a class="reference internal" href="pair_coul.html"><em>coul/msm</em></a></td>
 <td><a class="reference internal" href="pair_coul.html"><em>coul/streitz</em></a></td>
-<td><a class="reference internal" href="pair_coul.html"><em>coul/wolf (ko)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_dpd.html"><em>dpd (o)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_coul.html"><em>coul/wolf (ko)</em></a></td>
+<td><a class="reference internal" href="pair_dpd.html"><em>dpd (o)</em></a></td>
 <td><a class="reference internal" href="pair_dpd.html"><em>dpd/tstat (o)</em></a></td>
 <td><a class="reference internal" href="pair_dsmc.html"><em>dsmc</em></a></td>
-<td><a class="reference internal" href="pair_eam.html"><em>eam (cgkot)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_eam.html"><em>eam/alloy (cgkot)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_eam.html"><em>eam (cgkot)</em></a></td>
+<td><a class="reference internal" href="pair_eam.html"><em>eam/alloy (cgkot)</em></a></td>
 <td><a class="reference internal" href="pair_eam.html"><em>eam/fs (cgkot)</em></a></td>
 <td><a class="reference internal" href="pair_eim.html"><em>eim (o)</em></a></td>
-<td><a class="reference internal" href="pair_gauss.html"><em>gauss (go)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_gayberne.html"><em>gayberne (gio)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_gauss.html"><em>gauss (go)</em></a></td>
+<td><a class="reference internal" href="pair_gayberne.html"><em>gayberne (gio)</em></a></td>
 <td><a class="reference internal" href="pair_gran.html"><em>gran/hertz/history (o)</em></a></td>
 <td><a class="reference internal" href="pair_gran.html"><em>gran/hooke (co)</em></a></td>
-<td><a class="reference internal" href="pair_gran.html"><em>gran/hooke/history (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_hbond_dreiding.html"><em>hbond/dreiding/lj (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_gran.html"><em>gran/hooke/history (o)</em></a></td>
+<td><a class="reference internal" href="pair_hbond_dreiding.html"><em>hbond/dreiding/lj (o)</em></a></td>
 <td><a class="reference internal" href="pair_hbond_dreiding.html"><em>hbond/dreiding/morse (o)</em></a></td>
 <td><a class="reference internal" href="pair_kim.html"><em>kim</em></a></td>
-<td><a class="reference internal" href="pair_lcbop.html"><em>lcbop</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_line_lj.html"><em>line/lj (o)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lcbop.html"><em>lcbop</em></a></td>
+<td><a class="reference internal" href="pair_line_lj.html"><em>line/lj</em></a></td>
 <td><a class="reference internal" href="pair_charmm.html"><em>lj/charmm/coul/charmm (cko)</em></a></td>
 <td><a class="reference internal" href="pair_charmm.html"><em>lj/charmm/coul/charmm/implicit (cko)</em></a></td>
-<td><a class="reference internal" href="pair_charmm.html"><em>lj/charmm/coul/long (cgiko)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_charmm.html"><em>lj/charmm/coul/msm</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_charmm.html"><em>lj/charmm/coul/long (cgiko)</em></a></td>
+<td><a class="reference internal" href="pair_charmm.html"><em>lj/charmm/coul/msm</em></a></td>
 <td><a class="reference internal" href="pair_class2.html"><em>lj/class2 (cgko)</em></a></td>
 <td><a class="reference internal" href="pair_class2.html"><em>lj/class2/coul/cut (cko)</em></a></td>
-<td><a class="reference internal" href="pair_class2.html"><em>lj/class2/coul/long (cgko)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_lj_cubic.html"><em>lj/cubic (go)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_class2.html"><em>lj/class2/coul/long (cgko)</em></a></td>
+<td><a class="reference internal" href="pair_lj_cubic.html"><em>lj/cubic (go)</em></a></td>
 <td><a class="reference internal" href="pair_lj.html"><em>lj/cut (cgikot)</em></a></td>
 <td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/cut (cgko)</em></a></td>
-<td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/debye (cgko)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/dsf (gko)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/debye (cgko)</em></a></td>
+<td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/dsf (gko)</em></a></td>
 <td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/long (cgikot)</em></a></td>
 <td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/long/cs</em></a></td>
-<td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/msm (go)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_dipole.html"><em>lj/cut/dipole/cut (go)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj.html"><em>lj/cut/coul/msm (go)</em></a></td>
+<td><a class="reference internal" href="pair_dipole.html"><em>lj/cut/dipole/cut (go)</em></a></td>
 <td><a class="reference internal" href="pair_dipole.html"><em>lj/cut/dipole/long</em></a></td>
 <td><a class="reference internal" href="pair_lj.html"><em>lj/cut/tip4p/cut (o)</em></a></td>
-<td><a class="reference internal" href="pair_lj.html"><em>lj/cut/tip4p/long (ot)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_lj_expand.html"><em>lj/expand (cgko)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj.html"><em>lj/cut/tip4p/long (ot)</em></a></td>
+<td><a class="reference internal" href="pair_lj_expand.html"><em>lj/expand (cgko)</em></a></td>
 <td><a class="reference internal" href="pair_gromacs.html"><em>lj/gromacs (cgko)</em></a></td>
 <td><a class="reference internal" href="pair_gromacs.html"><em>lj/gromacs/coul/gromacs (cko)</em></a></td>
-<td><a class="reference internal" href="pair_lj_long.html"><em>lj/long/coul/long (o)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_dipole.html"><em>lj/long/dipole/long</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_long.html"><em>lj/long/coul/long (o)</em></a></td>
+<td><a class="reference internal" href="pair_dipole.html"><em>lj/long/dipole/long</em></a></td>
 <td><a class="reference internal" href="pair_lj_long.html"><em>lj/long/tip4p/long</em></a></td>
 <td><a class="reference internal" href="pair_lj_smooth.html"><em>lj/smooth (co)</em></a></td>
-<td><a class="reference internal" href="pair_lj_smooth_linear.html"><em>lj/smooth/linear (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_lj96.html"><em>lj96/cut (cgo)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_smooth_linear.html"><em>lj/smooth/linear (o)</em></a></td>
+<td><a class="reference internal" href="pair_lj96.html"><em>lj96/cut (cgo)</em></a></td>
 <td><a class="reference internal" href="pair_lubricate.html"><em>lubricate (o)</em></a></td>
 <td><a class="reference internal" href="pair_lubricate.html"><em>lubricate/poly (o)</em></a></td>
-<td><a class="reference internal" href="pair_lubricateU.html"><em>lubricateU</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_lubricateU.html"><em>lubricateU/poly</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lubricateU.html"><em>lubricateU</em></a></td>
+<td><a class="reference internal" href="pair_lubricateU.html"><em>lubricateU/poly</em></a></td>
 <td><a class="reference internal" href="pair_meam.html"><em>meam (o)</em></a></td>
 <td><a class="reference internal" href="pair_mie.html"><em>mie/cut (o)</em></a></td>
-<td><a class="reference internal" href="pair_morse.html"><em>morse (cgot)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_nb3b_harmonic.html"><em>nb3b/harmonic (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_morse.html"><em>morse (cgot)</em></a></td>
+<td><a class="reference internal" href="pair_nb3b_harmonic.html"><em>nb3b/harmonic (o)</em></a></td>
 <td><a class="reference internal" href="pair_nm.html"><em>nm/cut (o)</em></a></td>
 <td><a class="reference internal" href="pair_nm.html"><em>nm/cut/coul/cut (o)</em></a></td>
-<td><a class="reference internal" href="pair_nm.html"><em>nm/cut/coul/long (o)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_peri.html"><em>peri/eps</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_nm.html"><em>nm/cut/coul/long (o)</em></a></td>
+<td><a class="reference internal" href="pair_peri.html"><em>peri/eps</em></a></td>
 <td><a class="reference internal" href="pair_peri.html"><em>peri/lps (o)</em></a></td>
 <td><a class="reference internal" href="pair_peri.html"><em>peri/pmb (o)</em></a></td>
-<td><a class="reference internal" href="pair_peri.html"><em>peri/ves</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_polymorphic.html"><em>polymorphic</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_peri.html"><em>peri/ves</em></a></td>
+<td><a class="reference internal" href="pair_polymorphic.html"><em>polymorphic</em></a></td>
 <td><a class="reference internal" href="pair_reax.html"><em>reax</em></a></td>
 <td><a class="reference internal" href="pair_airebo.html"><em>rebo (o)</em></a></td>
-<td><a class="reference internal" href="pair_resquared.html"><em>resquared (go)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_snap.html"><em>snap</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_resquared.html"><em>resquared (go)</em></a></td>
+<td><a class="reference internal" href="pair_snap.html"><em>snap</em></a></td>
 <td><a class="reference internal" href="pair_soft.html"><em>soft (go)</em></a></td>
 <td><a class="reference internal" href="pair_sw.html"><em>sw (cgkio)</em></a></td>
-<td><a class="reference internal" href="pair_table.html"><em>table (gko)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_tersoff.html"><em>tersoff (cgko)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_table.html"><em>table (gko)</em></a></td>
+<td><a class="reference internal" href="pair_tersoff.html"><em>tersoff (cgkio)</em></a></td>
 <td><a class="reference internal" href="pair_tersoff_mod.html"><em>tersoff/mod (ko)</em></a></td>
 <td><a class="reference internal" href="pair_tersoff_zbl.html"><em>tersoff/zbl (ko)</em></a></td>
-<td><a class="reference internal" href="pair_coul.html"><em>tip4p/cut (o)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_coul.html"><em>tip4p/long (o)</em></a></td>
-<td><a class="reference internal" href="pair_tri_lj.html"><em>tri/lj (o)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_coul.html"><em>tip4p/cut (o)</em></a></td>
+<td><a class="reference internal" href="pair_coul.html"><em>tip4p/long (o)</em></a></td>
+<td><a class="reference internal" href="pair_tri_lj.html"><em>tri/lj</em></a></td>
 <td><a class="reference internal" href="pair_vashishta.html"><em>vashishta (o)</em></a></td>
-<td><a class="reference internal" href="pair_yukawa.html"><em>yukawa (go)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_yukawa_colloid.html"><em>yukawa/colloid (go)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_yukawa.html"><em>yukawa (go)</em></a></td>
+<td><a class="reference internal" href="pair_yukawa_colloid.html"><em>yukawa/colloid (go)</em></a></td>
 <td><a class="reference internal" href="pair_zbl.html"><em>zbl (go)</em></a></td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1157,60 +1168,70 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="21%" />
-<col width="25%" />
-<col width="31%" />
+<col width="24%" />
+<col width="30%" />
+<col width="23%" />
 <col width="23%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="pair_awpmd.html"><em>awpmd/cut</em></a></td>
+<td><a class="reference internal" href="pair_mdf.html"><em>buck/mdf</em></a></td>
 <td><a class="reference internal" href="pair_lj_soft.html"><em>coul/cut/soft (o)</em></a></td>
 <td><a class="reference internal" href="pair_coul_diel.html"><em>coul/diel (o)</em></a></td>
-<td><a class="reference internal" href="pair_lj_soft.html"><em>coul/long/soft (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_eam.html"><em>eam/cd (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><em>coul/long/soft (o)</em></a></td>
+<td><a class="reference internal" href="pair_dpd_conservative.html"><em>dpd/conservative</em></a></td>
+<td><a class="reference internal" href="pair_dpd_fdt.html"><em>dpd/fdt</em></a></td>
+<td><a class="reference internal" href="pair_dpd_fdt.html"><em>dpd/fdt/energy</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_eam.html"><em>eam/cd (o)</em></a></td>
 <td><a class="reference internal" href="pair_edip.html"><em>edip (o)</em></a></td>
 <td><a class="reference internal" href="pair_eff.html"><em>eff/cut</em></a></td>
 <td><a class="reference internal" href="pair_gauss.html"><em>gauss/cut</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_list.html"><em>list</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_mdf.html"><em>lennard/mdf</em></a></td>
+<td><a class="reference internal" href="pair_list.html"><em>list</em></a></td>
 <td><a class="reference internal" href="pair_charmm.html"><em>lj/charmm/coul/long/soft (o)</em></a></td>
 <td><a class="reference internal" href="pair_lj_soft.html"><em>lj/cut/coul/cut/soft (o)</em></a></td>
-<td><a class="reference internal" href="pair_lj_soft.html"><em>lj/cut/coul/long/soft (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_dipole.html"><em>lj/cut/dipole/sf (go)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_soft.html"><em>lj/cut/coul/long/soft (o)</em></a></td>
+<td><a class="reference internal" href="pair_dipole.html"><em>lj/cut/dipole/sf (go)</em></a></td>
 <td><a class="reference internal" href="pair_lj_soft.html"><em>lj/cut/soft (o)</em></a></td>
 <td><a class="reference internal" href="pair_lj_soft.html"><em>lj/cut/tip4p/long/soft (o)</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_mdf.html"><em>lj/mdf</em></a></td>
 <td><a class="reference internal" href="pair_sdk.html"><em>lj/sdk (gko)</em></a></td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_sdk.html"><em>lj/sdk/coul/long (go)</em></a></td>
+<td><a class="reference internal" href="pair_sdk.html"><em>lj/sdk/coul/long (go)</em></a></td>
 <td><a class="reference internal" href="pair_sdk.html"><em>lj/sdk/coul/msm (o)</em></a></td>
-<td><a class="reference internal" href="pair_lj_sf.html"><em>lj/sf (o)</em></a></td>
-<td><a class="reference internal" href="pair_meam_spline.html"><em>meam/spline</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_meam_sw_spline.html"><em>meam/sw/spline</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_sf.html"><em>lj/sf (o)</em></a></td>
+<td><a class="reference internal" href="pair_meam_spline.html"><em>meam/spline</em></a></td>
+<td><a class="reference internal" href="pair_meam_sw_spline.html"><em>meam/sw/spline</em></a></td>
 <td><a class="reference internal" href="pair_mgpt.html"><em>mgpt</em></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_morse.html"><em>morse/smooth/linear</em></a></td>
 <td><a class="reference internal" href="pair_quip.html"><em>quip</em></a></td>
 <td><a class="reference internal" href="pair_reax_c.html"><em>reax/c</em></a></td>
+<td><a class="reference internal" href="pair_smd_hertz.html"><em>smd/hertz</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_smd_hertz.html"><em>smd/hertz</em></a></td>
-<td><a class="reference internal" href="pair_smd_tlsph.html"><em>smd/tlsph</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_smd_tlsph.html"><em>smd/tlsph</em></a></td>
 <td><a class="reference internal" href="pair_smd_triangulated_surface.html"><em>smd/triangulated/surface</em></a></td>
 <td><a class="reference internal" href="pair_smd_ulsph.html"><em>smd/ulsph</em></a></td>
+<td><a class="reference internal" href="pair_smtbq.html"><em>smtbq</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_smtbq.html"><em>smtbq</em></a></td>
-<td><a class="reference internal" href="pair_sph_heatconduction.html"><em>sph/heatconduction</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_sph_heatconduction.html"><em>sph/heatconduction</em></a></td>
 <td><a class="reference internal" href="pair_sph_idealgas.html"><em>sph/idealgas</em></a></td>
 <td><a class="reference internal" href="pair_sph_lj.html"><em>sph/lj</em></a></td>
+<td><a class="reference internal" href="pair_sph_rhosum.html"><em>sph/rhosum</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="pair_sph_rhosum.html"><em>sph/rhosum</em></a></td>
-<td><a class="reference internal" href="pair_sph_taitwater.html"><em>sph/taitwater</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="pair_sph_taitwater.html"><em>sph/taitwater</em></a></td>
 <td><a class="reference internal" href="pair_sph_taitwater_morris.html"><em>sph/taitwater/morris</em></a></td>
 <td><a class="reference internal" href="pair_srp.html"><em>srp</em></a></td>
+<td><a class="reference internal" href="pair_tersoff.html"><em>tersoff/table (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="pair_tersoff.html"><em>tersoff/table (o)</em></a></td>
-<td><a class="reference internal" href="pair_thole.html"><em>thole</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="pair_thole.html"><em>thole</em></a></td>
 <td><a class="reference internal" href="pair_lj_soft.html"><em>tip4p/long/soft (o)</em></a></td>
+<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1227,25 +1248,25 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.</p>
 <table border="1" class="docutils">
 <colgroup>
+<col width="25%" />
 <col width="28%" />
 <col width="25%" />
 <col width="22%" />
-<col width="25%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="bond_none.html"><em>none</em></a></td>
+<td><a class="reference internal" href="bond_zero.html"><em>zero</em></a></td>
 <td><a class="reference internal" href="bond_hybrid.html"><em>hybrid</em></a></td>
 <td><a class="reference internal" href="bond_class2.html"><em>class2 (o)</em></a></td>
-<td><a class="reference internal" href="bond_fene.html"><em>fene (ko)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="bond_fene_expand.html"><em>fene/expand (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="bond_fene.html"><em>fene (ko)</em></a></td>
+<td><a class="reference internal" href="bond_fene_expand.html"><em>fene/expand (o)</em></a></td>
 <td><a class="reference internal" href="bond_harmonic.html"><em>harmonic (ko)</em></a></td>
 <td><a class="reference internal" href="bond_morse.html"><em>morse (o)</em></a></td>
-<td><a class="reference internal" href="bond_nonlinear.html"><em>nonlinear (o)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="bond_quartic.html"><em>quartic (o)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="bond_nonlinear.html"><em>nonlinear (o)</em></a></td>
+<td><a class="reference internal" href="bond_quartic.html"><em>quartic (o)</em></a></td>
 <td><a class="reference internal" href="bond_table.html"><em>table (o)</em></a></td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1275,25 +1296,25 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="21%" />
-<col width="25%" />
-<col width="28%" />
 <col width="27%" />
+<col width="21%" />
+<col width="24%" />
+<col width="28%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="angle_none.html"><em>none</em></a></td>
+<td><a class="reference internal" href="angle_zero.html"><em>zero</em></a></td>
 <td><a class="reference internal" href="angle_hybrid.html"><em>hybrid</em></a></td>
 <td><a class="reference internal" href="angle_charmm.html"><em>charmm (ko)</em></a></td>
-<td><a class="reference internal" href="angle_class2.html"><em>class2 (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="angle_cosine.html"><em>cosine (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="angle_class2.html"><em>class2 (o)</em></a></td>
+<td><a class="reference internal" href="angle_cosine.html"><em>cosine (o)</em></a></td>
 <td><a class="reference internal" href="angle_cosine_delta.html"><em>cosine/delta (o)</em></a></td>
 <td><a class="reference internal" href="angle_cosine_periodic.html"><em>cosine/periodic (o)</em></a></td>
-<td><a class="reference internal" href="angle_cosine_squared.html"><em>cosine/squared (o)</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="angle_harmonic.html"><em>harmonic (ko)</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="angle_cosine_squared.html"><em>cosine/squared (o)</em></a></td>
+<td><a class="reference internal" href="angle_harmonic.html"><em>harmonic (iko)</em></a></td>
 <td><a class="reference internal" href="angle_table.html"><em>table (o)</em></a></td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1332,21 +1353,26 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.</p>
 <table border="1" class="docutils">
 <colgroup>
+<col width="22%" />
 <col width="25%" />
 <col width="21%" />
 <col width="32%" />
-<col width="22%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="dihedral_none.html"><em>none</em></a></td>
+<td><a class="reference internal" href="dihedral_zero.html"><em>zero</em></a></td>
 <td><a class="reference internal" href="dihedral_hybrid.html"><em>hybrid</em></a></td>
 <td><a class="reference internal" href="dihedral_charmm.html"><em>charmm (ko)</em></a></td>
-<td><a class="reference internal" href="dihedral_class2.html"><em>class2 (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="dihedral_harmonic.html"><em>harmonic (o)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="dihedral_class2.html"><em>class2 (o)</em></a></td>
+<td><a class="reference internal" href="dihedral_harmonic.html"><em>harmonic (io)</em></a></td>
 <td><a class="reference internal" href="dihedral_helix.html"><em>helix (o)</em></a></td>
 <td><a class="reference internal" href="dihedral_multi_harmonic.html"><em>multi/harmonic (o)</em></a></td>
-<td><a class="reference internal" href="dihedral_opls.html"><em>opls (ko)</em></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="dihedral_opls.html"><em>opls (iko)</em></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>
@@ -1384,20 +1410,20 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.</p>
 <table border="1" class="docutils">
 <colgroup>
+<col width="22%" />
 <col width="27%" />
 <col width="27%" />
 <col width="24%" />
-<col width="22%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="improper_none.html"><em>none</em></a></td>
+<td><a class="reference internal" href="improper_zero.html"><em>zero</em></a></td>
 <td><a class="reference internal" href="improper_hybrid.html"><em>hybrid</em></a></td>
 <td><a class="reference internal" href="improper_class2.html"><em>class2 (o)</em></a></td>
-<td><a class="reference internal" href="improper_cvff.html"><em>cvff (o)</em></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="improper_harmonic.html"><em>harmonic (ko)</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="improper_cvff.html"><em>cvff (io)</em></a></td>
+<td><a class="reference internal" href="improper_harmonic.html"><em>harmonic (ko)</em></a></td>
 <td><a class="reference internal" href="improper_umbrella.html"><em>umbrella (o)</em></a></td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1406,12 +1432,14 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 used if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="33%" />
-<col width="36%" />
-<col width="31%" />
+<col width="24%" />
+<col width="26%" />
+<col width="27%" />
+<col width="23%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="improper_cossq.html"><em>cossq (o)</em></a></td>
+<td><a class="reference internal" href="improper_distance.html"><em>distance</em></a></td>
 <td><a class="reference internal" href="improper_fourier.html"><em>fourier (o)</em></a></td>
 <td><a class="reference internal" href="improper_ring.html"><em>ring (o)</em></a></td>
 </tr>
@@ -1429,8 +1457,8 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.</p>
 <table border="1" class="docutils">
 <colgroup>
+<col width="25%" />
 <col width="26%" />
-<col width="24%" />
 <col width="23%" />
 <col width="27%" />
 </colgroup>
@@ -1445,8 +1473,8 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 <td><a class="reference internal" href="kspace_style.html"><em>pppm/disp</em></a></td>
 <td><a class="reference internal" href="kspace_style.html"><em>pppm/disp/tip4p</em></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="kspace_style.html"><em>pppm/tip4p (o)</em></a></td>
-<td>&nbsp;</td>
+<tr class="row-odd"><td><a class="reference internal" href="kspace_style.html"><em>pppm/stagger</em></a></td>
+<td><a class="reference internal" href="kspace_style.html"><em>pppm/tip4p (o)</em></a></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
@@ -1474,7 +1502,7 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -1495,7 +1523,7 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

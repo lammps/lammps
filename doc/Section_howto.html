@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6. How-to discussions &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>6. How-to discussions &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
         <link rel="next" title="7. Example problems" href="Section_example.html"/>
         <link rel="prev" title="5. Accelerating LAMMPS performance" href="Section_accelerate.html"/> 
 
@@ -342,12 +342,12 @@ are zeroed out every timestep.  The reason to make it the last fix is
 so that any forces induced by other fixes will be zeroed out.</p>
 <p>Many of the example input scripts included in the LAMMPS distribution
 are for 2d models.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Some models in LAMMPS treat particles as finite-size
-spheres, as opposed to point particles.  In 2d, the particles will
-still be spheres, not disks, meaning their moment of inertia will be
-the same as in 3d.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some models in LAMMPS treat particles as finite-size spheres, as
+opposed to point particles.  In 2d, the particles will still be
+spheres, not disks, meaning their moment of inertia will be the same
+as in 3d.</p>
 </div>
 <hr class="docutils" />
 </div>
@@ -363,8 +363,8 @@ commands like <a class="reference internal" href="pair_coeff.html"><em>pair_coef
 <a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a>.  See <a class="reference internal" href="Section_tools.html"><em>Section_tools</em></a>
 for additional tools that can use CHARMM or AMBER to assign force
 field coefficients and convert their output into LAMMPS input.</p>
-<p>See <a class="reference internal" href="#mackerell"><span>(MacKerell)</span></a> for a description of the CHARMM force
-field.  See <a class="reference internal" href="#cornell"><span>(Cornell)</span></a> for a description of the AMBER force
+<p>See <a class="reference internal" href="special_bonds.html#mackerell"><span>(MacKerell)</span></a> for a description of the CHARMM force
+field.  See <a class="reference internal" href="special_bonds.html#cornell"><span>(Cornell)</span></a> for a description of the AMBER force
 field.</p>
 <p>These style choices compute force field formulas that are consistent
 with common options in CHARMM or AMBER.  See each command&#8217;s
@@ -389,7 +389,7 @@ atoms involved in the bond, angle, or torsion terms. DREIDING has an
 <a class="reference internal" href="pair_hbond_dreiding.html"><em>explicit hydrogen bond term</em></a> to describe
 interactions involving a hydrogen atom on very electronegative atoms
 (N, O, F).</p>
-<p>See <a class="reference internal" href="#mayo"><span>(Mayo)</span></a> for a description of the DREIDING force field</p>
+<p>See <a class="reference internal" href="special_bonds.html#mayo"><span>(Mayo)</span></a> for a description of the DREIDING force field</p>
 <p>These style choices compute force field formulas that are consistent
 with the DREIDING force field.  See each command&#8217;s
 documentation for the formula it computes.</p>
@@ -587,7 +587,7 @@ computations between frozen atoms by using this command:</p>
 <div class="section" id="tip3p-water-model">
 <span id="howto-7"></span><h2>6.7. TIP3P water model<a class="headerlink" href="#tip3p-water-model" title="Permalink to this headline">¶</a></h2>
 <p>The TIP3P water model as implemented in CHARMM
-<a class="reference internal" href="#mackerell"><span>(MacKerell)</span></a> specifies a 3-site rigid water molecule with
+<a class="reference internal" href="special_bonds.html#mackerell"><span>(MacKerell)</span></a> specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
 In LAMMPS the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command can be used to hold
 the two O-H bonds and the H-O-H angle rigid.  A bond style of
@@ -598,7 +598,7 @@ atoms and the water molecule to run a rigid TIP3P-CHARMM model with a
 cutoff.  The K values can be used if a flexible TIP3P model (without
 fix shake) is desired.  If the LJ epsilon and sigma for HH and OH are
 set to 0.0, it corresponds to the original 1983 TIP3P model
-<a class="reference internal" href="#jorgensen"><span>(Jorgensen)</span></a>.</p>
+<a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>.</p>
 <div class="line-block">
 <div class="line">O mass = 15.9994</div>
 <div class="line">H mass = 1.008</div>
@@ -617,7 +617,7 @@ set to 0.0, it corresponds to the original 1983 TIP3P model
 <div class="line"><br /></div>
 </div>
 <p>These are the parameters to use for TIP3P with a long-range Coulombic
-solver (e.g. Ewald or PPPM in LAMMPS), see <a class="reference internal" href="#price"><span>(Price)</span></a> for
+solver (e.g. Ewald or PPPM in LAMMPS), see <a class="reference internal" href="pair_dipole.html#price"><span>(Price)</span></a> for
 details:</p>
 <div class="line-block">
 <div class="line">O mass = 15.9994</div>
@@ -656,7 +656,7 @@ for a cutoff model:</p>
 using the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command.</p>
 <p>These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
-<a class="reference internal" href="#jorgensen"><span>(Jorgensen)</span></a>.  Note that the OM distance is specified in
+<a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>.  Note that the OM distance is specified in
 the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command, not as part of the pair
 coefficients.</p>
 <div class="line-block">
@@ -766,7 +766,7 @@ the partial charge assignemnts change:</p>
 <div class="line">H charge = 0.4238</div>
 <div class="line"><br /></div>
 </div>
-<p>See the <a class="reference internal" href="#berendsen"><span>(Berendsen)</span></a> reference for more details on both
+<p>See the <a class="reference internal" href="fix_temp_berendsen.html#berendsen"><span>(Berendsen)</span></a> reference for more details on both
 the SPC and SPC/E models.</p>
 <p>Wikipedia also has a nice article on <a class="reference external" href="http://en.wikipedia.org/wiki/Water_model">water models</a>.</p>
 <hr class="docutils" />
@@ -1323,7 +1323,7 @@ particles are computed via a command like <a class="reference internal" href="pa
 of quantities printed every few timesteps to the screen and logfile.</li>
 <li><a class="reference internal" href="dump.html"><em>Dump files</em></a>, which contain snapshots of atoms and various
 per-atom values and are written at a specified frequency.</li>
-<li>Certain fixes can output user-specified quantities to files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> for time averaging, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a> for spatial averaging, and <a class="reference internal" href="fix_print.html"><em>fix print</em></a> for single-line output of
+<li>Certain fixes can output user-specified quantities to files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> for time averaging, <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> for spatial or other averaging, and <a class="reference internal" href="fix_print.html"><em>fix print</em></a> for single-line output of
 <a class="reference internal" href="variable.html"><em>variables</em></a>.  Fix print can also output to the
 screen.</li>
 <li><a class="reference internal" href="restart.html"><em>Restart files</em></a>.</li>
@@ -1444,7 +1444,7 @@ command.</p>
 <div class="section" id="fixes-that-write-output-files">
 <span id="fixoutput"></span><h3>6.15.5. Fixes that write output files<a class="headerlink" href="#fixes-that-write-output-files" title="Permalink to this headline">¶</a></h3>
 <p>Several fixes take various quantities as input and can write output
-files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>,
+files: <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>, <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>,
 <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a>, and <a class="reference internal" href="fix_print.html"><em>fix print</em></a>.</p>
 <p>The <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command enables direct output to
 a file and/or time-averaging of global scalars or vectors.  The user
@@ -1459,29 +1459,29 @@ or more scalar values, then the fix generate a global scalar or vector
 of output.  If the inputs are one or more vector values, then the fix
 generates a global vector or array of output.  The time-averaged
 output of this fix can also be used as input to other output commands.</p>
-<p>The <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a> command enables direct
-output to a file of spatial-averaged per-atom quantities like those
-output in dump files, within 1d layers of the simulation box.  The
-per-atom quantities can be atom density (mass or number) or atom
-attributes such as position, velocity, force.  They can also be
-per-atom quantities calculated by a <a class="reference internal" href="compute.html"><em>compute</em></a>, by a
-<a class="reference internal" href="fix.html"><em>fix</em></a>, or by an atom-style <a class="reference internal" href="variable.html"><em>variable</em></a>.  The
-spatial-averaged output of this fix can also be used as input to other
-output commands.</p>
+<p>The <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command enables direct output
+to a file of chunk-averaged per-atom quantities like those output in
+dump files.  Chunks can represent spatial bins or other collections of
+atoms, e.g. individual molecules.  The per-atom quantities can be atom
+density (mass or number) or atom attributes such as position,
+velocity, force.  They can also be per-atom quantities calculated by a
+<a class="reference internal" href="compute.html"><em>compute</em></a>, by a <a class="reference internal" href="fix.html"><em>fix</em></a>, or by an atom-style
+<a class="reference internal" href="variable.html"><em>variable</em></a>.  The chunk-averaged output of this fix can
+also be used as input to other output commands.</p>
 <p>The <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a> command enables direct output
 to a file of histogrammed quantities, which can be global or per-atom
 or local quantities.  The histogram output of this fix can also be
 used as input to other output commands.</p>
 <p>The <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a> command enables direct
 output to a file of time-correlated quantities, which can be global
-scalars.  The correlation matrix output of this fix can also be used
-as input to other output commands.</p>
+values.  The correlation matrix output of this fix can also be used as
+input to other output commands.</p>
 <p>The <a class="reference internal" href="fix_print.html"><em>fix print</em></a> command can generate a line of output
 written to the screen and log file or to a separate file, periodically
 during a running simulation.  The line can contain one or more
-<a class="reference internal" href="variable.html"><em>variable</em></a> values for any style variable except the atom
-style).  As explained above, variables themselves can contain
-references to global values generated by <a class="reference internal" href="thermo_style.html"><em>thermodynamic keywords</em></a>, <a class="reference internal" href="compute.html"><em>computes</em></a>,
+<a class="reference internal" href="variable.html"><em>variable</em></a> values for any style variable except the
+vector or atom styles).  As explained above, variables themselves can
+contain references to global values generated by <a class="reference internal" href="thermo_style.html"><em>thermodynamic keywords</em></a>, <a class="reference internal" href="compute.html"><em>computes</em></a>,
 <a class="reference internal" href="fix.html"><em>fixes</em></a>, or other <a class="reference internal" href="variable.html"><em>variables</em></a>, or to per-atom
 values for a specific atom.  Thus the <a class="reference internal" href="fix_print.html"><em>fix print</em></a>
 command is a means to output a wide variety of quantities separate
@@ -1549,13 +1549,15 @@ describes them.</p>
 </div>
 <div class="section" id="variables-that-generate-values-to-output">
 <span id="variable"></span><h3>6.15.10. Variables that generate values to output<a class="headerlink" href="#variables-that-generate-values-to-output" title="Permalink to this headline">¶</a></h3>
-<p>Every <a class="reference internal" href="variable.html"><em>variables</em></a> defined in an input script generates
-either a global scalar value or a per-atom vector (only atom-style
-variables) when it is accessed.  The formulas used to define equal-
-and atom-style variables can contain references to the thermodynamic
-keywords and to global and per-atom data generated by computes, fixes,
-and other variables.  The values generated by variables can be output
-using the other commands described in this section.</p>
+<p><a class="reference internal" href="variable.html"><em>Variables</em></a> defined in an input script can store one or
+more strings.  But equal-style, vector-style, and atom-style or
+atomfile-style variables generate a global scalar value, global vector
+or values, or a per-atom vector, resepctively, when accessed.  The
+formulas used to define these variables can contain references to the
+thermodynamic keywords and to global and per-atom data generated by
+computes, fixes, and other variables.  The values generated by
+variables can be used as input to and thus output by the other
+commands described in this section.</p>
 </div>
 <div class="section" id="summary-table-of-output-options-and-data-flow-between-commands">
 <span id="table"></span><h3>6.15.11. Summary table of output options and data flow between commands<a class="headerlink" href="#summary-table-of-output-options-and-data-flow-between-commands" title="Permalink to this headline">¶</a></h3>
@@ -1574,115 +1576,89 @@ vector input could be a column of an array.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="39%" />
+<col width="32%" />
 <col width="30%" />
-<col width="30%" />
-<col width="1%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>Command</td>
 <td>Input</td>
 <td>Output</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a></td>
 <td>global scalars</td>
 <td>screen, log file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="dump.html"><em>dump custom</em></a></td>
 <td>per-atom vectors</td>
 <td>dump file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="dump.html"><em>dump local</em></a></td>
 <td>local vectors</td>
 <td>dump file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="fix_print.html"><em>fix print</em></a></td>
 <td>global scalar from variable</td>
 <td>screen, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="print.html"><em>print</em></a></td>
 <td>global scalar from variable</td>
 <td>screen</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="compute.html"><em>computes</em></a></td>
 <td>N/A</td>
 <td>global/per-atom/local scalar/vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix.html"><em>fixes</em></a></td>
 <td>N/A</td>
 <td>global/per-atom/local scalar/vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="variable.html"><em>variables</em></a></td>
-<td>global scalars, per-atom vectors</td>
-<td>global scalar, per-atom vector</td>
-<td>&nbsp;</td>
+<td>global scalars and vectors, per-atom vectors</td>
+<td>global scalar and vector, per-atom vector</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a></td>
 <td>per-atom/local vectors</td>
 <td>global scalar/vector</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="compute_slice.html"><em>compute slice</em></a></td>
 <td>global vectors/arrays</td>
 <td>global vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a></td>
 <td>per-atom vectors</td>
 <td>per-atom vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="compute_property_local.html"><em>compute property/local</em></a></td>
 <td>local vectors</td>
 <td>local vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_vector.html"><em>fix vector</em></a></td>
 <td>global scalars</td>
 <td>global vector</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a></td>
 <td>per-atom vectors</td>
 <td>per-atom vector/array</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a></td>
 <td>global scalars/vectors</td>
 <td>global scalar/vector/array, file</td>
-<td>&nbsp;</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a></td>
 <td>per-atom vectors</td>
 <td>global array, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a></td>
 <td>global/per-atom/local scalars and vectors</td>
 <td>global array, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a></td>
 <td>global scalars</td>
 <td>global array, file</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="fix_store_state.html"><em>fix store/state</em></a></td>
 <td>per-atom vectors</td>
 <td>per-atom vector/array</td>
-<td>&nbsp;</td>
-</tr>
-<tr class="row-odd"><td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>
@@ -1764,14 +1740,13 @@ apply a thermostat to only the x and z components of velocity by using
 it in conjunction with <a class="reference internal" href="compute_temp_partial.html"><em>compute temp/partial</em></a>.  Of you could thermostat only
 the thermal temperature of a streaming flow of particles without
 affecting the streaming velocity, by using <a class="reference internal" href="compute_temp_profile.html"><em>compute temp/profile</em></a>.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Only the nvt fixes perform time integration, meaning
-they update the velocities and positions of particles due to forces
-and velocities respectively.  The other thermostat fixes only adjust
-velocities; they do NOT perform time integration updates.  Thus they
-should be used in conjunction with a constant NVE integration fix such
-as these:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only the nvt fixes perform time integration, meaning they update
+the velocities and positions of particles due to forces and velocities
+respectively.  The other thermostat fixes only adjust velocities; they
+do NOT perform time integration updates.  Thus they should be used in
+conjunction with a constant NVE integration fix such as these:</p>
 </div>
 <ul class="simple">
 <li><a class="reference internal" href="fix_nve.html"><em>fix nve</em></a></li>
@@ -1804,12 +1779,12 @@ computing the kinetic componenet which contributes to the current
 pressure.  See the doc pages for the individual fixes and for the
 <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> command for instructions on how to assign
 a temperature or pressure compute to a barostatting fix.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">As with the thermostats, the Nose/Hoover methods (<a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> and <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>) perform time
-integration.  <a class="reference internal" href="fix_press_berendsen.html"><em>Fix press/berendsen</em></a> does NOT,
-so it should be used with one of the constant NVE fixes or with one of
-the NVT fixes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As with the thermostats, the Nose/Hoover methods (<a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> and <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>) perform time integration.
+<a class="reference internal" href="fix_press_berendsen.html"><em>Fix press/berendsen</em></a> does NOT, so it should
+be used with one of the constant NVE fixes or with one of the NVT
+fixes.</p>
 </div>
 <p>Finally, thermodynamic output, which can be setup via the
 <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command, often includes temperature
@@ -1918,7 +1893,7 @@ the deformation must be chosen judiciously, and care must be taken to
 fully equilibrate the deformed cell before sampling the stress
 tensor. Another approach is to sample the triclinic cell fluctuations
 that occur in an NPT simulation. This method can also be slow to
-converge and requires careful post-processing <a class="reference internal" href="#shinoda"><span>(Shinoda)</span></a></p>
+converge and requires careful post-processing <a class="reference internal" href="pair_sdk.html#shinoda"><span>(Shinoda)</span></a></p>
 <hr class="docutils" />
 </div>
 <div class="section" id="library-interface-to-lammps">
@@ -2541,7 +2516,7 @@ well.</p>
 </div>
 <div class="section" id="adiabatic-core-shell-model">
 <span id="howto-26"></span><h2>6.26. Adiabatic core/shell model<a class="headerlink" href="#adiabatic-core-shell-model" title="Permalink to this headline">¶</a></h2>
-<p>The adiabatic core-shell model by <a class="reference internal" href="compute_temp_cs.html#mitchellfinchham"><span>Mitchell and Finchham</span></a> is a simple method for adding
+<p>The adiabatic core-shell model by <a class="reference internal" href="pair_cs.html#mitchellfinchham"><span>Mitchell and Finchham</span></a> is a simple method for adding
 polarizability to a system.  In order to mimic the electron shell of
 an ion, a satellite particle is attached to it. This way the ions are
 split into a core and a shell where the latter is meant to react to
@@ -2750,7 +2725,7 @@ fix ave_chunk all ave/time 10 1 10 c_cstherm file chunk.dump mode vector
 model, representes induced dipoles by a pair of charges (the core atom
 and the Drude particle) connected by a harmonic spring. The Drude
 model has a number of features aimed at its use in molecular systems
-(<a class="reference internal" href="#lamoureux"><span>Lamoureux and Roux</span></a>):</p>
+(<a class="reference internal" href="tutorial_drude.html#lamoureux"><span>Lamoureux and Roux</span></a>):</p>
 <ul class="simple">
 <li>Thermostating of the additional degrees of freedom associated with the
 induced dipoles at very low temperature, in terms of the reduced
@@ -2836,7 +2811,7 @@ Phys, 79, 926 (1983).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright .
+        &copy; Copyright 2013 Sandia Corporation.
     </p>
   </div>
   Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -2857,7 +2832,7 @@ Phys, 79, 926 (1983).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'15 May 2015 version',
+            VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

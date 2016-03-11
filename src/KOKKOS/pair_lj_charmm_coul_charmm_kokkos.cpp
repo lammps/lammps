@@ -154,8 +154,6 @@ void PairLJCharmmCoulCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_i
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -243,15 +241,14 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
-  F_FLOAT forcecoul, switch1, switch2;
+  F_FLOAT forcecoul, switch1;
 
   forcecoul = qqrd2e*qtmp*q(j) *rinv;
 
   if (rsq > cut_coul_innersq) {
     switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-    switch2 = 12.0*rsq * (cut_coulsq-rsq) * (rsq-cut_coul_innersq) / denom_coul;
-    forcecoul *= switch1 + switch2;
+    forcecoul *= switch1;
   }
 
   return forcecoul * r2inv * factor_coul;
@@ -512,7 +509,10 @@ double PairLJCharmmCoulCharmmKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCharmmCoulCharmmKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCharmmCoulCharmmKokkos<LMPHostType>;
 #endif
+}
+

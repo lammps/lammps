@@ -58,6 +58,7 @@ $(DIR)%.o:%.F
 $(DIR)%.o:%.c
 	$(F90) $(F90FLAGS) -c $< -o $@
 
+include .depend
 # ------ CLEAN ------
 
 clean:

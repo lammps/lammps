@@ -46,18 +46,18 @@ script:
   - make -C src yes-all
   - make -C src no-lib
   - make -C src yes-user-smd yes-user-molfile yes-compress yes-python
-  - make -j2 -C lib/colvars -f Makefile.g++ CXX="${COMP}"
-  - make -j2 -C lib/poems -f Makefile.g++ CXX="${COMP}"
-  - make -j2 -C lib/voronoi -f Makefile.g++ CXX="${COMP}"
-  - make -j2 -C lib/awpmd -f Makefile.mpicc CC="${COMP}"
-  - make -j2 -C lib/meam -f Makefile.gfortran CC=gcc F90=gfortran
+  - make -C lib/colvars -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/poems -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/voronoi -f Makefile.g++ CXX="${COMP}"
+  - make -C lib/awpmd -f Makefile.mpicc CC="${COMP}"
+  - make -C lib/meam -f Makefile.gfortran CC=gcc F90=gfortran
   - make -C src yes-poems yes-voronoi yes-user-colvars yes-user-awpmd yes-meam
   - make -C lib/h5md
   - make -C src yes-user-h5md
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true
-  - test "$MACH" = shlib || make -j2 -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
-  - if [ "$MACH" = shlib ] ; then  make -j2 -C src mode=shlib serial MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test python MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
-  - if [ "$MACH" != shlib ] ; then make -j2 -C src mode=lib ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test couple MACH="${MACH}" MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
+  - test "$MACH" = shlib || make -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
+  - if [ "$MACH" = shlib ] ; then  make -C src mode=shlib serial MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test python MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
+  - if [ "$MACH" != shlib ] ; then make -C src mode=lib ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test couple MACH="${MACH}" MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
 
 cache:
   directories:

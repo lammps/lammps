@@ -114,7 +114,7 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 depend : fastdep.exe $(SRC)
 	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
-fastdep.exe: ../../tools/fastdep.c
+fastdep.exe: ../DEPEND/fastdep.c
 	cc -O -o $@ $<
 
 sinclude .depend

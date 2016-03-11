@@ -19,8 +19,8 @@ abbrevs = "adhjmoprsv"
 
 switchclasses = ("actions","dir","help","jmake","makefile",
                  "output","packages","redo","settings","verbose")
-libclasses = ("atc","awpmd","colvars","cuda","gpu",
-              "meam","poems","qmmm","voronoi")
+libclasses = ("atc","awpmd","colvars","cuda","gpu","h5md",
+              "meam","poems","python","qmmm","voronoi")
 buildclasses = ("intel","kokkos")
 makeclasses = ("cc","mpi","fft","jpg","png")
 
@@ -577,8 +577,8 @@ Syntax: Make.py switch args ...
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:
-    -atc, -awpmd, -colvars, -cuda
-    -gpu, -meam, -poems, -qmmm, -voronoi
+    -atc, -awpmd, -colvars, -cuda, -gpu, -h5md,
+    -meam, -poems, -python, -qmmm, -voronoi
   switches for build and makefile options:
     -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
 """
@@ -652,7 +652,7 @@ class Packages:
   list of packages to install or uninstall in order specified
   operates on set of packages currently installed
   valid package names:
-    and LAMMPS standard or user package (type "make package" to see list)
+    any LAMMPS standard or user package (type "make package" to see list)
     prefix by yes/no to install/uninstall (see abbrevs)
       yes-molecule, yes-user-atc, no-molecule, no-user-atc
   can use LAMMPS categories (type "make package" to see list)
@@ -1221,6 +1221,56 @@ class GPU:
       error("Unsuccessful build of lib/gpu library")
     else: print "Created lib/gpu library"
 
+# H5MD lib
+
+class H5MD:
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+    self.make = "h5cc"
+    self.lammpsflag = 0
+
+  def help(self):
+    return """
+-h5md make=suffix lammps=suffix2
+  all args are optional and can be in any order
+  make = use Makefile.suffix (def = h5cc)
+  lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
+"""
+
+  def check(self):
+    if self.inlist != None and len(self.inlist) == 0:
+      error("-h5md args are invalid")
+    for one in self.inlist:
+      words = one.split('=')
+      if len(words) != 2: error("-h5md args are invalid")
+      if words[0] == "make": self.make = words[1]
+      elif words[0] == "lammps": 
+        self.lammps = words[1]
+        self.lammpsflag = 1
+      else: error("-h5md args are invalid")
+
+  def build(self):
+    libdir = dir.lib + "/h5md"
+    make = MakeReader("%s/Makefile.%s" % (libdir,self.make))
+    if self.lammpsflag:
+      make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
+    make.write("%s/Makefile.auto" % libdir)
+
+    commands.getoutput("cd %s; make clean" % libdir)
+    str = "cd %s; make" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(str,shell=True)
+    else:
+      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      except Exception as e: print e.output
+
+    if not os.path.isfile("%s/libch5md.a" % libdir) or \
+          not os.path.isfile("%s/Makefile.lammps" % libdir):
+      error("Unsuccessful build of lib/h5md library")
+    else: print "Created lib/h5md library"
+
 # MEAM lib
 
 class MEAM:
@@ -1322,6 +1372,41 @@ class POEMS:
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/poems library")
     else: print "Created lib/poems library"
+
+# PYTHON lib
+
+class PYTHON:
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+    self.make = "g++"
+    self.lammpsflag = 0
+
+  def help(self):
+    return """
+-python lammps=suffix
+  arg is optional, use Makefile.lammps if not specified
+  lammps = use Makefile.lammps.suffix
+"""
+
+  def check(self):
+    if self.inlist != None and len(self.inlist) == 0:
+      error("-python args are invalid")
+    for one in self.inlist:
+      words = one.split('=')
+      if len(words) != 2: error("-python args are invalid")
+      if words[0] == "lammps": 
+        self.lammps = words[1]
+        self.lammpsflag = 1
+      else: error("-python args are invalid")
+
+  def build(self):
+    libdir = dir.lib + "/python"
+    if self.lammpsflag:
+      commands.getoutput("cd %s; cp Makefile.lammps.%s Makefile.lammps" %
+                         (libdir,self.lammps))
+    if not os.path.isfile("%s/Makefile.lammps.%s" % (libdir,self.lammps)):
+      error("Unsuccessful creation of lib/python/Makefile.lammps.%s file" % self.lammps)
+    else: print "Created lib/python/Makefile.lammps file"
 
 # QMMM lib
 

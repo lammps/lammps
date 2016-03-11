@@ -146,7 +146,7 @@ help:
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings $(objdir)
-	@cd $(objdir); rm .depend; \
+	@cd $(objdir); rm -f .depend; \
 	$(MAKE) $(MFLAGS) "SRC = $(SRC)" "INC = $(INC)" depend || :
 ifeq ($(mode),exe)
 	@cd $(objdir); \

@@ -10,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Stefan Paquay (Eindhoven University of Technology)
-   Most code stolen from pair_morse_omp.cpp
+   Most code borrowed from pair_morse_omp.cpp
 ------------------------------------------------------------------------- */
 
 #include <math.h>

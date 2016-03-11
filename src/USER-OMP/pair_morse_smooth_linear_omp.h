@@ -9,9 +9,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-  -------------------------------------------------------------------------
-  Contributed by Stefan Paquay @ Eindhoven University of Technology
-  Most code stolen from pair_morse_omp.h
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS

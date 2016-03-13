@@ -1,0 +1,27 @@
+
+3 atoms
+2 bonds
+1 atom types
+2 bond types
+
+0.0 10.0 xlo xhi
+0.0 10.0 ylo yhi
+0.0 10.0 zlo zhi
+
+Masses
+
+1 1.0
+
+
+Atoms
+
+ 1 1 1 5.0 5.0 5.0
+ 2 1 1 7.0 5.0 5.0
+ 3 1 1 5.0 7.0 5.0
+
+Bonds
+
+ 1 1  1 2
+ 2 2  1 3
+
+

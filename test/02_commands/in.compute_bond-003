@@ -1,0 +1,20 @@
+
+atom_style bond
+timer off
+read_data compute_bond.data
+
+pair_style lj/cut 5.0
+bond_style hybrid harmonic morse
+
+pair_coeff * * 1.0 1.0
+bond_coeff 1 harmonic 1.0 1.0
+bond_coeff 2 morse 1.0 2.0 1.0
+
+compute 1 all bond harmonic
+compute 2 all bond morse
+
+thermo_style custom step etotal epair ebond c_1 c_2
+
+run 0 post no
+
+

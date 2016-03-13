@@ -46,7 +46,6 @@ ComputeERotateRigid::~ComputeERotateRigid()
   delete [] rfix;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void ComputeERotateRigid::init()
@@ -55,10 +54,8 @@ void ComputeERotateRigid::init()
   if (irfix < 0)
     error->all(FLERR,"Fix ID for compute erotate/rigid does not exist");
 
-  int flag = 1;
-  if (strcmp(modify->fix[irfix]->style,"rigid/small") == 0) flag = 0;
-  else if (strstr(modify->fix[irfix]->style,"rigid")) flag = 0;
-  if (flag) error->all(FLERR,"Compute erotate/rigid with non-rigid fix-ID");
+  if (strncmp(modify->fix[irfix]->style,"rigid",5))
+    error->all(FLERR,"Compute erotate/rigid with non-rigid fix-ID");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,11 +64,11 @@ double ComputeERotateRigid::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  if (strcmp(modify->fix[irfix]->style,"rigid/small") == 0)
-    scalar = ((FixRigidSmall *) modify->fix[irfix])->extract_erotational();
-  else if (strstr(modify->fix[irfix]->style,"rigid"))
-    scalar = ((FixRigid *) modify->fix[irfix])->extract_erotational();
-
+  if (strncmp(modify->fix[irfix]->style,"rigid",5) == 0) {
+    if (strstr(modify->fix[irfix]->style,"/small")) {
+      scalar = ((FixRigidSmall *) modify->fix[irfix])->extract_erotational();
+    } else scalar = ((FixRigid *) modify->fix[irfix])->extract_erotational();
+  }
   scalar *= force->mvv2e;
   return scalar;
 }

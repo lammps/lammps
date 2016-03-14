@@ -626,7 +626,7 @@ developers"_http://lammps.sandia.gov/authors.html that they add to
 LAMMPS, especially if you think they will be of interest to other
 users.  The preferred way to do this is via GitHub.  Once you have
 prepared the content described below, see "this
-tutorial"_doc/tutorial_github.html for instructions on how to submit
+tutorial"_tutorial_github.html for instructions on how to submit
 your changes or new files.
 
 If the new features/files are broadly useful we may add them as core

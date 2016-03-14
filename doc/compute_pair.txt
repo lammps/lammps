@@ -78,7 +78,7 @@ see the doc page for the pair style for details.
 
 [Related commands:]
 
-"compute pe"_compute_pe.html
+"compute pe"_compute_pe.html, "compute bond"_compute_bond.html
 
 [Default:]
 

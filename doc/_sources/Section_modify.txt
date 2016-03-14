@@ -845,7 +845,7 @@ Submitting new features for inclusion in LAMMPS
 We encourage users to submit new features to `the developers <http://lammps.sandia.gov/authors.html>`_ that they add to
 LAMMPS, especially if you think they will be of interest to other
 users.  The preferred way to do this is via GitHub.  Once you have
-prepared the content described below, see :doc:`this tutorial <doc/tutorial_github>` for instructions on how to submit
+prepared the content described below, see :doc:`this tutorial <tutorial_github>` for instructions on how to submit
 your changes or new files.
 
 If the new features/files are broadly useful we may add them as core

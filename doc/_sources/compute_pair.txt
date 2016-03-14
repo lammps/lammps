@@ -83,7 +83,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute pe <compute_pe>`
+:doc:`compute pe <compute_pe>`, :doc:`compute bond <compute_bond>`
 
 Default
 """""""

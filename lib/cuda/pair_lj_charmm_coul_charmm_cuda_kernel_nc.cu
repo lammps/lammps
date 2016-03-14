@@ -59,9 +59,7 @@ __device__ inline F_CFLOAT CoulCharmmCuda_Eval(const F_CFLOAT &rsq, F_CFLOAT &fa
     const F_CFLOAT switch1 = (_cut_coulsq_global - rsq) * (_cut_coulsq_global - rsq) *
                             (_cut_coulsq_global + F_F(2.0) * rsq - F_F(3.0) * _cut_coul_innersq_global) * _denom_coul_inv;
     ecoul_tmp *= switch1;
-    const F_CFLOAT switch2 = F_F(12.0) * rsq * (_cut_coulsq_global - rsq) *
-                            (rsq - _cut_coul_innersq_global) * _denom_coul_inv;
-    forcecoul *= switch1 + switch2;
+    forcecoul *= switch1;
   }
 
   if(eflag) {

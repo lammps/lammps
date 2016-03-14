@@ -151,7 +151,7 @@ void DumpXTC::write_header(bigint nbig)
   if (nbig > MAXSMALLINT) error->all(FLERR,"Too many atoms for dump xtc");
   int n = nbig;
   if (update->ntimestep > MAXSMALLINT)
-    error->all(FLERR,"Too big a timestep for dump xtc");
+    error->one(FLERR,"Too big a timestep for dump xtc");
   int ntimestep = update->ntimestep;
 
   // all procs realloc coords if total count grew

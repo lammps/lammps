@@ -136,9 +136,7 @@ void PairLJCharmmCoulCharmmOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (rsq > cut_coul_innersq) {
             switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) * invdenom_coul;
-            switch2 = 12.0*rsq * (cut_coulsq-rsq) *
-              (rsq-cut_coul_innersq) * invdenom_coul;
-            forcecoul *= switch1 + switch2;
+            forcecoul *= switch1;
           }
           forcecoul *= factor_coul;
         } else forcecoul = 0.0;

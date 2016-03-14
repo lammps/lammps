@@ -125,9 +125,7 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
           if (rsq > cut_coul_innersq) {
             switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-            switch2 = 12.0*rsq * (cut_coulsq-rsq) *
-              (rsq-cut_coul_innersq) / denom_coul;
-            forcecoul *= switch1 + switch2;
+            forcecoul *= switch1;
           }
         } else forcecoul = 0.0;
 
@@ -470,9 +468,7 @@ double PairLJCharmmCoulCharmm::single(int i, int j, int itype, int jtype,
     if (rsq > cut_coul_innersq) {
       switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
         (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-      switch2 = 12.0*rsq * (cut_coulsq-rsq) *
-        (rsq-cut_coul_innersq) / denom_coul;
-      forcecoul *= switch1 + switch2;
+      forcecoul *= switch1;
     }
   } else forcecoul = 0.0;
 

@@ -243,15 +243,14 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
-  F_FLOAT forcecoul, switch1, switch2;
+  F_FLOAT forcecoul, switch1;
 
   forcecoul = qqrd2e*qtmp*q(j) *rinv;
 
   if (rsq > cut_coul_innersq) {
     switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-    switch2 = 12.0*rsq * (cut_coulsq-rsq) * (rsq-cut_coul_innersq) / denom_coul;
-    forcecoul *= switch1 + switch2;
+    forcecoul *= switch1;
   }
 
   return forcecoul * r2inv * factor_coul;

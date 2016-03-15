@@ -314,8 +314,6 @@ void PairComb3::read_lib()
   char s[maxlib];
   char **words = new char*[80];
 
-  MPI_Comm_rank(world,&comm->me);
-
   // open libraray file on proc 0
 
   if (comm->me == 0) {

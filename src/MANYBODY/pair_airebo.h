@@ -42,7 +42,8 @@ class PairAIREBO : public Pair {
   int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
 
   int me;
-  int ljflag,torflag;              // 0/1 if LJ,torsion terms included
+  int ljflag,torflag;              // 0/1 if LJ/Morse,torsion terms included
+  int morseflag;                   // 1 if Morse instead of LJ for non-bonded
 
   double cutlj;                    // user-specified LJ cutoff
   double cutljrebosq;              // cut for when to compute

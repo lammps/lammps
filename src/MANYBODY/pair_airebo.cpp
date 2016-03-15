@@ -51,6 +51,8 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   one_coeff = 1;
   ghostneigh = 1;
+  ljflag = torflag = 1;
+  morseflag = 0;
 
   maxlocal = 0;
   REBO_numneigh = NULL;
@@ -142,7 +144,6 @@ void PairAIREBO::settings(int narg, char **arg)
 
   cutlj = force->numeric(FLERR,arg[0]);
 
-  ljflag = torflag = 1;
   if (narg == 3) {
     ljflag = force->inumeric(FLERR,arg[1]);
     torflag = force->inumeric(FLERR,arg[2]);

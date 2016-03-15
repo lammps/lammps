@@ -1,0 +1,66 @@
+.. index:: compute bond
+
+compute bond command
+====================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   compute ID group-ID bond bstyle
+
+* ID, group-ID are documented in :doc:`compute <compute>` command
+* bond = style name of this compute command
+* bstyle = style name of a bond style that calculates additional values
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   compute 1 all bond harmonic
+   compute 2 all bond morse
+
+Description
+"""""""""""
+
+Define a computation that extracts additional values calculated by a
+bond style, sums them across processors, and makes them accessible for
+output or further processing by other commands.  The group specified
+for this command is ignored.
+
+The specified *bstyle* must be a bond style used in your simulation
+either by itself or as a sub-style in a :doc:`bond_style hybrid <bond_hybrid>`
+command.
+
+This compute is useful when using :doc:`bond_style hybrid <bond_hybrid>`
+if you want to know the portion of the total energy contributed by one
+sub-style.
+
+**Output info:**
+
+This compute calculates a global scalar which is the contribution of
+the named bond style to the bond energy *ebond*.
+
+The scalar value calculated by this compute is "extensive" and will be
+in energy :doc:`units <units>`.
+
+Restrictions
+""""""""""""
+ none
+
+Related commands
+""""""""""""""""
+
+:doc:`compute pe <compute_pe>`, :doc:`compute pair <compute_pair>`
+
+Default
+"""""""
+
+The default for *evalue* is *ebond*.
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

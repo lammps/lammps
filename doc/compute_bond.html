@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute pair command &mdash; LAMMPS documentation</title>
+  <title>compute bond command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute pair command</li>
+    <li>compute bond command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,71 +124,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="compute-pair-command">
-<span id="index-0"></span><h1>compute pair command<a class="headerlink" href="#compute-pair-command" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="compute-bond-command">
+<span id="index-0"></span><h1>compute bond command<a class="headerlink" href="#compute-bond-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID pair pstyle evalue
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID bond bstyle
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>pair = style name of this compute command</li>
-<li>pstyle = style name of a pair style that calculates additional values</li>
-<li>evalue = <em>epair</em> or <em>evdwl</em> or <em>ecoul</em> or blank (optional setting)</li>
+<li>bond = style name of this compute command</li>
+<li>bstyle = style name of a bond style that calculates additional values</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all pair gauss
-compute 1 all pair lj/cut/coul/cut ecoul
-compute 1 all pair reax
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all bond harmonic
+compute 2 all bond morse
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Define a computation that extracts additional values calculated by a
-pair style, sums them across processors, and makes them accessible for
+bond style, sums them across processors, and makes them accessible for
 output or further processing by other commands.  The group specified
 for this command is ignored.</p>
-<p>The specified <em>pstyle</em> must be a pair style used in your simulation
-either by itself or as a sub-style in a <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid or hybrid/overlay</em></a> command.</p>
-<p>The <em>evalue</em> setting is optional; it may be left off the command.  All
-pair styles tally a potential energy <em>epair</em> which may be broken into
-two parts: <em>evdwl</em> and <em>ecoul</em> such that <em>epair</em> = <em>evdwl</em> + <em>ecoul</em>.
-If the pair style calculates Coulombic interactions, their energy will
-be tallied in <em>ecoul</em>.  Everything else (whether it is a Lennard-Jones
-style van der Waals interaction or not) is tallied in <em>evdwl</em>.  If
-<em>evalue</em> is specified as <em>epair</em> or left out, then <em>epair</em> is stored
-as a global scalar by this compute.  This is useful when using
-<a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> if you want to know the portion
-of the total energy contributed by one sub-style.  If <em>evalue</em> is
-specfied as <em>evdwl</em> or <em>ecoul</em>, then just that portion of the energy
-is stored as a global scalar.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The energy returned by the <em>evdwl</em> keyword does not include tail
-corrections, even if they are enabled via the
-<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> command.</p>
-</div>
-<p>Some pair styles tally additional quantities, e.g. a breakdown of
-potential energy into a dozen or so components is tallied by the
-<a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a> commmand.  These values (1 or more)
-are stored as a global vector by this compute.  See the doc page for
-<a class="reference internal" href="pair_style.html"><em>individual pair styles</em></a> for info on these values.</p>
+<p>The specified <em>bstyle</em> must be a bond style used in your simulation
+either by itself or as a sub-style in a <a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a>
+command.</p>
+<p>This compute is useful when using <a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a>
+if you want to know the portion of the total energy contributed by one
+sub-style.</p>
 <p><strong>Output info:</strong></p>
-<p>This compute calculates a global scalar which is <em>epair</em> or <em>evdwl</em> or
-<em>ecoul</em>.  If the pair style supports it, it also calculates a global
-vector of length &gt;= 1, as determined by the pair style.  These values
-can be used by any command that uses global scalar or vector values
-from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
-options.</p>
-<p>The scalar and vector values calculated by this compute are
-&#8220;extensive&#8221;.</p>
-<p>The scalar value will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.  The vector
-values will typically also be in energy <a class="reference internal" href="units.html"><em>units</em></a>, but
-see the doc page for the pair style for details.</p>
+<p>This compute calculates a global scalar which is the contribution of
+the named bond style to the bond energy <em>ebond</em>.</p>
+<p>The scalar value calculated by this compute is &#8220;extensive&#8221; and will be
+in energy <a class="reference internal" href="units.html"><em>units</em></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
@@ -197,11 +169,11 @@ see the doc page for the pair style for details.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="compute_pe.html"><em>compute pe</em></a>, <a class="reference internal" href="compute_bond.html"><em>compute bond</em></a></p>
+<p><a class="reference internal" href="compute_pe.html"><em>compute pe</em></a>, <a class="reference internal" href="compute_pair.html"><em>compute pair</em></a></p>
 </div>
 <div class="section" id="default">
 <h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The default for <em>evalue</em> is <em>epair</em>.</p>
+<p>The default for <em>evalue</em> is <em>ebond</em>.</p>
 </div>
 </div>
 

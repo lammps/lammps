@@ -18,6 +18,9 @@ pair_style morse/opt command
 pair_style morse/smooth/linear command
 ======================================
 
+pair_style morse/smooth/linear/omp command
+==========================================
+
 Syntax
 """"""
 
@@ -74,8 +77,6 @@ the potential energy and force go to zero at the cut-off:
 
 The syntax of the pair_style and pair_coeff commands are the same for
 the *morse* and *morse/smooth/linear* styles.
-
-same
 
 
 ----------

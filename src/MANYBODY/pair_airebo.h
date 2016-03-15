@@ -69,6 +69,9 @@ class PairAIREBO : public Pair {
   double rcLJmin[2][2],rcLJmax[2][2],rcLJmaxsq[2][2],bLJmin[2][2],bLJmax[2][2];
   double epsilon[2][2],sigma[2][2],epsilonT[2][2];
 
+  // parameters for Morse variant
+  double epsilonM[2][2],alphaM[2][2],reqM[2][2];
+
   // spline coefficients
 
   double gCdom[5],gC1[4][6],gC2[4][6],gHdom[4],gH[3][6];

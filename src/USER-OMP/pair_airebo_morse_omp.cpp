@@ -11,23 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "pair_rebo.h"
+#include "pair_airebo_morse_omp.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairREBO::PairREBO(LAMMPS *lmp) : PairAIREBO(lmp) {}
+PairAIREBOMorseOMP::PairAIREBOMorseOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp) {}
 
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
 
-void PairREBO::settings(int narg, char **arg)
+void PairAIREBOMorseOMP::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  cutlj = 0.0;
-  ljflag = torflag = 0;
+  cutlj = force->numeric(FLERR,arg[0]);
+
+  if (narg == 3) {
+    ljflag = force->inumeric(FLERR,arg[1]);
+    torflag = force->inumeric(FLERR,arg[2]);
+  }
+
+  morseflag = 1;
 }

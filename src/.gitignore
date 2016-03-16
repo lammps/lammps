@@ -11,10 +11,15 @@ lmp_*
 /*_kokkos.cpp
 /*_omp.h
 /*_omp.cpp
+/*_tally.h
+/*_tally.cpp
 
 kokkos.cpp
 kokkos.h
 kokkos_type.h
+
+/manifold*.cpp
+/manifold*.h
 
 fix_qeq.cpp
 fix_qeq.h
@@ -530,6 +535,8 @@ pair_adp.cpp
 pair_adp.h
 pair_airebo.cpp
 pair_airebo.h
+pair_airebo_morse.cpp
+pair_airebo_morse.h
 pair_body.cpp
 pair_body.h
 pair_bop.cpp
@@ -578,6 +585,8 @@ pair_dipole_cut.cpp
 pair_dipole_cut.h
 pair_dipole_sf.cpp
 pair_dipole_sf.h
+pair_dpd_mt.cpp
+pair_dpd_mt.h
 pair_dsmc.cpp
 pair_dsmc.h
 pair_eam.cpp
@@ -603,6 +612,8 @@ pair_gauss_cut.cpp
 pair_gauss_cut.h
 pair_gayberne.cpp
 pair_gayberne.h
+pair_gran_easy.cpp
+pair_gran_easy.h
 pair_gran_hertz_history.cpp
 pair_gran_hertz_history.h
 pair_gran_hooke.cpp

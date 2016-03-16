@@ -43,6 +43,7 @@ ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
   did_compute = invoked_vector = -1;
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

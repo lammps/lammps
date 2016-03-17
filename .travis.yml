@@ -43,6 +43,7 @@ install:
   - test "$MACH" = "mpi" && export COMP="mpicxx -fopenmp" || export COMP="$CXX"
 
 script:
+  - ccache -z
   - make -C src clean-all
   - make -C src yes-all
   - make -C src no-lib
@@ -59,4 +60,5 @@ script:
   - test "$MACH" = shlib || make -C src test-${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
   - if [ "$MACH" = shlib ] ; then  make -C src mode=shlib serial MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test python MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
   - if [ "$MACH" != shlib ] ; then make -C src mode=lib ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" && make -C test couple MACH="${MACH}" MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}" || exit 1 ; fi
+  - ccache -s
 

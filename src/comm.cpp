@@ -355,7 +355,7 @@ void Comm::set_processors(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"numa") == 0) {
         gridflag = NUMA;
 
-      } else if (strcmp(arg[iarg],"custom") == 0) {
+      } else if (strcmp(arg[iarg+1],"custom") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = CUSTOM;
         delete [] customfile;

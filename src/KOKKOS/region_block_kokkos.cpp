@@ -164,7 +164,10 @@ void RegBlockKokkos<DeviceType>::rotate(double &x, double &y, double &z, double 
   z = point[2] + c[2] + disp[2];
 }
 
+namespace LAMMPS_NS {
 template class RegBlockKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class RegBlockKokkos<LMPHostType>;
 #endif
+}
+

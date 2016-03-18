@@ -173,7 +173,6 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_coul += ev.ecoul;
   if (vflag_global) {
@@ -428,7 +427,10 @@ int PairCoulWolfKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
 }
 
+namespace LAMMPS_NS {
 template class PairCoulWolfKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairCoulWolfKokkos<LMPHostType>;
 #endif
+}
+

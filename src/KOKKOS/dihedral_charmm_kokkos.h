@@ -131,47 +131,35 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   typename AT::t_f_array f;
   typename AT::t_int_2d dihedrallist;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType> k_eatom;
+  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType> k_vatom;
+  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
+  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 
-  DAT::tdual_efloat_1d k_eatom_pair;
-  DAT::tdual_virial_array k_vatom_pair;
-  DAT::t_efloat_1d d_eatom_pair;
-  DAT::t_virial_array d_vatom_pair;
+  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType> k_eatom_pair;
+  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType> k_vatom_pair;
+  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom_pair;
+  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom_pair;
 
   int nlocal,newton_bond;
   int eflag,vflag;
   double qqrd2e;
 
-  DAT::tdual_int_scalar k_warning_flag;
-  typename AT::t_int_scalar d_warning_flag;
-  HAT::t_int_scalar h_warning_flag;
+  Kokkos::DualView<int,DeviceType> k_warning_flag;
+  typename Kokkos::DualView<int,DeviceType>::t_dev d_warning_flag;
+  typename Kokkos::DualView<int,DeviceType>::t_host h_warning_flag;
 
-  DAT::tdual_ffloat_2d k_lj14_1;
-  DAT::tdual_ffloat_2d k_lj14_2;
-  DAT::tdual_ffloat_2d k_lj14_3;
-  DAT::tdual_ffloat_2d k_lj14_4;
+  typename AT::t_ffloat_2d d_lj14_1;
+  typename AT::t_ffloat_2d d_lj14_2;
+  typename AT::t_ffloat_2d d_lj14_3;
+  typename AT::t_ffloat_2d d_lj14_4;
 
-  DAT::t_ffloat_2d d_lj14_1;
-  DAT::t_ffloat_2d d_lj14_2;
-  DAT::t_ffloat_2d d_lj14_3;
-  DAT::t_ffloat_2d d_lj14_4;
-
-  DAT::tdual_ffloat_1d k_k;
-  DAT::tdual_ffloat_1d k_multiplicity;
-  DAT::tdual_ffloat_1d k_shift;
-  DAT::tdual_ffloat_1d k_sin_shift;
-  DAT::tdual_ffloat_1d k_cos_shift;
-  DAT::tdual_ffloat_1d k_weight;
-
-  DAT::t_ffloat_1d d_k;
-  DAT::t_ffloat_1d d_multiplicity;
-  DAT::t_ffloat_1d d_shift;
-  DAT::t_ffloat_1d d_sin_shift;
-  DAT::t_ffloat_1d d_cos_shift;
-  DAT::t_ffloat_1d d_weight;
+  typename AT::t_ffloat_1d d_k;
+  typename AT::t_ffloat_1d d_multiplicity;
+  typename AT::t_ffloat_1d d_shift;
+  typename AT::t_ffloat_1d d_sin_shift;
+  typename AT::t_ffloat_1d d_cos_shift;
+  typename AT::t_ffloat_1d d_weight;
 
   virtual void allocate();
 };

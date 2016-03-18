@@ -171,7 +171,10 @@ void FixNVEKokkos<DeviceType>::cleanup_copy()
   vatom = NULL;
 }
 
+namespace LAMMPS_NS {
 template class FixNVEKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class FixNVEKokkos<LMPHostType>;
 #endif
+}
+

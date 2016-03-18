@@ -113,7 +113,6 @@ void PairLJSDKKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   EV_FLOAT ev = pair_compute<PairLJSDKKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -212,7 +211,6 @@ void PairLJSDKKokkos<DeviceType>::allocate()
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJSDK::params",n+1,n+1);
   params = k_params.d_view;
-  printf("Allocating: %i\n",n);
 }
 
 /* ----------------------------------------------------------------------
@@ -308,7 +306,10 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJSDKKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJSDKKokkos<LMPHostType>;
 #endif
+}
+

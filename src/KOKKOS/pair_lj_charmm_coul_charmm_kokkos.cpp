@@ -515,4 +515,3 @@ template class PairLJCharmmCoulCharmmKokkos<LMPDeviceType>;
 template class PairLJCharmmCoulCharmmKokkos<LMPHostType>;
 #endif
 }
-

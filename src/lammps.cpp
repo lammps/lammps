@@ -659,6 +659,7 @@ void LAMMPS::create()
 
   if (kokkos) atom = new AtomKokkos(this);
   else atom = new Atom(this);
+
   if (kokkos)
     atom->create_avec("atomic/kk",0,NULL,1);
   else

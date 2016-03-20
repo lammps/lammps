@@ -42,6 +42,7 @@ enum{ONE,RANGE,POLY};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define EPSILON 0.001
+#define SMALL 1.0e-10
 
 /* ---------------------------------------------------------------------- */
 
@@ -976,7 +977,7 @@ void FixPour::options(int narg, char **arg)
         }
         double sum = 0.0;
         for (int i = 0; i < npoly; i++) sum += frac_poly[i];
-        if (sum != 1.0)
+        if (fabs(sum - 1.0) > SMALL)
           error->all(FLERR,"Fix pour polydisperse fractions do not sum to 1.0");
       } else error->all(FLERR,"Illegal fix pour command");
 

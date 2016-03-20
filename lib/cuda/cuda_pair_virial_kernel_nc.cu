@@ -23,6 +23,72 @@
 
 extern __shared__ ENERGY_CFLOAT sharedmem[];
 
+static inline __device__ void PairVirialCompute_A_Kernel_sw(unsigned long long int nb_blocks_done, unsigned long long int nb_blocks_todo, dim3 original_grid, int eflag, int vflag, int coulflag = 0)
+{
+  __syncthreads();
+  ENERGY_CFLOAT* shared = sharedmem;
+
+  if(eflag) {
+    reduceBlock(shared);
+    shared += blockDim.x;
+
+    if(coulflag) {
+      reduceBlock(shared);
+      shared += blockDim.x;
+    }
+  }
+
+  if(vflag) {
+    reduceBlock(shared + 0 * blockDim.x);
+    reduceBlock(shared + 1 * blockDim.x);
+    reduceBlock(shared + 2 * blockDim.x);
+    reduceBlock(shared + 3 * blockDim.x);
+    reduceBlock(shared + 4 * blockDim.x);
+    reduceBlock(shared + 5 * blockDim.x);
+  }
+
+  int rem = nb_blocks_done%original_grid.y;
+  int quot = nb_blocks_done/original_grid.y;
+
+  if(threadIdx.x == 0) {
+    shared = sharedmem;
+    ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
+
+    if(eflag) {
+      //buffer[blockIdx.x * gridDim.y + blockIdx.y] = ENERGY_F(0.5) * shared[0];
+      buffer[rem * original_grid.y + quot] = ENERGY_F(0.5) * shared[0];
+      shared += blockDim.x;
+      //buffer += gridDim.x * gridDim.y;
+      buffer += nb_blocks_todo;
+
+      if(coulflag) {
+        //buffer[blockIdx.x * gridDim.y + blockIdx.y] = ENERGY_F(0.5) * shared[0];
+        buffer[rem * original_grid.y + quot] = ENERGY_F(0.5) * shared[0];
+        shared += blockDim.x;
+        //buffer += gridDim.x * gridDim.y;
+	buffer += nb_blocks_todo;
+      }
+    }
+
+    if(vflag) {
+      //buffer[blockIdx.x * gridDim.y + blockIdx.y + 0 * gridDim.x * gridDim.y] = ENERGY_F(0.5) * shared[0 * blockDim.x];
+      //buffer[blockIdx.x * gridDim.y + blockIdx.y + 1 * gridDim.x * gridDim.y] = ENERGY_F(0.5) * shared[1 * blockDim.x];
+      //buffer[blockIdx.x * gridDim.y + blockIdx.y + 2 * gridDim.x * gridDim.y] = ENERGY_F(0.5) * shared[2 * blockDim.x];
+      //buffer[blockIdx.x * gridDim.y + blockIdx.y + 3 * gridDim.x * gridDim.y] = ENERGY_F(0.5) * shared[3 * blockDim.x];
+      //buffer[blockIdx.x * gridDim.y + blockIdx.y + 4 * gridDim.x * gridDim.y] = ENERGY_F(0.5) * shared[4 * blockDim.x];
+      //buffer[blockIdx.x * gridDim.y + blockIdx.y + 5 * gridDim.x * gridDim.y] = ENERGY_F(0.5) * shared[5 * blockDim.x];
+      buffer[rem * original_grid.y + quot + 0 * nb_blocks_todo] = ENERGY_F(0.5) * shared[0 * blockDim.x];
+      buffer[rem * original_grid.y + quot + 1 * nb_blocks_todo] = ENERGY_F(0.5) * shared[1 * blockDim.x];
+      buffer[rem * original_grid.y + quot + 2 * nb_blocks_todo] = ENERGY_F(0.5) * shared[2 * blockDim.x];
+      buffer[rem * original_grid.y + quot + 3 * nb_blocks_todo] = ENERGY_F(0.5) * shared[3 * blockDim.x];
+      buffer[rem * original_grid.y + quot + 4 * nb_blocks_todo] = ENERGY_F(0.5) * shared[4 * blockDim.x];
+      buffer[rem * original_grid.y + quot + 5 * nb_blocks_todo] = ENERGY_F(0.5) * shared[5 * blockDim.x];
+    }
+  }
+
+  __syncthreads();
+}
+
 static inline __device__ void PairVirialCompute_A_Kernel(int eflag, int vflag, int coulflag = 0)
 {
   __syncthreads();

@@ -29,6 +29,335 @@
 #define A5        1.061405429
 
 
+static __device__ __forceinline__ unsigned int getsmid()
+{
+	unsigned int smid;
+	asm volatile("mov.u32 %0, %%smid;" : "=r"(smid));
+	return smid;
+}
+
+template <const PAIR_FORCES pair_type, const COUL_FORCES coul_type, const unsigned int extended_data>
+__global__ void Pair_Kernel_TpA_sw(unsigned long long int *d_nb_blocks_done, unsigned long long int nb_blocks_todo, dim3 original_grid, int eflag, int vflag, int eflag_atom, int vflag_atom)
+{
+	if(getsmid()>11){ //best performance using 12 SMs
+		return;
+	}
+  __shared__ unsigned long long int s_nb_blocks_done;
+  while(true){
+	  if((threadIdx.x==0)&&(threadIdx.y==0)&&(threadIdx.z==0)){
+		  s_nb_blocks_done = atomicAdd(d_nb_blocks_done, 1);
+	  }
+	  __syncthreads();
+	  if(s_nb_blocks_done>=nb_blocks_todo){
+		  break;
+	  }
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT ecoul = ENERGY_F(0.0);
+
+  ENERGY_CFLOAT* sharedE;
+  ENERGY_CFLOAT* sharedECoul;
+  ENERGY_CFLOAT* sharedV = &sharedmem[threadIdx.x];
+
+  if(eflag || eflag_atom) {
+    sharedE = &sharedmem[threadIdx.x];
+    sharedE[0] = ENERGY_F(0.0);
+    sharedV += blockDim.x;
+
+    if(coul_type != COUL_NONE) {
+      sharedECoul = sharedE + blockDim.x;
+      sharedECoul[0] = ENERGY_F(0.0);
+      sharedV += blockDim.x;
+    }
+  }
+
+  if(vflag || vflag_atom) {
+    sharedV[0 * blockDim.x] = ENERGY_F(0.0);
+    sharedV[1 * blockDim.x] = ENERGY_F(0.0);
+    sharedV[2 * blockDim.x] = ENERGY_F(0.0);
+    sharedV[3 * blockDim.x] = ENERGY_F(0.0);
+    sharedV[4 * blockDim.x] = ENERGY_F(0.0);
+    sharedV[5 * blockDim.x] = ENERGY_F(0.0);
+  }
+
+  //int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
+  int rem = s_nb_blocks_done%original_grid.y;
+  int quot = s_nb_blocks_done/original_grid.y;
+  int ii = (rem * original_grid.y + quot) * blockDim.x + threadIdx.x;
+
+  X_CFLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT fxtmp, fytmp, fztmp, fpair;
+  F_CFLOAT delx, dely, delz;
+  F_CFLOAT factor_lj, factor_coul;
+  F_CFLOAT qtmp;
+  int itype, i, j;
+  int jnum = 0;
+  int* jlist;
+
+  if(ii < _inum) {
+    i = _ilist[ii];
+
+    myxtype = fetchXType(i);
+    xtmp = myxtype.x;
+    ytmp = myxtype.y;
+    ztmp = myxtype.z;
+    itype = static_cast <int>(myxtype.w);
+
+
+    fxtmp = F_F(0.0);
+    fytmp = F_F(0.0);
+    fztmp = F_F(0.0);
+
+    if(coul_type != COUL_NONE)
+      qtmp = fetchQ(i);
+
+    jnum = _numneigh[i];
+    jlist = &_neighbors[i];
+  }
+
+  __syncthreads();
+
+  for(int jj = 0; jj < jnum; jj++) {
+    if(ii < _inum)
+      if(jj < jnum) {
+        fpair = F_F(0.0);
+        j = jlist[jj * _nlocal];
+        factor_lj =  _special_lj[sbmask(j)];
+
+        if(coul_type != COUL_NONE)
+          factor_coul = _special_coul[sbmask(j)];
+
+        j &= NEIGHMASK;
+
+        myxtype = fetchXType(j);
+        delx = xtmp - myxtype.x;
+        dely = ytmp - myxtype.y;
+        delz = ztmp - myxtype.z;
+        int jtype = static_cast <int>(myxtype.w);
+
+
+        const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
+
+        bool in_cutoff = rsq < (_cutsq_global > X_F(0.0) ? _cutsq_global : _cutsq[itype * _cuda_ntypes + jtype]);
+
+        if(in_cutoff) {
+          switch(pair_type) {
+            case PAIR_BORN:
+              fpair += PairBornCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_BUCK:
+              fpair += PairBuckCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_CG_CMM:
+              fpair += PairLJSDKCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_LJ_CHARMM:
+              fpair += PairLJCharmmCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_LJ_CLASS2:
+              fpair += PairLJClass2Cuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_LJ_CUT:
+              fpair += PairLJCutCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_LJ_EXPAND:
+              fpair += PairLJExpandCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_LJ_GROMACS:
+              fpair += PairLJGromacsCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_LJ_SMOOTH:
+              fpair += PairLJSmoothCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_LJ96_CUT:
+              fpair += PairLJ96CutCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_MORSE_R6:
+              fpair += PairMorseR6Cuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+
+            case PAIR_MORSE:
+              fpair += PairMorseCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_lj, eflag, evdwl);
+              break;
+          }
+        }
+
+        if(coul_type != COUL_NONE) {
+          const F_CFLOAT qiqj = qtmp * fetchQ(j);
+
+          if(qiqj * qiqj > 1e-8) {
+            const bool in_coul_cutoff =
+              rsq < (_cut_coulsq_global > X_F(0.0) ? _cut_coulsq_global : _cut_coulsq[itype * _cuda_ntypes + jtype]);
+
+            if(in_coul_cutoff) {
+              switch(coul_type) {
+                case COUL_CHARMM:
+                  fpair += CoulCharmmCuda_Eval(rsq, factor_coul, eflag, ecoul, qiqj);
+                  break;
+
+                case COUL_CHARMM_IMPLICIT:
+                  fpair += CoulCharmmImplicitCuda_Eval(rsq, factor_coul, eflag, ecoul, qiqj);
+                  break;
+
+                case COUL_CUT: {
+                  const F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
+
+                  if(eflag) {
+                    ecoul += forcecoul;
+                  }
+
+                  fpair += forcecoul * (F_F(1.0) / rsq);
+                }
+                break;
+
+                case COUL_DEBYE: {
+                  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                  const X_CFLOAT r = _RSQRT_(r2inv);
+                  const X_CFLOAT rinv = F_F(1.0) / r;
+                  const F_CFLOAT screening = _EXP_(-_kappa * r);
+                  F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
+
+                  if(eflag) {
+                    ecoul += forcecoul * rinv;
+                  }
+
+                  forcecoul *= (_kappa + rinv);
+                  fpair += forcecoul * r2inv;
+                }
+                break;
+
+                case COUL_GROMACS:
+                  fpair += CoulGromacsCuda_Eval(rsq, itype * _cuda_ntypes + jtype, factor_coul, eflag, ecoul, qiqj);
+                  break;
+
+                case COUL_LONG: {
+                  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                  const F_CFLOAT r = _RSQRT_(r2inv);
+                  const F_CFLOAT grij = _g_ewald * r;
+                  const F_CFLOAT expm2 = _EXP_(-grij * grij);
+                  const F_CFLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
+                  const F_CFLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+                  const F_CFLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
+                  F_CFLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+
+                  if(factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
+
+                  if(eflag) {
+                    ecoul += prefactor * erfc;
+
+                    if(factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
+                  }
+
+                  fpair += forcecoul * r2inv;
+                }
+                break;
+              }
+            }
+
+            in_cutoff = in_cutoff || in_coul_cutoff;
+          }
+        }
+
+
+        if(in_cutoff) {
+          F_CFLOAT dxfp, dyfp, dzfp;
+          fxtmp += dxfp = delx * fpair;
+          fytmp += dyfp = dely * fpair;
+          fztmp += dzfp = delz * fpair;
+
+          if(vflag) {
+            sharedV[0 * blockDim.x] += delx * dxfp;
+            sharedV[1 * blockDim.x] += dely * dyfp;
+            sharedV[2 * blockDim.x] += delz * dzfp;
+            sharedV[3 * blockDim.x] += delx * dyfp;
+            sharedV[4 * blockDim.x] += delx * dzfp;
+            sharedV[5 * blockDim.x] += dely * dzfp;
+          }
+        }
+      }
+  }
+
+  __syncthreads();
+
+  if(ii < _inum) {
+    F_CFLOAT* my_f;
+
+    if(_collect_forces_later) {
+      ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
+
+      if(eflag) {
+        //buffer = &buffer[1 * gridDim.x * gridDim.y];
+        buffer = &buffer[1 * nb_blocks_todo];
+
+        if(coul_type != COUL_NONE)
+          //buffer = &buffer[1 * gridDim.x * gridDim.y];
+          buffer = &buffer[1 * nb_blocks_todo];
+      }
+
+      if(vflag) {
+        //buffer = &buffer[6 * gridDim.x * gridDim.y];
+        buffer = &buffer[6 * nb_blocks_todo];
+      }
+
+      my_f = (F_CFLOAT*) buffer;
+      my_f += i;
+      *my_f = fxtmp;
+      my_f += _nmax;
+      *my_f = fytmp;
+      my_f += _nmax;
+      *my_f = fztmp;
+    } else {
+      my_f = _f + i;
+      *my_f += fxtmp;
+      my_f += _nmax;
+      *my_f += fytmp;
+      my_f += _nmax;
+      *my_f += fztmp;
+    }
+  }
+
+  __syncthreads();
+
+  if(eflag) {
+    sharedE[0] = evdwl;
+
+    if(coul_type != COUL_NONE)
+      sharedECoul[0] = ecoul;
+  }
+
+  if(eflag_atom && i < _nlocal) {
+    if(coul_type != COUL_NONE)
+      _eatom[i] += evdwl + ecoul;
+    else
+      _eatom[i] += evdwl;
+  }
+
+  if(vflag_atom && i < _nlocal) {
+    _vatom[i]         += ENERGY_F(0.5) * sharedV[0 * blockDim.x];
+    _vatom[i + _nmax]   += ENERGY_F(0.5) * sharedV[1 * blockDim.x];
+    _vatom[i + 2 * _nmax] += ENERGY_F(0.5) * sharedV[2 * blockDim.x];
+    _vatom[i + 3 * _nmax] += ENERGY_F(0.5) * sharedV[3 * blockDim.x];
+    _vatom[i + 4 * _nmax] += ENERGY_F(0.5) * sharedV[4 * blockDim.x];
+    _vatom[i + 5 * _nmax] += ENERGY_F(0.5) * sharedV[5 * blockDim.x];
+  }
+
+  if(vflag || eflag){ 
+	  //PairVirialCompute_A_Kernel(eflag, vflag, coul_type != COUL_NONE ? 1 : 0);
+	  PairVirialCompute_A_Kernel_sw(s_nb_blocks_done, nb_blocks_todo, original_grid, eflag, vflag, coul_type != COUL_NONE ? 1 : 0);
+  }
+  }//end while(true)
+}
+
 template <const PAIR_FORCES pair_type, const COUL_FORCES coul_type, const unsigned int extended_data>
 __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_atom)
 {

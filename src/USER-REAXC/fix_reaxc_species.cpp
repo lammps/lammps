@@ -58,6 +58,8 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
   peratom_freq = 1;
 
+  nvalid = -1;
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   ntypes = atom->ntypes;
@@ -287,7 +289,10 @@ void FixReaxCSpecies::init()
 		  "pair_style reax/c");
 
   reaxc->fixspecies_flag = 1;
-  nvalid = update->ntimestep+nfreq;
+
+  // reset next output timestep if not yet set or timestep has been reset
+  if (nvalid != update->ntimestep)
+    nvalid = update->ntimestep+nfreq;
 
   // check if this fix has been called twice
   int count = 0;

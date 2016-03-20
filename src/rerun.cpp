@@ -65,7 +65,8 @@ void Rerun::command(int narg, char **arg)
   int nskip = 1;
   int startflag = 0;
   int stopflag = 0;
-  bigint start,stop;
+  bigint start = -1;
+  bigint stop = -1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"first") == 0) {

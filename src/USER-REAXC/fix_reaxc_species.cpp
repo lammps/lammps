@@ -269,7 +269,8 @@ int FixReaxCSpecies::setmask()
 void FixReaxCSpecies::setup(int vflag)
 {
   ntotal = static_cast<int> (atom->natoms);
-  memory->create(Name,ntypes,"reax/c/species:Name");
+  if (Name == NULL)
+    memory->create(Name,ntypes,"reax/c/species:Name");
 
   post_integrate();
 }

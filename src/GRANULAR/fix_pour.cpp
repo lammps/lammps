@@ -901,13 +901,13 @@ void FixPour::options(int narg, char **arg)
       molfrac[nmol-1] = 1.0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"molfrac") == 0) {
-      if (mode != MOLECULE) error->all(FLERR,"Illegal fix deposit command");
-      if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix deposit command");
+      if (mode != MOLECULE) error->all(FLERR,"Illegal fix pour command");
+      if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix pour command");
       molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
       for (int i = 1; i < nmol; i++)
         molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
       if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON)
-        error->all(FLERR,"Illegal fix deposit command");
+        error->all(FLERR,"Illegal fix pour command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
 

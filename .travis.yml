@@ -44,6 +44,7 @@ install:
 
 script:
   - ccache -z
+  - ccache -M 5G
   - make -C src clean-all
   - make -C src yes-all
   - make -C src no-lib

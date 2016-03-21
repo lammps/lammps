@@ -149,7 +149,7 @@ which must be installed on your system when building LAMMPS for use
 with this compute.  See instructions on obtaining and installing the
 Voro++ software in the src/VORONOI/README file.
 
-:link(voronoi,http://math.lbl.gov/voro++)
+:link(voronoi,http://math.lbl.gov/voro++/)
 
 NOTE: The calculation of Voronoi volumes is performed by each
 processor for the atoms it owns, and includes the effect of ghost

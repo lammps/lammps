@@ -32,6 +32,10 @@
 #include "pair_lj_cut_cuda_kernel_nc.cu"
 
 #include <time.h>
+#include <sys/time.h>
+
+static unsigned long long int *d_nb_blocks_done=NULL;
+static bool g_science_init=false;
 
 void Cuda_PairLJCutCuda_Init(cuda_shared_data* sdata)
 {
@@ -58,12 +62,30 @@ void Cuda_PairLJCutCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighli
   Cuda_Pair_PreKernel_AllStyles(sdata, sneighlist, eflag, vflag, grid, threads, sharedperproc, false, 192);
   cudaStream_t* streams = (cudaStream_t*) CudaWrapper_returnStreams();
 
-  if(sdata->pair.use_block_per_atom)
+  if(!g_science_init){
+	  cudaMalloc(&d_nb_blocks_done, sizeof(unsigned long long int));
+	  g_science_init=true;
+  }
+
+  if(sdata->pair.use_block_per_atom){
     Pair_Kernel_BpA<PAIR_LJ_CUT, COUL_NONE, DATA_NONE>
     <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
-  else
-    Pair_Kernel_TpA<PAIR_LJ_CUT, COUL_NONE, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+  }else{
+    //Pair_Kernel_TpA<PAIR_LJ_CUT, COUL_NONE, DATA_NONE>
+    //<<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    //struct timeval start, end;
+    unsigned long long int nb_blocks_todo = (grid.x * grid.y * grid.z), tmp=0;
+    cudaMemcpyAsync(d_nb_blocks_done, &tmp, sizeof(unsigned long long int), cudaMemcpyHostToDevice, streams[1]);
+    //cudaDeviceSynchronize();
+    //gettimeofday(&start, NULL);
+    Pair_Kernel_TpA_sw<PAIR_LJ_CUT, COUL_NONE, DATA_NONE>
+    <<< 240, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (d_nb_blocks_done, nb_blocks_todo, grid, eflag, vflag, eflag_atom, vflag_atom); //240 => K40 # of SMs x Max # of blocks/SM; TODO: compute from cudaGetDeviceProperties(...)
+    //cudaDeviceSynchronize();
+    //gettimeofday(&end, NULL);
+    //cudaMemcpyAsync(&tmp, d_nb_blocks_done, sizeof(unsigned long long int), cudaMemcpyDeviceToHost, streams[1]);
+    //cudaDeviceSynchronize();
+    //printf("Pair_Kernel_TpA_sw nb_blocks_todo = %llu, nb_blocks_done = %llu, duration(us) = %llu\n", nb_blocks_todo, tmp-240, (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec)); //Each block increments the global counter once extra
+  }
 
   Cuda_Pair_PostKernel_AllStyles(sdata, grid, sharedperproc, eflag, vflag);
 }

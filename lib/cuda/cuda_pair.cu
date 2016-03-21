@@ -173,6 +173,9 @@ __device__ __constant__ X_CFLOAT _cut_innersq_global;
 
 
 template <const PAIR_FORCES pair_type, const COUL_FORCES coul_type, const unsigned int extended_data>
+__global__ void Pair_Kernel_TpA_sw(unsigned long long int *d_nb_blocks_done, unsigned long long int nb_blocks_todo, dim3 original_grid, int eflag, int vflag, int eflag_atom, int vflag_atom);
+
+template <const PAIR_FORCES pair_type, const COUL_FORCES coul_type, const unsigned int extended_data>
 __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_atom);
 
 template <const PAIR_FORCES pair_type, const COUL_FORCES coul_type, const unsigned int extended_data>

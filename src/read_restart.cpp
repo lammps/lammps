@@ -825,7 +825,7 @@ void ReadRestart::header(int incompatible)
       char **argcopy = new char*[nargcopy];
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
-      atom->create_avec(style,nargcopy,argcopy,0);
+      atom->create_avec(style,nargcopy,argcopy,1);
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;

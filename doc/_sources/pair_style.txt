@@ -105,6 +105,7 @@ in the pair section of :ref:`this page <cmd_5>`.
 
 * :doc:`pair_style adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`pair_style airebo <pair_airebo>` - AIREBO potential of Stuart
+* :doc:`pair_style airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`pair_style beck <pair_beck>` - Beck potential
 * :doc:`pair_style body <pair_body>` - interactions between body particles
 * :doc:`pair_style bop <pair_bop>` - BOP potential of Pettifor

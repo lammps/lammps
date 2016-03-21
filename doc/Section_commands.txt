@@ -804,6 +804,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "hybrid/overlay"_pair_hybrid.html,
 "adp (o)"_pair_adp.html,
 "airebo (o)"_pair_airebo.html,
+"airebo/morse (o)"_pair_airebo.html,
 "beck (go)"_pair_beck.html,
 "body"_pair_body.html,
 "bop"_pair_bop.html,

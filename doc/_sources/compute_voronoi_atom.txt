@@ -164,7 +164,7 @@ which must be installed on your system when building LAMMPS for use
 with this compute.  See instructions on obtaining and installing the
 Voro++ software in the src/VORONOI/README file.
 
-.. _voronoi: http://math.lbl.gov/voro++
+.. _voronoi: http://math.lbl.gov/voro++/
 
 
 

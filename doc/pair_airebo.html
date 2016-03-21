@@ -130,6 +130,12 @@
 <div class="section" id="pair-style-airebo-omp-command">
 <h1>pair_style airebo/omp command<a class="headerlink" href="#pair-style-airebo-omp-command" title="Permalink to this headline">¶</a></h1>
 </div>
+<div class="section" id="pair-style-airebo-morse-command">
+<h1>pair_style airebo/morse command<a class="headerlink" href="#pair-style-airebo-morse-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-airebo-morse-omp-command">
+<h1>pair_style airebo/morse/omp command<a class="headerlink" href="#pair-style-airebo-morse-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
 <div class="section" id="pair-style-rebo-command">
 <h1>pair_style rebo command<a class="headerlink" href="#pair-style-rebo-command" title="Permalink to this headline">¶</a></h1>
 </div>
@@ -141,10 +147,10 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>style = <em>airebo</em> or <em>rebo</em></li>
-<li>cutoff = LJ cutoff (sigma scale factor) (AIREBO only)</li>
-<li>LJ_flag = 0/1 to turn off/on the LJ term (AIREBO only, optional)</li>
-<li>TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO only, optional)</li>
+<li>style = <em>airebo</em> or <em>airebo/morse</em> or <em>rebo</em></li>
+<li>cutoff = LJ or Morse cutoff (sigma scale factor) (AIREBO and AIREBO-M only)</li>
+<li>LJ_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)</li>
+<li>TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)</li>
 </ul>
 </div>
 <div class="section" id="examples">
@@ -152,6 +158,10 @@
 <div class="highlight-python"><div class="highlight"><pre>pair_style airebo 3.0
 pair_style airebo 2.5 1 0
 pair_coeff * * ../potentials/CH.airebo H C
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style airebo/morse 3.0
+pair_coeff * * ../potentials/CH.airebo-m H C
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre>pair_style rebo
@@ -164,12 +174,19 @@ pair_coeff * * ../potentials/CH.airebo H C
 <p>The <em>airebo</em> pair style computes the Adaptive Intermolecular Reactive
 Empirical Bond Order (AIREBO) Potential of <a class="reference internal" href="#stuart"><span>(Stuart)</span></a> for a
 system of carbon and/or hydrogen atoms.  Note that this is the initial
-formulation of AIREBO from 2000, not the later formulation.  The
-<em>rebo</em> pair style computes the Reactive Empirical Bond Order (REBO)
-Potential of <a class="reference internal" href="#brenner"><span>(Brenner)</span></a>.  Note that this is the so-called
-2nd generation REBO from 2002, not the original REBO from 1990.  As
-discussed below, 2nd generation REBO is closely related to the intial
-AIREBO; it is just a subset of the potential energy terms.</p>
+formulation of AIREBO from 2000, not the later formulation.</p>
+<p>The <em>airebo/morse</em> pair style computes the AIREBO-M potential, which
+is equivalent to AIREBO, but replaces the LJ term with a Morse potential.
+The Morse potentials are parameterized by high-quality quantum chemistry
+(MP2) calculations and do not diverge as quickly as particle density
+increases. This allows AIREBO-M to retain accuracy to much higher pressures
+than AIREBO (up to 40 GPa for Polyethylene). Details for this potential
+and its parameterization are given in <a class="reference internal" href="#oconnor"><span>(O&#8217;Conner)</span></a>.</p>
+<p>The <em>rebo</em> pair style computes the Reactive Empirical Bond Order (REBO)
+Potential of <a class="reference internal" href="#brenner"><span>(Brenner)</span></a>. Note that this is the so-called
+2nd generation REBO from 2002, not the original REBO from 1990.
+As discussed below, 2nd generation REBO is closely related to the
+intial AIREBO; it is just a subset of the potential energy terms.</p>
 <p>The AIREBO potential consists of three terms:</p>
 <img alt="_images/pair_airebo.jpg" class="align-center" src="_images/pair_airebo.jpg" />
 <p>By default, all three terms are included.  For the <em>airebo</em> style, if
@@ -178,7 +195,7 @@ included, the LJ and torsional terms can be turned off.  Note that
 both or neither of the flags must be included.  If both of the LJ an
 torsional terms are turned off, it becomes the 2nd-generation REBO
 potential, with a small caveat on the spline fitting procedure
-mentioned below.  This can be specified directly as pair_style rebo
+mentioned below.  This can be specified directly as pair_style <em>rebo</em>
 with no additional arguments.</p>
 <p>The detailed formulas for this potential are given in
 <a class="reference internal" href="#stuart"><span>(Stuart)</span></a>; here we provide only a brief description.</p>
@@ -209,12 +226,13 @@ would be 10.2 Angstroms.</p>
 <p>The E_TORSION term is an explicit 4-body potential that describes
 various dihedral angle preferences in hydrocarbon configurations.</p>
 <hr class="docutils" />
-<p>Only a single pair_coeff command is used with the <em>airebo</em> or <em>rebo</em>
-style which specifies an AIREBO potential file with parameters for C
-and H.  Note that the <em>rebo</em> style in LAMMPS uses the same
-AIREBO-formatted potential file.  These are mapped to LAMMPS atom
-types by specifying N additional arguments after the filename in the
-pair_coeff command, where N is the number of LAMMPS atom types:</p>
+<p>Only a single pair_coeff command is used with the <em>airebo</em>, <em>airebo</em>
+or <em>rebo</em> style which specifies an AIREBO or AIREBO-M potential file
+with parameters for C and H.  Note that the <em>rebo</em> style in LAMMPS
+uses the same AIREBO-formatted potential file.  These are mapped to
+LAMMPS atom types by specifying N additional arguments after the
+filename in the pair_coeff command, where N is the number of LAMMPS
+atom types:</p>
 <ul class="simple">
 <li>filename</li>
 <li>N element names = mapping of AIREBO elements to atom types</li>
@@ -239,6 +257,12 @@ other potentials.</p>
 the CH.airebo file to agree with the original <a class="reference internal" href="#stuart"><span>(Stuart)</span></a>
 paper.  Thus the parameters are specific to this potential and the way
 it was fit, so modifying the file should be done cautiously.</p>
+<p>Similarly the parameters/coefficients for the AIREBO-M potentials are
+listed in the CH.airebo-m file to agree with the <a class="reference internal" href="#oconnor"><span>(O&#8217;Connor)</span></a>
+paper. Thus the parameters are specific to this potential and the way
+it was fit, so modifying the file should be done cautiously. The
+AIREBO-M Morse potentials were parameterized using a cutoff of
+3.0 (sigma). Modifying this cutoff may impact simulation accuracy.</p>
 <hr class="docutils" />
 <p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
@@ -274,11 +298,12 @@ default).  See the <a class="reference internal" href="Section_start.html#start-
 for more info.</p>
 <p>These pair potentials require the <a class="reference internal" href="newton.html"><em>newton</em></a> setting to be
 &#8220;on&#8221; for pair interactions.</p>
-<p>The CH.airebo potential file provided with LAMMPS (see the potentials
-directory) is parameterized for metal <a class="reference internal" href="units.html"><em>units</em></a>.  You can use
-the AIREBO or REBO potential with any LAMMPS units, but you would need
-to create your own AIREBO potential file with coefficients listed in
-the appropriate units if your simulation doesn&#8217;t use &#8220;metal&#8221; units.</p>
+<p>The CH.airebo and CH.airebo-m potential files provided with LAMMPS
+(see the potentials directory) are parameterized for metal <a class="reference internal" href="units.html"><em>units</em></a>.
+You can use the AIREBO, AIREBO-M or REBO potential with any LAMMPS units,
+but you would need to create your own AIREBO or AIREBO-M potential file
+with coefficients listed in the appropriate units, if your simulation
+doesn&#8217;t use &#8220;metal&#8221; units.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
@@ -289,6 +314,7 @@ the appropriate units if your simulation doesn&#8217;t use &#8220;metal&#8221; u
 (2000).</p>
 <p id="brenner"><strong>(Brenner)</strong> Brenner, Shenderova, Harrison, Stuart, Ni, Sinnott, J
 Physics: Condensed Matter, 14, 783-802 (2002).</p>
+<p id="oconnor"><strong>(O&#8217;Connor)</strong> O&#8217;Connor et al., J. Chem. Phys. 142, 024903 (2015).</p>
 </div>
 </div>
 

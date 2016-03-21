@@ -204,7 +204,9 @@ namespace ATC_Utility
   {
     double v;
     std::istringstream in(s);
-    return (in >> v);
+    in >> v;
+    // in.good() == true indicates, that not the whole string was converted.
+    return !(in.fail() || in.good());
   }
 
   /** convert a string to anything that has iostream::>> defined, second arg is to disambibuate type */

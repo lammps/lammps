@@ -940,31 +940,31 @@ void ReadRestart::force_fields()
 
     if (flag == PAIR) {
       style = read_string();
-      force->create_pair(style,0);
+      force->create_pair(style,1);
       delete [] style;
       force->pair->read_restart(fp);
 
     } else if (flag == BOND) {
       style = read_string();
-      force->create_bond(style,0);
+      force->create_bond(style,1);
       delete [] style;
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
-      force->create_angle(style,0);
+      force->create_angle(style,1);
       delete [] style;
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
-      force->create_dihedral(style,0);
+      force->create_dihedral(style,1);
       delete [] style;
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
-      force->create_improper(style,0);
+      force->create_improper(style,1);
       delete [] style;
       force->improper->read_restart(fp);
 

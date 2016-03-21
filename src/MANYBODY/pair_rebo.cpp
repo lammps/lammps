@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_rebo.h"
-#include "force.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

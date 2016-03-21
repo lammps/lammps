@@ -367,7 +367,8 @@ void FixQEqReax::init_shielding()
   int ntypes;
 
   ntypes = atom->ntypes;
-  memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
+  if (shld == NULL)
+    memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
 
   for( i = 1; i <= ntypes; ++i )
     for( j = 1; j <= ntypes; ++j )

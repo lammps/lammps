@@ -42,6 +42,7 @@ enum{ONE,RANGE,POLY};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define EPSILON 0.001
+#define SMALL 1.0e-10
 
 /* ---------------------------------------------------------------------- */
 
@@ -900,13 +901,13 @@ void FixPour::options(int narg, char **arg)
       molfrac[nmol-1] = 1.0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"molfrac") == 0) {
-      if (mode != MOLECULE) error->all(FLERR,"Illegal fix deposit command");
-      if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix deposit command");
+      if (mode != MOLECULE) error->all(FLERR,"Illegal fix pour command");
+      if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix pour command");
       molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
       for (int i = 1; i < nmol; i++)
         molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
       if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON)
-        error->all(FLERR,"Illegal fix deposit command");
+        error->all(FLERR,"Illegal fix pour command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
 
@@ -976,7 +977,7 @@ void FixPour::options(int narg, char **arg)
         }
         double sum = 0.0;
         for (int i = 0; i < npoly; i++) sum += frac_poly[i];
-        if (sum != 1.0)
+        if (fabs(sum - 1.0) > SMALL)
           error->all(FLERR,"Fix pour polydisperse fractions do not sum to 1.0");
       } else error->all(FLERR,"Illegal fix pour command");
 

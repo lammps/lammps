@@ -42,7 +42,8 @@ class PairAIREBO : public Pair {
   int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
 
   int me;
-  int ljflag,torflag;              // 0/1 if LJ,torsion terms included
+  int ljflag,torflag;              // 0/1 if LJ/Morse,torsion terms included
+  int morseflag;                   // 1 if Morse instead of LJ for non-bonded
 
   double cutlj;                    // user-specified LJ cutoff
   double cutljrebosq;              // cut for when to compute
@@ -67,6 +68,9 @@ class PairAIREBO : public Pair {
   double Q[2][2],alpha[2][2],A[2][2],rho[2][2],BIJc[2][2][3],Beta[2][2][3];
   double rcLJmin[2][2],rcLJmax[2][2],rcLJmaxsq[2][2],bLJmin[2][2],bLJmax[2][2];
   double epsilon[2][2],sigma[2][2],epsilonT[2][2];
+
+  // parameters for Morse variant
+  double epsilonM[2][2],alphaM[2][2],reqM[2][2];
 
   // spline coefficients
 

@@ -173,7 +173,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
       if (author_name==NULL) {
-	author_name = new char[strlen(arg[iarg]+1)];
+	author_name = new char[strlen(arg[iarg])+1];
 	strcpy(author_name, arg[iarg+1]);
       } else {
 	error->all(FLERR, "Illegal dump h5md command: author argument repeated");

@@ -1,0 +1,128 @@
+$(DIR)body23joint.o: body23joint.cpp body23joint.h joint.h poemsobject.h \
+ matrices.h matrix.h virtualmatrix.h colmatrix.h virtualcolmatrix.h \
+ colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h \
+ vect4.h mat6x6.h vect6.h point.h matrixfun.h body.h poemslist.h \
+ fastmatrixops.h norm.h eulerparameters.h
+$(DIR)body.o: body.cpp bodies.h body.h poemslist.h poemsobject.h matrices.h \
+ matrix.h virtualmatrix.h colmatrix.h virtualcolmatrix.h colmatmap.h \
+ rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h \
+ mat6x6.h vect6.h inertialframe.h rigidbody.h particle.h point.h
+$(DIR)colmatmap.o: colmatmap.cpp colmatmap.h virtualcolmatrix.h virtualmatrix.h \
+ colmatrix.h
+$(DIR)colmatrix.o: colmatrix.cpp colmatrix.h virtualcolmatrix.h virtualmatrix.h \
+ colmatmap.h rowmatrix.h virtualrowmatrix.h
+$(DIR)eulerparameters.o: eulerparameters.cpp eulerparameters.h colmatrix.h \
+ virtualcolmatrix.h virtualmatrix.h colmatmap.h mat3x3.h
+$(DIR)fastmatrixops.o: fastmatrixops.cpp fastmatrixops.h matrices.h matrix.h \
+ virtualmatrix.h colmatrix.h virtualcolmatrix.h colmatmap.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h
+$(DIR)fixedpoint.o: fixedpoint.cpp fixedpoint.h point.h poemsobject.h vect3.h \
+ virtualcolmatrix.h virtualmatrix.h
+$(DIR)freebodyjoint.o: freebodyjoint.cpp freebodyjoint.h joint.h poemsobject.h \
+ matrices.h matrix.h virtualmatrix.h colmatrix.h virtualcolmatrix.h \
+ colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h \
+ vect4.h mat6x6.h vect6.h point.h matrixfun.h body.h poemslist.h \
+ fastmatrixops.h norm.h eulerparameters.h
+$(DIR)inertialframe.o: inertialframe.cpp inertialframe.h body.h poemslist.h \
+ poemsobject.h matrices.h matrix.h virtualmatrix.h colmatrix.h \
+ virtualcolmatrix.h colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h \
+ vect3.h mat4x4.h vect4.h mat6x6.h vect6.h fixedpoint.h point.h
+$(DIR)joint.o: joint.cpp joints.h joint.h poemsobject.h matrices.h matrix.h \
+ virtualmatrix.h colmatrix.h virtualcolmatrix.h colmatmap.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h \
+ freebodyjoint.h revolutejoint.h prismaticjoint.h sphericaljoint.h \
+ body23joint.h mixedjoint.h body.h poemslist.h point.h matrixfun.h \
+ fastmatrixops.h
+$(DIR)mat3x3.o: mat3x3.cpp mat3x3.h virtualmatrix.h
+$(DIR)mat4x4.o: mat4x4.cpp mat4x4.h virtualmatrix.h matrix.h
+$(DIR)mat6x6.o: mat6x6.cpp mat6x6.h virtualmatrix.h
+$(DIR)matrix.o: matrix.cpp matrix.h virtualmatrix.h
+$(DIR)matrixfun.o: matrixfun.cpp matrixfun.h matrices.h matrix.h \
+ virtualmatrix.h colmatrix.h virtualcolmatrix.h colmatmap.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h \
+ fastmatrixops.h
+$(DIR)mixedjoint.o: mixedjoint.cpp mixedjoint.h joint.h poemsobject.h \
+ matrices.h matrix.h virtualmatrix.h colmatrix.h virtualcolmatrix.h \
+ colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h \
+ vect4.h mat6x6.h vect6.h point.h matrixfun.h body.h poemslist.h \
+ fastmatrixops.h norm.h eulerparameters.h
+$(DIR)norm.o: norm.cpp norm.h matrices.h matrix.h virtualmatrix.h colmatrix.h \
+ virtualcolmatrix.h colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h \
+ vect3.h mat4x4.h vect4.h mat6x6.h vect6.h
+$(DIR)onbody.o: onbody.cpp onbody.h poemslist.h matrix.h virtualmatrix.h \
+ vect6.h virtualcolmatrix.h mat6x6.h body.h poemsobject.h matrices.h \
+ colmatrix.h colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h \
+ mat4x4.h vect4.h inertialframe.h joint.h onfunctions.h matrixfun.h \
+ norm.h eulerparameters.h
+$(DIR)onfunctions.o: onfunctions.cpp onfunctions.h matrices.h matrix.h \
+ virtualmatrix.h colmatrix.h virtualcolmatrix.h colmatmap.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h \
+ matrixfun.h
+$(DIR)onsolver.o: onsolver.cpp onsolver.h solver.h colmatmap.h \
+ virtualcolmatrix.h virtualmatrix.h matrices.h matrix.h colmatrix.h \
+ rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h \
+ mat6x6.h vect6.h defines.h onbody.h poemslist.h system.h workspace.h \
+ matrixfun.h inertialframe.h body.h poemsobject.h rigidbody.h \
+ revolutejoint.h joint.h fixedpoint.h point.h freebodyjoint.h \
+ sphericaljoint.h body23joint.h mixedjoint.h eulerparameters.h norm.h
+$(DIR)particle.o: particle.cpp particle.h body.h poemslist.h poemsobject.h \
+ matrices.h matrix.h virtualmatrix.h colmatrix.h virtualcolmatrix.h \
+ colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h \
+ vect4.h mat6x6.h vect6.h fixedpoint.h point.h
+$(DIR)poemsobject.o: poemsobject.cpp poemsobject.h
+$(DIR)poemstreenode.o: poemstreenode.cpp poemstreenode.h
+$(DIR)point.o: point.cpp points.h point.h poemsobject.h vect3.h \
+ virtualcolmatrix.h virtualmatrix.h fixedpoint.h
+$(DIR)prismaticjoint.o: prismaticjoint.cpp prismaticjoint.h joint.h \
+ poemsobject.h matrices.h matrix.h virtualmatrix.h colmatrix.h \
+ virtualcolmatrix.h colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h \
+ vect3.h mat4x4.h vect4.h mat6x6.h vect6.h point.h matrixfun.h body.h \
+ poemslist.h fastmatrixops.h
+$(DIR)revolutejoint.o: revolutejoint.cpp revolutejoint.h joint.h poemsobject.h \
+ matrices.h matrix.h virtualmatrix.h colmatrix.h virtualcolmatrix.h \
+ colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h \
+ vect4.h mat6x6.h vect6.h point.h matrixfun.h body.h poemslist.h \
+ fastmatrixops.h
+$(DIR)rigidbody.o: rigidbody.cpp rigidbody.h body.h poemslist.h poemsobject.h \
+ matrices.h matrix.h virtualmatrix.h colmatrix.h virtualcolmatrix.h \
+ colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h \
+ vect4.h mat6x6.h vect6.h fixedpoint.h point.h
+$(DIR)rowmatrix.o: rowmatrix.cpp rowmatrix.h virtualrowmatrix.h virtualmatrix.h \
+ colmatrix.h virtualcolmatrix.h colmatmap.h
+$(DIR)solver.o: solver.cpp solver.h colmatmap.h virtualcolmatrix.h \
+ virtualmatrix.h matrices.h matrix.h colmatrix.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h \
+ defines.h system.h poemslist.h workspace.h matrixfun.h onsolver.h \
+ onbody.h inertialframe.h body.h poemsobject.h rigidbody.h \
+ revolutejoint.h joint.h fixedpoint.h point.h freebodyjoint.h \
+ sphericaljoint.h body23joint.h mixedjoint.h eulerparameters.h norm.h
+$(DIR)sphericaljoint.o: sphericaljoint.cpp sphericaljoint.h joint.h \
+ poemsobject.h matrices.h matrix.h virtualmatrix.h colmatrix.h \
+ virtualcolmatrix.h colmatmap.h rowmatrix.h virtualrowmatrix.h mat3x3.h \
+ vect3.h mat4x4.h vect4.h mat6x6.h vect6.h point.h matrixfun.h body.h \
+ poemslist.h fastmatrixops.h norm.h eulerparameters.h
+$(DIR)system.o: system.cpp system.h poemslist.h matrices.h matrix.h \
+ virtualmatrix.h colmatrix.h virtualcolmatrix.h colmatmap.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h \
+ workspace.h matrixfun.h onsolver.h solver.h defines.h onbody.h \
+ inertialframe.h body.h poemsobject.h rigidbody.h revolutejoint.h joint.h \
+ fixedpoint.h point.h freebodyjoint.h sphericaljoint.h body23joint.h \
+ mixedjoint.h eulerparameters.h norm.h
+$(DIR)vect3.o: vect3.cpp vect3.h virtualcolmatrix.h virtualmatrix.h
+$(DIR)vect4.o: vect4.cpp vect4.h virtualcolmatrix.h virtualmatrix.h
+$(DIR)vect6.o: vect6.cpp vect6.h virtualcolmatrix.h virtualmatrix.h
+$(DIR)virtualcolmatrix.o: virtualcolmatrix.cpp virtualcolmatrix.h \
+ virtualmatrix.h
+$(DIR)virtualmatrix.o: virtualmatrix.cpp virtualmatrix.h matrixfun.h matrices.h \
+ matrix.h colmatrix.h virtualcolmatrix.h colmatmap.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h
+$(DIR)virtualrowmatrix.o: virtualrowmatrix.cpp virtualrowmatrix.h \
+ virtualmatrix.h
+$(DIR)workspace.o: workspace.cpp workspace.h matrices.h matrix.h \
+ virtualmatrix.h colmatrix.h virtualcolmatrix.h colmatmap.h rowmatrix.h \
+ virtualrowmatrix.h mat3x3.h vect3.h mat4x4.h vect4.h mat6x6.h vect6.h \
+ system.h poemslist.h matrixfun.h onsolver.h solver.h defines.h onbody.h \
+ inertialframe.h body.h poemsobject.h rigidbody.h revolutejoint.h joint.h \
+ fixedpoint.h point.h freebodyjoint.h sphericaljoint.h body23joint.h \
+ mixedjoint.h eulerparameters.h norm.h SystemProcessor.h poemstree.h \
+ poemstreenode.h poemsnodelib.h POEMSChain.h

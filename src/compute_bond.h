@@ -32,7 +32,6 @@ class ComputeBond : public Compute {
   double compute_scalar();
 
  private:
-  int nbond;
   char *bstyle;
   class Bond *bond;
 };

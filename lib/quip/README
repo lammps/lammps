@@ -40,6 +40,12 @@ directory, build/${QUIP_ARCH}, and all the building will happen
 there. First it will ask you some questions about where you keep
 libraries and other stuff.
 
+Please note: if you are building QUIP to link it to LAMMPS, the serial version
+of QUIP must be compiled. For example, QUIP_ARCH may be:
+darwin_x86_64_gfortran
+linux_x86_64_gfortran
+linux_x86_64_ifort_icc etc.
+
 If you don't use something it is asking for, just leave it blank. NB
 make sure to answer `y' to `Do you want to compile with GAP prediction
 support ? [y/n]'. The answers will be stored in Makefile.inc in the
@@ -80,4 +86,6 @@ $ make yes-user-quip
   this to benchmark that the interface is working correctly.
 
 - a set of input files to demonstrate how GAP potentials are specified
-  in a LAMMPS input file to run a short MD.
+  in a LAMMPS input file to run a short MD. The GAP parameter file
+  gap_example.xml is intended for TESTING purposes only. Potentials can be
+  downloaded from http://www.libatoms.org or obtained from the authors of QUIP.

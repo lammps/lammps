@@ -614,16 +614,23 @@ void PairPolymorphic::read_file(char *file)
     fgets(line,MAXLINE,fp);
     n = strlen(line) + 1;
   }
+
+  // Note: the format of this line has changed between the
+  // 2015-06-06 and 2015-12-09 versions of the pair style.
+
   MPI_Bcast(&n,1,MPI_INT,0,world);
   MPI_Bcast(line,n,MPI_CHAR,0,world);
+  nr = ng = nx = 0;
   ptr = strtok(line," \t\n\r\f"); // 1st token
-  nr = atoi(ptr);
+  if (ptr) nr = atoi(ptr);
   ptr = strtok(NULL," \t\n\r\f"); // 2nd token
-  ng = atoi(ptr);
+  if (ptr) ng = atoi(ptr);
   ptr = strtok(NULL," \t\n\r\f"); // 3rd token
-  nx = atoi(ptr);
+  if (ptr) nx = atoi(ptr);
   ptr = strtok(NULL," \t\n\r\f"); // 4th token
-  maxX = atof(ptr);
+  if (ptr) maxX = atof(ptr);
+  if (ptr == NULL)
+    error->all(FLERR,"Potential file incompatible with this pair style version");
 
   npair = nelements*(nelements+1)/2;
   ntriple = nelements*nelements*nelements;

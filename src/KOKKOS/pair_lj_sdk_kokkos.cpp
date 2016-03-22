@@ -111,7 +111,7 @@ void PairLJSDKKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   special_lj[3] = force->special_lj[3];
 
   // loop over neighbors of my atoms
-  Kokkos::Impl::Timer timer;
+
   EV_FLOAT ev = pair_compute<PairLJSDKKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) eng_vdwl += ev.evdwl;

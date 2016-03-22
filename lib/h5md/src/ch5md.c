@@ -131,7 +131,8 @@ hid_t h5md_open_file (const char *filename)
 h5md_particles_group h5md_create_particles_group(h5md_file file, const char *name)
 {
   h5md_particles_group group;
-  
+
+  memset(&group,0,sizeof(group));
   group.group = H5Gcreate(file.particles, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   return group;
@@ -140,7 +141,7 @@ h5md_particles_group h5md_create_particles_group(h5md_file file, const char *nam
 hid_t h5md_open_particles_group(hid_t particles, const char *name)
 {
   hid_t group;
-  
+
   group = H5Gopen(particles, name, H5P_DEFAULT);
 
   return group;
@@ -156,6 +157,7 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
 
   int i;
 
+  memset(&td,0,sizeof(td));
   dims[0] = 0 ;
   max_dims[0] = H5S_UNLIMITED ;
   for (i=0; i<rank; i++) {
@@ -215,7 +217,7 @@ int h5md_close_element(h5md_element e)
   H5Gclose(e.group);
 
   return 0;
-  
+
 }
 
 h5md_element h5md_create_fixed_data_simple(hid_t loc, const char *name, int rank, int int_dims[], hid_t datatype, void *data)
@@ -227,6 +229,7 @@ h5md_element h5md_create_fixed_data_simple(hid_t loc, const char *name, int rank
   hsize_t dims[H5S_MAX_RANK];
   int i;
 
+  memset(&fd,0,sizeof(fd));
   for (i=0; i<rank; i++) {
     dims[i] = int_dims[i];
   }
@@ -247,9 +250,9 @@ h5md_element h5md_create_fixed_data_scalar(hid_t loc, const char *name, hid_t da
 {
 
   h5md_element fd;
-
   hid_t spc;
 
+  memset(&fd,0,sizeof(fd));
   spc = H5Screate(H5S_SCALAR);
   fd.value = H5Dcreate(loc, name, datatype, spc, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   H5Sclose(spc);

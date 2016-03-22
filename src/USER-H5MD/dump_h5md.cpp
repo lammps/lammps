@@ -273,7 +273,7 @@ void DumpH5MD::openfile()
       } else {
 	datafile = h5md_create_file(filename, author_name, NULL, "lammps", LAMMPS_VERSION);
       }
-      group_name_length = strlen(group->names[igroup]);
+      group_name_length = strlen(group->names[igroup])+1;
       group_name = new char[group_name_length];
       strcpy(group_name, group->names[igroup]);
       if (create_group) {

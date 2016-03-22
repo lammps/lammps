@@ -938,7 +938,7 @@ void FixPOEMS::readfile(char *file)
   }
 
   memory->destroy(line);
-  fclose(fp);
+  if (me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

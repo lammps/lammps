@@ -378,8 +378,8 @@ void System::Create_DegenerateSystem(int& nfree, int*freelist, double *&masstota
 	  delete [] xh1[i];
 	  delete [] xh2[i];
   }
-  delete xh1;
-  delete xh2;  
+  delete [] xh1;
+  delete [] xh2;  
 }
 
 

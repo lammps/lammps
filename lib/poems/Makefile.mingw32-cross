@@ -97,12 +97,9 @@ $(LIB): $(OBJ)
 $(DIR)%.o:%.cpp
 	$(CC) $(CCFLAGS) -c $< -o $@
 
-$(DIR)%.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@		
-
 # ------ DEPENDENCIES ------
 
-DEPENDS = $(OBJ:.o=.d)
+include .depend
 
 # ------ CLEAN ------
 

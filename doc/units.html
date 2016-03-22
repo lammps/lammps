@@ -192,9 +192,12 @@ results from a unitless LJ simulation into physical quantities.</p>
 <li>density = mass/volume, where rho* = rho sigma^dim</li>
 </ul>
 <p>Note that for LJ units, the default mode of thermodyamic output via
-the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command is to normalize energies
-by the number of atoms, i.e. energy/atom.  This can be changed via the
-<a class="reference internal" href="thermo_modify.html"><em>thermo_modify norm</em></a> command.</p>
+the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command is to normalize all
+extensive quantities by the number of atoms.  E.g. potential energy is
+extensive because it is summed over atoms, so it is output as
+energy/atom.  Temperature is intensive since it is already normalized
+by the number of atoms, so it is output as-is.  This behavior can be
+changed via the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify norm</em></a> command.</p>
 <p>For style <em>real</em>, these are the units:</p>
 <ul class="simple">
 <li>mass = grams/mole</li>

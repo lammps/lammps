@@ -74,16 +74,15 @@ void PairLJCutIntel::compute(int eflag, int vflag,
 
   if (ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
-    if (ago != 0) {
-      #if defined(_OPENMP)
-      #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
-      #endif
-      {
-        int ifrom, ito, tid;
-	IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
-				  nthreads, sizeof(ATOM_T));
-	buffers->thr_pack(ifrom,ito,ago);
-      }
+
+    #if defined(_OPENMP)
+    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #endif
+    {
+      int ifrom, ito, tid;
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
+                                nthreads, sizeof(ATOM_T));
+      buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }

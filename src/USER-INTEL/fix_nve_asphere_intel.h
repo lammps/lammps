@@ -32,6 +32,7 @@ class FixNVEAsphereIntel : public FixNVE {
  public:
   FixNVEAsphereIntel(class LAMMPS *, int, char **);
   void init();
+  void setup(int vflag);
   void initial_integrate(int);
   void final_integrate();
   void reset_dt();

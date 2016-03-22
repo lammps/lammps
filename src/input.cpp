@@ -1605,13 +1605,6 @@ void Input::package()
     modify->add_fix(2+narg,fixarg);
     delete [] fixarg;
 
-    // set integrator = verlet/intel
-    // -sf intel does same thing in Update constructor via suffix
-
-    char *str;
-    str = (char *) "verlet/intel";
-    update->create_integrate(1,&str,0);
-
   } else error->all(FLERR,"Illegal package command");
 }
 

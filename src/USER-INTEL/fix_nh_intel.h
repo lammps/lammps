@@ -26,6 +26,7 @@ class FixNHIntel : public FixNH {
  public:
   FixNHIntel(class LAMMPS *, int, char **);
   virtual ~FixNHIntel();
+  virtual void setup(int vflag);
   void reset_dt();
   virtual double memory_usage();
 

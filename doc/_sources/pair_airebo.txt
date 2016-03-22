@@ -6,6 +6,12 @@ pair_style airebo command
 pair_style airebo/omp command
 =============================
 
+pair_style airebo/morse command
+===============================
+
+pair_style airebo/morse/omp command
+===================================
+
 pair_style rebo command
 =======================
 
@@ -19,10 +25,10 @@ Syntax
 
    pair_style style cutoff LJ_flag TORSION_flag
 
-* style = *airebo* or *rebo*
-* cutoff = LJ cutoff (sigma scale factor) (AIREBO only)
-* LJ_flag = 0/1 to turn off/on the LJ term (AIREBO only, optional)
-* TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO only, optional)
+* style = *airebo* or *airebo/morse* or *rebo*
+* cutoff = LJ or Morse cutoff (sigma scale factor) (AIREBO and AIREBO-M only)
+* LJ_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)
+* TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)
 
 Examples
 """"""""
@@ -35,6 +41,11 @@ Examples
 
 .. parsed-literal::
 
+   pair_style airebo/morse 3.0
+   pair_coeff * * ../potentials/CH.airebo-m H C
+
+.. parsed-literal::
+
    pair_style rebo
    pair_coeff * * ../potentials/CH.airebo H C
 
@@ -44,12 +55,21 @@ Description
 The *airebo* pair style computes the Adaptive Intermolecular Reactive
 Empirical Bond Order (AIREBO) Potential of :ref:`(Stuart) <Stuart>` for a
 system of carbon and/or hydrogen atoms.  Note that this is the initial
-formulation of AIREBO from 2000, not the later formulation.  The
-*rebo* pair style computes the Reactive Empirical Bond Order (REBO)
-Potential of :ref:`(Brenner) <Brenner>`.  Note that this is the so-called
-2nd generation REBO from 2002, not the original REBO from 1990.  As
-discussed below, 2nd generation REBO is closely related to the intial
-AIREBO; it is just a subset of the potential energy terms.
+formulation of AIREBO from 2000, not the later formulation.
+
+The *airebo/morse* pair style computes the AIREBO-M potential, which
+is equivalent to AIREBO, but replaces the LJ term with a Morse potential.
+The Morse potentials are parameterized by high-quality quantum chemistry
+(MP2) calculations and do not diverge as quickly as particle density
+increases. This allows AIREBO-M to retain accuracy to much higher pressures
+than AIREBO (up to 40 GPa for Polyethylene). Details for this potential
+and its parameterization are given in :ref:`(O'Conner) <OConnor>`.
+
+The *rebo* pair style computes the Reactive Empirical Bond Order (REBO)
+Potential of :ref:`(Brenner) <Brenner>`. Note that this is the so-called
+2nd generation REBO from 2002, not the original REBO from 1990.
+As discussed below, 2nd generation REBO is closely related to the
+intial AIREBO; it is just a subset of the potential energy terms.
 
 The AIREBO potential consists of three terms:
 
@@ -62,7 +82,7 @@ included, the LJ and torsional terms can be turned off.  Note that
 both or neither of the flags must be included.  If both of the LJ an
 torsional terms are turned off, it becomes the 2nd-generation REBO
 potential, with a small caveat on the spline fitting procedure
-mentioned below.  This can be specified directly as pair_style rebo
+mentioned below.  This can be specified directly as pair_style *rebo*
 with no additional arguments.
 
 The detailed formulas for this potential are given in
@@ -101,12 +121,13 @@ various dihedral angle preferences in hydrocarbon configurations.
 ----------
 
 
-Only a single pair_coeff command is used with the *airebo* or *rebo*
-style which specifies an AIREBO potential file with parameters for C
-and H.  Note that the *rebo* style in LAMMPS uses the same
-AIREBO-formatted potential file.  These are mapped to LAMMPS atom
-types by specifying N additional arguments after the filename in the
-pair_coeff command, where N is the number of LAMMPS atom types:
+Only a single pair_coeff command is used with the *airebo*, *airebo*
+or *rebo* style which specifies an AIREBO or AIREBO-M potential file
+with parameters for C and H.  Note that the *rebo* style in LAMMPS
+uses the same AIREBO-formatted potential file.  These are mapped to
+LAMMPS atom types by specifying N additional arguments after the
+filename in the pair_coeff command, where N is the number of LAMMPS
+atom types:
 
 * filename
 * N element names = mapping of AIREBO elements to atom types
@@ -135,6 +156,13 @@ The parameters/coefficients for the AIREBO potentials are listed in
 the CH.airebo file to agree with the original :ref:`(Stuart) <Stuart>`
 paper.  Thus the parameters are specific to this potential and the way
 it was fit, so modifying the file should be done cautiously.
+
+Similarly the parameters/coefficients for the AIREBO-M potentials are
+listed in the CH.airebo-m file to agree with the :ref:`(O'Connor) <OConnor>`
+paper. Thus the parameters are specific to this potential and the way
+it was fit, so modifying the file should be done cautiously. The
+AIREBO-M Morse potentials were parameterized using a cutoff of
+3.0 (sigma). Modifying this cutoff may impact simulation accuracy.
 
 
 ----------
@@ -188,11 +216,12 @@ for more info.
 These pair potentials require the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
-The CH.airebo potential file provided with LAMMPS (see the potentials
-directory) is parameterized for metal :doc:`units <units>`.  You can use
-the AIREBO or REBO potential with any LAMMPS units, but you would need
-to create your own AIREBO potential file with coefficients listed in
-the appropriate units if your simulation doesn't use "metal" units.
+The CH.airebo and CH.airebo-m potential files provided with LAMMPS
+(see the potentials directory) are parameterized for metal :doc:`units <units>`.
+You can use the AIREBO, AIREBO-M or REBO potential with any LAMMPS units,
+but you would need to create your own AIREBO or AIREBO-M potential file
+with coefficients listed in the appropriate units, if your simulation
+doesn't use "metal" units.
 
 Related commands
 """"""""""""""""
@@ -218,6 +247,12 @@ Related commands
 
 **(Brenner)** Brenner, Shenderova, Harrison, Stuart, Ni, Sinnott, J
 Physics: Condensed Matter, 14, 783-802 (2002).
+
+.. _OConnor:
+
+
+
+**(O'Connor)** O'Connor et al., J. Chem. Phys. 142, 024903 (2015).
 
 
 .. _lws: http://lammps.sandia.gov

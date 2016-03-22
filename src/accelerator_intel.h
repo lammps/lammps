@@ -24,7 +24,6 @@
   #ifdef LMP_INTEL_OFFLOAD
   #ifdef __INTEL_OFFLOAD
   template <class flt_t, class acc_t> friend class IntelBuffers;
-  inline int * special_flag_alloc() { return special_flag; }
   #endif
   #endif
 
@@ -32,7 +31,7 @@
   void *fix_intel;
 
   template <class flt_t, class acc_t>
-  void bin_atoms(void *, int *);
+  void bin_atoms(void *, int *, int *);
 
   template <class flt_t, class acc_t, int, int>
   void hbni(const int, NeighList *, void *, const int, const int, void *,

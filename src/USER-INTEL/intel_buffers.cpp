@@ -28,6 +28,7 @@ IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
   _ntypes = 0;
   _off_map_maxlocal = 0;
   _ccachex = 0;
+  _host_nmax = 0;
   #ifdef _LMP_INTEL_OFFLOAD
   _separate_buffers = 0;
   _off_f = 0;
@@ -173,27 +174,36 @@ void IntelBuffers<flt_t, acc_t>::free_nmax()
     const int * special = _off_map_special;
     const int * nspecial = _off_map_nspecial;
     const int * bins = _off_map_bins;
+    const int * binpacked = _binpacked;
     if (tag != 0 && special != 0 && nspecial !=0 && bins != 0) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(tag:alloc_if(0) free_if(1)) \
 	nocopy(special,nspecial:alloc_if(0) free_if(1)) \
-	nocopy(bins:alloc_if(0) free_if(1))
+	nocopy(bins,binpacked:alloc_if(0) free_if(1))
     }
     _off_map_nmax = 0;
   }
   #endif
+  if (_host_nmax > 0) {
+    lmp->memory->destroy(_binpacked);
+    _host_nmax = 0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_nmax()
+void IntelBuffers<flt_t, acc_t>::_grow_nmax(const int offload_end)
 {
-  #ifdef _LMP_INTEL_OFFLOAD
   free_nmax();
+  int size = lmp->atom->nmax;
+  _host_nmax = size;
+  lmp->memory->create(_binpacked, _host_nmax, "_binpacked");
+
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (!offload_end) return;
   int *special, *nspecial;
   int tag_length, special_length, nspecial_length;
-  int size = lmp->atom->nmax;
   if (lmp->atom->molecular) {
     special = lmp->atom->special[0];
     nspecial = lmp->atom->nspecial[0];
@@ -211,8 +221,9 @@ void IntelBuffers<flt_t, acc_t>::_grow_nmax()
     tag_length = 1;
   int *tag = lmp->atom->tag;
   int *bins = lmp->neighbor->bins;
+  int * binpacked = _binpacked;
   #pragma offload_transfer target(mic:_cop) \
-    nocopy(bins:length(size) alloc_if(1) free_if(0)) \
+    nocopy(bins,binpacked:length(size) alloc_if(1) free_if(0))	  \
     nocopy(tag:length(tag_length) alloc_if(1) free_if(0)) \
     nocopy(special:length(special_length) alloc_if(1) free_if(0)) \
     nocopy(nspecial:length(nspecial_length) alloc_if(1) free_if(0))
@@ -307,7 +318,7 @@ void IntelBuffers<flt_t, acc_t>::_grow_binhead()
   int * binhead = lmp->neighbor->binhead;
   const int maxhead = lmp->neighbor->maxhead;
   #pragma offload_transfer target(mic:_cop) \
-    nocopy(binhead:length(maxhead) alloc_if(1) free_if(0))
+    nocopy(binhead:length(maxhead+1) alloc_if(1) free_if(0))
   _off_map_binhead = binhead;
   _off_map_maxhead = maxhead;
   #endif
@@ -322,11 +333,9 @@ void IntelBuffers<flt_t, acc_t>::free_nbor_list()
     #ifdef _LMP_INTEL_OFFLOAD
     if (_off_list_alloc) {
       int * list_alloc = _list_alloc;
-      int * special_flag = _off_map_special_flag;
       int * stencil = _off_map_stencil;
-      if (list_alloc != 0 && special_flag != 0 && stencil != 0) {
+      if (list_alloc != 0 && stencil != 0) {
         #pragma offload_transfer target(mic:_cop) \
-          nocopy(special_flag,stencil:alloc_if(0) free_if(1)) \
           nocopy(list_alloc:alloc_if(0) free_if(1))
       }
       _off_list_alloc = false;
@@ -355,16 +364,13 @@ void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list,
   #ifdef _LMP_INTEL_OFFLOAD
   if (offload_end > 0) {
     int * list_alloc =_list_alloc;
-    int * special_flag = lmp->neighbor->special_flag;
     int * stencil = list->stencil;
 
-    if (special_flag != NULL && list_alloc != NULL) {
+    if (list_alloc != NULL) {
       #pragma offload_transfer target(mic:_cop) \
-        in(special_flag:length(4) alloc_if(1) free_if(0)) \
         in(stencil:length(list->maxstencil) alloc_if(1) free_if(0)) \
         nocopy(list_alloc:length(list_alloc_size) alloc_if(1) free_if(0))
       _off_map_stencil = stencil;
-      _off_map_special_flag = special_flag;
       _off_list_alloc = true;
     }
   }

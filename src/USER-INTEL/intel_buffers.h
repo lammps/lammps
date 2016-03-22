@@ -78,20 +78,17 @@ class IntelBuffers {
   inline void grow_nbor(NeighList *list, const int nlocal, const int nthreads,
                         const int offload_end, const int pack_width=1) {
     grow_local(list, offload_end);
-    if (offload_end) {
-      grow_nmax();
+    grow_nmax(offload_end);
+    if (offload_end)
       grow_binhead();
-    }
     grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
   }
 
   void free_nmax();
 
-  inline void grow_nmax() {
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (lmp->atom->nmax > _off_map_nmax)
-      _grow_nmax();
-    #endif
+  inline void grow_nmax(const int offload_end) {
+    if (lmp->atom->nmax > _host_nmax)
+      _grow_nmax(offload_end);
   }
 
   void free_local();
@@ -149,6 +146,7 @@ class IntelBuffers {
   inline int * cnumneigh(const NeighList *list) { return _cnumneigh; }
 
   inline int * get_atombin() { return _atombin; }
+  inline int * get_binpacked() { return _binpacked; }
   inline atom_t * get_x(const int offload = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_x;
@@ -279,6 +277,7 @@ class IntelBuffers {
   int * _list_alloc;
   int * _cnumneigh;
   int * _atombin;
+  int * _binpacked;
 
   flt_t **_cutneighsq;
   int _ntypes;
@@ -298,20 +297,20 @@ class IntelBuffers {
   quat_t *_host_quat;
   vec3_acc_t *_off_f;
   int _off_map_nmax, _off_map_maxhead, _cop, _off_ccache;
-  int *_off_map_ilist, *_off_map_special_flag;
+  int *_off_map_ilist;
   int *_off_map_stencil, *_off_map_special, *_off_map_nspecial, *_off_map_tag;
   int *_off_map_binhead, *_off_map_bins, *_off_map_numneigh;
   bool _off_list_alloc;
   int _need_tag;
   #endif
 
-  int _buf_size, _buf_local_size;
+  int _buf_size, _buf_local_size, _host_nmax;
   _alignvar(acc_t _ev_global[8],64);
   _alignvar(acc_t _ev_global_host[8],64);
 
   void _grow(const int nall, const int nlocal, const int nthreads,
 	     const int offload_end);
-  void _grow_nmax();
+  void _grow_nmax(const int offload_end);
   void _grow_local(NeighList *list, const int offload_end);
   void _grow_binhead();
   void _grow_nbor_list(NeighList *list, const int nlocal, const int nthreads,

@@ -71,6 +71,14 @@ void FixNVEAsphereIntel::init()
 
 /* ---------------------------------------------------------------------- */
 
+void FixNVEAsphereIntel::setup(int vflag)
+{
+  FixNVE::setup(vflag);
+  reset_dt();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixNVEAsphereIntel::initial_integrate(int vflag)
 {
   double dtfm;
@@ -93,8 +101,6 @@ void FixNVEAsphereIntel::initial_integrate(int vflag)
   // set timestep here since dt may have changed or come via rRESPA
 
   dtq = 0.5 * dtv;
-
-  if (neighbor->ago == 0) reset_dt();
 
   #if defined(LMP_SIMD_COMPILER)
   #pragma vector aligned
@@ -135,6 +141,8 @@ void FixNVEAsphereIntel::initial_integrate(int vflag)
 
 void FixNVEAsphereIntel::final_integrate()
 {
+  if (neighbor->ago == 0) reset_dt();
+
   double dtfm;
 
   double * _noalias const v = atom->v[0];

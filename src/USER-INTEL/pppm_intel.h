@@ -12,35 +12,43 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: W. Michael Brown (Intel)
+   Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef KSPACE_CLASS
 
-FixStyle(nve/intel,FixNVEIntel)
+KSpaceStyle(pppm/intel,PPPMIntel)
 
 #else
 
-#ifndef LMP_FIX_NVE_INTEL_H
-#define LMP_FIX_NVE_INTEL_H
+#ifndef LMP_PPPMINTEL_H
+#define LMP_PPPMINTEL_H
 
-#include "fix_nve.h"
+#include "pppm.h"
+#include "fix_intel.h"
 
 namespace LAMMPS_NS {
 
-class FixNVEIntel : public FixNVE {
+class PPPMIntel : public PPPM {
  public:
-  FixNVEIntel(class LAMMPS *, int, char **);
-  virtual ~FixNVEIntel();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void reset_dt();
-  virtual double memory_usage();
+  PPPMIntel(class LAMMPS *, int, char **);
+  virtual ~PPPMIntel();
+  virtual void init();
+  virtual void compute(int, int);
 
  protected:
-  double *_dtfm;
-  int _nlocal3, _nlocal_max;
+  FixIntel *fix;
+
+  #ifdef _LMP_INTEL_OFFLOAD
+  int _use_base;
+  #endif
+
+  template<class flt_t, class acc_t>
+  void particle_map(IntelBuffers<flt_t,acc_t> *buffers);
+  template<class flt_t, class acc_t>
+  void make_rho(IntelBuffers<flt_t,acc_t> *buffers);
+  template<class flt_t, class acc_t>
+  void fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers);
 };
 
 }
@@ -50,10 +58,9 @@ class FixNVEIntel : public FixNVE {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: PPPM order greater than supported by USER-INTEL
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+There is a compile time limit on the maximum order for PPPM
+in the USER-INTEL package that might be different from LAMMPS
 
 */

@@ -1456,7 +1456,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
   bvec mask_ex = v::cmpeq(vppowermint, fvec(3.));
   fvec varg  = v::blend(mask_ex, varg1, varg3);
   fvec vex_delr = min(fvec(1.e30), exp(varg));
-  fvec vex_delr_d_factor = v::blend(mask, v_1_0, fvec(3.0) * varg1 * varg1);
+  fvec vex_delr_d_factor = v::blend(mask_ex, v_1_0, fvec(3.0) * varg1 * varg1);
   fvec vex_delr_d = vplam3 * vex_delr_d_factor * vex_delr;
   bvec vmask_need_sine = v::cmpnle(vrik, vpbigr - vpbigd) & mask;
   fvec vfccos;

@@ -431,9 +431,16 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           } else
             multiple_forms = true;
         }
-	while( (packed_j % pad_width) != 0 )
-	  jlist_form[packed_j++] = nall;
-
+	const int edge = (packed_j % pad_width);
+	if (edge) {
+	  const int packed_end = packed_j + (pad_width - edge);
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma loop_count min=1, max=15, avg=8
+          #endif
+	  for ( ; packed_j < packed_end; packed_j++)
+	    jlist_form[packed_j] = nall;
+	}
+	  
         // -------------------------------------------------------------
 
 	#ifdef INTEL_V512

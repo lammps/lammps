@@ -59,6 +59,14 @@ FixNHIntel::~FixNHIntel()
 {
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixNHIntel::setup(int vflag)
+{
+  FixNH::setup(vflag);
+  reset_dt();
+}
+
 /* ----------------------------------------------------------------------
    change box size
    remap all atoms or dilate group atoms depending on allremap flag

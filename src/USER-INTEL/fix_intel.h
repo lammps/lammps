@@ -45,8 +45,10 @@ class FixIntel : public Fix {
   virtual void setup(int);
   void pair_init_check(const bool cdmessage=false);
   void bond_init_check();
+  void kspace_init_check();
 
-  void sync();
+  void pre_reverse(int eflag = 0, int vflag = 0);
+
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();
 
@@ -99,11 +101,12 @@ class FixIntel : public Fix {
 			  int &minlocal);
 
   #ifdef _LMP_INTEL_OFFLOAD
+  void post_force(int vflag);
   inline int coprocessor_number() { return _cop; }
   inline int full_host_list() { return _full_host_list; }
   void set_offload_affinity();
   inline double offload_balance() { return _offload_balance; }
-  inline int offload_end_neighbor() { return _balance_neighbor * atom->nlocal; }
+  inline int offload_end_neighbor();
   inline int offload_end_pair();
   inline int host_start_neighbor()
     { if (_offload_noghost) return 0; else return offload_end_neighbor(); }
@@ -163,8 +166,8 @@ class FixIntel : public Fix {
   double _balance_pair_time, _balance_other_time;
   int _offload_nlocal, _offload_nall, _offload_min_ghost, _offload_nghost;
   int _host_min_local, _host_min_ghost, _host_nall;
-  int _host_used_local, _host_used_ghost;
-  int _separate_buffers, _offload_noghost, _sync_at_pair, _separate_coi;
+  int _host_used_local, _host_used_ghost, _sync_mode;
+  int _separate_buffers, _offload_noghost, _separate_coi;
   bool _setup_time_cleared, _timers_allocated;
   void output_timing_data();
   FILE *_tscreen;
@@ -257,7 +260,6 @@ void FixIntel::add_result_array(IntelBuffers<double,double>::vec3_acc_t *f_in,
     _off_results_vatom = vatom;
     _off_force_array_d = f_in;
     _off_ev_array_d = ev_in;
-    if (_sync_at_pair == 1) sync_coprocessor();
     return;
   }
   #endif
@@ -272,13 +274,6 @@ void FixIntel::add_result_array(IntelBuffers<double,double>::vec3_acc_t *f_in,
 
   if (_overflow_flag[LMP_OVERFLOW])
     error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
-
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_sync_at_pair) {
-    sync();
-    sync_coprocessor();
-  }
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,7 +288,6 @@ void FixIntel::add_result_array(IntelBuffers<float,double>::vec3_acc_t *f_in,
     _off_results_vatom = vatom;
     _off_force_array_m = f_in;
     _off_ev_array_d = ev_in;
-    if (_sync_at_pair == 1) sync_coprocessor();
     return;
   }
   #endif
@@ -308,13 +302,6 @@ void FixIntel::add_result_array(IntelBuffers<float,double>::vec3_acc_t *f_in,
 
   if (_overflow_flag[LMP_OVERFLOW])
     error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
-
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_sync_at_pair) {
-    sync();
-    sync_coprocessor();
-  }
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -329,7 +316,6 @@ void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
     _off_results_vatom = vatom;
     _off_force_array_s = f_in;
     _off_ev_array_s = ev_in;
-    if (_sync_at_pair == 1) sync_coprocessor();
     return;
   }
   #endif
@@ -344,13 +330,6 @@ void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
 
   if (_overflow_flag[LMP_OVERFLOW])
     error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
-
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_sync_at_pair) {
-    sync();
-    sync_coprocessor();
-  }
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -358,6 +337,19 @@ void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
 #ifdef _LMP_INTEL_OFFLOAD
 
 /* ---------------------------------------------------------------------- */
+
+int FixIntel::offload_end_neighbor() {
+  if (_offload_balance < 0.0) {
+    if (atom->nlocal < 2)
+      error->one(FLERR,"Too few atoms for load balancing offload");
+    double granularity = 1.0 / atom->nlocal;
+    if (_balance_neighbor < granularity) 
+      _balance_neighbor = granularity + 1e-10;
+    else if (_balance_neighbor > 1.0 - granularity) 
+      _balance_neighbor = 1.0 - granularity + 1e-10;
+  }
+  return _balance_neighbor * atom->nlocal; 
+}
 
 int FixIntel::offload_end_pair() {
   if (neighbor->ago == 0) return _balance_neighbor * atom->nlocal;
@@ -453,11 +445,6 @@ E: Illegal package intel mode requested
 The format for the package intel command is incorrect. Please see the
 documentation.
 
-E: Specified run_style does not support the Intel package.
-
-When using offload to a coprocessor, the Intel package requires a run style
-with the intel suffix.
-
 E: Currently, neighbor style BIN must be used with Intel package.
 
 This is the only neighbor style that has been implemented for the Intel
@@ -514,5 +501,19 @@ E: Intel styles for bond/angle/dihedral/improper require intel pair style."
 
 You cannot use the USER-INTEL package for bond calculations without a 
 USER-INTEL supported pair style.
+
+E: Intel styles for kspace require intel pair style.
+
+You cannot use the USER-INTEL package for kspace calculations without a
+USER-INTEL supported pair style.
+
+E: Cannot currently get per-atom virials with intel package.
+
+The Intel package does not yet support per-atom virial calculation.
+
+E: Too few atoms for load balancing offload.
+
+When using offload to a coprocessor, each MPI task must have at least 2
+atoms throughout the simulation.
 
 */

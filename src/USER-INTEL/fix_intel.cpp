@@ -261,6 +261,11 @@ FixIntel::~FixIntel()
 int FixIntel::setmask()
 {
   int mask = 0;
+  mask |= PRE_REVERSE;
+  #ifdef _LMP_INTEL_OFFLOAD
+  mask |= POST_FORCE;
+  mask |= MIN_POST_FORCE;
+  #endif
   return mask;
 }
 
@@ -270,6 +275,14 @@ void FixIntel::init()
 {
   #ifdef _LMP_INTEL_OFFLOAD
   output_timing_data();
+  _sync_mode = 0;
+  if (offload_balance() != 0.0) {
+    if (offload_noghost() || force->newton_pair == 0)
+      _sync_mode = 2;
+    else
+      _sync_mode = 1;
+    if (update->whichflag == 2) _sync_mode = 1;
+  }
   #endif
 
   int nstyles = 0;
@@ -313,6 +326,12 @@ void FixIntel::setup(int vflag)
   if (neighbor->exclude_setting() != 0)
     error->all(FLERR,
 	    "Currently, cannot use neigh_modify exclude with Intel package.");
+  if (vflag_atom)
+   error->all(FLERR,
+	       "Cannot currently get per-atom virials with Intel package.");
+  #ifdef _LMP_INTEL_OFFLOAD
+  post_force(vflag);
+  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -321,13 +340,11 @@ void FixIntel::pair_init_check(const bool cdmessage)
 {
   #ifdef INTEL_VMASK
   atom->sortfreq = 1;
+  if (neighbor->binsizeflag && atom->userbinsize <= 0.0)
+    atom->userbinsize = neighbor->binsize_user;
   #endif
 
   _nbor_pack_width = 1;
-
-  if (strstr(update->integrate_style,"intel") == 0)
-    error->all(FLERR,
-	"Specified run_style does not support the Intel package.");
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_offload_balance != 0.0) atom->sortfreq = 1;
@@ -350,16 +367,6 @@ void FixIntel::pair_init_check(const bool cdmessage)
         in(overflow:length(5) alloc_if(1) free_if(0))
     }
     _timers_allocated = true;
-  }
-
-
-  if (update->whichflag == 2 && _offload_balance != 0.0) {
-    if (_offload_balance == 1.0 && _offload_noghost == 0)
-      _sync_at_pair = 1;
-    else
-      _sync_at_pair = 2;
-  } else {
-    _sync_at_pair = 0;
   }
   #endif
   _nthreads = comm->nthreads;
@@ -453,6 +460,29 @@ void FixIntel::bond_init_check()
 
 /* ---------------------------------------------------------------------- */
 
+void FixIntel::kspace_init_check()
+{
+  int intel_pair = 0;
+  if (force->pair_match("/intel", 0) != NULL)
+    intel_pair = 1;
+  else if (force->pair_match("hybrid", 1) != NULL) {
+    PairHybrid *hybrid = (PairHybrid *) force->pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strstr(hybrid->keywords[i], "/intel") != NULL)
+        intel_pair = 1;
+  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
+    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strstr(hybrid->keywords[i], "/intel") != NULL)
+        intel_pair = 1;
+  }
+
+  if (intel_pair == 0)
+    error->all(FLERR, "Intel styles for kspace require intel pair style.");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixIntel::check_neighbor_intel()
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -474,7 +504,7 @@ void FixIntel::check_neighbor_intel()
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::sync()
+void FixIntel::pre_reverse(int eflag, int vflag)
 {
   if (_force_array_m != 0) {
     if (_need_reduce) {
@@ -498,6 +528,10 @@ void FixIntel::sync()
     add_results(_force_array_s, _ev_array_s, _results_eatom, _results_vatom, 0);
     _force_array_s = 0;
   }
+
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_sync_mode == 1) sync_coprocessor();
+  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -736,6 +770,13 @@ double FixIntel::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
+void FixIntel::post_force(int vflag)
+{
+  if (_sync_mode == 2) sync_coprocessor();
+}
+
+/* ---------------------------------------------------------------------- */
+
 template <class ft, class acc_t>
 void FixIntel::add_off_results(const ft * _noalias const f_in,
                                const acc_t * _noalias const ev_global) {
@@ -744,10 +785,15 @@ void FixIntel::add_off_results(const ft * _noalias const f_in,
 
   start_watch(TIME_OFFLOAD_WAIT);
   #ifdef _LMP_INTEL_OFFLOAD
-  #pragma offload_wait target(mic:_cop) wait(f_in)
+  if (neighbor->ago == 0) {
+    #pragma offload_wait target(mic:_cop) wait(atom->tag,f_in)
+  } else {
+    #pragma offload_wait target(mic:_cop) wait(f_in)
+  }
   #endif
   double wait_time = stop_watch(TIME_OFFLOAD_WAIT);
 
+  int nlocal = atom->nlocal;
   if (neighbor->ago == 0) {
     if (_off_overflow_flag[LMP_OVERFLOW])
       error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
@@ -760,7 +806,6 @@ void FixIntel::add_off_results(const ft * _noalias const f_in,
       _offload_nlocal;
   }
 
-  int nlocal = atom->nlocal;
   // Load balance?
   if (_offload_balance < 0.0) {
     if (neighbor->ago == 0)
@@ -778,8 +823,6 @@ void FixIntel::add_off_results(const ft * _noalias const f_in,
     double otps = mic_time / _balance_pair;
     double new_balance = (ctps + _balance_other_time - _balance_fixed) /
         (otps + ctps);
-    if (new_balance < 0.01) new_balance = 0.01;
-    else if (new_balance > 0.99) new_balance = 0.99;
     _balance_neighbor = (1.0 - INTEL_LB_MEAN_WEIGHT) *_balance_neighbor +
         INTEL_LB_MEAN_WEIGHT * new_balance;
   }

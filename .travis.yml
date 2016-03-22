@@ -38,9 +38,9 @@ env:
   - MACH=mpi MPICMD="mpirun -np 1" LMPFLAGS="-pk omp 4 -sf omp" LMP_INC="-DFFT_FFTW3 -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_BIGBIG" JPG_LIB="-lfftw3 -ljpeg -lpng -lz"
 
 install:
-  - export OMPI_CC="ccache $CC"
-  - export OMPI_CXX="ccache $CXX"
-  - test "$MACH" = "mpi" && export COMP="mpicxx -fopenmp" || export COMP="ccache $CXX"
+  - export OMPI_CC="$CC"
+  - export OMPI_CXX="$CXX"
+  - test "$MACH" = "mpi" && export COMP="mpicxx -fopenmp" || export COMP="$CXX"
 
 script:
   - ccache -z

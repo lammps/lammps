@@ -274,6 +274,7 @@ void Min::setup()
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   // update per-atom minimization variables stored by pair styles
@@ -354,6 +355,7 @@ void Min::setup_minimal(int flag)
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   // update per-atom minimization variables stored by pair styles
@@ -511,6 +513,11 @@ double Min::energy_force(int resetflag)
   if (kspace_compute_flag) {
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
+  }
+
+  if (modify->n_pre_reverse) {
+    modify->pre_reverse(eflag,vflag);
+    timer->stamp(Timer::MODIFY);
   }
 
   if (force->newton) {

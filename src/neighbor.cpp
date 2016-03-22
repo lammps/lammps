@@ -1818,7 +1818,13 @@ void Neighbor::setup_bins()
   if (mbins > maxhead) {
     maxhead = mbins;
     memory->destroy(binhead);
+
+    // USER-INTEL package requires one additional element
+    #if defined(LMP_USER_INTEL)
+    memory->create(binhead,maxhead + 1,"neigh:binhead");
+    #else
     memory->create(binhead,maxhead,"neigh:binhead");
+    #endif
   }
 
   // create stencil of bins to search over in neighbor list construction

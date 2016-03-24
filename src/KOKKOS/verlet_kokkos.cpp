@@ -295,7 +295,6 @@ void VerletKokkos::run(int n)
   f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
 
   static double time = 0.0;
-  static int count = 0;
   atomKK->sync(Device,ALL_MASK);
   Kokkos::Impl::Timer ktimer;
 
@@ -389,7 +388,6 @@ void VerletKokkos::run(int n)
     unsigned int datamask_read_device = 0;
     unsigned int datamask_modify_device = 0;
     unsigned int datamask_read_host = 0;
-    unsigned int datamask_modify_host = 0;
 
     if ( pair_compute_flag ) {
       if (force->pair->execution_space==Host) {

@@ -82,7 +82,11 @@ be specified.
 
 Two examples using {pair_style reax} are provided in the examples/reax
 sub-directory, along with corresponding examples for 
-"pair_style reax/c"_pair_reax_c.html.
+"pair_style reax/c"_pair_reax_c.html. Note that while the energy and force
+calculated by both of these pair styles match very closely, the 
+contributions due to the valence angles differ slightly due to 
+the fact that with {pair_style reax/c} the default value of {thb_cutoff_sq}
+is 0.00001, while for {pair_style reax} it is hard-coded to be 0.001.
 
 Use of this pair style requires that a charge be defined for every
 atom since the {reax} pair style performs a charge equilibration (QEq)

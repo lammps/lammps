@@ -261,7 +261,7 @@ This pair style can only be used via the {pair} keyword of the
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair_write"_pair_write.html
 
 [Default:] none
 

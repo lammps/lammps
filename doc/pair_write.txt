@@ -73,6 +73,7 @@ pairwise portion of the potential, not the embedding portion.
 
 [Related commands:]
 
+"pair_style table"_pair_table.html,
 "pair_style"_pair_style.html, "pair_coeff"_pair_coeff.html
 
 [Default:] none

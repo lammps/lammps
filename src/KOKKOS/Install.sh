@@ -189,6 +189,14 @@ if (test $1 = 1) then
     sed -i -e '5 i \include ..\/..\/lib\/kokkos\/Makefile.kokkos' ../Makefile.package.settings
   fi
 
+  #  comb/omp triggers a persistent bug in nvcc. deleting it.
+  rm -f ../*_comb_omp.*
+
+elif (test $1 = 2) then
+
+  #  comb/omp triggers a persistent bug in nvcc. deleting it.
+  rm -f ../*_comb_omp.*
+
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then

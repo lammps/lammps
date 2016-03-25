@@ -16,12 +16,15 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "neighbor.h"
 #include "suffix.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+enum{NONE,LINEAR,SPLINE};
 
 /* -----------------------------------------------------------------------
    set bond contribution to Vdwl energy to 0.0
@@ -210,6 +213,65 @@ void Bond::ev_tally(int i, int j, int nlocal, int newton_bond,
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   write a table of bond potential energy/force vs distance to a file
+------------------------------------------------------------------------- */
+
+void Bond::write_file(int narg, char **arg)
+{
+  if (narg < 8) error->all(FLERR,"Illegal bond_write command");
+
+  // parse arguments
+
+  int btype = force->inumeric(FLERR,arg[0]);
+  int n = force->inumeric(FLERR,arg[1]);
+  double inner = force->numeric(FLERR,arg[2]);
+  double outer = force->numeric(FLERR,arg[3]);
+  if (inner <= 0.0 || inner >= outer)
+    error->all(FLERR,"Invalid rlo/rhi values in bond_write command");
+
+  int itype = force->inumeric(FLERR,arg[4]);
+  int jtype = force->inumeric(FLERR,arg[5]);
+  if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
+    error->all(FLERR,"Invalid atom types in bond_write command");
+
+  double r0 = equilibrium_distance(btype);
+
+  // open file in append mode
+  // print header in format used by bond_style table
+
+  int me;
+  MPI_Comm_rank(world,&me);
+  FILE *fp;
+  if (me == 0) {
+    fp = fopen(arg[6],"a");
+    if (fp == NULL) error->one(FLERR,"Cannot open bond_write file");
+    fprintf(fp,"# Bond potential %s for bond type %d: i,r,energy,force\n",
+            force->bond_style,btype);
+    fprintf(fp,"\n%s\nN %d FP %.15g %.15g EQ %.15g\n\n",arg[7],n,0.0,0.0,r0);
+  }
+
+  // initialize potentials before evaluating bond potential
+  // insures all bond coeffs are set and force constants
+  // also initialize neighbor so that neighbor requests are processed
+  // NOTE: might be safest to just do lmp->init()
+
+  force->init();
+  neighbor->init();
+
+  // evaluate energy and force at each of N distances
+
+  double r,e,f;
+
+  for (int i = 0; i < n; i++) {
+    r = inner + (outer-inner) * i/(n-1);
+    e = single(btype,r,itype,jtype,f);
+    if (me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
+  }
+
+  if (me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

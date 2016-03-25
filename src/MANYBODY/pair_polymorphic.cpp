@@ -631,6 +631,8 @@ void PairPolymorphic::read_file(char *file)
   if (ptr) maxX = atof(ptr);
   if (ptr == NULL)
     error->all(FLERR,"Potential file incompatible with this pair style version");
+  if ((ng == 0) || (nr == 0) || (nx == 0))
+    error->all(FLERR,"Error reading potential file header");
 
   npair = nelements*(nelements+1)/2;
   ntriple = nelements*nelements*nelements;

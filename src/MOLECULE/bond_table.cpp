@@ -29,9 +29,10 @@
 
 using namespace LAMMPS_NS;
 
-enum{LINEAR,SPLINE};
+enum{NONE,LINEAR,SPLINE};
 
 #define MAXLINE 1024
+#define BIGNUM 1.0e300
 
 /* ---------------------------------------------------------------------- */
 
@@ -134,6 +135,7 @@ void BondTable::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal bond_style command");
 
+  tabstyle = NONE;
   if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in bond style table");
@@ -289,6 +291,7 @@ void BondTable::free_table(Table *tb)
 void BondTable::read_table(Table *tb, char *file, char *keyword)
 {
   char line[MAXLINE];
+  double emin = BIGNUM;
 
   // open file
 
@@ -326,14 +329,32 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   // read r,e,f table values from file
 
   int itmp;
+  int cerror = 0;
+  int r0idx = -1;
+
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
     fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg %lg %lg",
-      &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i]);
+    if (4 != sscanf(line,"%d %lg %lg %lg",
+                    &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
+    if (tb->efile[i] < emin) {
+      emin = tb->efile[i];
+      r0idx = i;
+    }
   }
-
   fclose(fp);
+
+  // infer r0 from minimum of potential, if not given explicitly
+  if ((tb->r0 == 0.0) && (r0idx >= 0)) tb->r0 = tb->rfile[r0idx];
+
+  // warn if data was read incompletely, e.g. columns were missing
+
+  if (cerror) {
+    char str[128];
+    sprintf(str,"%d of %d lines in table were incomplete or could not be"
+            " parsed completely",cerror,tb->ninput);
+    error->warning(FLERR,str);
+  }
 }
 
 /* ----------------------------------------------------------------------

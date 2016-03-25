@@ -464,8 +464,9 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   if (rerror) {
     char str[128];
-    sprintf(str,"%d of %d distance values in table have a relative difference\n"
-            "  from re-computed values by more than %g",rerror,tb->ninput,EPSILONR);
+    sprintf(str,"%d of %d distance values in table have a relative error\n"
+            "  from re-computed values by more than %g",
+            rerror,tb->ninput,EPSILONR);
     error->warning(FLERR,str);
   }
 

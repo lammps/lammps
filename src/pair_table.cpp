@@ -421,6 +421,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     }
 
     if (tb->rflag && fabs(rnew-rfile)/rfile > EPSILONR) rerror++;
+
     tb->rfile[i] = rnew;
   }
 
@@ -454,8 +455,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   if (ferror) {
     char str[128];
-    sprintf(str,"%d force values in table are inconsistent with -dE/dr; "
-            "should only be mistakenly flagged at inflection points",ferror);
+    sprintf(str,"%d of %d force values in table are inconsistent with -dE/dr;\n"
+            "  should only be flagged at inflection points",ferror,tb->ninput);
     error->warning(FLERR,str);
   }
 
@@ -463,8 +464,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   if (rerror) {
     char str[128];
-    sprintf(str,"%d distance values in table differ signifcantly "
-            "from re-computed values",rerror);
+    sprintf(str,"%d of %d distance values in table have a relative difference\n"
+            "  from re-computed values by more than %g",rerror,tb->ninput,EPSILONR);
     error->warning(FLERR,str);
   }
 
@@ -472,7 +473,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   if (cerror) {
     char str[128];
-    sprintf(str,"%d lines in table were incomplete or unreadable",cerror);
+    sprintf(str,"%d of %d lines in table were incomplete or could not be"
+            " parsed completely",cerror,tb->ninput);
     error->warning(FLERR,str);
   }
 }

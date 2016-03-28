@@ -248,9 +248,6 @@ void Bond::write_file(int narg, char **arg)
   if (me == 0) {
     fp = fopen(arg[6],"a");
     if (fp == NULL) error->one(FLERR,"Cannot open bond_write file");
-    fprintf(fp,"# Bond potential %s for bond type %d: i,r,energy,force\n",
-            force->bond_style,btype);
-    fprintf(fp,"\n%s\nN %d FP %.15g %.15g EQ %.15g\n\n",arg[7],n,0.0,0.0,r0);
   }
 
   // initialize potentials before evaluating bond potential
@@ -261,17 +258,30 @@ void Bond::write_file(int narg, char **arg)
   force->init();
   neighbor->init();
 
-  // evaluate energy and force at each of N distances
+  if (me == 0) {
+    double r,e,f,dr,f1,f2;
 
-  double r,e,f;
+    // evaluate energy and force at each of N distances
+    // note that Bond::single() takes r**2 as distance.
 
-  for (int i = 0; i < n; i++) {
-    r = inner + (outer-inner) * i/(n-1);
-    e = single(btype,r,itype,jtype,f);
-    if (me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
+    dr = (outer - inner) / static_cast<double>(n-1);
+    single(btype,(inner+0.125*dr)*(inner+0.125*dr),itype,jtype,f1);
+    single(btype,(inner-0.125*dr)*(inner-0.125*dr),itype,jtype,f2);
+    const double fp1 = 4.0*(f1-f2)/dr;
+    single(btype,(outer+0.125*dr)*(outer+0.125*dr),itype,jtype,f1);
+    single(btype,(outer-0.125*dr)*(outer-0.125*dr),itype,jtype,f2);
+    const double fp2 = 4.0*(f1-f2)/dr;
+    fprintf(fp,"# Bond potential %s for bond type %d: i,r,energy,force\n",
+            force->bond_style,btype);
+    fprintf(fp,"\n%s\nN %d FP %.15g %.15g EQ %.15g\n\n",arg[7],n,fp1,fp2,r0);
+
+    for (int i = 0; i < n; i++) {
+      r = inner + dr * static_cast<double>(i);
+      e = single(btype,r*r,itype,jtype,f);
+      fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f*r);
+    }
+    fclose(fp);
   }
-
-  if (me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

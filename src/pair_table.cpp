@@ -399,7 +399,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
+    if (NULL == fgets(line,MAXLINE,fp))
+      error->one(FLERR,"Premature end of file in pair table");
     if (4 != sscanf(line,"%d %lg %lg %lg",
                     &itmp,&rfile,&tb->efile[i],&tb->ffile[i]))  ++cerror;
 

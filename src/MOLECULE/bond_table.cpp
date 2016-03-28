@@ -334,7 +334,8 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
+    if (NULL == fgets(line,MAXLINE,fp))
+      error->one(FLERR,"Premature end of file in bond table");
     if (4 != sscanf(line,"%d %lg %lg %lg",
                     &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
     if (tb->efile[i] < emin) {
@@ -345,7 +346,39 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   fclose(fp);
 
   // infer r0 from minimum of potential, if not given explicitly
+
   if ((tb->r0 == 0.0) && (r0idx >= 0)) tb->r0 = tb->rfile[r0idx];
+
+  // warn if force != dE/dr at any point that is not an inflection point
+  // check via secant approximation to dE/dr
+  // skip two end points since do not have surrounding secants
+  // inflection point is where curvature changes sign
+
+  double r,e,f,rprev,rnext,eprev,enext,fleft,fright;
+
+  int ferror = 0;
+  for (int i = 1; i < tb->ninput-1; i++) {
+    r = tb->rfile[i];
+    rprev = tb->rfile[i-1];
+    rnext = tb->rfile[i+1];
+    e = tb->efile[i];
+    eprev = tb->efile[i-1];
+    enext = tb->efile[i+1];
+    f = tb->ffile[i];
+    fleft = - (e-eprev) / (r-rprev);
+    fright = - (enext-e) / (rnext-r);
+    if (f < fleft && f < fright) ferror++;
+    if (f > fleft && f > fright) ferror++;
+    //printf("Values %d: %g %g %g\n",i,r,e,f);
+    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
+  }
+
+  if (ferror) {
+    char str[128];
+    sprintf(str,"%d of %d force values in table are inconsistent with -dE/dr.\n"
+            "  Should only be flagged at inflection points",ferror,tb->ninput);
+    error->warning(FLERR,str);
+  }
 
   // warn if data was read incompletely, e.g. columns were missing
 

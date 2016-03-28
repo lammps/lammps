@@ -269,11 +269,11 @@ void Bond::write_file(int narg, char **arg)
     // evaluate energy and force at each of N distances
     // note that Bond::single() takes r**2 and returns f/r.
 
-    const double dr = (outer - inner) / static_cast<double>(n-1);
     fprintf(fp,"# Bond potential %s for bond type %d: i,r,energy,force\n",
             force->bond_style,btype);
     fprintf(fp,"\n%s\nN %d EQ %.15g\n\n",arg[5],n,r0);
 
+    const double dr = (outer-inner) / static_cast<double>(n-1);
     for (int i = 0; i < n; i++) {
       r = inner + dr * static_cast<double>(i);
       e = single(btype,r*r,itype,jtype,f);

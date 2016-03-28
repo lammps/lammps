@@ -555,7 +555,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
     for (i = 0; i < nelements; i++)
       if (strcmp(words[0],elements[i]) == 0) break;
-    if (i == nelements) continue;
+    if (i >= nelements) continue;
 
     // skip if element already appeared
 

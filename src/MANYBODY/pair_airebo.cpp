@@ -2251,7 +2251,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
               ril[1] = rij[1]+rjl[1];
               ril[2] = rij[2]+rjl[2];
               ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-              rijrjl = 2.0*rijmag*rjlmag;
               rjl2 = rjlmag*rjlmag;
               costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
               tspijl = Sp2(costmp,thmin,thmax,dtsijl);

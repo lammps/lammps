@@ -221,9 +221,18 @@ void Bond::ev_tally(int i, int j, int nlocal, int newton_bond,
 
 void Bond::write_file(int narg, char **arg)
 {
-  if (narg < 8) error->all(FLERR,"Illegal bond_write command");
+  if (narg != 6 && narg !=8) error->all(FLERR,"Illegal bond_write command");
 
-  // parse arguments
+  // parse optional arguments
+
+  int itype = 0;
+  int jtype = 0;
+  if (narg == 8) {
+    itype = force->inumeric(FLERR,arg[6]);
+    jtype = force->inumeric(FLERR,arg[7]);
+    if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
+    error->all(FLERR,"Invalid atom types in bond_write command");
+  }
 
   int btype = force->inumeric(FLERR,arg[0]);
   int n = force->inumeric(FLERR,arg[1]);
@@ -232,10 +241,6 @@ void Bond::write_file(int narg, char **arg)
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid rlo/rhi values in bond_write command");
 
-  int itype = force->inumeric(FLERR,arg[4]);
-  int jtype = force->inumeric(FLERR,arg[5]);
-  if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
-    error->all(FLERR,"Invalid atom types in bond_write command");
 
   double r0 = equilibrium_distance(btype);
 
@@ -246,7 +251,7 @@ void Bond::write_file(int narg, char **arg)
   MPI_Comm_rank(world,&me);
   FILE *fp;
   if (me == 0) {
-    fp = fopen(arg[6],"a");
+    fp = fopen(arg[4],"a");
     if (fp == NULL) error->one(FLERR,"Cannot open bond_write file");
   }
 
@@ -259,21 +264,15 @@ void Bond::write_file(int narg, char **arg)
   neighbor->init();
 
   if (me == 0) {
-    double r,e,f,dr,f1,f2;
+    double r,e,f;
 
     // evaluate energy and force at each of N distances
-    // note that Bond::single() takes r**2 as distance.
+    // note that Bond::single() takes r**2 and returns f/r.
 
-    dr = (outer - inner) / static_cast<double>(n-1);
-    single(btype,(inner+0.125*dr)*(inner+0.125*dr),itype,jtype,f1);
-    single(btype,(inner-0.125*dr)*(inner-0.125*dr),itype,jtype,f2);
-    const double fp1 = 4.0*(f1-f2)/dr;
-    single(btype,(outer+0.125*dr)*(outer+0.125*dr),itype,jtype,f1);
-    single(btype,(outer-0.125*dr)*(outer-0.125*dr),itype,jtype,f2);
-    const double fp2 = 4.0*(f1-f2)/dr;
+    const double dr = (outer - inner) / static_cast<double>(n-1);
     fprintf(fp,"# Bond potential %s for bond type %d: i,r,energy,force\n",
             force->bond_style,btype);
-    fprintf(fp,"\n%s\nN %d FP %.15g %.15g EQ %.15g\n\n",arg[7],n,fp1,fp2,r0);
+    fprintf(fp,"\n%s\nN %d EQ %.15g\n\n",arg[5],n,r0);
 
     for (int i = 0; i < n; i++) {
       r = inner + dr * static_cast<double>(i);

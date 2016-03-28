@@ -98,7 +98,7 @@ section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The scalar value calculated by this compute is "intensive".  The
-vector are "extensive".
+vector values are "extensive".
 
 The scalar value will be in temperature "units"_units.html.  The
 vector values will be in energy "units"_units.html.

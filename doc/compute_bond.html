@@ -128,39 +128,37 @@
 <span id="index-0"></span><h1>compute bond command<a class="headerlink" href="#compute-bond-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID bond bstyle
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID bond
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
 <li>bond = style name of this compute command</li>
-<li>bstyle = style name of a bond style that calculates additional values</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all bond harmonic
-compute 2 all bond morse
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all bond
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that extracts additional values calculated by a
-bond style, sums them across processors, and makes them accessible for
-output or further processing by other commands.  The group specified
-for this command is ignored.</p>
-<p>The specified <em>bstyle</em> must be a bond style used in your simulation
-either by itself or as a sub-style in a <a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a>
-command.</p>
+<p>Define a computation that extracts the bond energy calculated by each
+of the bond sub-styles used in the <a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a> command.  These values are made accessible
+for output or further processing by other commands.  The group
+specified for this command is ignored.</p>
 <p>This compute is useful when using <a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a>
 if you want to know the portion of the total energy contributed by one
-sub-style.</p>
+or more of the hybrid sub-styles.</p>
 <p><strong>Output info:</strong></p>
-<p>This compute calculates a global scalar which is the contribution of
-the named bond style to the bond energy <em>ebond</em>.</p>
-<p>The scalar value calculated by this compute is &#8220;extensive&#8221; and will be
-in energy <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+<p>This compute calculates a global vector of length N where N is the
+number of sub_styles defined by the <a class="reference internal" href="bond_style.html"><em>bond_style hybrid</em></a> command, which can be accessed by indices 1-N.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The vector values are &#8220;extensive&#8221; and will be in energy
+<a class="reference internal" href="units.html"><em>units</em></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
@@ -170,10 +168,7 @@ in energy <a class="reference internal" href="units.html"><em>units</em></a>.</p
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="compute_pe.html"><em>compute pe</em></a>, <a class="reference internal" href="compute_pair.html"><em>compute pair</em></a></p>
-</div>
-<div class="section" id="default">
-<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
-<p>The default for <em>evalue</em> is <em>ebond</em>.</p>
+<p><strong>Default:</strong> none</p>
 </div>
 </div>
 

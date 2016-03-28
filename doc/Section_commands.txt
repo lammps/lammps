@@ -669,6 +669,7 @@ package"_Section_accelerate.html.  This is indicated by additional
 letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
+"angle"_compute_angle.html,
 "angle/local"_compute_angle_local.html,
 "angmom/chunk"_compute_angmom_chunk.html,
 "body/local"_compute_body_local.html,
@@ -683,6 +684,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "contact/atom"_compute_contact_atom.html,
 "coord/atom"_compute_coord_atom.html,
 "damage/atom"_compute_damage_atom.html,
+"dihedral"_compute_dihedral.html,
 "dihedral/local"_compute_dihedral_local.html,
 "dilatation/atom"_compute_dilatation_atom.html,
 "displace/atom"_compute_displace_atom.html,
@@ -696,6 +698,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "gyration/chunk"_compute_gyration_chunk.html,
 "heat/flux"_compute_heat_flux.html,
 "hexorder/atom"_compute_hexorder_atom.html,
+"improper"_compute_improper.html,
 "improper/local"_compute_improper_local.html,
 "inertia/chunk"_compute_inertia_chunk.html,
 "ke"_compute_ke.html,

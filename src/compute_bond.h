@@ -29,11 +29,12 @@ class ComputeBond : public Compute {
   ComputeBond(class LAMMPS *, int, char **);
   ~ComputeBond();
   void init();
-  double compute_scalar();
+  void compute_vector();
 
  private:
-  char *bstyle;
-  class Bond *bond;
+  int nsub;
+  class BondHybrid *bond;
+  double *emine;
 };
 
 }

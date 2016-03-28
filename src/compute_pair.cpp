@@ -29,7 +29,6 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg < 4 || narg > 5) error->all(FLERR,"Illegal compute pair command");
-  if (igroup) error->all(FLERR,"Compute pair must use group all");
 
   scalar_flag = 1;
   extscalar = 1;

@@ -16,7 +16,7 @@
 #include "compute_bond.h"
 #include "update.h"
 #include "force.h"
-#include "bond.h"
+#include "bond_hybrid.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -26,64 +26,55 @@ using namespace LAMMPS_NS;
 ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Illegal compute bond command");
-  if (igroup) error->all(FLERR,"Compute bond must use group all");
+  if (narg != 3) error->all(FLERR,"Illegal compute bond command");
 
-  scalar_flag = 1;
-  extscalar = 1;
+  vector_flag = 1;
+  extvector = 1;
   peflag = 1;
   timeflag = 1;
 
-  int n = strlen(arg[3]) + 1;
-  if (lmp->suffix) n += strlen(lmp->suffix) + 1;
-  bstyle = new char[n];
-  strcpy(bstyle,arg[3]);
+  // check if bond style hybrid exists
 
-  // check if bond style with and without suffix exists
-
-  bond = force->bond_match(bstyle);
-  if (!bond && lmp->suffix) {
-    strcat(bstyle,"/");
-    strcat(bstyle,lmp->suffix);
-    bond = force->bond_match(bstyle);
-  }
+  bond = (BondHybrid *) force->bond_match("hybrid");
   if (!bond)
-    error->all(FLERR,"Unrecognized bond style in compute bond command");
-
-  vector = NULL;
+    error->all(FLERR,"Bond style for compute bond command is not hybrid");
+  size_vector = nsub = bond->nstyles;
+  
+  emine = new double[nsub];
+  vector = new double[nsub];
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeBond::~ComputeBond()
 {
-  delete [] bstyle;
+  delete [] emine;
+  delete [] vector;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeBond::init()
 {
-  // recheck for bond style in case it has been deleted
+  // recheck bond style in case it has been changed
 
-  bond = force->bond_match(bstyle);
-
+  bond = (BondHybrid *) force->bond_match("hybrid");
   if (!bond)
-    error->all(FLERR,"Unrecognized bond style in compute bond command");
+    error->all(FLERR,"Bond style for compute bond command is not hybrid");
+  if (bond->nstyles != nsub) 
+    error->all(FLERR,"Bond style for compute bond command has changed");
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeBond::compute_scalar()
+void ComputeBond::compute_vector()
 {
-  invoked_scalar = update->ntimestep;
-  if (update->eflag_global != invoked_scalar)
+  invoked_vector = update->ntimestep;
+  if (update->eflag_global != invoked_vector)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  double eng;
-  eng = bond->energy;
+  for (int i = 0; i < nsub; i++)
+    emine[i] = bond->styles[i]->energy;
 
-  MPI_Allreduce(&eng,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  return scalar;
+  MPI_Allreduce(emine,vector,nsub,MPI_DOUBLE,MPI_SUM,world);
 }
-

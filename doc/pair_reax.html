@@ -172,17 +172,17 @@ value other than &#8220;ffield.reax&#8221; will be rejected (see below).</p>
 <p>LAMMPS provides several different versions of ffield.reax in its
 potentials dir, each called potentials/ffield.reax.label.  These are
 documented in potentials/README.reax.  The default ffield.reax
-contains parameterizations for the following elements: C, H, O, N, S.</p>
+contains parameterizations for the following elements: C, H, O, N.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">We do not distribute a wide variety of ReaxFF force field files
 with LAMMPS.  Adri van Duin&#8217;s group at PSU is the central repository
 for this kind of data as they are continuously deriving and updating
-parameterizations for different classes of materials.  You can visit
-their WWW site at
-<a class="reference external" href="http://www.engr.psu.edu/adri">http://www.engr.psu.edu/adri</a>, register
-as a &#8220;new user&#8221;, and then submit a request to their group describing
-material(s) you are interested in modeling with ReaxFF.  They can tell
+parameterizations for different classes of materials.  You can submit
+a contact request at the Materials Computation Center (MCC) website
+<a class="reference external" href="https://www.mri.psu.edu/materials-computation-center/connect-mcc">https://www.mri.psu.edu/materials-computation-center/connect-mcc</a>,
+describing the material(s) you are interested in modeling with ReaxFF.
+They can tell
 you what is currently available or what it would take to create a
 suitable ReaxFF parameterization.</p>
 </div>
@@ -201,7 +201,11 @@ wish to override any of these defaults, then all of the settings must
 be specified.</p>
 <p>Two examples using <em>pair_style reax</em> are provided in the examples/reax
 sub-directory, along with corresponding examples for
-<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>.</p>
+<a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a>. Note that while the energy and force
+calculated by both of these pair styles match very closely, the
+contributions due to the valence angles differ slightly due to
+the fact that with <em>pair_style reax/c</em> the default value of <em>thb_cutoff_sq</em>
+is 0.00001, while for <em>pair_style reax</em> it is hard-coded to be 0.001.</p>
 <p>Use of this pair style requires that a charge be defined for every
 atom since the <em>reax</em> pair style performs a charge equilibration (QEq)
 calculation.  See the <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> and

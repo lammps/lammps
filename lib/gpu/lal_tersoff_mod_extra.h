@@ -1,5 +1,5 @@
 /// **************************************************************************
-//                              tersoff_extra.h
+//                             tersoff_mod_extra.h
 //                             -------------------
 //                              Trung Dac Nguyen
 //
@@ -13,8 +13,8 @@
 //    email                : ndactrung@gmail.com
 // ***************************************************************************/*
 
-#ifndef LAL_TERSOFF_EXTRA_H
-#define LAL_TERSOFF_EXTRA_H
+#ifndef LAL_TERSOFF_MOD_EXTRA_H
+#define LAL_TERSOFF_MOD_EXTRA_H
 
 #ifdef NV_KERNEL
 #include "lal_aux_fun1.h"
@@ -49,33 +49,33 @@ ucl_inline void vec3_scaleadd(const numtyp k, const numtyp x[3],
 
 /* ---------------------------------------------------------------------- */
 
-ucl_inline numtyp ters_gijk(const numtyp costheta,
-                            const numtyp param_c,
-                            const numtyp param_d,
-                            const numtyp param_h,
-                            const numtyp param_gamma)
+ucl_inline numtyp ters_gijk_mod(const numtyp costheta,
+                                const numtyp param_c1,
+                                const numtyp param_c2,
+                                const numtyp param_c3,
+                                const numtyp param_c4,
+                                const numtyp param_c5,
+                                const numtyp param_h)
 {
-  const numtyp ters_c = param_c * param_c;
-  const numtyp ters_d = param_d * param_d;
-  const numtyp hcth = param_h - costheta;
-  return param_gamma*((numtyp)1.0 + ters_c*ucl_recip(ters_d) -
-         ters_c *ucl_recip(ters_d + hcth*hcth));
+  const numtyp tmp_h = (param_h - costheta)*(param_h - costheta);
+  return param_c1 + (param_c2*tmp_h/(param_c3 + tmp_h)) *
+    ((numtyp)1.0 + param_c4*ucl_exp(-param_c5*tmp_h));
 }
 
 /* ---------------------------------------------------------------------- */
 
-ucl_inline numtyp ters_gijk_d(const numtyp costheta,
-                              const numtyp param_c,
-                              const numtyp param_d,
-                              const numtyp param_h,
-                              const numtyp param_gamma)
+ucl_inline numtyp ters_gijk_d_mod(const numtyp costheta,
+                                  const numtyp param_c2,
+                                  const numtyp param_c3,
+                                  const numtyp param_c4,
+                                  const numtyp param_c5,
+                                  const numtyp param_h)
 {
-  const numtyp ters_c = param_c * param_c;
-  const numtyp ters_d = param_d * param_d;
-  const numtyp hcth = param_h - costheta;
-  const numtyp numerator = (numtyp)-2.0 * ters_c * hcth;
-  const numtyp denominator = ucl_recip(ters_d + hcth*hcth);
-  return param_gamma*numerator*denominator*denominator;
+  const numtyp tmp_h = (param_h - costheta)*(param_h - costheta);
+  const numtyp g1 = (param_h - costheta)/(param_c3 + tmp_h);
+  const numtyp g2 = ucl_exp(-param_c5*tmp_h);
+  return (numtyp)-2.0*param_c2*g1*((1 + param_c4*g2) *
+         (1 + g1*(costheta - param_h)) - tmp_h*param_c4*param_c5*g2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +108,9 @@ ucl_inline numtyp ters_fc(const numtyp r,
 {
   if (r < param_bigr-param_bigd) return (numtyp)1.0;
   if (r > param_bigr+param_bigd) return (numtyp)0.0;
-  return (numtyp)0.5*((numtyp)1.0 - sin(MY_PI2*(r - param_bigr)/param_bigd));
+  return (numtyp)0.5*((numtyp)1.0 -
+         (numtyp)1.125*sin(MY_PI2*(r - param_bigr)/param_bigd) -
+         (numtyp)0.125*sin(3*MY_PI2*(r - param_bigr)/param_bigd));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,7 +121,9 @@ ucl_inline numtyp ters_fc_d(const numtyp r,
 {
   if (r < param_bigr-param_bigd) return (numtyp)0.0;
   if (r > param_bigr+param_bigd) return (numtyp)0.0;
-  return -(MY_PI4/param_bigd) * cos(MY_PI2*(r - param_bigr)/param_bigd);
+  return -((numtyp)0.375*MY_PI4/param_bigd) *
+           ((numtyp)3*cos(MY_PI2*(r - param_bigr)/param_bigd) +
+            cos((numtyp)3*MY_PI2*(r - param_bigr)/param_bigd));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,21 +157,16 @@ ucl_inline numtyp ters_fa_d(const numtyp r,
 ucl_inline numtyp ters_bij(const numtyp zeta,
                            const numtyp param_beta,
                            const numtyp param_powern,
-                           const numtyp param_c1,
-                           const numtyp param_c2,
-                           const numtyp param_c3,
-                           const numtyp param_c4)
+                           const numtyp param_powern_del,
+                           const numtyp param_ca1,
+                           const numtyp param_ca4)
 {
   numtyp tmp = param_beta * zeta;
-  if (tmp > param_c1) return ucl_rsqrt(tmp);
-  if (tmp > param_c2)
-    return ((numtyp)1.0 - ucl_powr(tmp,-param_powern) /
-      ((numtyp)2.0*param_powern))*ucl_rsqrt(tmp);
-  if (tmp < param_c4) return (numtyp)1.0;
-  if (tmp < param_c3)
-    return (numtyp)1.0 - ucl_powr(tmp,param_powern)/((numtyp)2.0*param_powern);
+  if (tmp > param_ca1)
+    return ucl_powr(tmp, -param_powern/((numtyp)2.0*param_powern_del));
+  if (tmp < param_ca4) return (numtyp)1.0;
   return ucl_powr((numtyp)1.0 + ucl_powr(tmp,param_powern),
-    (numtyp)-1.0/((numtyp)2.0*param_powern));
+    (numtyp)-1.0/((numtyp)2.0*param_powern_del));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,27 +174,19 @@ ucl_inline numtyp ters_bij(const numtyp zeta,
 ucl_inline numtyp ters_bij_d(const numtyp zeta,
                              const numtyp param_beta,
                              const numtyp param_powern,
-                             const numtyp param_c1,
-                             const numtyp param_c2,
-                             const numtyp param_c3,
-                             const numtyp param_c4)
+                             const numtyp param_powern_del,
+                             const numtyp param_ca1,
+                             const numtyp param_ca4)
 {
   numtyp tmp = param_beta * zeta;
-  if (tmp > param_c1)
-    return param_beta * (numtyp)-0.5*ucl_powr(tmp,(numtyp)-1.5);
-  if (tmp > param_c2)
-    return param_beta * ((numtyp)-0.5*ucl_powr(tmp,(numtyp)-1.5) *
-    // error in negligible 2nd term fixed 9/30/2015
-		// (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
-      ((numtyp)1.0 - ((numtyp)1.0 + (numtyp)1.0 /((numtyp)2.0 * param_powern)) *
-       ucl_powr(tmp,-param_powern)));
-  if (tmp < param_c4) return (numtyp)0.0;
-  if (tmp < param_c3)
-    return (numtyp)-0.5*param_beta * ucl_powr(tmp,param_powern-(numtyp)1.0);
+  if (tmp > param_ca1) return (numtyp)-0.5*(param_powern/param_powern_del) *
+	  ucl_powr(tmp,(numtyp)-0.5*(param_powern/param_powern_del)) / zeta;
+  if (tmp < param_ca4) return (numtyp)0.0;
 
   numtyp tmp_n = ucl_powr(tmp,param_powern);
-  return (numtyp)-0.5 * ucl_powr((numtyp)1.0+tmp_n, (numtyp) -
-    (numtyp)1.0-((numtyp)1.0 / ((numtyp)2.0 * param_powern)))*tmp_n / zeta;
+  return (numtyp)-0.5 *(param_powern/param_powern_del) *
+	  ucl_powr((numtyp)1.0+tmp_n, (numtyp)-1.0-((numtyp)1.0 /
+    ((numtyp)2.0*param_powern_del)))*tmp_n / zeta;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,10 +200,12 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
                                 const numtyp param_bigd,
                                 const numtyp param_powermint,
                                 const numtyp param_lam3,
-                                const numtyp param_c,
-                                const numtyp param_d,
                                 const numtyp param_h,
-                                const numtyp param_gamma,
+                                const numtyp param_c1,
+                                const numtyp param_c2,
+                                const numtyp param_c3,
+                                const numtyp param_c4,
+                                const numtyp param_c5,
                                 numtyp dri[3],
                                 numtyp drj[3],
                                 numtyp drk[3])
@@ -236,8 +229,8 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
   else ex_delr_d = param_lam3 * ex_delr;
 
   cos_theta = vec3_dot(rij_hat,rik_hat);
-  gijk = ters_gijk(cos_theta,param_c,param_d,param_h,param_gamma);
-  gijk_d = ters_gijk_d(cos_theta,param_c,param_d,param_h,param_gamma);
+  gijk = ters_gijk_mod(cos_theta,param_c1,param_c2,param_c3,param_c4,param_c5,param_h);
+  gijk_d = ters_gijk_d_mod(cos_theta,param_c2,param_c3,param_c4,param_c5,param_h);
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
 
   // compute the derivative wrt Ri
@@ -279,10 +272,12 @@ ucl_inline void ters_zetaterm_d_fi(const numtyp prefactor,
                                    const numtyp param_bigd,
                                    const numtyp param_powermint,
                                    const numtyp param_lam3,
-                                   const numtyp param_c,
-                                   const numtyp param_d,
                                    const numtyp param_h,
-                                   const numtyp param_gamma,
+                                   const numtyp param_c1,
+                                   const numtyp param_c2,
+                                   const numtyp param_c3,
+                                   const numtyp param_c4,
+                                   const numtyp param_c5,
                                    numtyp dri[3])
 {
   numtyp gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta,tmp;
@@ -304,8 +299,8 @@ ucl_inline void ters_zetaterm_d_fi(const numtyp prefactor,
   else ex_delr_d = param_lam3 * ex_delr;
 
   cos_theta = vec3_dot(rij_hat,rik_hat);
-  gijk = ters_gijk(cos_theta,param_c,param_d,param_h,param_gamma);
-  gijk_d = ters_gijk_d(cos_theta,param_c,param_d,param_h,param_gamma);
+  gijk = ters_gijk_mod(cos_theta,param_c1,param_c2,param_c3,param_c4,param_c5,param_h);
+  gijk_d = ters_gijk_d_mod(cos_theta,param_c2,param_c3,param_c4,param_c5,param_h);
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
 
   // compute the derivative wrt Ri
@@ -329,10 +324,12 @@ ucl_inline void ters_zetaterm_d_fj(const numtyp prefactor,
                                    const numtyp param_bigd,
                                    const numtyp param_powermint,
                                    const numtyp param_lam3,
-                                   const numtyp param_c,
-                                   const numtyp param_d,
                                    const numtyp param_h,
-                                   const numtyp param_gamma,
+                                   const numtyp param_c1,
+                                   const numtyp param_c2,
+                                   const numtyp param_c3,
+                                   const numtyp param_c4,
+                                   const numtyp param_c5,
                                    numtyp drj[3])
 {
   numtyp gijk,gijk_d,ex_delr,ex_delr_d,fc,cos_theta,tmp;
@@ -353,8 +350,8 @@ ucl_inline void ters_zetaterm_d_fj(const numtyp prefactor,
   else ex_delr_d = param_lam3 * ex_delr;
 
   cos_theta = vec3_dot(rij_hat,rik_hat);
-  gijk = ters_gijk(cos_theta,param_c,param_d,param_h,param_gamma);
-  gijk_d = ters_gijk_d(cos_theta,param_c,param_d,param_h,param_gamma);
+  gijk = ters_gijk_mod(cos_theta,param_c1,param_c2,param_c3,param_c4,param_c5,param_h);
+  gijk_d = ters_gijk_d_mod(cos_theta,param_c2,param_c3,param_c4,param_c5,param_h);
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
 
   // compute the derivative wrt Rj
@@ -375,10 +372,12 @@ ucl_inline void ters_zetaterm_d_fk(const numtyp prefactor,
                                    const numtyp param_bigd,
                                    const numtyp param_powermint,
                                    const numtyp param_lam3,
-                                   const numtyp param_c,
-                                   const numtyp param_d,
                                    const numtyp param_h,
-                                   const numtyp param_gamma,
+                                   const numtyp param_c1,
+                                   const numtyp param_c2,
+                                   const numtyp param_c3,
+                                   const numtyp param_c4,
+                                   const numtyp param_c5,
                                    numtyp drk[3])
 {
   numtyp gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta,tmp;
@@ -400,8 +399,8 @@ ucl_inline void ters_zetaterm_d_fk(const numtyp prefactor,
   else ex_delr_d = param_lam3 * ex_delr;
 
   cos_theta = vec3_dot(rij_hat,rik_hat);
-  gijk = ters_gijk(cos_theta,param_c,param_d,param_h,param_gamma);
-  gijk_d = ters_gijk_d(cos_theta,param_c,param_d,param_h,param_gamma);
+  gijk = ters_gijk_mod(cos_theta,param_c1,param_c2,param_c3,param_c4,param_c5,param_h);
+  gijk_d = ters_gijk_d_mod(cos_theta,param_c2,param_c3,param_c4,param_c5,param_h);
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
 
   // compute the derivative wrt Rk
@@ -442,10 +441,12 @@ ucl_inline numtyp zeta(const numtyp param_powermint,
                        const numtyp param_lam3,
                        const numtyp param_bigr,
                        const numtyp param_bigd,
-                       const numtyp param_c,
-                       const numtyp param_d,
                        const numtyp param_h,
-                       const numtyp param_gamma,
+                       const numtyp param_c1,
+                       const numtyp param_c2,
+                       const numtyp param_c3,
+                       const numtyp param_c4,
+                       const numtyp param_c5,
                        const numtyp rsqij,
                        const numtyp rsqik,
                        const numtyp4 delrij,
@@ -467,7 +468,8 @@ ucl_inline numtyp zeta(const numtyp param_powermint,
   else ex_delr = ucl_exp(arg);
 
   return ters_fc(rik,param_bigr,param_bigd) *
-         ters_gijk(costheta,param_c, param_d, param_h, param_gamma) * ex_delr;
+    ters_gijk_mod(costheta,param_c1,param_c2,param_c3,param_c4,param_c5,
+                  param_h) * ex_delr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -478,10 +480,9 @@ ucl_inline void force_zeta(const numtyp param_bigb,
                            const numtyp param_lam2,
                            const numtyp param_beta,
                            const numtyp param_powern,
-                           const numtyp param_c1,
-                           const numtyp param_c2,
-                           const numtyp param_c3,
-                           const numtyp param_c4,
+                           const numtyp param_powern_del,
+                           const numtyp param_ca1,
+                           const numtyp param_ca4,
                            const numtyp rsq,
                            const numtyp zeta_ij,
                            const int eflag,
@@ -493,10 +494,10 @@ ucl_inline void force_zeta(const numtyp param_bigb,
   fa = ters_fa(r,param_bigb,param_bigr,param_bigd,param_lam2);
   fa_d = ters_fa_d(r,param_bigb,param_bigr,param_bigd,param_lam2);
   bij = ters_bij(zeta_ij,param_beta,param_powern,
-                 param_c1,param_c2, param_c3, param_c4);
+                 param_powern_del,param_ca1,param_ca4);
   fpfeng[0] = (numtyp)0.5*bij*fa_d * ucl_recip(r); // fforce
   fpfeng[1] = (numtyp)-0.5*fa * ters_bij_d(zeta_ij,param_beta, param_powern,
-           param_c1,param_c2, param_c3, param_c4); // prefactor
+           param_powern_del,param_ca1,param_ca4); // prefactor
   if (eflag) fpfeng[2] = (numtyp)0.5*bij*fa; // eng
 }
 
@@ -510,10 +511,12 @@ ucl_inline void attractive(const numtyp param_bigr,
                            const numtyp param_bigd,
                            const numtyp param_powermint,
                            const numtyp param_lam3,
-                           const numtyp param_c,
-                           const numtyp param_d,
                            const numtyp param_h,
-                           const numtyp param_gamma,
+                           const numtyp param_c1,
+                           const numtyp param_c2,
+                           const numtyp param_c3,
+                           const numtyp param_c4,
+                           const numtyp param_c5,
                            const numtyp prefactor,
                            const numtyp rij,
                            const numtyp rijinv,
@@ -530,17 +533,20 @@ ucl_inline void attractive(const numtyp param_bigr,
   vec3_scale(rikinv,delrik,rik_hat);
   ters_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,
                   param_bigr, param_bigd, param_powermint, param_lam3,
-                  param_c, param_d, param_h, param_gamma, fi, fj, fk);
+                  param_h, param_c1, param_c2, param_c3, param_c4, param_c5,
+                  fi, fj, fk);
 }
 
 ucl_inline void attractive_fi(const numtyp param_bigr,
                               const numtyp param_bigd,
                               const numtyp param_powermint,
                               const numtyp param_lam3,
-                              const numtyp param_c,
-                              const numtyp param_d,
                               const numtyp param_h,
-                              const numtyp param_gamma,
+                              const numtyp param_c1,
+                              const numtyp param_c2,
+                              const numtyp param_c3,
+                              const numtyp param_c4,
+                              const numtyp param_c5,
                               const numtyp prefactor,
                               const numtyp rij,
                               const numtyp rijinv,
@@ -555,17 +561,20 @@ ucl_inline void attractive_fi(const numtyp param_bigr,
   vec3_scale(rikinv,delrik,rik_hat);
   ters_zetaterm_d_fi(prefactor,rij_hat,rij,rik_hat,rik,
                   param_bigr, param_bigd, param_powermint, param_lam3,
-                  param_c, param_d, param_h, param_gamma, fi);
+                  param_h, param_c1, param_c2, param_c3, param_c4, param_c5,
+                  fi);
 }
 
 ucl_inline void attractive_fj(const numtyp param_bigr,
                               const numtyp param_bigd,
                               const numtyp param_powermint,
                               const numtyp param_lam3,
-                              const numtyp param_c,
-                              const numtyp param_d,
                               const numtyp param_h,
-                              const numtyp param_gamma,
+                              const numtyp param_c1,
+                              const numtyp param_c2,
+                              const numtyp param_c3,
+                              const numtyp param_c4,
+                              const numtyp param_c5,
                               const numtyp prefactor,
                               const numtyp rij,
                               const numtyp rijinv,
@@ -580,17 +589,20 @@ ucl_inline void attractive_fj(const numtyp param_bigr,
   vec3_scale(rikinv,delrik,rik_hat);
   ters_zetaterm_d_fj(prefactor,rij_hat,rij,rik_hat,rik,
                      param_bigr, param_bigd, param_powermint, param_lam3,
-                     param_c, param_d, param_h, param_gamma, fj);
+                     param_h, param_c1, param_c2, param_c3, param_c4, param_c5,
+                     fj);
 }
 
 ucl_inline void attractive_fk(const numtyp param_bigr,
                               const numtyp param_bigd,
                               const numtyp param_powermint,
                               const numtyp param_lam3,
-                              const numtyp param_c,
-                              const numtyp param_d,
                               const numtyp param_h,
-                              const numtyp param_gamma,
+                              const numtyp param_c1,
+                              const numtyp param_c2,
+                              const numtyp param_c3,
+                              const numtyp param_c4,
+                              const numtyp param_c5,
                               const numtyp prefactor,
                               const numtyp rij,
                               const numtyp rijinv,
@@ -605,7 +617,8 @@ ucl_inline void attractive_fk(const numtyp param_bigr,
   vec3_scale(rikinv,delrik,rik_hat);
   ters_zetaterm_d_fk(prefactor,rij_hat,rij,rik_hat,rik,
                      param_bigr, param_bigd, param_powermint, param_lam3,
-                     param_c, param_d, param_h, param_gamma, fk);
+                     param_h, param_c1, param_c2, param_c3, param_c4, param_c5,
+                     fk);
 }
 
 

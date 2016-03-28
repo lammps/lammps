@@ -558,7 +558,7 @@ Improper *Force::improper_match(const char *style)
 {
   if (strcmp(improper_style,style) == 0) return improper;
   else if (strcmp(improper_style,"hybrid") == 0) {
-    ImproperHybrid *hybrid = (ImproperHybrid *) bond;
+    ImproperHybrid *hybrid = (ImproperHybrid *) improper;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
   }

@@ -107,17 +107,16 @@ void FixQEqFire::init()
 void FixQEqFire::pre_force(int vflag)
 {
   int inum, *ilist;
-  int i,ii,iloop,loopmax;
-  int *mask = atom->mask;
+  int i,ii,iloop;
 
   double *q = atom->q;
   double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;
   double scale1,scale2;
   double dtvone,dtv;
-  double enegtot,enegchk,enegmax;
+  double enegtot,enegchk;
   double alpha = qdamp;
   double dt, dtmax;
-  double enegchkall,enegmaxall;
+  double enegchkall;
   bigint ntimestep = update->ntimestep;
   bigint last_negative = 0;
 

@@ -69,11 +69,11 @@ PairLineLJ::~PairLineLJ()
 
 void PairLineLJ::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,tmp;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   int ni,nj,npi,npj,ifirst,jfirst;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,term1,term2,sig,sig3,forcelj;
-  double xi[2],xj[2],fi[2],fj[2],dxi,dxj,dyi,dyj;
+  double xi[2],xj[2],fi[2],dxi,dxj,dyi,dyj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;

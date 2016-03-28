@@ -39,7 +39,7 @@ outer for 2 interacting atoms forming a bond of type btype, using the
 appropriate "bond_coeff"_bond_coeff.html coefficients. N evenly spaced
 distances are used.
 
-For example, for N = 7, style = {r}, inner = 1.0, and outer = 4.0,
+For example, for N = 7, inner = 1.0, and outer = 4.0,
 values are computed at r = 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0.
 
 The file is written in the format used as input for the
@@ -53,7 +53,7 @@ and a force (in force units).
 All force field coefficients for bond and other kinds of interactions
 must be set before this command can be invoked.
 
-Due to how the bondwise force is computed, an inner value > 0.0 must
+Due to how the bond force is computed, an inner value > 0.0 must
 be specified even if the potential has a finite value at r = 0.0.
 
 [Related commands:]

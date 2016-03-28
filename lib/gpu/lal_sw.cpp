@@ -142,7 +142,7 @@ int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_
   ucl_copy(elem2param,dview_elem2param,false);
 
   UCL_H_Vec<int> dview_map(lj_types, *(this->ucl_device), UCL_WRITE_ONLY);
-  for (int i = 0; i < lj_types; i++)
+  for (int i = 0; i < ntypes; i++)
     dview_map[i] = host_map[i];
 
   map.alloc(lj_types,*(this->ucl_device), UCL_READ_ONLY);
@@ -196,13 +196,15 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
+  // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa == 1 
+  // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   this->k_pair.set_size(GX,BX);
   this->k_pair.run(&this->atom->x, &sw1, &sw2, &sw3, 
                    &map, &elem2param, &_nelements,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                    &this->ans->force, &this->ans->engv, 
                    &eflag, &vflag, &ainum, &nbor_pitch, 
                    &this->_threads_per_atom);

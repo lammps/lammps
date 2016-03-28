@@ -1,20 +1,20 @@
 // **************************************************************************
-//                                 tersoff.cu
+//                               tersoff_zbl.cu
 //                             -------------------
 //                              Trung Dac Nguyen
 //
-//  Device code for acceleration of the tersoff pair style
+//  Device code for acceleration of the tersoff/zbl pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//       begin                : Thu April 17, 2014
+//       begin                :
 //       email                : ndactrung@gmail.com
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-#include "lal_tersoff_extra.h"
+#include "lal_tersoff_zbl_extra.h"
 
 #ifndef _DOUBLE_DOUBLE
 texture<float4> pos_tex;
@@ -23,6 +23,7 @@ texture<float4> ts2_tex;
 texture<float4> ts3_tex;
 texture<float4> ts4_tex;
 texture<float4> ts5_tex;
+texture<float4> ts6_tex;
 #else
 texture<int4,1> pos_tex;
 texture<int4> ts1_tex;
@@ -30,6 +31,7 @@ texture<int4> ts2_tex;
 texture<int4> ts3_tex;
 texture<int4> ts4_tex;
 texture<int4> ts5_tex;
+texture<int4> ts6_tex;
 #endif
 
 #else
@@ -39,6 +41,7 @@ texture<int4> ts5_tex;
 #define ts3_tex ts3
 #define ts4_tex ts4
 #define ts5_tex ts5
+#define ts6_tex ts6
 #endif
 
 //#define THREE_CONCURRENT
@@ -171,12 +174,13 @@ texture<int4> ts5_tex;
 
 #define SHARED_SIZE 32
 
-__kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
+__kernel void k_tersoff_zbl_zeta(const __global numtyp4 *restrict x_,
                              const __global numtyp4 *restrict ts1_in,
                              const __global numtyp4 *restrict ts2_in,
                              const __global numtyp4 *restrict ts3_in,
                              const __global numtyp4 *restrict ts4_in,
                              const __global numtyp4 *restrict ts5_in,
+                             const __global numtyp4 *restrict ts6_in,
                              const __global numtyp *restrict cutsq,
                              const __global int *restrict map,
                              const __global int *restrict elem2param,
@@ -198,12 +202,14 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
   __local numtyp4 ts3[SHARED_SIZE];
   __local numtyp4 ts4[SHARED_SIZE];
   __local numtyp4 ts5[SHARED_SIZE];
+  __local numtyp4 ts6[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
     ts3[tid]=ts3_in[tid];
     ts4[tid]=ts4_in[tid];
     ts5[tid]=ts5_in[tid];
+    ts6[tid]=ts6_in[tid];
   }
 
   acctyp z = (acctyp)0;
@@ -303,12 +309,15 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
       numtyp4 ts5_ijparam = ts5[ijparam]; //fetch4(ts5_ijparam,ijparam,ts5_tex);
       numtyp ijparam_beta = ts5_ijparam.x;
       numtyp ijparam_powern = ts5_ijparam.y;
+      numtyp4 ts6_ijparam = ts6[ijparam]; //fetch4(ts6_ijparam,ijparam,ts6_tex);
+      numtyp ijparam_ZBLcut = ts6_ijparam.z;
+      numtyp ijparam_ZBLexpscale = ts6_ijparam.w;
 
       if (offset_k == 0) {
         numtyp fpfeng[4];
         force_zeta(ijparam_bigb, ijparam_bigr, ijparam_bigd, ijparam_lam2,
                    ijparam_beta, ijparam_powern, ijparam_c1, ijparam_c2, ijparam_c3,
-                   ijparam_c4, rsq1, z, eflag, fpfeng);
+                   ijparam_c4, ijparam_ZBLcut, ijparam_ZBLexpscale, rsq1, z, eflag, fpfeng);
         acctyp4 zij;
         zij.x = fpfeng[0];
         zij.y = fpfeng[1];
@@ -321,9 +330,12 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
+__kernel void k_tersoff_zbl_repulsive(const __global numtyp4 *restrict x_,
                                   const __global numtyp4 *restrict ts1_in,
                                   const __global numtyp4 *restrict ts2_in,
+                                  const __global numtyp4 *restrict ts6_in,
+                                  const numtyp global_e, const numtyp global_a_0,
+                                  const numtyp global_epsilon_0,
                                   const __global numtyp *restrict cutsq,
                                   const __global int *restrict map,
                                   const __global int *restrict elem2param,
@@ -341,9 +353,11 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
 
   __local numtyp4 ts1[SHARED_SIZE];
   __local numtyp4 ts2[SHARED_SIZE];
+  __local numtyp4 ts6[SHARED_SIZE];
   if (tid<nparams) {
     ts1[tid]=ts1_in[tid];
     ts2[tid]=ts2_in[tid];
+    ts6[tid]=ts6_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -389,9 +403,15 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
         numtyp ijparam_biga = ts2_ijparam.x;
         numtyp ijparam_bigr = ts2_ijparam.z;
         numtyp ijparam_bigd = ts2_ijparam.w;
+        numtyp4 ts6_ijparam = ts6[ijparam];
+        numtyp ijparam_Z_i = ts6_ijparam.x;
+        numtyp ijparam_Z_j = ts6_ijparam.y;
+        numtyp ijparam_ZBLcut = ts6_ijparam.z;
+        numtyp ijparam_ZBLexpscale = ts6_ijparam.w;
 
         repulsive(ijparam_bigr, ijparam_bigd, ijparam_lam1, ijparam_biga,
-                  rsq, eflag, feng);
+                  ijparam_Z_i, ijparam_Z_j, ijparam_ZBLcut, ijparam_ZBLexpscale,
+                  global_e, global_a_0, global_epsilon_0, rsq, eflag, feng);
 
         numtyp force = feng[0];
         f.x+=delx*force;
@@ -417,7 +437,7 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
 
 }
 
-__kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
+__kernel void k_tersoff_zbl_three_center(const __global numtyp4 *restrict x_,
                                      const __global numtyp4 *restrict ts1_in,
                                      const __global numtyp4 *restrict ts2_in,
                                      const __global numtyp4 *restrict ts4_in,
@@ -586,7 +606,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
+__kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
                                   const __global numtyp4 *restrict ts1_in,
                                   const __global numtyp4 *restrict ts2_in,
                                   const __global numtyp4 *restrict ts4_in,
@@ -807,7 +827,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
+__kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global numtyp4 *restrict ts1_in,
                                         const __global numtyp4 *restrict ts2_in,
       	                                const __global numtyp4 *restrict ts4_in,
@@ -1030,7 +1050,6 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         virial[3] += TWOTHIRD*(delr2[0]*fj[1] + mdelr1[0]*fk[1]);
         virial[4] += TWOTHIRD*(delr2[0]*fj[2] + mdelr1[0]*fk[2]);
         virial[5] += TWOTHIRD*(delr2[1]*fj[2] + mdelr1[1]*fk[2]);
-
       }
     } // for nbor
 

@@ -1,30 +1,30 @@
 /***************************************************************************
-                                 tersoff.h
+                                tersoff_mod.h
                              -------------------
                               Trung Dac Nguyen
 
-  Class for acceleration of the tersoff pair style.
+  Class for acceleration of the tersoff/mod pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : Thu April 17, 2014
+    begin                :
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
-#ifndef LAL_TERSOFF_H
-#define LAL_TERSOFF_H
+#ifndef LAL_TERSOFF_MOD_H
+#define LAL_TERSOFF_MOD_H
 
 #include "lal_base_three.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class Tersoff : public BaseThree<numtyp, acctyp> {
+class TersoffMod : public BaseThree<numtyp, acctyp> {
  public:
-  Tersoff();
-  ~Tersoff();
+  TersoffMod();
+  ~TersoffMod();
 
   /// Clear any previous data and set up for a new LAMMPS run for generic systems
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -43,9 +43,9 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
            const double* lam1, const double* lam2, const double* lam3,
            const double* powermint, const double* biga, const double* bigb,
            const double* bigr, const double* bigd, const double* c1, const double* c2,
-           const double* c3, const double* c4, const double* c, const double* d,
-           const double* h, const double* gamma, const double* beta,
-           const double* powern, const double* cutsq);
+           const double* c3, const double* c4, const double* c5,
+           const double* h, const double* beta, const double* powern,
+           const double* powern_del, const double* ca1, const double* cutsq);
 
   /// Pair loop with host neighboring
   void compute(const int f_ago, const int inum_full, const int nall,
@@ -84,11 +84,11 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> ts1;
   /// ts2.x = biga, ts2.y = bigb,  ts2.z = bigr, ts2.w = bigd
   UCL_D_Vec<numtyp4> ts2;
-  /// ts3.x = c1,   ts3.y = c2,    ts3.z = c3,   ts3.w = c4
+  /// ts3.x = beta, ts3.y = powern, ts3.z = powern_del, ts3.w = ca1
   UCL_D_Vec<numtyp4> ts3;
-  /// ts4.x = c,    ts4.y = d,     ts4.z = h,    ts4.w = gamma
+  /// ts4.x = c1,    ts4.y = c2,     ts4.z = c3,    ts4.w = c4
   UCL_D_Vec<numtyp4> ts4;
-  /// ts5.x = beta, ts5.y = powern
+  /// ts5.x = c5, ts5.y = h
   UCL_D_Vec<numtyp4> ts5;
 
   UCL_D_Vec<numtyp> cutsq;

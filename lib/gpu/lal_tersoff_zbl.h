@@ -1,5 +1,5 @@
 /***************************************************************************
-                                 tersoff.h
+                               tersoff_zbl.h
                              -------------------
                               Trung Dac Nguyen
 
@@ -9,22 +9,22 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : Thu April 17, 2014
+    begin                :
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
-#ifndef LAL_TERSOFF_H
-#define LAL_TERSOFF_H
+#ifndef LAL_TERSOFF_ZBL_H
+#define LAL_TERSOFF_ZBL_H
 
 #include "lal_base_three.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class Tersoff : public BaseThree<numtyp, acctyp> {
+class TersoffZBL : public BaseThree<numtyp, acctyp> {
  public:
-  Tersoff();
-  ~Tersoff();
+  TersoffZBL();
+  ~TersoffZBL();
 
   /// Clear any previous data and set up for a new LAMMPS run for generic systems
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -45,7 +45,9 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
            const double* bigr, const double* bigd, const double* c1, const double* c2,
            const double* c3, const double* c4, const double* c, const double* d,
            const double* h, const double* gamma, const double* beta,
-           const double* powern, const double* cutsq);
+           const double* powern, const double* Z_i, const double* Z_j,
+           const double* ZBLcut, const double* ZBLexpscale, const double global_e,
+           const double global_a_0, const double global_epsilon_0, const double* cutsq);
 
   /// Pair loop with host neighboring
   void compute(const int f_ago, const int inum_full, const int nall,
@@ -90,6 +92,8 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> ts4;
   /// ts5.x = beta, ts5.y = powern
   UCL_D_Vec<numtyp4> ts5;
+  /// ts6.x = Z_i, ts6.y = Z_j, ts6.z = ZBLcut, ts6.w = ZBLexpscale
+  UCL_D_Vec<numtyp4> ts6;
 
   UCL_D_Vec<numtyp> cutsq;
 
@@ -103,9 +107,10 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
   UCL_D_Vec<acctyp4>   _zetaij;
 
   UCL_Kernel k_zeta;
-  UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex;
+  UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex, ts6_tex;
 
   int _max_nbors;
+  numtyp _global_e,_global_a_0,_global_epsilon_0;
 
  private:
   bool _allocated;

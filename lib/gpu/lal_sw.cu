@@ -35,7 +35,7 @@ texture<int4> sw3_tex;
 #define sw3_tex sw3
 #endif
 
-#define THIRD (numtyp)0.66666667
+#define THIRD (numtyp)0.66666666666666666667
 
 //#define THREE_CONCURRENT
 

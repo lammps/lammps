@@ -1,5 +1,5 @@
 /***************************************************************************
-                                 tersoff.cpp
+                               tersoff_mod.cpp
                              -------------------
                                Trung Dac Nguyen
 
@@ -9,53 +9,53 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : Thu April 17, 2014
+    begin                :
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "tersoff_cl.h"
+#include "tersoff_mod_cl.h"
 #elif defined(USE_CUDART)
-const char *tersoff=0;
+const char *tersoff_mod=0;
 #else
-#include "tersoff_cubin.h"
+#include "tersoff_mod_cubin.h"
 #endif
 
-#include "lal_tersoff.h"
+#include "lal_tersoff_mod.h"
 #include <cassert>
 using namespace LAMMPS_AL;
-#define TersoffT Tersoff<numtyp, acctyp>
+#define TersoffMT TersoffMod<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-TersoffT::Tersoff() : BaseThree<numtyp,acctyp>(), _allocated(false) {
+TersoffMT::TersoffMod() : BaseThree<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-TersoffT::~Tersoff() {
+TersoffMT::~TersoffMod() {
   clear();
 }
 
 template <class numtyp, class acctyp>
-int TersoffT::bytes_per_atom(const int max_nbors) const {
+int TersoffMT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
+int TersoffMT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
                    const double cell_size, const double gpu_split, FILE *_screen,
                    int* host_map, const int nelements, int*** host_elem2param, const int nparams,
                    const double* lam1, const double* lam2, const double* lam3,const double* powermint,
                    const double* biga, const double* bigb, const double* bigr, const double* bigd,
                    const double* c1, const double* c2, const double* c3, const double* c4,
-                   const double* c, const double* d, const double* h, const double* gamma,
-                   const double* beta, const double* powern, const double* host_cutsq)
+                   const double* c5, const double* h, const double* beta, const double* powern,
+                   const double* powern_del, const double* ca1, const double* host_cutsq)
 {
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
-                           _screen,tersoff,"k_tersoff_repulsive",
-                           "k_tersoff_three_center", "k_tersoff_three_end");
+                           _screen,tersoff_mod,"k_tersoff_mod_repulsive",
+                           "k_tersoff_mod_three_center", "k_tersoff_mod_three_end");
   if (success!=0)
     return success;
 
@@ -64,7 +64,7 @@ int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int
     ef_nall=2000;
   _zetaij.alloc(ef_nall*max_nbors,*(this->ucl_device),UCL_READ_WRITE);
 
-  k_zeta.set_function(*(this->pair_program),"k_tersoff_zeta");
+  k_zeta.set_function(*(this->pair_program),"k_tersoff_mod_zeta");
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -119,10 +119,10 @@ int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int
   ts3.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
   for (int i=0; i<nparams; i++) {
-    dview[i].x=static_cast<numtyp>(c1[i]);
-    dview[i].y=static_cast<numtyp>(c2[i]);
-    dview[i].z=static_cast<numtyp>(c3[i]);
-    dview[i].w=static_cast<numtyp>(c4[i]);
+    dview[i].x=static_cast<numtyp>(beta[i]);
+    dview[i].y=static_cast<numtyp>(powern[i]);
+    dview[i].z=static_cast<numtyp>(powern_del[i]);
+    dview[i].w=static_cast<numtyp>(ca1[i]);
   }
 
   ucl_copy(ts3,dview,false);
@@ -132,10 +132,10 @@ int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int
   ts4.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
   for (int i=0; i<nparams; i++) {
-    dview[i].x=static_cast<numtyp>(c[i]);
-    dview[i].y=static_cast<numtyp>(d[i]);
-    dview[i].z=static_cast<numtyp>(h[i]);
-    dview[i].w=static_cast<numtyp>(gamma[i]);
+    dview[i].x=static_cast<numtyp>(c1[i]);
+    dview[i].y=static_cast<numtyp>(c2[i]);
+    dview[i].z=static_cast<numtyp>(c3[i]);
+    dview[i].w=static_cast<numtyp>(c4[i]);
   }
 
   ucl_copy(ts4,dview,false);
@@ -145,8 +145,8 @@ int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int
   ts5.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
   for (int i=0; i<nparams; i++) {
-    dview[i].x=static_cast<numtyp>(beta[i]);
-    dview[i].y=static_cast<numtyp>(powern[i]);
+    dview[i].x=static_cast<numtyp>(c5[i]);
+    dview[i].y=static_cast<numtyp>(h[i]);
     dview[i].z=(numtyp)0;
     dview[i].w=(numtyp)0;
   }
@@ -186,13 +186,13 @@ int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int
 
   _allocated=true;
   this->_max_bytes=ts1.row_bytes()+ts2.row_bytes()+ts3.row_bytes()+
-    ts4.row_bytes()+ts5.row_bytes()+cutsq.row_bytes()+
+    ts4.row_bytes()+cutsq.row_bytes()+
     map.row_bytes()+elem2param.row_bytes()+_zetaij.row_bytes();
   return 0;
 }
 
 template <class numtyp, class acctyp>
-void TersoffT::clear() {
+void TersoffMT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -213,8 +213,8 @@ void TersoffT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double TersoffT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(Tersoff<numtyp,acctyp>);
+double TersoffMT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(TersoffMod<numtyp,acctyp>);
 }
 
 #define KTHREADS this->_threads_per_atom
@@ -223,7 +223,7 @@ double TersoffT::host_memory_usage() const {
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void TersoffT::compute(const int f_ago, const int nlocal, const int nall,
+void TersoffMT::compute(const int f_ago, const int nlocal, const int nall,
                        const int nlist, double **host_x, int *host_type,
                        int *ilist, int *numj, int **firstneigh,
                        const bool eflag, const bool vflag, const bool eatom,
@@ -301,7 +301,7 @@ void TersoffT::compute(const int f_ago, const int nlocal, const int nall,
 // Reneighbor on GPU if necessary and then compute forces, virials, energies
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int ** TersoffT::compute(const int ago, const int inum_full,
+int ** TersoffMT::compute(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
                          double *sublo, double *subhi, tagint *tag,
                          int **nspecial, tagint **special, const bool eflag,
@@ -388,7 +388,7 @@ int ** TersoffT::compute(const int ago, const int inum_full,
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
+void TersoffMT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_pair();
   int eflag, vflag;
@@ -420,7 +420,7 @@ void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                            (BX/(KTHREADS*JTHREADS))));
   this->k_three_center.set_size(GX,BX);
-  this->k_three_center.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
+  this->k_three_center.run(&this->atom->x, &ts1, &ts2, &ts4, &ts5, &cutsq,
                            &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                            &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                            &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
@@ -434,7 +434,7 @@ void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   #endif
   if (evatom!=0) {
     this->k_three_end_vatom.set_size(GX,BX);
-    this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
+    this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &ts5, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
@@ -442,7 +442,7 @@ void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
 
   } else {
     this->k_three_end.set_size(GX,BX);
-    this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
+    this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &ts5, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
@@ -452,5 +452,5 @@ void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   this->time_pair.stop();
 }
 
-template class Tersoff<PRECISION,ACC_PRECISION>;
+template class TersoffMod<PRECISION,ACC_PRECISION>;
 

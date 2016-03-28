@@ -1,5 +1,5 @@
 /// **************************************************************************
-//                              tersoff_extra.h
+//                             tersoff_zbl_extra.h
 //                             -------------------
 //                              Trung Dac Nguyen
 //
@@ -13,14 +13,15 @@
 //    email                : ndactrung@gmail.com
 // ***************************************************************************/*
 
-#ifndef LAL_TERSOFF_EXTRA_H
-#define LAL_TERSOFF_EXTRA_H
+#ifndef LAL_TERSOFF_ZBL_EXTRA_H
+#define LAL_TERSOFF_ZBL_EXTRA_H
 
 #ifdef NV_KERNEL
 #include "lal_aux_fun1.h"
 #else
 #endif
 
+#define MY_PI (numtyp)3.14159265358979323846
 #define MY_PI2 (numtyp)1.57079632679489661923
 #define MY_PI4 (numtyp)0.78539816339744830962
 
@@ -124,15 +125,35 @@ ucl_inline numtyp ters_fc_d(const numtyp r,
 
 /* ---------------------------------------------------------------------- */
 
+ucl_inline numtyp F_fermi(const numtyp r, const numtyp param_ZBLcut,
+                          const numtyp param_ZBLexpscale)
+{
+  return ucl_recip((numtyp)1.0+ucl_exp(-param_ZBLexpscale*(r-param_ZBLcut)));
+}
+
+/* ---------------------------------------------------------------------- */
+
+ucl_inline numtyp F_fermi_d(const numtyp r, const numtyp param_ZBLcut,
+                            const numtyp param_ZBLexpscale)
+{
+  numtyp a = ucl_exp(-param_ZBLexpscale*(r-param_ZBLcut));
+  numtyp b = (numtyp)1.0 + a;
+  return param_ZBLexpscale*a*ucl_recip(b*b);
+}
+
+/* ---------------------------------------------------------------------- */
+
 ucl_inline numtyp ters_fa(const numtyp r,
                           const numtyp param_bigb,
                           const numtyp param_bigr,
                           const numtyp param_bigd,
-                          const numtyp param_lam2)
+                          const numtyp param_lam2,
+                          const numtyp param_ZBLcut,
+                          const numtyp param_ZBLexpscale)
 {
   if (r > param_bigr + param_bigd) return (numtyp)0.0;
   return -param_bigb * ucl_exp(-param_lam2 * r) *
-    ters_fc(r,param_bigr,param_bigd);
+    ters_fc(r,param_bigr,param_bigd)*F_fermi(r,param_ZBLcut,param_ZBLexpscale);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,11 +162,16 @@ ucl_inline numtyp ters_fa_d(const numtyp r,
                             const numtyp param_bigb,
                             const numtyp param_bigr,
                             const numtyp param_bigd,
-                            const numtyp param_lam2)
+                            const numtyp param_lam2,
+                            const numtyp param_ZBLcut,
+                            const numtyp param_ZBLexpscale)
 {
   if (r > param_bigr + param_bigd) return (numtyp)0.0;
-  return param_bigb * ucl_exp(-param_lam2 * r) * (param_lam2 *
-    ters_fc(r,param_bigr,param_bigd) - ters_fc_d(r,param_bigr,param_bigd));
+  numtyp f = F_fermi(r,param_ZBLcut,param_ZBLexpscale);
+  return param_bigb * ucl_exp(-param_lam2 * r) *
+    (param_lam2 * ters_fc(r,param_bigr,param_bigd) * f -
+    ters_fc_d(r,param_bigr,param_bigd) * f -
+    ters_fc(r,param_bigr,param_bigd) * F_fermi_d(r,param_ZBLcut,param_ZBLexpscale));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -421,19 +447,67 @@ ucl_inline void repulsive(const numtyp param_bigr,
                           const numtyp param_bigd,
                           const numtyp param_lam1,
                           const numtyp param_biga,
+                          const numtyp param_Z_i,
+                          const numtyp param_Z_j,
+                          const numtyp param_ZBLcut,
+                          const numtyp param_ZBLexpscale,
+                          const numtyp global_e,
+                          const numtyp global_a_0,
+                          const numtyp global_epsilon_0,
                           const numtyp rsq,
                           const int eflag,
                           numtyp *ans)
 {
   numtyp r,tmp_fc,tmp_fc_d,tmp_exp;
+
+  // Tersoff repulsive portion
+
   r = ucl_sqrt(rsq);
   tmp_fc = ters_fc(r,param_bigr,param_bigd);
   tmp_fc_d = ters_fc_d(r,param_bigr,param_bigd);
   tmp_exp = ucl_exp(-param_lam1 * r);
-  // fforce
-  ans[0] = -param_biga*tmp_exp*(tmp_fc_d - tmp_fc*param_lam1)*ucl_recip(r);
-  // eng
-  if (eflag) ans[1] = tmp_fc * param_biga * tmp_exp;
+
+  numtyp fforce_ters = param_biga * tmp_exp * (tmp_fc_d - tmp_fc*param_lam1);
+  numtyp eng_ters = tmp_fc * param_biga * tmp_exp;
+
+  // ZBL repulsive portion
+
+  numtyp esq = global_e*global_e;
+  numtyp a_ij = ((numtyp)0.8854*global_a_0) /
+    (ucl_powr(param_Z_i,(numtyp)0.23) + ucl_powr(param_Z_j,(numtyp)0.23));
+  numtyp premult = (param_Z_i * param_Z_j * esq)/((numtyp)4.0*MY_PI*global_epsilon_0);
+  numtyp r_ov_a = r/a_ij;
+  numtyp t1 = (numtyp)0.1818*ucl_exp((numtyp)-3.2*r_ov_a);
+  numtyp t2 = (numtyp)0.5099*ucl_exp((numtyp)-0.9423*r_ov_a);
+  numtyp t3 = (numtyp)0.2802*ucl_exp((numtyp)-0.4029*r_ov_a);
+  numtyp t4 = (numtyp)0.02817*ucl_exp((numtyp)-0.2016*r_ov_a);
+  numtyp phi = t1 + t2 + t3 + t4;
+  numtyp dphi = (numtyp)-3.2*t1 - (numtyp)0.9423*t2 - (numtyp)0.4029*t3 -
+    (numtyp)0.2016*t4;
+  dphi *= ucl_recip(a_ij);
+/*
+  numtyp phi = (numtyp)0.1818*ucl_exp((numtyp)-3.2*r_ov_a) +
+    (numtyp)0.5099*ucl_exp((numtyp)-0.9423*r_ov_a) +
+    (numtyp)0.2802*ucl_exp((numtyp)-0.4029*r_ov_a) +
+    (numtyp)0.02817*ucl_exp((numtyp)-0.2016*r_ov_a);
+  numtyp dphi = ucl_recip(a_ij) * ((numtyp)-3.2*(numtyp)0.1818*ucl_exp((numtyp)-3.2*r_ov_a) -
+    (numtyp)0.9423*(numtyp)0.5099*ucl_exp((numtyp)-0.9423*r_ov_a) -
+    (numtyp)0.4029*(numtyp)0.2802*ucl_exp((numtyp)-0.4029*r_ov_a) -
+    (numtyp)0.2016*(numtyp)0.02817*ucl_exp((numtyp)-0.2016*r_ov_a));
+*/
+  numtyp rinv = ucl_recip(r);
+  numtyp fforce_ZBL = premult*(-phi)/rsq + premult*dphi*rinv;
+  numtyp eng_ZBL = premult*rinv*phi;
+
+  // combine two parts with smoothing by Fermi-like function
+  // ans[0] = fforce
+  numtyp f = F_fermi(r,param_ZBLcut,param_ZBLexpscale);
+  numtyp f_d = F_fermi_d(r,param_ZBLcut,param_ZBLexpscale);
+  ans[0] = -(-f_d * eng_ZBL + ((numtyp)1.0 - f)*fforce_ZBL + f_d*eng_ters +
+             f*fforce_ters) * rinv;
+
+  // ans[1] = eng
+  if (eflag) ans[1] = ((numtyp)1.0 - f)*eng_ZBL + f*eng_ters;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -482,6 +556,8 @@ ucl_inline void force_zeta(const numtyp param_bigb,
                            const numtyp param_c2,
                            const numtyp param_c3,
                            const numtyp param_c4,
+                           const numtyp param_ZBLcut,
+                           const numtyp param_ZBLexpscale,
                            const numtyp rsq,
                            const numtyp zeta_ij,
                            const int eflag,
@@ -490,8 +566,8 @@ ucl_inline void force_zeta(const numtyp param_bigb,
   numtyp r,fa,fa_d,bij;
 
   r = ucl_sqrt(rsq);
-  fa = ters_fa(r,param_bigb,param_bigr,param_bigd,param_lam2);
-  fa_d = ters_fa_d(r,param_bigb,param_bigr,param_bigd,param_lam2);
+  fa = ters_fa(r,param_bigb,param_bigr,param_bigd,param_lam2,param_ZBLcut,param_ZBLexpscale);
+  fa_d = ters_fa_d(r,param_bigb,param_bigr,param_bigd,param_lam2,param_ZBLcut,param_ZBLexpscale);
   bij = ters_bij(zeta_ij,param_beta,param_powern,
                  param_c1,param_c2, param_c3, param_c4);
   fpfeng[0] = (numtyp)0.5*bij*fa_d * ucl_recip(r); // fforce

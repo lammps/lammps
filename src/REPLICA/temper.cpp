@@ -93,13 +93,38 @@ void Temper::command(int narg, char **arg)
   if (nswaps*nevery != nsteps)
     error->universe_all(FLERR,"Non integer # of swaps in temper command");
 
-  // fix style must be appropriate for temperature control
+  // fix style must be appropriate for temperature control, i.e. it needs
+  // to provide a working Fix::reset_target() and must not change the volume.
 
   if ((strcmp(modify->fix[whichfix]->style,"nvt") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/asphere") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/asphere/omp") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/body") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/eff") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/intel") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/kk") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/kk/host") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/kk/device") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/omp") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/sphere") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"nvt/sphere/omp") != 0) &&
       (strcmp(modify->fix[whichfix]->style,"langevin") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"langevin/drude") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"langevin/eff") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"gld") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"gle") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"rigid/nvt") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"rigid/nvt/small") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"rigid/nvt/omp") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"rigid/nvt/small/omp") != 0) &&
       (strcmp(modify->fix[whichfix]->style,"temp/berendsen") != 0) &&
-      (strcmp(modify->fix[whichfix]->style,"temp/rescale") != 0))
-    error->universe_all(FLERR,"Tempering temperature fix is not valid");
+      (strcmp(modify->fix[whichfix]->style,"temp/berendsen/cuda") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"temp/csvr") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"temp/csld") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"temp/rescale") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"temp/rescale/cuda") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"temp/rescale/eff") != 0))
+    error->universe_all(FLERR,"Tempering temperature fix is not supported");
 
   // setup for long tempering run
 

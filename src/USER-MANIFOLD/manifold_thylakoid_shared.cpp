@@ -8,10 +8,7 @@ using namespace user_manifold;
 thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double zlo,
                         double xhi, double yhi, double zhi )
   : type(type), xlo(xlo), xhi(xhi),
-    ylo(ylo), yhi(yhi), zlo(zlo), zhi(zhi),
-    x0( (type == THYLA_TYPE_SPHERE) ? params[1] : params[3] ),
-    y0( (type == THYLA_TYPE_SPHERE) ? params[2] : params[4] ),
-    z0( (type == THYLA_TYPE_SPHERE) ? params[3] : params[5] )
+    ylo(ylo), yhi(yhi), zlo(zlo), zhi(zhi)
 {
   switch(type){
     case THYLA_TYPE_PLANE: // a*(x-x0) + b*(y-y0) + c*(z-z0) = 0
@@ -74,6 +71,9 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
     default:
       err_flag = -1;
   }
+  x0 = (type == THYLA_TYPE_SPHERE) ? params[1] : params[3];
+  y0 = (type == THYLA_TYPE_SPHERE) ? params[2] : params[4];
+  z0 = (type == THYLA_TYPE_SPHERE) ? params[3] : params[5];
 }
 
 

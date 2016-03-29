@@ -921,13 +921,13 @@ int PairEIM::grabsingle(FILE *fptr, int i)
     pch1 = strstr(pch1,"element:");
     if (pch1 != NULL) {
       pch2 = strtok(NULL, " \t\n\r\f");
-      if (pch2 != NULL) data = strtok (NULL, "?");
-      if (strcmp(pch2,elements[i]) == 0) {
-        sscanf(data,"%d %lg %lg %lg %lg %lg %lg",&setfl->ielement[i],
-          &setfl->mass[i],&setfl->negativity[i],&setfl->ra[i],
-          &setfl->ri[i],&setfl->Ec[i],&setfl->q0[i]);
-      } else {
-        pch2 = NULL;
+      if (pch2 != NULL) {
+        data = strtok (NULL, "?");
+        if (strcmp(pch2,elements[i]) == 0) {
+          sscanf(data,"%d %lg %lg %lg %lg %lg %lg",&setfl->ielement[i],
+            &setfl->mass[i],&setfl->negativity[i],&setfl->ra[i],
+            &setfl->ri[i],&setfl->Ec[i],&setfl->q0[i]);
+        } else pch2 = NULL;
       }
     }
   }
@@ -960,25 +960,27 @@ int PairEIM::grabpair(FILE *fptr, int i, int j)
       pch2 = strtok (NULL, " \t\n\r\f");
       if (pch2 != NULL) pch3 = strtok (NULL, " \t\n\r\f");
       if (pch3 != NULL) data = strtok (NULL, "?");
-      if ((strcmp(pch2,elements[i]) == 0 &&
-        strcmp(pch3,elements[j]) == 0) ||
-        (strcmp(pch2,elements[j]) == 0 &&
-        strcmp(pch3,elements[i]) == 0)) {
-        sscanf(data,"%lg %lg %lg %lg %lg",
-          &setfl->rcutphiA[ij],&setfl->rcutphiR[ij],
-          &setfl->Eb[ij],&setfl->r0[ij],&setfl->alpha[ij]);
-        fgets(line,MAXLINE,fptr);
-        sscanf(line,"%lg %lg %lg %lg %lg",
-          &setfl->beta[ij],&setfl->rcutq[ij],&setfl->Asigma[ij],
-          &setfl->rq[ij],&setfl->rcutsigma[ij]);
-        fgets(line,MAXLINE,fptr);
-        sscanf(line,"%lg %lg %lg %d",
-          &setfl->Ac[ij],&setfl->zeta[ij],&setfl->rs[ij],
-          &setfl->tp[ij]);
-      } else {
-         pch1 = NULL;
-         pch2 = NULL;
-         pch3 = NULL;
+      if ((pch2 != NULL) && (pch3 != NULL)) {
+        if ((strcmp(pch2,elements[i]) == 0 &&
+          strcmp(pch3,elements[j]) == 0) ||
+          (strcmp(pch2,elements[j]) == 0 &&
+          strcmp(pch3,elements[i]) == 0)) {
+          sscanf(data,"%lg %lg %lg %lg %lg",
+            &setfl->rcutphiA[ij],&setfl->rcutphiR[ij],
+            &setfl->Eb[ij],&setfl->r0[ij],&setfl->alpha[ij]);
+          fgets(line,MAXLINE,fptr);
+          sscanf(line,"%lg %lg %lg %lg %lg",
+            &setfl->beta[ij],&setfl->rcutq[ij],&setfl->Asigma[ij],
+            &setfl->rq[ij],&setfl->rcutsigma[ij]);
+          fgets(line,MAXLINE,fptr);
+          sscanf(line,"%lg %lg %lg %d",
+            &setfl->Ac[ij],&setfl->zeta[ij],&setfl->rs[ij],
+            &setfl->tp[ij]);
+        } else {
+          pch1 = NULL;
+          pch2 = NULL;
+          pch3 = NULL;
+        }
       }
     }
   }

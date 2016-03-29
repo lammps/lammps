@@ -10,10 +10,9 @@ pair_coeff * * 1.0 1.0
 bond_coeff 1 harmonic 1.0 1.0
 bond_coeff 2 morse 1.0 2.0 1.0
 
-compute 1 all bond harmonic
-compute 2 all bond morse
+compute 1 all bond
 
-thermo_style custom step etotal epair ebond c_1 c_2
+thermo_style custom step etotal epair ebond c_1[1] c_1[2]
 
 run 0 post no
 

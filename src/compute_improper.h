@@ -13,27 +13,27 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(bond,ComputeBond)
+ComputeStyle(improper,ComputeImproper)
 
 #else
 
-#ifndef LMP_COMPUTE_BOND_H
-#define LMP_COMPUTE_BOND_H
+#ifndef LMP_COMPUTE_IMPROPER_H
+#define LMP_COMPUTE_IMPROPER_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeBond : public Compute {
+class ComputeImproper : public Compute {
  public:
-  ComputeBond(class LAMMPS *, int, char **);
-  ~ComputeBond();
+  ComputeImproper(class LAMMPS *, int, char **);
+  ~ComputeImproper();
   void init();
   void compute_vector();
 
  private:
   int nsub;
-  class BondHybrid *bond;
+  class ImproperHybrid *improper;
   double *emine;
 };
 

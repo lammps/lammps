@@ -23,13 +23,13 @@ Examples
 
 .. parsed-literal::
 
-   pair_style soft 2.5
+   pair_style soft 1.0
    pair_coeff * * 10.0
    pair_coeff 1 1 10.0 3.0
 
 .. parsed-literal::
 
-   pair_style soft 2.5
+   pair_style soft 1.0
    pair_coeff * * 0.0
    variable prefactor equal ramp(0,30)
    fix 1 all adapt 1 pair soft a * * v_prefactor

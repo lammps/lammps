@@ -106,7 +106,7 @@ vector values from a compute as input.  See :ref:`this section <howto_15>` for a
 options.
 
 The scalar value calculated by this compute is "intensive".  The
-vector are "extensive".
+vector values are "extensive".
 
 The scalar value will be in temperature :doc:`units <units>`.  The
 vector values will be in energy :doc:`units <units>`.

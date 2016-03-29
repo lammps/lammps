@@ -13,27 +13,27 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(bond,ComputeBond)
+ComputeStyle(angle,ComputeAngle)
 
 #else
 
-#ifndef LMP_COMPUTE_BOND_H
-#define LMP_COMPUTE_BOND_H
+#ifndef LMP_COMPUTE_ANGLE_H
+#define LMP_COMPUTE_ANGLE_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeBond : public Compute {
+class ComputeAngle : public Compute {
  public:
-  ComputeBond(class LAMMPS *, int, char **);
-  ~ComputeBond();
+  ComputeAngle(class LAMMPS *, int, char **);
+  ~ComputeAngle();
   void init();
   void compute_vector();
 
  private:
   int nsub;
-  class BondHybrid *bond;
+  class AngleHybrid *angle;
   double *emine;
 };
 

@@ -26,9 +26,8 @@ compute 1 all pair reax :pre
 [Description:]
 
 Define a computation that extracts additional values calculated by a
-pair style, sums them across processors, and makes them accessible for
-output or further processing by other commands.  The group specified
-for this command is ignored.
+pair style, and makes them accessible for output or further processing
+by other commands.  The group specified for this command is ignored.
 
 The specified {pstyle} must be a pair style used in your simulation
 either by itself or as a sub-style in a "pair_style hybrid or
@@ -69,8 +68,8 @@ The scalar and vector values calculated by this compute are
 "extensive".
 
 The scalar value will be in energy "units"_units.html.  The vector
-values will typically also be in energy "units"_units.html, but
-see the doc page for the pair style for details.
+values will typically also be in energy "units"_units.html, but see
+the doc page for the pair style for details.
 
 [Restrictions:] none
 

@@ -390,6 +390,21 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
+   return ptr to current angle class or hybrid sub-class if matches style
+------------------------------------------------------------------------- */
+
+Angle *Force::angle_match(const char *style)
+{
+  if (strcmp(angle_style,style) == 0) return angle;
+  else if (strcmp(angle_style,"hybrid") == 0) {
+    AngleHybrid *hybrid = (AngleHybrid *) angle;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+  }
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
    create a dihedral style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
@@ -452,6 +467,21 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
 #undef DIHEDRAL_CLASS
 
   else error->all(FLERR,"Unknown dihedral style");
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to current angle class or hybrid sub-class if matches style
+------------------------------------------------------------------------- */
+
+Dihedral *Force::dihedral_match(const char *style)
+{
+  if (strcmp(dihedral_style,style) == 0) return dihedral;
+  else if (strcmp(dihedral_style,"hybrid") == 0) {
+    DihedralHybrid *hybrid = (DihedralHybrid *) dihedral;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+  }
   return NULL;
 }
 
@@ -528,7 +558,7 @@ Improper *Force::improper_match(const char *style)
 {
   if (strcmp(improper_style,style) == 0) return improper;
   else if (strcmp(improper_style,"hybrid") == 0) {
-    ImproperHybrid *hybrid = (ImproperHybrid *) bond;
+    ImproperHybrid *hybrid = (ImproperHybrid *) improper;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
   }

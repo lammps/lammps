@@ -89,9 +89,11 @@ class Force : protected Pointers {
 
   void create_angle(const char *, int);
   class Angle *new_angle(const char *, int, int &);
+  class Angle *angle_match(const char *);
 
   void create_dihedral(const char *, int);
   class Dihedral *new_dihedral(const char *, int, int &);
+  class Dihedral *dihedral_match(const char *);
 
   void create_improper(const char *, int);
   class Improper *new_improper(const char *, int, int &);

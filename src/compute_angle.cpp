@@ -13,20 +13,20 @@
 
 #include <mpi.h>
 #include <string.h>
-#include "compute_bond.h"
+#include "compute_angle.h"
 #include "update.h"
 #include "force.h"
-#include "bond_hybrid.h"
+#include "angle_hybrid.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
+ComputeAngle::ComputeAngle(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute bond command");
+  if (narg != 3) error->all(FLERR,"Illegal compute angle command");
 
   vector_flag = 1;
   extvector = 1;
@@ -35,10 +35,10 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
 
   // check if bond style hybrid exists
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  size_vector = nsub = bond->nstyles;
+  angle = (AngleHybrid *) force->angle_match("hybrid");
+  if (!angle)
+    error->all(FLERR,"Angle style for compute angle command is not hybrid");
+  size_vector = nsub = angle->nstyles;
   
   emine = new double[nsub];
   vector = new double[nsub];
@@ -46,7 +46,7 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBond::~ComputeBond()
+ComputeAngle::~ComputeAngle()
 {
   delete [] emine;
   delete [] vector;
@@ -54,27 +54,27 @@ ComputeBond::~ComputeBond()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBond::init()
+void ComputeAngle::init()
 {
-  // recheck bond style in case it has been changed
+  // recheck angle style in case it has been changed
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  if (bond->nstyles != nsub) 
-    error->all(FLERR,"Bond style for compute bond command has changed");
+  angle = (AngleHybrid *) force->angle_match("hybrid");
+  if (!angle)
+    error->all(FLERR,"Angle style for compute angle command is not hybrid");
+  if (angle->nstyles != nsub) 
+    error->all(FLERR,"Angle style for compute angle command has changed");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBond::compute_vector()
+void ComputeAngle::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   for (int i = 0; i < nsub; i++)
-    emine[i] = bond->styles[i]->energy;
+    emine[i] = angle->styles[i]->energy;
 
   MPI_Allreduce(emine,vector,nsub,MPI_DOUBLE,MPI_SUM,world);
 }

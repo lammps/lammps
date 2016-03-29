@@ -13,32 +13,33 @@
 
 #include <mpi.h>
 #include <string.h>
-#include "compute_bond.h"
+#include "compute_improper.h"
 #include "update.h"
 #include "force.h"
-#include "bond_hybrid.h"
+#include "improper_hybrid.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
+ComputeImproper::ComputeImproper(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute bond command");
+  if (narg != 3) error->all(FLERR,"Illegal compute improper command");
 
   vector_flag = 1;
   extvector = 1;
   peflag = 1;
   timeflag = 1;
 
-  // check if bond style hybrid exists
+  // check if improper style hybrid exists
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  size_vector = nsub = bond->nstyles;
+  improper = (ImproperHybrid *) force->improper_match("hybrid");
+  if (!improper)
+    error->all(FLERR,
+               "Improper style for compute improper command is not hybrid");
+  size_vector = nsub = improper->nstyles;
   
   emine = new double[nsub];
   vector = new double[nsub];
@@ -46,7 +47,7 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBond::~ComputeBond()
+ComputeImproper::~ComputeImproper()
 {
   delete [] emine;
   delete [] vector;
@@ -54,27 +55,28 @@ ComputeBond::~ComputeBond()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBond::init()
+void ComputeImproper::init()
 {
-  // recheck bond style in case it has been changed
+  // recheck improper style in case it has been changed
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  if (bond->nstyles != nsub) 
-    error->all(FLERR,"Bond style for compute bond command has changed");
+  improper = (ImproperHybrid *) force->improper_match("hybrid");
+  if (!improper)
+    error->all(FLERR,
+               "Improper style for compute improper command is not hybrid");
+  if (improper->nstyles != nsub) 
+    error->all(FLERR,"Improper style for compute improper command has changed");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBond::compute_vector()
+void ComputeImproper::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   for (int i = 0; i < nsub; i++)
-    emine[i] = bond->styles[i]->energy;
+    emine[i] = improper->styles[i]->energy;
 
   MPI_Allreduce(emine,vector,nsub,MPI_DOUBLE,MPI_SUM,world);
 }

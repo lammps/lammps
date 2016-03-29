@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute bond command &mdash; LAMMPS documentation</title>
+  <title>compute improper command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>compute bond command</li>
+    <li>compute improper command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,38 +124,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="compute-bond-command">
-<span id="index-0"></span><h1>compute bond command<a class="headerlink" href="#compute-bond-command" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="compute-improper-command">
+<span id="index-0"></span><h1>compute improper command<a class="headerlink" href="#compute-improper-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID bond
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID improper
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
-<li>bond = style name of this compute command</li>
+<li>improper = style name of this compute command</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>compute 1 all bond
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all improper
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a computation that extracts the bond energy calculated by each
-of the bond sub-styles used in the <a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a> command.  These values are made accessible
-for output or further processing by other commands.  The group
-specified for this command is ignored.</p>
-<p>This compute is useful when using <a class="reference internal" href="bond_hybrid.html"><em>bond_style hybrid</em></a>
-if you want to know the portion of the total energy contributed by one
-or more of the hybrid sub-styles.</p>
+<p>Define a computation that extracts the improper energy calculated by
+each of the improper sub-styles used in the <a class="reference internal" href="improper_hybrid.html"><em>improper_style hybrid</em></a> command.  These values are made
+accessible for output or further processing by other commands.  The
+group specified for this command is ignored.</p>
+<p>This compute is useful when using <a class="reference internal" href="improper_hybrid.html"><em>improper_style hybrid</em></a> if you want to know the portion of the
+total energy contributed by one or more of the hybrid sub-styles.</p>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a global vector of length N where N is the
-number of sub_styles defined by the <a class="reference internal" href="bond_style.html"><em>bond_style hybrid</em></a> command, which can be accessed by indices 1-N.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+number of sub_styles defined by the <a class="reference internal" href="improper_style.html"><em>improper_style hybrid</em></a> command.  which can be accessed by indices
+1-N.  These values can be used by any command that uses global scalar
+or vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
 options.</p>
 <p>The vector values are &#8220;extensive&#8221; and will be in energy
 <a class="reference internal" href="units.html"><em>units</em></a>.</p>

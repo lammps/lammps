@@ -13,32 +13,33 @@
 
 #include <mpi.h>
 #include <string.h>
-#include "compute_bond.h"
+#include "compute_dihedral.h"
 #include "update.h"
 #include "force.h"
-#include "bond_hybrid.h"
+#include "dihedral_hybrid.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
+ComputeDihedral::ComputeDihedral(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute bond command");
+  if (narg != 3) error->all(FLERR,"Illegal compute dihedral command");
 
   vector_flag = 1;
   extvector = 1;
   peflag = 1;
   timeflag = 1;
 
-  // check if bond style hybrid exists
+  // check if dihedral style hybrid exists
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  size_vector = nsub = bond->nstyles;
+  dihedral = (DihedralHybrid *) force->dihedral_match("hybrid");
+  if (!dihedral)
+    error->all(FLERR,
+               "Dihedral style for compute dihedral command is not hybrid");
+  size_vector = nsub = dihedral->nstyles;
   
   emine = new double[nsub];
   vector = new double[nsub];
@@ -46,7 +47,7 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBond::~ComputeBond()
+ComputeDihedral::~ComputeDihedral()
 {
   delete [] emine;
   delete [] vector;
@@ -54,27 +55,28 @@ ComputeBond::~ComputeBond()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBond::init()
+void ComputeDihedral::init()
 {
-  // recheck bond style in case it has been changed
+  // recheck dihedral style in case it has been changed
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  if (bond->nstyles != nsub) 
-    error->all(FLERR,"Bond style for compute bond command has changed");
+  dihedral = (DihedralHybrid *) force->dihedral_match("hybrid");
+  if (!dihedral)
+    error->all(FLERR,
+               "Dihedral style for compute dihedral command is not hybrid");
+  if (dihedral->nstyles != nsub) 
+    error->all(FLERR,"Dihedral style for compute dihedral command has changed");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBond::compute_vector()
+void ComputeDihedral::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   for (int i = 0; i < nsub; i++)
-    emine[i] = bond->styles[i]->energy;
+    emine[i] = dihedral->styles[i]->energy;
 
   MPI_Allreduce(emine,vector,nsub,MPI_DOUBLE,MPI_SUM,world);
 }

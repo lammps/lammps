@@ -13,27 +13,27 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(bond,ComputeBond)
+ComputeStyle(dihedral,ComputeDihedral)
 
 #else
 
-#ifndef LMP_COMPUTE_BOND_H
-#define LMP_COMPUTE_BOND_H
+#ifndef LMP_COMPUTE_DIHEDRAL_H
+#define LMP_COMPUTE_DIHEDRAL_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeBond : public Compute {
+class ComputeDihedral : public Compute {
  public:
-  ComputeBond(class LAMMPS *, int, char **);
-  ~ComputeBond();
+  ComputeDihedral(class LAMMPS *, int, char **);
+  ~ComputeDihedral();
   void init();
   void compute_vector();
 
  private:
   int nsub;
-  class BondHybrid *bond;
+  class DihedralHybrid *dihedral;
   double *emine;
 };
 

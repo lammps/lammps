@@ -20,6 +20,9 @@ namespace LAMMPS_NS {
 
 namespace MathSpecial {
 
+  // scaled error function for coul/long styles
+  extern double erfcx(const double x);
+
   // x**2, use instead of pow(x,2.0)
 
   static inline double square(const double &x) { return x*x; }

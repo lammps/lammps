@@ -411,14 +411,16 @@ void lammps_gather_atoms(void *ptr, char *name,
                          int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-
   // error if tags are not defined or not consecutive
-
   int flag = 0;
   if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
   if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-  if (flag && lmp->comm->me == 0) {
-    lmp->error->warning(FLERR,"Library error in lammps_gather_atoms");
+
+  /// check if error exists, then exit on all procs
+  if (flag) {
+    if (lmp->comm->me == 0) {
+       lmp->error->warning(FLERR,"Library error in lammps_gather_atoms");
+    }
     return;
   }
 
@@ -499,15 +501,17 @@ void lammps_scatter_atoms(void *ptr, char *name,
                           int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-
   // error if tags are not defined or not consecutive or no atom map
-
   int flag = 0;
   if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
   if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
   if (lmp->atom->map_style == 0) flag = 1;
-  if (flag && lmp->comm->me == 0) {
-    lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
+  
+  /// check if error exists, then exit on all procs
+  if (flag) {
+    if (lmp->comm->me == 0) {
+       lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
+    }
     return;
   }
 

@@ -247,7 +247,7 @@ void ComputeVoronoi::buildCells()
       for (i = 0; i < nlocal; i++) voro[i][0] = voro[i][1] = voro[i][2] = 0.0;
   }
 
-  double *sublo = domain->sublo, *sublo_lamda = domain->sublo_lamda, *boxlo = domain->boxlo;
+  double *sublo = domain->sublo, *sublo_lamda = domain->sublo_lamda, *boxlo = domain->boxlo, *boxhi = domain->boxhi;
   double *subhi = domain->subhi, *subhi_lamda = domain->subhi_lamda;
   double *cut = comm->cutghost;
   double sublo_bound[3], subhi_bound[3], cut_bound[3];
@@ -274,9 +274,9 @@ void ComputeVoronoi::buildCells()
     sublo_bound[0] = h[0]*sublo_bound[0] + h[5]*sublo_bound[1] + h[4]*sublo_bound[2] + boxlo[0];
     sublo_bound[1] = h[1]*sublo_bound[1] + h[3]*sublo_bound[2] + boxlo[1];
     sublo_bound[2] = h[2]*sublo_bound[2] + boxlo[2];
-    subhi_bound[0] = h[0]*subhi_bound[0] + h[5]*subhi_bound[1] + h[4]*subhi_bound[2] + boxlo[0];
-    subhi_bound[1] = h[1]*subhi_bound[1] + h[3]*subhi_bound[2] + boxlo[1];
-    subhi_bound[2] = h[2]*subhi_bound[2] + boxlo[2];
+    subhi_bound[0] = h[0]*subhi_bound[0] + h[5]*subhi_bound[1] + h[4]*subhi_bound[2] + boxhi[0];
+    subhi_bound[1] = h[1]*subhi_bound[1] + h[3]*subhi_bound[2] + boxhi[1];
+    subhi_bound[2] = h[2]*subhi_bound[2] + boxhi[2];
 
   } else {
     // orthogonal box

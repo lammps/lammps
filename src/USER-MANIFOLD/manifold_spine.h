@@ -33,7 +33,7 @@ namespace user_manifold {
 
     static const char* type(){ return "spine/two"; }
     virtual const char *id(){ return type(); }
-	  
+    
   };
 }
 

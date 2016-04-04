@@ -44,7 +44,7 @@ double manifold_spine::g_and_n( const double *x, double *nn )
   double az2, c2, cs, As, Ac, AsM, Bz2, azc, Apart;
   double AMs, AMc;
   double dazc, dAMs;
-  
+
   if( x[2] > 0 ){
     BB = B;
     cc = c;
@@ -56,7 +56,7 @@ double manifold_spine::g_and_n( const double *x, double *nn )
   xy2 = x[0]*x[0] + x[1]*x[1];
   z2  = x[2]*x[2];
   c2  = 1.0/( cc*cc );
-  
+
   azc = a*a - z2*c2;
   As  = sin( BB*z2 );
   Ac  = cos( BB*z2 );
@@ -70,7 +70,7 @@ double manifold_spine::g_and_n( const double *x, double *nn )
 
   dAMs = power * AMc * 2.0*BB*x[2];
   dazc = -2.0*x[2]*c2;
-  
+
   nn[0] = -2*x[0];
   nn[1] = -2*x[1];
   nn[2] = azc * dAMs + ( 1.0 + AMs ) * dazc;
@@ -83,7 +83,7 @@ double manifold_spine::g_and_n( const double *x, double *nn )
 
 void manifold_spine::n( const double *x, double *nn )
 {
-	  double a  = params[0];
+  double a  = params[0];
   double A  = params[1];
   double B  = params[2];
   double B2 = params[3];
@@ -93,7 +93,7 @@ void manifold_spine::n( const double *x, double *nn )
   double az2, c2, cs, As, Ac, AsM, Bz2, azc, Apart;
   double AMs, AMc;
   double dazc, dAMs;
-  
+
   if( x[2] > 0 ){
     BB = B;
     cc = c;
@@ -105,7 +105,7 @@ void manifold_spine::n( const double *x, double *nn )
   xy2 = x[0]*x[0] + x[1]*x[1];
   z2  = x[2]*x[2];
   c2  = 1.0/( cc*cc );
-  
+
   azc = a*a - z2*c2;
   As  = sin( BB*z2 );
   Ac  = cos( BB*z2 );
@@ -119,7 +119,7 @@ void manifold_spine::n( const double *x, double *nn )
 
   dAMs = power * AMc * 2.0*BB*x[2];
   dazc = -2.0*x[2]*c2;
-  
+
   nn[0] = -2*x[0];
   nn[1] = -2*x[1];
   nn[2] = azc * dAMs + ( 1.0 + AMs ) * dazc;
@@ -139,7 +139,7 @@ double manifold_spine::g( const double *x )
   double az2, c2, cs, As, Ac, AsM, Bz2, azc, Apart;
   double AMs, AMc;
   double dazc, dAMs;
-  
+
   if( x[2] > 0 ){
     BB = B;
     cc = c;
@@ -151,7 +151,7 @@ double manifold_spine::g( const double *x )
   xy2 = x[0]*x[0] + x[1]*x[1];
   z2  = x[2]*x[2];
   c2  = 1.0/( cc*cc );
-  
+
   azc = a*a - z2*c2;
   As  = sin( BB*z2 );
   As *= A;

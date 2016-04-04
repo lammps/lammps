@@ -63,6 +63,7 @@ manifold* LAMMPS_NS::user_manifold::create_manifold(const char *mname,
   make_manifold_if<manifold_sphere>       ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_supersphere>  ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_spine>        ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_spine_two>    ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_thylakoid>    ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_torus>        ( &man, mname, lmp, narg, arg );
 

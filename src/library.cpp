@@ -411,7 +411,9 @@ void lammps_gather_atoms(void *ptr, char *name,
                          int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
+
   // error if tags are not defined or not consecutive
+
   int flag = 0;
   if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
   if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
@@ -498,7 +500,9 @@ void lammps_scatter_atoms(void *ptr, char *name,
                           int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
+
   // error if tags are not defined or not consecutive or no atom map
+
   int flag = 0;
   if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
   if (lmp->atom->natoms > MAXSMALLINT) flag = 1;

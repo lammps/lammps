@@ -260,8 +260,8 @@ void ComputeVoronoi::buildCells()
     // cutghost is in lamda coordinates for triclinic boxes, use subxx_lamda
     double *h = domain->h;
     for( i=0; i<3; ++i ) {
-      sublo_bound[i] = sublo[i]-cut[i]-e;
-      subhi_bound[i] = subhi[i]+cut[i]+e;
+      sublo_bound[i] = sublo_lamda[i]-cut[i]-e;
+      subhi_bound[i] = subhi_lamda[i]+cut[i]+e;
       if (domain->periodicity[i]==0) {
 	sublo_bound[i] = MAX(sublo_bound[i],0.0);
 	subhi_bound[i] = MIN(subhi_bound[i],1.0);

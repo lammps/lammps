@@ -333,13 +333,13 @@ void FixEfield::post_force(int vflag)
 
     if (xstyle == EQUAL) ex = qe2f * input->variable->compute_equal(xvar);
     else if (xstyle == ATOM)
-      input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
+      input->variable->compute_atom(xvar,igroup,&efield[0][0],4,0);
     if (ystyle == EQUAL) ey = qe2f * input->variable->compute_equal(yvar);
     else if (ystyle == ATOM)
-      input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
+      input->variable->compute_atom(yvar,igroup,&efield[0][1],4,0);
     if (zstyle == EQUAL) ez = qe2f * input->variable->compute_equal(zvar);
     else if (zstyle == ATOM)
-      input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
+      input->variable->compute_atom(zvar,igroup,&efield[0][2],4,0);
     if (estyle == ATOM)
       input->variable->compute_atom(evar,igroup,&efield[0][3],4,0);
 

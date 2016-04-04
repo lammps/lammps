@@ -16,29 +16,13 @@ namespace user_manifold {
     virtual ~manifold_spine(){}
     virtual double g      ( const double *x );
     virtual void   n      ( const double *x, double *nn );
-    virtual double g_and_n( const double *x, double *nn );
 
     static const char* type(){ return "spine"; }
     virtual const char *id(){ return type(); }
 
     static int expected_argc(){ return NPARAMS; }
     virtual int nparams(){ return NPARAMS; }
-
-   protected:
-    int power;
   };
-
-  class manifold_spine_two : public manifold_spine {
-   public:
-    manifold_spine_two( LAMMPS *lmp, int narg, char **arg ) : manifold_spine( lmp, narg, arg )
-    {
-      power = 2;
-    }
-
-    static const char* type(){ return "spine/two"; }
-    virtual const char *id(){ return type(); }
-  };
-
 }
 
 }

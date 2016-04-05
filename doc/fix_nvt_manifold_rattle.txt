@@ -80,6 +80,6 @@ incompatible but no error.
 [(Andersen)] Andersen, J. Comp. Phys. 52, 24, (1983).
 
 :link(Paquay)
-[(Paquay)] Paquay and Kusters, Biophys. J., 110, ???, (2016), to be published,
+[(Paquay)] Paquay and Kusters, Biophys. J., 110, 6, (2016),
 preprint available at "arXiv:1411.3019"_http://arxiv.org/abs/1411.3019/.
 

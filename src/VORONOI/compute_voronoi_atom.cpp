@@ -250,7 +250,7 @@ void ComputeVoronoi::buildCells()
   double *sublo = domain->sublo, *sublo_lamda = domain->sublo_lamda, *boxlo = domain->boxlo;
   double *subhi = domain->subhi, *subhi_lamda = domain->subhi_lamda;
   double *cut = comm->cutghost;
-  double sublo_bound[3], subhi_bound[3], cut_bound[3];
+  double sublo_bound[3], subhi_bound[3];
   double **x = atom->x;
 
   // setup bounds for voro++ domain for orthogonal and triclinic simulation boxes

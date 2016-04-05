@@ -42,11 +42,8 @@
 #include "manifold_sphere.h"
 #include "manifold_supersphere.h"
 #include "manifold_spine.h"
-#include "manifold_spherocylinder.h"
 #include "manifold_thylakoid.h"
 #include "manifold_torus.h"
-
-#include "comm.h"
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;

@@ -42,8 +42,11 @@
 #include "manifold_sphere.h"
 #include "manifold_supersphere.h"
 #include "manifold_spine.h"
+#include "manifold_spherocylinder.h"
 #include "manifold_thylakoid.h"
 #include "manifold_torus.h"
+
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;
@@ -54,18 +57,18 @@ manifold* LAMMPS_NS::user_manifold::create_manifold(const char *mname,
                                                     int narg, char **arg )
 {
   manifold *man = NULL;
-  make_manifold_if<manifold_cylinder>     ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_cylinder_dent>( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_dumbbell>     ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_ellipsoid>    ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_plane>        ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_plane_wiggle> ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_sphere>       ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_supersphere>  ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_spine>        ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_cylinder>       ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_cylinder_dent>  ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_dumbbell>       ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_ellipsoid>      ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_plane>          ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_plane_wiggle>   ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_sphere>         ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_supersphere>    ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_spine>          ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_spine_two>    ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_thylakoid>    ( &man, mname, lmp, narg, arg );
-  make_manifold_if<manifold_torus>        ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_thylakoid>      ( &man, mname, lmp, narg, arg );
+  make_manifold_if<manifold_torus>          ( &man, mname, lmp, narg, arg );
 
 
   return man;

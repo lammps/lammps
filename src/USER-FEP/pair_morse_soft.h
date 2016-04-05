@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 
 class PairMorseSoft : public PairMorse {
  public:
-  PairMorseSoft(class LAMMPS *);
+  PairMorseSoft(class LAMMPS *lmp) : PairMorse(lmp) {};
   virtual ~PairMorseSoft();
   virtual void compute(int, int);
 

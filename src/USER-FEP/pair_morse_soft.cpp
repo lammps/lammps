@@ -27,12 +27,6 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMorseSoft::PairMorseSoft(LAMMPS *lmp) : PairMorse(lmp)
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 PairMorseSoft::~PairMorseSoft()
 {
   if(allocated){

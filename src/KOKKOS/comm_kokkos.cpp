@@ -364,7 +364,7 @@ void CommKokkos::exchange()
   if(atom->nextra_grow + atom->nextra_border) {
     if(!exchange_comm_classic) {
       static int print = 1;
-      if(print) {
+      if(print && comm->me==0) {
         error->warning(FLERR,"Fixes cannot send data in Kokkos communication, "
 		       "switching to classic communication");
         print = 0;
@@ -995,4 +995,3 @@ void CommKokkos::grow_swap(int n)
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i=0;i<maxswap;i++) maxsendlist[i]=size;
 }
-

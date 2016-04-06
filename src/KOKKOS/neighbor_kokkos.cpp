@@ -14,6 +14,7 @@
 #include "neighbor_kokkos.h"
 #include "atom.h"
 #include "pair.h"
+#include "fix.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "update.h"
@@ -136,6 +137,10 @@ int NeighborKokkos::init_lists_kokkos()
       Pair *pair = (Pair *) requests[i]->requestor;
       pair->init_list(requests[i]->id,lists_host[i]);
     }
+    if (requests[i]->fix) {
+      Fix *fix = (Fix *) requests[i]->requestor;
+      fix->init_list(requests[i]->id,lists_host[i]);
+    }
   }
 
   lists_device = new NeighListKokkos<LMPDeviceType>*[nrequest];
@@ -155,6 +160,10 @@ int NeighborKokkos::init_lists_kokkos()
     if (requests[i]->pair) {
       Pair *pair = (Pair *) requests[i]->requestor;
       pair->init_list(requests[i]->id,lists_device[i]);
+    }
+    if (requests[i]->fix) {
+      Fix *fix = (Fix *) requests[i]->requestor;
+      fix->init_list(requests[i]->id,lists_device[i]);
     }
   }
 
@@ -598,4 +607,3 @@ void NeighborKokkos::build_topology_kokkos() {
 // include to trigger instantiation of templated functions
 
 #include "neigh_full_kokkos.h"
-

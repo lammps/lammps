@@ -86,6 +86,7 @@ class Input : protected Pointers {
   void atom_style();
   void bond_coeff();
   void bond_style();
+  void bond_write();
   void boundary();
   void box();
   void comm_modify();

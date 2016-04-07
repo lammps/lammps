@@ -1574,9 +1574,9 @@ void Pair::write_file(int narg, char **arg)
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)
-      fprintf(fp,"\n%s\nN %d R %g %g\n\n",arg[7],n,inner,outer);
+      fprintf(fp,"\n%s\nN %d R %.15g %.15g\n\n",arg[7],n,inner,outer);
     if (style == RSQ)
-      fprintf(fp,"\n%s\nN %d RSQ %g %g\n\n",arg[7],n,inner,outer);
+      fprintf(fp,"\n%s\nN %d RSQ %.15g %.15g\n\n",arg[7],n,inner,outer);
   }
 
   // initialize potentials before evaluating pair potential
@@ -1618,7 +1618,7 @@ void Pair::write_file(int narg, char **arg)
     init_bitmap(inner,outer,n,masklo,maskhi,nmask,nshiftbits);
     int ntable = 1 << n;
     if (me == 0)
-      fprintf(fp,"\n%s\nN %d BITMAP %g %g\n\n",arg[7],ntable,inner,outer);
+      fprintf(fp,"\n%s\nN %d BITMAP %.15g %.15g\n\n",arg[7],ntable,inner,outer);
     n = ntable;
   }
 
@@ -1647,7 +1647,7 @@ void Pair::write_file(int narg, char **arg)
       e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
       f *= r;
     } else e = f = 0.0;
-    if (me == 0) fprintf(fp,"%d %g %g %g\n",i+1,r,e,f);
+    if (me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
   }
 
   // restore original vecs that were swapped in for

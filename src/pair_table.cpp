@@ -395,13 +395,16 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   union_int_float_t rsq_lookup;
 
   int rerror = 0;
+  int cerror = 0;
 
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg %lg %lg",&itmp,&rfile,&tb->efile[i],&tb->ffile[i]);
-    rnew = rfile;
+    if (NULL == fgets(line,MAXLINE,fp))
+      error->one(FLERR,"Premature end of file in pair table");
+    if (4 != sscanf(line,"%d %lg %lg %lg",
+                    &itmp,&rfile,&tb->efile[i],&tb->ffile[i]))  ++cerror;
 
+    rnew = rfile;
     if (tb->rflag == RLINEAR)
       rnew = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
     else if (tb->rflag == RSQ) {
@@ -419,6 +422,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     }
 
     if (tb->rflag && fabs(rnew-rfile)/rfile > EPSILONR) rerror++;
+
     tb->rfile[i] = rnew;
   }
 
@@ -452,8 +456,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   if (ferror) {
     char str[128];
-    sprintf(str,"%d force values in table are inconsistent with -dE/dr; "
-            "should only be mistakenly flagged at inflection points",ferror);
+    sprintf(str,"%d of %d force values in table are inconsistent with -dE/dr.\n"
+            "  Should only be flagged at inflection points",ferror,tb->ninput);
     error->warning(FLERR,str);
   }
 
@@ -461,8 +465,17 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   if (rerror) {
     char str[128];
-    sprintf(str,"%d distance values in table differ signifcantly "
-            "from re-computed values",rerror);
+    sprintf(str,"%d of %d distance values in table with relative error\n"
+            "  over %g to re-computed values",rerror,tb->ninput,EPSILONR);
+    error->warning(FLERR,str);
+  }
+
+  // warn if data was read incompletely, e.g. columns were missing
+
+  if (cerror) {
+    char str[128];
+    sprintf(str,"%d of %d lines in table were incomplete\n"
+            "  or could not be parsed completely",cerror,tb->ninput);
     error->warning(FLERR,str);
   }
 }

@@ -54,6 +54,8 @@ class Bond : protected Pointers {
   virtual unsigned int data_mask() {return datamask;}
   virtual unsigned int data_mask_ext() {return datamask_ext;}
 
+  void write_file(int, char**);
+
  protected:
   int suffix_flag;             // suffix compatibility flag
 

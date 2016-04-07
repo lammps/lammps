@@ -227,7 +227,7 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
   if ((int)param_powermint == 3) tmp = t*t*t;
   else tmp = t;
 
-  if (tmp > (numtyp)69.0776) ex_delr = (acctyp)1.e30;
+  if (tmp > (numtyp)69.0776) ex_delr = (numtyp)1.e30;
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 
@@ -295,7 +295,7 @@ ucl_inline void ters_zetaterm_d_fi(const numtyp prefactor,
   if ((int)param_powermint == 3) tmp = t*t*t;
   else tmp = t;
 
-  if (tmp > (numtyp)69.0776) ex_delr = (acctyp)1.e30;
+  if (tmp > (numtyp)69.0776) ex_delr = (numtyp)1.e30;
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 
@@ -344,7 +344,7 @@ ucl_inline void ters_zetaterm_d_fj(const numtyp prefactor,
   if ((int)param_powermint == 3) tmp = t*t*t;
   else tmp = t;
 
-  if (tmp > (numtyp)69.0776) ex_delr = (acctyp)1.e30;
+  if (tmp > (numtyp)69.0776) ex_delr = (numtyp)1.e30;
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 
@@ -391,7 +391,7 @@ ucl_inline void ters_zetaterm_d_fk(const numtyp prefactor,
   if ((int)param_powermint == 3) tmp = t*t*t;
   else tmp = t;
 
-  if (tmp > (numtyp)69.0776) ex_delr = (acctyp)1.e30;
+  if (tmp > (numtyp)69.0776) ex_delr = (numtyp)1.e30;
   else if (tmp < (numtyp)-69.0776) ex_delr = (numtyp)0.0;
   else ex_delr = ucl_exp(tmp);
 

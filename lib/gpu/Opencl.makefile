@@ -59,6 +59,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
        $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o \
        $(OBJ_DIR)/lal_tersoff.o $(OBJ_DIR)/lal_tersoff_ext.o \
+       $(OBJ_DIR)/lal_tersoff_zbl.o $(OBJ_DIR)/lal_tersoff_zbl_ext.o \
+       $(OBJ_DIR)/lal_tersoff_mod.o $(OBJ_DIR)/lal_tersoff_mod_ext.o \
        $(OBJ_DIR)/lal_coul.o $(OBJ_DIR)/lal_coul_ext.o \
        $(OBJ_DIR)/lal_coul_debye.o $(OBJ_DIR)/lal_coul_debye_ext.o \
        $(OBJ_DIR)/lal_zbl.o $(OBJ_DIR)/lal_zbl_ext.o \
@@ -87,7 +89,8 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/soft_cl.h $(OBJ_DIR)/lj_coul_msm_cl.h \
        $(OBJ_DIR)/lj_gromacs_cl.h $(OBJ_DIR)/dpd_cl.h \
        $(OBJ_DIR)/lj_gauss_cl.h $(OBJ_DIR)/dzugutov_cl.h \
-       $(OBJ_DIR)/tersoff_cl.h $(OBJ_DIR)/coul_cl.h \
+       $(OBJ_DIR)/tersoff_cl.h $(OBJ_DIR)/tersoff_zbl_cl.h \
+       $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/coul_cl.h \
        $(OBJ_DIR)/coul_debye_cl.h $(OBJ_DIR)/zbl_cl.h \
        $(OBJ_DIR)/lj_cubic_cl.h
 
@@ -509,6 +512,24 @@ $(OBJ_DIR)/lal_tersoff.o: $(ALL_H) lal_tersoff.h lal_tersoff.cpp  $(OBJ_DIR)/ter
 
 $(OBJ_DIR)/lal_tersoff_ext.o: $(ALL_H) lal_tersoff.h lal_tersoff_ext.cpp lal_base_three.h
 	$(OCL) -o $@ -c lal_tersoff_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/tersoff_zbl_cl.h: lal_tersoff_zbl.cu lal_tersoff_zbl_extra.h $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh tersoff_zbl $(PRE1_H) lal_tersoff_zbl_extra.h lal_tersoff_zbl.cu $(OBJ_DIR)/tersoff_zbl_cl.h;
+
+$(OBJ_DIR)/lal_tersoff_zbl.o: $(ALL_H) lal_tersoff_zbl.h lal_tersoff_zbl.cpp  $(OBJ_DIR)/tersoff_zbl_cl.h $(OBJ_DIR)/tersoff_zbl_cl.h $(OBJ_DIR)/lal_base_three.o
+	$(OCL) -o $@ -c lal_tersoff_zbl.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_tersoff_zbl_ext.o: $(ALL_H) lal_tersoff_zbl.h lal_tersoff_zbl_ext.cpp lal_base_three.h
+	$(OCL) -o $@ -c lal_tersoff_zbl_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/tersoff_mod_cl.h: lal_tersoff_mod.cu lal_tersoff_mod_extra.h $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh tersoff_mod $(PRE1_H) lal_tersoff_mod_extra.h lal_tersoff_mod.cu $(OBJ_DIR)/tersoff_mod_cl.h;
+
+$(OBJ_DIR)/lal_tersoff_mod.o: $(ALL_H) lal_tersoff_mod.h lal_tersoff_mod.cpp  $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/lal_base_three.o
+	$(OCL) -o $@ -c lal_tersoff_mod.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_tersoff_mod_ext.o: $(ALL_H) lal_tersoff_mod.h lal_tersoff_mod_ext.cpp lal_base_three.h
+	$(OCL) -o $@ -c lal_tersoff_mod_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/coul_cl.h: lal_coul.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh coul $(PRE1_H) lal_coul.cu $(OBJ_DIR)/coul_cl.h;

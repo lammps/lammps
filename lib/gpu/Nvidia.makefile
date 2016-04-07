@@ -70,6 +70,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
        $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o \
        $(OBJ_DIR)/lal_tersoff.o $(OBJ_DIR)/lal_tersoff_ext.o \
+       $(OBJ_DIR)/lal_tersoff_zbl.o $(OBJ_DIR)/lal_tersoff_zbl_ext.o \
+       $(OBJ_DIR)/lal_tersoff_mod.o $(OBJ_DIR)/lal_tersoff_mod_ext.o \
        $(OBJ_DIR)/lal_coul.o $(OBJ_DIR)/lal_coul_ext.o \
        $(OBJ_DIR)/lal_coul_debye.o $(OBJ_DIR)/lal_coul_debye_ext.o \
        $(OBJ_DIR)/lal_zbl.o $(OBJ_DIR)/lal_zbl_ext.o \
@@ -122,6 +124,8 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/lj_gromacs.cubin $(OBJ_DIR)/lj_gromacs_cubin.h \
        $(OBJ_DIR)/dpd.cubin $(OBJ_DIR)/dpd_cubin.h \
        $(OBJ_DIR)/tersoff.cubin $(OBJ_DIR)/tersoff_cubin.h \
+       $(OBJ_DIR)/tersoff_zbl.cubin $(OBJ_DIR)/tersoff_zbl_cubin.h \
+       $(OBJ_DIR)/tersoff_mod.cubin $(OBJ_DIR)/tersoff_mod_cubin.h \
        $(OBJ_DIR)/coul.cubin $(OBJ_DIR)/coul_cubin.h \
        $(OBJ_DIR)/coul_debye.cubin $(OBJ_DIR)/coul_debye_cubin.h \
        $(OBJ_DIR)/zbl.cubin $(OBJ_DIR)/zbl_cubin.h \
@@ -704,6 +708,30 @@ $(OBJ_DIR)/lal_tersoff.o: $(ALL_H) lal_tersoff.h lal_tersoff.cpp $(OBJ_DIR)/ters
 
 $(OBJ_DIR)/lal_tersoff_ext.o: $(ALL_H) lal_tersoff.h lal_tersoff_ext.cpp lal_base_three.h
 	$(CUDR) -o $@ -c lal_tersoff_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/tersoff_zbl.cubin: lal_tersoff_zbl.cu lal_precision.h lal_tersoff_zbl_extra.h lal_preprocessor.h
+	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_tersoff_zbl.cu
+
+$(OBJ_DIR)/tersoff_zbl_cubin.h: $(OBJ_DIR)/tersoff_zbl.cubin $(OBJ_DIR)/tersoff_zbl.cubin
+	$(BIN2C) -c -n tersoff_zbl $(OBJ_DIR)/tersoff_zbl.cubin > $(OBJ_DIR)/tersoff_zbl_cubin.h
+
+$(OBJ_DIR)/lal_tersoff_zbl.o: $(ALL_H) lal_tersoff_zbl.h lal_tersoff_zbl.cpp $(OBJ_DIR)/tersoff_zbl_cubin.h $(OBJ_DIR)/lal_base_three.o
+	$(CUDR) -o $@ -c lal_tersoff_zbl.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_tersoff_zbl_ext.o: $(ALL_H) lal_tersoff_zbl.h lal_tersoff_zbl_ext.cpp lal_base_three.h
+	$(CUDR) -o $@ -c lal_tersoff_zbl_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/tersoff_mod.cubin: lal_tersoff_mod.cu lal_precision.h lal_tersoff_mod_extra.h lal_preprocessor.h
+	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_tersoff_mod.cu
+
+$(OBJ_DIR)/tersoff_mod_cubin.h: $(OBJ_DIR)/tersoff_mod.cubin $(OBJ_DIR)/tersoff_mod.cubin
+	$(BIN2C) -c -n tersoff_mod $(OBJ_DIR)/tersoff_mod.cubin > $(OBJ_DIR)/tersoff_mod_cubin.h
+
+$(OBJ_DIR)/lal_tersoff_mod.o: $(ALL_H) lal_tersoff_mod.h lal_tersoff_mod.cpp $(OBJ_DIR)/tersoff_mod_cubin.h $(OBJ_DIR)/lal_base_three.o
+	$(CUDR) -o $@ -c lal_tersoff_mod.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_tersoff_mod_ext.o: $(ALL_H) lal_tersoff_mod.h lal_tersoff_mod_ext.cpp lal_base_three.h
+	$(CUDR) -o $@ -c lal_tersoff_mod_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/coul.cubin: lal_coul.cu lal_precision.h lal_preprocessor.h
 	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_coul.cu

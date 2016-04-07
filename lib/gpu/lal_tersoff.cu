@@ -43,7 +43,7 @@ texture<int4> ts5_tex;
 
 //#define THREE_CONCURRENT
 
-#define THIRD (numtyp)0.66666667
+#define TWOTHIRD (numtyp)0.66666666666666666667
 
 #define zeta_idx(nbor_mem, packed_mem, nbor_pitch, n_stride, t_per_atom,    \
                  i, nbor_j, offset_j, idx)                                  \
@@ -108,6 +108,7 @@ texture<int4> ts5_tex;
 
 #define store_zeta(z, tid, t_per_atom, offset)                              \
   if (t_per_atom>1) {                                                       \
+    __local acctyp red_acc[BLOCK_PAIR];                                     \
     red_acc[tid]=z;                                                         \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       if (offset < s) {                                                     \
@@ -180,7 +181,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
                              const __global int *restrict map,
                              const __global int *restrict elem2param,
                              const int nelements, const int nparams,
-                             __global numtyp4 * zetaij,
+                             __global acctyp4 * zetaij,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
                              const int eflag, const int nall, const int inum,
@@ -205,9 +206,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
     ts5[tid]=ts5_in[tid];
   }
 
-  numtyp z = (numtyp)0;
-  __local numtyp red_acc[BLOCK_PAIR];
-  if (tid<BLOCK_PAIR) red_acc[tid] = (numtyp)0;
+  acctyp z = (acctyp)0;
 
   __syncthreads();
 
@@ -245,7 +244,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
       if (rsq1 > cutsq[ijparam]) continue;
 
       // compute zeta_ij
-      z = (numtyp)0;
+      z = (acctyp)0;
 
       int nbor_k = nborj_start-offset_j+offset_k;
       for ( ; nbor_k < nbor_end; nbor_k+=n_stride) {
@@ -310,7 +309,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
         force_zeta(ijparam_bigb, ijparam_bigr, ijparam_bigd, ijparam_lam2,
                    ijparam_beta, ijparam_powern, ijparam_c1, ijparam_c2, ijparam_c3,
                    ijparam_c4, rsq1, z, eflag, fpfeng);
-        numtyp4 zij;
+        acctyp4 zij;
         zij.x = fpfeng[0];
         zij.y = fpfeng[1];
         zij.z = fpfeng[2];
@@ -426,7 +425,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
                                      const __global int *restrict map,
                                      const __global int *restrict elem2param,
                                      const int nelements, const int nparams,
-                                     const __global numtyp4 *restrict zetaij,
+                                     const __global acctyp4 *restrict zetaij,
                                      const __global int * dev_nbor,
                                      const __global int * dev_packed,
                                      __global acctyp4 *restrict ans,
@@ -501,7 +500,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
       int idx;
       zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
                i, nbor_j, offset_j, idx);
-      numtyp4 zeta_ij = zetaij[idx]; // fetch(zeta_ij,idx,zeta_tex);
+      acctyp4 zeta_ij = zetaij[idx]; // fetch(zeta_ij,idx,zeta_tex);
       numtyp force = zeta_ij.x*tpainv;
       numtyp prefactor = zeta_ij.y;
       f.x += delr1[0]*force;
@@ -568,7 +567,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
         if (vflag>0) {
           acctyp v[6];
           numtyp pre = (numtyp)2.0;
-          if (evatom==1) pre = THIRD;
+          if (evatom==1) pre = TWOTHIRD;
           v[0] = pre*(delr1[0]*fj[0] + delr2[0]*fk[0]);
           v[1] = pre*(delr1[1]*fj[1] + delr2[1]*fk[1]);
           v[2] = pre*(delr1[2]*fj[2] + delr2[2]*fk[2]);
@@ -595,7 +594,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
                                   const __global int *restrict map,
                                   const __global int *restrict elem2param,
                                   const int nelements, const int nparams,
-                                  const __global numtyp4 *restrict zetaij,
+                                  const __global acctyp4 *restrict zetaij,
                                   const __global int * dev_nbor,
                                   const __global int * dev_packed,
                                   __global acctyp4 *restrict ans,
@@ -710,7 +709,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       int idx;
       zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
                j, ijnum, offset_kf, idx);
-      numtyp4 zeta_ji = zetaij[idx]; // fetch(zeta_ji,idx,zeta_tex);
+      acctyp4 zeta_ji = zetaij[idx]; // fetch(zeta_ji,idx,zeta_tex);
       numtyp force = zeta_ji.x*tpainv;
       numtyp prefactor_ji = zeta_ji.y;
       f.x += delr1[0]*force;
@@ -776,7 +775,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
         int idx;
         zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
                  j, nbor_k, offset_k, idx);
-        numtyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
+        acctyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
         numtyp prefactor_jk = zeta_jk.y;
         int jkiparam=elem2param[jtype*nelements*nelements+ktype*nelements+itype];
         ts1_param = ts1[jkiparam]; //fetch4(ts1_jkiparam,jkiparam,ts1_tex);
@@ -816,7 +815,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global int *restrict map,
                                         const __global int *restrict elem2param,
                                         const int nelements, const int nparams,
-                                        const __global numtyp4 *restrict zetaij,
+                                        const __global acctyp4 *restrict zetaij,
                                         const __global int * dev_nbor,
                                         const __global int * dev_packed,
                                         __global acctyp4 *restrict ans,
@@ -931,9 +930,9 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       int idx;
       zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
                j, ijnum, offset_kf, idx);
-      numtyp4 zeta_ji = zetaij[idx]; //  fetch(zeta_ji,idx,zeta_tex);
+      acctyp4 zeta_ji = zetaij[idx]; //  fetch(zeta_ji,idx,zeta_tex);
       numtyp force = zeta_ji.x*tpainv;
-      numtyp prefactor = zeta_ji.y;
+      numtyp prefactor_ji = zeta_ji.y;
       f.x += delr1[0]*force;
       f.y += delr1[1]*force;
       f.z += delr1[2]*force;
@@ -987,24 +986,24 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         h = ts4_param.z;
         gamma = ts4_param.w;
         attractive(bigr, bigd, powermint, lam3, c, d, h, gamma,
-                   prefactor, r1, r1inv, r2, r2inv, mdelr1, delr2, fi, fj, fk);
+                   prefactor_ji, r1, r1inv, r2, r2inv, mdelr1, delr2, fi, fj, fk);
         f.x += fj[0];
         f.y += fj[1];
         f.z += fj[2];
 
-        virial[0] += THIRD*(mdelr1[0]*fj[0] + delr2[0]*fk[0]);
-        virial[1] += THIRD*(mdelr1[1]*fj[1] + delr2[1]*fk[1]);
-        virial[2] += THIRD*(mdelr1[2]*fj[2] + delr2[2]*fk[2]);
-        virial[3] += THIRD*(mdelr1[0]*fj[1] + delr2[0]*fk[1]);
-        virial[4] += THIRD*(mdelr1[0]*fj[2] + delr2[0]*fk[2]);
-        virial[5] += THIRD*(mdelr1[1]*fj[2] + delr2[1]*fk[2]);
+        virial[0] += TWOTHIRD*(mdelr1[0]*fj[0] + delr2[0]*fk[0]);
+        virial[1] += TWOTHIRD*(mdelr1[1]*fj[1] + delr2[1]*fk[1]);
+        virial[2] += TWOTHIRD*(mdelr1[2]*fj[2] + delr2[2]*fk[2]);
+        virial[3] += TWOTHIRD*(mdelr1[0]*fj[1] + delr2[0]*fk[1]);
+        virial[4] += TWOTHIRD*(mdelr1[0]*fj[2] + delr2[0]*fk[2]);
+        virial[5] += TWOTHIRD*(mdelr1[1]*fj[2] + delr2[1]*fk[2]);
 
         //int kk = (nbor_k - offset_k - 2*nbor_pitch) / n_stride;
         //int idx = kk*n_stride + j*t_per_atom + offset_k;
         int idx;
         zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
                  j, nbor_k, offset_k, idx);
-        numtyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
+        acctyp4 zeta_jk = zetaij[idx]; // fetch(zeta_jk,idx,zeta_tex);
         numtyp prefactor_jk = zeta_jk.y;
 
         int jkiparam=elem2param[jtype*nelements*nelements+ktype*nelements+itype];
@@ -1025,12 +1024,13 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         f.y += fk[1];
         f.z += fk[2];
 
-        virial[0] += THIRD*(delr2[0]*fj[0] + mdelr1[0]*fk[0]);
-        virial[1] += THIRD*(delr2[1]*fj[1] + mdelr1[1]*fk[1]);
-        virial[2] += THIRD*(delr2[2]*fj[2] + mdelr1[2]*fk[2]);
-        virial[3] += THIRD*(delr2[0]*fj[1] + mdelr1[0]*fk[1]);
-        virial[4] += THIRD*(delr2[0]*fj[2] + mdelr1[0]*fk[2]);
-        virial[5] += THIRD*(delr2[1]*fj[2] + mdelr1[1]*fk[2]);
+        virial[0] += TWOTHIRD*(delr2[0]*fj[0] + mdelr1[0]*fk[0]);
+        virial[1] += TWOTHIRD*(delr2[1]*fj[1] + mdelr1[1]*fk[1]);
+        virial[2] += TWOTHIRD*(delr2[2]*fj[2] + mdelr1[2]*fk[2]);
+        virial[3] += TWOTHIRD*(delr2[0]*fj[1] + mdelr1[0]*fk[1]);
+        virial[4] += TWOTHIRD*(delr2[0]*fj[2] + mdelr1[0]*fk[2]);
+        virial[5] += TWOTHIRD*(delr2[1]*fj[2] + mdelr1[1]*fk[2]);
+
       }
     } // for nbor
 

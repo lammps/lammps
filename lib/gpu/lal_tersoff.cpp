@@ -178,7 +178,7 @@ int TersoffT::init(const int ntypes, const int nlocal, const int nall, const int
   ucl_copy(elem2param,dview_elem2param,false);
 
   UCL_H_Vec<int> dview_map(lj_types, *(this->ucl_device), UCL_WRITE_ONLY);
-  for (int i = 0; i < lj_types; i++)
+  for (int i = 0; i < ntypes; i++)
     dview_map[i] = host_map[i];
 
   map.alloc(lj_types,*(this->ucl_device), UCL_READ_ONLY);

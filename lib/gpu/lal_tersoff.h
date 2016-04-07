@@ -100,7 +100,7 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
   /// Per-atom arrays:
   /// zetaij.x = force, zetaij.y = prefactor, zetaij.z = evdwl,
   /// zetaij.w = zetaij
-  UCL_D_Vec<numtyp4>   _zetaij;
+  UCL_D_Vec<acctyp4>   _zetaij;
 
   UCL_Kernel k_zeta;
   UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex;

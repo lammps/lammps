@@ -375,6 +375,7 @@ in the command's documentation.
 "balance"_balance.html,
 "bond_coeff"_bond_coeff.html,
 "bond_style"_bond_style.html,
+"bond_write"_bond_write.html,
 "boundary"_boundary.html,
 "box"_box.html,
 "change_box"_change_box.html,

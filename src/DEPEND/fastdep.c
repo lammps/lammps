@@ -33,7 +33,24 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-const char version[] = "2.0";
+const char version[] = "2.1";
+
+/* store list of accepted extensions for object targets */
+static const char *extensions[] = { ".cpp", ".c", ".cu" };
+static const int numextensions = sizeof(extensions)/sizeof(const char *);
+
+/* strdup() is not part of ANSI C. provide a replacement for portability */
+static char *my_strdup(const char *src)
+{
+    int len;
+    char *ptr;
+
+    if (src == NULL) return NULL;
+    len = strlen(src);
+    ptr = (char *)malloc(len+1);
+    if (ptr) memcpy(ptr,src,len+1);
+    return ptr;
+}
 
 /************************************************************************
  * utility functions
@@ -198,7 +215,7 @@ static void llist_append(llist_t *ll, const char *key)
     llnode_t *tmp;
     if ((ll == NULL) || (key == NULL)) return;
 
-    ll->tail->key = strdup(key);
+    ll->tail->key = my_strdup(key);
     ll->count ++;
     tmp = (llnode_t *)malloc(sizeof(llnode_t));
     tmp->key = NULL;
@@ -286,7 +303,7 @@ static void set_add(set_t *s, const char *key)
         tmp = tmp->next;
     }
     s->count ++;
-    tmp->key = strdup(key);
+    tmp->key = my_strdup(key);
     tmp->next = (llnode_t *)malloc(sizeof(llnode_t));
     tmp = tmp->next;
     tmp->key = NULL;
@@ -375,7 +392,7 @@ static void map_add(map_t *m, const char *key, const char *val)
     /* add new entry to map */
     if (tmp->next == NULL) {
         m->count ++;
-        tmp->key = strdup(key);
+        tmp->key = my_strdup(key);
         tmp->val = set_init(50); /* XXX: chosen arbitrarily */
         tmp->next = (mapnode_t *)malloc(sizeof(mapnode_t));
         tmp->next->key = NULL;
@@ -547,42 +564,52 @@ static void do_depend(llnode_t *head, map_t *deps)
     set_t *incl;
     const char *source;
     char *target, *ptr;
-    int i,num;
+    int i,num,ext;
 
     tmp = head;
     while (tmp->next != NULL) {
         source = tmp->key;
         target = strrchr(source,'/');
         if (target == NULL) {
-            target = strdup(source);
+            target = my_strdup(source);
         } else {
-            target = strdup(target+1);
+            target = my_strdup(target+1);
         }
 
+        ext = 0;
         ptr = strrchr(target,'.');
         if (ptr != NULL) {
-            ptr[1] = 'o';
-            ptr[2] = '\0';
-        }
-        fputs(target,stdout);
-        fputs(" : ",stdout);
-        fputs(source,stdout);
-        free((void *)target);
-
-        incl = set_init(50);
-        add_depend(source,incl,deps);
-
-        num = incl->nbuckets;
-        for (i = 0; i < num; ++i) {
-            lnk = incl->buckets + i;
-            while (lnk->next != NULL) {
-                fputc(' ',stdout);
-                fputs(lnk->key,stdout);
-                lnk = lnk->next;
+            for (i = 0; i < numextensions; ++i) {
+                if (strcmp(ptr,extensions[i]) == 0) ++ext;
+            }
+            if (ext > 0) {
+                ptr[1] = 'o';
+                ptr[2] = '\0';
             }
         }
-        fputc('\n',stdout);
-        set_free(incl);
+
+        if (ext > 0) {
+            fputs(target,stdout);
+            fputs(" : ",stdout);
+            fputs(source,stdout);
+
+            incl = set_init(50);
+            add_depend(source,incl,deps);
+
+            num = incl->nbuckets;
+            for (i = 0; i < num; ++i) {
+                lnk = incl->buckets + i;
+                while (lnk->next != NULL) {
+                    fputc(' ',stdout);
+                    fputs(lnk->key,stdout);
+                    lnk = lnk->next;
+                }
+            }
+            fputc('\n',stdout);
+            set_free(incl);
+        }
+
+        free((void *)target);
         tmp = tmp->next;
     }
 }
@@ -601,6 +628,8 @@ int main(int argc, char **argv)
         fprintf(stderr,"FastDep v%s for LAMMPS\n"
                 "Usage: %s [-I <path> ...] -- <src1> [<src2> ...]\n",
                 version,argv[0]);
+        fprintf(stderr,"Supported extensions: %d, %s, %s\n",numextensions,
+                extensions[0], extensions[1]);
         return 1;
     }
 
@@ -631,7 +660,7 @@ int main(int argc, char **argv)
             }
         } else if (strcmp(*argv,"--") == 0) {
             break;
-        } // ignore all unrecognized arguments before '--'.
+        } /* ignore all unrecognized arguments before '--'. */
     }
 
     src = llist_init();

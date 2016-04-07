@@ -1468,7 +1468,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 
 void ReadData::bodies(int firstpass)
 {
-  int i,m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp;
+  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp;
   char *eof;
 
   int mapflag = 0;

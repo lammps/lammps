@@ -398,7 +398,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     double scale;
     if (which == BIN1D || which == BIN2D || which == BIN3D || 
         which == BINCYLINDER) {
-      if (which == BIN1D || BINCYLINDER) ndim = 1;
+      if (which == BIN1D || which == BINCYLINDER) ndim = 1;
       if (which == BIN2D) ndim = 2;
       if (which == BIN3D) ndim = 3;
       for (int idim = 0; idim < ndim; idim++) {

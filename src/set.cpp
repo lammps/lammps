@@ -917,7 +917,6 @@ void Set::setrandom(int keyword)
 
   } else if (keyword == THETA_RANDOM) {
     int nlocal = atom->nlocal;
-    double theta;
     for (i = 0; i < nlocal; i++) {
       if (select[i]) {
 	if (atom->line[i] < 0)

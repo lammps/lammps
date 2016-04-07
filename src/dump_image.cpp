@@ -850,7 +850,6 @@ void DumpImage::create_image()
 
   if (bodyflag) {
     Body *bptr = avec_body->bptr;
-    double **x = atom->x;
     int *body = atom->body;
 
     m = 0;

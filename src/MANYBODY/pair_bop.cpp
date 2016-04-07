@@ -993,7 +993,6 @@ void PairBOP::theta()
   int *ilist;
   int *iilist;
   int **firstneigh;
-  int maxn,maxt;
   double rj2,rk2,rsq,ps;
   double rj1k1,rj2k2;
   double **x = atom->x;
@@ -1015,8 +1014,6 @@ void PairBOP::theta()
     itype = map[type[i]]+1;
 
     iilist=firstneigh[i];
-    maxt=0;
-    maxn=0;
     nlisti=BOP_total[i];
     for(jj=0;jj<nlisti;jj++) {
       temp_ij=BOP_index[i]+jj;
@@ -1038,10 +1035,8 @@ void PairBOP::theta()
           +disij[1][temp_ij]*disij[1][temp_ij]
           +disij[2][temp_ij]*disij[2][temp_ij];
       rij[temp_ij]=sqrt(rsq);
-      if(rij[temp_ij]<=rcut[i12]) {
+      if(rij[temp_ij]<=rcut[i12])
         neigh_flag[temp_ij]=1;
-        maxt++;
-      }
       else
         neigh_flag[temp_ij]=0;
       if(rij[temp_ij]<=rcut3[i12])
@@ -1067,7 +1062,6 @@ void PairBOP::theta()
       dRepul[temp_ij]=(pRepul6[i12][ks-1]*ps+pRepul5[i12][ks-1])*ps
           +pRepul4[i12][ks-1];
     }
-    if(maxt>maxn) maxn=maxt;
   }
   for (ii = 0; ii < nall; ii++) {
     n=0;

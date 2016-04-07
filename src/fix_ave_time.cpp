@@ -23,7 +23,6 @@
 #include "force.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -54,6 +53,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   nfreq = force->inumeric(FLERR,arg[5]);
 
   global_freq = nfreq;
+
+  dynamic_group_allow = 1;
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values

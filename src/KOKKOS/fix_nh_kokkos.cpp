@@ -291,7 +291,6 @@ void FixNHKokkos<DeviceType>::final_integrate()
 template<class DeviceType>
 void FixNHKokkos<DeviceType>::remap()
 {
-  int i;
   double oldlo,oldhi;
   double expfac;
 

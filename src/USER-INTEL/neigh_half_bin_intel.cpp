@@ -342,7 +342,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(atombin:length(aend) alloc_if(0) free_if(0)) \
     in(stencil:length(nstencil) alloc_if(0) free_if(0)) \
-    in(maxnbors,nthreads,maxspecial,nstencil,pad_width,offload)  \
+    in(maxnbors,nthreads,maxspecial,nstencil,pad_width,offload,nall)  \
     in(separate_buffers, astart, aend, nlocal, molecular, ntypes) \
     in(xperiodic, yperiodic, zperiodic, xprd_half, yprd_half, zprd_half) \
     out(overflow:length(5) alloc_if(0) free_if(0)) \

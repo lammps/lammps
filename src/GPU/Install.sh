@@ -113,6 +113,10 @@ action pair_table_gpu.cpp pair_table.cpp
 action pair_table_gpu.h pair_table.cpp
 action pair_tersoff_gpu.cpp pair_tersoff.cpp
 action pair_tersoff_gpu.h pair_tersoff.cpp
+action pair_tersoff_mod_gpu.cpp pair_tersoff_mod.cpp
+action pair_tersoff_mod_gpu.h pair_tersoff_mod.cpp
+action pair_tersoff_zbl_gpu.cpp pair_tersoff_zbl.cpp
+action pair_tersoff_zbl_gpu.h pair_tersoff_zbl.cpp
 action pair_yukawa_colloid_gpu.cpp pair_yukawa_colloid.cpp
 action pair_yukawa_colloid_gpu.h pair_yukawa_colloid.cpp
 action pair_yukawa_gpu.cpp pair_yukawa.cpp

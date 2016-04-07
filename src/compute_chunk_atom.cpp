@@ -441,7 +441,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   chunk = NULL;
-  nmaxint = 0;
+  nmaxint = -1;
   ichunk = NULL;
   exclude = NULL;
 

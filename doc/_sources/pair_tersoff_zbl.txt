@@ -3,6 +3,9 @@
 pair_style tersoff/zbl command
 ==============================
 
+pair_style tersoff/zbl/gpu command
+==================================
+
 pair_style tersoff/zbl/kk command
 =================================
 

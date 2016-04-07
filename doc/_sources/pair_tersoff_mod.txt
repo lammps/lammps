@@ -3,6 +3,9 @@
 pair_style tersoff/mod command
 ==============================
 
+pair_style tersoff/mod/gpu command
+==================================
+
 pair_style tersoff/mod/kk command
 =================================
 

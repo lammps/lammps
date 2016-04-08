@@ -256,7 +256,6 @@ void cvm::atom_group::update_total_charge()
 
 int cvm::atom_group::parse(std::string const &conf)
 {
-  colvarproxy *proxy = cvm::proxy;
   std::string group_conf;
 
   // TODO move this to the cvc class constructor/init

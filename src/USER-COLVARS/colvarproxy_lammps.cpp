@@ -379,7 +379,7 @@ int colvarproxy_lammps::smp_thread_id()
 
 int colvarproxy_lammps::smp_num_threads()
 {
-  return omp_get_num_threads();
+  return omp_get_max_threads();
 }
 
 

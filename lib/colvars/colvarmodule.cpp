@@ -680,6 +680,7 @@ int colvarmodule::calc_scripted_forces()
     cvm::error("Error running user colvar forces script");
     return COLVARS_ERROR;
   }
+  return COLVARS_OK;
 }
 
 

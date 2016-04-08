@@ -22,7 +22,7 @@
 #endif
 
 #ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2016-03-24"
+#define COLVARPROXY_VERSION "2016-04-08"
 #endif
 
 /* struct for packed data communication of coordinates and forces. */

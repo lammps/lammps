@@ -279,7 +279,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`
 
 **Default:** none
 

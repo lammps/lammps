@@ -58,7 +58,7 @@ field.  This pair-wise thermostat can be used in conjunction with any
 :doc:`pair style <pair_style>`, and in leiu of per-particle thermostats
 like :doc:`fix langevin <fix_langevin>` or ensemble thermostats like
 Nose Hoover as implemented by :doc:`fix nvt <fix_nh>`.  To use
-*dpd/stat* as a thermostat for another pair style, use the :doc:`pair_style hybrid/overlay <pair_hybrid>` command to compute both the desired
+*dpd/tstat* as a thermostat for another pair style, use the :doc:`pair_style hybrid/overlay <pair_hybrid>` command to compute both the desired
 pair interaction and the thermostat for each pair of particles.
 
 For style *dpd*, the force on atom I due to atom J is given as a sum

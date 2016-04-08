@@ -110,7 +110,7 @@ values in the table.
 
 The "EQ" parameter is also optional.  If used, it is followed by a the
 equilibrium bond length, which is used, for example, by the :doc:`fix shake <fix_shake>` command.  If not used, the equilibrium bond
-length is set to 0.0.
+length is to the distance in the table with the lowest potential energy.
 
 Following a blank line, the next N lines list the tabulated values.
 On each line, the 1st value is the index from 1 to N, the 2nd value is

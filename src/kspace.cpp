@@ -307,6 +307,15 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
 {
   double table_accuracy = 0.0;
   int nctb = force->pair->ncoultablebits;
+  if (comm->me == 0) {
+    char str[128];
+    if (nctb)
+      sprintf(str,"Using %d-bit tables for long-range coulomb",nctb);
+    else
+      sprintf(str,"Using polynomial approximation for long-range coulomb");
+    error->warning(FLERR,str);
+  }
+
   if (nctb) {
     double empirical_precision[17];
     empirical_precision[6] =  6.99E-03;

@@ -20,8 +20,33 @@ namespace LAMMPS_NS {
 
 namespace MathSpecial {
 
-  // scaled error function for coul/long styles
-  extern double erfcx(const double x);
+  // support function for scaled error function complement
+  
+  extern double erfcx_y100(const double y100);
+
+  // fast 2**x function without argument checks
+  extern double exp2_fast(double x);
+
+  // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+
+  static inline double erfcx(const double x)
+  {
+    if (x >= 0.0) return erfcx_y100(400.0/(4.0+x));
+    else return 2.0*exp(x*x) - erfcx_y100(400.0/(4.0-x));
+  }
+
+  // exp(-x*x) for coul/long styles
+
+  static inline double expmsq(double x)
+  {
+    x *= 1.4426950408889634074; // log_2(e)
+    x *= x;
+#if defined(__i386__) || defined(__x86_64__) || defined(__ia64__)
+    return (x < 1023.0) ? exp2_fast(-x) : 0.0;
+#else
+    return (x < 1023.0) ? exp2(-x) : 0.0;
+#endif
+  }
 
   // x**2, use instead of pow(x,2.0)
 

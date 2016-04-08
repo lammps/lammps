@@ -1,5 +1,6 @@
 
 #include <math.h>
+#include <stdint.h>
 #include "math_special.h"
 
 using namespace LAMMPS_NS;
@@ -56,7 +57,7 @@ using namespace LAMMPS_NS;
 /* Lookup-table for Chebyshev polynomials for smaller |x|                     */
 /******************************************************************************/
 
-static double erfcx_y100(double y100)
+double MathSpecial::erfcx_y100(const double y100)
 {
     // Steven G. Johnson, October 2012.
 
@@ -475,13 +476,59 @@ static double erfcx_y100(double y100)
     return 1.0;
 } /* erfcx_y100 */
 
+/* optimizer friendly implementation of exp2(x).
+ *
+ * strategy:
+ *
+ * split argument into an integer part and a fraction:
+ * ipart = floor(x+0.5);
+ * fpart = x - ipart;
+ *
+ * compute exp2(ipart) from setting the ieee754 exponent
+ * compute exp2(fpart) using a pade' approximation for x in [-0.5;0.5[
+ *
+ * the result becomes: exp2(x) = exp2(ipart) * exp2(fpart)
+ */
 
-/* we really only need the x > 0 branch, but we include the negative side for completeness.
- * NOTE: for computing erfc() in double precision, only x in in approx [-6.1:26.6] matters.
- * otherwise the result of erfc() is 2.0 or 0.0 */
-double MathSpecial::erfcx(const double x)
+/* IEEE 754 double precision floating point data manipulation */
+typedef union 
 {
-    if (x >= 0) return erfcx_y100(400/(4+x));
-    else return 2.0*exp(x*x) - erfcx_y100(400/(4-x));
-} /* erfcx() */
+    double   f;
+    uint64_t u;
+    struct {int32_t  i0,i1;} s;
+}  udi_t;
 
+static const double fm_exp2_q[] = {
+/*  1.00000000000000000000e0, */
+    2.33184211722314911771e2,
+    4.36821166879210612817e3
+};
+static const double fm_exp2_p[] = {
+    2.30933477057345225087e-2,
+    2.02020656693165307700e1,
+    1.51390680115615096133e3
+};
+
+double MathSpecial::exp2_fast(double x)
+{
+    double   ipart, fpart, px, qx;
+    udi_t    epart;
+
+    ipart = floor(x+0.5);
+    fpart = x - ipart;
+    epart.s.i0 = 0;
+    epart.s.i1 = (((int) ipart) + 1023) << 20;
+
+    x = fpart*fpart;
+
+    px =        fm_exp2_p[0];
+    px = px*x + fm_exp2_p[1];
+    qx =    x + fm_exp2_q[0];
+    px = px*x + fm_exp2_p[2];
+    qx = qx*x + fm_exp2_q[1];
+
+    px = px * fpart;
+
+    x = 1.0 + 2.0*(px/(qx-px));
+    return epart.f*x;
+}

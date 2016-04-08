@@ -24,8 +24,8 @@ namespace MathSpecial {
   
   extern double erfcx_y100(const double y100);
 
-  // fast 2**x function without argument checks
-  extern double exp2_fast(double x);
+  // fast 2**x function without argument checks for little endian CPUs
+  extern double exp2_x86(double x);
 
   // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
 
@@ -39,10 +39,10 @@ namespace MathSpecial {
 
   static inline double expmsq(double x)
   {
-    x *= 1.4426950408889634074; // log_2(e)
     x *= x;
+    x *= 1.4426950408889634074; // log_2(e)
 #if defined(__i386__) || defined(__x86_64__) || defined(__ia64__)
-    return (x < 1023.0) ? exp2_fast(-x) : 0.0;
+    return (x < 1023.0) ? exp2_x86(-x) : 0.0;
 #else
     return (x < 1023.0) ? exp2(-x) : 0.0;
 #endif

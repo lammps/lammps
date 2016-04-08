@@ -509,7 +509,7 @@ static const double fm_exp2_p[] = {
     1.51390680115615096133e3
 };
 
-double MathSpecial::exp2_fast(double x)
+double MathSpecial::exp2_x86(double x)
 {
     double   ipart, fpart, px, qx;
     udi_t    epart;

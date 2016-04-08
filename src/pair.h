@@ -217,8 +217,6 @@ class Pair : protected Pointers {
 
   typedef union {int i; float f;} union_int_float_t;
 
-  double THIRD;
-
   int vflag_fdotr;
   int maxeatom,maxvatom;
 

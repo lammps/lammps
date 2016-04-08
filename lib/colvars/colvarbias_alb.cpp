@@ -41,6 +41,7 @@ colvarbias_alb::colvarbias_alb(std::string const &conf, char const *key) :
   current_coupling.resize(colvars.size());
   coupling_rate.resize(colvars.size());
 
+  enable(f_cvb_apply_force);
 
   for (i = 0; i < colvars.size(); i++) {
     colvar_centers[i].type(colvars[i]->value());
@@ -120,7 +121,7 @@ colvarbias_alb::~colvarbias_alb() {
 
 }
 
-cvm::real colvarbias_alb::update() {
+int colvarbias_alb::update() {
 
   bias_energy = 0.0;
   update_calls++;
@@ -224,8 +225,7 @@ cvm::real colvarbias_alb::update() {
 
   }
 
-  return bias_energy;
-
+  return COLVARS_OK;
 }
 
 

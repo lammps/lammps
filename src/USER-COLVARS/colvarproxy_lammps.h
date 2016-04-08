@@ -5,6 +5,7 @@
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
+#include "colvarvalue.h"
 
 #include "lammps.h"
 #include "domain.h"
@@ -16,8 +17,12 @@
 #include <vector>
 #include <iostream>
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 #ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2016-02-28"
+#define COLVARPROXY_VERSION "2016-03-24"
 #endif
 
 /* struct for packed data communication of coordinates and forces. */
@@ -130,6 +135,22 @@ class colvarproxy_lammps : public colvarproxy {
 
   // implementation of optional methods from base class
  public:
+
+#if defined(_OPENMP)
+  // SMP support
+  int smp_enabled();
+  int smp_colvars_loop();
+  int smp_biases_loop();
+  int smp_thread_id();
+  int smp_num_threads();
+protected:
+  omp_lock_t smp_lock_state;
+public:
+  int smp_lock();
+  int smp_trylock();
+  int smp_unlock();
+#endif
+
   // Multi-replica support
   // Indicate if multi-replica support is available and active
   virtual bool replica_enabled() { return (inter_comm != MPI_COMM_NULL); }

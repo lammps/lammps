@@ -18,7 +18,7 @@ SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias_alb.cpp colvarbias.cpp  \
  colvarbias_histogram.cpp colvarbias_meta.cpp colvarbias_restraint.cpp      \
  colvarcomp_angles.cpp colvarcomp_coordnums.cpp colvarcomp.cpp              \
  colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp   \
- colvar.cpp colvargrid.cpp colvarmodule.cpp colvarparse.cpp                 \
+ colvardeps.cpp colvar.cpp colvargrid.cpp colvarmodule.cpp colvarparse.cpp  \
  colvarscript.cpp colvartypes.cpp colvarvalue.cpp
 
 LIB = libcolvars.a

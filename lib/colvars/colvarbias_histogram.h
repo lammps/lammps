@@ -19,7 +19,7 @@ public:
   colvarbias_histogram(std::string const &conf, char const *key);
   ~colvarbias_histogram();
 
-  cvm::real update();
+  int update();
 
   int write_output_files();
 

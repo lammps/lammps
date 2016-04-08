@@ -18,6 +18,9 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
     colvar_centers.resize(colvars.size());
     colvar_centers_raw.resize(colvars.size());
     size_t i;
+
+    enable(f_cvb_apply_force);
+
     for (i = 0; i < colvars.size(); i++) {
       colvar_centers[i].type(colvars[i]->value());
       colvar_centers_raw[i].type(colvars[i]->value());
@@ -167,7 +170,7 @@ cvm::real colvarbias_restraint::energy_difference(std::string const &conf)
 }
 
 
-cvm::real colvarbias_restraint::update()
+int colvarbias_restraint::update()
 {
   bias_energy = 0.0;
 
@@ -333,7 +336,7 @@ cvm::real colvarbias_restraint::update()
     cvm::log("Current forces for the restraint bias \""+
               this->name+"\": "+cvm::to_str(colvar_forces)+".\n");
 
-  return bias_energy;
+  return COLVARS_OK;
 }
 
 

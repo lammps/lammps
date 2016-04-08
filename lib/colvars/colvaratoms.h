@@ -5,6 +5,7 @@
 
 #include "colvarmodule.h"
 #include "colvarparse.h"
+#include "colvardeps.h"
 
 
 /// \brief Stores numeric id, mass and all mutable data for an atom,
@@ -138,7 +139,7 @@ public:
 /// \brief Group of \link atom \endlink objects, mostly used by a
 /// \link cvc \endlink object to gather all atomic data
 class colvarmodule::atom_group
-  : public colvarparse
+  : public colvarparse, public cvm::deps
 {
 public:
 
@@ -187,8 +188,13 @@ public:
   /// change atom masses after their initialization.
   void reset_mass(std::string &name, int i, int j);
 
-  /// \brief Whether or not the properties of this group will be computed in parallel
-  bool b_scalable;
+  /// \brief Implementation of the feature list for atom group
+  static std::vector<feature *> ag_features;
+
+  /// \brief Implementation of the feature list accessor for atom group
+  virtual std::vector<feature *> &features() {
+    return ag_features;
+  }
 
   /// \brief Default constructor
   atom_group();

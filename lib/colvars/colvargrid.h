@@ -251,15 +251,6 @@ public:
 
     size_t i;
 
-    for (i = 0; i < cv.size(); i++) {
-      if (!cv[i]->tasks[colvar::task_lower_boundary] ||
-          !cv[i]->tasks[colvar::task_upper_boundary]) {
-        cvm::error("Tried to initialize a grid on a "
-                   "variable with undefined boundaries.\n", INPUT_ERROR);
-        return COLVARS_ERROR;
-      }
-    }
-
     if (cvm::debug()) {
       cvm::log("Allocating a grid for "+cvm::to_str(colvars.size())+
                " collective variables, multiplicity = "+cvm::to_str(mult_i)+".\n");

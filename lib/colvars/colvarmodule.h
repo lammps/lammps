@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2016-03-08"
+#define COLVARS_VERSION "2016-03-30"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -74,6 +74,9 @@ private:
 
 public:
 
+  /// Base class to handle mutual dependencies of most objects
+  class deps;
+
   friend class colvarproxy;
   // TODO colvarscript should be unaware of colvarmodule's internals
   friend class colvarscript;
@@ -106,20 +109,21 @@ public:
 
   /// Module-wide error state
   /// see constants at the top of this file
+protected:
+
   static int errorCode;
-  static inline void set_error_bits(int code)
-  {
-    errorCode |= code;
-    errorCode |= COLVARS_ERROR;
-  }
+
+public:
+
+  static void set_error_bits(int code);
+
   static inline int get_error()
   {
     return errorCode;
   }
-  static inline void clear_error()
-  {
-    errorCode = 0;
-  }
+
+  static void clear_error();
+
 
   /// Current step number
   static long it;
@@ -166,6 +170,12 @@ public:
     cvcs.push_back(p);
   }
   */
+
+  /// Collective variables to be calculated on different threads;
+  /// colvars with multple items (e.g. multiple active CVCs) are duplicated
+  std::vector<colvar *> colvars_smp;
+  /// Indexes of the items to calculate for each colvar
+  std::vector<int> colvars_smp_items;
 
   /// Array of collective variable biases
   static std::vector<colvarbias *> biases;
@@ -269,6 +279,10 @@ public:
   /// Write explanatory labels in the trajectory file
   std::ostream & write_traj_label(std::ostream &os);
 
+  /// Write all trajectory files
+  int write_traj_files();
+  /// Write all restart files
+  int write_restart_files();
   /// Write all FINAL output files
   int write_output_files();
   /// Backup a file before writing it
@@ -300,11 +314,21 @@ public:
   //// Share among replicas.
   int bias_share(std::string const &bias_name);
 
-  /// Calculate collective variables and biases
+  /// Main worker function
   int calc();
+
+  /// Calculate collective variables
+  int calc_colvars();
+
+  /// Calculate biases
+  int calc_biases();
+
+  /// Integrate bias and restraint forces, send colvar forces to atoms
+  int update_colvar_forces();
 
   /// Perform analysis
   int analyze();
+
   /// \brief Read a collective variable trajectory (post-processing
   /// only, not called at runtime)
   int read_traj(char const *traj_filename,
@@ -480,18 +504,18 @@ protected:
   /// Output restart file
   colvarmodule::ofstream restart_out_os;
 
-  /// \brief Counter for the current depth in the object hierarchy (useg e.g. in output
-  static size_t depth;
+protected:
 
-  /// Use scripted colvars forces?
-  static bool use_scripted_forces;
+  /// Counter for the current depth in the object hierarchy (useg e.g. in output)
+  static size_t depth_s;
+
+  /// Thread-specific depth
+  static std::vector<size_t> depth_v;
 
 public:
 
-  /// \brief Pointer to the proxy object, used to retrieve atomic data
-  /// from the hosting program; it is static in order to be accessible
-  /// from static functions in the colvarmodule class
-  static colvarproxy *proxy;
+  /// Get the current object depth in the hierarchy
+  static size_t & depth();
 
   /// Increase the depth (number of indentations in the output)
   static void increase_depth();
@@ -499,7 +523,24 @@ public:
   /// Decrease the depth (number of indentations in the output)
   static void decrease_depth();
 
-  static inline bool scripted_forces() { return use_scripted_forces; }
+  static inline bool scripted_forces()
+  {
+    return use_scripted_forces;
+  }
+
+  /// Use scripted colvars forces?
+  static bool use_scripted_forces;
+
+  /// Wait for all biases before calculating scripted forces?
+  static bool scripting_after_biases;
+
+  /// Calculate the energy and forces of scripted biases
+  int calc_scripted_forces();
+
+  /// \brief Pointer to the proxy object, used to retrieve atomic data
+  /// from the hosting program; it is static in order to be accessible
+  /// from static functions in the colvarmodule class
+  static colvarproxy *proxy;
 };
 
 

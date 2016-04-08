@@ -79,13 +79,13 @@ colvar::coordnum::coordnum(std::string const &conf)
   x.type(colvarvalue::type_scalar);
 
   // group1 and group2 are already initialized by distance()
-  if (group1.b_dummy)
+  if (group1->b_dummy)
     cvm::fatal_error("Error: only group2 is allowed to be a dummy atom\n");
 
 
   // need to specify this explicitly because the distance() constructor
   // has set it to true
-  b_inverse_gradients = false;
+  feature_states[f_cvc_inv_gradient]->available = false;
 
   bool const b_scale = get_keyval(conf, "cutoff", r0,
                                    cvm::real(4.0 * cvm::unit_angstrom()));
@@ -110,7 +110,7 @@ colvar::coordnum::coordnum(std::string const &conf)
     cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
   }
 
-  get_keyval(conf, "group2CenterOnly", b_group2_center_only, group2.b_dummy);
+  get_keyval(conf, "group2CenterOnly", b_group2_center_only, group2->b_dummy);
 }
 
 
@@ -130,26 +130,26 @@ void colvar::coordnum::calc_value()
 
     // create a fake atom to hold the group2 com coordinates
     cvm::atom group2_com_atom;
-    group2_com_atom.pos = group2.center_of_mass();
+    group2_com_atom.pos = group2->center_of_mass();
 
     if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
         x.real_value += switching_function<false>(r0_vec, en, ed, *ai1, group2_com_atom);
     } else {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
         x.real_value += switching_function<false>(r0, en, ed, *ai1, group2_com_atom);
     }
 
   } else {
 
     if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
-        for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
+        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
           x.real_value += switching_function<false>(r0_vec, en, ed, *ai1, *ai2);
         }
     } else {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
-        for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
+        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
           x.real_value += switching_function<false>(r0, en, ed, *ai1, *ai2);
         }
     }
@@ -163,29 +163,29 @@ void colvar::coordnum::calc_gradients()
 
     // create a fake atom to hold the group2 com coordinates
     cvm::atom group2_com_atom;
-    group2_com_atom.pos = group2.center_of_mass();
+    group2_com_atom.pos = group2->center_of_mass();
 
 
     if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
         switching_function<true>(r0_vec, en, ed, *ai1, group2_com_atom);
     } else {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
         switching_function<true>(r0, en, ed, *ai1, group2_com_atom);
     }
 
-    group2.set_weighted_gradient(group2_com_atom.grad);
+    group2->set_weighted_gradient(group2_com_atom.grad);
 
   } else {
 
     if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
-        for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
+        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
           switching_function<true>(r0_vec, en, ed, *ai1, *ai2);
         }
     } else {
-      for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
-        for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
+        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
           switching_function<true>(r0, en, ed, *ai1, *ai2);
         }
     }
@@ -194,11 +194,11 @@ void colvar::coordnum::calc_gradients()
 
 void colvar::coordnum::apply_force(colvarvalue const &force)
 {
-  if (!group1.noforce)
-    group1.apply_colvar_force(force.real_value);
+  if (!group1->noforce)
+    group1->apply_colvar_force(force.real_value);
 
-  if (!group2.noforce)
-    group2.apply_colvar_force(force.real_value);
+  if (!group2->noforce)
+    group2->apply_colvar_force(force.real_value);
 }
 
 
@@ -298,7 +298,8 @@ colvar::selfcoordnum::selfcoordnum(std::string const &conf)
 
   // need to specify this explicitly because the distance() constructor
   // has set it to true
-  b_inverse_gradients = false;
+  feature_states[f_cvc_inv_gradient]->available = false;
+
 
   get_keyval(conf, "cutoff", r0, cvm::real(4.0 * cvm::unit_angstrom()));
   get_keyval(conf, "expNumer", en, int(6) );
@@ -320,9 +321,9 @@ colvar::selfcoordnum::selfcoordnum()
 void colvar::selfcoordnum::calc_value()
 {
   x.real_value = 0.0;
-  for (size_t i = 0; i < group1.size() - 1; i++) {
-    for (size_t j = i + 1; j < group1.size(); j++) {
-      x.real_value += colvar::coordnum::switching_function<false>(r0, en, ed, group1[i], group1[j]);
+  for (size_t i = 0; i < group1->size() - 1; i++) {
+    for (size_t j = i + 1; j < group1->size(); j++) {
+      x.real_value += colvar::coordnum::switching_function<false>(r0, en, ed, (*group1)[i], (*group1)[j]);
     }
   }
 }
@@ -330,17 +331,17 @@ void colvar::selfcoordnum::calc_value()
 
 void colvar::selfcoordnum::calc_gradients()
 {
-  for (size_t i = 0; i < group1.size() - 1; i++) {
-    for (size_t j = i + 1; j < group1.size(); j++) {
-      colvar::coordnum::switching_function<true>(r0, en, ed, group1[i], group1[j]);
+  for (size_t i = 0; i < group1->size() - 1; i++) {
+    for (size_t j = i + 1; j < group1->size(); j++) {
+      colvar::coordnum::switching_function<true>(r0, en, ed, (*group1)[i], (*group1)[j]);
     }
   }
 }
 
 void colvar::selfcoordnum::apply_force(colvarvalue const &force)
 {
-  if (!group1.noforce) {
-    group1.apply_colvar_force(force.real_value);
+  if (!group1->noforce) {
+    group1->apply_colvar_force(force.real_value);
   }
 }
 

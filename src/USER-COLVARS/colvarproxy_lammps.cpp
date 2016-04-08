@@ -9,6 +9,8 @@
 #include "fix_colvars.h"
 
 #include "colvarmodule.h"
+#include "colvar.h"
+#include "colvarbias.h"
 #include "colvaratoms.h"
 #include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
@@ -109,11 +111,20 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   if (restart_output_prefix_str.rfind(".*") != std::string::npos)
     restart_output_prefix_str.erase(restart_output_prefix_str.rfind(".*"),2);
 
+#if defined(_OPENMP)
+  if (smp_thread_id() == 0) {
+    omp_init_lock(&smp_lock_state);
+  }
+#endif
+
   // initialize multi-replica support, if available
   if (replica_enabled()) {
     MPI_Comm_rank(inter_comm, &inter_me);
     MPI_Comm_size(inter_comm, &inter_num);
   }
+
+  if (cvm::debug())
+    log("Done initializing the colvars proxy object.\n");
 }
 
 
@@ -319,6 +330,80 @@ int colvarproxy_lammps::backup_file(char const *filename)
     return my_backup_file(filename, ".BAK");
   }
 }
+
+
+#if defined(_OPENMP)
+
+
+// SMP support
+
+int colvarproxy_lammps::smp_enabled()
+{
+  return COLVARS_OK;
+}
+
+
+int colvarproxy_lammps::smp_colvars_loop()
+{
+  colvarmodule *cv = this->colvars;
+#pragma omp parallel for
+  for (size_t i = 0; i < cv->colvars_smp.size(); i++) {
+    if (cvm::debug()) {
+      cvm::log("Calculating colvar \""+cv->colvars_smp[i]->name+"\" on thread "+cvm::to_str(smp_thread_id())+"\n");
+    }
+    cv->colvars_smp[i]->calc_cvcs(cv->colvars_smp_items[i], 1);
+  }
+  return cvm::get_error();
+}
+
+
+int colvarproxy_lammps::smp_biases_loop()
+{
+  colvarmodule *cv = this->colvars;
+#pragma omp parallel for
+  for (size_t i = 0; i < cv->biases.size(); i++) {
+    if (cvm::debug()) {
+      cvm::log("Calculating bias \""+cv->biases[i]->name+"\" on thread "+cvm::to_str(smp_thread_id())+"\n");
+    }
+    cv->biases[i]->update();
+  }
+  return cvm::get_error();
+}
+
+
+int colvarproxy_lammps::smp_thread_id()
+{
+  return omp_get_thread_num();
+}
+
+
+int colvarproxy_lammps::smp_num_threads()
+{
+  return omp_get_num_threads();
+}
+
+
+int colvarproxy_lammps::smp_lock()
+{
+  omp_set_lock(&smp_lock_state);
+  return COLVARS_OK;
+}
+
+
+int colvarproxy_lammps::smp_trylock()
+{
+  return omp_test_lock(&smp_lock_state) ? COLVARS_OK : COLVARS_ERROR;
+}
+
+
+int colvarproxy_lammps::smp_unlock()
+{
+  omp_unset_lock(&smp_lock_state);
+  return COLVARS_OK;
+}
+
+#endif
+
 
 // multi-replica support
 

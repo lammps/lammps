@@ -95,7 +95,7 @@ molecules other than the exchanged type, but MC deletions,
 translations, and rotations can be performed on any atom/molecule in
 the fix group.  All atoms in the simulation cell can be moved using
 regular time integration translations, e.g. via
-"fix_nvt"_fix_nvt.html, resulting in a hybrid GCMC+MD simulation. A
+"fix nvt"_fix_nh.html, resulting in a hybrid GCMC+MD simulation. A
 smaller-than-usual timestep size may be needed when running such a
 hybrid simulation, especially if the inserted molecules are not well
 equilibrated.

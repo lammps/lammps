@@ -367,7 +367,7 @@ FixGCMC::~FixGCMC()
       delete [] grouptypestrings[igroup];
     memory->sfree(grouptypestrings);
   }
-  if (full_flag) {
+  if (full_flag && group) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
   }

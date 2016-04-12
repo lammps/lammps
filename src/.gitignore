@@ -688,6 +688,8 @@
 /pair_meam_sw_spline.h
 /pair_morse_opt.cpp
 /pair_morse_opt.h
+/pair_morse_soft.cpp
+/pair_morse_soft.h
 /pair_nb3b_harmonic.cpp
 /pair_nb3b_harmonic.h
 /pair_nm_cut.cpp

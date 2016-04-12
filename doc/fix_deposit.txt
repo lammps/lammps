@@ -264,7 +264,7 @@ defined by the "region"_region.html command.
 
 [Related commands:]
 
-"fix_pour"_fix_pour.html, "region"_region.html
+"fix pour"_fix_pour.html, "region"_region.html
 
 [Default:]
 

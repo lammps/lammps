@@ -172,7 +172,7 @@ doesn't use "metal" units.
 [Related commands:]
 
 "pair_style"_pair_style.html, "pair_coeff"_pair_coeff.html, 
-"fix_qeq/comb"_fix_qeq_comb.html
+"fix qeq/comb"_fix_qeq_comb.html
 
 [Default:] none
 

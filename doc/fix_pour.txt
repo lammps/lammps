@@ -251,7 +251,7 @@ defined by the "region"_region.html command.
 
 [Related commands:]
 
-"fix_deposit"_fix_deposit.html, "fix_gravity"_fix_gravity.html,
+"fix deposit"_fix_deposit.html, "fix gravity"_fix_gravity.html,
 "region"_region.html
 
 [Default:]

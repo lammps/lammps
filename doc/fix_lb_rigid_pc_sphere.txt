@@ -73,14 +73,14 @@ central atoms interact with one another.
 Apart from the features described above, this fix is very similar to
 the rigid fix (although it includes fewer optional arguments, and
 assumes the constituent atoms are point particles); see
-"fix_rigid"_fix_rigid.html for a complete documentation.
+"fix rigid"_fix_rigid.html for a complete documentation.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about the {rigid} and {rigid/nve} fixes are written to
 "binary restart files"_restart.html.
 
-Similar to the "fix_rigid"_fix_rigid.html command: &quot; The rigid
+Similar to the "fix rigid"_fix_rigid.html command: &quot; The rigid
 fix computes a global scalar which can be accessed by various "output
 commands"_Section_howto.html#howto_15.  The scalar value calculated by
 these fixes is "intensive".  The scalar is the current temperature of

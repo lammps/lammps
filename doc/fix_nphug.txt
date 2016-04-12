@@ -201,7 +201,7 @@ The scalar is the cumulative energy change due to the fix.
 
 The vector stores three quantities unique to this fix (Delta, Us, and up),
 followed by all the internal Nose/Hoover thermostat and barostat
-variables defined for "fix_style npt"_fix_nh.html. Delta is the deviation
+variables defined for "fix npt"_fix_nh.html. Delta is the deviation
 of the temperature from the target temperature, given by the above equation.
 Us and up are the shock and particle velocity corresponding to a steady
 shock calculated from the RH conditions. They have units of distance/time.
@@ -212,7 +212,7 @@ This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-All the usual restrictions for "fix_style npt"_fix_nh.html apply,
+All the usual restrictions for "fix npt"_fix_nh.html apply,
 plus the additional ones mentioned above.
 
 [Related commands:]

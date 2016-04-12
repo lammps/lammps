@@ -838,7 +838,7 @@ make machine :pre
 Make.py -p ^meam -a machine :pre
 
 Supporting info: src/POEMS/README, lib/poems/README,
-"fix_poems"_fix_poems.html, examples/rigid
+"fix poems"_fix_poems.html, examples/rigid
 
 :line
  
@@ -1182,7 +1182,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-OMP"_#USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
 "USER-PHONON"_#USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
 "USER-QMMM"_#USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
-"USER-QTB"_#USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix_qbmsst"_fix_qbmsst.html, qtb, -, -
+"USER-QTB"_#USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, -, -
 "USER-QUIP"_#USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_style quip"_pair_quip.html, USER/quip, -, lib/quip
 "USER-REAXC"_#USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 "USER-SMD"_#USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, -, -
@@ -1480,8 +1480,8 @@ Make.py -p ^atc -a machine :pre
 
 Supporting info: /src/USER-DPD/README, "compute dpd"_compute_dpd.html
 "compute dpd/atom"_compute_dpd_atom.html
-"fix_eos/cv"_fix_eos_table.html "fix_eos/table"_fix_eos_table.html
-"fix_shardlow"_fix_shardlow.html
+"fix eos/cv"_fix_eos_table.html "fix eos/table"_fix_eos_table.html
+"fix shardlow"_fix_shardlow.html
 "pair_dpd/conservative"_pair_dpd_conservative.html
 "pair_dpd/fdt"_pair_dpd_fdt.html
 "pair_dpd/fdt/energy"_pair_dpd_fdt.html, examples/USER/dpd

@@ -99,7 +99,7 @@ long-range tail correction to the energy via the {tail} keyword.
 For each term you can specify a different (or the same) scale factor
 by the two variables that you list.  Again, these will typically
 correspond toe the scale factors applied to these various potentials
-and the K-Space contribution via the "fix_adapt"_fix_adapt.html
+and the K-Space contribution via the "fix adapt"_fix_adapt.html
 command.
 
 More details about the exact functional forms for the computation of

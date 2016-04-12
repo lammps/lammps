@@ -115,9 +115,9 @@ or deletion. If an attempted move places the atom or molecule center-of-mass out
 the specified region, a new attempted move is generated. This process is repeated 
 until the atom or molecule center-of-mass is inside the specified region.  
 
-If used with "fix_nvt"_fix_nvt.html, the temperature of the imaginary
+If used with "fix nvt"_fix_nh.html, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
-used in "fix_nvt"_fix_nvt.html. Otherwise, the imaginary reservoir
+used in fix nvt. Otherwise, the imaginary reservoir
 will not be in thermal equilibrium with the simulation cell. Also,
 it is important that the temperature used by fix nvt be dynamic,
 which can be achieved as follows:
@@ -253,7 +253,7 @@ Use the {charge} option to insert atoms with a user-specified point
 charge. Note that doing so will cause the system to become non-neutral. 
 LAMMPS issues a warning when using long-range electrostatics (kspace) 
 with non-neutral systems. See the 
-"compute_group_group"_compute_group_group.html documentation for more 
+"compute group/group"_compute_group_group.html documentation for more 
 details about simulating non-neutral systems with kspace on.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
@@ -334,7 +334,7 @@ referenced by the user for each subsequent fix gcmc command.
 [Related commands:]
 
 "fix atom/swap"_fix_atom_swap.html,
-"fix nvt"_fix_nvt.html, "neighbor"_neighbor.html, 
+"fix nvt"_fix_nh.html, "neighbor"_neighbor.html, 
 "fix deposit"_fix_deposit.html, "fix evaporate"_fix_evaporate.html,
 "delete_atoms"_delete_atoms.html
 

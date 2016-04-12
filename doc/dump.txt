@@ -19,7 +19,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {dcd} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} or {h5md} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/gz} or {custom/mpiio} or {custom/vtk} :l
+style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {dcd} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} or {h5md} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/gz} or {custom/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -91,8 +91,6 @@ args = list of arguments for a particular style :l
       v_name = per-atom vector calculated by an atom-style variable with name
       d_name = per-atom floating point vector with name, managed by fix property/atom
       i_name = per-atom integer vector with name, managed by fix property/atom :pre
-
-  {custom/vtk} args = discussed on "dump custom/vtk"_dump_custom_vtk.html doc page :pre
 :ule
 
 [Examples:]

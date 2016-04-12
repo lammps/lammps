@@ -111,28 +111,30 @@ void WriteRestart::command(int narg, char **arg)
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for write_restart ...\n");
-  lmp->init();
+  if (noinit == 0) {
+    if (comm->me == 0 && screen)
+      fprintf(screen,"System init for write_restart ...\n");
+    lmp->init();
 
-  // move atoms to new processors before writing file
-  // enforce PBC in case atoms are outside box
-  // call borders() to rebuild atom map since exchange() destroys map
-  // NOTE: removed call to setup_pre_exchange
-  //   used to be needed by fixShearHistory for granular
-  //   to move history info from neigh list to atoms between runs
-  //   but now that is done via FIx::post_run()
-  //   don't think any other fix needs this or should do it
-  //   e.g. fix evaporate should not delete more atoms
+    // move atoms to new processors before writing file
+    // enforce PBC in case atoms are outside box
+    // call borders() to rebuild atom map since exchange() destroys map
+    // NOTE: removed call to setup_pre_exchange
+    //   used to be needed by fixShearHistory for granular
+    //   to move history info from neigh list to atoms between runs
+    //   but now that is done via FIx::post_run()
+    //   don't think any other fix needs this or should do it
+    //   e.g. fix evaporate should not delete more atoms
 
-  // modify->setup_pre_exchange();
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  comm->setup();
-  comm->exchange();
-  comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    // modify->setup_pre_exchange();
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    comm->exchange();
+    comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  }
 
   // write single restart file
 
@@ -220,6 +222,9 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       else filewriter = 0;
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"noinit") == 0) {
+      noinit = 1;
+      iarg++;
     } else error->all(FLERR,"Illegal write_restart command");
   }
 }

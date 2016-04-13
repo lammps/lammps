@@ -117,8 +117,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   neighflag = FULL;
   exchange_comm_classic = 0;
   forward_comm_classic = 0;
-  exchange_comm_on_host = 1;
-  forward_comm_on_host = 1;
+  exchange_comm_on_host = 0;
+  forward_comm_on_host = 0;
 }
 
 /* ---------------------------------------------------------------------- */

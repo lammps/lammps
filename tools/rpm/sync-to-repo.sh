@@ -151,13 +151,13 @@ then
     # of them and do not want to have to prune here, too.
     rm -vf RPMS/drpms/*.drpm
 
-    #make_drpms RPMS/debug -debuginfo
-    make_drpms RPMS -common
-    make_drpms RPMS -doc
-    make_drpms RPMS -openmpi
-    make_drpms RPMS -mpich2
-    make_drpms RPMS -mpich
-    make_drpms RPMS -python
+    # disabled as they are not used much.
+    #make_drpms RPMS -common
+    #make_drpms RPMS -doc
+    #make_drpms RPMS -openmpi
+    #make_drpms RPMS -mpich2
+    #make_drpms RPMS -mpich
+    #make_drpms RPMS -python
 
     createrepo --deltas -x \*latest\* -v RPMS
     rsync -arpv --exclude cache --delete RPMS/ \

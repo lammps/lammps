@@ -97,13 +97,16 @@ set in different ways for different shells.  Here are example settings
 for
 
 csh, tcsh:
+
 % setenv LAMMPS_POTENTIALS /path/to/lammps/potentials :pre
 
 bash:
+
 % export LAMMPS_POTENTIALS=/path/to/lammps/potentials :pre
 
 Windows:
-% set LAMMPS_POTENTIALS="C:\Path to LAMMPS\Potentials :pre
+
+% set LAMMPS_POTENTIALS="C:\\Path\\to\\LAMMPS\\Potentials :pre
 
 :line
 

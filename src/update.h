@@ -46,6 +46,9 @@ class Update : protected Pointers {
   class Min *minimize;
   char *minimize_style;
 
+  int rng_style;                  // default style for pRNGs
+  int rng_seed;                   // global seed for pRNGs
+
   Update(class LAMMPS *);
   ~Update();
   void init();
@@ -55,6 +58,7 @@ class Update : protected Pointers {
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
   void update_time();
+
   bigint memory_usage();
 
  private:

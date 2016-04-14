@@ -207,8 +207,9 @@ the :doc:`units <units>` command).
    of *Pdamp*.  If *Pdamp* is too small, the pressure and volume can
    fluctuate wildly; if it is too large, the pressure will take a very
    long time to equilibrate.  A good choice for many models is a *Pdamp*
-   of around 1000 timesteps.  Note that this is NOT the same as 1000 time
-   units for most :doc:`units <units>` settings.
+   of around 1000 timesteps.  However, note that *Pdamp* is specified in
+   time units, and that timesteps are NOT the same as time units for most
+   :doc:`units <units>` settings.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed

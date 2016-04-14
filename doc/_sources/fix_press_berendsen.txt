@@ -92,9 +92,19 @@ box dimension will not change if that component is not specified,
 although you have the option to change that dimension via the :doc:`fix deform <fix_deform>` command.
 
 For all barostat keywords, the *Pdamp* parameter determines the time
-scale on which pressure is relaxed.  For example, a value of 1000.0
-means to relax the pressure in a timespan of (roughly) 1000 time units
+scale on which pressure is relaxed.  For example, a value of 10.0
+means to relax the pressure in a timespan of (roughly) 10 time units
 (tau or fmsec or psec - see the :doc:`units <units>` command).
+
+.. note::
+
+   A Berendsen barostat will not work well for arbitrary values of
+   *Pdamp*.  If *Pdamp* is too small, the pressure and volume can
+   fluctuate wildly; if it is too large, the pressure will take a very
+   long time to equilibrate.  A good choice for many models is a *Pdamp*
+   of around 1000 timesteps.  However, note that *Pdamp* is specified in
+   time units, and that timesteps are NOT the same as time units for most
+   :doc:`units <units>` settings.
 
 .. note::
 

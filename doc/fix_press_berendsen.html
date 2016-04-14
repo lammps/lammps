@@ -159,7 +159,7 @@ fix 2 all press/berendsen aniso 0.0 0.0 1000.0 dilate partial
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Reset the pressure of the system by using a Berendsen barostat
-<a class="reference internal" href="fix_temp_berendsen.html#berendsen"><span>(Berendsen)</span></a>, which rescales the system volume and
+<a class="reference internal" href="#berendsen"><span>(Berendsen)</span></a>, which rescales the system volume and
 (optionally) the atoms coordinates within the simulation box every
 timestep.</p>
 <p>Regardless of what atoms are in the fix group, a global pressure is
@@ -203,9 +203,19 @@ example, if the <em>y</em> keyword is used, the y-box length will change.  A
 box dimension will not change if that component is not specified,
 although you have the option to change that dimension via the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> command.</p>
 <p>For all barostat keywords, the <em>Pdamp</em> parameter determines the time
-scale on which pressure is relaxed.  For example, a value of 1000.0
-means to relax the pressure in a timespan of (roughly) 1000 time units
+scale on which pressure is relaxed.  For example, a value of 10.0
+means to relax the pressure in a timespan of (roughly) 10 time units
 (tau or fmsec or psec - see the <a class="reference internal" href="units.html"><em>units</em></a> command).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A Berendsen barostat will not work well for arbitrary values of
+<em>Pdamp</em>.  If <em>Pdamp</em> is too small, the pressure and volume can
+fluctuate wildly; if it is too large, the pressure will take a very
+long time to equilibrate.  A good choice for many models is a <em>Pdamp</em>
+of around 1000 timesteps.  However, note that <em>Pdamp</em> is specified in
+time units, and that timesteps are NOT the same as time units for most
+<a class="reference internal" href="units.html"><em>units</em></a> settings.</p>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The relaxation time is actually also a function of the bulk

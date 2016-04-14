@@ -331,10 +331,6 @@ public:
   /// \brief Move all positions
   void apply_translation(cvm::rvector const &t);
 
-  /// \brief Rotate all positions around the center of geometry
-  void apply_rotation(cvm::rotation const &q);
-
-
   /// \brief Get the current velocities; this must be called always
   /// *after* read_positions(); if b_rotate is defined, the same
   /// rotation applied to the coordinates will be used

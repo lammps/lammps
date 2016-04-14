@@ -1107,7 +1107,7 @@ int colvarmodule::open_traj_file(std::string const &file_name)
 
 int colvarmodule::close_traj_file()
 {
-  if (cv_traj_os.good()) {
+  if (cv_traj_os.is_open()) {
     cv_traj_os.close();
   }
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);

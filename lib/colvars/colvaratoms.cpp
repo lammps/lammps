@@ -374,10 +374,6 @@ int cvm::atom_group::parse(std::string const &conf)
   // Catch any errors from all the initialization steps above
   if (parse_error || cvm::get_error()) return (parse_error || cvm::get_error());
 
-  if (is_enabled(f_ag_scalable)) {
-    index = (cvm::proxy)->init_atom_group(atoms_ids);
-  }
-
   // checks of doubly-counted atoms have been handled by add_atom() already
 
   if (get_keyval(group_conf, "dummyAtom", dummy_atom_pos, cvm::atom_pos())) {
@@ -405,6 +401,10 @@ int cvm::atom_group::parse(std::string const &conf)
     } else {
       get_keyval(group_conf, "disableForces", noforce, false, colvarparse::parse_silent);
     }
+  }
+
+  if (is_enabled(f_ag_scalable) && !b_dummy) {
+    index = (cvm::proxy)->init_atom_group(atoms_ids);
   }
 
   parse_error |= parse_fitting_options(group_conf);
@@ -749,15 +749,24 @@ void cvm::atom_group::read_positions()
 
 int cvm::atom_group::calc_required_properties()
 {
-  if (b_dummy) return COLVARS_OK;
-
   // TODO check if the com is needed?
   calc_center_of_mass();
+  calc_center_of_geometry();
+
   if (!is_enabled(f_ag_scalable)) {
-    // TODO check if calc_center_of_geometry() is needed without a fit?
-    calc_center_of_geometry();
     if (b_center || b_rotate) {
+      if (ref_pos_group) {
+        ref_pos_group->calc_center_of_geometry();
+      }
+
       calc_apply_roto_translation();
+
+      // update COM and COG after fitting
+      calc_center_of_geometry();
+      calc_center_of_mass();
+      if (ref_pos_group) {
+        ref_pos_group->calc_center_of_geometry();
+      }
     }
   }
 
@@ -766,36 +775,48 @@ int cvm::atom_group::calc_required_properties()
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
 
+
 void cvm::atom_group::calc_apply_roto_translation()
 {
-  atom_group *fit_group = ref_pos_group ? ref_pos_group : this;
-
   if (b_center) {
     // center on the origin first
-    cvm::atom_pos const cog = fit_group->center_of_geometry();
+    cvm::atom_pos const cog = ref_pos_group ?
+      ref_pos_group->center_of_geometry() : this->center_of_geometry();
     apply_translation(-1.0 * cog);
+    if (ref_pos_group) {
+      ref_pos_group->apply_translation(-1.0 * cog);
+    }
   }
 
   if (b_rotate) {
     // rotate the group (around the center of geometry if b_center is
     // true, around the origin otherwise)
-    rot.calc_optimal_rotation(fit_group->positions(), ref_pos);
+    rot.calc_optimal_rotation(ref_pos_group ?
+                              ref_pos_group->positions() :
+                              this->positions(),
+                              ref_pos);
 
-    for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
+    cvm::atom_iter ai;
+    for (ai = this->begin(); ai != this->end(); ai++) {
       ai->pos = rot.rotate(ai->pos);
+    }
+    if (ref_pos_group) {
+      for (ai = ref_pos_group->begin(); ai != ref_pos_group->end(); ai++) {
+        ai->pos = rot.rotate(ai->pos);
+      }
     }
   }
 
   if (b_center) {
     // align with the center of geometry of ref_pos
     apply_translation(ref_pos_cog);
-    // update the center of geometry for external use
-    cog = ref_pos_cog;
+    if (ref_pos_group) {
+      ref_pos_group->apply_translation(ref_pos_cog);
+    }
   }
-
-  // recalculate the center of mass
-  calc_center_of_mass();
+  // update of COM and COG is done from the calling routine
 }
+
 
 void cvm::atom_group::apply_translation(cvm::rvector const &t)
 {
@@ -811,23 +832,6 @@ void cvm::atom_group::apply_translation(cvm::rvector const &t)
 
   for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
     ai->pos += t;
-  }
-}
-
-void cvm::atom_group::apply_rotation(cvm::rotation const &rot)
-{
-  if (b_dummy) {
-    cvm::error("Error: cannot rotate the coordinates of a dummy atom group.\n", INPUT_ERROR);
-    return;
-  }
-
-  if (is_enabled(f_ag_scalable)) {
-    cvm::error("Error: cannot rotate the coordinates of a scalable atom group.\n", INPUT_ERROR);
-    return;
-  }
-
-  for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-    ai->pos = rot.rotate(ai->pos - center_of_geometry()) + center_of_geometry();
   }
 }
 
@@ -892,6 +896,9 @@ int cvm::atom_group::calc_center_of_mass()
 {
   if (b_dummy) {
     com = dummy_atom_pos;
+    if (cvm::debug()) {
+      cvm::log("Dummy atom center of mass = "+cvm::to_str(com)+"\n");
+    }
   } else if (is_enabled(f_ag_scalable)) {
     com = (cvm::proxy)->get_atom_group_com(index);
   } else {

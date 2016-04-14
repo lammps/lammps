@@ -610,6 +610,7 @@ int colvar::parse_analysis(std::string const &conf)
                              this->name+".runave.traj"));
 
     size_t const this_cv_width = x.output_width(cvm::cv_width);
+    cvm::backup_file(runave_outfile.c_str());
     runave_os.open(runave_outfile.c_str());
     runave_os << "# " << cvm::wrap_string("step", cvm::it_width-2)
               << "  "
@@ -1634,15 +1635,16 @@ int colvar::write_output_files()
     if (acf.size()) {
       cvm::log("Writing acf to file \""+acf_outfile+"\".\n");
 
+      cvm::backup_file(acf_outfile.c_str());
       cvm::ofstream acf_os(acf_outfile.c_str());
-      if (! acf_os.good()) {
+      if (! acf_os.is_open()) {
         cvm::error("Cannot open file \""+acf_outfile+"\".\n", FILE_ERROR);
       }
       write_acf(acf_os);
       acf_os.close();
     }
 
-    if (runave_os.good()) {
+    if (runave_os.is_open()) {
       runave_os.close();
     }
   }

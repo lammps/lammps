@@ -56,6 +56,10 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
 
     size_t i;
     if (get_keyval(conf, "targetCenters", target_centers, colvar_centers)) {
+      if (colvar_centers.size() != colvars.size()) {
+        cvm::error("Error: number of target centers does not match "
+                   "that of collective variables.\n");
+      }
       b_chg_centers = true;
       for (i = 0; i < target_centers.size(); i++) {
         target_centers[i].apply_constraints();

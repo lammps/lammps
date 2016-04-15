@@ -43,6 +43,8 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   clearstep = 1;
 
   nevery = force->inumeric(FLERR,arg[3]);
+  if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
+
 
   size_one = nfield = narg-5;
   pack_choice = new FnPtrPack[nfield];

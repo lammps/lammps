@@ -60,6 +60,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   clearstep = 1;
 
   nevery = force->inumeric(FLERR,arg[3]);
+  if (nevery <= 0) error->all(FLERR,"Illegal dump custom command");
 
   // size_one may be shrunk below if additional optional args exist
 

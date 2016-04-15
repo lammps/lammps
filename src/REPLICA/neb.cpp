@@ -122,7 +122,7 @@ void NEB::command(int narg, char **arg)
 
   if (etol < 0.0) error->all(FLERR,"Illegal NEB command");
   if (ftol < 0.0) error->all(FLERR,"Illegal NEB command");
-  if (nevery == 0) error->universe_all(FLERR,"Illegal NEB command");
+  if (nevery <= 0) error->universe_all(FLERR,"Illegal NEB command");
   if (n1steps % nevery || n2steps % nevery)
     error->universe_all(FLERR,"Illegal NEB command");
 

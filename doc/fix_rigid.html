@@ -236,7 +236,7 @@ single entity.</p>
 <p>Examples of large rigid bodies are a colloidal particle, or portions
 of a biomolecule such as a protein.</p>
 <p>Example of small rigid bodies are patchy nanoparticles, such as those
-modeled in <a class="reference internal" href="pair_gran.html#zhang"><span>this paper</span></a> by Sharon Glotzer&#8217;s group, clumps of
+modeled in <a class="reference internal" href="#zhang"><span>this paper</span></a> by Sharon Glotzer&#8217;s group, clumps of
 granular particles, lipid molecules consiting of one or more point
 dipoles connected to other spheroids or ellipsoids, irregular
 particles built from line segments (2d) or triangles (3d), and
@@ -288,7 +288,7 @@ differences may accumulate to produce divergent trajectories.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">You should not update the atoms in rigid bodies via other
-time-integration fixes (e.g. <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>, <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">nvt</span></code>, <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">npt</span></code>), or you will be integrating
+time-integration fixes (e.g. <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a>), or you will be integrating
 their motion more than once each timestep.  When performing a hybrid
 simulation with some atoms in rigid bodies, and some not, a separate
 time integration fix like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> should be used for the non-rigid particles.</p>

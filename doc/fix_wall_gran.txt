@@ -97,7 +97,7 @@ keywords are appended.  Both keywords cannot be used together.
 
 For the {wiggle} keyword, the wall oscillates sinusoidally, similar to
 the oscillations of particles which can be specified by the
-"fix_move"_fix_move.html command.  This is useful in packing
+"fix move"_fix_move.html command.  This is useful in packing
 simulations of granular particles.  The arguments to the {wiggle}
 keyword specify a dimension for the motion, as well as it's
 {amplitude} and {period}.  Note that if the dimension is in the plane
@@ -152,6 +152,6 @@ Any dimension (xyz) that has a granular wall must be non-periodic.
 
 [Related commands:]
 
-"fix_move"_fix_move.html, "pair_style granular"_pair_gran.html
+"fix move"_fix_move.html, "pair_style granular"_pair_gran.html
 
 [Default:] none

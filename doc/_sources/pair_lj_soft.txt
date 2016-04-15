@@ -241,8 +241,8 @@ in several water models).
 NOTES: When using the core-softed Coulomb potentials with long-range
 solvers (*coul/long/soft*, *lj/cut/coul/long/soft*, etc.)  in a free
 energy calculation in which sites holding electrostatic charges are
-being created or anihilated (using :doc:`fix_adapt/fep <fix_adapt_fep>`
-and :doc:`compute_fep <compute_fep>`) it is important to adapt both the
+being created or anihilated (using :doc:`fix adapt/fep <fix_adapt_fep>`
+and :doc:`compute fep <compute_fep>`) it is important to adapt both the
 lambda activation parameter (from 0 to 1, or the reverse) and the
 value of the charge (from 0 to its final value, or the reverse). This
 ensures that long-range electrostatic terms (kspace) are correct. It
@@ -323,8 +323,8 @@ the :ref:`Making LAMMPS <start_3>` section for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`fix_adapt <fix_adapt>`,
-:doc:`fix_adapt/fep <fix_adapt_fep>`, :doc:`compute_fep <compute_fep>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`,
+:doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`
 
 **Default:** none
 

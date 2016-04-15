@@ -47,7 +47,7 @@ Examples
 Description
 """""""""""
 
-Time average computed intensities from `compute_saed <compute_saed.txt>`_ and 
+Time average computed intensities from :doc:`compute saed <compute_saed>` and 
 write output to a file in the 3rd generation vtk image data format for 
 visualization directly in parallelized visualization software packages 
 like ParaView and VisIt. Note that if no time averaging is done, this 
@@ -65,7 +65,7 @@ The group specified within this command is ignored. However, note that
 specified values may represent calculations performed by saed computes
 which store their own "group" definitions.
 
-Fix saed/vtk is designed to work only with `compute_saed <compute_saed.txt>`_ 
+Fix saed/vtk is designed to work only with :doc:`compute saed <compute_saed>`
 values, e.g.
 
 .. parsed-literal::

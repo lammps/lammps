@@ -58,7 +58,7 @@ atoms. Swaps are not attempted between atoms of the same type since
 nothing would happen.
 
 All atoms in the simulation domain can be moved using regular time
-integration displacements, e.g. via :doc:`fix_nvt <fix_nvt>`, resulting
+integration displacements, e.g. via :doc:`fix nvt <fix_nh>`, resulting
 in a hybrid MC+MD simulation. A smaller-than-usual timestep size may
 be needed when running such a hybrid simulation, especially if the
 swapped atoms are not well equilibrated.
@@ -176,9 +176,9 @@ built with that package.  See the :ref:`Making LAMMPS <start_3>` section for mor
 Related commands
 """"""""""""""""
 
-:doc:`fix_nvt <fix_nvt>`, :doc:`neighbor <neighbor>`, 
-:doc:`fix_deposit <fix_deposit>`, :doc:`fix_evaporate <fix_evaporate>`,
-:doc:`delete_atoms <delete_atoms>`, :doc:`fix_gcmc <fix_gcmc>`
+:doc:`fix nvt <fix_nh>`, :doc:`neighbor <neighbor>`, 
+:doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
+:doc:`delete_atoms <delete_atoms>`, :doc:`fix gcmc <fix_gcmc>`
 
 Default
 """""""

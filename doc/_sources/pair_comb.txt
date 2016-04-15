@@ -194,7 +194,7 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`, 
-:doc:`fix_qeq/comb <fix_qeq_comb>`
+:doc:`fix qeq/comb <fix_qeq_comb>`
 
 **Default:** none
 

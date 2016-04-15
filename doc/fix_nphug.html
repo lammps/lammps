@@ -175,7 +175,7 @@ fix myhug all nphug temp 1.0 1.0 10.0 iso 40.0 40.0 70.0 drag 200.0 tchain 1 pch
 <p>This command is a variant of the Nose-Hoover
 <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> fix style.
 It performs time integration of the Hugoniostat equations
-of motion developed by Ravelo et al. <a class="reference internal" href="pair_lj_cubic.html#ravelo"><span>(Ravelo)</span></a>.
+of motion developed by Ravelo et al. <a class="reference internal" href="#ravelo"><span>(Ravelo)</span></a>.
 These equations compress the system to a state with average
 axial stress or pressure equal to the specified target value
 and that satisfies the Rankine-Hugoniot (RH)
@@ -302,7 +302,7 @@ these fixes is &#8220;extensive&#8221;; the vector values are &#8220;intensive&#
 <p>The scalar is the cumulative energy change due to the fix.</p>
 <p>The vector stores three quantities unique to this fix (Delta, Us, and up),
 followed by all the internal Nose/Hoover thermostat and barostat
-variables defined for <a class="reference internal" href="fix_nh.html"><em>fix_style npt</em></a>. Delta is the deviation
+variables defined for <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a>. Delta is the deviation
 of the temperature from the target temperature, given by the above equation.
 Us and up are the shock and particle velocity corresponding to a steady
 shock calculated from the RH conditions. They have units of distance/time.</p>
@@ -311,7 +311,7 @@ shock calculated from the RH conditions. They have units of distance/time.</p>
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>All the usual restrictions for <a class="reference internal" href="fix_nh.html"><em>fix_style npt</em></a> apply,
+<p>All the usual restrictions for <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> apply,
 plus the additional ones mentioned above.</p>
 </div>
 <div class="section" id="related-commands">

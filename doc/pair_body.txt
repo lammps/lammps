@@ -113,6 +113,6 @@ body"_atom_style.html command.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "fix_rigid"_fix_rigid.html
+"pair_coeff"_pair_coeff.html, "fix rigid"_fix_rigid.html
 
 [Default:] none

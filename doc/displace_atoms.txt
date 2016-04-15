@@ -132,7 +132,7 @@ You cannot rotate around any rotation vector except the z-axis for a
 [Related commands:]
 
 "lattice"_lattice.html, "change_box"_change_box.html,
-"fix_move"_fix_move.html
+"fix move"_fix_move.html
 
 [Default:]
 

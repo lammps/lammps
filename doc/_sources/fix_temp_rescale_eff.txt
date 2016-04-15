@@ -72,7 +72,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix_modify <fix_modify>`,
-:doc:`fix_temp_rescale <fix_temp_rescale>`,
+:doc:`fix temp rescale <fix_temp_rescale>`,
 
 **Default:** none
 

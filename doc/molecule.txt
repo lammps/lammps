@@ -1,4 +1,4 @@
-<"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -456,7 +456,7 @@ of SHAKE clusters.
 [Related commands:]
 
 "fix deposit"_fix_deposit.html, "fix pour"_fix_pour.html,
-"fix_gcmc"_fix_gcmc.html
+"fix gcmc"_fix_gcmc.html
 
 [Default:]
 

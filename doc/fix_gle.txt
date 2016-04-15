@@ -88,7 +88,7 @@ Note also that the Generalized Langevin Dynamics scheme that is
 implemented by the "fix gld"_fix_gld.html scheme is closely related
 to the present one. In fact, it should be always possible to cast the
 Prony series form of the memory kernel used by GLD into an appropriate
-input matrix for "fix_gle"_fix_gle.html. While the GLE scheme is more
+input matrix for "fix gle"_fix_gle.html. While the GLE scheme is more
 general, the form used by "fix gld"_fix_gld.html can be more directly
 related to the representation of an implicit solvent environment. 
 
@@ -128,7 +128,7 @@ ensemble will not be correct otherwise.
 
 In order to perform constant-pressure simulations please use 
 "fix press/berendsen"_fix_press_berendsen.html, rather than 
-"fix_npt"_fix_npt.html, to avoid duplicate integration of the
+"fix npt"_fix_nh.html, to avoid duplicate integration of the
 equations of motion. 
 
 This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
@@ -139,7 +139,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 "fix nvt"_fix_nh.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
 viscous"_fix_viscous.html, "fix nvt"_fix_nh.html, "pair_style
-dpd/tstat"_pair_dpd.html, "fix_gld"_fix_gld.html
+dpd/tstat"_pair_dpd.html, "fix gld"_fix_gld.html
 
 :line
 

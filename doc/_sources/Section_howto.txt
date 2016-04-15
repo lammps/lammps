@@ -737,7 +737,7 @@ the fix is invoked, and can make library calls to the other code,
 which has been linked to LAMMPS as a library.  This is the way the
 `POEMS <poems_>`_ package that performs constrained rigid-body motion on
 groups of atoms is hooked to LAMMPS.  See the
-:doc:`fix_poems <fix_poems>` command for more details.  See :doc:`this section <Section_modify>` of the documentation for info on how to add
+:doc:`fix poems <fix_poems>` command for more details.  See :doc:`this section <Section_modify>` of the documentation for info on how to add
 a new fix to LAMMPS.
 
 .. _poems: http://www.rpi.edu/~anderk5/lab

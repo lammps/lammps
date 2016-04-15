@@ -50,7 +50,7 @@ commands.  For both the *brick* and *tiled* styles, the initial
 decomposition will be the same, as described by
 :doc:`create_box <create_box>` and :doc:`processors <processors>`
 commands.  The decomposition can be changed via the
-:doc:`balance <balance>` or :doc:`fix_balance <fix_balance>` commands.
+:doc:`balance <balance>` or :doc:`fix balance <fix_balance>` commands.
 
 Restrictions
 """"""""""""

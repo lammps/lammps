@@ -54,7 +54,7 @@ fix 1 all adapt/fep 10 atom diameter 1 v_size :pre
 Change or adapt one or more specific simulation attributes or settings
 over time as a simulation runs.
 
-This is an enhanced version of the "fix_adapt"_fix_adapt.html command
+This is an enhanced version of the "fix adapt"_fix_adapt.html command
 with two differences,
 
 It is possible to modify the charges of chosen atom types only,
@@ -64,7 +64,7 @@ There is a new option {after} for better compatibility with "fix
 ave/time". :l,ule
 
 This version is suited for free energy calculations using
-"compute_ti"_compute_ti.html or "compute_fep"_compute_fep.html.
+"compute ti"_compute_ti.html or "compute fep"_compute_fep.html.
 
 If {N} is specified as 0, the specified attributes are only changed
 once, before the simulation begins.  This is all that is needed if the
@@ -251,7 +251,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Related commands:]
 
-"compute fep"_compute_fep.html, "fix_adapt"_fix_adapt.html, "compute
+"compute fep"_compute_fep.html, "fix adapt"_fix_adapt.html, "compute
 ti"_compute_ti.html
 
 [Default:]

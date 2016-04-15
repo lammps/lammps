@@ -71,6 +71,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 "fix langevin/eff"_fix_langevin_eff.html, "fix
 nvt/eff"_fix_nh_eff.html, "fix_modify"_fix_modify.html,
-"fix_temp_rescale"_fix_temp_rescale.html,
+"fix temp rescale"_fix_temp_rescale.html,
 
 [Default:] none

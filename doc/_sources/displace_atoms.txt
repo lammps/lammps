@@ -150,7 +150,7 @@ Related commands
 """"""""""""""""
 
 :doc:`lattice <lattice>`, :doc:`change_box <change_box>`,
-:doc:`fix_move <fix_move>`
+:doc:`fix move <fix_move>`
 
 Default
 """""""

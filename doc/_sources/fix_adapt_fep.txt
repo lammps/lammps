@@ -62,7 +62,7 @@ Description
 Change or adapt one or more specific simulation attributes or settings
 over time as a simulation runs.
 
-This is an enhanced version of the :doc:`fix_adapt <fix_adapt>` command
+This is an enhanced version of the :doc:`fix adapt <fix_adapt>` command
 with two differences,
 
 * It is possible to modify the charges of chosen atom types only,
@@ -70,7 +70,7 @@ with two differences,
 * There is a new option *after* for better compatibility with "fix
   ave/time".
 This version is suited for free energy calculations using
-:doc:`compute_ti <compute_ti>` or :doc:`compute_fep <compute_fep>`.
+:doc:`compute ti <compute_ti>` or :doc:`compute fep <compute_fep>`.
 
 If *N* is specified as 0, the specified attributes are only changed
 once, before the simulation begins.  This is all that is needed if the
@@ -281,7 +281,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute fep <compute_fep>`, :doc:`fix_adapt <fix_adapt>`, :doc:`compute ti <compute_ti>`
+:doc:`compute fep <compute_fep>`, :doc:`fix adapt <fix_adapt>`, :doc:`compute ti <compute_ti>`
 
 Default
 """""""

@@ -79,6 +79,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   double temperature = force->numeric(FLERR,arg[6]);
   beta = 1.0/(force->boltz*temperature);
 
+  if (nevery <= 0) error->all(FLERR,"Illegal fix atom/swap command");
   if (ncycles < 0) error->all(FLERR,"Illegal fix atom/swap command");
   if (seed <= 0) error->all(FLERR,"Illegal fix atom/swap command");
 

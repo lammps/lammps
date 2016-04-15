@@ -63,6 +63,7 @@ FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
   // parse arguments
 
   nevery = force->inumeric(FLERR,arg[3]);
+  if (nevery <= 0) error->all(FLERR,"Illegal fix tune/kspace command");
 
   // set up reneighboring
 

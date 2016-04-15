@@ -87,7 +87,7 @@ void Temper::command(int narg, char **arg)
 
   // swap frequency must evenly divide total # of timesteps
 
-  if (nevery == 0)
+  if (nevery <= 0)
     error->universe_all(FLERR,"Invalid frequency in temper command");
   nswaps = nsteps/nevery;
   if (nswaps*nevery != nsteps)

@@ -55,6 +55,10 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   tolerance = force->numeric(FLERR,arg[5]);
   maxiter = force->inumeric(FLERR,arg[6]);
 
+  // check for sane arguments
+  if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
+    error->all(FLERR,"Illegal fix qeq command");
+
   alpha = 0.20;
   swa = 0.0;
   swb = cutoff;

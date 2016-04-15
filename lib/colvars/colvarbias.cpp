@@ -10,6 +10,8 @@ colvarbias::colvarbias(std::string const &conf, char const *key)
 {
   cvm::log("Initializing a new \""+std::string(key)+"\" instance.\n");
 
+  init_cvb_requires();
+
   size_t rank = 1;
   std::string const key_str(key);
 
@@ -35,6 +37,8 @@ colvarbias::colvarbias(std::string const &conf, char const *key)
     return;
   }
 
+  description = "bias " + name;
+
   // lookup the associated colvars
   std::vector<std::string> colvars_str;
   if (get_keyval(conf, "colvars", colvars_str)) {
@@ -46,6 +50,13 @@ colvarbias::colvarbias(std::string const &conf, char const *key)
     cvm::error("Error: no collective variables specified.\n");
     return;
   }
+  for (size_t i=0; i<colvars.size(); i++) {
+    // All biases need at least the value of colvars
+    // although possibly not at all timesteps
+    add_child(colvars[i]);
+  }
+  // Start in active state by default
+  enable(f_cvb_active);
 
   get_keyval(conf, "outputEnergy", b_output_energy, false);
 }
@@ -84,7 +95,8 @@ colvarbias::~colvarbias()
 void colvarbias::add_colvar(std::string const &cv_name)
 {
   if (colvar *cv = cvm::colvar_by_name(cv_name)) {
-    cv->enable(colvar::task_gradients);
+    // Removed this as nor all biases apply forces eg histogram
+    // cv->enable(colvar::task_gradients);
     if (cvm::debug())
       cvm::log("Applying this bias to collective variable \""+
                 cv->name+"\".\n");
@@ -100,10 +112,11 @@ void colvarbias::add_colvar(std::string const &cv_name)
 }
 
 
-cvm::real colvarbias::update()
+int colvarbias::update()
 {
+  // Note: if anything is added here, it should be added also in the SMP block of calc_biases()
   has_data = true;
-  return 0.0;
+  return COLVARS_OK;
 }
 
 
@@ -172,3 +185,7 @@ std::ostream & colvarbias::write_traj(std::ostream &os)
        << bias_energy;
   return os;
 }
+
+// Static members
+
+std::vector<cvm::deps::feature *> colvarbias::cvb_features;

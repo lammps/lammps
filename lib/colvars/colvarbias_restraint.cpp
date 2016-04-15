@@ -18,6 +18,9 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
     colvar_centers.resize(colvars.size());
     colvar_centers_raw.resize(colvars.size());
     size_t i;
+
+    enable(f_cvb_apply_force);
+
     for (i = 0; i < colvars.size(); i++) {
       colvar_centers[i].type(colvars[i]->value());
       colvar_centers_raw[i].type(colvars[i]->value());
@@ -53,6 +56,10 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
 
     size_t i;
     if (get_keyval(conf, "targetCenters", target_centers, colvar_centers)) {
+      if (colvar_centers.size() != colvars.size()) {
+        cvm::error("Error: number of target centers does not match "
+                   "that of collective variables.\n");
+      }
       b_chg_centers = true;
       for (i = 0; i < target_centers.size(); i++) {
         target_centers[i].apply_constraints();
@@ -167,7 +174,7 @@ cvm::real colvarbias_restraint::energy_difference(std::string const &conf)
 }
 
 
-cvm::real colvarbias_restraint::update()
+int colvarbias_restraint::update()
 {
   bias_energy = 0.0;
 
@@ -333,7 +340,7 @@ cvm::real colvarbias_restraint::update()
     cvm::log("Current forces for the restraint bias \""+
               this->name+"\": "+cvm::to_str(colvar_forces)+".\n");
 
-  return bias_energy;
+  return COLVARS_OK;
 }
 
 

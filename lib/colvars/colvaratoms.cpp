@@ -4,7 +4,6 @@
 #include "colvarparse.h"
 #include "colvaratoms.h"
 
-
 cvm::atom::atom()
 {
   index = -1;
@@ -68,8 +67,7 @@ cvm::atom_group::atom_group(std::string const &conf,
                             char const        *key_in)
 {
   key = key_in;
-  cvm::log("Defining atom group \""+
-           std::string(key)+"\".\n");
+  cvm::log("Defining atom group \"" + key + "\".\n");
   init();
   // real work is done by parse
   parse(conf);
@@ -93,8 +91,9 @@ cvm::atom_group::atom_group()
 
 cvm::atom_group::~atom_group()
 {
-  if (index >= 0) {
+  if (is_enabled(f_ag_scalable)) {
     (cvm::proxy)->clear_atom_group(index);
+    index = -1;
   }
 
   if (ref_pos_group) {
@@ -151,7 +150,7 @@ int cvm::atom_group::add_atom_id(int aid)
 
 int cvm::atom_group::remove_atom(cvm::atom_iter ai)
 {
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     cvm::error("Error: cannot remove atoms from a scalable group.\n", INPUT_ERROR);
     return COLVARS_ERROR;
   }
@@ -173,10 +172,11 @@ int cvm::atom_group::remove_atom(cvm::atom_iter ai)
 int cvm::atom_group::init()
 {
   if (!key.size()) key = "atoms";
-
   atoms.clear();
 
-  b_scalable = false;
+  // TODO: check with proxy whether atom forces etc are available
+  init_ag_requires();
+
   index = -1;
 
   b_center = false;
@@ -216,7 +216,7 @@ void cvm::atom_group::update_total_mass()
     return;
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     total_mass = (cvm::proxy)->get_atom_group_mass(index);
   } else {
     total_mass = 0.0;
@@ -243,7 +243,7 @@ void cvm::atom_group::update_total_charge()
     return;
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     total_charge = (cvm::proxy)->get_atom_group_charge(index);
   } else {
     total_charge = 0.0;
@@ -280,6 +280,8 @@ int cvm::atom_group::parse(std::string const &conf)
 
   cvm::log("Initializing atom group \""+key+"\".\n");
 
+  description = "atom group " + key;
+
   // whether or not to include messages in the log
   // colvarparse::Parse_Mode mode = parse_silent;
   // {
@@ -290,9 +292,6 @@ int cvm::atom_group::parse(std::string const &conf)
   // colvarparse::Parse_Mode mode = parse_normal;
 
   int parse_error = COLVARS_OK;
-
-  // if the cvc allows it, the flag has been set to true by default
-  get_keyval(group_conf, "scalable", b_scalable, b_scalable);
 
   {
     std::string numbers_conf = "";
@@ -373,11 +372,7 @@ int cvm::atom_group::parse(std::string const &conf)
   }
 
   // Catch any errors from all the initialization steps above
-  if (parse_error || cvm::get_error()) return COLVARS_ERROR;
-
-  if (b_scalable) {
-    index = (cvm::proxy)->init_atom_group(atoms_ids);
-  }
+  if (parse_error || cvm::get_error()) return (parse_error || cvm::get_error());
 
   // checks of doubly-counted atoms have been handled by add_atom() already
 
@@ -406,6 +401,10 @@ int cvm::atom_group::parse(std::string const &conf)
     } else {
       get_keyval(group_conf, "disableForces", noforce, false, colvarparse::parse_silent);
     }
+  }
+
+  if (is_enabled(f_ag_scalable) && !b_dummy) {
+    index = (cvm::proxy)->init_atom_group(atoms_ids);
   }
 
   parse_error |= parse_fitting_options(group_conf);
@@ -449,7 +448,7 @@ int cvm::atom_group::add_atom_numbers(std::string const &numbers_conf)
   if (atom_indexes.size()) {
     atoms_ids.reserve(atoms_ids.size()+atom_indexes.size());
 
-    if (b_scalable) {
+    if (is_enabled(f_ag_scalable)) {
       for (size_t i = 0; i < atom_indexes.size(); i++) {
         add_atom_id((cvm::proxy)->check_atom_id(atom_indexes[i]));
       }
@@ -490,7 +489,7 @@ int cvm::atom_group::add_index_group(std::string const &index_group_name)
 
   atoms_ids.reserve(atoms_ids.size()+index_groups_i->size());
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     for (size_t i = 0; i < index_groups_i->size(); i++) {
       add_atom_id((cvm::proxy)->check_atom_id((*index_groups_i)[i]));
     }
@@ -520,7 +519,7 @@ int cvm::atom_group::add_atom_numbers_range(std::string const &range_conf)
 
       atoms_ids.reserve(atoms_ids.size() + (final - initial + 1));
 
-      if (b_scalable) {
+      if (is_enabled(f_ag_scalable)) {
         for (int anum = initial; anum <= final; anum++) {
           add_atom_id((cvm::proxy)->check_atom_id(anum));
         }
@@ -558,7 +557,7 @@ int cvm::atom_group::add_atom_name_residue_range(std::string const &psf_segid,
 
       atoms_ids.reserve(atoms_ids.size() + (final - initial + 1));
 
-      if (b_scalable) {
+      if (is_enabled(f_ag_scalable)) {
         for (int resid = initial; resid <= final; resid++) {
           add_atom_id((cvm::proxy)->check_atom_id(resid, atom_name, psf_segid));
         }
@@ -750,15 +749,24 @@ void cvm::atom_group::read_positions()
 
 int cvm::atom_group::calc_required_properties()
 {
-  if (b_dummy) return COLVARS_OK;
-
   // TODO check if the com is needed?
   calc_center_of_mass();
-  if (!b_scalable) {
-    // TODO check if calc_center_of_geometry() is needed without a fit?
-    calc_center_of_geometry();
+  calc_center_of_geometry();
+
+  if (!is_enabled(f_ag_scalable)) {
     if (b_center || b_rotate) {
+      if (ref_pos_group) {
+        ref_pos_group->calc_center_of_geometry();
+      }
+
       calc_apply_roto_translation();
+
+      // update COM and COG after fitting
+      calc_center_of_geometry();
+      calc_center_of_mass();
+      if (ref_pos_group) {
+        ref_pos_group->calc_center_of_geometry();
+      }
     }
   }
 
@@ -767,36 +775,48 @@ int cvm::atom_group::calc_required_properties()
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
 
+
 void cvm::atom_group::calc_apply_roto_translation()
 {
-  atom_group *fit_group = ref_pos_group ? ref_pos_group : this;
-
   if (b_center) {
     // center on the origin first
-    cvm::atom_pos const cog = fit_group->center_of_geometry();
+    cvm::atom_pos const cog = ref_pos_group ?
+      ref_pos_group->center_of_geometry() : this->center_of_geometry();
     apply_translation(-1.0 * cog);
+    if (ref_pos_group) {
+      ref_pos_group->apply_translation(-1.0 * cog);
+    }
   }
 
   if (b_rotate) {
     // rotate the group (around the center of geometry if b_center is
     // true, around the origin otherwise)
-    rot.calc_optimal_rotation(fit_group->positions(), ref_pos);
+    rot.calc_optimal_rotation(ref_pos_group ?
+                              ref_pos_group->positions() :
+                              this->positions(),
+                              ref_pos);
 
-    for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
+    cvm::atom_iter ai;
+    for (ai = this->begin(); ai != this->end(); ai++) {
       ai->pos = rot.rotate(ai->pos);
+    }
+    if (ref_pos_group) {
+      for (ai = ref_pos_group->begin(); ai != ref_pos_group->end(); ai++) {
+        ai->pos = rot.rotate(ai->pos);
+      }
     }
   }
 
   if (b_center) {
     // align with the center of geometry of ref_pos
     apply_translation(ref_pos_cog);
-    // update the center of geometry for external use
-    cog = ref_pos_cog;
+    if (ref_pos_group) {
+      ref_pos_group->apply_translation(ref_pos_cog);
+    }
   }
-
-  // recalculate the center of mass
-  calc_center_of_mass();
+  // update of COM and COG is done from the calling routine
 }
+
 
 void cvm::atom_group::apply_translation(cvm::rvector const &t)
 {
@@ -805,30 +825,13 @@ void cvm::atom_group::apply_translation(cvm::rvector const &t)
     return;
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     cvm::error("Error: cannot translate the coordinates of a scalable atom group.\n", INPUT_ERROR);
     return;
   }
 
   for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
     ai->pos += t;
-  }
-}
-
-void cvm::atom_group::apply_rotation(cvm::rotation const &rot)
-{
-  if (b_dummy) {
-    cvm::error("Error: cannot rotate the coordinates of a dummy atom group.\n", INPUT_ERROR);
-    return;
-  }
-
-  if (b_scalable) {
-    cvm::error("Error: cannot rotate the coordinates of a scalable atom group.\n", INPUT_ERROR);
-    return;
-  }
-
-  for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-    ai->pos = rot.rotate(ai->pos - center_of_geometry()) + center_of_geometry();
   }
 }
 
@@ -852,6 +855,8 @@ void cvm::atom_group::read_velocities()
   }
 }
 
+
+// TODO make this a calc function
 void cvm::atom_group::read_system_forces()
 {
   if (b_dummy) return;
@@ -891,7 +896,10 @@ int cvm::atom_group::calc_center_of_mass()
 {
   if (b_dummy) {
     com = dummy_atom_pos;
-  } else if (b_scalable) {
+    if (cvm::debug()) {
+      cvm::log("Dummy atom center of mass = "+cvm::to_str(com)+"\n");
+    }
+  } else if (is_enabled(f_ag_scalable)) {
     com = (cvm::proxy)->get_atom_group_com(index);
   } else {
     com.reset();
@@ -922,7 +930,7 @@ void cvm::atom_group::set_weighted_gradient(cvm::rvector const &grad)
 {
   if (b_dummy) return;
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     scalar_com_gradient = grad;
     return;
   }
@@ -993,7 +1001,7 @@ std::vector<cvm::atom_pos> cvm::atom_group::positions() const
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     cvm::error("Error: atomic positions are not available "
                "from a scalable atom group.\n", INPUT_ERROR);
   }
@@ -1014,7 +1022,7 @@ std::vector<cvm::atom_pos> cvm::atom_group::positions_shifted(cvm::rvector const
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     cvm::error("Error: atomic positions are not available "
                "from a scalable atom group.\n", INPUT_ERROR);
   }
@@ -1035,7 +1043,7 @@ std::vector<cvm::rvector> cvm::atom_group::velocities() const
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     cvm::error("Error: atomic velocities are not available "
                "from a scalable atom group.\n", INPUT_ERROR);
   }
@@ -1056,7 +1064,7 @@ std::vector<cvm::rvector> cvm::atom_group::system_forces() const
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     cvm::error("Error: atomic system forces are not available "
                "from a scalable atom group.\n", INPUT_ERROR);
   }
@@ -1070,6 +1078,8 @@ std::vector<cvm::rvector> cvm::atom_group::system_forces() const
   return f;
 }
 
+
+// TODO make this an accessor
 cvm::rvector cvm::atom_group::system_force() const
 {
   if (b_dummy) {
@@ -1077,7 +1087,7 @@ cvm::rvector cvm::atom_group::system_force() const
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     return (cvm::proxy)->get_atom_group_system_force(index);
   }
 
@@ -1104,7 +1114,7 @@ void cvm::atom_group::apply_colvar_force(cvm::real const &force)
     return;
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     (cvm::proxy)->apply_atom_group_force(index, force * scalar_com_gradient);
     return;
   }
@@ -1156,7 +1166,7 @@ void cvm::atom_group::apply_force(cvm::rvector const &force)
     return;
   }
 
-  if (b_scalable) {
+  if (is_enabled(f_ag_scalable)) {
     (cvm::proxy)->apply_atom_group_force(index, force);
   }
 
@@ -1208,4 +1218,9 @@ void cvm::atom_group::apply_forces(std::vector<cvm::rvector> const &forces)
     }
   }
 }
+
+// Static members
+
+std::vector<cvm::deps::feature *> cvm::atom_group::ag_features;
+
 

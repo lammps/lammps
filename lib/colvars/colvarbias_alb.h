@@ -13,7 +13,7 @@ public:
   virtual ~colvarbias_alb();
 
 
-  virtual cvm::real update();
+  virtual int update();
 
   /// Read the bias configuration from a restart file
   virtual std::istream & read_restart(std::istream &is);

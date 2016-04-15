@@ -11,14 +11,13 @@ colvar::angle::angle(std::string const &conf)
   : cvc(conf)
 {
   function_type = "angle";
-  b_inverse_gradients = true;
-  b_Jacobian_derivative = true;
-  parse_group(conf, "group1", group1);
-  parse_group(conf, "group2", group2);
-  parse_group(conf, "group3", group3);
-  atom_groups.push_back(&group1);
-  atom_groups.push_back(&group2);
-  atom_groups.push_back(&group3);
+  provide(f_cvc_inv_gradient);
+  provide(f_cvc_Jacobian);
+  provide(f_cvc_com_based);
+
+  group1 = parse_group(conf, "group1");
+  group2 = parse_group(conf, "group2");
+  group3 = parse_group(conf, "group3");
   if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
     cvm::log("Computing system force on group 1 only");
   }
@@ -27,19 +26,21 @@ colvar::angle::angle(std::string const &conf)
 
 
 colvar::angle::angle(cvm::atom const &a1,
-                      cvm::atom const &a2,
-                      cvm::atom const &a3)
-  : group1(std::vector<cvm::atom>(1, a1)),
-    group2(std::vector<cvm::atom>(1, a2)),
-    group3(std::vector<cvm::atom>(1, a3))
+                     cvm::atom const &a2,
+                     cvm::atom const &a3)
 {
   function_type = "angle";
-  b_inverse_gradients = true;
-  b_Jacobian_derivative = true;
+  provide(f_cvc_inv_gradient);
+  provide(f_cvc_Jacobian);
+  provide(f_cvc_com_based);
   b_1site_force = false;
-  atom_groups.push_back(&group1);
-  atom_groups.push_back(&group2);
-  atom_groups.push_back(&group3);
+
+  group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
+  group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
+  group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
+  atom_groups.push_back(group1);
+  atom_groups.push_back(group2);
+  atom_groups.push_back(group3);
 
   x.type(colvarvalue::type_scalar);
 }
@@ -54,9 +55,9 @@ colvar::angle::angle()
 
 void colvar::angle::calc_value()
 {
-  cvm::atom_pos const g1_pos = group1.center_of_mass();
-  cvm::atom_pos const g2_pos = group2.center_of_mass();
-  cvm::atom_pos const g3_pos = group3.center_of_mass();
+  cvm::atom_pos const g1_pos = group1->center_of_mass();
+  cvm::atom_pos const g2_pos = group2->center_of_mass();
+  cvm::atom_pos const g3_pos = group3->center_of_mass();
 
   r21  = cvm::position_distance(g2_pos, g1_pos);
   r21l = r21.norm();
@@ -71,7 +72,6 @@ void colvar::angle::calc_value()
 
 void colvar::angle::calc_gradients()
 {
-  size_t i;
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
   cvm::real const dxdcos = -1.0 / std::sqrt(1.0 - cos_theta*cos_theta);
 
@@ -81,22 +81,11 @@ void colvar::angle::calc_gradients()
   dxdr3 = (180.0/PI) * dxdcos *
     (1.0/r23l) * ( r21/r21l + (-1.0) * cos_theta * r23/r23l );
 
-  for (i = 0; i < group1.size(); i++) {
-    group1[i].grad = (group1[i].mass/group1.total_mass) *
-      (dxdr1);
-  }
+  group1->set_weighted_gradient(dxdr1);
+  group2->set_weighted_gradient((dxdr1 + dxdr3) * (-1.0));
+  group3->set_weighted_gradient(dxdr3);
 
-  for (i = 0; i < group2.size(); i++) {
-    group2[i].grad = (group2[i].mass/group2.total_mass) *
-      (dxdr1 + dxdr3) * (-1.0);
-  }
-
-  for (i = 0; i < group3.size(); i++) {
-    group3[i].grad = (group3[i].mass/group3.total_mass) *
-      (dxdr3);
-  }
-
-  if (b_debug_gradients) {
+  if (is_enabled(f_cvc_debug_gradient)) {
     debug_gradients(group1);
     debug_gradients(group2);
     debug_gradients(group3);
@@ -112,15 +101,15 @@ void colvar::angle::calc_force_invgrads()
   // when propagating changes in the angle)
 
   if (b_1site_force) {
-    group1.read_system_forces();
+    group1->read_system_forces();
     cvm::real norm_fact = 1.0 / dxdr1.norm2();
-    ft.real_value = norm_fact * dxdr1 * group1.system_force();
+    ft.real_value = norm_fact * dxdr1 * group1->system_force();
   } else {
-    group1.read_system_forces();
-    group3.read_system_forces();
+    group1->read_system_forces();
+    group3->read_system_forces();
     cvm::real norm_fact = 1.0 / (dxdr1.norm2() + dxdr3.norm2());
-    ft.real_value = norm_fact * ( dxdr1 * group1.system_force()
-                                + dxdr3 * group3.system_force());
+    ft.real_value = norm_fact * ( dxdr1 * group1->system_force()
+                                + dxdr3 * group3->system_force());
   }
   return;
 }
@@ -136,14 +125,14 @@ void colvar::angle::calc_Jacobian_derivative()
 
 void colvar::angle::apply_force(colvarvalue const &force)
 {
-  if (!group1.noforce)
-    group1.apply_colvar_force(force.real_value);
+  if (!group1->noforce)
+    group1->apply_colvar_force(force.real_value);
 
-  if (!group2.noforce)
-    group2.apply_colvar_force(force.real_value);
+  if (!group2->noforce)
+    group2->apply_colvar_force(force.real_value);
 
-  if (!group3.noforce)
-    group3.apply_colvar_force(force.real_value);
+  if (!group3->noforce)
+    group3->apply_colvar_force(force.real_value);
 }
 
 
@@ -153,13 +142,10 @@ colvar::dipole_angle::dipole_angle(std::string const &conf)
   : cvc(conf)
 {
   function_type = "dipole_angle";
-  parse_group(conf, "group1", group1);
-  parse_group(conf, "group2", group2);
-  parse_group(conf, "group3", group3);
+  group1 = parse_group(conf, "group1");
+  group2 = parse_group(conf, "group2");
+  group3 = parse_group(conf, "group3");
 
-  atom_groups.push_back(&group1);
-  atom_groups.push_back(&group2);
-  atom_groups.push_back(&group3);
   if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
     cvm::log("Computing system force on group 1 only");
   }
@@ -170,15 +156,16 @@ colvar::dipole_angle::dipole_angle(std::string const &conf)
 colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
                       cvm::atom const &a2,
                       cvm::atom const &a3)
-  : group1(std::vector<cvm::atom>(1, a1)),
-    group2(std::vector<cvm::atom>(1, a2)),
-    group3(std::vector<cvm::atom>(1, a3))
 {
   function_type = "dipole_angle";
   b_1site_force = false;
-  atom_groups.push_back(&group1);
-  atom_groups.push_back(&group2);
-  atom_groups.push_back(&group3);
+
+  group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
+  group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
+  group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
+  atom_groups.push_back(group1);
+  atom_groups.push_back(group2);
+  atom_groups.push_back(group3);
 
   x.type(colvarvalue::type_scalar);
 }
@@ -193,13 +180,13 @@ colvar::dipole_angle::dipole_angle()
 
 void colvar::dipole_angle::calc_value()
 {
-  cvm::atom_pos const g1_pos = group1.center_of_mass();
-  cvm::atom_pos const g2_pos = group2.center_of_mass();
-  cvm::atom_pos const g3_pos = group3.center_of_mass();
+  cvm::atom_pos const g1_pos = group1->center_of_mass();
+  cvm::atom_pos const g2_pos = group2->center_of_mass();
+  cvm::atom_pos const g3_pos = group3->center_of_mass();
 
-  group1.calc_dipole(g1_pos);
+  group1->calc_dipole(g1_pos);
 
-  r21 = group1.dipole();
+  r21 = group1->dipole();
   r21l = r21.norm();
   r23  = cvm::position_distance(g2_pos, g3_pos);
   r23l = r23.norm();
@@ -225,35 +212,35 @@ void colvar::dipole_angle::calc_gradients()
     (1.0/r23l) * ( r21/r21l + (-1.0) * cos_theta * r23/r23l );
 
   //this auxiliar variables are to avoid numerical errors inside "for"
-  double aux1 = group1.total_charge/group1.total_mass;
-  // double aux2 = group2.total_charge/group2.total_mass;
-  // double aux3 = group3.total_charge/group3.total_mass;
+  double aux1 = group1->total_charge/group1->total_mass;
+  // double aux2 = group2->total_charge/group2->total_mass;
+  // double aux3 = group3->total_charge/group3->total_mass;
 
   size_t i;
-  for (i = 0; i < group1.size(); i++) {
-    group1[i].grad =(group1[i].charge + (-1)* group1[i].mass * aux1) * (dxdr1);
+  for (i = 0; i < group1->size(); i++) {
+    (*group1)[i].grad =((*group1)[i].charge + (-1)* (*group1)[i].mass * aux1) * (dxdr1);
   }
 
-  for (i = 0; i < group2.size(); i++) {
-    group2[i].grad = (group2[i].mass/group2.total_mass)* dxdr3 * (-1.0);
+  for (i = 0; i < group2->size(); i++) {
+    (*group2)[i].grad = ((*group2)[i].mass/group2->total_mass)* dxdr3 * (-1.0);
   }
 
-  for (i = 0; i < group3.size(); i++) {
-    group3[i].grad =(group3[i].mass/group3.total_mass) * (dxdr3);
+  for (i = 0; i < group3->size(); i++) {
+    (*group3)[i].grad =((*group3)[i].mass/group3->total_mass) * (dxdr3);
   }
 }
 
 
 void colvar::dipole_angle::apply_force(colvarvalue const &force)
 {
-  if (!group1.noforce)
-    group1.apply_colvar_force(force.real_value);
+  if (!group1->noforce)
+    group1->apply_colvar_force(force.real_value);
 
-  if (!group2.noforce)
-    group2.apply_colvar_force(force.real_value);
+  if (!group2->noforce)
+    group2->apply_colvar_force(force.real_value);
 
-  if (!group3.noforce)
-    group3.apply_colvar_force(force.real_value);
+  if (!group3->noforce)
+    group3->apply_colvar_force(force.real_value);
 }
 
 
@@ -265,32 +252,26 @@ colvar::dihedral::dihedral(std::string const &conf)
   function_type = "dihedral";
   period = 360.0;
   b_periodic = true;
-  b_inverse_gradients = true;
-  b_Jacobian_derivative = true;
+  provide(f_cvc_inv_gradient);
+  provide(f_cvc_Jacobian);
+  provide(f_cvc_com_based);
+
   if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
     cvm::log("Computing system force on group 1 only");
   }
-  parse_group(conf, "group1", group1);
-  parse_group(conf, "group2", group2);
-  parse_group(conf, "group3", group3);
-  parse_group(conf, "group4", group4);
-  atom_groups.push_back(&group1);
-  atom_groups.push_back(&group2);
-  atom_groups.push_back(&group3);
-  atom_groups.push_back(&group4);
+  group1 = parse_group(conf, "group1");
+  group2 = parse_group(conf, "group2");
+  group3 = parse_group(conf, "group3");
+  group4 = parse_group(conf, "group4");
 
   x.type(colvarvalue::type_scalar);
 }
 
 
 colvar::dihedral::dihedral(cvm::atom const &a1,
-                            cvm::atom const &a2,
-                            cvm::atom const &a3,
-                            cvm::atom const &a4)
-  : group1(std::vector<cvm::atom>(1, a1)),
-    group2(std::vector<cvm::atom>(1, a2)),
-    group3(std::vector<cvm::atom>(1, a3)),
-    group4(std::vector<cvm::atom>(1, a4))
+                           cvm::atom const &a2,
+                           cvm::atom const &a3,
+                           cvm::atom const &a4)
 {
   if (cvm::debug())
     cvm::log("Initializing dihedral object from atom groups.\n");
@@ -298,14 +279,20 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
   function_type = "dihedral";
   period = 360.0;
   b_periodic = true;
-  b_inverse_gradients = true;
-  b_Jacobian_derivative = true;
+  provide(f_cvc_inv_gradient);
+  provide(f_cvc_Jacobian);
+  provide(f_cvc_com_based);
+
   b_1site_force = false;
 
-  atom_groups.push_back(&group1);
-  atom_groups.push_back(&group2);
-  atom_groups.push_back(&group3);
-  atom_groups.push_back(&group4);
+  group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
+  group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
+  group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
+  group4 = new cvm::atom_group(std::vector<cvm::atom>(1, a4));
+  atom_groups.push_back(group1);
+  atom_groups.push_back(group2);
+  atom_groups.push_back(group3);
+  atom_groups.push_back(group4);
 
   x.type(colvarvalue::type_scalar);
 
@@ -319,18 +306,18 @@ colvar::dihedral::dihedral()
   function_type = "dihedral";
   period = 360.0;
   b_periodic = true;
-  b_inverse_gradients = true;
-  b_Jacobian_derivative = true;
+  provide(f_cvc_inv_gradient);
+  provide(f_cvc_Jacobian);
   x.type(colvarvalue::type_scalar);
 }
 
 
 void colvar::dihedral::calc_value()
 {
-  cvm::atom_pos const g1_pos = group1.center_of_mass();
-  cvm::atom_pos const g2_pos = group2.center_of_mass();
-  cvm::atom_pos const g3_pos = group3.center_of_mass();
-  cvm::atom_pos const g4_pos = group4.center_of_mass();
+  cvm::atom_pos const g1_pos = group1->center_of_mass();
+  cvm::atom_pos const g2_pos = group2->center_of_mass();
+  cvm::atom_pos const g3_pos = group3->center_of_mass();
+  cvm::atom_pos const g4_pos = group4->center_of_mass();
 
   // Usual sign convention: r12 = r2 - r1
   r12 = cvm::position_distance(g1_pos, g2_pos);
@@ -415,18 +402,10 @@ void colvar::dihedral::calc_gradients()
               +dsindB.y*r34.x - dsindB.x*r34.y);
   }
 
-  size_t i;
-  for (i = 0; i < group1.size(); i++)
-    group1[i].grad = (group1[i].mass/group1.total_mass) * (-f1);
-
-  for (i = 0; i < group2.size(); i++)
-    group2[i].grad = (group2[i].mass/group2.total_mass) * (-f2 + f1);
-
-  for (i = 0; i < group3.size(); i++)
-	group3[i].grad = (group3[i].mass/group3.total_mass) * (-f3 + f2);
-
-  for (i = 0; i < group4.size(); i++)
-    group4[i].grad = (group4[i].mass/group4.total_mass) * (f3);
+  group1->set_weighted_gradient(-f1);
+  group2->set_weighted_gradient(-f2 + f1);
+  group3->set_weighted_gradient(-f3 + f2);
+  group4->set_weighted_gradient(f3);
 }
 
 
@@ -448,15 +427,15 @@ void colvar::dihedral::calc_force_invgrads()
   cvm::real const fact1 = d12 * std::sqrt(1.0 - dot1 * dot1);
   cvm::real const fact4 = d34 * std::sqrt(1.0 - dot4 * dot4);
 
-  group1.read_system_forces();
+  group1->read_system_forces();
   if ( b_1site_force ) {
     // This is only measuring the force on group 1
-    ft.real_value = PI/180.0 * fact1 * (cross1 * group1.system_force());
+    ft.real_value = PI/180.0 * fact1 * (cross1 * group1->system_force());
   } else {
     // Default case: use groups 1 and 4
-    group4.read_system_forces();
-    ft.real_value = PI/180.0 * 0.5 * (fact1 * (cross1 * group1.system_force())
-				      + fact4 * (cross4 * group4.system_force()));
+    group4->read_system_forces();
+    ft.real_value = PI/180.0 * 0.5 * (fact1 * (cross1 * group1->system_force())
+				      + fact4 * (cross4 * group4->system_force()));
   }
 }
 
@@ -470,17 +449,17 @@ void colvar::dihedral::calc_Jacobian_derivative()
 
 void colvar::dihedral::apply_force(colvarvalue const &force)
 {
-  if (!group1.noforce)
-    group1.apply_colvar_force(force.real_value);
+  if (!group1->noforce)
+    group1->apply_colvar_force(force.real_value);
 
-  if (!group2.noforce)
-    group2.apply_colvar_force(force.real_value);
+  if (!group2->noforce)
+    group2->apply_colvar_force(force.real_value);
 
-  if (!group3.noforce)
-    group3.apply_colvar_force(force.real_value);
+  if (!group3->noforce)
+    group3->apply_colvar_force(force.real_value);
 
-  if (!group4.noforce)
-    group4.apply_colvar_force(force.real_value);
+  if (!group4->noforce)
+    group4->apply_colvar_force(force.real_value);
 }
 
 

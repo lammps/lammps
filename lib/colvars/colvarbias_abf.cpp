@@ -58,37 +58,22 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
     cvm::error("Error: no collective variables specified for the ABF bias.\n");
   }
 
+  if (update_bias) {
+  // Request calculation of system force (which also checks for availability)
+    enable(f_cvb_get_system_force);
+  }
+  if (apply_bias) {
+    enable(f_cvb_apply_force);
+  }
+
   for (size_t i = 0; i < colvars.size(); i++) {
 
     if (colvars[i]->value().type() != colvarvalue::type_scalar) {
       cvm::error("Error: ABF bias can only use scalar-type variables.\n");
     }
-
-    colvars[i]->enable(colvar::task_gradients);
-
-    if (update_bias) {
-      // Request calculation of system force (which also checks for availability)
-      colvars[i]->enable(colvar::task_system_force);
-
-      if (!colvars[i]->tasks[colvar::task_extended_lagrangian]) {
-        // request computation of Jacobian force
-        // ultimately, will be done regardless of extended Lagrangian
-        // and colvar should then just report zero Jacobian force
-        colvars[i]->enable(colvar::task_Jacobian_force);
-
-        // request Jacobian force as part as system force
-        // except if the user explicitly requires the "silent" Jacobian
-        // correction AND the colvar has a single component
-        if (hide_Jacobian) {
-          if (colvars[i]->n_components() > 1) {
-            cvm::log("WARNING: colvar \"" + colvars[i]->name
-            + "\" has multiple components; reporting its Jacobian forces\n");
-            colvars[i]->enable(colvar::task_report_Jacobian_force);
-          }
-        } else {
-          colvars[i]->enable(colvar::task_report_Jacobian_force);
-        }
-      }
+    colvars[i]->enable(f_cv_grid);
+    if (hide_Jacobian) {
+      colvars[i]->enable(f_cv_hide_Jacobian);
     }
 
     // Here we could check for orthogonality of the Cartesian coordinates
@@ -176,7 +161,7 @@ colvarbias_abf::~colvarbias_abf()
 /// Update the FE gradient, compute and apply biasing force
 /// also output data to disk if needed
 
-cvm::real colvarbias_abf::update()
+int colvarbias_abf::update()
 {
   if (cvm::debug()) cvm::log("Updating ABF bias " + this->name);
 
@@ -283,7 +268,7 @@ cvm::real colvarbias_abf::update()
     cvm::log("Prepared sample and gradient buffers at step "+cvm::to_str(cvm::step_absolute())+".");
   }
 
-  return 0.0;
+  return COLVARS_OK;
 }
 
 int colvarbias_abf::replica_share() {

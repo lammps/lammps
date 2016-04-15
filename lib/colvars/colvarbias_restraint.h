@@ -12,7 +12,7 @@ class colvarbias_restraint : public colvarbias {
 public:
 
   /// Retrieve colvar values and calculate their biasing forces
-  virtual cvm::real update();
+  virtual int update();
 
   /// Load new configuration - force constant and/or centers only
   virtual void change_configuration(std::string const &conf);

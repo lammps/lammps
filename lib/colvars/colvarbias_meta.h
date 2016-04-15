@@ -36,7 +36,7 @@ public:
   /// Destructor
   virtual ~colvarbias_meta();
 
-  virtual cvm::real update();
+  virtual int update();
 
   virtual std::istream & read_restart(std::istream &is);
 
@@ -278,7 +278,7 @@ public:
       W(W_in),
       centers(cv.size()),
       widths(cv.size()),
-      it(cvm::it),
+      it(cvm::step_absolute()),
       replica(replica_in)
   {
     for (size_t i = 0; i < cv.size(); i++) {

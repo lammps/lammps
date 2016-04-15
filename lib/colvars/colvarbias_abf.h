@@ -22,7 +22,7 @@ public:
   colvarbias_abf(std::string const &conf, char const *key);
   ~colvarbias_abf();
 
-  cvm::real update();
+  int update();
 
 private:
 

@@ -59,6 +59,9 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
       comm = single_replica;
   }
 
+  // This implies gradients for all colvars
+  enable(f_cvb_apply_force);
+
   get_keyval(conf, "useGrids", use_grids, true);
 
   if (use_grids) {
@@ -68,6 +71,7 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
     expand_grids = false;
     size_t i;
     for (i = 0; i < colvars.size(); i++) {
+      colvars[i]->enable(f_cv_grid);
       if (colvars[i]->expand_boundaries) {
         expand_grids = true;
         cvm::log("Metadynamics bias \""+this->name+"\""+
@@ -81,10 +85,6 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
     if (! get_keyval(conf, "writeFreeEnergyFile", dump_fes, true))
       get_keyval(conf, "dumpFreeEnergyFile", dump_fes, true, colvarparse::parse_silent);
     get_keyval(conf, "saveFreeEnergyFile", dump_fes_save, false);
-
-    for (i = 0; i < colvars.size(); i++) {
-      colvars[i]->enable(colvar::task_grid);
-    }
 
     hills_energy           = new colvar_grid_scalar(colvars);
     hills_energy_gradients = new colvar_grid_gradient(colvars);
@@ -253,7 +253,7 @@ colvarbias_meta::delete_hill(hill_iter &h)
 }
 
 
-cvm::real colvarbias_meta::update()
+int colvarbias_meta::update()
 {
   if (cvm::debug())
     cvm::log("Updating the metadynamics bias \""+this->name+"\""+
@@ -544,7 +544,7 @@ cvm::real colvarbias_meta::update()
                  ", hills forces = "+cvm::to_str(colvar_forces)+".\n");
     }
 
-  return bias_energy;
+  return COLVARS_OK;
 }
 
 

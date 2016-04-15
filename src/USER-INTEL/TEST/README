@@ -75,14 +75,14 @@ mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none
 #############################################################################
 # To run with USER-OMP package
 #############################################################################
-mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk omp 0
+mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk omp 0 -sf omp
 
 #############################################################################
 # To run with USER-INTEL package and no coprocessor
 #############################################################################
-mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 0
+mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 0 -sf intel
 
 #############################################################################
 # To run with USER-INTEL and automatic load balancing to 1 coprocessor
 #############################################################################
-mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 1
+mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 1 -sf intel

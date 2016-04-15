@@ -144,26 +144,26 @@ c     Compute pair densities and derivatives
               invrei = 1.d0/re_meam(elti,elti)
               ai = rij*invrei - 1.d0
               ro0i = rho0_meam(elti)
-              rhoa0i = ro0i*exp(-beta0_meam(elti)*ai)
+              rhoa0i = ro0i*fm_exp(-beta0_meam(elti)*ai)
               drhoa0i = -beta0_meam(elti)*invrei*rhoa0i
-              rhoa1i = ro0i*exp(-beta1_meam(elti)*ai)
+              rhoa1i = ro0i*fm_exp(-beta1_meam(elti)*ai)
               drhoa1i = -beta1_meam(elti)*invrei*rhoa1i
-              rhoa2i = ro0i*exp(-beta2_meam(elti)*ai)
+              rhoa2i = ro0i*fm_exp(-beta2_meam(elti)*ai)
               drhoa2i = -beta2_meam(elti)*invrei*rhoa2i
-              rhoa3i = ro0i*exp(-beta3_meam(elti)*ai)
+              rhoa3i = ro0i*fm_exp(-beta3_meam(elti)*ai)
               drhoa3i = -beta3_meam(elti)*invrei*rhoa3i
               
               if (elti.ne.eltj) then
                 invrej = 1.d0/re_meam(eltj,eltj)
                 aj = rij*invrej - 1.d0
                 ro0j = rho0_meam(eltj)
-                rhoa0j = ro0j*exp(-beta0_meam(eltj)*aj)
+                rhoa0j = ro0j*fm_exp(-beta0_meam(eltj)*aj)
                 drhoa0j = -beta0_meam(eltj)*invrej*rhoa0j
-                rhoa1j = ro0j*exp(-beta1_meam(eltj)*aj)
+                rhoa1j = ro0j*fm_exp(-beta1_meam(eltj)*aj)
                 drhoa1j = -beta1_meam(eltj)*invrej*rhoa1j
-                rhoa2j = ro0j*exp(-beta2_meam(eltj)*aj)
+                rhoa2j = ro0j*fm_exp(-beta2_meam(eltj)*aj)
                 drhoa2j = -beta2_meam(eltj)*invrej*rhoa2j
-                rhoa3j = ro0j*exp(-beta3_meam(eltj)*aj)
+                rhoa3j = ro0j*fm_exp(-beta3_meam(eltj)*aj)
                 drhoa3j = -beta3_meam(eltj)*invrej*rhoa3j
               else
                 rhoa0j = rhoa0i

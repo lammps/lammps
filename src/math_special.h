@@ -41,11 +41,12 @@ namespace MathSpecial {
   {
     x *= x;
     x *= 1.4426950408889634074; // log_2(e)
-#if defined(__i386__) || defined(__x86_64__) || defined(__ia64__)
+#if defined(__BYTE_ORDER__)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return (x < 1023.0) ? exp2_x86(-x) : 0.0;
-#else
-    return (x < 1023.0) ? exp2(-x) : 0.0;
 #endif
+#endif
+    return (x < 1023.0) ? exp2(-x) : 0.0;
   }
 
   // x**2, use instead of pow(x,2.0)

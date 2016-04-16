@@ -114,7 +114,12 @@ static double fm_exp2(double x)
 
 double fm_exp_(double *x)
 {
+#if defined(__BYTE_ORDER__)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return fm_exp2(FM_DOUBLE_LOG2OFE * (*x));
+#endif
+#endif
+    return exp(*x);
 }
 
 /* 

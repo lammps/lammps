@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 namespace MathSpecial {
 
   // support function for scaled error function complement
-  
+
   extern double erfcx_y100(const double y100);
 
   // fast 2**x function without argument checks for little endian CPUs

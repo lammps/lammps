@@ -496,7 +496,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix deposit <fix_deposit>`, :doc:`fix pour <fix_pour>`,
-:doc:`fix_gcmc <fix_gcmc>`
+:doc:`fix gcmc <fix_gcmc>`
 
 Default
 """""""

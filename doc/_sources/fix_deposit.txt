@@ -275,7 +275,7 @@ defined by the :doc:`region <region>` command.
 Related commands
 """"""""""""""""
 
-:doc:`fix_pour <fix_pour>`, :doc:`region <region>`
+:doc:`fix pour <fix_pour>`, :doc:`region <region>`
 
 Default
 """""""

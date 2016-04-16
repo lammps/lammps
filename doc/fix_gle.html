@@ -204,7 +204,7 @@ different numbers of processors.</p>
 implemented by the <a class="reference internal" href="fix_gld.html"><em>fix gld</em></a> scheme is closely related
 to the present one. In fact, it should be always possible to cast the
 Prony series form of the memory kernel used by GLD into an appropriate
-input matrix for <a class="reference internal" href=""><em>fix_gle</em></a>. While the GLE scheme is more
+input matrix for <a class="reference internal" href=""><em>fix gle</em></a>. While the GLE scheme is more
 general, the form used by <a class="reference internal" href="fix_gld.html"><em>fix gld</em></a> can be more directly
 related to the representation of an implicit solvent environment.</p>
 </div>
@@ -239,14 +239,14 @@ thermostatted degrees of freedom are fully flexible, and the sampled
 ensemble will not be correct otherwise.</p>
 <p>In order to perform constant-pressure simulations please use
 <a class="reference internal" href="fix_press_berendsen.html"><em>fix press/berendsen</em></a>, rather than
-<code class="xref doc docutils literal"><span class="pre">fix_npt</span></code>, to avoid duplicate integration of the
+<a class="reference internal" href="fix_nh.html"><em>fix npt</em></a>, to avoid duplicate integration of the
 equations of motion.</p>
 <p>This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>, <a class="reference internal" href="fix_viscous.html"><em>fix viscous</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="pair_dpd.html"><em>pair_style dpd/tstat</em></a>, <a class="reference internal" href="fix_gld.html"><em>fix_gld</em></a></p>
+<p><a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="fix_temp_rescale.html"><em>fix temp/rescale</em></a>, <a class="reference internal" href="fix_viscous.html"><em>fix viscous</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="pair_dpd.html"><em>pair_style dpd/tstat</em></a>, <a class="reference internal" href="fix_gld.html"><em>fix gld</em></a></p>
 <hr class="docutils" />
 <p id="ceriotti"><strong>(Ceriotti)</strong> Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6,
 1170-80 (2010)</p>

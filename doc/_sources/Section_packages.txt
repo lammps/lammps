@@ -1097,7 +1097,7 @@ To un-install via make or Make.py:
    Make.py -p ^meam -a machine
 
 Supporting info: src/POEMS/README, lib/poems/README,
-:doc:`fix_poems <fix_poems>`, examples/rigid
+:doc:`fix poems <fix_poems>`, examples/rigid
 
 
 ----------
@@ -1588,7 +1588,7 @@ The current list of user-contributed packages is as follows:
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
 | :ref:`USER-QMMM <USER-QMMM>`               | QM/MM coupling                                 | Axel Kohlmeyer (Temple U)                       | :doc:`fix qmmm <fix_qmmm>`                              | USER/qmmm        | -                    | lib/qmmm    |
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
-| :ref:`USER-QTB <USER-QTB>`                 | quantum nuclear effects                        | Yuan Shen (Stanford)                            | :doc:`fix qtb <fix_qtb>` :doc:`fix_qbmsst <fix_qbmsst>` | qtb              | -                    | -           |
+| :ref:`USER-QTB <USER-QTB>`                 | quantum nuclear effects                        | Yuan Shen (Stanford)                            | :doc:`fix qtb <fix_qtb>` :doc:`fix qbmsst <fix_qbmsst>` | qtb              | -                    | -           |
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
 | :ref:`USER-QUIP <USER-QUIP>`               | QUIP/libatoms interface                        | Albert Bartok-Partay (U Cambridge)              | :doc:`pair_style quip <pair_quip>`                      | USER/quip        | -                    | lib/quip    |
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+----------------------+-------------+
@@ -1995,8 +1995,8 @@ To un-install via make or Make.py:
 
 Supporting info: /src/USER-DPD/README, :doc:`compute dpd <compute_dpd>`
 :doc:`compute dpd/atom <compute_dpd_atom>`
-:doc:`fix_eos/cv <fix_eos_table>` :doc:`fix_eos/table <fix_eos_table>`
-:doc:`fix_shardlow <fix_shardlow>`
+:doc:`fix eos/cv <fix_eos_table>` :doc:`fix eos/table <fix_eos_table>`
+:doc:`fix shardlow <fix_shardlow>`
 :doc:`pair_dpd/conservative <pair_dpd_conservative>`
 :doc:`pair_dpd/fdt <pair_dpd_fdt>`
 :doc:`pair_dpd/fdt/energy <pair_dpd_fdt>`, examples/USER/dpd

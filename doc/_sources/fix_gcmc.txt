@@ -100,7 +100,7 @@ molecules other than the exchanged type, but MC deletions,
 translations, and rotations can be performed on any atom/molecule in
 the fix group.  All atoms in the simulation cell can be moved using
 regular time integration translations, e.g. via
-:doc:`fix_nvt <fix_nvt>`, resulting in a hybrid GCMC+MD simulation. A
+:doc:`fix nvt <fix_nh>`, resulting in a hybrid GCMC+MD simulation. A
 smaller-than-usual timestep size may be needed when running such a
 hybrid simulation, especially if the inserted molecules are not well
 equilibrated.
@@ -120,9 +120,9 @@ or deletion. If an attempted move places the atom or molecule center-of-mass out
 the specified region, a new attempted move is generated. This process is repeated 
 until the atom or molecule center-of-mass is inside the specified region.
 
-If used with :doc:`fix_nvt <fix_nvt>`, the temperature of the imaginary
+If used with :doc:`fix nvt <fix_nh>`, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
-used in :doc:`fix_nvt <fix_nvt>`. Otherwise, the imaginary reservoir
+used in fix nvt. Otherwise, the imaginary reservoir
 will not be in thermal equilibrium with the simulation cell. Also,
 it is important that the temperature used by fix nvt be dynamic,
 which can be achieved as follows:
@@ -259,7 +259,7 @@ Use the *charge* option to insert atoms with a user-specified point
 charge. Note that doing so will cause the system to become non-neutral. 
 LAMMPS issues a warning when using long-range electrostatics (kspace) 
 with non-neutral systems. See the 
-:doc:`compute_group_group <compute_group_group>` documentation for more 
+:doc:`compute group/group <compute_group_group>` documentation for more 
 details about simulating non-neutral systems with kspace on.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
@@ -343,7 +343,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix atom/swap <fix_atom_swap>`,
-:doc:`fix nvt <fix_nvt>`, :doc:`neighbor <neighbor>`, 
+:doc:`fix nvt <fix_nh>`, :doc:`neighbor <neighbor>`, 
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
 :doc:`delete_atoms <delete_atoms>`
 

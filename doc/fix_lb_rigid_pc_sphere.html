@@ -176,7 +176,7 @@ fix 1 all lb/rigid/pc/sphere force 1 0 0 innerNodes ForceAtoms
 created to be used in place of that fix, to integrate the equations of
 motion of spherical rigid bodies when a lattice-Boltzmann fluid is
 present with a user-specified value of the force-coupling constant.
-The fix uses the integration algorithm described in <a class="reference internal" href="fix_lb_viscous.html#mackay"><span>Mackay et al.</span></a> to update the positions, velocities, and orientations of
+The fix uses the integration algorithm described in <a class="reference internal" href="#mackay"><span>Mackay et al.</span></a> to update the positions, velocities, and orientations of
 a set of spherical rigid bodies experiencing velocity dependent
 hydrodynamic forces.  The spherical bodies are assumed to rotate as
 solid, uniform density spheres, with moments of inertia calculated
@@ -201,13 +201,13 @@ central atoms interact with one another.</p>
 <p>Apart from the features described above, this fix is very similar to
 the rigid fix (although it includes fewer optional arguments, and
 assumes the constituent atoms are point particles); see
-<a class="reference internal" href="fix_rigid.html"><em>fix_rigid</em></a> for a complete documentation.</p>
+<a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> for a complete documentation.</p>
 </div>
 <div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
 <h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
 <p>No information about the <em>rigid</em> and <em>rigid/nve</em> fixes are written to
 <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
-<p>Similar to the <a class="reference internal" href="fix_rigid.html"><em>fix_rigid</em></a> command: &amp;quot; The rigid
+<p>Similar to the <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command: &amp;quot; The rigid
 fix computes a global scalar which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar value calculated by
 these fixes is &#8220;intensive&#8221;.  The scalar is the current temperature of
 the collection of rigid bodies.  This is averaged over all rigid

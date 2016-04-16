@@ -215,7 +215,7 @@ molecules other than the exchanged type, but MC deletions,
 translations, and rotations can be performed on any atom/molecule in
 the fix group.  All atoms in the simulation cell can be moved using
 regular time integration translations, e.g. via
-<code class="xref doc docutils literal"><span class="pre">fix_nvt</span></code>, resulting in a hybrid GCMC+MD simulation. A
+<a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, resulting in a hybrid GCMC+MD simulation. A
 smaller-than-usual timestep size may be needed when running such a
 hybrid simulation, especially if the inserted molecules are not well
 equilibrated.</p>
@@ -233,9 +233,9 @@ no move or deletion is performed, but it is counted as an attempt move
 or deletion. If an attempted move places the atom or molecule center-of-mass outside
 the specified region, a new attempted move is generated. This process is repeated
 until the atom or molecule center-of-mass is inside the specified region.</p>
-<p>If used with <code class="xref doc docutils literal"><span class="pre">fix_nvt</span></code>, the temperature of the imaginary
+<p>If used with <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
-used in <code class="xref doc docutils literal"><span class="pre">fix_nvt</span></code>. Otherwise, the imaginary reservoir
+used in fix nvt. Otherwise, the imaginary reservoir
 will not be in thermal equilibrium with the simulation cell. Also,
 it is important that the temperature used by fix nvt be dynamic,
 which can be achieved as follows:</p>
@@ -356,7 +356,7 @@ specify if this should be done.</p>
 charge. Note that doing so will cause the system to become non-neutral.
 LAMMPS issues a warning when using long-range electrostatics (kspace)
 with non-neutral systems. See the
-<a class="reference internal" href="compute_group_group.html"><em>compute_group_group</em></a> documentation for more
+<a class="reference internal" href="compute_group_group.html"><em>compute group/group</em></a> documentation for more
 details about simulating non-neutral systems with kspace on.</p>
 <p>Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the
@@ -425,7 +425,7 @@ referenced by the user for each subsequent fix gcmc command.</p>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="fix_atom_swap.html"><em>fix atom/swap</em></a>,
-<code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">nvt</span></code>, <a class="reference internal" href="neighbor.html"><em>neighbor</em></a>,
+<a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a>, <a class="reference internal" href="neighbor.html"><em>neighbor</em></a>,
 <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a>, <a class="reference internal" href="fix_evaporate.html"><em>fix evaporate</em></a>,
 <a class="reference internal" href="delete_atoms.html"><em>delete_atoms</em></a></p>
 </div>

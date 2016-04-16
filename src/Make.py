@@ -613,7 +613,7 @@ Syntax: Make.py switch args ...
     -atc, -awpmd, -colvars, -cuda, -gpu, -h5md,
     -meam, -poems, -python, -qmmm, -voronoi
   switches for build and makefile options:
-    -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
+    -intel, -kokkos, -cc, -flags, -mpi, -fft, -jpg, -png
 """
 
 # jmake switch

@@ -176,7 +176,7 @@ differences may accumulate to produce divergent trajectories.
 .. note::
 
    You should not update the atoms in rigid bodies via other
-   time-integration fixes (e.g. :doc:`fix nve <fix_nve>`, :doc:`fix nvt <fix_nvt>`, :doc:`fix npt <fix_npt>`), or you will be integrating
+   time-integration fixes (e.g. :doc:`fix nve <fix_nve>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`), or you will be integrating
    their motion more than once each timestep.  When performing a hybrid
    simulation with some atoms in rigid bodies, and some not, a separate
    time integration fix like :doc:`fix nve <fix_nve>` or :doc:`fix nvt <fix_nh>` should be used for the non-rigid particles.

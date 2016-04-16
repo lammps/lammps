@@ -122,7 +122,7 @@ body/particle interactions requires the use of the :doc:`atom_style body <atom_s
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`fix_rigid <fix_rigid>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix rigid <fix_rigid>`
 
 **Default:** none
 

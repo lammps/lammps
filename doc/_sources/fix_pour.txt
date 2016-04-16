@@ -262,7 +262,7 @@ defined by the :doc:`region <region>` command.
 Related commands
 """"""""""""""""
 
-:doc:`fix_deposit <fix_deposit>`, :doc:`fix_gravity <fix_gravity>`,
+:doc:`fix deposit <fix_deposit>`, :doc:`fix gravity <fix_gravity>`,
 :doc:`region <region>`
 
 Default

@@ -71,9 +71,6 @@ int CoulLongT::init(const int ntypes, double **host_scale,
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
 
-  lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  
   scale.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,scale,host_write,host_scale);
   
@@ -88,8 +85,7 @@ int CoulLongT::init(const int ntypes, double **host_scale,
   _g_ewald=g_ewald;
 
   _allocated=true;
-  this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+scale.row_bytes()+
-    sp_cl.row_bytes();
+  this->_max_bytes=scale.row_bytes()+sp_cl.row_bytes();
   return 0;
 }
 
@@ -106,8 +102,6 @@ void CoulLongT::clear() {
     return;
   _allocated=false;
 
-  lj1.clear();
-  lj3.clear();
   scale.clear();
   sp_cl.clear();
   this->clear_atomic();

@@ -144,7 +144,14 @@ void PairCoulLongGPU::init_style()
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with coul/long/gpu pair style");
 
-  // Repeat cutsq calculation because done after call to init_style
+  // Call init_one calculation make sure scale is correct
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+        double cut = init_one(i,j);
+      }
+    }
+  }
   double cell_size = cut_coul + neighbor->skin;
 
   cut_coulsq = cut_coul * cut_coul;

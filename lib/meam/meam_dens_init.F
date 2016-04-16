@@ -1,23 +1,23 @@
 c     Extern "C" declaration has the form:
-c     
+c
 c  void meam_dens_init_(int *, int *, int *, double *, int *, int *, int *, double *,
 c		 int *, int *, int *, int *,
 c		 double *, double *, double *, double *, double *, double *,
 c		 double *, double *, double *, double *, double *, int *);
-c     
-c     
+c
+c
 c     Call from pair_meam.cpp has the form:
-c     
+c
 c    meam_dens_init_(&i,&nmax,ntype,type,fmap,&x[0][0],
 c	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
 c	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 c	       rho0,&arho1[0][0],&arho2[0][0],arho2b,
 c	       &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],&errorflag);
-c     
+c
 
       subroutine meam_dens_init(i, nmax,
      $     ntype, type, fmap, x,
-     $     numneigh, firstneigh, 
+     $     numneigh, firstneigh,
      $     numneigh_full, firstneigh_full,
      $     scrfcn, dscrfcn, fcpair, rho0, arho1, arho2, arho2b,
      $     arho3, arho3b, t_ave, tsq_ave, errorflag)
@@ -51,7 +51,7 @@ c     Compute screening function and derivatives
      $     ntype, type, fmap)
 
 c     Calculate intermediate density terms to be communicated
-      call calc_rho1(i, nmax, ntype, type, fmap, x, 
+      call calc_rho1(i, nmax, ntype, type, fmap, x,
      $     numneigh, firstneigh,
      $     scrfcn, fcpair, rho0, arho1, arho2, arho2b,
      $     arho3, arho3b, t_ave, tsq_ave)
@@ -61,7 +61,7 @@ c     Calculate intermediate density terms to be communicated
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      subroutine getscreen(i, nmax, scrfcn, dscrfcn, fcpair, x, 
+      subroutine getscreen(i, nmax, scrfcn, dscrfcn, fcpair, x,
      $     numneigh, firstneigh,
      $     numneigh_full, firstneigh_full,
      $     ntype, type, fmap)
@@ -99,13 +99,13 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
         xitmp = x(1,i)
         yitmp = x(2,i)
         zitmp = x(3,i)
-        
+
         do jn = 1,numneigh
           j = firstneigh(jn)
 
           eltj = fmap(type(j))
           if (eltj.gt.0) then
-          
+
 c     First compute screening function itself, sij
             xjtmp = x(1,j)
             yjtmp = x(2,j)
@@ -127,7 +127,7 @@ c     First compute screening function itself, sij
               fcij = fc
               dfcij = dfc*drinv
             endif
-            
+
 c     Now compute derivatives
             dscrfcn(jn) = 0.d0
             sfcij = sij*fcij
@@ -180,23 +180,23 @@ c     Note that we never have 0<cikj<Cmin here, else sij=0 (rejected above)
             coef2 = sij*dfcij/rij
             dscrfcn(jn) = dscrfcn(jn)*coef1 - coef2
  100        continue
-            
+
             scrfcn(jn) = sij
             fcpair(jn) = fcij
 
           endif
-          
+
         enddo
-      
+
       endif
 
       return
       end
-      
+
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      subroutine calc_rho1(i, nmax, ntype, type, fmap, x, 
+      subroutine calc_rho1(i, nmax, ntype, type, fmap, x,
      $     numneigh, firstneigh,
      $     scrfcn, fcpair, rho0, arho1, arho2, arho2b,
      $     arho3, arho3b, t_ave, tsq_ave)
@@ -236,7 +236,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
           delij(1) = x(1,j) - xtmp
           delij(2) = x(2,j) - ytmp
           delij(3) = x(3,j) - ztmp
-          rij2 = delij(1)*delij(1) + delij(2)*delij(2) 
+          rij2 = delij(1)*delij(1) + delij(2)*delij(2)
      $         + delij(3)*delij(3)
           if (rij2.lt.cutforcesq) then
             eltj = fmap(type(j))
@@ -307,7 +307,7 @@ c For ialloy = 2, use single-element value (not average)
                 Arho2(nv2,j) = Arho2(nv2,j) + A2i*delij(m)*delij(n)
                 nv2 = nv2+1
                 do p = n,3
-                  Arho3(nv3,i) = Arho3(nv3,i) 
+                  Arho3(nv3,i) = Arho3(nv3,i)
      $                 + A3j*delij(m)*delij(n)*delij(p)
                   Arho3(nv3,j) = Arho3(nv3,j)
      $                 - A3i*delij(m)*delij(n)*delij(p)
@@ -330,7 +330,7 @@ c     Screening function
 c     Inputs:  i = atom 1 id (integer)
 c     j = atom 2 id (integer)
 c     rijsq = squared distance between i and j
-c     Outputs: sij = screening function 
+c     Outputs: sij = screening function
       use meam_data
       implicit none
 
@@ -485,7 +485,7 @@ c     cutoff function
         a = a*a
         a = a*a
         a = 1.d0-a
-        fc = a*a       
+        fc = a*a
 c     fc = xi
       endif
       return
@@ -558,7 +558,7 @@ c     dCikj2 = derivative of Cikj w.r.t. rjk
       end
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      
-      
+
+
 
 

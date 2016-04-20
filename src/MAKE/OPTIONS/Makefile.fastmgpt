@@ -1,4 +1,4 @@
-# mpi_fastmgpt = default MPI compiler, default MPI, optimizations for USER-MGPT
+# fastmgpt = default MPI compiler, default MPI, optimizations for USER-MGPT
 
 SHELL = /bin/sh
 

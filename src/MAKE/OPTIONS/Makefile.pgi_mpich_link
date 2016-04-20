@@ -1,4 +1,4 @@
-# pgi_mpich_native = Portland group compiler, native MPICH w/out wrapper
+# pgi_mpich_link = Portland group compiler, link to MPICH
 
 SHELL = /bin/sh
 

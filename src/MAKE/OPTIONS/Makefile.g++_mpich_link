@@ -1,4 +1,4 @@
-# g++_mpich_native = GNU g++ compiler, native MPICH w/out wrapper
+# g++_mpich_link = GNU g++ compiler, link to MPICH
 
 SHELL = /bin/sh
 

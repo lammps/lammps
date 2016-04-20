@@ -1,4 +1,4 @@
-# icc_openmpi_native = Intel icc compiler, native OpenMPI w/out wrapper
+# icc_openmpi_link = Intel icc compiler, link to OpenMPI
 
 SHELL = /bin/sh
 

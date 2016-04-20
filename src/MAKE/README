@@ -33,65 +33,71 @@ dir for the same thing using the Intel icc compiler instead of g++.
 
 -----------------------------------
 
-The OPTIONS directory has several Makefiles that extend either
-Makefile.mpi or Makefile.serial to enable use of different compilers,
-different MPIs, or accelerator package and command options that LAMMPS
-supports.
+The OPTIONS directory has many Makefiles that extend either
+Makefile.mpi or Makefile.serial to enable use of different Makefile
+settings, different compilers, different MPIs, and all the LAMMPS
+accelerator packages.
 
 --------
 
+These Makefiles derive from src/MAKE/Makefile.mpi with added settings
+to illustrate how they can be added to any Makefile.
+
+Makefile.big           use of -DLAMMPS_BIGBIG setting
+Makefile.fastmgpt      optimzations for USER-MGPT package
 Makefile.fftw          FFTW support for long-range Coulombics (PPPM)
 Makefile.jpeg          JPEG support for dump image
 Makefile.png           PNG support for dump image
 
-These Makefiles are the same as Makefile.mpi except they add settings
-for commonly used options (FFTW, JPG, PNG) to illustrate how they can
-be added to any Makefile.
+--------
+
+These Makefiles derive from src/MAKE/Makefile.mpi with added support
+for each of the accelerator packages available in LAMMPS.
+
+The INTEL/CPU variants require use of the Intel icc (or icpc) compiler
+as the compiler wrapped by mpicxx.  Setting this requires a different
+syntax for different MPIs.
+
+The KOKKOS/CUDA variants require use of the NVIDIA nvcc compiler as
+the compiler wrapped by mpicxx.  Setting this requires a different
+syntax for different MPIs.
+
+Makefile.opt                 OPT package, using default MPI
+Makefile.omp                 USER-OMP package, using default MPI
+Makefile.gpu                 GPU package, using default MPI
+
+Makefile.intel_cpu_intelmpi  USER-INTEL package for CPU with Intel MPI
+Makefile.intel_cpu_mpich     USER-INTEL package for CPU with MPICH
+Makefile.intel_cpu_openmpi   USER-INTEL package for CPU with OpenMPI
+Makefile.intel_phi           USER-INTEL package with Xeon Phi support
+Makefile.intel_knl           USER-INTEL package with KNL support
+Makefile.knl                 USER-INTEL package with KNL support
+
+Makefile.kokkos_cuda_mpich   KOKKOS package with GPU support for MPICH
+Makefile.kokkos_cuda_openmpi KOKKOS package with GPU support for OpenMPI
+Makefile.kokkos_omp          KOKKOS package with OpenMP support
+Makefile.kokkos_phi          KOKKOS package with Xeon Phi support
 
 --------
 
-Makefile.kokkos_omp    KOKKOS package with CUDA support via nvcc compiler
-Makefile.kokkos_cuda   KOKKOS package with CUDA support via nvcc compiler
-Makefile.kokkos_phi    KOKKOS package with CUDA support via nvcc compiler
+These Makefiles derive from src/MAKE/Makefile.mpi and
+src/MAKE/Makefile.serial to use specific compilers.  This is done by
+setting the compiler wrapped by mpicxx (different syntax for different
+MPIs).  Or it can be done by using the GNU or Intel compiler and
+explicitly linking to the appropriate MPI libraries.
 
-These Makefiles are for building with the KOKKOS package for different
-architectures (multi-core with OpenMP threading, GPU, Xeon Phi).  Some
-Makefile variables are set and appended to.
+Makefile.g++_mpich           MPICH mpicxx wraps the GNU g++ compiler
+Makefile.g++_mpich_link      GNU g++ compiler, linked to MPICH
+Makefile.g++_openmpi         OpenMPI mpicxx wraps the GNU g++ compiler
+Makefile.g++_openmpi_link    GNU g++ compiler, linked to OpenMPI
+Makefile.icc_mpich           MPICH mpicxx wraps the Intel icc compiler
+Makefile.icc_mpich_link      Intel icc compiler, linked to MPICH
+Makefile.icc_openmpi         OpenMPI mpicxx wraps the Intel icc compiler
+Makefile.icc_openmpi_link    Intel icc compiler, linked to OpenMPI
+Makefile.pgi_mpich_link      Portland group PGI compiler, linked to MPICH
 
---------
-
-Makefile.intel_cpu     USER-INTEL package with CPU acceleration
-Makefile.intel_phi     USER-INTEL package with Xeon Phi support
-
-These Makefiles are for building with the USER-INTEL package with
-either CPU or Xeon Phi (offload) support.  Some Makefile variables are
-set and appended to.
-
---------
-
-Makefile.mpich_g++      compile with MPICH wrapper, set compiler to GNU g++
-Makefile.mpich_icc      compile with MPICH wrapper, set compiler to Intel icc
-Makefile.ompi_g++       compile with OpenMPI wrapper, set compiler to GNU g++
-Makefile.ompi_icc       compile with OpenMPI wrapper, set compiler to Intel icc
-
-Makefile.serial_icc     serial build with Intel icc compiler
-Makefile.pgi            MPI guild with the PGI compiler
-
-These Makefiles adapt Makefile.mpi and Makefile.serial to use specific
-compilers.
-
---------
-
-Makefile.mpich_native_g++    compile with GNU g++, link to MPICH
-Makefile.mpich_native_icc    compile with Intel icc, link to MPICH
-Makefile.ompi_native_g++     compile with GNU g++, link to OpenMPI
-Makefile.ompi_native_icc     compile with Intel icc, link to OpenMPI
-
-These Makefiles show how to build with MPI support, but not using the
-MPI wrapper "mpicxx" for compiling.  Instead, g++ or icc is used
-directly to compile and the MPI library is linked to.  This requires
-extra settings for the MPI variables to specify the MPI include and
-library files.
+Makefile.g++_serial          serial build (no MPI) with GNU g++ compiler
+Makefile.icc_serial          serial build (no MPI) with Intel icc compiler
 
 ------------------------------------
 

@@ -1,4 +1,4 @@
-# g++_openmpi_native = GNU g++ compiler, native OpenMPI w/out wrapper
+# g++_openmpi_link = GNU g++ compiler, link to OpenMPI
 
 SHELL = /bin/sh
 

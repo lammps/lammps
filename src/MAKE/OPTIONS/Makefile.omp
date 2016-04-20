@@ -1,4 +1,4 @@
-# omp = USER-OMP package with default MPI compiler, default MPI
+# omp = USER-OMP package, MPI with its default compiler
 
 SHELL = /bin/sh
 

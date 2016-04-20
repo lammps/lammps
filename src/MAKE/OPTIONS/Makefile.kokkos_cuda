@@ -1,4 +1,4 @@
-# kokkos_cuda = KOKKOS package with CUDA support, OpenMPI, nvcc/mpicxx compiler
+# kokkos_cuda = KOKKOS/CUDA package, OpenMPI with nvcc compiler, Kepler GPU
 
 SHELL = /bin/sh
 

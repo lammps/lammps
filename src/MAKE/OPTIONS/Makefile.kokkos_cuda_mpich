@@ -1,4 +1,4 @@
-# opt = OPT package, MPI with its default compiler
+# kokkos_cuda = KOKKOS/CUDA package, MPICH with nvcc compiler, Kepler GPU
 
 SHELL = /bin/sh
 
@@ -6,12 +6,13 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpicxx
-CCFLAGS =	-g -O3 -restrict
+KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
+CC =		mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpicxx
+LINK =		mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
 LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size
@@ -19,6 +20,8 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
+KOKKOS_DEVICES = Cuda, OpenMP
+KOKKOS_ARCH =   Kepler35
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -44,7 +47,7 @@ MPI_PATH =
 MPI_LIB =	
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manual
+# see discussion in Section 2.2 (step 6) of manaul
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
@@ -63,7 +66,7 @@ FFT_LIB =
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =       
+JPG_LIB =	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

@@ -1,4 +1,4 @@
-# mpi = default MPI compiler, default MPI
+# mpi = MPI with its default compiler
 
 SHELL = /bin/sh
 

@@ -1,4 +1,4 @@
-# mpich_icc = icc compiler and MPICH via MPI wrapper
+# icc_mpich = MPICH with compiler set to Intel icc
 
 SHELL = /bin/sh
 

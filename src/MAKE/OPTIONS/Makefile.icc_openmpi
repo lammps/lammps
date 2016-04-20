@@ -1,4 +1,4 @@
-# ompi_icc = icc compiler and OpenMPI via MPI wrapper
+# icc_openmpi = OpenMPI with compiler set to Intel icc
 
 SHELL = /bin/sh
 

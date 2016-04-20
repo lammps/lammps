@@ -1,4 +1,4 @@
-# mpich_g++ = g++ compiler and MPICH via MPI wrapper
+# g++_mpich = MPICH with compiler set to GNU g++
 
 SHELL = /bin/sh
 

@@ -1,4 +1,4 @@
-# mpich_native_icc = icc compiler, native MPICH w/out wrapper
+# icc_mpich_native = Intel icc compiler, native MPICH w/out wrapper
 
 SHELL = /bin/sh
 

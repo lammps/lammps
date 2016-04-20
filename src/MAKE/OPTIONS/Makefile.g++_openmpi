@@ -1,4 +1,4 @@
-# ompi_g++ = g++ compiler and OpenMPI via MPI wrapper
+# g++_openmpi = OpenMPI with compiler set to GNU g++
 
 SHELL = /bin/sh
 

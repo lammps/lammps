@@ -50,6 +50,7 @@ class PairZero : public Pair {
  protected:
   double cut_global;
   double **cut;
+  int check_coeffs;
 
   virtual void allocate();
 };

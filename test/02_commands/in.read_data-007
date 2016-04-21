@@ -1,0 +1,27 @@
+timer off
+
+atom_style full
+
+# set up dummy styles to be able to read data file and skip force field data.
+pair_style zero 5.0 nocoeffs
+bond_style zero nocoeffs
+angle_style zero nocoeffs
+dihedral_style zero nocoeffs
+improper_style zero nocoeffs
+
+read_data peptide.data
+
+# apply an offset of 3 to all molecule ids
+variable mid atom mol+3
+set group all mol v_mid
+
+info all
+
+# turn off all styles, so we get a clean data file
+pair_style none
+bond_style none
+angle_style none
+dihedral_style none
+improper_style none
+write_data new.data noinit
+

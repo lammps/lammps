@@ -1,4 +1,4 @@
-# intel_cpu = USER-INTEL package with CPU optimizations, Intel MPI, MKL FFT
+# icc_mpich_link = Intel icc compiler, link to MPICH
 
 SHELL = /bin/sh
 
@@ -6,16 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicpc 
-OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+CC =		icc
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpiicpc
-LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
-LIB =           -ltbbmalloc
+LINK =		icc
+LINKFLAGS =	-g -O
+LIB = 
 SIZE =		size
 
 ARCHIVE =	ar
@@ -30,7 +28,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -41,9 +39,9 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
-MPI_PATH = 
-MPI_LIB =
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/local/include
+MPI_PATH =      -L/usr/local/lib
+MPI_LIB =	-lmpich -lmpl -lpthread
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -52,10 +50,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_MKL -DFFT_SINGLE
+FFT_INC =    	
 FFT_PATH = 
-FFT_LIB =       -L$MKLROOT/lib/intel64/ -lmkl_intel_ilp64 \
-                -lmkl_sequential -lmkl_core	
+FFT_LIB =	
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -66,7 +63,7 @@ FFT_LIB =       -L$MKLROOT/lib/intel64/ -lmkl_intel_ilp64 \
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg
+JPG_LIB =	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

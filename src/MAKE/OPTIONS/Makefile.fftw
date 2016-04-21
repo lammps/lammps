@@ -1,4 +1,4 @@
-# fftw = default MPI compiler, default MPI, FFTW support
+# fftw = MPI with its default compiler, FFTW3 support
 
 SHELL = /bin/sh
 

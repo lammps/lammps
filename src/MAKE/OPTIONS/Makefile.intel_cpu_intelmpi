@@ -1,4 +1,4 @@
-# serial_icc = icc compiler, no MPI
+# intel_cpu_intelmpi = USER-INTEL package, Intel MPI, MKL FFT
 
 SHELL = /bin/sh
 
@@ -6,14 +6,16 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		icc
-CCFLAGS =	-g -O3
+CC =		mpiicpc 
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
+CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
+                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		icc
-LINKFLAGS =	-g -O
-LIB = 
+LINK =		mpiicpc
+LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+LIB =           -ltbbmalloc
 SIZE =		size
 
 ARCHIVE =	ar
@@ -39,9 +41,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I../STUBS
-MPI_PATH =      -L../STUBS
-MPI_LIB =	-lmpi_stubs
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_PATH = 
+MPI_LIB =
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -50,9 +52,10 @@ MPI_LIB =	-lmpi_stubs
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	
+FFT_INC =       -DFFT_MKL -DFFT_SINGLE
 FFT_PATH = 
-FFT_LIB =	
+FFT_LIB =       -L$MKLROOT/lib/intel64/ -lmkl_intel_ilp64 \
+                -lmkl_sequential -lmkl_core	
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual

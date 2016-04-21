@@ -1,4 +1,4 @@
-# mpich_native_icc = icc compiler, native MPICH w/out wrapper
+# g++_openmpi = OpenMPI with compiler set to GNU g++
 
 SHELL = /bin/sh
 
@@ -6,12 +6,13 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		icc
+OMPI_CXX :=     g++
+CC =		mpicxx
 CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		icc
+LINK =		mpicxx
 LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size
@@ -39,9 +40,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/local/include
-MPI_PATH =      -L/usr/local/lib
-MPI_LIB =	-lmpich -lmpl -lpthread
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_PATH = 
+MPI_LIB =	
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul

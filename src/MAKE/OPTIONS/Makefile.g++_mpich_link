@@ -1,4 +1,4 @@
-# ompi_native_g++ = g++ compiler, native OpenMPI w/out wrapper
+# g++_mpich_link = GNU g++ compiler, link to MPICH
 
 SHELL = /bin/sh
 
@@ -39,9 +39,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/local/include
-MPI_PATH = 	-L/usr/local/lib
-MPI_LIB =	-lmpi -lmpi_cxx
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/local/include 
+MPI_PATH =      -L/usr/local/lib
+MPI_LIB =	-lmpich -lmpl -lpthread
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul

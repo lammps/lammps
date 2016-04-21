@@ -1,4 +1,4 @@
-# ompi_icc = icc compiler and OpenMPI via MPI wrapper
+# intel_cpu_mpich = USER-INTEL package, MPICH with compiler set to Intel icc
 
 SHELL = /bin/sh
 
@@ -6,15 +6,16 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-OMPI_CXX :=     icc
-CC =		mpicxx
-CCFLAGS =	-g -O3
+CC =		mpicxx -cxx=icc
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
+CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
+                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpicxx
-LINKFLAGS =	-g -O
-LIB = 
+LINK =		mpicxx -cxx=icc
+LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+LIB =           
 SIZE =		size
 
 ARCHIVE =	ar
@@ -40,9 +41,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
-MPI_PATH = 
-MPI_LIB =	
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/local/include
+MPI_PATH =      -L/usr/local/lib
+MPI_LIB =	-lmpich -lmpl -lpthread
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -51,9 +52,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	
+FFT_INC =       
 FFT_PATH = 
-FFT_LIB =	
+FFT_LIB =       
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual

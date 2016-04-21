@@ -1,4 +1,4 @@
-# serial = g++ compiler, no MPI, internal FFT
+# pgi_mpich_link = Portland group compiler, link to MPICH
 
 SHELL = /bin/sh
 
@@ -6,14 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++
-CCFLAGS =	-g -O3
+CC =		pgCC
+CCFLAGS =	-g -fast
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		g++
-LINKFLAGS =	-g -O
-LIB = 
+LINK =		pgCC
+LINKFLAGS =	-g
+LIB =           
 SIZE =		size
 
 ARCHIVE =	ar
@@ -39,9 +39,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I../STUBS 
-MPI_PATH =      -L../STUBS
-MPI_LIB =	-lmpi_stubs
+MPI_INC =       -I/usr/local/mpich-1.2.6/pg/include
+MPI_PATH =	-L/usr/local/mpich-1.2.6/pg/lib
+MPI_LIB =	-lmpich
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -50,7 +50,7 @@ MPI_LIB =	-lmpi_stubs
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	
+FFT_INC =       
 FFT_PATH = 
 FFT_LIB =	
 
@@ -111,5 +111,10 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+	cc -O -o $@ $<
+
+sinclude .depend

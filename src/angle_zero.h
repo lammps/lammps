@@ -31,12 +31,19 @@ class AngleZero : public Angle {
   virtual ~AngleZero();
   virtual void compute(int, int);
   virtual void coeff(int, char **);
+  virtual void settings(int, char **);
+
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
+
   double single(int, int, int, int);
 
  protected:
+  double *theta0;
+  int coeffflag;
+
   void allocate();
 };
 

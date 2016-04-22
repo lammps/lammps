@@ -9,16 +9,16 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
-   Pair zero is a dummy pair interaction useful for requiring a 
+
+   Pair zero is a dummy pair interaction useful for requiring a
    force cutoff distance in the absense of pair-interactions or
    with hybrid/overlay if a larger force cutoff distance is required.
-   
+
    This can be used in conjunction with bond/create to create bonds
    that are longer than the cutoff of a given force field, or to
    calculate radial distribution functions for models without
    pair interactions.
-   
+
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -50,6 +50,7 @@ class PairZero : public Pair {
  protected:
   double cut_global;
   double **cut;
+  int coeffflag;
 
   virtual void allocate();
 };

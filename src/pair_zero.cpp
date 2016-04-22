@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairZero::PairZero(LAMMPS *lmp) : Pair(lmp) {}
+PairZero::PairZero(LAMMPS *lmp) : Pair(lmp), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,7 +49,7 @@ void PairZero::compute(int eflag, int vflag)
 {
  if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
  if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -77,13 +77,17 @@ void PairZero::allocate()
 
 void PairZero::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+  if ((narg != 1) && (narg != 2))
+    error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(FLERR,arg[0]);
+  if (narg == 2) {
+    if (strcmp("nocoeff",arg[1]) == 0) coeffflag=0;
+    else error->all(FLERR,"Illegal pair_style command");
+  }
 
   // reset cutoffs that have been explicitly set
 
-  allocate();
   int i,j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i+1; j <= atom->ntypes; j++)
@@ -96,8 +100,9 @@ void PairZero::settings(int narg, char **arg)
 
 void PairZero::coeff(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3)
+  if ((narg < 2) || (coeffflag && narg > 3))
     error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -105,7 +110,7 @@ void PairZero::coeff(int narg, char **arg)
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
+  if (coeffflag && (narg == 3)) cut_one = force->numeric(FLERR,arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -180,6 +185,7 @@ void PairZero::read_restart(FILE *fp)
 void PairZero::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&coeffflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -191,7 +197,9 @@ void PairZero::read_restart_settings(FILE *fp)
   int me = comm->me;
   if (me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
+    fread(&coeffflag,sizeof(int),1,fp);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&coeffflag,1,MPI_INT,0,world);
 }
 

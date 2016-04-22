@@ -31,10 +31,15 @@ class ImproperZero : public Improper {
   virtual ~ImproperZero();
   virtual void compute(int, int);
   virtual void coeff(int, char **);
+  virtual void settings(int, char **);
+
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
+  int coeffflag;
+
   virtual void allocate();
 };
 
@@ -44,11 +49,6 @@ class ImproperZero : public Improper {
 #endif
 
 /* ERROR/WARNING messages:
-
-W: Improper problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
 
 E: Incorrect args for improper coefficients
 

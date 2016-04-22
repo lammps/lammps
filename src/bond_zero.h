@@ -30,13 +30,20 @@ class BondZero : public Bond {
   BondZero(class LAMMPS *);
   virtual ~BondZero();
   virtual void compute(int, int);
+  virtual void settings(int, char **);
+
   void coeff(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
+
   double single(int, double, int, int, double &);
 
  protected:
+  double *r0;
+  int coeffflag;
+
   virtual void allocate();
 };
 

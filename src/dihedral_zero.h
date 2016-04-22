@@ -9,10 +9,10 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Identical to dihedral harmonic, except if all k's are zero the
    force loop is skipped.
-   
+
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
@@ -24,7 +24,7 @@ DihedralStyle(zero,DihedralZero)
 #ifndef LMP_DIHEDRAL_ZERO_H
 #define LMP_DIHEDRAL_ZERO_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -34,13 +34,17 @@ class DihedralZero : public Dihedral {
   DihedralZero(class LAMMPS *);
   virtual ~DihedralZero();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
+  virtual void settings(int, char **);
+
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
+  int coeffflag;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

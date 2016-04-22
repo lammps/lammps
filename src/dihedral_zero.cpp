@@ -15,12 +15,13 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "dihedral_zero.h"
 #include "atom.h"
 #include "force.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
@@ -28,13 +29,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 
 DihedralZero::~DihedralZero()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
   }
 }
@@ -49,6 +50,19 @@ void DihedralZero::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void DihedralZero::settings(int narg, char **arg)
+{
+  if ((narg != 0) && (narg != 1))
+    error->all(FLERR,"Illegal dihedral_style command");
+
+  if (narg == 1) {
+    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
+    else error->all(FLERR,"Illegal dihedral_style command");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DihedralZero::allocate()
 {
   allocated = 1;
@@ -59,12 +73,14 @@ void DihedralZero::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one type
+   set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
 void DihedralZero::coeff(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if ((narg < 1) || (coeffflag && narg > 1))
+    error->all(FLERR,"Incorrect args for dihedral coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -93,5 +109,14 @@ void DihedralZero::read_restart(FILE *fp)
 {
   allocate();
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralZero::write_data(FILE *fp) {
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d\n",i);
 }
 

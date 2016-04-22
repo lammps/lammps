@@ -17,9 +17,11 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "bond_zero.h"
 #include "atom.h"
 #include "force.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
@@ -27,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondZero::BondZero(LAMMPS *lmp) : Bond(lmp) {}
+BondZero::BondZero(LAMMPS *lmp) : Bond(lmp), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -35,6 +37,7 @@ BondZero::~BondZero()
 {
   if (allocated && !copymode) {
     memory->destroy(setflag);
+    memory->destroy(r0);
   }
 }
 
@@ -48,11 +51,25 @@ void BondZero::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void BondZero::settings(int narg, char **arg)
+{
+  if ((narg != 0) && (narg != 1))
+    error->all(FLERR,"Illegal bond_style command");
+
+  if (narg == 1) {
+    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
+    else error->all(FLERR,"Illegal bond_style command");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void BondZero::allocate()
 {
   allocated = 1;
   int n = atom->nbondtypes;
 
+  memory->create(r0,n+1,"bond:r0");
   memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
@@ -63,15 +80,22 @@ void BondZero::allocate()
 
 void BondZero::coeff(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Incorrect args for bond coefficients");
+  if ((narg < 1) || (coeffflag && narg > 2))
+    error->all(FLERR,"Incorrect args for bond coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi;
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
 
+  double r0_one = 0.0;
+  if (coeffflag && (narg == 2))
+    r0_one = force->numeric(FLERR,arg[1]);
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     setflag[i] = 1;
+    r0[i] = r0_one;
     count++;
   }
 
@@ -84,14 +108,16 @@ void BondZero::coeff(int narg, char **arg)
 
 double BondZero::equilibrium_distance(int i)
 {
-  return 0.0;
+  return r0[i];
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
-void BondZero::write_restart(FILE *fp) {}
+void BondZero::write_restart(FILE *fp) {
+  fwrite(&r0[1],sizeof(double),atom->nbondtypes,fp);
+}
 
 /* ----------------------------------------------------------------------
    proc 0 reads coeffs from restart file, bcasts them
@@ -100,8 +126,26 @@ void BondZero::write_restart(FILE *fp) {}
 void BondZero::read_restart(FILE *fp)
 {
   allocate();
+
+  if (comm->me == 0) {
+    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+  }
+  MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
+
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void BondZero::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nbondtypes; i++)
+    fprintf(fp,"%d %g\n",i,r0[i]);
+}
+
+
 
 /* ---------------------------------------------------------------------- */
 

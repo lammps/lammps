@@ -10,11 +10,12 @@ improper_style zero command :h3
 
 [Syntax:]
 
-improper_style zero :pre
+improper_style zero {nocoeff} :pre
 
 [Examples:]
 
 improper_style zero
+improper_style zero nocoeff
 improper_coeff * :pre
 
 [Description:]
@@ -29,6 +30,10 @@ compute the chi values for the list of quadruplets of improper atoms
 listed in the data file read by the "read_data"_read_data.html
 command.  If no improper style is defined, this command cannot be
 used.
+
+The optional {nocoeff} flag allows to read data files with a ImproperCoeff
+section for any improper style. Similarly, any improper_coeff commands
+will only be checked for the improper type number and the rest ignored.
 
 Note that the "improper_coeff"_improper_coeff.html command must be
 used for all improper types, though no additional values are

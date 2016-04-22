@@ -14,7 +14,7 @@ read_data file keyword args ... :pre
 
 file = name of data file to read in :ulb,l
 zero or more keyword/arg pairs may be appended :l
-keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/types} or {extra/angle/types} or {extra/dihedral/types} or {extra/improper/types} or {group} or {fix} :l
+keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/types} or {extra/angle/types} or {extra/dihedral/types} or {extra/improper/types} or {group} or {nocoeff} or {fix} :l
   {add} arg = {append} or {Nstart} or {merge}
     append = add new atoms with IDs appended to current IDs
     Nstart = add new atoms with IDs starting with Nstart
@@ -34,6 +34,7 @@ keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/type
   {extra/improper/types} arg = # of extra improper types
   {group} args = groupID
     groupID = add atoms in data file to this group
+  {nocoeff} = ignore force field parameters
   {fix} args = fix-ID header-string section-string
     fix-ID = ID of fix to process header lines and sections of data file
     header-string = header lines containing this string will be passed to fix
@@ -44,7 +45,7 @@ keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/type
 
 read_data data.lj
 read_data ../run7/data.polymer.gz
-read_data data.protein fix mycmap crossterm CMAP 
+read_data data.protein fix mycmap crossterm CMAP
 read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
 read_data data.water add merge 1 group solvent :pre
 
@@ -72,6 +73,12 @@ later.  E.g. a group of added atoms can be moved to new positions via
 the "displace_atoms"_displace_atoms.html command.  Note that atoms
 read from the data file are also always added to the "all" group.  The
 "group"_group.html command discusses atom groups, as used in LAMMPS.
+
+The {nocoeff} keyword tells read_data to ignore force field parameters.
+The various Coeff sections are still read and have to have the correct
+number of lines, but they are not applied. This also allows to read a
+data file without having any pair, bond, angle, dihedral or improper
+styles defined, or to read a data file for a different force field.
 
 The use of the {fix} keyword is discussed below.
 
@@ -405,8 +412,8 @@ the maximum values defined in any of the template molecules.
 
 These are the section keywords for the body of the file.
 
-{Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies} = atom-property sections 
-{Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
+{Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies} = atom-property sections
+{Bonds, Angles, Dihedrals, Impropers} = molecular topology sections
 {Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
 {BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs, \
@@ -548,7 +555,7 @@ atom-ID = integer ID of atom
 atom-type = type of atom (1-Ntype)
 bodyflag = 1 for body particles, 0 for point particles
 contact-radius = ??? (distance units)
-cs_re,cs_im = real/imaginary parts of wavepacket coefficients 
+cs_re,cs_im = real/imaginary parts of wavepacket coefficients
 cv = heat capacity (need units) for SPH particles
 density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
 diameter = diameter of spherical atom (distance units)

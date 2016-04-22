@@ -123,7 +123,7 @@ void ReadData::command(int narg, char **arg)
   // optional args
 
   addflag = NONE;
-  no_coeffs = 0;
+  coeffflag = 1;
   id_offset = 0;
   offsetflag = shiftflag = 0;
   toffset = boffset = aoffset = doffset = ioffset = 0;
@@ -174,7 +174,7 @@ void ReadData::command(int narg, char **arg)
         error->all(FLERR,"Non-zero read_data shift z value for 2d simulation");
       iarg += 4;
     } else if (strcmp(arg[iarg],"nocoeff") == 0) {
-      no_coeffs = 1;
+      coeffflag = 0;
       iarg ++;
     } else if (strcmp(arg[iarg],"extra/atom/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
@@ -290,7 +290,7 @@ void ReadData::command(int narg, char **arg)
   Improper *saved_improper = NULL;
   KSpace *saved_kspace = NULL;
 
-  if (no_coeffs) {
+  if (coeffflag == 0) {
     char *coeffs[2];
     coeffs[0] = (char *) "10.0";
     coeffs[1] = (char *) "nocoeff";
@@ -825,8 +825,8 @@ void ReadData::command(int narg, char **arg)
                  "Read_data shrink wrap did not assign all atoms correctly");
   }
 
-  // restore old styles, for nocoeff flag read
-  if (no_coeffs) {
+  // restore old styles, when reading with nocoeff flag given
+  if (coeffflag == 0) {
     if (force->pair) delete force->pair;
     force->pair = saved_pair;
 

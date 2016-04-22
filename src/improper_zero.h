@@ -38,7 +38,7 @@ class ImproperZero : public Improper {
   void write_data(FILE *);
 
  protected:
-  int check_coeffs;
+  int coeffflag;
 
   virtual void allocate();
 };

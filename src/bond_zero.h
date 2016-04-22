@@ -42,7 +42,7 @@ class BondZero : public Bond {
 
  protected:
   double *r0;
-  int check_coeffs;
+  int coeffflag;
 
   virtual void allocate();
 };

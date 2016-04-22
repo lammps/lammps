@@ -42,7 +42,7 @@ class AngleZero : public Angle {
 
  protected:
   double *theta0;
-  int check_coeffs;
+  int coeffflag;
 
   void allocate();
 };

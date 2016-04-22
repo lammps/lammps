@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperZero::ImproperZero(LAMMPS *lmp) : Improper(lmp), check_coeffs(1) {}
+ImproperZero::ImproperZero(LAMMPS *lmp) : Improper(lmp), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,7 +56,7 @@ void ImproperZero::settings(int narg, char **arg)
     error->all(FLERR,"Illegal improper_style command");
 
   if (narg == 1) {
-    if (strcmp("nocoeff",arg[0]) == 0) check_coeffs=0;
+    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
     else error->all(FLERR,"Illegal improper_style command");
   }
 }
@@ -78,7 +78,7 @@ void ImproperZero::allocate()
 
 void ImproperZero::coeff(int narg, char **arg)
 {
-  if ((narg < 1) || (check_coeffs && narg > 1))
+  if ((narg < 1) || (coeffflag && narg > 1))
     error->all(FLERR,"Incorrect args for improper coefficients");
 
   if (!allocated) allocate();

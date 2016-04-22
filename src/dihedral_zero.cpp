@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), check_coeffs(1) {}
+DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,7 +56,7 @@ void DihedralZero::settings(int narg, char **arg)
     error->all(FLERR,"Illegal dihedral_style command");
 
   if (narg == 1) {
-    if (strcmp("nocoeff",arg[0]) == 0) check_coeffs=0;
+    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
     else error->all(FLERR,"Illegal dihedral_style command");
   }
 }
@@ -78,7 +78,7 @@ void DihedralZero::allocate()
 
 void DihedralZero::coeff(int narg, char **arg)
 {
-  if ((narg < 1) || (check_coeffs && narg > 1))
+  if ((narg < 1) || (coeffflag && narg > 1))
     error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   if (!allocated) allocate();

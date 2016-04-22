@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AngleZero::AngleZero(LAMMPS *lmp) : Angle(lmp), check_coeffs(1) {}
+AngleZero::AngleZero(LAMMPS *lmp) : Angle(lmp), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,7 +57,7 @@ void AngleZero::settings(int narg, char **arg)
     error->all(FLERR,"Illegal angle_style command");
 
   if (narg == 1) {
-    if (strcmp("nocoeff",arg[0]) == 0) check_coeffs=0;
+    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
     else error->all(FLERR,"Illegal angle_style command");
   }
 }
@@ -80,7 +80,7 @@ void AngleZero::allocate()
 
 void AngleZero::coeff(int narg, char **arg)
 {
-  if ((narg < 1) || (check_coeffs && narg > 2))
+  if ((narg < 1) || (coeffflag && narg > 2))
     error->all(FLERR,"Incorrect args for angle coefficients");
 
   if (!allocated) allocate();
@@ -89,7 +89,7 @@ void AngleZero::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
   double theta0_one = 0.0;
-  if (check_coeffs && (narg == 2))
+  if (coeffflag && (narg == 2))
     theta0_one = force->numeric(FLERR,arg[1]);
 
 

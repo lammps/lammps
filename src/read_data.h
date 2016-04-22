@@ -64,7 +64,7 @@ class ReadData : protected Pointers {
 
   // optional args
 
-  int addflag,offsetflag,shiftflag,no_coeffs;
+  int addflag,offsetflag,shiftflag,coeffflag;
   tagint addvalue;
   int toffset,boffset,aoffset,doffset,ioffset;
   double shift[3];

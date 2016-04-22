@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondZero::BondZero(LAMMPS *lmp) : Bond(lmp), check_coeffs(1) {}
+BondZero::BondZero(LAMMPS *lmp) : Bond(lmp), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,7 +57,7 @@ void BondZero::settings(int narg, char **arg)
     error->all(FLERR,"Illegal bond_style command");
 
   if (narg == 1) {
-    if (strcmp("nocoeff",arg[0]) == 0) check_coeffs=0;
+    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
     else error->all(FLERR,"Illegal bond_style command");
   }
 }
@@ -80,7 +80,7 @@ void BondZero::allocate()
 
 void BondZero::coeff(int narg, char **arg)
 {
-  if ((narg < 1) || (check_coeffs && narg > 2))
+  if ((narg < 1) || (coeffflag && narg > 2))
     error->all(FLERR,"Incorrect args for bond coefficients");
 
   if (!allocated) allocate();
@@ -89,7 +89,7 @@ void BondZero::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
 
   double r0_one = 0.0;
-  if (check_coeffs && (narg == 2))
+  if (coeffflag && (narg == 2))
     r0_one = force->numeric(FLERR,arg[1]);
 
   int count = 0;

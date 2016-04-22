@@ -128,13 +128,14 @@
 <span id="index-0"></span><h1>improper_style zero command<a class="headerlink" href="#improper-style-zero-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>improper_style zero
-</pre></div>
-</div>
+<pre class="literal-block">
+improper_style zero <em>nocoeff</em>
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>improper_style zero
+improper_style zero nocoeff
 improper_coeff *
 </pre></div>
 </div>
@@ -149,6 +150,9 @@ compute the chi values for the list of quadruplets of improper atoms
 listed in the data file read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
 command.  If no improper style is defined, this command cannot be
 used.</p>
+<p>The optional <em>nocoeff</em> flag allows to read data files with a ImproperCoeff
+section for any improper style. Similarly, any improper_coeff commands
+will only be checked for the improper type number and the rest ignored.</p>
 <p>Note that the <a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a> command must be
 used for all improper types, though no additional values are
 specified.</p>

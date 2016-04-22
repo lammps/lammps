@@ -128,14 +128,16 @@
 <span id="index-0"></span><h1>bond_style zero command<a class="headerlink" href="#bond-style-zero-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>bond_style zero
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_style zero <em>nocoeff</em>
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>bond_style zero
+bond_style zero nocoeff
 bond_coeff *
+bond_coeff * 2.14
 </pre></div>
 </div>
 </div>
@@ -148,8 +150,13 @@ commands.</p>
 command can be used to compute distances for the list of pairs of bond
 atoms listed in the data file read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
 command.  If no bond style is defined, this command cannot be used.</p>
+<p>The optional <em>nocoeff</em> flag allows to read data files with a BondCoeff
+section for any bond style. Similarly, any bond_coeff commands
+will only be checked for the bond type number and the rest ignored.</p>
 <p>Note that the <a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a> command must be used for
-all bond types, though no additional values are specified.</p>
+all bond types. If specified, there can be only one value, which is
+going to be used to assign an equilibrium distance, e.g. for use with
+<a class="reference internal" href="fix_shake.html"><em>fix shake</em></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>

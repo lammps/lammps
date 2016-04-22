@@ -12,7 +12,7 @@ Syntax
 
 * file = name of data file to read in
 * zero or more keyword/arg pairs may be appended
-* keyword = *add* or *offset* or *shift* or *extra/atom/types* or *extra/bond/types* or *extra/angle/types* or *extra/dihedral/types* or *extra/improper/types* or *group* or *fix*
+* keyword = *add* or *offset* or *shift* or *extra/atom/types* or *extra/bond/types* or *extra/angle/types* or *extra/dihedral/types* or *extra/improper/types* or *group* or *nocoeff* or *fix*
 .. parsed-literal::
 
      *add* arg = *append* or *Nstart* or *merge*
@@ -34,6 +34,7 @@ Syntax
      *extra/improper/types* arg = # of extra improper types
      *group* args = groupID
        groupID = add atoms in data file to this group
+     *nocoeff* = ignore force field parameters
      *fix* args = fix-ID header-string section-string
        fix-ID = ID of fix to process header lines and sections of data file
        header-string = header lines containing this string will be passed to fix
@@ -48,7 +49,7 @@ Examples
 
    read_data data.lj
    read_data ../run7/data.polymer.gz
-   read_data data.protein fix mycmap crossterm CMAP 
+   read_data data.protein fix mycmap crossterm CMAP
    read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
    read_data data.water add merge 1 group solvent
 
@@ -76,6 +77,12 @@ later.  E.g. a group of added atoms can be moved to new positions via
 the :doc:`displace_atoms <displace_atoms>` command.  Note that atoms
 read from the data file are also always added to the "all" group.  The
 :doc:`group <group>` command discusses atom groups, as used in LAMMPS.
+
+The *nocoeff* keyword tells read_data to ignore force field parameters.
+The various Coeff sections are still read and have to have the correct
+number of lines, but they are not applied. This also allows to read a
+data file without having any pair, bond, angle, dihedral or improper
+styles defined, or to read a data file for a different force field.
 
 The use of the *fix* keyword is discussed below.
 

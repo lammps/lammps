@@ -128,27 +128,29 @@
 <span id="index-0"></span><h1>pair_style zero command<a class="headerlink" href="#pair-style-zero-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style zero cutoff
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style zero cutoff <em>nocoeff</em>
+</pre>
 <ul class="simple">
 <li>zero = style name of this pair style
-cutoff = global cutoff (distance units)</li>
+cutoff = global cutoff (distance units)
+nocoeff = ignore all pair_coeff parameters (optional)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>pair_style zero
+<div class="highlight-python"><div class="highlight"><pre>pair_style zero 10.0
+pair_style zero 5.0 nocoeff
 pair_coeff * *
-pair_coeff 1 2 3.0
+pair_coeff 1 2*4 3.0
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Define a global cutoff length for the purpose of building a neighbor
-list and acquiring ghost atoms, but do not compute any pairwise forces
-or energies.</p>
+<p>Define a global or per-type cutoff length for the purpose of
+building a neighbor list and acquiring ghost atoms, but do
+not compute any pairwise forces or energies.</p>
 <p>This can be useful for fixes or computes which require a neighbor list
 to enumerate pairs of atoms within some cutoff distance, but when
 pairwise forces are not otherwise needed.  Examples are the <a class="reference internal" href="fix_bond_create.html"><em>fix bond/create</em></a>, <a class="reference internal" href="compute_rdf.html"><em>compute rdf</em></a>,
@@ -156,6 +158,10 @@ pairwise forces are not otherwise needed.  Examples are the <a class="reference 
 <p>Note that the <a class="reference internal" href="comm_modify.html"><em>comm_modify cutoff</em></a> command can be
 used to insure communication of ghost atoms even when a pair style is
 not defined, but it will not trigger neighbor list generation.</p>
+<p>The optional <em>nocoeff</em> flag allows to read data files with a PairCoeff
+section for any pair style. Similarly, any pair_coeff commands
+will only be checked for the atom type numbers and the rest ignored.
+In this case, only the global cutoff will be used.</p>
 <p>The following coefficients must be defined for each pair of atoms
 types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
 above, or in the data file or restart files read by the
@@ -165,7 +171,9 @@ commands, or by mixing as described below:</p>
 <li>cutoff (distance units)</li>
 </ul>
 <p>This coefficient is optional.  If not specified, the global cutoff
-specified in the pair_style command is used.</p>
+specified in the pair_style command is used. If the pair_style has
+been specified with the optional <em>nocoeff</em> flag, then a cutoff
+pair coefficient is ignored.</p>
 <hr class="docutils" />
 <p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
 <p>The cutoff distance for this pair style can be mixed.  The default mix

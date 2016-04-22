@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   bond_style zero
+   bond_style zero *nocoeff*
 
 Examples
 """"""""
@@ -16,7 +16,9 @@ Examples
 .. parsed-literal::
 
    bond_style zero
+   bond_style zero nocoeff
    bond_coeff *
+   bond_coeff * 2.14
 
 Description
 """""""""""
@@ -30,8 +32,14 @@ command can be used to compute distances for the list of pairs of bond
 atoms listed in the data file read by the :doc:`read_data <read_data>`
 command.  If no bond style is defined, this command cannot be used.
 
+The optional *nocoeff* flag allows to read data files with a BondCoeff
+section for any bond style. Similarly, any bond_coeff commands
+will only be checked for the bond type number and the rest ignored.
+
 Note that the :doc:`bond_coeff <bond_coeff>` command must be used for
-all bond types, though no additional values are specified.
+all bond types. If specified, there can be only one value, which is
+going to be used to assign an equilibrium distance, e.g. for use with
+:doc:`fix shake <fix_shake>`.
 
 Restrictions
 """"""""""""

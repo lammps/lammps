@@ -128,14 +128,16 @@
 <span id="index-0"></span><h1>angle_style zero command<a class="headerlink" href="#angle-style-zero-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>angle_style zero
-</pre></div>
-</div>
+<pre class="literal-block">
+angle_style zero <em>nocoeff</em>
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre>angle_style zero
+angle_style zero nocoeff
 angle_coeff *
+angle_coeff * 120.0
 </pre></div>
 </div>
 </div>
@@ -149,8 +151,13 @@ command can be used to compute the theta values for the list of
 triplets of angle atoms listed in the data file read by the
 <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.  If no angle style is defined,
 this command cannot be used.</p>
+<p>The optional <em>nocoeff</em> flag allows to read data files with AngleCoeff
+section for any angle style. Similarly, any angle_coeff commands
+will only be checked for the angle type number and the rest ignored.</p>
 <p>Note that the <a class="reference internal" href="angle_coeff.html"><em>angle_coeff</em></a> command must be used for
-all angle types, though no additional values are specified.</p>
+all angle types. If specified, there can be only one value, which is
+going to be used to assign an equilibrium angle, e.g. for use with
+<a class="reference internal" href="fix_shake.html"><em>fix shake</em></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>

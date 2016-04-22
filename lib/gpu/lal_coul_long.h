@@ -59,10 +59,6 @@ class CoulLong : public BaseCharge<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// lj1 dummy
-  UCL_D_Vec<numtyp4> lj1;
-  /// lj3 dummy
-  UCL_D_Vec<numtyp4> lj3;
   /// scale
   UCL_D_Vec<numtyp> scale;
   /// Special Coul values [0-3]

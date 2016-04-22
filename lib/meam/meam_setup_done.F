@@ -121,7 +121,7 @@ c If i<j and term is unset, use default values (e.g. mean of i-i and j-j)
      $                 - delta_meam(i,j)
                 endif
               else
-                Ec_meam(i,j) = (Ec_meam(i,i)+Ec_meam(j,j))/2.d0 
+                Ec_meam(i,j) = (Ec_meam(i,i)+Ec_meam(j,j))/2.d0
      $               - delta_meam(i,j)
               endif
             endif
@@ -147,7 +147,7 @@ c where i>j, set equal to the i<j element.  Likewise for Cmax.
       enddo
 
 c ebound gives the squared distance such that, for rik2 or rjk2>ebound,
-c atom k definitely lies outside the screening function ellipse (so 
+c atom k definitely lies outside the screening function ellipse (so
 c there is no need to calculate its effects).  Here, compute it for all
 c triplets (i,j,k) so that ebound(i,j) is the maximized over k
       do i = 1,neltypes
@@ -237,7 +237,7 @@ c               phi_aa
      $                   (-Z2*scrn/Z1)**n * phi_meam(rarat*arat**n,a,a)
                   enddo
                 endif
-      
+
 c               phi_bb
                 phibb = phi_meam(rarat,b,b)
                 call get_Zij(Z1,lattce_meam(b,b))
@@ -250,7 +250,7 @@ c               phi_bb
      $                   (-Z2*scrn/Z1)**n * phi_meam(rarat*arat**n,b,b)
                   enddo
                 endif
-                
+
                 if (lattce_meam(a,b).eq.'b1'.
      $               or.lattce_meam(a,b).eq.'b2') then
 c     Add contributions to the B1 or B2 potential
@@ -276,11 +276,11 @@ c     atoms.
                   call get_sijk(C,b,b,a,s221)
                   S11 = s111 * s111 * s112 * s112
                   S22 = s221**4
-                  phir(j,nv2) = phir(j,nv2) - 
+                  phir(j,nv2) = phir(j,nv2) -
      $                 0.75*S11*phiaa - 0.25*S22*phibb
 
                 endif
-                
+
               else
                 nmax = 10
                 do n = 1,nmax
@@ -307,7 +307,7 @@ c endif
                 phir(j,nv2) = frac*phir(j,nv2) + (1-frac)*phizbl
               endif
             endif
-            
+
           enddo
 
 c call interpolation
@@ -320,14 +320,14 @@ c call interpolation
       end
 
 
-c----------------------------------------------------------------------c      
+c----------------------------------------------------------------------c
 c Compute MEAM pair potential for distance r, element types a and b
 c
       real*8 recursive function phi_meam(r,a,b)result(phi_m)
       use meam_data
       implicit none
 
-      
+
       integer a,b
       real*8 r
       real*8 a1,a2,a12
@@ -375,15 +375,15 @@ c calculate average weighting factors for the reference structure
           t31av = t3_meam(a)
           t32av = t3_meam(b)
         else
-          scalfac = 1.0/(rho01+rho02) 
+          scalfac = 1.0/(rho01+rho02)
           t11av = scalfac*(t1_meam(a)*rho01 + t1_meam(b)*rho02)
-          t12av = t11av 
+          t12av = t11av
           t21av = scalfac*(t2_meam(a)*rho01 + t2_meam(b)*rho02)
-          t22av = t21av 
+          t22av = t21av
           t31av = scalfac*(t3_meam(a)*rho01 + t3_meam(b)*rho02)
-          t32av = t31av 
+          t32av = t31av
         endif
-      else      
+      else
 c average weighting factors for the reference structure, eqn. I.8
          call get_tavref(t11av,t21av,t31av,t12av,t22av,t32av,
      $       t1_meam(a),t2_meam(a),t3_meam(a),
@@ -411,10 +411,10 @@ c for c11b structure, calculate background electron densities
             rhobar1 = (Z12*rho02)**2 + 2.0/3.0*t22av*rho22**2
             rhobar1 = sqrt(rhobar1)
          endif
-      else 
+      else
 c for other structures, use formalism developed in Huang's paper
 c
-c     composition-dependent scaling, equation I.7 
+c     composition-dependent scaling, equation I.7
 c     If using mixing rule for t, apply to reference structure; else
 c     use precomputed values
         if (mix_ref_t.eq.1) then
@@ -508,8 +508,8 @@ c       account for second neighbor a-a potential here...
           enddo
         endif
         phi_m = Eu/3. - F1/4. - F2/12. - phiaa
-      else      
-c     
+      else
+c
 c potential is computed from Rose function and embedding energy
          phi_m = (2*Eu - F1 - F2)/Z12
 c
@@ -519,7 +519,7 @@ c if r = 0, just return 0
       if (r.eq.0.d0) then
         phi_m = 0.d0
       endif
-      
+
       return
       end
 
@@ -546,7 +546,7 @@ c loop over element types
           call G_gam(gam,ibar_meam(a),gsmooth_factor,
      $         Gbar,errorflag)
         endif
-        
+
 c     The zeroth order density in the reference structure, with
 c     equilibrium spacing, is just the number of first neighbors times
 c     the rho0_meam coefficient...
@@ -569,7 +569,7 @@ c     screening)
       return
       end
 
-c----------------------------------------------------------------------c      
+c----------------------------------------------------------------------c
 c Shape factors for various configurations
       subroutine get_shpfcn(s,latt)
       implicit none
@@ -599,7 +599,7 @@ c        call error('Lattice not defined in get_shpfcn.')
       endif
       return
       end
-c------------------------------------------------------------------------------c      
+c------------------------------------------------------------------------------c
 c Average weighting factors for the reference structure
       subroutine get_tavref(t11av,t21av,t31av,t12av,t22av,t32av,
      $     t11,t21,t31,t12,t22,t32,
@@ -651,7 +651,7 @@ c     call error('Lattice not defined in get_tavref.')
       endif
       return
       end
-c------------------------------------------------------------------------------c      
+c------------------------------------------------------------------------------c
 c Number of neighbors for the reference structure
       subroutine get_Zij(Zij,latt)
       implicit none
@@ -681,8 +681,8 @@ c        call error('Lattice not defined in get_Zij.')
       return
       end
 
-c------------------------------------------------------------------------------c      
-c Zij2 = number of second neighbors, a = distance ratio R1/R2, and S = second 
+c------------------------------------------------------------------------------c
+c Zij2 = number of second neighbors, a = distance ratio R1/R2, and S = second
 c neighbor screening function for lattice type "latt"
 
       subroutine get_Zij2(Zij2,a,S,latt,cmin,cmax)
@@ -734,7 +734,7 @@ c        this really shouldn't be allowed; make sure screening is zero
 c        call error('Lattice not defined in get_Zij2.')
       endif
 
-c Compute screening for each first neighbor      
+c Compute screening for each first neighbor
       C = 4.d0/(a*a) - 1.d0
       x = (C-cmin)/(cmax-cmin)
       call fcut(x,sijk)
@@ -744,8 +744,8 @@ c There are numscr first neighbors screening the second neighbors
       return
       end
 
-      
-c------------------------------------------------------------------------------c      
+
+c------------------------------------------------------------------------------c
       subroutine get_sijk(C,i,j,k,sijk)
       use meam_data
       implicit none
@@ -757,7 +757,7 @@ c------------------------------------------------------------------------------c
       return
       end
 
-c------------------------------------------------------------------------------c      
+c------------------------------------------------------------------------------c
 c Calculate density functions, assuming reference configuration
       subroutine get_densref(r,a,b,rho01,rho11,rho21,rho31,
      $     rho02,rho12,rho22,rho32)
@@ -787,7 +787,7 @@ c Calculate density functions, assuming reference configuration
       rhoa32 = rho0_meam(b)*fm_exp(-beta3_meam(b)*a2)
 
       lat = lattce_meam(a,b)
-      
+
       rho11 = 0.d0
       rho21 = 0.d0
       rho31 = 0.d0
@@ -807,13 +807,13 @@ c Calculate density functions, assuming reference configuration
         rho01 = 6*rhoa02
         rho02 = 6*rhoa01
       else if (lat.eq.'dia') then
-        rho01 = 4*rhoa02 
-        rho02 = 4*rhoa01 
+        rho01 = 4*rhoa02
+        rho02 = 4*rhoa01
         rho31 = 32.d0/9.d0*rhoa32*rhoa32
         rho32 = 32.d0/9.d0*rhoa31*rhoa31
       else if (lat.eq.'hcp') then
-        rho01 = 12*rhoa02 
-        rho02 = 12*rhoa01 
+        rho01 = 12*rhoa02
+        rho02 = 12*rhoa01
         rho31 = 1.d0/3.d0*rhoa32*rhoa32
         rho32 = 1.d0/3.d0*rhoa31*rhoa31
       else if (lat.eq.'dim') then
@@ -830,7 +830,7 @@ c Calculate density functions, assuming reference configuration
         rho01 = rhoa01
         rho02 = rhoa02
         rho11 = rhoa11
-        rho12 = rhoa12 
+        rho12 = rhoa12
         rho21 = rhoa21
         rho22 = rhoa22
         rho31 = rhoa31
@@ -858,10 +858,10 @@ c        call error('Lattice not defined in get_densref.')
 
         call get_Zij2(Zij2nn,arat,scrn,lat,
      $       Cmin_meam(a,a,b),Cmax_meam(a,a,b))
-        
+
         a1 = arat*r/re_meam(a,a) - 1.d0
         a2 = arat*r/re_meam(b,b) - 1.d0
-        
+
         rhoa01nn = rho0_meam(a)*fm_exp(-beta0_meam(a)*a1)
         rhoa02nn = rho0_meam(b)*fm_exp(-beta0_meam(b)*a2)
 
@@ -895,41 +895,41 @@ c     Assume Zij2nn and arat don't depend on order, but scrn might
       return
       end
 
-c---------------------------------------------------------------------       
-c Compute ZBL potential  
-c  
-      real*8 function zbl(r,z1,z2)  
-      use meam_data , only : fm_exp     
-      implicit none  
-      integer i,z1,z2 
-      real*8 r,c,d,a,azero,cc,x  
-      dimension c(4),d(4) 
-      data c /0.028171,0.28022,0.50986,0.18175/ 
-      data d /0.20162,0.40290,0.94229,3.1998/ 
-      data azero /0.4685/  
-      data cc /14.3997/ 
-c azero = (9pi^2/128)^1/3 (0.529) Angstroms 
-      a = azero/(z1**0.23+z2**0.23) 
-      zbl = 0.0  
-      x = r/a  
-      do i=1,4  
-        zbl = zbl + c(i)*fm_exp(-d(i)*x) 
+c---------------------------------------------------------------------
+c Compute ZBL potential
+c
+      real*8 function zbl(r,z1,z2)
+      use meam_data , only : fm_exp
+      implicit none
+      integer i,z1,z2
+      real*8 r,c,d,a,azero,cc,x
+      dimension c(4),d(4)
+      data c /0.028171,0.28022,0.50986,0.18175/
+      data d /0.20162,0.40290,0.94229,3.1998/
+      data azero /0.4685/
+      data cc /14.3997/
+c azero = (9pi^2/128)^1/3 (0.529) Angstroms
+      a = azero/(z1**0.23+z2**0.23)
+      zbl = 0.0
+      x = r/a
+      do i=1,4
+        zbl = zbl + c(i)*fm_exp(-d(i)*x)
       enddo
       if (r.gt.0.d0) zbl = zbl*z1*z2/r*cc
-      return  
-      end  
- 
+      return
+      end
+
 c---------------------------------------------------------------------
 c Compute Rose energy function, I.16
 c
       real*8 function erose(r,re,alpha,Ec,repuls,attrac,form)
-      use meam_data , only : fm_exp     
+      use meam_data , only : fm_exp
       implicit none
       real*8 r,re,alpha,Ec,repuls,attrac,astar,a3
       integer form
 
       erose = 0.d0
-      
+
       if (r.gt.0.d0) then
         astar = alpha * (r/re - 1.d0)
         a3 = 0.d0
@@ -950,7 +950,7 @@ c
 
       return
       end
-      
+
 c -----------------------------------------------------------------------
 
       subroutine interpolate_meam(ind)
@@ -980,7 +980,7 @@ c phir interp
         phirar1(j,ind) = ((phirar(j-2,ind)-phirar(j+2,ind)) +
      $       8.0D0*(phirar(j+1,ind)-phirar(j-1,ind)))/12.
       enddo
-      
+
       do j = 1,nrar-1
         phirar2(j,ind) = 3.0D0*(phirar(j+1,ind)-phirar(j,ind)) -
      $       2.0D0*phirar1(j,ind) - phirar1(j+1,ind)
@@ -989,7 +989,7 @@ c phir interp
       enddo
       phirar2(nrar,ind) = 0.0D0
       phirar3(nrar,ind) = 0.0D0
-      
+
       do j = 1,nrar
         phirar4(j,ind) = phirar1(j,ind)/drar
         phirar5(j,ind) = 2.0D0*phirar2(j,ind)/drar
@@ -1014,7 +1014,7 @@ c
       kk = min(kk,nrar-1)
       pp = pp - kk
       pp = min(pp,1.0D0)
-      compute_phi = ((phirar3(kk,ind)*pp + phirar2(kk,ind))*pp 
+      compute_phi = ((phirar3(kk,ind)*pp + phirar2(kk,ind))*pp
      $     + phirar1(kk,ind))*pp + phirar(kk,ind)
 
       return

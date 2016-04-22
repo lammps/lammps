@@ -3,7 +3,7 @@ c
 c  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
 c                int *, int *, int *,
 c		 double *, double *, double *, double *, double *, double *,
-c		 double *, double *, double *, double *, double *, double *, 
+c		 double *, double *, double *, double *, double *, double *,
 c		 double *, double *, double *, double *, double *, int *);
 c
 c Call from pair_meam.cpp has the form:
@@ -69,7 +69,7 @@ c     Complete the calculation of density
           do m = 1,10
             rho3(i) = rho3(i) + v3D(m)*Arho3(m,i)*Arho3(m,i)
           enddo
-          
+
           if( rho0(i) .gt. 0.0 ) then
             if (ialloy.eq.1) then
               t_ave(1,i) = t_ave(1,i)/tsq_ave(1,i)
@@ -85,10 +85,10 @@ c     Complete the calculation of density
               t_ave(3,i) = t_ave(3,i)/rho0(i)
             endif
           endif
-          
-          Gamma(i) = t_ave(1,i)*rho1(i) 
+
+          Gamma(i) = t_ave(1,i)*rho1(i)
      $         + t_ave(2,i)*rho2(i) + t_ave(3,i)*rho3(i)
-          
+
           if( rho0(i) .gt. 0.0 ) then
             Gamma(i) = Gamma(i)/(rho0(i)*rho0(i))
           end if
@@ -137,9 +137,9 @@ c     Complete the calculation of density
           denom = 1.d0/rho_bkgd
 
           call dG_gam(Gamma(i),ibar_meam(elti),gsmooth_factor,G,dG)
-          
+
           dGamma1(i) = (G - 2*dG*Gamma(i))*denom
-          
+
           if( rho0(i) .ne. 0.d0 ) then
             dGamma2(i) = (dG/rho0(i))*denom
           else
@@ -156,7 +156,7 @@ c     included for backward compatibility
           endif
 
           B = A_meam(elti)*Ec_meam(elti,elti)
-          
+
           if( rhob .ne. 0.d0 ) then
             if (emb_lin_neg.eq.1 .and. rhob.le.0) then
               fp(i) = -B
@@ -188,7 +188,7 @@ c     included for backward compatibility
           endif
         endif
       enddo
-      
+
       return
       end
 
@@ -198,7 +198,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     Compute G(Gamma) based on selection flag ibar:
 c   0 => G = sqrt(1+Gamma)
 c   1 => G = exp(Gamma/2)
-c   2 => not implemented 
+c   2 => not implemented
 c   3 => G = 2/(1+exp(-Gamma))
 c   4 => G = sqrt(1+Gamma)
 c  -5 => G = +-sqrt(abs(1+Gamma))
@@ -241,7 +241,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c Compute G(Gamma) and dG(gamma) based on selection flag ibar:
 c   0 => G = sqrt(1+Gamma)
 c   1 => G = fm_exp(Gamma/2)
-c   2 => not implemented 
+c   2 => not implemented
 c   3 => G = 2/(1+fm_exp(-Gamma))
 c   4 => G = sqrt(1+Gamma)
 c  -5 => G = +-sqrt(abs(1+Gamma))

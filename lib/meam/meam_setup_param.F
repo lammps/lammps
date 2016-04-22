@@ -1,5 +1,5 @@
 c
-c     do a sanity check on index parameters 
+c     do a sanity check on index parameters
       subroutine meam_checkindex(num,lim,nidx,idx,ierr)
       implicit none
       integer i,num,lim,nidx,idx(3),ierr
@@ -18,20 +18,20 @@ c     do a sanity check on index parameters
       enddo
       end
 
-c     
+c
 c     Declaration in pair_meam.h:
-c     
+c
 c     void meam_setup_param(int *, double *, int *, int *, int *);
-c     
+c
 c     Call in pair_meam.cpp
-c     
+c
 c     meam_setup_param(&which,&value,&nindex,index,&errorflag);
-c     
-c     
-c     
+c
+c
+c
 c     The "which" argument corresponds to the index of the "keyword" array
 c     in pair_meam.cpp:
-c     
+c
 c     0 = Ec_meam
 c     1 = alpha_meam
 c     2 = rho0_meam
@@ -54,7 +54,7 @@ c     18 = zbl_meam
 c     19 = emb_lin_neg
 c     20 = bkgd_dyn
 
-      subroutine meam_setup_param(which, value, nindex, 
+      subroutine meam_setup_param(which, value, nindex,
      $     index, errorflag)
 
       use meam_data
@@ -77,7 +77,7 @@ c     1 = alpha_meam
         call meam_checkindex(2,maxelt,nindex,index,errorflag)
         if (errorflag.ne.0) return
         alpha_meam(index(1),index(2)) = value
-        
+
 c     2 = rho0_meam
       else if (which.eq.2) then
         call meam_checkindex(1,maxelt,nindex,index,errorflag)

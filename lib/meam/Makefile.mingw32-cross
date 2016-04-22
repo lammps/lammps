@@ -23,7 +23,7 @@ FILES = $(SRC) Makefile
 
 DIR = Obj_mingw32/
 LIB = $(DIR)libmeam.a
-OBJ = $(SRC:%.F=$(DIR)%.o)
+OBJ = $(SRC:%.F=$(DIR)%.o) $(DIR)fm_exp.o
 
 # ------ SETTINGS ------
 

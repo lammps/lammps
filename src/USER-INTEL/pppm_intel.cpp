@@ -195,8 +195,14 @@ void PPPMIntel::compute(int eflag, int vflag)
 
   // calculate the force on my particles
 
-  if (differentiation_flag == 1) fieldforce_ad();
-  else {
+  if (differentiation_flag == 1) {
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+      fieldforce_ad<float,double>(fix->get_mixed_buffers());
+    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+      fieldforce_ad<double,double>(fix->get_double_buffers());
+    else
+      fieldforce_ad<float,float>(fix->get_single_buffers());
+  } else {
     if (fix->precision() == FixIntel::PREC_MODE_MIXED)
       fieldforce_ik<float,double>(fix->get_mixed_buffers());
     else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
@@ -441,10 +447,10 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
     flt_t rho[3][INTEL_P3M_MAXORDER];
 
     for (int k = nlower; k <= nupper; k++) {
-      FFT_SCALAR r1,r2,r3;
-      r1 = r2 = r3 = ZEROF;
-
-      for (int l = order-1; l >= 0; l--) {
+      FFT_SCALAR r1 = rho_coeff[order-1][k];
+      FFT_SCALAR r2 = rho_coeff[order-1][k];
+      FFT_SCALAR r3 = rho_coeff[order-1][k];
+      for (int l = order-2; l >= 0; l--) {
         r1 = rho_coeff[l][k] + r1*dx;
         r2 = rho_coeff[l][k] + r2*dy;
         r3 = rho_coeff[l][k] + r3*dz;
@@ -478,5 +484,136 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
     f[i].x += qfactor*ekx;
     f[i].y += qfactor*eky;
     if (slabflag != 2) f[i].z += qfactor*ekz;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   interpolate from grid to get electric field & force on my particles for ad
+------------------------------------------------------------------------- */
+
+template<class flt_t, class acc_t>
+void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
+{
+  // loop over my charges, interpolate electric field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  // ek = 3 components of E-field on particle
+
+  ATOM_T * _noalias const x = buffers->get_x(0);
+  const flt_t * _noalias const q = buffers->get_q(0);
+  FORCE_T * _noalias const f = buffers->get_f();
+  int nlocal = atom->nlocal;
+
+  const flt_t ftwo_pi = MY_PI * 2.0;
+  const flt_t ffour_pi = MY_PI * 4.0;
+
+  const flt_t lo0 = boxlo[0];
+  const flt_t lo1 = boxlo[1];
+  const flt_t lo2 = boxlo[2];
+  const flt_t xi = delxinv;
+  const flt_t yi = delyinv;
+  const flt_t zi = delzinv;
+  const flt_t fshiftone = shiftone;
+  const flt_t fqqrd2es = qqrd2e * scale;
+
+  const double *prd = domain->prd;
+  const double xprd = prd[0];
+  const double yprd = prd[1];
+  const double zprd = prd[2];
+
+  const flt_t hx_inv = nx_pppm/xprd;
+  const flt_t hy_inv = ny_pppm/yprd;
+  const flt_t hz_inv = nz_pppm/zprd;
+
+  const flt_t fsf_coeff0 = sf_coeff[0];
+  const flt_t fsf_coeff1 = sf_coeff[1];
+  const flt_t fsf_coeff2 = sf_coeff[2];
+  const flt_t fsf_coeff3 = sf_coeff[3];
+  const flt_t fsf_coeff4 = sf_coeff[4];
+  const flt_t fsf_coeff5 = sf_coeff[5];
+
+  #if defined(LMP_SIMD_COMPILER)
+  #pragma vector aligned nontemporal
+  #pragma simd
+  #endif
+  for (int i = 0; i < nlocal; i++) {
+    int nx = part2grid[i][0];
+    int ny = part2grid[i][1];
+    int nz = part2grid[i][2];
+    FFT_SCALAR dx = nx+fshiftone - (x[i].x-lo0)*xi;
+    FFT_SCALAR dy = ny+fshiftone - (x[i].y-lo1)*yi;
+    FFT_SCALAR dz = nz+fshiftone - (x[i].z-lo2)*zi;
+
+    flt_t rho[3][INTEL_P3M_MAXORDER];
+    flt_t drho[3][INTEL_P3M_MAXORDER];
+
+    for (int k = nlower; k <= nupper; k++) {
+      FFT_SCALAR r1,r2,r3,dr1,dr2,dr3;
+      dr1 = dr2 = dr3 = ZEROF;
+
+      r1 = rho_coeff[order-1][k];
+      r2 = rho_coeff[order-1][k];
+      r3 = rho_coeff[order-1][k];
+      for (int l = order-2; l >= 0; l--) {
+        r1 = rho_coeff[l][k] + r1 * dx;
+        r2 = rho_coeff[l][k] + r2 * dy;
+        r3 = rho_coeff[l][k] + r3 * dz;
+	dr1 = drho_coeff[l][k] + dr1 * dx;
+	dr2 = drho_coeff[l][k] + dr2 * dy;
+	dr3 = drho_coeff[l][k] + dr3 * dz;
+      }
+      rho[0][k-nlower] = r1;
+      rho[1][k-nlower] = r2;
+      rho[2][k-nlower] = r3;
+      drho[0][k-nlower] = dr1;
+      drho[1][k-nlower] = dr2;
+      drho[2][k-nlower] = dr3;
+    }
+
+    FFT_SCALAR ekx, eky, ekz;
+    ekx = eky = ekz = ZEROF;
+    for (int n = nlower; n <= nupper; n++) {
+      int mz = n+nz;
+      for (int m = nlower; m <= nupper; m++) {
+        int my = m+ny;
+        FFT_SCALAR ekx_p = rho[1][m-nlower] * rho[2][n-nlower];
+        FFT_SCALAR eky_p = drho[1][m-nlower] * rho[2][n-nlower];
+        FFT_SCALAR ekz_p = rho[1][m-nlower] * drho[2][n-nlower];
+        for (int l = nlower; l <= nupper; l++) {
+          int mx = l+nx;
+          ekx += drho[0][l-nlower] * ekx_p * u_brick[mz][my][mx];
+          eky += rho[0][l-nlower] * eky_p * u_brick[mz][my][mx];
+          ekz += rho[0][l-nlower] * ekz_p * u_brick[mz][my][mx];
+        }
+      }
+    }
+    ekx *= hx_inv;
+    eky *= hy_inv;
+    ekz *= hz_inv;
+
+    // convert E-field to force
+
+    const flt_t qfactor = fqqrd2es * q[i];
+    const flt_t twoqsq = (flt_t)2.0 * q[i] * q[i];
+
+    const flt_t s1 = x[i].x * hx_inv;
+    const flt_t s2 = x[i].y * hy_inv;
+    const flt_t s3 = x[i].z * hz_inv;
+    flt_t sf = fsf_coeff0 * sin(ftwo_pi * s1);
+    sf += fsf_coeff1 * sin(ffour_pi * s1);
+    sf *= twoqsq;
+    f[i].x += qfactor * ekx - fqqrd2es * sf;
+
+    sf = fsf_coeff2 * sin(ftwo_pi * s2);
+    sf += fsf_coeff3 * sin(ffour_pi * s2);
+    sf *= twoqsq;
+    f[i].y += qfactor * eky - fqqrd2es * sf;
+
+    sf = fsf_coeff4 * sin(ftwo_pi * s3);
+    sf += fsf_coeff5 * sin(ffour_pi * s3);
+    sf *= twoqsq;
+
+    if (slabflag != 2) f[i].z += qfactor * ekz - fqqrd2es * sf;
   }
 }

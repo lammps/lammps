@@ -1,0 +1,14 @@
+timer off
+
+atom_style full
+
+read_data spce.data nocoeff
+
+# apply an offset of 3 to all molecule ids
+variable mid atom mol+3
+set group all mol v_mid
+
+info all
+
+write_data new.data nocoeff
+

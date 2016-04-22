@@ -57,7 +57,7 @@ void AngleZero::settings(int narg, char **arg)
     error->all(FLERR,"Illegal angle_style command");
 
   if (narg == 1) {
-    if (strcmp("nocoeffs",arg[0]) == 0) check_coeffs=0;
+    if (strcmp("nocoeff",arg[0]) == 0) check_coeffs=0;
     else error->all(FLERR,"Illegal angle_style command");
   }
 }

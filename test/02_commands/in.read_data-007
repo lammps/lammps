@@ -3,11 +3,11 @@ timer off
 atom_style full
 
 # set up dummy styles to be able to read data file and skip force field data.
-pair_style zero 5.0 nocoeffs
-bond_style zero nocoeffs
-angle_style zero nocoeffs
-dihedral_style zero nocoeffs
-improper_style zero nocoeffs
+pair_style zero 5.0 nocoeff
+bond_style zero nocoeff
+angle_style zero nocoeff
+dihedral_style zero nocoeff
+improper_style zero nocoeff
 
 read_data peptide.data
 

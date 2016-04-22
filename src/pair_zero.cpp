@@ -82,7 +82,7 @@ void PairZero::settings(int narg, char **arg)
 
   cut_global = force->numeric(FLERR,arg[0]);
   if (narg == 2) {
-    if (strcmp("nocoeffs",arg[1]) == 0) check_coeffs=0;
+    if (strcmp("nocoeff",arg[1]) == 0) check_coeffs=0;
     else error->all(FLERR,"Illegal pair_style command");
   }
 

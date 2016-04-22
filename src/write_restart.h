@@ -36,6 +36,7 @@ class WriteRestart : protected Pointers {
   int me,nprocs;
   FILE *fp;
   bigint natoms;         // natoms (sum of nlocal) to write into file
+  int noinit;
 
   int multiproc;             // 0 = proc 0 writes for all
                              // else # of procs writing files

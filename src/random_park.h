@@ -19,7 +19,6 @@
 namespace LAMMPS_NS {
 
 class RanPark : protected Pointers {
-  friend class Set;
  public:
   RanPark(class LAMMPS *, int);
   double uniform();

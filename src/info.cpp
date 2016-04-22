@@ -27,6 +27,7 @@
 #include "fix.h"
 #include "force.h"
 #include "pair.h"
+#include "pair_hybrid.h"
 #include "group.h"
 #include "input.h"
 #include "modify.h"
@@ -281,6 +282,13 @@ void Info::command(int narg, char **arg)
     fprintf(out,"Atoms = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
             atom->natoms, atom->ntypes, force->pair_style);
 
+    if (force->pair && strstr(force->pair_style,"hybrid")) {
+      PairHybrid *hybrid = (PairHybrid *)force->pair;
+      fprintf(out,"Hybrid sub-styles:");
+      for (int i=0; i < hybrid->nstyles; ++i)
+        fprintf(out," %s", hybrid->keywords[i]);
+      fputc('\n',out);
+    }
     if (atom->molecular > 0) {
       const char *msg;
       msg = force->bond_style ? force->bond_style : "none";

@@ -22,10 +22,12 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -92,11 +94,12 @@ void AngleZero::coeff(int narg, char **arg)
   if (coeffflag && (narg == 2))
     theta0_one = force->numeric(FLERR,arg[1]);
 
+  // convert theta0 from degrees to radians
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     setflag[i] = 1;
-    theta0[i] = theta0_one;
+    theta0[i] = theta0_one/180.0 * MY_PI;
     count++;
   }
 
@@ -140,7 +143,7 @@ void AngleZero::read_restart(FILE *fp)
 void AngleZero::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g\n",i,theta0[i]);
+    fprintf(fp,"%d %g\n",i,theta0[i]/MY_PI*180.0);
 }
 
 /* ---------------------------------------------------------------------- */

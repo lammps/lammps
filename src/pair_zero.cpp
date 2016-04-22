@@ -49,7 +49,7 @@ void PairZero::compute(int eflag, int vflag)
 {
  if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
  if (vflag_fdotr) virial_fdotr_compute();
 }
 

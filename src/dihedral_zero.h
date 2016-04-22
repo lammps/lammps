@@ -9,10 +9,10 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   
+
    Identical to dihedral harmonic, except if all k's are zero the
    force loop is skipped.
-   
+
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS

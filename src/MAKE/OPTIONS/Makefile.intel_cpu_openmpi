@@ -8,7 +8,7 @@ SHELL = /bin/sh
 
 OMPI_CXX :=     icc
 CC =		mpicxx
-OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
+OPTFLAGS =      -xAVX -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
                 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
 SHFLAGS =	-fPIC
@@ -16,7 +16,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
-LIB =           
+LIB =           -ltbbmalloc -ltbbmalloc_proxy
 SIZE =		size
 
 ARCHIVE =	ar
@@ -43,8 +43,8 @@ LMP_INC =	-DLAMMPS_GZIP
 # LIB = name of MPI library
 
 MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/local/include
-MPI_PATH =      -L/usr/local/lib
-MPI_LIB =	-lmpich -lmpl -lpthread
+MPI_PATH =      
+MPI_LIB =	
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul

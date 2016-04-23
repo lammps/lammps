@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   angle_style zero
+   angle_style zero *nocoeff*
 
 Examples
 """"""""
@@ -16,7 +16,9 @@ Examples
 .. parsed-literal::
 
    angle_style zero
+   angle_style zero nocoeff
    angle_coeff *
+   angle_coeff * 120.0
 
 Description
 """""""""""
@@ -31,8 +33,14 @@ triplets of angle atoms listed in the data file read by the
 :doc:`read_data <read_data>` command.  If no angle style is defined,
 this command cannot be used.
 
+The optional *nocoeff* flag allows to read data files with AngleCoeff
+section for any angle style. Similarly, any angle_coeff commands
+will only be checked for the angle type number and the rest ignored.
+
 Note that the :doc:`angle_coeff <angle_coeff>` command must be used for
-all angle types, though no additional values are specified.
+all angle types. If specified, there can be only one value, which is
+going to be used to assign an equilibrium angle, e.g. for use with
+:doc:`fix shake <fix_shake>`.
 
 Restrictions
 """"""""""""

@@ -46,8 +46,8 @@ action pair_lj_cut_soft.cpp
 action pair_lj_cut_soft.h
 action pair_lj_cut_tip4p_long_soft.cpp    pppm_tip4p.cpp
 action pair_lj_cut_tip4p_long_soft.h      pppm_tip4p.cpp
-action pair_morse_soft.cpp                pair_morse.cpp
-action pair_morse_soft.h                  pair_morse.cpp
+action pair_morse_soft.cpp
+action pair_morse_soft.h
 action pair_tip4p_long_soft.cpp           pppm_tip4p.cpp
 action pair_tip4p_long_soft.h             pppm_tip4p.cpp
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bond_style zero command &mdash; LAMMPS documentation</title>
+  <title>compute dipole/chunk command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>bond_style zero command</li>
+    <li>compute dipole/chunk command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,39 +124,77 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="bond-style-zero-command">
-<span id="index-0"></span><h1>bond_style zero command<a class="headerlink" href="#bond-style-zero-command" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="compute-dipole-chunk-command">
+<span id="index-0"></span><h1>compute dipole/chunk command<a class="headerlink" href="#compute-dipole-chunk-command" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<pre class="literal-block">
-bond_style zero <em>nocoeff</em>
-</pre>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID dipole/chunk chunkID charge-correction
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>dipole/chunk = style name of this compute command</li>
+<li>chunkID = ID of <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command</li>
+<li>charge-correction = <em>mass</em> or <em>geometry</em>, use COM or geometric center for charged chunk correction (optional)</li>
+</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre>bond_style zero
-bond_style zero nocoeff
-bond_coeff *
-bond_coeff * 2.14
+<div class="highlight-python"><div class="highlight"><pre>compute 1 fluid dipole/chunk molchunk
+compute dw water dipole/chunk 1 geometry
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>Using an bond style of zero means bond forces and energies are not
-computed, but the geometry of bond pairs is still accessible to other
-commands.</p>
-<p>As an example, the <a class="reference internal" href="compute_bond_local.html"><em>compute bond/local</em></a>
-command can be used to compute distances for the list of pairs of bond
-atoms listed in the data file read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
-command.  If no bond style is defined, this command cannot be used.</p>
-<p>The optional <em>nocoeff</em> flag allows to read data files with a BondCoeff
-section for any bond style. Similarly, any bond_coeff commands
-will only be checked for the bond type number and the rest ignored.</p>
-<p>Note that the <a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a> command must be used for
-all bond types. If specified, there can be only one value, which is
-going to be used to assign an equilibrium distance, e.g. for use with
-<a class="reference internal" href="fix_shake.html"><em>fix shake</em></a>.</p>
+<p>Define a computation that calculates the dipole vector and total dipole
+for multiple chunks of atoms.</p>
+<p>In LAMMPS, chunks are collections of atoms defined by a <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command, which assigns each atom
+to a single chunk (or no chunk).  The ID for this command is specified
+as chunkID.  For example, a single chunk could be the atoms in a
+molecule or atoms in a spatial bin.  See the <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> doc page and &#8220;<a class="reference internal" href="Section_howto.html#howto-23"><span>Section_howto 23</span></a> for details of how chunks can be
+defined and examples of how they can be used to measure properties of
+a system.</p>
+<p>This compute calculates the x,y,z coordinates of the dipole vector
+and the total dipole moment for each chunk, which includes all effects
+due to atoms passing thru periodic boundaries. For chunks with a net
+charge the resulting dipole is made position independent by subtracting
+the position vector of the center of mass or geometric center times the
+net charge from the computed dipole vector.</p>
+<p>Note that only atoms in the specified group contribute to the
+calculation.  The <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command
+defines its own group; atoms will have a chunk ID = 0 if they are not
+in that group, signifying they are not assigned to a chunk, and will
+thus also not contribute to this calculation.  You can specify the
+&#8220;all&#8221; group for this command if you simply want to include atoms with
+non-zero chunk IDs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The coordinates of an atom contribute to the chunk&#8217;s
+dipole in &#8220;unwrapped&#8221; form, by using the image flags
+associated with each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command
+for a discussion of &#8220;unwrapped&#8221; coordinates.  See the Atoms section of
+the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a discussion of image flags
+and how they are set for each atom.  You can reset the image flags
+(e.g. to 0) before invoking this compute by using the <a class="reference internal" href="set.html"><em>set image</em></a> command.</p>
+</div>
+<p>The simplest way to output the results of the compute com/chunk
+calculation to a file is to use the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>
+command, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute cc1 all chunk/atom molecule
+compute myChunk all dipole/chunk cc1
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector
+</pre></div>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global array where the number of rows = the
+number of chunks <em>Nchunk</em> as calculated by the specified <a class="reference internal" href="compute_chunk_atom.html"><em>compute chunk/atom</em></a> command.  The number of columns =
+4 for the x,y,z dipole vector components and the total dipole of each
+chunk. These values can be accessed by any command that uses global
+array values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The array values are &#8220;intensive&#8221;.  The array values will be in
+dipole units, i.e. charge units times distance <a class="reference internal" href="units.html"><em>units</em></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
@@ -165,7 +203,7 @@ going to be used to assign an equilibrium distance, e.g. for use with
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="bond_none.html"><em>bond_style none</em></a></p>
+<p><a class="reference internal" href="compute_com_chunk.html"><em>compute com/chunk</em></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>

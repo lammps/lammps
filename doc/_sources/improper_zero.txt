@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   improper_style zero
+   improper_style zero *nocoeff*
 
 Examples
 """"""""
@@ -16,6 +16,7 @@ Examples
 .. parsed-literal::
 
    improper_style zero
+   improper_style zero nocoeff
    improper_coeff *
 
 Description
@@ -30,6 +31,10 @@ compute the chi values for the list of quadruplets of improper atoms
 listed in the data file read by the :doc:`read_data <read_data>`
 command.  If no improper style is defined, this command cannot be
 used.
+
+The optional *nocoeff* flag allows to read data files with a ImproperCoeff
+section for any improper style. Similarly, any improper_coeff commands
+will only be checked for the improper type number and the rest ignored.
 
 Note that the :doc:`improper_coeff <improper_coeff>` command must be
 used for all improper types, though no additional values are

@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   dihedral_style zero
+   dihedral_style zero *nocoeff*
 
 Examples
 """"""""
@@ -16,6 +16,7 @@ Examples
 .. parsed-literal::
 
    dihedral_style zero
+   dihedral_style zero nocoeff
    dihedral_coeff *
 
 Description
@@ -30,6 +31,10 @@ compute the theta values for the list of quadruplets of dihedral atoms
 listed in the data file read by the :doc:`read_data <read_data>`
 command.  If no dihedral style is defined, this command cannot be
 used.
+
+The optional *nocoeff* flag allows to read data files with a DihedralCoeff
+section for any dihedral style. Similarly, any dihedral_coeff commands
+will only be checked for the dihedral type number and the rest ignored.
 
 Note that the :doc:`dihedral_coeff <dihedral_coeff>` command must be
 used for all dihedral types, though no additional values are

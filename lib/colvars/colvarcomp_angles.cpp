@@ -84,12 +84,6 @@ void colvar::angle::calc_gradients()
   group1->set_weighted_gradient(dxdr1);
   group2->set_weighted_gradient((dxdr1 + dxdr3) * (-1.0));
   group3->set_weighted_gradient(dxdr3);
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    debug_gradients(group1);
-    debug_gradients(group2);
-    debug_gradients(group3);
-  }
 }
 
 void colvar::angle::calc_force_invgrads()

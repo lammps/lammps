@@ -649,7 +649,7 @@ int colvar::parse_analysis(std::string const &conf)
     } else {
       cvm::log("Unknown type of correlation function, \""+
                         acf_type_str+"\".\n");
-      cvm::set_error_bits(INPUT_ERROR);
+      cvm::set_error_bit(INPUT_ERROR);
     }
 
     get_keyval(conf, "corrFuncOffset", acf_offset, 0);
@@ -720,11 +720,11 @@ int colvar::calc()
   // Note: if anything is added here, it should be added also in the SMP block of calc_colvars()
   int error_code = COLVARS_OK;
   if (is_enabled(f_cv_active)) {
-    error_code |= update_cvc_flags();
-    error_code |= calc_cvcs();
-    error_code |= collect_cvc_data();
+    cvm::combine_errors(error_code, update_cvc_flags());
+    cvm::combine_errors(error_code, calc_cvcs());
+    cvm::combine_errors(error_code, collect_cvc_data());
   }
-  return COLVARS_OK;
+  return error_code;
 }
 
 
@@ -735,15 +735,15 @@ int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
     cvm::log("Calculating colvar \""+this->name+"\", components "+
              cvm::to_str(first_cvc)+" through "+cvm::to_str(first_cvc+num_cvcs)+".\n");
 
-  error_code |= check_cvc_range(first_cvc, num_cvcs);
+  cvm::combine_errors(error_code, check_cvc_range(first_cvc, num_cvcs));
   if (error_code != COLVARS_OK) {
     return error_code;
   }
 
-  error_code |= calc_cvc_values(first_cvc, num_cvcs);
-  error_code |= calc_cvc_gradients(first_cvc, num_cvcs);
-  error_code |= calc_cvc_sys_forces(first_cvc, num_cvcs);
-  error_code |= calc_cvc_Jacobians(first_cvc, num_cvcs);
+  cvm::combine_errors(error_code, calc_cvc_values(first_cvc, num_cvcs));
+  cvm::combine_errors(error_code, calc_cvc_gradients(first_cvc, num_cvcs));
+  cvm::combine_errors(error_code, calc_cvc_sys_forces(first_cvc, num_cvcs));
+  cvm::combine_errors(error_code, calc_cvc_Jacobians(first_cvc, num_cvcs));
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\".\n");
@@ -759,12 +759,12 @@ int colvar::collect_cvc_data()
 
   int error_code = COLVARS_OK;
 
-  error_code |= collect_cvc_values();
-  error_code |= collect_cvc_gradients();
-  error_code |= collect_cvc_sys_forces();
-  error_code |= collect_cvc_Jacobians();
+  cvm::combine_errors(error_code, collect_cvc_values());
+  cvm::combine_errors(error_code, collect_cvc_gradients());
+  cvm::combine_errors(error_code, collect_cvc_sys_forces());
+  cvm::combine_errors(error_code, collect_cvc_Jacobians());
 
-  error_code |= calc_colvar_properties();
+  cvm::combine_errors(error_code, calc_colvar_properties());
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\"'s properties.\n");
@@ -879,6 +879,10 @@ int colvar::calc_cvc_gradients(int first_cvc, size_t num_cvcs)
       for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
         if (cvcs[i]->atom_groups[ig]->b_fit_gradients)
           cvcs[i]->atom_groups[ig]->calc_fit_gradients();
+
+        if (cvcs[i]->is_enabled(f_cvc_debug_gradient)) {
+          cvcs[i]->debug_gradients(cvcs[i]->atom_groups[ig]);
+        }
       }
     }
     cvm::decrease_depth();
@@ -1297,7 +1301,7 @@ bool colvar::periodic_boundaries(colvarvalue const &lb, colvarvalue const &ub) c
   if ( (!is_enabled(f_cv_lower_boundary)) || (!is_enabled(f_cv_upper_boundary)) ) {
     cvm::log("Error: checking periodicity for collective variable \""+this->name+"\" "
                     "requires lower and upper boundaries to be defined.\n");
-    cvm::set_error_bits(INPUT_ERROR);
+    cvm::set_error_bit(INPUT_ERROR);
   }
 
   if (period > 0.0) {

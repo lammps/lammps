@@ -95,7 +95,7 @@ int colvarbias_histogram::update()
 {
   int error_code = COLVARS_OK;
   // update base class
-  error_code |= colvarbias::update();
+  cvm::combine_errors(error_code, colvarbias::update());
 
   if (cvm::debug()) {
     cvm::log("Updating histogram bias " + this->name);
@@ -148,7 +148,8 @@ int colvarbias_histogram::update()
     write_output_files();
   }
 
-  return error_code | cvm::get_error();
+  cvm::combine_errors(error_code, cvm::get_error());
+  return error_code;
 }
 
 

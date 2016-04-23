@@ -286,7 +286,7 @@ public:
   bool b_user_defined_fit;
 
   /// \brief Whether or not the derivatives of the roto-translation
-  /// should be included when calculating the colvar's gradients (default: no)
+  /// should be included when calculating the colvar's gradients (default: yes)
   bool b_fit_gradients;
 
   /// \brief use reference coordinates for b_center or b_rotate
@@ -359,10 +359,17 @@ public:
   /// \brief Calculate the center of geometry of the atomic positions, assuming
   /// that they are already pbc-wrapped
   int calc_center_of_geometry();
+
 private:
+
   /// \brief Center of geometry
   cvm::atom_pos cog;
+
+  /// \brief Center of geometry before any fitting
+  cvm::atom_pos cog_orig;
+
 public:
+
   /// \brief Return the center of geometry of the atomic positions
   inline cvm::atom_pos center_of_geometry() const
   {

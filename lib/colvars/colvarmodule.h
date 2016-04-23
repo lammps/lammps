@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2016-04-14"
+#define COLVARS_VERSION "2016-04-20"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -20,19 +20,19 @@
 /// shared between all object instances) to be accessed from other
 /// objects.
 
-// Error codes
+// Error codes are the negative of powers-of-two
+// as a result, error codes should NOT be bitwise-ORed but only
+// accessed through set_error_bit() and get_error_bit()
 #define COLVARS_OK 0
 #define COLVARS_ERROR   -1
-#define GENERAL_ERROR   -1  // TODO this can be simply merged with COLVARS_ERROR
-#define COLVARS_NOT_IMPLEMENTED (-1<<1)
-#define INPUT_ERROR     (-1<<2) // out of bounds or inconsistent input
-#define BUG_ERROR       (-1<<3) // Inconsistent state indicating bug
-#define FILE_ERROR      (-1<<4)
-#define MEMORY_ERROR    (-1<<5)
-#define FATAL_ERROR     (-1<<6) // Should be set, or not, together with other bits
-#define DELETE_COLVARS  (-1<<7) // Instruct the caller to delete cvm
-#define COLVARS_NO_SUCH_FRAME (-1<<8) // Cannot load the requested frame
-
+#define COLVARS_NOT_IMPLEMENTED (-1*(1<<1))
+#define INPUT_ERROR     (-1*(1<<2)) // out of bounds or inconsistent input
+#define BUG_ERROR       (-1*(1<<3)) // Inconsistent state indicating bug
+#define FILE_ERROR      (-1*(1<<4))
+#define MEMORY_ERROR    (-1*(1<<5))
+#define FATAL_ERROR     (-1*(1<<6)) // Should be set, or not, together with other bits
+#define DELETE_COLVARS  (-1*(1<<7)) // Instruct the caller to delete cvm
+#define COLVARS_NO_SUCH_FRAME (-1*(1<<8)) // Cannot load the requested frame
 
 #include <iostream>
 #include <iomanip>
@@ -115,7 +115,11 @@ protected:
 
 public:
 
-  static void set_error_bits(int code);
+  static void set_error_bit(int code);
+
+  static bool get_error_bit(int code);
+
+  static void combine_errors(int &target, int const code);
 
   static inline int get_error()
   {
@@ -395,7 +399,7 @@ public:
   static void fatal_error(std::string const &message);
 
   /// Print a message to the main log and set global error code
-  static void error(std::string const &message, int code = GENERAL_ERROR);
+  static void error(std::string const &message, int code = COLVARS_ERROR);
 
   /// Print a message to the main log and exit normally
   static void exit(std::string const &message);

@@ -224,6 +224,9 @@ public:
   /// \brief Whether or not this CVC will be computed in parallel whenever possible
   bool b_try_scalable;
 
+private:
+  bool b_debug_gradient;
+
 protected:
 
   /// \brief Cached value

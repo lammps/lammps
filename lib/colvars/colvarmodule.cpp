@@ -316,7 +316,8 @@ int colvarmodule::parse_biases(std::string const &conf)
 int colvarmodule::catch_input_errors(int result)
 {
   if (result != COLVARS_OK || get_error()) {
-    set_error_bits(result | INPUT_ERROR);
+    set_error_bit(result);
+    set_error_bit(INPUT_ERROR);
     parse->reset();
     return get_error();
   }
@@ -468,27 +469,27 @@ int colvarmodule::calc()
              cvm::to_str(cvm::step_absolute())+"\n");
   }
 
-  error_code |= calc_colvars();
+  combine_errors(error_code, calc_colvars());
   // set biasing forces to zero before biases are calculated and summed over
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end(); cvi++) {
     (*cvi)->reset_bias_force();
   }
-  error_code |= calc_biases();
-  error_code |= update_colvar_forces();
+  combine_errors(error_code, calc_biases());
+  combine_errors(error_code, update_colvar_forces());
 
   if (cvm::b_analysis) {
-    error_code |= analyze();
+    combine_errors(error_code, analyze());
   }
 
   // write trajectory files, if needed
   if (cv_traj_freq && cv_traj_name.size()) {
-    error_code |= write_traj_files();
+    combine_errors(error_code, write_traj_files());
   }
 
   // write restart files, if needed
   if (restart_out_freq && restart_out_name.size()) {
-    error_code |= write_restart_files();
+    combine_errors(error_code, write_restart_files());
   }
 
   return error_code;
@@ -520,7 +521,7 @@ int colvarmodule::calc_colvars()
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
 
-      error_code |= (*cvi)->update_cvc_flags();
+      combine_errors(error_code, (*cvi)->update_cvc_flags());
 
       size_t num_items = (*cvi)->num_active_cvcs();
       colvars_smp.reserve(colvars_smp.size() + num_items);
@@ -535,11 +536,11 @@ int colvarmodule::calc_colvars()
     cvm::decrease_depth();
 
     // calculate colvar components in parallel
-    error_code |= proxy->smp_colvars_loop();
+    combine_errors(error_code, proxy->smp_colvars_loop());
 
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
-      error_code |= (*cvi)->collect_cvc_data();
+      combine_errors(error_code, (*cvi)->collect_cvc_data());
     }
     cvm::decrease_depth();
 
@@ -548,7 +549,7 @@ int colvarmodule::calc_colvars()
     // calculate colvars one at a time
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
-      error_code |= (*cvi)->calc();
+      combine_errors(error_code, (*cvi)->calc());
       if (cvm::get_error()) {
         return COLVARS_ERROR;
       }
@@ -556,7 +557,8 @@ int colvarmodule::calc_colvars()
     cvm::decrease_depth();
   }
 
-  return error_code | cvm::get_error();
+  combine_errors(error_code, cvm::get_error());
+  return error_code;
 }
 
 
@@ -575,21 +577,21 @@ int colvarmodule::calc_biases()
 
     if (use_scripted_forces && !scripting_after_biases) {
       // calculate biases and scripted forces in parallel
-      error_code |= proxy->smp_biases_script_loop();
+      combine_errors(error_code, proxy->smp_biases_script_loop());
     } else {
       // calculate biases in parallel
-      error_code |= proxy->smp_biases_loop();
+      combine_errors(error_code, proxy->smp_biases_loop());
     }
 
   } else {
 
     if (use_scripted_forces && !scripting_after_biases) {
-      error_code |= calc_scripted_forces();
+      combine_errors(error_code, calc_scripted_forces());
     }
 
     cvm::increase_depth();
     for (bi = biases.begin(); bi != biases.end(); bi++) {
-      error_code |= (*bi)->update();
+      combine_errors(error_code, (*bi)->update());
       if (cvm::get_error()) {
         return COLVARS_ERROR;
       }
@@ -627,7 +629,7 @@ int colvarmodule::update_colvar_forces()
   cvm::decrease_depth();
 
   if (use_scripted_forces && scripting_after_biases) {
-    error_code |= calc_scripted_forces();
+    combine_errors(error_code, calc_scripted_forces());
   }
 
   cvm::real total_colvar_energy = 0.0;
@@ -875,17 +877,17 @@ int colvarmodule::setup_output()
      std::string(""));
 
   if (cv_traj_freq && cv_traj_name.size()) {
-    error_code |= open_traj_file(cv_traj_name);
+    combine_errors(error_code, open_traj_file(cv_traj_name));
   }
 
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    error_code |= (*bi)->setup_output();
+    combine_errors(error_code, (*bi)->setup_output());
   }
 
   if (error_code != COLVARS_OK || cvm::get_error()) {
-    set_error_bits(FILE_ERROR);
+    set_error_bit(FILE_ERROR);
   }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
@@ -903,6 +905,13 @@ std::istream & colvarmodule::read_restart(std::istream &is)
                           it_restart, (size_t) 0,
                           colvarparse::parse_silent);
         it = it_restart;
+      }
+      std::string restart_version;
+      parse->get_keyval(restart_conf, "version",
+                        restart_version, std::string(""),
+                        colvarparse::parse_silent);
+      if (restart_version.size() && (restart_version != std::string(COLVARS_VERSION))) {
+        cvm::log("This state file was generated with version "+restart_version+"\n");
       }
     }
     is.clear();
@@ -1060,6 +1069,7 @@ std::ostream & colvarmodule::write_restart(std::ostream &os)
      << "  step " << std::setw(it_width)
      << it << "\n"
      << "  dt " << dt() << "\n"
+     // << "  version " << std::string(COLVARS_VERSION) << "\n"
      << "}\n\n";
 
   cvm::increase_depth();
@@ -1213,14 +1223,30 @@ size_t & cvm::depth()
 }
 
 
-void colvarmodule::set_error_bits(int code)
+void colvarmodule::set_error_bit(int code)
 {
+  if (code > 0) {
+    cvm::fatal_error("Error: set_error_bit() received positive error code.\n");
+    return;
+  }
   proxy->smp_lock();
-  errorCode |= code;
-  errorCode |= COLVARS_ERROR;
+  errorCode = -1 * ((-1 * errorCode) | (-1 * code) | (-1 * COLVARS_ERROR));
   proxy->smp_unlock();
 }
 
+bool colvarmodule::get_error_bit(int code)
+{
+  return bool((-1 * errorCode) & (-1 * code));
+}
+
+void colvarmodule::combine_errors(int &target, int const code)
+{
+  if (code > 0 || target > 0) {
+    cvm::fatal_error("Error: combine_errors() received positive error code.\n");
+    return;
+  }
+  target = -1 * ((-1 * target) | (-1 * code));
+}
 
 void colvarmodule::clear_error()
 {
@@ -1232,7 +1258,7 @@ void colvarmodule::clear_error()
 
 void cvm::error(std::string const &message, int code)
 {
-  set_error_bits(code);
+  set_error_bit(code);
   proxy->error(message);
 }
 
@@ -1241,7 +1267,7 @@ void cvm::fatal_error(std::string const &message)
 {
   // TODO once all non-fatal errors have been set to be handled by error(),
   // set DELETE_COLVARS here for VMD to handle it
-  set_error_bits(FATAL_ERROR);
+  set_error_bit(FATAL_ERROR);
   proxy->fatal_error(message);
 }
 

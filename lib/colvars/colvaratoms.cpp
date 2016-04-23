@@ -297,7 +297,7 @@ int cvm::atom_group::parse(std::string const &conf)
     std::string numbers_conf = "";
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbers", numbers_conf, pos)) {
-      parse_error |= add_atom_numbers(numbers_conf);
+      cvm::combine_errors(parse_error, add_atom_numbers(numbers_conf));
       numbers_conf = "";
     }
   }
@@ -306,7 +306,7 @@ int cvm::atom_group::parse(std::string const &conf)
     std::string index_group_name;
     if (get_keyval(group_conf, "indexGroup", index_group_name)) {
       // use an index group from the index file read globally
-      parse_error |= add_index_group(index_group_name);
+      cvm::combine_errors(parse_error, add_index_group(index_group_name));
     }
   }
 
@@ -315,7 +315,7 @@ int cvm::atom_group::parse(std::string const &conf)
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbersRange",
                       range_conf, pos)) {
-      parse_error |= add_atom_numbers_range(range_conf);
+      cvm::combine_errors(parse_error, add_atom_numbers_range(range_conf));
       range_conf = "";
     }
   }
@@ -342,8 +342,8 @@ int cvm::atom_group::parse(std::string const &conf)
         cvm::error("Error: more instances of \"atomNameResidueRange\" than "
                    "values of \"psfSegID\".\n", INPUT_ERROR);
       } else {
-        parse_error |= add_atom_name_residue_range(psf_segids.size() ? *psii : std::string(""),
-                                                   range_conf);
+        cvm::combine_errors(parse_error, add_atom_name_residue_range(psf_segids.size() ?
+        *psii : std::string(""), range_conf));
         if (psf_segids.size()) psii++;
       }
       range_conf = "";
@@ -407,7 +407,7 @@ int cvm::atom_group::parse(std::string const &conf)
     index = (cvm::proxy)->init_atom_group(atoms_ids);
   }
 
-  parse_error |= parse_fitting_options(group_conf);
+  cvm::combine_errors(parse_error, parse_fitting_options(group_conf));
 
   // TODO move this to colvarparse object
   check_keywords(group_conf, key.c_str());
@@ -612,7 +612,6 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
 
       // regardless of the configuration, fit gradients must be calculated by refPositionsGroup
       ref_pos_group->b_fit_gradients = this->b_fit_gradients;
-      this->b_fit_gradients = false;
     }
 
     atom_group *group_for_fit = ref_pos_group ? ref_pos_group : this;
@@ -778,13 +777,19 @@ int cvm::atom_group::calc_required_properties()
 
 void cvm::atom_group::calc_apply_roto_translation()
 {
+  // store the laborarory-frame COGs for when they are needed later
+  cog_orig = cog;
+  if (ref_pos_group) {
+    ref_pos_group->cog_orig = ref_pos_group->cog;
+  }
+
   if (b_center) {
     // center on the origin first
-    cvm::atom_pos const cog = ref_pos_group ?
+    cvm::atom_pos const rpg_cog = ref_pos_group ?
       ref_pos_group->center_of_geometry() : this->center_of_geometry();
-    apply_translation(-1.0 * cog);
+    apply_translation(-1.0 * rpg_cog);
     if (ref_pos_group) {
-      ref_pos_group->apply_translation(-1.0 * cog);
+      ref_pos_group->apply_translation(-1.0 * rpg_cog);
     }
   }
 
@@ -951,20 +956,21 @@ void cvm::atom_group::calc_fit_gradients()
     cvm::log("Calculating fit gradients.\n");
 
   atom_group *group_for_fit = ref_pos_group ? ref_pos_group : this;
-  group_for_fit->fit_gradients.assign(group_for_fit->size(), cvm::rvector(0.0, 0.0, 0.0));
 
   if (b_center) {
     // add the center of geometry contribution to the gradients
+    cvm::rvector atom_grad;
+
     for (size_t i = 0; i < this->size(); i++) {
-      // need to bring the gradients in original frame first
-      cvm::rvector const atom_grad = b_rotate ?
-        (rot.inverse()).rotate(atoms[i].grad) :
-        atoms[i].grad;
-      for (size_t j = 0; j < group_for_fit->size(); j++) {
-        group_for_fit->fit_gradients[j] +=
-          (-1.0)/(cvm::real(group_for_fit->size())) *
-          atom_grad;
-      }
+      atom_grad += (-1.0)/(cvm::real(group_for_fit->size())) * atoms[i].grad;
+    }
+
+    // need to use the gradients in original frame
+    // we only rotate the sum for efficiency
+    if (b_rotate) atom_grad = (rot.inverse()).rotate(atom_grad);
+
+    for (size_t j = 0; j < group_for_fit->size(); j++) {
+      group_for_fit->fit_gradients[j] = atom_grad;
     }
   }
 
@@ -972,16 +978,19 @@ void cvm::atom_group::calc_fit_gradients()
 
     // add the rotation matrix contribution to the gradients
     cvm::rotation const rot_inv = rot.inverse();
-    cvm::atom_pos const cog = center_of_geometry();
 
     for (size_t i = 0; i < this->size(); i++) {
 
-      cvm::atom_pos const pos_orig = rot_inv.rotate((b_center ? (atoms[i].pos - cog) : (atoms[i].pos)));
+      // restore original position for this atom
+      cvm::atom_pos const pos_orig =
+        rot_inv.rotate((b_center ? (atoms[i].pos - ref_pos_cog) : (atoms[i].pos))) +
+        (ref_pos_group ? ref_pos_group->cog_orig : cog_orig);
+
+      // calculate \partial(R(q) \vec{x}_i)/\partial q) \cdot \partial\xi/\partial\vec{x}_i
+      cvm::quaternion const dxdq =
+        rot.q.position_derivative_inner(pos_orig, atoms[i].grad);
 
       for (size_t j = 0; j < group_for_fit->size(); j++) {
-        // calculate \partial(R(q) \vec{x}_i)/\partial q) \cdot \partial\xi/\partial\vec{x}_i
-        cvm::quaternion const dxdq =
-          rot.q.position_derivative_inner(pos_orig, atoms[i].grad);
         // multiply by \cdot {\partial q}/\partial\vec{x}_j and add it to the fit gradients
         for (size_t iq = 0; iq < 4; iq++) {
           group_for_fit->fit_gradients[j] += dxdq[iq] * rot.dQ0_1[j][iq];
@@ -989,6 +998,7 @@ void cvm::atom_group::calc_fit_gradients()
       }
     }
   }
+
   if (cvm::debug())
     cvm::log("Done calculating fit gradients.\n");
 }

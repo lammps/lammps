@@ -163,10 +163,6 @@ void colvar::orientation_angle::calc_gradients()
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     (*atoms)[ia].grad = (dxdq0 * (rot.dQ0_2[ia])[0]);
   }
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging orientationAngle component gradients:\n");
-    debug_gradients(atoms);
-  }
 }
 
 
@@ -209,10 +205,6 @@ void colvar::orientation_proj::calc_gradients()
   cvm::real const dxdq0 = 2.0 * 2.0 * (rot.q).q0;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     (*atoms)[ia].grad = (dxdq0 * (rot.dQ0_2[ia])[0]);
-  }
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging orientationProj component gradients:\n");
-    debug_gradients(atoms);
   }
 }
 
@@ -271,11 +263,6 @@ void colvar::tilt::calc_gradients()
     for (size_t iq = 0; iq < 4; iq++) {
       (*atoms)[ia].grad += (dxdq[iq] * (rot.dQ0_2[ia])[iq]);
     }
-  }
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging tilt component gradients:\n");
-    debug_gradients(atoms);
   }
 }
 

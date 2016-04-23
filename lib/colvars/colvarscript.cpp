@@ -53,17 +53,16 @@ int colvarscript::run(int argc, char const *argv[]) {
   }
 
   if (cmd == "delete") {
-    colvars->reset();
     // Note: the delete bit may be ignored by some backends
     // it is mostly useful in VMD
-    colvars->set_error_bits(DELETE_COLVARS);
+    colvars->set_error_bit(DELETE_COLVARS);
     return COLVARS_OK;
   }
 
   if (cmd == "update") {
-    error_code |= proxy->update_input();
-    error_code |= colvars->calc();
-    error_code |= proxy->update_output();
+    cvm::combine_errors(error_code, proxy->update_input());
+    cvm::combine_errors(error_code, colvars->calc());
+    cvm::combine_errors(error_code, proxy->update_output());
     if (error_code) {
       result += "Error updating the colvars module.\n";
     }
@@ -143,8 +142,8 @@ int colvarscript::run(int argc, char const *argv[]) {
     }
     proxy->output_prefix_str = argv[2];
     int error = 0;
-    error |= colvars->setup_output();
-    error |= colvars->write_output_files();
+    cvm::combine_errors(error, colvars->setup_output());
+    cvm::combine_errors(error, colvars->write_output_files());
     return error ? COLVARSCRIPT_ERROR : COLVARS_OK;
   }
 
@@ -406,7 +405,7 @@ Input and output:\n\
   list biases                 -- return a list of all biases\n\
   load <file name>            -- load a state file (requires configuration)\n\
   save <file name>            -- save a state file (requires configuration)\n\
-  update                      -- recalculate colvars and biases based\n\
+  update                      -- recalculate colvars and biases\n\
   printframe                  -- return a summary of the current frame\n\
   printframelabels            -- return labels to annotate printframe's output\n";
 

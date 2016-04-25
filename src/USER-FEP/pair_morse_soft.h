@@ -46,10 +46,7 @@ class PairMorseSoft : public PairMorse {
 
  protected:
   double **lambda;
-
-  int power;
-  double scale;
-
+  int nlambda;
   void allocate();
 };
 

@@ -21,9 +21,11 @@
 #include "force.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "math_special.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
 
 /* ----------------------------------------------------------------------
    Contributing author: Stefan Paquay (TU/e)
@@ -100,7 +102,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
         Vpp = alpha[itype][jtype]*dexp;
         Vp2 = Vp*Vp;
 
-        dp = d0[itype][jtype]*pow(lambda[itype][jtype],power);
+        dp = d0[itype][jtype]*powint(lambda[itype][jtype],nlambda);
         
         fpair = dp*2.0*Vp2*( Vp - 1.0 );
         fpair *= factor_lj*Vpp/r;
@@ -183,11 +185,10 @@ void PairMorseSoft::coeff(int narg, char **arg)
 
 void PairMorseSoft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  power = force->inumeric(FLERR,arg[0]);
-  scale = force->numeric(FLERR,arg[1]);
-  cut_global = force->numeric(FLERR,arg[2]);
+  nlambda = force->inumeric(FLERR,arg[0]);
+  cut_global = force->numeric(FLERR,arg[1]);
 
   // reset cutoffs that have been explicitly set
 
@@ -327,7 +328,7 @@ double PairMorseSoft::single(int i, int j, int itype, int jtype, double rsq,
   Vpp = alpha[itype][jtype]*dexp;
   Vp2 = Vp*Vp;
 
-  dp = d0[itype][jtype]*pow(lambda[itype][jtype],power);
+  dp = d0[itype][jtype]*powint(lambda[itype][jtype],nlambda);
 
   fforce = dp*2.0*Vp2*( Vp - 1.0 );
   fforce *= factor_lj*Vpp;

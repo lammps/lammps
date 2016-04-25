@@ -13,19 +13,33 @@ pair_style morse/omp command :h3
 pair_style morse/opt command :h3
 pair_style morse/smooth/linear command :h3
 pair_style morse/smooth/linear/omp command :h3
+pair_style morse/soft command :h3
 
 [Syntax:]
 
-pair_style morse cutoff :pre
+pair_style style args :pre
 
-cutoff = global cutoff for Morse interactions (distance units) :ul
+style = {morse} or {morse/smooth/linear} or {morse/soft}
+args = list of arguments for a particular style :ul
+ {morse} args = cutoff
+   cutoff = global cutoff for Morse interactions (distance units)
+ {morse/smooth/linear} args = cutoff
+   cutoff = global cutoff for Morse interactions (distance units)
+ {morse/soft} args = n alpha cutoff
+   n, alpha = soft-core parameters
+   cutoff = global cutoff for Morse interactions (distance units)
+:pre
 
 [Examples:]
 
 pair_style morse 2.5
 pair_style morse/smooth/linear 2.5
 pair_coeff * * 100.0 2.0 1.5
-pair_coeff 1 1 100.0 2.0 1.5 3.0 :pre
+pair_coeff 1 1 100.0 2.0 1.5 3.0
+
+pair_style morse/soft 2.0 0.5 10.0
+pair_coeff * * 100.0 2.0 1.5 1.0
+pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0 :pre
 
 [Description:]
 
@@ -44,6 +58,7 @@ commands:
 D0 (energy units)
 alpha (1/distance units)
 r0 (distance units)
+lamda (unitless, only for {morse/soft})
 cutoff (distance units) :ul
 
 The last coefficient is optional.  If not specified, the global morse
@@ -51,11 +66,23 @@ cutoff is used. :ul
 
 :line
 
-The {smooth/linear} variant is similar to the lj/smooth/linear variant
-in that it adds to the potential a shift and a linear term to make both
-the potential energy and force go to zero at the cut-off:
+The {morse/smooth/linear} variant is similar to the lj/smooth/linear
+variant in that it adds to the potential a shift and a linear term
+so that both, potential energy and force, go to zero at the cut-off:
 
 :c,image(Eqs/pair_morse_smooth_linear.jpg)
+
+The syntax of the pair_style and pair_coeff commands are the same for
+the {morse} and {morse/smooth/linear} styles.
+
+:line
+
+The {morse/soft} variant is similar to the {lj/cut/soft} pair style
+in that it modifies the potential at short range to have a soft core.
+This helps to avoid singularities during free energy calculation in
+which sites are created or anihilated "(Beutler)"_#Beutler,
+
+:c,image(Eqs/pair_morse_soft.jpg)
 
 The syntax of the pair_style and pair_coeff commands are the same for
 the {morse} and {morse/smooth/linear} styles.

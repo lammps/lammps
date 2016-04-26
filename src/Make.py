@@ -14,6 +14,7 @@ import sys,os,commands,re,copy,subprocess
 # make classes = makefile options with no defaults
 # setargs = makefile settings
 # actionargs = allowed actions (also lib-dir and machine)
+# lib build flags are set if lib is built, for use with zoutput
 
 abbrevs = "adhjmoprsvz"
 
@@ -26,6 +27,8 @@ makeclasses = ("cc","flags","mpi","fft","jpg","png")
 
 setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall")
 actionargs = ("lib-all","file","clean","exe")
+
+gpubuildflag = 0
 
 # ----------------------------------------------------------------
 # functions
@@ -360,8 +363,8 @@ class Actions:
             make.addvar("CCFLAGS","-ansi-alias")
           if compile_check(compiler,"-xAVX",1):
             make.addvar("CCFLAGS","-xAVX")
-          if compile_check(compiler,"--fpmodel fast=2",1):
-            make.addvar("CCFLAGS","--fpmodel fast=2")
+          if compile_check(compiler,"-fp-model fast=2",1):
+            make.addvar("CCFLAGS","-fp-model fast=2")
           if compile_check(compiler,"-no-prec-div",1):
             make.addvar("CCFLAGS","-no-prec-div")
           if compile_check(compiler,"-override-limits",1):
@@ -418,14 +421,18 @@ class Actions:
           make.delvar("KOKKOS_DEVICES","*")
           make.delvar("KOKKOS_ARCH","*")
           make.addvar("KOKKOS_DEVICES","OpenMP","lmp")
+          if kokkos.archcpu:
+            make.addvar("KOKKOS_ARCH",kokkos.archcpu,"lmp")
         elif kokkos.mode == "cuda":
           make.delvar("KOKKOS_DEVICES","*")
           make.delvar("KOKKOS_ARCH","*")
           make.addvar("KOKKOS_DEVICES","Cuda, OpenMP","lmp")
-          if kokkos.arch[0] == "3":
-            make.addvar("KOKKOS_ARCH","Kepler" + kokkos.arch,"lmp")
-          elif kokkos.arch[0] == "2":
-            make.addvar("KOKKOS_ARCH","Fermi" + kokkos.arch,"lmp")
+          if kokkos.archgpu:
+            if kokkos.archgpu[0] == "3": value = "Kepler" + kokkos.archgpu
+            elif kokkos.archgpu[0] == "2": value = "Fermi" + kokkos.archgpu
+            else: error("Unrecognized Kokkos archgpu setting")
+          if kokkos.archcpu: value += ", %s" % kokkos.archcpu
+          make.addvar("KOKKOS_ARCH",value,"lmp")
         elif kokkos.mode == "phi":
           make.delvar("KOKKOS_DEVICES","*")
           make.delvar("KOKKOS_ARCH","*")
@@ -997,7 +1004,9 @@ class Zoutput:
     return """
 -z machine
   copy created/used src/MAKE/MINE/Makefile.auto to Makefile.machine in same dir
-  this can be used to preserve the machine makefile
+  copy created/used lib/*/Makefile.auto and lib/*/Makefile.lammps to
+    Makefile_lib.machine and Makefile_lib_lammps.machine in same dir
+  this can be used to preserve the machine Makefile and lib Makefiles
 """
 
   def check(self):
@@ -1266,6 +1275,8 @@ class GPU:
         error("-gpu args are invalid")
 
   def build(self):
+    global gpubuildflag
+    gpubuildflag = 1
     libdir = dir.lib + "/gpu"
     make = MakeReader("%s/Makefile.%s" % (libdir,self.make))
     if self.modeflag:
@@ -1660,17 +1671,21 @@ class Kokkos:
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.mode = ""
-    self.archflag = 0
+    self.archgpu = None
+    self.archcpu = None
     
   def help(self):
     return """
--kokkos mode arch=N
+-kokkos mode archgpu=N archcpu=SNB
   mode is not optional, arch is optional
   mode = omp or cuda or phi (def = KOKKOS_DEVICES setting in Makefile )
     build Kokkos package for omp or cuda or phi
     sets KOKKOS_DEVICES to "OpenMP" (omp, phi) or "Cuda, OpenMP" (cuda)
-  arch = number like 35 (Kepler) or 21 (Fermi)
-    sets KOKKOS_ARCH to appropriate value
+  archgpu = number like 35 (Kepler) or 21 (Fermi) (def = none)
+    sets KOKKOS_ARCH for GPU to appropriate value
+  archcpu = SNB or HSW or BGQ or Power7 or Power8 (def = none)
+    for CPU = SandyBridge, Haswell, BGQ, Power7, Power8
+    sets KOKKOS_ARCH for GPU to appropriate value
 """
 
   def check(self):
@@ -1686,9 +1701,8 @@ class Kokkos:
     for one in self.inlist[1:]:
       words = one.split('=')
       if len(words) != 2: error("-kokkos args are invalid")
-      if words[0] == "arch":
-        self.arch = words[1]
-        self.archflag = 1
+      if words[0] == "archgpu": self.archgpu = words[1]
+      elif words[0] == "archcpu": self.archcpu = words[1]
       else: error("-kokkos args are invalid")
       
 # ----------------------------------------------------------------
@@ -2295,14 +2309,26 @@ while 1:
     print "Created lmp_%s in %s" % (output.machine,dir.cwd)
 
   # create copy of Makefile.auto if requested, and file or exe action performed
-
+  # ditto for library Makefile.auto and Makefile.lammps files
+    
   if zoutput and actions and \
         ("file" in actions.alist or "exe" in actions.alist):
     txt = "cp %s/MAKE/MINE/Makefile.auto %s/MAKE/MINE/Makefile.%s" % \
         (dir.src,dir.src,zoutput.machine)
     commands.getoutput(txt)
     print "Created Makefile.%s in %s/MAKE/MINE" % (zoutput.machine,dir.src)
-
+    if gpubuildflag:
+      txt = "cp %s/gpu/Makefile.auto %s/MAKE/MINE/Makefile_gpu.%s" % \
+          (dir.lib,dir.src,zoutput.machine)
+      commands.getoutput(txt)
+      print "Created Makefile_gpu.%s in %s/MAKE/MINE" % \
+          (zoutput.machine,dir.src)
+      txt = "cp %s/gpu/Makefile.lammps %s/MAKE/MINE/Makefile_gpu_lammps.%s" % \
+          (dir.lib,dir.src,zoutput.machine)
+      commands.getoutput(txt)
+      print "Created Makefile_gpu_lammps.%s in %s/MAKE/MINE" % \
+          (zoutput.machine,dir.src)
+      
   # write current Make.py command to src/Make.py.last
 
   fp = open("%s/Make.py.last" % dir.src,'w')

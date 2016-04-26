@@ -34,6 +34,7 @@ class FixMomentum : public Fix {
  private:
   int linear,angular,rescale;
   int xflag,yflag,zflag;
+  int dynamic;
   double masstotal;
 };
 

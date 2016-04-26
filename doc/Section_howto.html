@@ -2035,9 +2035,9 @@ formalism.</p>
 </div>
 <div class="section" id="calculating-viscosity">
 <span id="howto-21"></span><h2>6.21. Calculating viscosity<a class="headerlink" href="#calculating-viscosity" title="Permalink to this headline">¶</a></h2>
-<p>The shear viscosity eta of a fluid can be measured in at least 4 ways
+<p>The shear viscosity eta of a fluid can be measured in at least 5 ways
 using various options in LAMMPS.  See the examples/VISCOSITY directory
-for scripts that implement the 4 methods discussed here for a simple
+for scripts that implement the 5 methods discussed here for a simple
 Lennard-Jones fluid model.  Also, see <a class="reference internal" href="#howto-20"><span>this section</span></a> of the manual for an analogous
 discussion for thermal conductivity.</p>
 <p>Eta is a measure of the propensity of a fluid to transmit momentum in
@@ -2076,7 +2076,7 @@ The fix tallies the cummulative momentum transfer that it performs.
 See the <a class="reference internal" href="fix_viscosity.html"><em>fix viscosity</em></a> command for details.</p>
 <p>The fourth method is based on the Green-Kubo (GK) formula which
 relates the ensemble average of the auto-correlation of the
-stress/pressure tensor to eta.  This can be done in a steady-state
+stress/pressure tensor to eta.  This can be done in a fully
 equilibrated simulation which is in contrast to the two preceding
 non-equilibrium methods, where momentum flows continuously through the
 simulation box.</p>
@@ -2152,6 +2152,12 @@ variable     ndens equal count(all)/vol
 print        &quot;average viscosity: $v [Pa.s/** @ $T K, ${ndens} /A^3&quot;
 </pre></div>
 </div>
+<p>The fifth method is related to the above Green-Kubo method,
+but uses the Einstein formulation, analogous to the Einstein
+mean-square-displacement formulation for self-diffusivity. The
+time-integrated momentum fluxes play the role of Cartesian
+coordinates, whose mean-square displacement increases linearly
+with time at sufficiently long times.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="calculating-a-diffusion-coefficient">

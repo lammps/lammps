@@ -2183,9 +2183,9 @@ formalism.
 Calculating viscosity
 ---------------------
 
-The shear viscosity eta of a fluid can be measured in at least 4 ways
+The shear viscosity eta of a fluid can be measured in at least 5 ways
 using various options in LAMMPS.  See the examples/VISCOSITY directory
-for scripts that implement the 4 methods discussed here for a simple
+for scripts that implement the 5 methods discussed here for a simple
 Lennard-Jones fluid model.  Also, see :ref:`this section <howto_20>` of the manual for an analogous
 discussion for thermal conductivity.
 
@@ -2231,7 +2231,7 @@ See the :doc:`fix viscosity <fix_viscosity>` command for details.
 
 The fourth method is based on the Green-Kubo (GK) formula which
 relates the ensemble average of the auto-correlation of the
-stress/pressure tensor to eta.  This can be done in a steady-state
+stress/pressure tensor to eta.  This can be done in a fully
 equilibrated simulation which is in contrast to the two preceding
 non-equilibrium methods, where momentum flows continuously through the
 simulation box.
@@ -2319,6 +2319,13 @@ liquid Ar via the GK formalism:
    variable     v equal (v_v11+v_v22+v_v33)/3.0
    variable     ndens equal count(all)/vol
    print        "average viscosity: $v [Pa.s/** @ $T K, ${ndens} /A^3"
+
+The fifth method is related to the above Green-Kubo method,
+but uses the Einstein formulation, analogous to the Einstein
+mean-square-displacement formulation for self-diffusivity. The
+time-integrated momentum fluxes play the role of Cartesian
+coordinates, whose mean-square displacement increases linearly
+with time at sufficiently long times.
 
 
 ----------

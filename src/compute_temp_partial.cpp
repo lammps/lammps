@@ -41,8 +41,8 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   xflag = force->inumeric(FLERR,arg[3]);
   yflag = force->inumeric(FLERR,arg[4]);
   zflag = force->inumeric(FLERR,arg[5]);
-  if ((xflag != 0) && (xflag != 1) && (yflag !=0) && (yflag !=1)
-      && (zflag !=0) && (zflag != 1))
+  if ((xflag != 0 && xflag != 1) || (yflag != 0 && yflag != 1)
+      || (zflag != 0 && zflag != 1))
     error->all(FLERR,"Illegal compute temp/partial command");
   if (zflag && domain->dimension == 2)
     error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");

@@ -72,6 +72,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
+  noinit = 0;
   fp = NULL;
 }
 

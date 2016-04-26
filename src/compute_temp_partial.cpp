@@ -41,6 +41,9 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   xflag = force->inumeric(FLERR,arg[3]);
   yflag = force->inumeric(FLERR,arg[4]);
   zflag = force->inumeric(FLERR,arg[5]);
+  if ((xflag != 0) && (xflag != 1) && (yflag !=0) && (yflag !=1)
+      && (zflag !=0) && (zflag != 1))
+    error->all(FLERR,"Illegal compute temp/partial command");
   if (zflag && domain->dimension == 2)
     error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");
 
@@ -77,7 +80,11 @@ void ComputeTempPartial::dof_compute()
   natoms_temp = group->count(igroup);
   int nper = xflag+yflag+zflag;
   dof = nper * natoms_temp;
-  dof -= (1.0*nper/domain->dimension)*fix_dof + extra_dof;
+  // we do not know about extra_dof. this keeps DOFs from fix_modify as is.
+  dof -= (1.0*nper/domain->dimension)*fix_dof
+         + (extra_dof-domain->dimension) + nper;
+  // alternative: distribute extra dofs evenly across dimensions
+  // dof -= (1.0*nper/domain->dimension)*(fix_dof + extra_dof);
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }

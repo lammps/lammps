@@ -360,8 +360,8 @@ class Actions:
             make.addvar("CCFLAGS","-ansi-alias")
           if compile_check(compiler,"-xAVX",1):
             make.addvar("CCFLAGS","-xAVX")
-          if compile_check(compiler,"-fpmodel fast=2",1):
-            make.addvar("CCFLAGS","-fpmodel fast=2")
+          if compile_check(compiler,"--fpmodel fast=2",1):
+            make.addvar("CCFLAGS","--fpmodel fast=2")
           if compile_check(compiler,"-no-prec-div",1):
             make.addvar("CCFLAGS","-no-prec-div")
           if compile_check(compiler,"-override-limits",1):

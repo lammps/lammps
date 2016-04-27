@@ -54,7 +54,7 @@ int Tokenize( char* s, char*** tok )
 }
 
 /* safe malloc */
-void *smalloc( long n, const char *name, MPI_Comm comm )
+void *smalloc( rc_bigint n, const char *name, MPI_Comm comm )
 {
   void *ptr;
 
@@ -77,19 +77,19 @@ void *smalloc( long n, const char *name, MPI_Comm comm )
 
 
 /* safe calloc */
-void *scalloc( int n, int size, const char *name, MPI_Comm comm )
+void *scalloc( rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
 {
   void *ptr;
 
   if( n <= 0 ) {
-    fprintf( stderr, "WARNING: trying to allocate %d elements for array %s. ",
+    fprintf( stderr, "WARNING: trying to allocate %ld elements for array %s. ",
              n, name );
     fprintf( stderr, "returning NULL.\n" );
     return NULL;
   }
 
   if( size <= 0 ) {
-    fprintf( stderr, "WARNING: elements size for array %s is %d. ",
+    fprintf( stderr, "WARNING: elements size for array %s is %ld. ",
              name, size );
     fprintf( stderr, "returning NULL.\n" );
     return NULL;

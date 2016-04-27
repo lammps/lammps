@@ -68,8 +68,9 @@ typedef double rvec2[2];
 typedef double rvec4[4];
 
 
-// import LAMMPS' definition of tagint
+// import LAMMPS' definition of tagint and bigint
 typedef LAMMPS_NS::tagint rc_tagint;
+typedef LAMMPS_NS::bigint rc_bigint;
 
 typedef struct
 {
@@ -383,7 +384,8 @@ struct _reax_system
 {
   reax_interaction reax_param;
 
-  int              n, N, bigN, numH;
+  rc_bigint        bigN;
+  int              n, N, numH;
   int              local_cap, total_cap, gcell_cap, Hcap;
   int              est_recv, est_trans, max_recved;
   int              wsize, my_rank, num_nbrs;

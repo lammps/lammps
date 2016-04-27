@@ -1,0 +1,23 @@
+{
+   <lammps_gnu_global_constructor_01>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib*/libstdc++.so.*
+   fun:call_init.part.0
+   fun:_dl_init
+   ...
+   obj:*
+}
+
+{
+   <lammps_gnu_openmp_init_01>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib*/libgomp.so.*
+   obj:/usr/lib*/libgomp.so.*
+   fun:omp_set_num_threads
+    ...
+   fun:main
+}

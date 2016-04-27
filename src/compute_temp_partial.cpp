@@ -80,11 +80,10 @@ void ComputeTempPartial::dof_compute()
   natoms_temp = group->count(igroup);
   int nper = xflag+yflag+zflag;
   dof = nper * natoms_temp;
-  // we do not know about extra_dof. this keeps DOFs from fix_modify as is.
-  dof -= (1.0*nper/domain->dimension)*fix_dof
-         + (extra_dof-domain->dimension) + nper;
-  // alternative: distribute extra dofs evenly across dimensions
-  // dof -= (1.0*nper/domain->dimension)*(fix_dof + extra_dof);
+
+  // distribute extra dofs evenly across active dimensions
+
+  dof -= (1.0*nper/domain->dimension)*(fix_dof + extra_dof);
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }

@@ -102,8 +102,8 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package omp command");
-      if (strcmp(arg[iarg]+1,"yes") == 0) _neighbor = true;
-      else if (strcmp(arg[iarg]+1,"no") == 0) _neighbor = false;
+      if (strcmp(arg[iarg+1],"yes") == 0) _neighbor = true;
+      else if (strcmp(arg[iarg+1],"no") == 0) _neighbor = false;
       else error->all(FLERR,"Illegal package omp command");
       iarg += 2;
     } else error->all(FLERR,"Illegal package omp command");

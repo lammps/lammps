@@ -718,11 +718,11 @@ void FixNH::setup(int vflag)
   t_current = temperature->compute_scalar();
   tdof = temperature->dof;
   
-  // t_target is needed by NPH and NPT in compute_scalar()
+  // t_target is needed by NVT and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
 
-  if (tstat_flag && strcmp(style,"nphug") != 0) {
+  if (tstat_flag && strstr(style,"nphug") == NULL) {
     compute_temp_target();
   } else if (pstat_flag) {
 

@@ -284,10 +284,10 @@ void PairReaxC::coeff( int nargs, char **args )
   fp = force->open_potential(file);
   if (fp != NULL)
     Read_Force_Field(fp, &(system->reax_param), control);
-  else if (comm->me == 0) {
+  else {
       char str[128];
       sprintf(str,"Cannot open ReaxFF potential file %s",file);
-      error->one(FLERR,str);
+      error->all(FLERR,str);
   }
 
   // read args that map atom types to elements in potential file

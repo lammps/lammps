@@ -29,7 +29,7 @@ namespace MathSpecial {
 
   // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
 
-  static inline double erfcx(const double x)
+  static inline double my_erfcx(const double x)
   {
     if (x >= 0.0) return erfcx_y100(400.0/(4.0+x));
     else return 2.0*exp(x*x) - erfcx_y100(400.0/(4.0-x));

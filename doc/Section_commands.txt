@@ -461,6 +461,7 @@ in the command's documentation.
 "units"_units.html,
 "variable"_variable.html,
 "velocity"_velocity.html,
+"write_coeff"_write_coeff.html,
 "write_data"_write_data.html,
 "write_dump"_write_dump.html,
 "write_restart"_write_restart.html :tb(c=6,ea=c)

@@ -69,8 +69,7 @@ Makefile.gpu                 GPU package, using default MPI
 Makefile.intel_cpu_intelmpi  USER-INTEL package for CPU with Intel MPI
 Makefile.intel_cpu_mpich     USER-INTEL package for CPU with MPICH
 Makefile.intel_cpu_openmpi   USER-INTEL package for CPU with OpenMPI
-Makefile.intel_phi           USER-INTEL package with Xeon Phi support
-Makefile.intel_knl           USER-INTEL package with KNL support
+Makefile.intel_coprocessor   USER-INTEL package with Xeon Phi support
 Makefile.knl                 USER-INTEL package with KNL support
 
 Makefile.kokkos_cuda_mpich   KOKKOS package with GPU support for MPICH

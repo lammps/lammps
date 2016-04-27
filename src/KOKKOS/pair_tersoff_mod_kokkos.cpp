@@ -46,8 +46,6 @@ using namespace MathConst;
 template<class DeviceType>
 PairTersoffMODKokkos<DeviceType>::PairTersoffMODKokkos(LAMMPS *lmp) : PairTersoffMOD(lmp)
 {
-  THIRD = 1.0/3.0;
-
   respa_enable = 0;
 
   atomKK = (AtomKokkos *) atom;

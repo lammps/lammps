@@ -33,8 +33,10 @@
 #include "memory.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -44,8 +46,6 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairSWKokkos<DeviceType>::PairSWKokkos(LAMMPS *lmp) : PairSW(lmp)
 {
-  THIRD = 1.0/3.0;
-
   respa_enable = 0;
 
 

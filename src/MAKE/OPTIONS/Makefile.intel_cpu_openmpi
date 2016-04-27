@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-OMPI_CXX :=     icc
+export OMPI_CXX = icc
 CC =		mpicxx
 OPTFLAGS =      -xAVX -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \

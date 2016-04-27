@@ -42,9 +42,12 @@ The *extra* keyword refers to how many degrees-of-freedom are
 subtracted (typically from 3N) as a normalizing factor in a
 temperature computation.  Only computes that compute a temperature use
 this option.  The default is 2 or 3 for :doc:`2d or 3d systems <dimension>` which is a correction factor for an ensemble
-of velocities with zero total linear momentum.  You can use a negative
-number for the *extra* parameter if you need to add
-degrees-of-freedom.  See the :doc:`compute temp/asphere <compute_temp_asphere>` command for an example.
+of velocities with zero total linear momentum. For compute temp/partial,
+if one or more velocity components are excluded, the value used for
+*extra* is scaled accordingly. You can use a negative number for
+the *extra* parameter if you need to add degrees-of-freedom.
+ See the :doc:`compute temp/asphere <compute_temp_asphere>` command
+for an example.
 
 The *dynamic* keyword determines whether the number of atoms N in the
 compute group is re-computed each time a temperature is computed.

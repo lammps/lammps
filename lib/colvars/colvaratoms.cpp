@@ -681,7 +681,7 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
                "If that happens, use refPositionsGroup (or a different definition for it if already defined) "
                "to align the coordinates.\n");
       // initialize rot member data
-      rot.request_group1_gradients(this->size());
+      rot.request_group1_gradients(group_for_fit->size());
     }
   }
 
@@ -778,9 +778,9 @@ int cvm::atom_group::calc_required_properties()
 void cvm::atom_group::calc_apply_roto_translation()
 {
   // store the laborarory-frame COGs for when they are needed later
-  cog_orig = cog;
+  cog_orig = this->center_of_geometry();
   if (ref_pos_group) {
-    ref_pos_group->cog_orig = ref_pos_group->cog;
+    ref_pos_group->cog_orig = ref_pos_group->center_of_geometry();
   }
 
   if (b_center) {
@@ -950,8 +950,6 @@ void cvm::atom_group::calc_fit_gradients()
 {
   if (b_dummy) return;
 
-  if ((!b_center) && (!b_rotate)) return; // no fit
-
   if (cvm::debug())
     cvm::log("Calculating fit gradients.\n");
 
@@ -962,12 +960,10 @@ void cvm::atom_group::calc_fit_gradients()
     cvm::rvector atom_grad;
 
     for (size_t i = 0; i < this->size(); i++) {
-      atom_grad += (-1.0)/(cvm::real(group_for_fit->size())) * atoms[i].grad;
+      atom_grad += atoms[i].grad;
     }
-
-    // need to use the gradients in original frame
-    // we only rotate the sum for efficiency
     if (b_rotate) atom_grad = (rot.inverse()).rotate(atom_grad);
+    atom_grad *= (-1.0)/(cvm::real(group_for_fit->size()));
 
     for (size_t j = 0; j < group_for_fit->size(); j++) {
       group_for_fit->fit_gradients[j] = atom_grad;
@@ -981,17 +977,16 @@ void cvm::atom_group::calc_fit_gradients()
 
     for (size_t i = 0; i < this->size(); i++) {
 
-      // restore original position for this atom
+      // compute centered, unrotated position
       cvm::atom_pos const pos_orig =
-        rot_inv.rotate((b_center ? (atoms[i].pos - ref_pos_cog) : (atoms[i].pos))) +
-        (ref_pos_group ? ref_pos_group->cog_orig : cog_orig);
+        rot_inv.rotate((b_center ? (atoms[i].pos - ref_pos_cog) : (atoms[i].pos)));
 
       // calculate \partial(R(q) \vec{x}_i)/\partial q) \cdot \partial\xi/\partial\vec{x}_i
       cvm::quaternion const dxdq =
         rot.q.position_derivative_inner(pos_orig, atoms[i].grad);
 
       for (size_t j = 0; j < group_for_fit->size(); j++) {
-        // multiply by \cdot {\partial q}/\partial\vec{x}_j and add it to the fit gradients
+        // multiply by {\partial q}/\partial\vec{x}_j and add it to the fit gradients
         for (size_t iq = 0; iq < 4; iq++) {
           group_for_fit->fit_gradients[j] += dxdq[iq] * rot.dQ0_1[j][iq];
         }
@@ -1148,17 +1143,9 @@ void cvm::atom_group::apply_colvar_force(cvm::real const &force)
 
     atom_group *group_for_fit = ref_pos_group ? ref_pos_group : this;
 
-    // add the contribution from the roto-translational fit to the gradients
-    if (b_rotate) {
-      // rotate forces back to the original frame
-      cvm::rotation const rot_inv = rot.inverse();
-      for (size_t j = 0; j < group_for_fit->size(); j++) {
-        (*group_for_fit)[j].apply_force(rot_inv.rotate(force * group_for_fit->fit_gradients[j]));
-      }
-    } else {
-      for (size_t j = 0; j < group_for_fit->size(); j++) {
-        (*group_for_fit)[j].apply_force(force * group_for_fit->fit_gradients[j]);
-      }
+    // Fit gradients are already calculated in "laboratory" frame
+    for (size_t j = 0; j < group_for_fit->size(); j++) {
+      (*group_for_fit)[j].apply_force(force * group_for_fit->fit_gradients[j]);
     }
   }
 

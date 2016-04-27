@@ -881,6 +881,7 @@ int colvar::calc_cvc_gradients(int first_cvc, size_t num_cvcs)
           cvcs[i]->atom_groups[ig]->calc_fit_gradients();
 
         if (cvcs[i]->is_enabled(f_cvc_debug_gradient)) {
+          cvm::log("Debugging gradients for " + cvcs[i]->description);
           cvcs[i]->debug_gradients(cvcs[i]->atom_groups[ig]);
         }
       }

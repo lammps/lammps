@@ -57,14 +57,14 @@ colvar::orientation::orientation(std::string const &conf)
   cvm::log("Centering the reference coordinates: it is "
             "assumed that each atom is the closest "
             "periodic image to the center of geometry.\n");
-  cvm::rvector cog(0.0, 0.0, 0.0);
+  cvm::rvector ref_cog(0.0, 0.0, 0.0);
   size_t i;
   for (i = 0; i < ref_pos.size(); i++) {
-    cog += ref_pos[i];
+    ref_cog += ref_pos[i];
   }
-  cog /= cvm::real(ref_pos.size());
+  ref_cog /= cvm::real(ref_pos.size());
   for (i = 0; i < ref_pos.size(); i++) {
-    ref_pos[i] -= cog;
+    ref_pos[i] -= ref_cog;
   }
 
   get_keyval(conf, "closestToQuaternion", ref_quat, cvm::quaternion(1.0, 0.0, 0.0, 0.0));
@@ -87,6 +87,7 @@ colvar::orientation::orientation()
 
 void colvar::orientation::calc_value()
 {
+  rot.b_debug_gradients = is_enabled(f_cvc_debug_gradient);
   atoms_cog = atoms->center_of_geometry();
 
   rot.calc_optimal_rotation(ref_pos, atoms->positions_shifted(-1.0 * atoms_cog));

@@ -1069,7 +1069,7 @@ std::ostream & colvarmodule::write_restart(std::ostream &os)
      << "  step " << std::setw(it_width)
      << it << "\n"
      << "  dt " << dt() << "\n"
-     // << "  version " << std::string(COLVARS_VERSION) << "\n"
+     << "  version " << std::string(COLVARS_VERSION) << "\n"
      << "}\n\n";
 
   cvm::increase_depth();
@@ -1420,7 +1420,7 @@ colvarproxy              *colvarmodule::proxy = NULL;
 
 
 // static runtime data
-cvm::real colvarmodule::debug_gradients_step_size = 1.0e-03;
+cvm::real colvarmodule::debug_gradients_step_size = 1.0e-07;
 int       colvarmodule::errorCode = 0;
 long      colvarmodule::it = 0;
 long      colvarmodule::it_restart = 0;

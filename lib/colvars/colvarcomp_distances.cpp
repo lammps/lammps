@@ -167,7 +167,7 @@ colvar::distance_z::distance_z(std::string const &conf)
   // this group is optional
   ref2 = parse_group(conf, "ref2", true);
 
-  if (ref2->size()) {
+  if (ref2 && ref2->size()) {
     cvm::log("Using axis joining the centers of mass of groups \"ref\" and \"ref2\"");
     fixed_axis = false;
     if (key_lookup(conf, "axis"))
@@ -249,15 +249,6 @@ void colvar::distance_z::calc_gradients()
         cvm::position_distance(main->center_of_mass(), ref1->center_of_mass()) + x.real_value * axis ));
     }
   }
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging gradients for group main:\n");
-    debug_gradients(main);
-    cvm::log("Debugging gradients for group ref1:\n");
-    debug_gradients(ref1);
-    cvm::log("Debugging gradients for group ref2:\n");
-    debug_gradients(ref2);
-  }
 }
 
 void colvar::distance_z::calc_force_invgrads()
@@ -282,7 +273,7 @@ void colvar::distance_z::apply_force(colvarvalue const &force)
   if (!ref1->noforce)
     ref1->apply_colvar_force(force.real_value);
 
-  if (ref2->size() && !ref2->noforce)
+  if (ref2 && ref2->size() && !ref2->noforce)
     ref2->apply_colvar_force(force.real_value);
 
   if (!main->noforce)
@@ -382,7 +373,7 @@ void colvar::distance_xy::apply_force(colvarvalue const &force)
   if (!ref1->noforce)
     ref1->apply_colvar_force(force.real_value);
 
-  if (ref2->size() && !ref2->noforce)
+  if (ref2 && ref2->size() && !ref2->noforce)
     ref2->apply_colvar_force(force.real_value);
 
   if (!main->noforce)
@@ -593,10 +584,6 @@ void colvar::distance_pairs::calc_value()
 void colvar::distance_pairs::calc_gradients()
 {
   // will be calculated on the fly in apply_force()
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging gradients:\n");
-    debug_gradients(group1);
-  }
 }
 
 void colvar::distance_pairs::apply_force(colvarvalue const &force)
@@ -667,11 +654,6 @@ void colvar::gyration::calc_gradients()
   for (cvm::atom_iter ai = atoms->begin(); ai != atoms->end(); ai++) {
     ai->grad = drdx * ai->pos;
   }
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging gradients:\n");
-    debug_gradients(atoms);
-  }
 }
 
 
@@ -731,11 +713,6 @@ void colvar::inertia::calc_gradients()
   for (cvm::atom_iter ai = atoms->begin(); ai != atoms->end(); ai++) {
     ai->grad = 2.0 * ai->pos;
   }
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging gradients:\n");
-    debug_gradients(atoms);
-  }
 }
 
 
@@ -786,11 +763,6 @@ void colvar::inertia_z::calc_gradients()
   for (cvm::atom_iter ai = atoms->begin(); ai != atoms->end(); ai++) {
     ai->grad = 2.0 * (ai->pos * axis) * axis;
   }
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging gradients:\n");
-    debug_gradients(atoms);
-  }
 }
 
 
@@ -811,7 +783,7 @@ colvar::rmsd::rmsd(std::string const &conf)
 
   atoms = parse_group(conf, "atoms");
 
-  if (atoms->size() == 0) {
+  if (!atoms || atoms->size() == 0) {
     cvm::error("Error: \"atoms\" must contain at least 1 atom to compute RMSD.");
     return;
   }
@@ -891,18 +863,11 @@ colvar::rmsd::rmsd(std::string const &conf)
     cvm::log("This is a standard minimum RMSD, derivatives of the optimal rotation "
               "will not be computed as they cancel out in the gradients.");
     atoms->b_fit_gradients = false;
-  }
-
-  if (atoms->b_rotate) {
-    // TODO: finer-grained control of this would require exposing a
-    // "request_Jacobian_derivative()" method to the colvar, and the same
-    // from the colvar to biases
-    // TODO: this should not be enabled here anyway, as it is not specific of the
-    // component - instead it should be decided in a generic way by the atom group
 
     // request the calculation of the derivatives of the rotation defined by the atom group
     atoms->rot.request_group1_gradients(atoms->size());
     // request derivatives of optimal rotation wrt reference coordinates for Jacobian:
+    // this is only required for ABF, but we do both groups here for better caching
     atoms->rot.request_group2_gradients(atoms->size());
   }
 }
@@ -929,11 +894,6 @@ void colvar::rmsd::calc_gradients()
 
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     (*atoms)[ia].grad = (drmsddx2 * 2.0 * ((*atoms)[ia].pos - ref_pos[ia]));
-  }
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging gradients:\n");
-    debug_gradients(atoms);
   }
 }
 
@@ -1031,7 +991,7 @@ colvar::eigenvector::eigenvector(std::string const &conf)
       cvm::log("Using reference positions from input file.\n");
       if (ref_pos.size() != atoms->size()) {
         cvm::error("Error: reference positions do not "
-                          "match the number of requested atoms->\n");
+                   "match the number of requested atoms.\n");
         return;
       }
     }
@@ -1064,9 +1024,14 @@ colvar::eigenvector::eigenvector(std::string const &conf)
     }
   }
 
+  if (ref_pos.size() == 0) {
+    cvm::error("Error: reference positions were not provided.\n", INPUT_ERROR);
+    return;
+  }
+
   if (ref_pos.size() != atoms->size()) {
-    cvm::error("Error: reference positions were not provided, or do not "
-                      "match the number of requested atoms->\n");
+    cvm::error("Error: reference positions do not "
+               "match the number of requested atoms.\n", INPUT_ERROR);
     return;
   }
 
@@ -1087,6 +1052,8 @@ colvar::eigenvector::eigenvector(std::string const &conf)
     atoms->b_rotate = true;
     atoms->ref_pos = ref_pos;
     atoms->center_ref_pos();
+    atoms->b_fit_gradients = false; // cancel out if group is fitted on itself
+                                    // and cvc is translationally invariant
 
     // request the calculation of the derivatives of the rotation defined by the atom group
     atoms->rot.request_group1_gradients(atoms->size());
@@ -1216,11 +1183,6 @@ void colvar::eigenvector::calc_gradients()
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     (*atoms)[ia].grad = eigenvec[ia];
   }
-
-  if (is_enabled(f_cvc_debug_gradient)) {
-    cvm::log("Debugging gradients:\n");
-    debug_gradients(atoms);
-  }
 }
 
 
@@ -1313,6 +1275,7 @@ colvar::cartesian::cartesian(std::string const &conf)
 
   if (axes.size() == 0) {
     cvm::error("Error: a \"cartesian\" component was defined with all three axes disabled.\n");
+    return;
   }
 
   x.type(colvarvalue::type_vector);

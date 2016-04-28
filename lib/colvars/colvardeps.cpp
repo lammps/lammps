@@ -355,6 +355,9 @@ void cvm::deps::init_cvc_requires() {
     f_description(f_cvc_inv_gradient, "inverse gradient");
     f_req_self(f_cvc_inv_gradient, f_cvc_gradient);
 
+    f_description(f_cvc_debug_gradient, "debug gradient");
+    f_req_self(f_cvc_debug_gradient, f_cvc_gradient);
+
     f_description(f_cvc_Jacobian, "Jacobian");
     f_req_self(f_cvc_Jacobian, f_cvc_inv_gradient);
 

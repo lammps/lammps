@@ -29,6 +29,7 @@
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
+#include "random_park.h"
 #include "respa.h"
 #include "universe.h"
 #include "update.h"

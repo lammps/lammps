@@ -10,7 +10,6 @@
 #include "lammps.h"
 #include "domain.h"
 #include "force.h"
-#include "random_park.h"
 #include "update.h"
 
 #include <string>

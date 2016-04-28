@@ -3184,12 +3184,11 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 
     if (done==0) {
       for (i=0; i<piCCdom[0][1]; i++)
-        if (Nij>=(double) i && Nij<=(double) i+1 || Nij==(double) i) x=i;
+        if (Nij>=(double) i && Nij<=(double) i+1) x=i;
       for (i=0; i<piCCdom[1][1]; i++)
-        if (Nji>=(double) i && Nji<=(double) i+1 || Nji==(double) i) y=i;
+        if (Nji>=(double) i && Nji<=(double) i+1) y=i;
       for (i=0; i<piCCdom[2][1]; i++)
-        if (Nijconj>=(double) i && Nijconj<=(double) i+1 ||
-            Nijconj==(double) i) z=i;
+        if (Nijconj>=(double) i && Nijconj<=(double) i+1) z=i;
 
       for (i=0; i<64; i++) coeffs[i]=piCC[x][y][z][i];
       piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
@@ -3199,7 +3198,7 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 
   // CH interaction
 
-  if (typei==0 && typej==1 || typei==1 && typej==0) {
+  if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
     // if the inputs are out of bounds set them back to a point in bounds
 
     if (Nij<piCHdom[0][0] || Nij>piCHdom[0][1] ||

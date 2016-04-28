@@ -160,9 +160,13 @@ all compute styles support all parameters.</p>
 subtracted (typically from 3N) as a normalizing factor in a
 temperature computation.  Only computes that compute a temperature use
 this option.  The default is 2 or 3 for <a class="reference internal" href="dimension.html"><em>2d or 3d systems</em></a> which is a correction factor for an ensemble
-of velocities with zero total linear momentum.  You can use a negative
-number for the <em>extra</em> parameter if you need to add
-degrees-of-freedom.  See the <a class="reference internal" href="compute_temp_asphere.html"><em>compute temp/asphere</em></a> command for an example.</p>
+of velocities with zero total linear momentum. For compute temp/partial,
+if one or more velocity components are excluded, the value used for
+<em>extra</em> is scaled accordingly. You can use a negative number for
+the <em>extra</em> parameter if you need to add degrees-of-freedom.</p>
+<blockquote>
+<div>See the <a class="reference internal" href="compute_temp_asphere.html"><em>compute temp/asphere</em></a> command</div></blockquote>
+<p>for an example.</p>
 <p>The <em>dynamic</em> keyword determines whether the number of atoms N in the
 compute group is re-computed each time a temperature is computed.
 Only compute styles that compute a temperature use this option.  By

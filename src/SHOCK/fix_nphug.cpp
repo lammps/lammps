@@ -231,7 +231,7 @@ void FixNPHug::setup(int vflag)
   rho0 = nktv2p*force->mvv2e*masstot/v0;
 
   t_target = 0.01;
-  ke_target = tdof * boltz * t_target;
+  ke_target = tdof*boltz*t_target;
 
   pe->addstep(update->ntimestep+1);
 }

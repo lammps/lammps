@@ -287,11 +287,10 @@ class Actions:
           else: wrapper = cc.wrap
           abbrev = cc.abbrev
           if abbrev == "mpi":
-            txt = commands.getoutput("mpicxx -show")
-            if "-lmpich" in txt:
+            if cc.parent == "mpich":
               make.addvar("CC","-cxx=%s" % wrapper)
               make.addvar("LINK","-cxx=%s" % wrapper)
-            elif "-lmpi" in txt:
+            elif cc.parent == "openmpi":
               make.addvar("export OMPI_CXX",wrapper,"cc")
               precompiler = "env OMPI_CXX=%s " % wrapper
             else: error("Could not add MPI wrapper compiler, " +
@@ -1665,10 +1664,11 @@ class Cc:
     self.inlist = copy.copy(list)
     self.compiler = self.abbrev = ""
     self.wrap = ""
+    self.parent = ""
 
   def help(self):
     return """
--cc compiler wrap=wcompiler
+-cc compiler wrap=wcompiler,parent
   alter CC setting in Makefile.auto
     only happens if new Makefile.auto is created by use of "file" action
   compiler is required, all other args are optional
@@ -1678,6 +1678,8 @@ class Cc:
     mpi by itself is changed to mpicxx
   wcompiler = compiler for mpi wrapper to use
     use nvcc for building for Kokkos/cuda with provided nvcc_wrapper
+  parent = openmpi or mpich
+    parent style determines syntax for setting low-level compiler
 """
 
   def check(self):
@@ -1699,9 +1701,12 @@ class Cc:
     for one in self.inlist[1:]:
       words = one.split('=')
       if len(words) != 2: error("-cc args are invalid")
+      args = words[1].split(',')
+      if len(args) != 2: error("-cc args are invalid")
       if words[0] == "wrap":
         if self.abbrev != "mpi": error("-cc compiler is not a wrapper")
-        self.wrap = words[1]
+        self.wrap = args[0]
+        self.parent = args[1]
       else: error("-cc args are invalid")
 
 # Flags class

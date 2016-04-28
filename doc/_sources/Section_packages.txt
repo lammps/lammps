@@ -119,8 +119,6 @@ name links to a sub-section below with more details.
 +------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
 | :ref:`VORONOI <VORONOI>`     | Voronoi tesselations                 | Daniel Schwen (LANL)                   | :doc:`compute voronoi/atom <compute_voronoi_atom>` | -         | Voro++     |
 +------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
-| :ref:`XTC <XTC>`             | dumps in XTC format                  | -                                      | :doc:`dump <dump>`                                 | -         | -          |
-+------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
 |                              |                                      |                                        |                                                    |           |            |
 +------------------------------+--------------------------------------+----------------------------------------+----------------------------------------------------+-----------+------------+
 
@@ -1499,42 +1497,6 @@ To un-install via make or Make.py:
    Make.py -p ^voronoi -a machine
 
 Supporting info: src/VORONOI/README, lib/voronoi/README, :doc:`compute voronoi/atom <compute_voronoi_atom>`, examples/voronoi
-
-
-----------
-
-
-.. _XTC:
-
-XTC package
-^^^^^^^^^^^
-
-Contents: A :doc:`dump xtc <dump>` command for writing snapshots in the
-XTC format used by the GROMACS MD package.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-xtc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p xtc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-xtc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^xtc -a machine
-
-Supporting info: :doc:`dump xtc <dump>`
 
 
 ----------

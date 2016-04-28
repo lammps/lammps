@@ -109,7 +109,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#snap-package">4.1.28. SNAP package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#srd-package">4.1.29. SRD package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#voronoi-package">4.1.30. VORONOI package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#xtc-package">4.1.31. XTC package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#user-packages">4.2. User packages</a><ul>
@@ -494,7 +493,7 @@ name links to a sub-section below with more details.</p>
 <td>python</td>
 <td>lib/python</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="Section_tools.html#reax"><span>REAX</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#reax"><span>REAX</span></a></td>
 <td>ReaxFF potential</td>
 <td>Aidan Thompson (Sandia)</td>
 <td><a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a></td>
@@ -576,23 +575,7 @@ name links to a sub-section below with more details.</p>
 </td>
 <td>Voro++</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#xtc"><span>XTC</span></a></td>
-<td>dumps in XTC format</td>
-<td><ul class="first last simple">
-<li></li>
-</ul>
-</td>
-<td><a class="reference internal" href="dump.html"><em>dump</em></a></td>
-<td><ul class="first last simple">
-<li></li>
-</ul>
-</td>
-<td><ul class="first last simple">
-<li></li>
-</ul>
-</td>
-</tr>
-<tr class="row-even"><td>&nbsp;</td>
+<tr class="row-odd"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -1564,29 +1547,6 @@ make machine
 </pre></div>
 </div>
 <p>Supporting info: src/VORONOI/README, lib/voronoi/README, <a class="reference internal" href="compute_voronoi_atom.html"><em>compute voronoi/atom</em></a>, examples/voronoi</p>
-<hr class="docutils" />
-</div>
-<div class="section" id="xtc-package">
-<span id="xtc"></span><h3>4.1.31. XTC package<a class="headerlink" href="#xtc-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="dump.html"><em>dump xtc</em></a> command for writing snapshots in the
-XTC format used by the GROMACS MD package.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-xtc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p xtc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-xtc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^xtc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="dump.html"><em>dump xtc</em></a></p>
 <hr class="docutils" />
 </div>
 </div>

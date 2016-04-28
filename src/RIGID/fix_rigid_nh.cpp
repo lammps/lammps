@@ -84,7 +84,7 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,
                "Cannot use fix rigid npt/nph on a non-periodic dimension");
 
-    if (pcouple == XYZ && dimension == 3 &&
+  if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))

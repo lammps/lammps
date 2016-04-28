@@ -36,6 +36,7 @@
 #define HEADER_LINE_LEN 62
 #define STR_LINE  "%-37s%-24s\n"
 #define INT_LINE  "%-37s%-24d\n"
+#define BIGINT_LINE  "%-37s%-24ld\n"
 #define INT2_LINE  "%-36s%-12d,%-12d\n"
 #define REAL_LINE "%-37s%-24.3f\n"
 #define SCI_LINE  "%-37s%-24g\n"

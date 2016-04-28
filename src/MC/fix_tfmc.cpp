@@ -78,8 +78,9 @@ FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
     if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 ||
         zflag < 0 || zflag > 1)
       error->all(FLERR,"Illegal fix tfmc command");
-    if (xflag + yflag + zflag == 0)
-      comflag = 0;
+
+  if (xflag + yflag + zflag == 0)
+    comflag = 0;
 
   if (rotflag) {
     xd = NULL;

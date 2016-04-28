@@ -97,7 +97,7 @@ void *scalloc( rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
 
   ptr = calloc( n, size );
   if( ptr == NULL ) {
-    fprintf( stderr, "ERROR: failed to allocate %d bytes for array %s",
+    fprintf( stderr, "ERROR: failed to allocate %ld bytes for array %s",
              n*size, name );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }

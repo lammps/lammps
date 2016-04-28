@@ -656,7 +656,7 @@ The *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and *xyz/mpiio* styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
 built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
 
-The *xtc* style is part of the XTC package.  It is only enabled if
+The *xtc* style is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.  This is
 because some machines may not support the low-level XDR data format
 that XTC files are written with, which will result in a compile-time

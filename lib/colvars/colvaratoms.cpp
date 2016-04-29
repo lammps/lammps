@@ -1148,7 +1148,6 @@ void cvm::atom_group::apply_colvar_force(cvm::real const &force)
       (*group_for_fit)[j].apply_force(force * group_for_fit->fit_gradients[j]);
     }
   }
-
 }
 
 
@@ -1182,39 +1181,6 @@ void cvm::atom_group::apply_force(cvm::rvector const &force)
   }
 }
 
-
-void cvm::atom_group::apply_forces(std::vector<cvm::rvector> const &forces)
-{
-  if (b_dummy)
-    return;
-
-  if (noforce)
-    cvm::error("Error: sending a force to a group that has "
-               "\"disableForces\" defined.\n");
-
-  if (forces.size() != this->size()) {
-    cvm::error("Error: trying to apply an array of forces to an atom "
-               "group which does not have the same length.\n");
-  }
-
-  if (b_rotate) {
-
-    cvm::rotation const rot_inv = rot.inverse();
-    cvm::atom_iter ai = this->begin();
-    std::vector<cvm::rvector>::const_iterator fi = forces.begin();
-    for ( ; ai != this->end(); ++fi, ++ai) {
-      ai->apply_force(rot_inv.rotate(*fi));
-    }
-
-  } else {
-
-    cvm::atom_iter ai = this->begin();
-    std::vector<cvm::rvector>::const_iterator fi = forces.begin();
-    for ( ; ai != this->end(); ++fi, ++ai) {
-      ai->apply_force(*fi);
-    }
-  }
-}
 
 // Static members
 

@@ -90,7 +90,6 @@ Package, Description, Author(s), Doc page, Example, Library
 "SNAP"_#SNAP, quantum-fit potential, Aidan Thompson (Sandia), "pair snap"_pair_snap.html, snap, -
 "SRD"_#SRD, stochastic rotation dynamics, -, "fix srd"_fix_srd.html, srd, -
 "VORONOI"_#VORONOI, Voronoi tesselations, Daniel Schwen (LANL), "compute voronoi/atom"_compute_voronoi_atom.html, -, Voro++
-"XTC"_#XTC, dumps in XTC format, -, "dump"_dump.html, -, -
 :tb(ea=c)
 
 The "Authors" column lists a name(s) if a specific person is
@@ -1135,29 +1134,6 @@ voronoi/atom"_compute_voronoi_atom.html, examples/voronoi
  
 :line
  
-XTC package :link(XTC),h5
-
-Contents: A "dump xtc"_dump.html command for writing snapshots in the
-XTC format used by the GROMACS MD package.
-
-To install via make or Make.py:
-
-make yes-xtc
-make machine :pre
-
-Make.py -p xtc -a machine :pre
-
-To un-install via make or Make.py:
-
-make no-xtc
-make machine :pre
-
-Make.py -p ^xtc -a machine :pre
-
-Supporting info: "dump xtc"_dump.html
- 
-:line
-
 4.2 User packages :h4,link(pkg_2)
 
 The current list of user-contributed packages is as follows:

@@ -682,13 +682,13 @@ with that package.  See the <a class="reference internal" href="Section_start.ht
 <p>The <em>atom/mpiio</em>, <em>cfg/mpiio</em>, <em>custom/mpiio</em>, and <em>xyz/mpiio</em> styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
 built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
-<p>The <em>xtc</em> style is part of the XTC package.  It is only enabled if
+<p>The <em>xtc</em> style is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.  This is
 because some machines may not support the low-level XDR data format
 that XTC files are written with, which will result in a compile-time
 error when a low-level include file is not found.  Putting this style
 in a package makes it easy to exclude from a LAMMPS build for those
-machines.  However, the XTC package also includes two compatibility
+machines.  However, the MISC package also includes two compatibility
 header files and associated functions, which should be a suitable
 substitute on machines that do not have the appropriate native header
 files.  This option can be invoked at build time by adding

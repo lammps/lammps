@@ -418,6 +418,7 @@ void FixPropertyAtom::grow_arrays(int nmax)
     } else if (style[m] == CHARGE) {
       memory->grow(atom->q,nmax,"atom:q");
       size_t nbytes = (nmax-nmax_old) * sizeof(double);
+      memset(&atom->q[nmax_old],0,nbytes);
     } else if (style[m] == RMASS) {
       memory->grow(atom->rmass,nmax,"atom:rmass");
       size_t nbytes = (nmax-nmax_old) * sizeof(double);

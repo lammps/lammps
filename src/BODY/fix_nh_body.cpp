@@ -104,7 +104,6 @@ void FixNHBody::nve_x()
   AtomVecBody::Bonus *bonus = avec->bonus;
   int *body = atom->body;
   double **angmom = atom->angmom;
-  double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

@@ -53,64 +53,70 @@ Description
 Calculate the dynamical matrix from molecular dynamics simulations
 based on fluctuation-dissipation theory for a group of atoms.
 
-Consider a crystal with *N* unit cells in three dimensions labelled *l
-= (l<sub>1</sub>,l<sub>2</sub>,l<sub>3</sub>)* where *l<sub>i</sub>*
+Consider a crystal with :math:`N` unit cells in three dimensions labelled :math:`l = (l_1, l_2, l_3)` where :math:`l_i`
 are integers.  Each unit cell is defined by three linearly independent
-vectors **a**<sub>1</sub>, **a**<sub>2</sub>, **a**<sub>3</sub> forming a
-parallelipiped, containing *K* basis atoms labelled *k*.
+vectors :math:`\mathbf{a}_1`, :math:`\mathbf{a}_2`, :math:`\mathbf{a}_3` forming a
+parallelipiped, containing :math:`K` basis atoms labeled :math:`k`.
 
 Based on fluctuation-dissipation theory, the force constant
 coefficients of the system in reciprocal space are given by
-(:ref:`Campa&ntilde;&aacute; <Campana>` , :ref:`Kong <Kong>`)
-<center><b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
-k<sub>B</sub>T
-<b>G</b><sup>-1</sup><sub>k&alpha;,k'&beta;</sub>(<b>q</b>),</center>
+(:ref:`Campana <Campana>` , :ref:`Kong <Kong>`)
 
-where **G** is the Green's functions coefficients given by
 
-.. raw:: html
+.. math::
 
-   <center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
-   <<b>u</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>u</b><sub>k'&beta;</sub><sup>*</sup>(<b>q</b>)>,</center>
+   \begin{equation}\mathbf{\Phi}_{k\alpha,k^\prime \beta}(\mathbf{q}) = k_B T \mathbf{G}^{-1}_{k\alpha,k^\prime \beta}(\mathbf{q})\end{equation}
 
-where <...> denotes the ensemble average, and
-<center>**u**<sub>k&alpha;</sub>(<b>q</b>) = &sum;<sub>l</sub>
-<b>u</b><sub>lk&alpha;</sub> exp(i**qr**<sub>l</sub>)</center>
+where :math:`\mathbf{G}` is the Green's functions coefficients given by
 
-is the &alpha; component of the atomic displacement for the *k*th atom
-in the unit cell in reciprocal space at **q**. In practice, the Green's
+
+.. math::
+
+   \begin{equation}\mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) = \left< \mathbf{u}_{k\alpha}(\mathbf{q}) \bullet \mathbf{u}_{k^\prime \beta}^*(\mathbf{q}) \right>\end{equation}
+
+where :math:`\left< \ldots \right>` denotes the ensemble average, and
+
+
+.. math::
+
+   \begin{equation}\mathbf{u}_{k\alpha}(\mathbf{q}) = \sum_l \mathbf{u}_{l k \alpha} \exp{(i\mathbf{qr}_l)}\end{equation}
+
+is the :math:`\alpha` component of the atomic displacement for the :math:`k` th atom
+in the unit cell in reciprocal space at :math:`\mathbf{q}`. In practice, the Green's
 functions coefficients can also be measured according to the following
 formula,
 
-.. raw:: html
 
-   <center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
-   <<b>R</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>R</b><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>)>
-   - <<b>R</b>><sub>k&alpha;</sub>(<b>q</b>)&#149;<<b>R</b>><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>),
-   </center>
+.. math::
 
-where **R** is the instantaneous positions of atoms, and <**R**> is the
+   \begin{equation}\mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) =
+   \left< \mathbf{R}_{k \alpha}(\mathbf{q}) \bullet \mathbf{R}^*_{k^\prime \beta}(\mathbf{q}) \right>
+   - \left<\mathbf{R}\right>_{k \alpha}(\mathbf{q}) \bullet \left<\mathbf{R}\right>^*_{k^\prime \beta}(\mathbf{q})\end{equation}
+
+where :math:`\mathbf{R}` is the instantaneous positions of atoms, and :math:`\left<\mathbf{R}\right>` is the
 averaged atomic positions. It gives essentially the same results as
 the displacement method and is easier to implement in an MD code.
 
-Once the force constant matrix is known, the dynamical matrix **D** can
+Once the force constant matrix is known, the dynamical matrix :math:`\mathbf{D}` can
 then be obtained by
 
-.. raw:: html
 
-   <center><b>D</b><sub>k&alpha;, k'&beta;</sub>(<b>q</b>) = (m<sub>k</sub>m<sub>k'</sub>)<sup>-1/2</sup> <b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>)</center>
+.. math::
 
-whose eigenvalues are exactly the phonon frequencies at **q**.
+   \begin{equation}\mathbf{D}_{k\alpha, k^\prime\beta}(\mathbf{q}) =
+   (m_k m_{k^\prime})^{-\frac{1}{2}} \mathbf{\Phi}_{k \alpha, k^\prime \beta}(\mathbf{q})\end{equation}
+
+whose eigenvalues are exactly the phonon frequencies at :math:`\mathbf{q}`.
 
 This fix uses positions of atoms in the specified group and calculates
 two-point correlations.  To achieve this. the positions of the atoms
 are examined every *Nevery* steps and are Fourier-transformed into
 reciprocal space, where the averaging process and correlation
 computation is then done.  After every *Noutput* measurements, the
-matrix **G**(**q**) is calculated and inverted to obtain the elastic
+matrix :math:`\mathbf{G}(\mathbf{q})` is calculated and inverted to obtain the elastic
 stiffness coefficients.  The dynamical matrices are then constructed
 and written to *prefix*.bin.timestep files in binary format and to the
-file *prefix*.log for each wavevector **q**.
+file *prefix*.log for each wavevector :math:`\mathbf{q}`.
 
 A detailed description of this method can be found in
 (:ref:`Kong2011 <Kong2011>`).
@@ -122,7 +128,7 @@ model a 2D or 3D system, the phonon dispersion of a 1D atomic chain
 can be computed using *sysdim* = 1.
 
 The *nasr* keyword is optional.  An iterative procedure is employed to
-enforce the acoustic sum rule on &Phi; at &Gamma;, and the number
+enforce the acoustic sum rule on :math:`\Phi` at :math:`\Gamma`, and the number
 provided by keyword *nasr* gives the total number of iterations. For a
 system whose unit cell has only one atom, *nasr* = 1 is sufficient;
 for other systems, *nasr* = 10 is typically sufficient.
@@ -202,19 +208,19 @@ the `dimension <dimension>`_ command, and nasr = 20.
 
 
 
-**(Campa&ntilde;&aacute;)** C. Campa&ntilde;&aacute; and
-M. H. M&uuml;ser, *Practical Green's function approach to the
+**(Campana)** C. Campana and
+M. H. Muser, *Practical Green's function approach to the
 simulation of elastic semi-infinite solids*, `Phys. Rev. B [74], 075420 (2006) <http://dx.doi.org/10.1103/PhysRevB.74.075420>`_
 
 .. _Kong:
 
 
 
-**(Kong)** L.T. Kong, G. Bartels, C. Campa&ntilde;&aacute;,
-C. Denniston, and Martin H. M&uuml;ser, *Implementation of Green's
+**(Kong)** L.T. Kong, G. Bartels, C. Campana,
+C. Denniston, and Martin H. Muser, *Implementation of Green's
 function molecular dynamics: An extension to LAMMPS*, `Computer Physics Communications [180](6):1004-1010 (2009). <http://dx.doi.org/10.1016/j.cpc.2008.12.035>`_
 
-L.T. Kong, C. Denniston, and Martin H. M&uuml;ser,
+L.T. Kong, C. Denniston, and Martin H. Muser,
 *An improved version of the Green's function molecular dynamics
 method*, `Computer Physics Communications [182](2):540-541 (2011). <http://dx.doi.org/10.1016/j.cpc.2010.10.006>`_
 

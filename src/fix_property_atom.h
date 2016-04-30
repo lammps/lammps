@@ -52,7 +52,7 @@ class FixPropertyAtom : public Fix {
 
  private:
   int nvalue,border;
-  int molecule_flag,q_flag;
+  int molecule_flag,q_flag,rmass_flag;
   int *style,*index;
   char *astyle;
 
